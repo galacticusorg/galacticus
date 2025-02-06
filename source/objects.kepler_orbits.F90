@@ -62,17 +62,21 @@ module Kepler_Orbits
   !!]
 
   type keplerOrbit
-     !!{
-     The structure used for describing orbits in \glc. This object will automatically convert from one set of orbital
-     parameters to another where possible. The orbiting bodies (a satellite orbiting around its host) are treated as point
-     masses, and the usual ``reduced mass'' framework is used, such that radii and velocities are measured relative to a
-     stationary host. Energy and angular momentum are defined per unit satellite mass (not per unit reduced mass). Note that
-     not all interconversions between elements are implemented. The object works by attempting to get the radial and tangential
-     velocities and the radius. If it can obtain these, any other parameter can be computed. Getting these three parameters
-     relies on having known conversions from other possible combinations of parameters. The position of the object is described
-     by $(r,\theta,\phi)$ in standard spherical coordinates. The direction of the tangential component is velocity is taken to
-     be the direction of the vector $\mathbf{r} \times \mathbf{\hat{e}}_\mathrm{z}$, rotated by an angle $\epsilon$ around the
-     vector $\mathbf{r}$.
+     !!{     
+     The structure used for describing orbits in \glc. This object will automatically convert from one set of orbital parameters
+     to another where possible. The orbiting bodies (a satellite orbiting around its host) are treated as point masses, and the
+     usual ``reduced mass'' framework is used, such that radii and velocities are measured relative to a stationary host. Energy
+     and angular momentum are defined per unit satellite mass (not per unit reduced mass). Note that not all interconversions
+     between elements are implemented. The object works by attempting to get the radial and tangential velocities and the
+     radius. If it can obtain these, any other parameter can be computed. Getting these three parameters relies on having known
+     conversions from other possible combinations of parameters. The position of the object is described by $(r,\theta,\phi)$ in
+     standard spherical coordinates. The direction of the tangential component is velocity is taken to be the direction of the
+     vector $\mathbf{r} \times \mathbf{\hat{e}}_\mathrm{z}$, rotated by an angle $\epsilon$ around the vector $\mathbf{r}$. In
+     cases where $\mathbf{r}$ is parallel to $\mathbf{\hat{e}}_\mathrm{z}$ we set $\epsilon=\pi/2$, since at some infinitesimally
+     later time, $\delta t$ the position vector will become $\mathbf{r} + \mathbf{v}\delta t$ such that the above cross product is
+     $(\mathbf{r} + \mathbf{v}\delta t) \times \mathbf{\hat{e}}_\mathrm{z} \propto \mathbf{v}_\mathrm{t} \times
+     \mathbf{\hat{e}}_\mathrm{z}$ where $\mathbf{v}_\mathrm{t}$ is the tangential component of the velocity vector, and, by
+     definition, we then must have $\epsilon=\pi/2$ as this vector is normal to $\mathbf{v}_\mathrm{t}$.
      !!}
      private
      double precision :: massHostValue        , specificReducedMassValue

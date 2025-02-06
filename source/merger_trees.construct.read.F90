@@ -3529,31 +3529,39 @@ contains
     !!{
     Construct a Keplerian orbit given body masses, positions, and relative velocities.
     !!}
-    use :: Kepler_Orbits, only : keplerOrbit
-    use :: Vectors      , only : Vector_Magnitude, Vector_Product
+    use :: Kepler_Orbits           , only : keplerOrbit
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Vectors                 , only : Vector_Magnitude, Vector_Product
     implicit none
     type            (keplerOrbit)                              :: orbit
     double precision                           , intent(in   ) :: mass1             , mass2
     double precision             , dimension(3), intent(in   ) :: position          , velocity
-    double precision             , dimension(3)                :: velocityTangential, velocityRadial  , &
-         &                                                        vectorEpsilon1    , vectorEpsilon2  , &
-         &                                                        vectorRadial 
-    double precision                                           :: positionMagnitude , velocityEpsilon1, &
-         &                                                        velocityEpsilon2
+    double precision             , dimension(3)                :: velocityTangential, velocityRadial   , &
+         &                                                        vectorEpsilon1    , vectorEpsilon2   , &
+         &                                                        vectorRadial
+    double precision                                           :: positionMagnitude , velocityEpsilon1 , &
+         &                                                        velocityEpsilon2  , epsilon1Magnitude, &
+         &                                                        epsilon
 
-    positionMagnitude =Vector_Magnitude(position)
-    vectorRadial      =+position          &
-         &             /positionMagnitude
-    velocityRadial    =+Dot_Product(velocity,position) &
-         &             *vectorRadial
-    velocityTangential=+velocity       &
-         &             -velocityRadial
-    vectorEpsilon1    =Vector_Product(vectorRadial  ,[0.0d0,0.0d0,1.0d0])
-    vectorEpsilon2    =Vector_Product(vectorEpsilon1,vectorRadial       )
-    vectorEpsilon1    =vectorEpsilon1/Vector_Magnitude(vectorEpsilon1)
-    vectorEpsilon2    =vectorEpsilon2/Vector_Magnitude(vectorEpsilon2)
-    velocityEpsilon1  =Dot_Product(velocityTangential,vectorEpsilon1)
-    velocityEpsilon2  =Dot_Product(velocityTangential,vectorEpsilon2)
+    positionMagnitude  =Vector_Magnitude(position)
+    vectorRadial       =+position          &
+         &              /positionMagnitude
+    velocityRadial     =+Dot_Product(velocity,position) &
+         &              *vectorRadial
+    velocityTangential =+velocity       &
+         &              -velocityRadial
+    vectorEpsilon1     =Vector_Product(vectorRadial  ,[0.0d0,0.0d0,1.0d0])
+    epsilon1Magnitude=Vector_Magnitude(vectorEpsilon1)
+    if (epsilon1Magnitude > 0.0d0) then
+       vectorEpsilon2  =Vector_Product(vectorEpsilon1,vectorRadial       )
+       vectorEpsilon1  =vectorEpsilon1/Vector_Magnitude(vectorEpsilon1)
+       vectorEpsilon2  =vectorEpsilon2/Vector_Magnitude(vectorEpsilon2)
+       velocityEpsilon1=Dot_Product(velocityTangential,vectorEpsilon1  )
+       velocityEpsilon2=Dot_Product(velocityTangential,vectorEpsilon2  )
+       epsilon         =atan2      (velocityEpsilon2  ,velocityEpsilon1)
+    else
+       epsilon         =Pi/2.0d0
+    end if
     call orbit%reset()
     call orbit%massesSet            (       &
          &                           mass1, &
@@ -3564,7 +3572,7 @@ contains
     call orbit%velocityTangentialSet(Vector_Magnitude(velocityTangential)                  )
     call orbit%thetaSet             (acos (position        (3)/positionMagnitude                    ))
     call orbit%phiSet               (atan2(position        (2)                  ,position        (1)))
-    call orbit%epsilonSet           (atan2(velocityEpsilon2                     ,velocityEpsilon1   ))
+    call orbit%epsilonSet           (epsilon                                                         )
     return
   end function readOrbitConstruct
 
