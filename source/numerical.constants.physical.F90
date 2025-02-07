@@ -29,60 +29,19 @@ module Numerical_Constants_Physical
   implicit none
   public
 
-  ! Speed of light (m/s).
   !![
-  <gslConstant variable="speedLight" gslSymbol="GSL_CONST_MKSA_SPEED_OF_LIGHT" gslHeader="gsl_const_mksa"/>
+  <constant variable="speedLight" gslSymbol="GSL_CONST_MKSA_SPEED_OF_LIGHT" gslHeader="gsl_const_mksa" symbol="\mathrm{c}" units="m/s" unitsInSI="1.0" description="The speed of light in vacuum." externalDescription="https://en.wikipedia.org/wiki/Speed_of_light" reference="Gnu Scientific Library" referenceURL="https://www.gnu.org/software/gsl/doc/html/const.html#c.GSL_CONST_MKSA_SPEED_OF_LIGHT" group="physical"/>
+  <constant variable="gravitationalConstant" gslSymbol="GSL_CONST_MKSA_GRAVITATIONAL_CONSTANT" gslHeader="gsl_const_mksa" symbol="\mathrm{G}" units="N m$^2$ kg$^{-2}$" unitsInSI="1.0" description="The gravitational constant." reference="Gnu Scientific Library" referenceURL="https://www.gnu.org/software/gsl/doc/html/const.html#c.GSL_CONST_MKSA_GRAVITATIONAL_CONSTANT" group="physical"/>
+  <constant variable="stefanBoltzmannConstant" gslSymbol="GSL_CONST_MKSA_STEFAN_BOLTZMANN_CONSTANT" gslHeader="gsl_const_mksa" symbol="\sigma" units="J/s/m$^2$/K$^4$" unitsInSI="1.0" description="The Stefan-Boltzmann constant." reference="Gnu Scientific Library" referenceURL="https://www.gnu.org/software/gsl/doc/html/const.html#c.GSL_CONST_MKSA_STEFAN_BOLTZMANN_CONSTANT" group="physical"/>
+  <constant variable="boltzmannsConstant" gslSymbol="GSL_CONST_MKSA_BOLTZMANN" gslHeader="gsl_const_mksa" symbol="\mathrm{k}" units="J/K" unitsInSI="1.0" description="Boltzmann's constant." reference="Gnu Scientific Library" referenceURL="https://www.gnu.org/software/gsl/doc/html/const.html#c.GSL_CONST_MKSA_BOLTZMANN" group="physical"/>
+  <constant variable="thomsonCrossSection" gslSymbol="GSL_CONST_MKSA_THOMSON_CROSS_SECTION" gslHeader="gsl_const_mksa" symbol="\sigma_\mathrm{T}" units="m/s" unitsInSI="1.0" description="The Thompson cross-section." reference="Gnu Scientific Library" referenceURL="https://www.gnu.org/software/gsl/doc/html/const.html#c.GSL_CONST_MKSA_THOMSON_CROSS_SECTION" group="physical"/>
+  <constant variable="electronMass" gslSymbol="GSL_CONST_MKSA_MASS_ELECTRON" gslHeader="gsl_const_mksa" symbol="\mathrm{m}_\mathrm{e}" units="kg" unitsInSI="1.0" description="The mass of an electron." reference="Gnu Scientific Library" referenceURL="https://www.gnu.org/software/gsl/doc/html/const.html#c.GSL_CONST_MKSA_MASS_ELECTRON" group="physical"/>
+  <constant variable="plancksConstant" gslSymbol="GSL_CONST_MKSA_PLANCKS_CONSTANT_H" gslHeader="gsl_const_mksa" symbol="\mathrm{h}" units="J s" unitsInSI="1.0" description="Planck's constant." reference="Gnu Scientific Library" referenceURL="https://www.gnu.org/software/gsl/doc/html/const.html#c.GSL_CONST_MKSA_PLANCKS_CONSTANT_H" group="physical"/>
+  <constant variable="electronCharge" gslSymbol="GSL_CONST_MKSA_ELECTRON_CHARGE" gslHeader="gsl_const_mksa" symbol="\mathrm{e}" units="C" unitsInSI="1.0" description="The charge of the electron." reference="Gnu Scientific Library" referenceURL="https://www.gnu.org/software/gsl/doc/html/const.html#c.GSL_CONST_MKSA_ELECTRON_CHARGE" group="physical"/>
+  <constant variable="fineStructure" gslSymbol="GSL_CONST_NUM_FINE_STRUCTURE" gslHeader="gsl_const_num" symbol="\alpha" units="dimensionless" unitsInSI="1.0" description="The electromagnetic fine structure constant." reference="Gnu Scientific Library" referenceURL="https://www.gnu.org/software/gsl/doc/html/const.html#c.GSL_CONST_NUM_FINE_STRUCTURE" group="physical"/>
+  <constant variable="permittivityFreeSpace" gslSymbol="GSL_CONST_MKSA_VACUUM_PERMITTIVITY" gslHeader="gsl_const_mksa" symbol="\epsilon_0" units="m/s" unitsInSI="1.0" description="The permittivity of free space." reference="Gnu Scientific Library" referenceURL="https://www.gnu.org/software/gsl/doc/html/const.html#c.GSL_CONST_MKSA_VACUUM_PERMITTIVITY" group="physical"/>
+  <constant variable="radiationConstant" value="4.0d0*stefanBoltzmannConstant/speedLight" symbol="a" units="J/m$^3$/K$^4$" unitsInSI="1.0" description="The radiation density constant." externalDescription="https://en.wikipedia.org/wiki/Stefan%E2%80%93Boltzmann_law#Energy_density" reference="Definition." group="physical"/>
+  <constant variable="electronRadius" value="1.0d0/(4.0d0*Pi*permittivityFreeSpace)*electronCharge**2/(electronMass*speedLight**2)" symbol="r_\mathrm{e}" units="m" unitsInSI="1.0" description="The classical electron radius." externalDescription="https://en.wikipedia.org/wiki/Classical_electron_radius" reference="Definition." group="physical"/>
   !!]
-
-  ! Newton's gravitational constant (in SI units).
-  !![
-  <gslConstant variable="gravitationalConstant" gslSymbol="GSL_CONST_MKSA_GRAVITATIONAL_CONSTANT" gslHeader="gsl_const_mksa"/>
-  !!]
-
-  ! Stefan-Boltzmann constant (in units of J/s/m²/K⁴).
-  !![
-  <gslConstant variable="stefanBoltzmannConstant" gslSymbol="GSL_CONST_MKSA_STEFAN_BOLTZMANN_CONSTANT" gslHeader="gsl_const_mksa"/>
-  !!]
-
-  ! Radiation constant (in units of J/m³/K⁴).
-  double precision, parameter :: radiationConstant              =4.0d0*stefanBoltzmannConstant/speedLight
-
-  ! Boltzmann's constant (in units of J/K).
-  !![
-  <gslConstant variable="boltzmannsConstant" gslSymbol="GSL_CONST_MKSA_BOLTZMANN" gslHeader="gsl_const_mksa"/>
-  !!]
-
-  ! Thomson cross section (in units of m²).
-  !![
-  <gslConstant variable="thomsonCrossSection" gslSymbol="GSL_CONST_MKSA_THOMSON_CROSS_SECTION" gslHeader="gsl_const_mksa"/>
-  !!]
-
-  ! Electron mass (in units of kg).
-  !![
-  <gslConstant variable="electronMass" gslSymbol="GSL_CONST_MKSA_MASS_ELECTRON" gslHeader="gsl_const_mksa"/>
-  !!]
-
-  ! Planck's constant (in units of J s).
-  !![
-  <gslConstant variable="plancksConstant" gslSymbol="GSL_CONST_MKSA_PLANCKS_CONSTANT_H" gslHeader="gsl_const_mksa"/>
-  !!]
-
-  ! Electron Charge (in units of C).
-  !![
-  <gslConstant variable="electronCharge" gslSymbol="GSL_CONST_MKSA_ELECTRON_CHARGE" gslHeader="gsl_const_mksa"/>
-  !!]
-
-  ! Permitivity of free space (in SI units).
-  !![
-  <gslConstant variable="eps0" gslSymbol="GSL_CONST_MKSA_VACUUM_PERMITTIVITY" gslHeader="gsl_const_mksa"/>
-  !!]
-
-  ! Fine structure constant (unitless)
-  !![
-  <gslConstant variable="fineStructure" gslSymbol="GSL_CONST_NUM_FINE_STRUCTURE" gslHeader="gsl_const_num"/>
-  !!]
-
-  ! Classical electron radius (m)
-  double precision, parameter :: electronRadius                 = 1.0d0 / (4.0d0 * Pi * eps0) * electronCharge**2 / (electronMass * speedLight**2)
 
 end module Numerical_Constants_Physical

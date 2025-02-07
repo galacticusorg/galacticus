@@ -200,7 +200,6 @@ contains
     if (useFrequencyOrbital) then
        radiusHalfMassSatellite  =     massDistribution_%radiusEnclosingMass (mass  =                                massHalfSatellite      )
        velocityCircularSatellite=     massDistribution_%rotationCurve       (radius=                          radiusHalfMassSatellite      )
-       useFrequencyOrbital      =radiusHalfMassSatellite > radiusHalfMassSatelliteTiny
        ! Compute the orbital frequency.
        orbitalFrequencySatellite =  +velocityCircularSatellite &
             &                       /radiusHalfMassSatellite   &

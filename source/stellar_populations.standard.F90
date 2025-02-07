@@ -395,7 +395,7 @@ contains
     type            (integratorCompositeGaussKronrod1D)                        :: integrator_
     integer                                                                    :: fileFormat        , iAge            , &
          &                                                                        iMetallicity      , loopCount       , &
-          &                                                                        loopCountTotal    , i
+         &                                                                        loopCountTotal    , i
     double precision                                                           :: maximumMass       , minimumMass     , &
          &                                                                        metallicity
     type            (hdf5Object                       )                        :: file              , dataset

@@ -7,7 +7,7 @@
 PPN=1
 FORCE=yes
 SUFFIX=
-DIR=./work/build
+DIR=./work/build/
 CLEAN=no
 
 # Get options.
@@ -59,6 +59,13 @@ fi
 ./scripts/doc/Code_Analyzer.pl source doc/source_documentation.tex
 if [ $? -ne 0 ]; then
  echo Failed to analyze source code
+ exit 1
+fi
+
+# Extract constants data.
+./scripts/doc/constants.pl $DIR doc/constants.tex
+if [ $? -ne 0 ]; then
+ echo Failed to extract constants data
  exit 1
 fi
 

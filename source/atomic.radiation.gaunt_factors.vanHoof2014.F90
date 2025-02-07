@@ -136,7 +136,7 @@ contains
     !!}
     use :: Error                       , only : Error_Report
     use :: Numerical_Constants_Physical, only : boltzmannsConstant
-    use :: Numerical_Constants_Units   , only : rydbergs
+    use :: Numerical_Constants_Units   , only : rydberg
     implicit none
     class           (gauntFactorVanHoof2014), intent(inout) :: self
     integer                                 , intent(in   ) :: atomicNumber, electronNumber
@@ -161,7 +161,7 @@ contains
             &             -electronNumber &
             &             +1              &
             &            )**2             &
-            &       *rydbergs             &
+            &       *rydberg              &
             &       /boltzmannsConstant   &
             &       /temperature
        g           =log10(gammaSquared)

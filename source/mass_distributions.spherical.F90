@@ -522,8 +522,6 @@ contains
     double precision                                   , dimension(:) , allocatable :: potentials                  , radii               , &
          &                                                                             potentials_                 , radii_
     double precision                                   , parameter                  :: countPointsPerOctave=4.0d+0
-    double precision                                   , parameter                  :: radiusMaximumFactor =1.0d+1
-    double precision                                   , parameter                  :: toleranceRelative   =1.0d-6
     type            (integrator                       )                             :: integrator_
     integer         (c_size_t                )                                      :: countRadii                  , iMinimum            , &
          &                                                                             iMaximum                    , iPrevious           , &
@@ -707,10 +705,9 @@ contains
     use :: Numerical_Comparison            , only : Values_Agree
     implicit none
     class           (massDistributionSpherical        ), intent(inout), target   :: self
-    class           (coordinate                       ), intent(in   )           :: coordinates1              , coordinates2
+    class           (coordinate                       ), intent(in   )           :: coordinates1            , coordinates2
     type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
-    double precision                                   , parameter               :: toleranceRelative  =1.0d-3
-    double precision                                   , parameter               :: radiusMaximumFactor=1.0d+1
+    double precision                                   , parameter               :: toleranceRelative=1.0d-3
     type            (integrator                       )                          :: integrator_
 
     if (present(status)) status=structureErrorCodeSuccess

@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <!-- Schema used to validate constant directives -->
+
+  <xs:element name="constant" type="xs:string">
+    <xs:attribute name="variable"            use="required"/>
+    <xs:attribute name="group"               use="optional"/>
+    <xs:attribute name="type"                use="optional"/>
+    <xs:attribute name="gslSymbol"           use="optional"/>
+    <xs:attribute name="gslHeader"           use="optional"/>
+    <xs:attribute name="value"               use="optional"/>
+    <xs:attribute name="members"             use="optional"/>
+    <xs:attribute name="symbol"              use="optional"/>
+    <xs:attribute name="description"         use="required"/>
+    <xs:attribute name="externalDescription" use="optional"/>
+    <xs:attribute name="units"               use="optional"/>
+    <xs:attribute name="unitsInSI"           use="optional"/>
+    <xs:attribute name="reference"           use="required"/>
+    <xs:attribute name="referenceURL"        use="optional"/>
+  </xs:element>
+  
+</xs:schema>

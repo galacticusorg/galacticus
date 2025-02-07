@@ -117,10 +117,10 @@ Implements an emission line luminosity node property extractor class.
    <description>Specifies the different interpolants for emission line calculations.</description>
    <indexing>1</indexing>
    <entry label="metallicity"/>
-   <entry label="density"  />
-   <entry label="hydrogen"  />
-   <entry label="helium"  />
-   <entry label="oxygen"  />
+   <entry label="density"    />
+   <entry label="hydrogen"   />
+   <entry label="helium"     />
+   <entry label="oxygen"     />
   </enumeration>
   !!]
 

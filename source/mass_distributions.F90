@@ -643,8 +643,7 @@ module Mass_Distributions
     <argument>class(coordinate           ), intent(in   ) :: coordinates              </argument>
     <argument>class(massDistributionClass), intent(inout) :: massDistributionEmbedding</argument>
     <code>
-      !$GLC attributes unused :: self, coordinates, massDistributionEmbedding
-      kinematicsDistributionVelocityDispersion1D=0.0d0
+      kinematicsDistributionVelocityDispersion1D=self%velocityDispersion1DNumerical(coordinates,massDistributionEmbedding)
     </code>
    </method>
    <method name="velocityDispersion1DNumerical" >
