@@ -141,22 +141,27 @@ contains
     call self%blackHoleAccretionRate_%rateAccretion(blackHole,rateAccretionSpheroid,rateAccretionHotHalo)
     rateAccretion=+rateAccretionSpheroid &
          &        +rateAccretionHotHalo
-    ! Compute coupling efficiency based on whether halo is cooling quasistatically.
-    radiusCoolingFractional=+self%coolingRadius_      %      radius(blackHole%hostNode) &
-         &                  /self%darkMatterHaloScale_%radiusVirial(blackHole%hostNode)
-    if      (radiusCoolingFractional < radiusCoolingFractionalTransitionMinimum) then
-       efficiencyCoupling=1.0d0
-    else if (radiusCoolingFractional > radiusCoolingFractionalTransitionMaximum) then
-       efficiencyCoupling=0.0d0
+    ! No heating for non-positive accretion rates.
+    if (rateAccretion > 0.0d0) then
+       ! Compute coupling efficiency based on whether halo is cooling quasistatically.
+       radiusCoolingFractional=+self%coolingRadius_      %      radius(blackHole%hostNode) &
+            &                  /self%darkMatterHaloScale_%radiusVirial(blackHole%hostNode)
+       if      (radiusCoolingFractional < radiusCoolingFractionalTransitionMinimum) then
+          efficiencyCoupling=1.0d0
+       else if (radiusCoolingFractional > radiusCoolingFractionalTransitionMaximum) then
+          efficiencyCoupling=0.0d0
+       else
+          x                 =     +(radiusCoolingFractional                 -radiusCoolingFractionalTransitionMinimum) &
+               &                  /(radiusCoolingFractionalTransitionMaximum-radiusCoolingFractionalTransitionMinimum)
+          efficiencyCoupling=x**2*(2.0d0*x-3.0d0)+1.0d0
+       end if
+       ! Compute the heating rate.
+       rateHeating=+     efficiencyCoupling    &
+            &      *self%efficiencyHeating     &
+            &      *     rateAccretion         &
+            &      *     speedLight**2/kilo**2
     else
-       x                 =     +(radiusCoolingFractional                 -radiusCoolingFractionalTransitionMinimum) &
-            &                  /(radiusCoolingFractionalTransitionMaximum-radiusCoolingFractionalTransitionMinimum)
-       efficiencyCoupling=x**2*(2.0d0*x-3.0d0)+1.0d0
+       rateHeating=+0.0d0
     end if
-    ! Compute the heating rate.
-    rateHeating=+     efficiencyCoupling    &
-         &      *self%efficiencyHeating     &
-         &      *     rateAccretion         &
-         &      *     speedLight**2/kilo**2
     return
   end function quasistaticHeatingRate
