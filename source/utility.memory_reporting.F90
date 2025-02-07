@@ -30,12 +30,17 @@ module Memory_Reporting
   !!}
   use            :: Error        , only : Error_Report
   use, intrinsic :: ISO_C_Binding, only : c_size_t    , c_int
+  use            :: Locks        , only : ompLock
   implicit none
   private
   public :: reportMemoryUsage
 
   ! Code memory size initialization status.
   logical           :: codeMemoryUsageInitialized =.false.
+
+  ! Lock used to coordinate memory reporting.
+  type   (ompLock ) :: memoryUsageLock
+  logical           :: memoryUsageLockInitialized =.false.
 
   ! Count of number of successive decreases in memory usage.
   integer           :: successiveDecreaseCount    =0
@@ -47,7 +52,7 @@ module Memory_Reporting
   integer(c_size_t) :: memoryUsageMaximum         =0
 
   ! Record of code size and available memory.
-  integer(c_size_t) :: memoryUsageCode                   , memoryAvailable
+  integer(c_size_t) :: memoryUsageCode                    , memoryAvailable
 
   ! Interface to getpagesize() function.
   interface
@@ -90,15 +95,24 @@ contains
     character       (len =2        )            :: suffix
     character       (len =7        )            :: label
     double precision                            :: memoryFraction
-      
-    !$omp critical(memoryUsageReport)
+
+    if (.not.memoryUsageLockInitialized) then
+       !$omp critical(memoryUsageReport)
+       if (.not.memoryUsageLockInitialized) then
+          memoryUsageLock           =ompLock()
+          memoryUsageLockInitialized=.true.
+       end if
+       !$omp end critical(memoryUsageReport)
+    end if
+    ! Attempt to get a lock to coordinate memory usage reporting - if the lock is held by another thread, just return (no need for
+    ! us to report memory also).
+    if (.not.memoryUsageLock%setNonBlocking()) return
     ! Ensure that we have the code memory usage.
     call codeUsageGet()
     ! Get the current memory usage.
     memoryUsage=+memoryUsageCode   &
          &      +mallinfo2_C    ()
     ! Record the maximum memory usage.
-    !$omp atomic
     memoryUsageMaximum=max(memoryUsageMaximum,memoryUsage)
     ! Decide whether to report.
     issueNewReport=.false.
@@ -143,7 +157,7 @@ contains
        ! Display the report.
        call displayMessage(usageText)
     end if
-    !$omp end critical(memoryUsageReport)
+    call memoryUsageLock%unset()
     return
   end subroutine reportMemoryUsage
 
