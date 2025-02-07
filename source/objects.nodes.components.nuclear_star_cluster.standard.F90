@@ -284,14 +284,14 @@ contains
     !!{
     Initializes the standard nuclear star cluster component module for each thread.
     !!}
-    use :: Events_Hooks                    , only : dependencyDirectionAfter , dependencyRegEx            , openMPThreadBindingAtLevel, &
-          &                                         postEvolveEvent          , satelliteMergerEvent       , mergerTreeExtraOutputEvent
+    use :: Events_Hooks                    , only : dependencyDirectionAfter       , dependencyRegEx            , openMPThreadBindingAtLevel, &
+          &                                         postEvolveEvent                , satelliteMergerEvent       , mergerTreeExtraOutputEvent
     use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : defaultNSCComponent
-    use :: Input_Parameters                , only : inputParameter           , inputParameters
-    use :: Mass_Distributions              , only : massDistributionSpherical, kinematicsDistributionLocal
-    use :: Node_Component_NSC_Standard_Data, only : massDistributionStellar_ , massDistributionGas_       , kinematicDistribution_                
-    use :: Galactic_Structure_Options      , only : componentTypeNSC         , massTypeStellar            , massTypeGaseous
+    use :: Input_Parameters                , only : inputParameter                 , inputParameters
+    use :: Mass_Distributions              , only : massDistributionSpherical      , kinematicsDistributionLocal
+    use :: Node_Component_NSC_Standard_Data, only : massDistributionStellar_       , massDistributionGas_       , kinematicDistribution_                
+    use :: Galactic_Structure_Options      , only : componentTypeNuclearStarCluster, massTypeStellar            , massTypeGaseous
     implicit none
     type            (inputParameters), intent(inout) :: parameters
     type            (dependencyRegEx), dimension(1)  :: dependencies
@@ -336,8 +336,8 @@ contains
        <deepCopyFinalize variables="massDistributionGas_"/>
        !!]
        !$omp end critical(NSCStandardDeepCopy)
-       call massDistributionStellar_%setTypes(componentTypeNSC,massTypeStellar)
-       call massDistributionGas_    %setTypes(componentTypeNSC,massTypeGaseous)
+       call massDistributionStellar_%setTypes(componentTypeNuclearStarCluster,massTypeStellar)
+       call massDistributionGas_    %setTypes(componentTypeNuclearStarCluster,massTypeGaseous)
        ! Construct the kinematic distribution
        allocate(kinematicDistribution_)
        !![
@@ -1277,7 +1277,6 @@ contains
      Update the star formation history after an output time is reached.
      !!}
      use            :: Galacticus_Nodes          , only : defaultNSCComponent, nodeComponentNSC, nodeComponentNSCStandard, treeNode
-     use            :: Galactic_Structure_Options, only : componentTypeNSC
      use            :: Histories                 , only : history
      use, intrinsic :: ISO_C_Binding             , only : c_size_t
      use            :: Kind_Numbers              , only : kind_int8

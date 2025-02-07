@@ -138,7 +138,7 @@ contains
       !!}
     use :: Galacticus_Nodes                , only : interruptTask                  , nodeComponentNSC, nodeComponentNSCStandard, propertyInactive, &
         &                                           nodeComponentBasic             , treeNode        
-    use :: Galactic_Structure_Options      , only : componentTypeNSC               , massTypeStellar
+    use :: Galactic_Structure_Options      , only : componentTypeNuclearStarCluster, massTypeStellar
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus, parsec          , megaParsec              , gigaYear
     use :: Numerical_Constants_Prefixes    , only : mega, kilo
@@ -165,7 +165,7 @@ contains
     NSC         => node%NSC  ()
     radiusNSC   =  self%radiusEfficiency*1.0d6*NSC%radius() !pc
     
-    massDistributionStellarNSC_ => node%massDistribution(componentType=componentTypeNSC, massType=massTypeStellar)
+    massDistributionStellarNSC_ => node%massDistribution(componentType=componentTypeNuclearStarCluster, massType=massTypeStellar)
     !Evaluates the radius in parsec.
     velocityNSC = massDistributionStellarNSC_%rotationCurve(radiusNSC*1.0e-6) 
     

@@ -27,7 +27,7 @@
   !![
   <nodeOperator name="nodeOperatorgasMassRateNSC">
     <description>
-      A node operator class that handle the gass mass rate in the nuclear star cluster using the model of
+      A node operator class that handle the gas mass rate in the nuclear star cluster using the model of
       \cite{antonini_coevolution_2015}.
     </description>
   </nodeOperator>

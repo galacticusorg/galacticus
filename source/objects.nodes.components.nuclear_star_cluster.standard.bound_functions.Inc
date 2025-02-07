@@ -78,11 +78,11 @@ function Node_Component_NSC_Standard_Mass_Distribution(self,componentType,massTy
   !!{
   Return the mass distribution for the standard nuclear star cluster component.
   !!}
-  use :: Mass_Distributions              , only : massDistributionClass    , massDistributionSphericalScaler, massDistributionComposite   , massDistributionList   , &
-        &                                         massDistributionSpherical, massDistributionMatches_
-  use :: Node_Component_NSC_Standard_Data, only : massDistributionStellar_ , massDistributionGas_           , kinematicDistribution_
-  use :: Galactic_Structure_Options      , only : componentTypeNSC         , massTypeStellar                , massTypeGaseous             , enumerationWeightByType, &
-       &                                          weightByMass             , weightByLuminosity             , enumerationComponentTypeType, enumerationMassTypeType
+  use :: Mass_Distributions              , only : massDistributionClass          , massDistributionSphericalScaler, massDistributionComposite   , massDistributionList   , &
+        &                                         massDistributionSpherical      , massDistributionMatches_
+  use :: Node_Component_NSC_Standard_Data, only : massDistributionStellar_       , massDistributionGas_           , kinematicDistribution_
+  use :: Galactic_Structure_Options      , only : componentTypeNuclearStarCluster, massTypeStellar                , massTypeGaseous             , enumerationWeightByType, &
+       &                                          weightByMass                   , weightByLuminosity             , enumerationComponentTypeType, enumerationMassTypeType
   implicit none
   class           (massDistributionClass          ), pointer                 :: massDistribution_
   class           (nodeComponentNSCStandard       ), intent(inout)           :: self
@@ -103,8 +103,8 @@ function Node_Component_NSC_Standard_Mass_Distribution(self,componentType,massTy
   !!]
   
   ! Determine which components of the spheroid to include.
-  includeGas  =massDistributionMatches_(componentTypeNSC,massTypeGaseous,componentType,massType) .and.  weightBy_ == weightByMass
-  includeStars=massDistributionMatches_(componentTypeNSC,massTypeStellar,componentType,massType) .and. (weightBy_ == weightByMass .or. weightBy_ == weightByLuminosity)  
+  includeGas  =massDistributionMatches_(componentTypeNuclearStarCluster,massTypeGaseous,componentType,massType) .and.  weightBy_ == weightByMass
+  includeStars=massDistributionMatches_(componentTypeNuclearStarCluster,massTypeStellar,componentType,massType) .and. (weightBy_ == weightByMass .or. weightBy_ == weightByLuminosity)  
   ! Get properties of the mass distribution and ensure they are physical.
   if      (weightBy_ == weightByMass      ) then
      massStellar       =  max (0.0d0,self        %massStellar        (           ))

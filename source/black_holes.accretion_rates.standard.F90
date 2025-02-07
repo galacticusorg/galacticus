@@ -204,9 +204,9 @@ contains
     !!}
     use :: Black_Hole_Fundamentals         , only : Black_Hole_Eddington_Accretion_Rate
     use :: Bondi_Hoyle_Lyttleton_Accretion , only : Bondi_Hoyle_Lyttleton_Accretion_Radius, Bondi_Hoyle_Lyttleton_Accretion_Rate
-    use :: Galactic_Structure_Options      , only : componentTypeColdHalo                 , componentTypeHotHalo                , componentTypeSpheroid, componentTypeNSC, &
+    use :: Galactic_Structure_Options      , only : componentTypeColdHalo                 , componentTypeHotHalo                , componentTypeSpheroid, componentTypeNuclearStarCluster, &
           &                                         coordinateSystemCylindrical           , massTypeGaseous
-    use :: Galacticus_Nodes                , only : nodeComponentBlackHole                , nodeComponentHotHalo                , nodeComponentSpheroid, nodeComponentNSC, &
+    use :: Galacticus_Nodes                , only : nodeComponentBlackHole                , nodeComponentHotHalo                , nodeComponentSpheroid, nodeComponentNSC               , &
           &                                         treeNode
     use :: Ideal_Gases_Thermodynamics      , only : Ideal_Gas_Jeans_Length                , Ideal_Gas_Sound_Speed
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr               , gigaYear                            , megaParsec
@@ -318,9 +318,9 @@ contains
                &                  )
          ! Set the position.
          coordinates                         = [radiusAccretion,0.0d0,0.0d0]
-         massDistributionNuclearStarCluster_ => node                               %massDistribution(componentTypeNSC,massTypeGaseous)
+         massDistributionNuclearStarCluster_ => node                               %massDistribution(componentTypeNuclearStarCluster,massTypeGaseous)
          ! Get density of gas at the galactic center.
-         densityGas                          =  massDistributionNuclearStarCluster_%density         (coordinates                     )
+         densityGas                          =  massDistributionNuclearStarCluster_%density         (coordinates                                    )
          ! Check if we have a non-negligible gas density.
          if (densityGas > densityGasMinimum) then
             lengthJeans=Ideal_Gas_Jeans_Length(self%bondiHoyleAccretionTemperatureNuclearStarCluster,densityGas)

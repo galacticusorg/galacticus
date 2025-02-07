@@ -176,7 +176,7 @@ contains
     Internal constructor for the {\normalfont \ttfamily sed} property extractor class.
     !!}
     use :: Atomic_Data                     , only : Abundance_Pattern_Lookup
-    use :: Galactic_Structure_Options      , only : componentTypeDisk       , componentTypeSpheroid, componentTypeNSC
+    use :: Galactic_Structure_Options      , only : componentTypeDisk       , componentTypeSpheroid, componentTypeNuclearStarCluster
     use :: Error                           , only : Error_Report
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
     implicit none
@@ -201,7 +201,7 @@ contains
          &  .and.                                                                                                          &
          &   component /= componentTypeSpheroid                                                                            &
          &  .and.                                                                                                          &
-         &   component /= componentTypeNSC                                                                                 &
+         &   component /= componentTypeNuclearStarCluster                                                                                 &
          & ) call Error_Report("only 'disk', 'spheroid' and 'NSC' components are supported"//{introspection:location})
     call self%stellarPopulationSpectra_%wavelengths(self%countWavelengths                   ,self%wavelengths_              )
     call self%stellarPopulationSpectra_%tabulation (     agesCount       ,metallicitiesCount,     ages        ,metallicities)    
@@ -327,7 +327,7 @@ contains
     Implement a {\normalfont \ttfamily sed} property extractor.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentDisk, nodeComponentSpheroid, nodeComponentNSC
-    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNSC
+    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNuclearStarCluster
     use :: Histories                 , only : history
     implicit none
     double precision                          , dimension(:,:  )          , allocatable :: sedExtract
@@ -350,13 +350,13 @@ contains
     sedExtract=0.0d0
     ! Get the relevant star formation history.
     select case (self%component%ID)
-    case (componentTypeDisk    %ID)
+    case (componentTypeDisk               %ID)
        disk                 => node    %disk                ()
        starFormationHistory =  disk    %starFormationHistory()
-    case (componentTypeSpheroid%ID)
+    case (componentTypeSpheroid           %ID)
        spheroid             => node    %spheroid            ()
        starFormationHistory =  spheroid%starFormationHistory()
-     case (componentTypeNSC%ID)
+     case (componentTypeNuclearStarCluster%ID)
        NSC                  => node    %NSC                 ()
        starFormationHistory =  NSC     %starFormationHistory()
     end select

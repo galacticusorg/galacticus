@@ -87,7 +87,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily starFormationHistoryTimes} property extractor class.
     !!}
-    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNSC
+    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNuclearStarCluster
     use :: Error                     , only : Error_Report
     implicit none
     type (nodePropertyExtractorStarFormationHistoryTimes)                        :: self
@@ -102,7 +102,7 @@ contains
          &  .and.                                                                                               &
          &   component /= componentTypeSpheroid                                                                 &
          &  .and.                                                                                               &
-         &   component /= componentTypeNSC                                                                      &
+         &   component /= componentTypeNuclearStarCluster                                                                      &
          & ) call Error_Report("only 'disk', 'spheroid' and NSC components are supported"//{introspection:location})    
     return
   end function starFormationHistoryTimesConstructorInternal
@@ -136,7 +136,7 @@ contains
     Implement a {\normalfont \ttfamily starFormationHistoryTimes} property extractor.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentDisk, nodeComponentSpheroid, nodeComponentNSC
-    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNSC
+    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNuclearStarCluster
     use :: Histories                 , only : history
     implicit none
     double precision                                                , dimension(:,:), allocatable :: starFormationHistoryTimesExtract
@@ -152,13 +152,13 @@ contains
 
     ! Get the relevant star formation history.
     select case (self%component%ID)
-    case (componentTypeDisk    %ID)
+    case (componentTypeDisk              %ID)
        disk                 => node    %disk                ()
        starFormationHistory =  disk    %starFormationHistory()
-    case (componentTypeSpheroid%ID)
+    case (componentTypeSpheroid          %ID)
        spheroid             => node    %spheroid            ()
        starFormationHistory =  spheroid%starFormationHistory()
-    case (componentTypeNSC     %ID)
+    case (componentTypeNuclearStarCluster%ID)
        NSC                  => node    %NSC                 ()
        starFormationHistory =  NSC     %starFormationHistory()
     end select

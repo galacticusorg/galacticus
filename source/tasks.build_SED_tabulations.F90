@@ -140,19 +140,18 @@ contains
     !!{
     Builds the tabulation.
     !!}
-    use :: Display                   , only : displayIndent                    , displayUnindent
-    use :: Error                     , only : Error_Report                     , errorStatusSuccess
-    use :: Histories                 , only : history
-    use :: Galacticus_Nodes          , only : mergerTree                       , nodeComponentBasic                 , nodeComponentDisk, nodeComponentSpheroid, &
-          &                                   nodeComponentNSC                 , treeNode
-    use :: Poly_Ranks                , only : assignment(=)                    , polyRankDouble
-    use :: Multi_Counters            , only : multiCounter
-    use :: Node_Property_Extractors  , only : nodePropertyExtractorMulti       , nodePropertyExtractorSED
-    use :: Galactic_Structure_Options, only : componentTypeDisk                , componentTypeSpheroid              , componentTypeNSC
-    use :: Node_Components           , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
-    use :: Locks                     , only : ompLock
+    use :: Display                 , only : displayIndent                    , displayUnindent
+    use :: Error                   , only : Error_Report                     , errorStatusSuccess
+    use :: Histories               , only : history
+    use :: Galacticus_Nodes        , only : mergerTree                       , nodeComponentBasic                 , nodeComponentDisk, nodeComponentSpheroid, &
+          &                                 nodeComponentNSC                 , treeNode
+    use :: Poly_Ranks              , only : assignment(=)                    , polyRankDouble
+    use :: Multi_Counters          , only : multiCounter
+    use :: Node_Property_Extractors, only : nodePropertyExtractorMulti       , nodePropertyExtractorSED
+    use :: Node_Components         , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
+    use :: Locks                   , only : ompLock
 #ifdef USEMPI
-    use :: MPI_Utilities             , only : mpiBarrier                       , mpiSelf
+    use :: MPI_Utilities           , only : mpiBarrier                       , mpiSelf
 #endif
     implicit none
     class           (taskBuildSEDTabulations), intent(inout), target         :: self
