@@ -235,6 +235,7 @@
      integer                                                     , allocatable, dimension(:) :: indexNamedReals                                 , indexNamedIntegers
      logical                                                                                 :: importerOpen                          =  .false.
      integer         (kind_int8                                 )                            :: beginAt
+     logical                                                                                 :: foundBeginAt                          =  .false.
      double precision                                                                        :: treeWeightCurrent
      logical                                                                                 :: allowBranchJumps
      logical                                                                                 :: allowSubhaloPromotions                          , alwaysPromoteMostMassive
@@ -744,6 +745,8 @@ contains
     ! Initialize statuses.
     self%warningNestedHierarchyIssued           =.false.
     self%warningSplitForestNestedHierarchyIssued=.false.
+    ! Set initial state indicating if the first tree to process has been found.
+    self%foundBeginAt                           =self%beginAt == -1_kind_int8
     ! Initialize split forests counter.
     splitForestUniqueID=mpiCounter()
     ! Get array of output times.
@@ -995,18 +998,34 @@ contains
     treeNumberInternal=treeStateStoreSequence
     ! Determine if we have any split forests to return.
     returnSplitForest=allocated(self%splitForestTreeSize)
-    ! Find the maximum tree number in the current file.
-    treeNumberMaximum=int(self%mergerTreeImporter_%treeCount(),kind=c_size_t)
-    ! Check if we need to move to a new file.
-    do while (treeNumber-self%treeNumberOffset > treeNumberMaximum .and. self%fileCurrent < size(self%fileNames))
-       self%fileCurrent     =self%fileCurrent     +1
-       self%treeNumberOffset=self%treeNumberOffset+treeNumberMaximum
-       call self%mergerTreeImporter_%close(                                                        )
-       call self%mergerTreeImporter_%open (File_Name_Expand(char(self%fileNames(self%fileCurrent))))
+    ! Scan trees until we find one to process. This allows us to skip trees until the tree index specified by `beginAt` is found.
+    do while (.true.)
+       ! Find the maximum tree number in the current file.
        treeNumberMaximum=int(self%mergerTreeImporter_%treeCount(),kind=c_size_t)
-    end do
-    treeNumberOffset=treeNumber-self%treeNumberOffset
-    if (treeNumberOffset <= treeNumberMaximum) then
+       ! Check if we need to move to a new file.
+       do while (treeNumber-self%treeNumberOffset > treeNumberMaximum .and. self%fileCurrent < size(self%fileNames))
+          self%fileCurrent     =self%fileCurrent     +1
+          self%treeNumberOffset=self%treeNumberOffset+treeNumberMaximum
+          call self%mergerTreeImporter_%close(                                                        )
+          call self%mergerTreeImporter_%open (File_Name_Expand(char(self%fileNames(self%fileCurrent))))
+          treeNumberMaximum=int(self%mergerTreeImporter_%treeCount(),kind=c_size_t)
+       end do
+       treeNumberOffset=treeNumber-self%treeNumberOffset
+       ! If all trees are used up, we're done.
+       if (treeNumberOffset > treeNumberMaximum) then
+          nullify(tree)
+          finished=.true.
+          exit
+       end if
+       ! Test if this is the first forest that we are to process, or if we have already found that forest.
+       if (.not.self%foundBeginAt .and. self%mergerTreeImporter_%treeIndex (int(treeNumberOffset)) /= self%beginAt) then
+          ! Decrement our internal offset, and try again - this will move us to trying the next forest in the file.
+          self%treeNumberOffset=self%treeNumberOffset-1_c_size_t
+          cycle
+       else
+          ! The first forest to process is found - record this.
+          self%foundBeginAt=.true.
+       end if
        ! Set tree properties.
        allocate(tree)
        ! treeIndex
@@ -1392,9 +1411,9 @@ contains
        end select
        ! Deallocate nodes.
        deallocate(nodes)
-    else
-       nullify(tree)
-    end if
+       ! Indicate that we are not finished.
+       exit
+    end do
     finished=.not.associated(tree)
     return
   end function readConstruct
