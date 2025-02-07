@@ -138,6 +138,8 @@ contains
     <constructorAssign variables="beta, densityNormalization, scaleRadius, coreRadius, componentType, massType"/>
     !!]
 
+    self%dimensionless=.false.
+
     return
   end function SIDMParametricProfileConstructorInternal
 

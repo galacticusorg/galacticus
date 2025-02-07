@@ -250,10 +250,12 @@ contains
     VmaxCDM = massDistribution_%velocityRotationCurveMaximum()
 !    print *, 'RmaxCDM, VmaxCDM: ', RmaxCDM, VmaxCDM    
 
-    RmaxNFW0 = Rmax_NFW(RmaxCDM, tau)
-    VmaxNFW0 = Vmax_NFW(VmaxCDM, tau)
-    r_sNFW0 = r_s0(RmaxNFW0)
-    rho_sNFW0 = rho_s0(r_sNFW0, VmaxNFW0)
+!    RmaxNFW0 = Rmax_NFW(RmaxCDM, tau)
+!    VmaxNFW0 = Vmax_NFW(VmaxCDM, tau)
+!    r_sNFW0 = r_s0(RmaxNFW0)
+!    rho_sNFW0 = rho_s0(r_sNFW0, VmaxNFW0)
+    r_sNFW0 = r_s0(massDistribution_%radiusRotationCurveMaximum())
+    rho_sNFW0 = rho_s0(r_sNFW0, massDistribution_%velocityRotationCurveMaximum())
     rho_s = get_rho_s(rho_sNFW0, tau)
     r_s = get_r_s(r_sNFW0, tau)
     r_c = get_r_c(r_sNFW0, tau)
@@ -366,11 +368,13 @@ contains
              RmaxCDM = massDistribution_%radiusRotationCurveMaximum()
              RmaxSIDM = RmaxSIDM+RmaxCDM
 
-             RmaxNFW0 = Rmax_NFW(RmaxSIDM, tau)
-             VmaxNFW0 = Vmax_NFW(VmaxSIDM, tau)
+!             RmaxNFW0 = Rmax_NFW(RmaxSIDM, tau)
+!             VmaxNFW0 = Vmax_NFW(VmaxSIDM, tau)
 
-             r_sNFW0 = r_s0(RmaxNFW0)
-             rho_sNFW0 = rho_s0(r_sNFW0, VmaxNFW0)
+!             r_sNFW0 = r_s0(RmaxNFW0)
+!             rho_sNFW0 = rho_s0(r_sNFW0, VmaxNFW0)
+             r_sNFW0 = r_s0(massDistribution_%radiusRotationCurveMaximum())
+             rho_sNFW0 = rho_s0(r_sNFW0, massDistribution_%velocityRotationCurveMaximum())
 
              rho_s = get_rho_s(rho_sNFW0, tau)
              r_s = get_r_s(r_sNFW0, tau)
@@ -459,6 +463,11 @@ contains
 
 
 !    print *, 'Test inside nodePromote ...'
+    call darkMatterProfile%floatRank0MetaPropertySet(self%RhosSIDMID,darkMatterProfileParent%floatRank0MetaPropertyGet(self%RhosSIDMID))
+    call darkMatterProfile%floatRank0MetaPropertySet(self%RsSIDMID,darkMatterProfileParent%floatRank0MetaPropertyGet(self%RsSIDMID))
+    call darkMatterProfile%floatRank0MetaPropertySet(self%RcSIDMID,darkMatterProfileParent%floatRank0MetaPropertyGet(self%RcSIDMID))
+
+
 
     return
   end subroutine SIDMParametricNodePromote
@@ -565,11 +574,13 @@ contains
 
 !            print *, 'RmaxCDM and SIDM: ', RmaxCDM, RmaxSIDM
 
-            RmaxNFW0 = Rmax_NFW(RmaxSIDM, tau)
-            VmaxNFW0 = Vmax_NFW(VmaxSIDM, tau)
+!            RmaxNFW0 = Rmax_NFW(RmaxSIDM, tau)
+!            VmaxNFW0 = Vmax_NFW(VmaxSIDM, tau)
 
-            r_sNFW0 = r_s0(RmaxNFW0)
-            rho_sNFW0 = rho_s0(r_sNFW0, VmaxNFW0)
+!            r_sNFW0 = r_s0(RmaxNFW0)
+!            rho_sNFW0 = rho_s0(r_sNFW0, VmaxNFW0)
+            r_sNFW0 = r_s0(massDistribution_%radiusRotationCurveMaximum())
+            rho_sNFW0 = rho_s0(r_sNFW0, massDistribution_%velocityRotationCurveMaximum())
 
             rho_s = get_rho_s(rho_sNFW0, tau)
             r_s = get_r_s(r_sNFW0, tau)
@@ -591,11 +602,13 @@ contains
 
             tau = darkMatterProfile%floatRank0MetaPropertyGet(self%tauID)
 
-            RmaxNFW0 = Rmax_NFW(RmaxSIDM, tau)
-            VmaxNFW0 = Vmax_NFW(VmaxSIDM, tau)
+!            RmaxNFW0 = Rmax_NFW(RmaxSIDM, tau)
+!            VmaxNFW0 = Vmax_NFW(VmaxSIDM, tau)
 
-            r_sNFW0 = r_s0(RmaxNFW0)
-            rho_sNFW0 = rho_s0(r_sNFW0, VmaxNFW0)
+!            r_sNFW0 = r_s0(RmaxNFW0)
+!            rho_sNFW0 = rho_s0(r_sNFW0, VmaxNFW0)
+            r_sNFW0 = r_s0(massDistribution_%radiusRotationCurveMaximum())
+            rho_sNFW0 = rho_s0(r_sNFW0, massDistribution_%velocityRotationCurveMaximum())
 
             rho_s = get_rho_s(rho_sNFW0, tau)
             r_s = get_r_s(r_sNFW0, tau)
@@ -785,6 +798,7 @@ contains
 !    print *, "tau_local =", tau_local, "r_s0 =", r_s0
 
     get_r_c = r_s0 * (2.555d0 * sqrt(tau_local) - 3.632d0 * tau_local + 2.131d0 * tau_local ** 2 - 1.415d0 * tau_local ** 3 + 0.4683d0 * tau_local ** 4)
+    print *, 'tau, r_s0, get_r_c: ', tau_local, r_s0, get_r_c
   end function get_r_c
  
 !  double precision function SIDMDensityProfileIsolated(rho_s, r_s, r_c, r)
