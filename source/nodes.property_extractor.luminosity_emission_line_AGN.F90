@@ -78,10 +78,10 @@ Implements an emission line luminosity for AGN node property extractor class.
    <name>interpolants</name>
    <description>Specifies the different interpolants for AGN emission line calculations.</description>
    <indexing>1</indexing>
-   <entry label="metallicity"/>
-   <entry label="density"  />
-   <entry label="spectralIndex"/>
+   <entry label="density"/>
    <entry label="ionizationParameter"/>
+   <entry label="metallicity"/>
+   <entry label="spectralIndex"/>
   </enumeration>
   !!]
 contains
@@ -169,25 +169,28 @@ contains
     do i=1,size(lineNames)
        if (.not.lines%hasDataset(char(self%lineNames(i)))) call Error_Report('line "'//char(self%lineNames(i))//'" not found'//{introspection:location})
     end do
-
     call emissionLinesFile%readDataset('densityHydrogen'              ,self%densityHydrogen             )
     call emissionLinesFile%readDataset('ionizationParameter'          ,self%ionizationParameter         )
     call emissionLinesFile%readDataset('metallicity'                  ,self%metallicity                 )
     call emissionLinesFile%readDataset('spectralIndex'                ,self%spectralIndex               )
     ! Extract indexing into the lines arrays.
+    dataset=emissionLinesFile%openDataset('densityHydrogen'               )
     call dataset%readAttribute('index',self%indexDensityHydrogen                                        )
     call dataset%close        (                     )
+    dataset=emissionLinesFile%openDataset('ionizationParameter'                                         )
     call dataset%readAttribute('index',self%indexIonizationParameter                                    )
     call dataset%close        (                     )
+    dataset=emissionLinesFile%openDataset('metallicity'                                                 )
     call dataset%readAttribute('index',self%indexMetallicity                                            )
     call dataset%close        (                     )
+    dataset=emissionLinesFile%openDataset('spectralIndex'                                               )
     call dataset%readAttribute('index',self%indexSpectralIndex                                          )
     call dataset%close        (                     )
     ! Offset indexing to Fortran standard (i.e. starting from 1 instead of 0).
-    self%indexMetallicity               =self%indexDensityHydrogen               +1
+    self%indexDensityHydrogen           =self%indexDensityHydrogen               +1
     self%indexIonizationParameter       =self%indexIonizationParameter           +1
     self%indexMetallicity               =self%indexMetallicity                   +1
-    self%indexDensityHydrogen           =self%indexSpectralIndex                 +1
+    self%indexSpectralIndex             =self%indexSpectralIndex                 +1
      ! Establish arrays.
     shapeLines(self%indexDensityHydrogen           )=size(self%densityHydrogen           )
     shapeLines(self%indexIonizationParameter       )=size(self%ionizationParameter       )
@@ -205,10 +208,7 @@ contains
          &   )                                         &
          &  )
     do i=1,size(lineNames)
-       call lines%readDatasetStatic(char(self%lineNames(i)),self%luminosity(:,:,:,:,i))
-       lineDataset=lines%openDataset(char(self%lineNames(i)))
-       call lineDataset%readAttribute('wavelength',self%wavelengths(i))
-       call lineDataset%close        (                               )
+       call lines%readDatasetStatic(char(lineNames(i)),luminosity(:,:,:,:,i))      
     end do
     call lines            %close      (                                                                 )
     call emissionLinesFile%close      (                                                                 )
