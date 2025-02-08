@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "1592ccb48d3bec0901e87c9e5ce5c084666e3964",
-        "message": "Merge pull request #782 from galacticusorg/fixBetaProfileCoolingRadius\n\nThe central density of the β-profile was evaluated at the wrong radius in cooling radius calculations\n",
-        "timestamp": "2025-02-05 16:08:06+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/1592ccb48d3bec0901e87c9e5ce5c084666e3964"
+        "id": "7ea61e87ade0ccaa2078c7cce85a84c12cd6575e",
+        "message": "Merge pull request #785 from galacticusorg/featMemoryReportLocking\n\nUse a non-blocking lock for coordinating memory reporting\n",
+        "timestamp": "2025-02-07 14:37:18+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/7ea61e87ade0ccaa2078c7cce85a84c12cd6575e"
     },
     "results": [
         {
