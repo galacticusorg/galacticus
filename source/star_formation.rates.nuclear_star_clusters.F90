@@ -18,21 +18,21 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which provides a class that implements rates of star formation in nuclear star cluster.
+Contains a module which provides a class that implements rates of star formation in nuclear star clusters.
 !!}
 
-module Star_Formation_Rates_NSCs
+module Star_Formation_Rates_Nuclear_Star_Clusters
   !!{
-  Provides a class that implements calculations of rates of formation in nuclear star cluster.
+  Provides a class that implements calculations of rates of formation in nuclear star clusters.
   !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
   !![
   <functionClass>
-   <name>starFormationRateNSCs</name>
-   <descriptiveName>Rates for star formation in nuclear star cluster.</descriptiveName>
-   <description>Class providing models of rates of star formation in nuclear star cluster.</description>
+   <name>starFormationRateNuclearStarClusters</name>
+   <descriptiveName>Rates for star formation in nuclear star clusters</descriptiveName>
+   <description>Class providing models of rates of star formation in nuclear star clusters.</description>
    <default>krumholz2009</default>
    <method name="rate" >
     <description>Returns the rate (in units of $\mathrm{M}_\odot$ Gyr$^{-1}$) for star formation in the nuclear star cluster component of {\normalfont \ttfamily node}.</description>
@@ -44,4 +44,4 @@ module Star_Formation_Rates_NSCs
   </functionClass>
   !!]
 
-end module Star_Formation_Rates_NSCs
+end module Star_Formation_Rates_Nuclear_Star_Clusters
