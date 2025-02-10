@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1738976855227,
+  "lastUpdate": 1739224790012,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "8b2d9cc16747e1474f9541a994a8e22d6cfc5f4d",
-          "message": "fix: Ensure variables are always initialized",
-          "timestamp": "2024-05-03T16:39:46-07:00",
-          "tree_id": "f36ddf8576b86ae3483f146ecce13142970abacf",
-          "url": "https://github.com/galacticusorg/galacticus/commit/8b2d9cc16747e1474f9541a994a8e22d6cfc5f4d"
-        },
-        "date": 1714798056740,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 51.832,
-            "unit": "seconds",
-            "range": 0.048924431524596
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8732,6 +8702,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": "21219.1842490089",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "167bdb9dab4cb74833cc0b6add1a44d5e71cb8a0",
+          "message": "Merge pull request #787 from galacticusorg/fixCylindricalChandrasekharVelocityDispersion\n\nCatch cases where the velocity dispersion is zero in cylindrical mass distribution Chandrasekhar integrals",
+          "timestamp": "2025-02-10T15:32:26Z",
+          "tree_id": "4acb6372a4dcbb218b4afa86ce90fe81d1b06b3a",
+          "url": "https://github.com/galacticusorg/galacticus/commit/167bdb9dab4cb74833cc0b6add1a44d5e71cb8a0"
+        },
+        "date": 1739224787644,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 56.369,
+            "unit": "seconds",
+            "range": 0.111834252355554
           }
         ]
       }
