@@ -238,6 +238,8 @@
       </componentHotHalo>
       <presetOrbits value="true"/>
       <presetOrbitsBoundOnly value="true"/>
+      <beginAt value="-1"/>
+      <beginAt value="7000124000000"/>
       <componentSatellite value="standard" parameterLevel="top">
     	<presetMergerTimes value="false" parameterLevel="-1"/>
     	<presetMergerNodes value="false" parameterLevel="-1"/>
