@@ -6,19 +6,19 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "7ea61e87ade0ccaa2078c7cce85a84c12cd6575e",
-        "message": "Merge pull request #785 from galacticusorg/featMemoryReportLocking\n\nUse a non-blocking lock for coordinating memory reporting\n",
-        "timestamp": "2025-02-07 14:37:18+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/7ea61e87ade0ccaa2078c7cce85a84c12cd6575e"
+        "id": "167bdb9dab4cb74833cc0b6add1a44d5e71cb8a0",
+        "message": "Merge pull request #787 from galacticusorg/fixCylindricalChandrasekharVelocityDispersion\n\nCatch cases where the velocity dispersion is zero in cylindrical mass distribution Chandrasekhar integrals\n",
+        "timestamp": "2025-02-10 15:32:26+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/167bdb9dab4cb74833cc0b6add1a44d5e71cb8a0"
     },
     "surfaceDensity": {
-        "percentageBelow": 35.71428571428571,
-        "percentageAbove": 64.28571428571429,
+        "percentageBelow": 42.857142857142854,
+        "percentageAbove": 57.142857142857146,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 68.75,
-        "percentageAbove": 31.25,
+        "percentageBelow": 66.66666666666666,
+        "percentageAbove": 33.333333333333336,
         "target": 0.85
     }
 }
