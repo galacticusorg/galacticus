@@ -421,7 +421,7 @@ contains
        massTarget=0.0d0
        call Error_Report('either "mass" or "massFractional" must be provided'//{introspection:location})
     end if
-    if (massTarget <= 0.0d0) then
+    if (massTarget <= 0.0d0 .or. self%massEnclosedBySphere(0.0d0) >= massTarget) then
        radius=0.0d0
        return
     end if

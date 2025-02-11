@@ -261,7 +261,7 @@ module Mass_Distributions
        massTarget=0.0d0
        call Error_Report('either "mass" or "massFractional" must be provided'//{introspection:location})
       end if
-      if (massTarget &lt;= 0.0d0) then
+      if (massTarget &lt;= 0.0d0 .or. self%massEnclosedBySphere(0.0d0) &gt;= massTarget) then
        massDistributionRadiusEnclosingMassNumerical=0.0d0
        return
       end if
