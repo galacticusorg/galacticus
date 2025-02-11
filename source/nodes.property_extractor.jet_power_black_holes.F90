@@ -19,7 +19,7 @@
 
   use :: Accretion_Disks           , only : accretionDisksClass
   use :: Black_Hole_Accretion_Rates, only : blackHoleAccretionRateClass
-  
+
   !![
   <nodePropertyExtractor name="nodePropertyExtractorJetPowerBlackHoles">
    <description>
@@ -88,7 +88,7 @@ contains
     !![
     <constructorAssign variables="*blackHoleAccretionRate_, *accretionDisks_"/>
     !!]
-    
+
     return
   end function jetPowerBlackHolesConstructorInternal
 
@@ -98,14 +98,14 @@ contains
     !!}
     implicit none
     type(nodePropertyExtractorJetPowerBlackHoles), intent(inout) :: self
-    
+
     !![
     <objectDestructor name="self%accretionDisks_"        />
     <objectDestructor name="self%blackHoleAccretionRate_"/>
     !!]                                                                                                                                                                                                               
     return
   end subroutine jetPowerBlackHolesDestructor
-  
+
   integer function jetPowerBlackHolesElementCount(self)
     !!{
     Return a count of the number of properties extracted.
@@ -128,20 +128,21 @@ contains
     type            (treeNode                               ), intent(inout)               :: node
     type            (multiCounter                           ), intent(inout) , optional    :: instance
     class           (nodeComponentBlackHole                 )                , pointer     :: blackHole
-    integer                                                                                :: i                        , countBlackHoles
-    double precision                                                                       :: rateMassAccretionSpheroid, rateMassAccretionHotHalo
+    integer                                                                                :: i                                  , countBlackHoles
+    double precision                                                                       :: rateMassAccretionSpheroid          , rateMassAccretionHotHalo, &
+        &                                                                                     rateMassAccretionNuclearStarCluster
     !$GLC attributes unused :: instance
 
     countBlackHoles=node%blackHoleCount()
     allocate(radiativeEfficiency(countBlackHoles,1))
     do i=1,countBlackHoles
        blackHole                => node     %blackHole(instance=i)
-       call  self%blackHoleAccretionRate_%rateAccretion(blackHole,rateMassAccretionSpheroid,rateMassAccretionHotHalo)
-       radiativeEfficiency(i,1) =  self%accretionDisks_%powerJet(blackHole,rateMassAccretionSpheroid+rateMassAccretionHotHalo)
+       call  self%blackHoleAccretionRate_%rateAccretion(blackHole,rateMassAccretionSpheroid,rateMassAccretionHotHalo,rateMassAccretionNuclearStarCluster)
+       radiativeEfficiency(i,1) =  self%accretionDisks_%powerJet(blackHole,rateMassAccretionSpheroid+rateMassAccretionHotHalo+rateMassAccretionNuclearStarCluster)
     end do
     return
   end function jetPowerBlackHolesExtract
-  
+
   subroutine jetPowerBlackHolesNames(self,names)
     !!{
     Return the names of the {\normalfont \ttfamily jetPowerBlackHoles} properties.

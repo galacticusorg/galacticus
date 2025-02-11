@@ -122,13 +122,14 @@ contains
     implicit none
     class           (blackHoleCGMHeatingJetPower), intent(inout) :: self
     class           (nodeComponentBlackHole     ), intent(inout) :: blackHole
-    double precision                                             :: rateAccretionSpheroid, rateAccretionHotHalo, &
-         &                                                          rateACcretion
+    double precision                                             :: rateAccretionSpheroid          , rateAccretionHotHalo, &
+         &                                                          rateAccretionNuclearStarCluster, rateAccretion
 
     ! Compute the jet power and CGM heating rate.
-    call self%blackHoleAccretionRate_%rateAccretion(blackHole,rateAccretionSpheroid,rateAccretionHotHalo)
-    rateAccretion=+rateAccretionSpheroid &
-         &        +rateAccretionHotHalo
+    call self%blackHoleAccretionRate_%rateAccretion(blackHole,rateAccretionSpheroid,rateAccretionHotHalo,rateAccretionNuclearStarCluster)
+    rateAccretion=+rateAccretionSpheroid           &
+         &        +rateAccretionHotHalo            &
+         &        +rateAccretionNuclearStarCluster
     rateHeating  =+self                %efficiencyRadioMode                          &
          &        *self%accretionDisks_%powerJet           (blackHole,rateAccretion)
     return

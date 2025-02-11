@@ -108,7 +108,7 @@ contains
     !!{
     Account for accretion onto black holes.
     !!}
-    use :: Galacticus_Nodes            , only : nodeComponentBlackHole, nodeComponentSpheroid, nodeComponentHotHalo
+    use :: Galacticus_Nodes            , only : nodeComponentBlackHole, nodeComponentSpheroid, nodeComponentHotHalo, nodeComponentNSC
     use :: Numerical_Constants_Physical, only : speedLight
     use :: Numerical_Constants_Prefixes, only : kilo
     implicit none
@@ -120,26 +120,29 @@ contains
     class           (nodeComponentBlackHole         )               , pointer :: blackHole
     class           (nodeComponentSpheroid          )               , pointer :: spheroid
     class           (nodeComponentHotHalo           )               , pointer :: hotHalo
+    class           (nodeComponentNSC               )               , pointer :: nuclearStarCluster
     integer                                                                   :: countBlackHole       , indexBlackHole
-    double precision                                                          :: rateAccretionSpheroid, rateAccretionHotHalo, &
-         &                                                                       efficiencyRadiative  , efficiencyJet       , &
-         &                                                                       rateAccretion        , rateSpinUp          , &
-         &                                                                       rateAccretionReduced
+    double precision                                                          :: rateAccretionSpheroid, rateAccretionHotHalo           , &
+         &                                                                       efficiencyRadiative  , efficiencyJet                  , &
+         &                                                                       rateAccretion        , rateSpinUp                     , &
+         &                                                                       rateAccretionReduced , rateAccretionNuclearStarCluster
     !$GLC attributes unused :: interrupt, functionInterrupt, propertyType
 
     ! If there are no black holes in this node, we have nothing to do - return immediately.
     countBlackHole=node%blackHoleCount()
     if (countBlackHole < 1) return
-    ! Get spheroid and hot halo components so that accreted mass can be removed from them.
-    spheroid => node%spheroid()
-    hotHalo  => node%hotHalo ()
+    ! Get spheroid, hot halo, and nuclear star cluster components so that accreted mass can be removed from them.
+    spheroid           => node%spheroid()
+    hotHalo            => node%hotHalo ()
+    nuclearStarCluster => node%NSC     ()
     ! Iterate over all black holes in the node.
     do indexBlackHole=1,countBlackHole
        ! Find the accretion rate onto this black hole.
        blackHole => node%blackHole(instance=indexBlackHole)
-       call self%blackHoleAccretionRate_%rateAccretion(blackHole,rateAccretionSpheroid,rateAccretionHotHalo)
-       rateAccretion=+rateAccretionSpheroid &
-            &        +rateAccretionHotHalo
+       call self%blackHoleAccretionRate_%rateAccretion(blackHole,rateAccretionSpheroid,rateAccretionHotHalo,rateAccretionNuclearStarCluster)
+       rateAccretion=+rateAccretionSpheroid           &
+            &        +rateAccretionHotHalo            &
+            &        +rateAccretionNuclearStarCluster
        ! Finish if there is no accretion.
        if (rateAccretion <= 0.0d0) cycle
        ! Find the radiative and jet efficiencies - these will be subtracted from the black hole mass growth rate.
@@ -154,11 +157,12 @@ contains
        ! Find the spin-up rate for this black hole.
        rateSpinUp=+self%accretionDisks_%rateSpinUp(blackHole,rateAccretion)
        ! Accumulate rates of mass accretion/loss to the relevant components.
-       call blackHole%       massRate(+rateAccretionReduced                             )
-       call spheroid %massGasSinkRate(-rateAccretionSpheroid                            )
-       call hotHalo  %   massSinkRate(-rateAccretionHotHalo ,interrupt,functionInterrupt)
+       call blackHole         %       massRate(+rateAccretionReduced                                       )
+       call spheroid          %massGasSinkRate(-rateAccretionSpheroid                                      )
+       call hotHalo           %   massSinkRate(-rateAccretionHotHalo           ,interrupt,functionInterrupt)
+       call nuclearStarCluster%massGasSinkRate(-rateAccretionNuclearStarCluster                            )
        ! Set spin-up rate due to accretion.
-       call blackHole%       spinRate(+rateSpinUp                                       )
+       call blackHole         %       spinRate(+rateSpinUp                                                 )
      end do
     return
   end subroutine blackHolesAccretionDifferentialEvolution

@@ -64,11 +64,12 @@ contains
     class           (outputTimesClass                                   ), pointer                     :: outputTimes_
     class           (starFormationRateDisksClass                        ), pointer                     :: starFormationRateDisks_
     class           (starFormationRateSpheroidsClass                    ), pointer                     :: starFormationRateSpheroids_
+    class           (starFormationRateNuclearStarClustersClass          ), pointer                     :: starFormationRateNuclearStarClusters_
     class           (gravitationalLensingClass                          ), pointer                     :: gravitationalLensing_
-    double precision                                                     , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient , systematicErrorPolynomialCoefficient
+    double precision                                                     , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient     , systematicErrorPolynomialCoefficient
     integer                                                                                            :: covarianceBinomialBinsPerDecade
-    double precision                                                                                   :: covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum   , &
-         &                                                                                                randomErrorMinimum               , randomErrorMaximum                  , &
+    double precision                                                                                   :: covarianceBinomialMassHaloMinimum    , covarianceBinomialMassHaloMaximum   , &
+         &                                                                                                randomErrorMinimum                   , randomErrorMaximum                  , &
          &                                                                                                sizeSourceLensing
 
     ! Check and read parameters.
@@ -139,26 +140,28 @@ contains
       <defaultValue>1.0d16</defaultValue>
       <description>The maximum halo mass to consider when constructing \cite{robotham_galaxy_2011} star formation rate function covariance matrices for main branch galaxies.</description>
     </inputParameter>
-    <objectBuilder class="cosmologyFunctions"         name="cosmologyFunctions_"         source="parameters"/>
-    <objectBuilder class="outputTimes"                name="outputTimes_"                source="parameters"/>
-    <objectBuilder class="gravitationalLensing"       name="gravitationalLensing_"       source="parameters"/>
-    <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters"/>
-    <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"                   name="cosmologyFunctions_"                   source="parameters"/>
+    <objectBuilder class="outputTimes"                          name="outputTimes_"                          source="parameters"/>
+    <objectBuilder class="gravitationalLensing"                 name="gravitationalLensing_"                 source="parameters"/>
+    <objectBuilder class="starFormationRateDisks"               name="starFormationRateDisks_"               source="parameters"/>
+    <objectBuilder class="starFormationRateSpheroids"           name="starFormationRateSpheroids_"           source="parameters"/>
+    <objectBuilder class="starFormationRateNuclearStarClusters" name="starFormationRateNuclearStarClusters_" source="parameters"/>
     !!]
     ! Build the object.
-    self=outputAnalysisStarFormationRateFunctionRobotham2011(cosmologyFunctions_,gravitationalLensing_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing)
+    self=outputAnalysisStarFormationRateFunctionRobotham2011(cosmologyFunctions_,gravitationalLensing_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="cosmologyFunctions_"        />
-    <objectDestructor name="outputTimes_"               />
-    <objectDestructor name="gravitationalLensing_"      />
-    <objectDestructor name="starFormationRateDisks_"    />
-    <objectDestructor name="starFormationRateSpheroids_"/>
+    <objectDestructor name="cosmologyFunctions_"                  />
+    <objectDestructor name="outputTimes_"                         />
+    <objectDestructor name="gravitationalLensing_"                />
+    <objectDestructor name="starFormationRateDisks_"              />
+    <objectDestructor name="starFormationRateSpheroids_"          />
+    <objectDestructor name="starFormationRateNuclearStarClusters_"/>
     !!]
     return
   end function starFormationRateFunctionRobotham2011ConstructorParameters
 
-  function starFormationRateFunctionRobotham2011ConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
+  function starFormationRateFunctionRobotham2011ConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !!{
     Constructor for the ``StarFormationRateFunctionRobotham2011'' output analysis class for internal use.
     !!}
@@ -177,6 +180,7 @@ contains
     class           (gravitationalLensingClass                          ), intent(in   ), target       :: gravitationalLensing_
     class           (starFormationRateDisksClass                        ), intent(in   ), target       :: starFormationRateDisks_
     class           (starFormationRateSpheroidsClass                    ), intent(in   ), target       :: starFormationRateSpheroids_
+    class           (starFormationRateNuclearStarClustersClass          ), intent(in   ), target       :: starFormationRateNuclearStarClusters_
     double precision                                                     , intent(in   )               :: randomErrorMinimum                                          , randomErrorMaximum                  , &
          &                                                                                                sizeSourceLensing
     double precision                                                     , intent(in   ), dimension(:) :: randomErrorPolynomialCoefficient                            , systematicErrorPolynomialCoefficient
@@ -292,6 +296,7 @@ contains
          &                                         outputTimes_                                                                                                                  , &
          &                                         starFormationRateDisks_                                                                                                       , &
          &                                         starFormationRateSpheroids_                                                                                                   , &
+         &                                         starFormationRateNuclearStarClusters_                                                                                         , &
          &                                         covarianceBinomialBinsPerDecade                                                                                               , &
          &                                         covarianceBinomialMassHaloMinimum                                                                                             , &
          &                                         covarianceBinomialMassHaloMaximum                                                                                               &

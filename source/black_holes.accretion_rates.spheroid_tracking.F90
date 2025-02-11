@@ -41,7 +41,7 @@
      final     ::                  spheroidTrackingDestructor
      procedure :: rateAccretion => spheroidTrackingRateAccretion
   end type blackHoleAccretionRateSpheroidTracking
-  
+
   interface blackHoleAccretionRateSpheroidTracking
      !!{
      Constructors for the {\normalfont \ttfamily spheroidTracking} black hole accretion rate class.
@@ -62,7 +62,7 @@ contains
     type            (inputParameters                       ), intent(inout) :: parameters
     class           (starFormationRateSpheroidsClass       ), pointer       :: starFormationRateSpheroids_
     double precision                                                        :: growthRatioToStellarSpheroid
-    
+
     !![
     <inputParameter>
       <name>growthRatioToStellarSpheroid</name>
@@ -101,14 +101,14 @@ contains
     !!}
     implicit none
     type(blackHoleAccretionRateSpheroidTracking), intent(inout) :: self
-    
+
     !![
     <objectDestructor name="self%starFormationRateSpheroids_"/>
     !!]                                                                                                                                                                                                               
     return
   end subroutine spheroidTrackingDestructor
-  
-  subroutine spheroidTrackingRateAccretion(self,blackHole,rateMassAccretionSpheroid,rateMassAccretionHotHalo)
+
+  subroutine spheroidTrackingRateAccretion(self,blackHole,rateMassAccretionSpheroid,rateMassAccretionHotHalo,rateMassAccretionNuclearStarCluster)
     !!{
     Compute the accretion rate onto a black hole.
     !!}
@@ -116,12 +116,14 @@ contains
     implicit none
     class           (blackHoleAccretionRateSpheroidTracking), intent(inout) :: self
     class           (nodeComponentBlackHole                ), intent(inout) :: blackHole
-    double precision                                        , intent(  out) :: rateMassAccretionSpheroid,rateMassAccretionHotHalo
+    double precision                                        , intent(  out) :: rateMassAccretionSpheroid          , rateMassAccretionHotHalo, &
+         &                                                                     rateMassAccretionNuclearStarCluster
     type            (treeNode                              ), pointer       :: node
-    
-    node                      =>  blackHole                            %host                        (    )
-    rateMassAccretionSpheroid =  +self                                 %growthRatioToStellarSpheroid       &
-         &                       *self     %starFormationRateSpheroids_%rate                        (node)
-    rateMassAccretionHotHalo  =  +0.0d0
+
+    node                                =>  blackHole                            %host                        (    )
+    rateMassAccretionSpheroid           =  +self                                 %growthRatioToStellarSpheroid       &
+         &                                 *self     %starFormationRateSpheroids_%rate                        (node)
+    rateMassAccretionHotHalo            =  +0.0d0
+    rateMassAccretionNuclearStarCluster =  +0.0d0
     return
   end subroutine spheroidTrackingRateAccretion

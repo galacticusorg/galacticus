@@ -84,6 +84,7 @@ contains
     class           (outputTimesClass                         ), pointer                     :: outputTimes_
     class           (starFormationRateDisksClass              ), pointer                     :: starFormationRateDisks_
     class           (starFormationRateSpheroidsClass          ), pointer                     :: starFormationRateSpheroids_
+    class           (starFormationRateNuclearStarClustersClass), pointer                     :: starFormationRateNuclearStarClusters_
     class           (virialDensityContrastClass               ), pointer                     :: virialDensityContrast_
     class           (darkMatterProfileDMOClass                ), pointer                     :: darkMatterProfileDMO_
     double precision                                           , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient          , systematicErrorPolynomialCoefficient, &
@@ -147,29 +148,31 @@ contains
       <source>parameters</source>
       <description>The redshift range (``{\normalfont \ttfamily low}'' or ``{\normalfont \ttfamily high}'') for this analysis.</description>
     </inputParameter>
-    <objectBuilder class="cosmologyParameters"        name="cosmologyParameters_"        source="parameters"/>
-    <objectBuilder class="cosmologyFunctions"         name="cosmologyFunctions_"         source="parameters"/>
-    <objectBuilder class="virialDensityContrast"      name="virialDensityContrast_"      source="parameters"/>
-    <objectBuilder class="darkMatterProfileDMO"       name="darkMatterProfileDMO_"       source="parameters"/>
-    <objectBuilder class="outputTimes"                name="outputTimes_"                source="parameters"/>
-    <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters"/>
-    <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
+    <objectBuilder class="cosmologyParameters"                  name="cosmologyParameters_"                  source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"                   name="cosmologyFunctions_"                   source="parameters"/>
+    <objectBuilder class="virialDensityContrast"                name="virialDensityContrast_"                source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO"                 name="darkMatterProfileDMO_"                 source="parameters"/>
+    <objectBuilder class="outputTimes"                          name="outputTimes_"                          source="parameters"/>
+    <objectBuilder class="starFormationRateDisks"               name="starFormationRateDisks_"               source="parameters"/>
+    <objectBuilder class="starFormationRateSpheroids"           name="starFormationRateSpheroids_"           source="parameters"/>
+    <objectBuilder class="starFormationRateNuclearStarClusters" name="starFormationRateNuclearStarClusters_" source="parameters"/>
     !!]
-    self=outputAnalysisQuiescentFractionWagner2016(enumerationWagner2016QuiescentRedshiftRangeEncode(char(redshiftRange),includesPrefix=.false.),randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_)
+    self=outputAnalysisQuiescentFractionWagner2016(enumerationWagner2016QuiescentRedshiftRangeEncode(char(redshiftRange),includesPrefix=.false.),randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_)
     !![
     <inputParametersValidate source="parameters" />
-    <objectDestructor name="cosmologyParameters_"       />
-    <objectDestructor name="cosmologyFunctions_"        />
-    <objectDestructor name="virialDensityContrast_"     />
-    <objectDestructor name="outputTimes_"               />
-    <objectDestructor name="darkMatterProfileDMO_"      />
-    <objectDestructor name="starFormationRateDisks_"    />
-    <objectDestructor name="starFormationRateSpheroids_"/>
+    <objectDestructor name="cosmologyParameters_"                 />
+    <objectDestructor name="cosmologyFunctions_"                  />
+    <objectDestructor name="virialDensityContrast_"               />
+    <objectDestructor name="outputTimes_"                         />
+    <objectDestructor name="darkMatterProfileDMO_"                />
+    <objectDestructor name="starFormationRateDisks_"              />
+    <objectDestructor name="starFormationRateSpheroids_"          />
+    <objectDestructor name="starFormationRateNuclearStarClusters_"/>
     !!]
     return
   end function quiescentFractionWagner2016ConstructorParameters
 
-  function quiescentFractionWagner2016ConstructorInternal(redshiftRange,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_) result(self)
+  function quiescentFractionWagner2016ConstructorInternal(redshiftRange,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_, starFormationRateNuclearStarClusters_) result(self)
     !!{
     Internal constructor for the ``quiescentFractionWagner2016'' output analysis class.
     !!}
@@ -198,6 +201,7 @@ contains
     class           (outputTimesClass                                   ), intent(inout), target       :: outputTimes_
     class           (starFormationRateDisksClass                        ), intent(in   ), target       :: starFormationRateDisks_
     class           (starFormationRateSpheroidsClass                    ), intent(in   ), target       :: starFormationRateSpheroids_
+    class           (starFormationRateNuclearStarClustersClass          ), intent(in   ), target       :: starFormationRateNuclearStarClusters_
     class           (virialDensityContrastClass                         ), intent(in   ), target       :: virialDensityContrast_
     class           (darkMatterProfileDMOClass                          ), intent(inout), target       :: darkMatterProfileDMO_
     type            (galacticFilterHaloNotIsolated                      )               , pointer      :: galacticFilterIsSubhalo_
@@ -261,31 +265,31 @@ contains
     ! Build a filter which selects satellite galaxies in hosts of the relevant mass, above a stellar mass threshold, and either quiescent or star-forming.
     allocate(galacticFilterIsSubhalo_)
     !![
-    <referenceConstruct object="galacticFilterIsSubhalo_"         constructor="galacticFilterHaloNotIsolated  (                                                                                                                                                                                    )"/>
+    <referenceConstruct object="galacticFilterIsSubhalo_"         constructor="galacticFilterHaloNotIsolated  (                                                                                                                                                                                                                            )"/>
     !!]
     allocate(galacticFilterStellarMass_)
     !![
-    <referenceConstruct object="galacticFilterStellarMass_"       constructor="galacticFilterStellarMass      (massThreshold=1.0d9                                                                                                                                                                 )"/>
+    <referenceConstruct object="galacticFilterStellarMass_"       constructor="galacticFilterStellarMass      (massThreshold=1.0d9                                                                                                                                                                                                         )"/>
     !!]
     allocate(galacticFilterStarFormationRate_)
     !![
-    <referenceConstruct object="galacticFilterStarFormationRate_" constructor="galacticFilterStarFormationRate(logSFR0=-1.0d0,logSFR1=1.0d0,logM0=0.0d0,starFormationRateDisks_=starFormationRateDisks_,starFormationRateSpheroids_=starFormationRateSpheroids_                                     )"/>
+    <referenceConstruct object="galacticFilterStarFormationRate_" constructor="galacticFilterStarFormationRate(logSFR0=-1.0d0,logSFR1=1.0d0,logM0=0.0d0,starFormationRateDisks_=starFormationRateDisks_,starFormationRateSpheroids_=starFormationRateSpheroids_,starFormationRateNuclearStarClusters_=starFormationRateNuclearStarClusters_)"/>
     !!]
     allocate(virialDensityContrastDefinition_)
     !![
-    <referenceConstruct object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed     (densityContrastValue=200.0d0,densityType=fixedDensityTypeCritical,turnAroundOverVirialRadius=2.0d0,cosmologyParameters_=cosmologyParameters_,cosmologyFunctions_=cosmologyFunctions_)"/>
+    <referenceConstruct object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed     (densityContrastValue=200.0d0,densityType=fixedDensityTypeCritical,turnAroundOverVirialRadius=2.0d0,cosmologyParameters_=cosmologyParameters_,cosmologyFunctions_=cosmologyFunctions_                                        )"/>
     !!]
     allocate(nodePropertyExtractorHostMass_)
     !![
-    <referenceConstruct object="nodePropertyExtractorHostMass_"   constructor="nodePropertyExtractorMassHalo  (.false.,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_                                                      )"/>
+    <referenceConstruct object="nodePropertyExtractorHostMass_"   constructor="nodePropertyExtractorMassHalo  (.false.,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_                                                                                              )"/>
     !!]
     allocate(nodePropertyExtractorHost_)
     !![
-    <referenceConstruct object="nodePropertyExtractorHost_"       constructor="nodePropertyExtractorHostNode  (nodePropertyExtractor_=nodePropertyExtractorHostMass_                                                                                                                               )"/>
+    <referenceConstruct object="nodePropertyExtractorHost_"       constructor="nodePropertyExtractorHostNode  (nodePropertyExtractor_=nodePropertyExtractorHostMass_                                                                                                                                                                       )"/>
     !!]
     allocate(galacticFilterHostHaloMass_)
     !![
-    <referenceConstruct object="galacticFilterHostHaloMass_"      constructor="galacticFilterHighPass         (threshold=massHostThreshold,nodePropertyExtractor_=nodePropertyExtractorHost_                                                                                                       )"/>
+    <referenceConstruct object="galacticFilterHostHaloMass_"      constructor="galacticFilterHighPass         (threshold=massHostThreshold,nodePropertyExtractor_=nodePropertyExtractorHost_                                                                                                                                               )"/>
     !!]
     allocate(galacticFilter_          )
     allocate(filters_                 )
@@ -366,7 +370,8 @@ contains
          &                                 outputAnalysisDistributionOperator_          , &
          &                                 outputAnalysisWeightPropertyOperator_        , &
          &                                 starFormationRateDisks_                      , &
-         &                                 starFormationRateSpheroids_                    &
+         &                                 starFormationRateSpheroids_                  , &
+         &                                 starFormationRateNuclearStarClusters_          &
          &                                )
     !![
     <objectDestructor name="galacticFilterIsSubhalo_"             />

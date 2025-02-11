@@ -184,7 +184,6 @@ contains
                &                    *intgrtdSurfaceDensityRate
           if (allocated(intervalIsAnalytic)) deallocate(intervalIsAnalytic)
           if (allocated(integralsAnalytic )) deallocate(integralsAnalytic )
-
        end if
        self%starFormationRatePrevious=intgrtdSurfaceDensityRate
     end if
