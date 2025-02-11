@@ -157,6 +157,7 @@ contains
     velocityDispersionAzimuthal=+velocityDispersionRadial*frequencyEpicyclic/2.0d0/frequencyCircular
     velocityDispersionVertical =+sqrt(Pi*gravitationalConstantGalacticus*densitySurface*heightScale)
     velocityDispersionMaximum  =+maxval([velocityDispersionRadial,velocityDispersionAzimuthal,velocityDispersionVertical])
+    if (velocityDispersionMaximum <= 0.0d0) return
     velocityDispersionRadial   =+velocityDispersionRadial   /velocityDispersionMaximum
     velocityDispersionAzimuthal=+velocityDispersionAzimuthal/velocityDispersionMaximum
     velocityDispersionVertical =+velocityDispersionVertical /velocityDispersionMaximum

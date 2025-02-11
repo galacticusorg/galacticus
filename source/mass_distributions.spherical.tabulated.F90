@@ -38,6 +38,7 @@
      <methods>
        <method method="parameters"           description="Return parameters of the current mass distribution."                  />
        <method method="factoryTabulation"    description="Return an instance of the class with the given tabulation parameters."/>
+       <method method="suffix"               description="Return a suffix to append to table file names."                       />
        <method method="fileRead"             description="Read tabulation data from file."                                      />
        <method method="fileWrite"            description="Write tabulation data to file."                                       />
        <method method="tabulate"             description="(Re)tabulate the mass distribution."                                  />

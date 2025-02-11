@@ -87,6 +87,7 @@ my $hecto                    = pdl 1.0000000000000e+02;
 my $mega                     = pdl 1.0000000000000e+06;
 my $joulesPerErg             = pdl 1.0000000000000e-07;
 my $secondsPerGyr            = pdl 3.1557600000000e-16;
+my $unitsIntensity           = pdl $joulesPerErg*$hecto**2;
 
 # Specify abundances and depletion model. This is based upon the work by Gutkin, Charlot & Bruzual (2016;
 # https://ui.adsabs.harvard.edu/abs/2016MNRAS.462.1757G).
@@ -1159,10 +1160,10 @@ sub outputAGN {
     foreach ( keys(%lineList) ) {
 	my $lineName = $lineList{$_};
 	$lineGroup->dataset($lineName)->    set(               $grid->{'lineData'}->{$lineName}->{'luminosity'});
-	$lineGroup->dataset($lineName)->attrSet(description => "Luminosity of the line."                       );
-	$lineGroup->dataset($lineName)->attrSet(units       => "erg s¯¹"                                       );
-	$lineGroup->dataset($lineName)->attrSet(unitsInSI   => $joulesPerErg                                   );
-	$lineGroup->dataset($lineName)->attrSet(wavelength  => $grid->{'lineData'}->{$lineName}->{'wavelength'});
+	$lineGroup->dataset($lineName)->attrSet(description => "Energy radiated by a unit area of cloud into 4 π sr.");
+	$lineGroup->dataset($lineName)->attrSet(units       => "erg cm¯² s¯¹"                                        );
+	$lineGroup->dataset($lineName)->attrSet(unitsInSI   => $unitsIntensity                                       );
+	$lineGroup->dataset($lineName)->attrSet(wavelength  => $grid->{'lineData'}->{$lineName}->{'wavelength'}      );
     }
 }
 

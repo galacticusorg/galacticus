@@ -4,7 +4,7 @@
 
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
+  <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
   <!-- Task and work control -->
   <task value="evolveForests">
     <walltimeMaximum value="-1"/> 
@@ -288,8 +288,14 @@
 
   <!-- AGN feedback options -->
   <hotHaloExcessHeatDrivesOutflow value="true"/>
-  <blackHoleHeatsHotHalo value="true"/>
-
+  <blackHoleWind value="ciotti2009">
+    <efficiencyWind                              value="0.211884639031352"/>
+    <efficiencyWindScalesWithEfficiencyRadiative value="false"            />
+  </blackHoleWind>
+  <blackHoleCGMHeating value="jetPower">
+    <efficiencyRadioMode value="0.00140338137883176"/>
+  </blackHoleCGMHeating>
+ 
   <stellarWinds value="leitherer1992"/>
   <initialMassForSupernovaTypeII value="8.0"/>
   <supernovaeIa value="nagashima"/>
@@ -297,15 +303,13 @@
   <stellarFeedback value="standard"/>
   
   <!-- Black hole options -->
-  <blackHoleSeedMass value="100"/>
-  <blackHoleToSpheroidStellarGrowthRatio value="2.32959186797031"/>
-  <blackHoleHeatingEfficiency value="0.00140338137883176"/>
-  <blackHoleWindEfficiency value="0.211884639031352"/>
+  <blackHoleAccretionRate value="standard">
+    <bondiHoyleAccretionEnhancementSpheroid value="  5.0"/>
+    <bondiHoyleAccretionEnhancementHotHalo  value="  6.0"/>
+    <bondiHoyleAccretionTemperatureSpheroid value="100.0"/>
+    <bondiHoyleAccretionHotModeOnly         value="true"/>
+  </blackHoleAccretionRate>
   <blackHoleBinaryMerger value="rezzolla2008"/>
-  <blackHoleEfficiency value="0.213288020410184"/>
-  <blackHoleJetFraction value="0.00657974778017468"/>
-
-  <!-- Satellite orbit options -->
 
   <!-- Galaxy merger options -->
   <virialOrbit value="li2020">
@@ -368,7 +372,7 @@
         <timescaleOutflowFractionalMinimum value="0.103745531708515"/>
         <stellarFeedbackOutflows value="powerLaw">
           <velocityCharacteristic value="151.06489745284"/>
-          <exponent value="0.33561921242039"/><!--0.23561921242039-->
+          <exponent value="0.33561921242039"/> <!--0.23561921242039-->
         </stellarFeedbackOutflows>
       </stellarFeedbackOutflows>
     </nodeOperator>
@@ -406,12 +410,16 @@
     <nodeOperator value="indexShift"/>
     <nodeOperator value="indexLastHost"/>
     <nodeOperator value="timeFirstInfall"/>
+    <!-- Black hole physics -->
     <nodeOperator value="blackHolesSeed">
       <blackHoleSeeds value="fixed">
         <mass value="100"/>
         <spin value="0"/>
       </blackHoleSeeds>
     </nodeOperator>
+    <nodeOperator value="blackHolesAccretion"/>
+    <nodeOperator value="blackHolesWinds"/>
+    <nodeOperator value="blackHolesCGMHeating"/>
   </nodeOperator>
   
   <starFormationHistory value="adaptive">
