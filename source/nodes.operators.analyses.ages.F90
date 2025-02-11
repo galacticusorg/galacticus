@@ -276,6 +276,7 @@ contains
     select type (nuclearStarCluster)
     type is (nodeComponentNSC     )
        ! NSC does not yet exist - nothing to do here. class default
+    class default
        call nuclearStarCluster%floatRank0MetaPropertyRate(self%timeStellarmassFormedNSCID     ,rateStarFormationNuclearStarCluster*time)
        call nuclearStarCluster%floatRank0MetaPropertyRate(self%    stellarMassFormedNSCID     ,rateStarFormationNuclearStarCluster     )
     end select
