@@ -68,8 +68,8 @@
      procedure :: nodePromote                         => SIDMParametricNodePromote
      procedure :: differentialEvolutionScales         => SIDMParametriCalculateTauDifferentialEvolutionScale
      procedure :: differentialEvolution               => SIDMParametriCalculateTauDifferentialEvolution
-!     procedure :: differentialEvolutionAnalytics      => SIDMParametriDifferentialVmaxAnalytics
-!     procedure :: differentialEvolutionSolveAnalytics => SIDMParametriDifferentialVmaxSolveAnalytics
+     procedure :: differentialEvolutionAnalytics      => SIDMParametriDifferentialVmaxAnalytics
+     procedure :: differentialEvolutionSolveAnalytics => SIDMParametriDifferentialVmaxSolveAnalytics
 !     procedure :: getTauID                            => getTauID_SIDMParametric
 !     procedure :: getVmaxSIDMID                       => getVmaxSIDMID_SIDMParametric
 !     procedure :: getRmaxSIDMID                       => getRmaxSIDMID_SIDMParametric
@@ -426,6 +426,64 @@ contains
     return
   end subroutine SIDMParametricNodeTreeInitialize
 
+  subroutine SIDMParametriDifferentialVmaxAnalytics(self,node)
+    !!{
+    Mark analytically-solvable properties.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
+    implicit none
+    class(nodeOperatorSIDMParametric    ), intent(inout) :: self
+    type (treeNode                      ), intent(inout) :: node
+!    class(nodeComponentBasic            ), pointer       :: basic
+    class(nodeComponentDarkMatterProfile), pointer     :: darkMatterProfile
+
+    darkMatterProfile => node%darkMatterProfile()        
+
+    call darkMatterProfile%floatRank0MetaPropertyAnalytic(self%RhosSIDMID)
+    call darkMatterProfile%floatRank0MetaPropertyAnalytic(self%RsSIDMID)
+    call darkMatterProfile%floatRank0MetaPropertyAnalytic(self%RcSIDMID)
+
+    return
+  end subroutine SIDMParametriDifferentialVmaxAnalytics
+
+  subroutine SIDMParametriDifferentialVmaxSolveAnalytics(self,node,time)
+    !!{
+    Evolve ``\gls{dmou}'' mass at a constant rate, to achieve linear interpolation in time.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
+    use :: Mass_Distributions        , only : massDistributionClass
+    implicit none
+    class           (nodeOperatorSIDMParametric  ), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node
+    double precision                              , intent(in   ) :: time
+    class           (nodeComponentBasic          ), pointer       :: basic            , basicParent
+    class         (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
+    class           (massDistributionClass       ), pointer       :: massDistribution_
+    double precision                                              :: tau, r_sNFW0, rho_sNFW0, rho_s, r_s, r_c
+!         &                                                           massRateAccretion
+
+!    basic             => node %basic                    (                                )
+
+!    timeFormation = basic%floatRank0MetaPropertyGet(self%nodeFormationTimeSIDMID)
+
+    darkMatterProfile => node%darkMatterProfile()
+    tau = darkMatterProfile%floatRank0MetaPropertyGet(self%tauID)   
+    massDistribution_ => self%darkMatterProfileDMO_%get(node)
+    r_sNFW0 = r_s0(massDistribution_%radiusRotationCurveMaximum())
+    rho_sNFW0 = rho_s0(r_sNFW0, massDistribution_%velocityRotationCurveMaximum())
+
+    rho_s = get_rho_s(rho_sNFW0, tau)
+    r_s = get_r_s(r_sNFW0, tau)
+    r_c = get_r_c(r_sNFW0, tau)
+
+    call darkMatterProfile%floatRank0MetaPropertySet(self%RhosSIDMID, rho_s)
+    call darkMatterProfile%floatRank0MetaPropertySet(self%RsSIDMID, r_s)
+    call darkMatterProfile%floatRank0MetaPropertySet(self%RcSIDMID, r_c)
+
+    return
+  end subroutine SIDMParametriDifferentialVmaxSolveAnalytics
+
+
   subroutine SIDMParametricNodePromote(self,node)
     !!{
     Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent.
@@ -579,16 +637,18 @@ contains
 
 !            r_sNFW0 = r_s0(RmaxNFW0)
 !            rho_sNFW0 = rho_s0(r_sNFW0, VmaxNFW0)
-            r_sNFW0 = r_s0(massDistribution_%radiusRotationCurveMaximum())
-            rho_sNFW0 = rho_s0(r_sNFW0, massDistribution_%velocityRotationCurveMaximum())
 
-            rho_s = get_rho_s(rho_sNFW0, tau)
-            r_s = get_r_s(r_sNFW0, tau)
-            r_c = get_r_c(r_sNFW0, tau)
 
-            call darkMatterProfile%floatRank0MetaPropertySet(self%RhosSIDMID, rho_s)
-            call darkMatterProfile%floatRank0MetaPropertySet(self%RsSIDMID, r_s)
-            call darkMatterProfile%floatRank0MetaPropertySet(self%RcSIDMID, r_c)
+!!            r_sNFW0 = r_s0(massDistribution_%radiusRotationCurveMaximum())
+!!            rho_sNFW0 = rho_s0(r_sNFW0, massDistribution_%velocityRotationCurveMaximum())
+
+!!            rho_s = get_rho_s(rho_sNFW0, tau)
+!!            r_s = get_r_s(r_sNFW0, tau)
+!!            r_c = get_r_c(r_sNFW0, tau)
+
+!!            call darkMatterProfile%floatRank0MetaPropertySet(self%RhosSIDMID, rho_s)
+!!            call darkMatterProfile%floatRank0MetaPropertySet(self%RsSIDMID, r_s)
+!!            call darkMatterProfile%floatRank0MetaPropertySet(self%RcSIDMID, r_c)
 
     else
             call darkMatterProfile%floatRank0MetaPropertyRate(self%tauID, 0.0d0)
@@ -596,31 +656,30 @@ contains
             call darkMatterProfile%floatRank0MetaPropertyRate(self%RmaxSIDMID, 0.0d0)
 
 !            massDistribution_ => node%massDistribution(componentTypeDarkMatterOnly,massTypeDark)
-            massDistribution_ => self%darkMatterProfileDMO_%get(node)
-            VmaxSIDM = darkMatterProfile%floatRank0MetaPropertyGet(self%VmaxSIDMID)+massDistribution_%velocityRotationCurveMaximum()
-            RmaxSIDM = darkMatterProfile%floatRank0MetaPropertyGet(self%RmaxSIDMID)+massDistribution_%radiusRotationCurveMaximum()
+!!            massDistribution_ => self%darkMatterProfileDMO_%get(node)
+!!            VmaxSIDM = darkMatterProfile%floatRank0MetaPropertyGet(self%VmaxSIDMID)+massDistribution_%velocityRotationCurveMaximum()
+!!            RmaxSIDM = darkMatterProfile%floatRank0MetaPropertyGet(self%RmaxSIDMID)+massDistribution_%radiusRotationCurveMaximum()
 
-            tau = darkMatterProfile%floatRank0MetaPropertyGet(self%tauID)
+!!            tau = darkMatterProfile%floatRank0MetaPropertyGet(self%tauID)
 
 !            RmaxNFW0 = Rmax_NFW(RmaxSIDM, tau)
 !            VmaxNFW0 = Vmax_NFW(VmaxSIDM, tau)
 
 !            r_sNFW0 = r_s0(RmaxNFW0)
 !            rho_sNFW0 = rho_s0(r_sNFW0, VmaxNFW0)
-            r_sNFW0 = r_s0(massDistribution_%radiusRotationCurveMaximum())
-            rho_sNFW0 = rho_s0(r_sNFW0, massDistribution_%velocityRotationCurveMaximum())
+!!            r_sNFW0 = r_s0(massDistribution_%radiusRotationCurveMaximum())
+!!            rho_sNFW0 = rho_s0(r_sNFW0, massDistribution_%velocityRotationCurveMaximum())
 
-            rho_s = get_rho_s(rho_sNFW0, tau)
-            r_s = get_r_s(r_sNFW0, tau)
-            r_c = get_r_c(r_sNFW0, tau)
+!!            rho_s = get_rho_s(rho_sNFW0, tau)
+!!            r_s = get_r_s(r_sNFW0, tau)
+!!            r_c = get_r_c(r_sNFW0, tau)
 
-            call darkMatterProfile%floatRank0MetaPropertySet(self%RhosSIDMID, rho_s)
-            call darkMatterProfile%floatRank0MetaPropertySet(self%RsSIDMID, r_s)
-            call darkMatterProfile%floatRank0MetaPropertySet(self%RcSIDMID, r_c)
+!!            call darkMatterProfile%floatRank0MetaPropertySet(self%RhosSIDMID, rho_s)
+!!            call darkMatterProfile%floatRank0MetaPropertySet(self%RsSIDMID, r_s)
+!!            call darkMatterProfile%floatRank0MetaPropertySet(self%RcSIDMID, r_c)
 
     end if
     
-
     return
   end subroutine SIDMParametriCalculateTauDifferentialEvolution
 
