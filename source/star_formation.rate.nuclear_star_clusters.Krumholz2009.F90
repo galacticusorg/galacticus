@@ -222,7 +222,7 @@ contains
        delta            =0.0712d0/((0.1d0/s+0.675d0)**2.8d0)
        molecularFraction=1.0d0-1.0d0/((1.0d0+(((1.0d0+delta)/0.75d0/s)**5.0d0))**0.2d0)
     end if
-    ! Limit the molecular farction.
+    ! Limit the molecular fraction.
     molecularFraction=max(0.02d0,molecularFraction)
     return
   end function molecularFraction

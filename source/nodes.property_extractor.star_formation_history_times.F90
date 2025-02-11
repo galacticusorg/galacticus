@@ -97,13 +97,13 @@ contains
     <constructorAssign variables="component, *starFormationHistory_"/>
     !!]
     
-    if     (                                                                                                    &
-         &   component /= componentTypeDisk                                                                     &
-         &  .and.                                                                                               &
-         &   component /= componentTypeSpheroid                                                                 &
-         &  .and.                                                                                               &
-         &   component /= componentTypeNuclearStarCluster                                                                      &
-         & ) call Error_Report("only 'disk', 'spheroid' and NSC components are supported"//{introspection:location})    
+    if     (                                                                                                                          &
+         &   component /= componentTypeDisk                                                                                           &
+         &  .and.                                                                                                                     &
+         &   component /= componentTypeSpheroid                                                                                       &
+         &  .and.                                                                                                                     &
+         &   component /= componentTypeNuclearStarCluster                                                                             &
+         & ) call Error_Report("only 'disk', 'spheroid' and 'nuclearStarCluster' components are supported"//{introspection:location})    
     return
   end function starFormationHistoryTimesConstructorInternal
 
@@ -145,7 +145,7 @@ contains
     type            (multiCounter                                  ), intent(inout) , optional    :: instance
     class           (nodeComponentDisk                             )                , pointer     :: disk
     class           (nodeComponentSpheroid                         )                , pointer     :: spheroid
-    class           (nodeComponentNSC                              )                , pointer     :: NSC
+    class           (nodeComponentNSC                              )                , pointer     :: nuclearStarCluster
     type            (history                                       )                              :: starFormationHistory
     double precision                                                , dimension(:  ), allocatable :: times 
     !$GLC attributes unused :: instance
@@ -153,14 +153,14 @@ contains
     ! Get the relevant star formation history.
     select case (self%component%ID)
     case (componentTypeDisk              %ID)
-       disk                 => node    %disk                ()
-       starFormationHistory =  disk    %starFormationHistory()
+       disk                 => node              %disk                ()
+       starFormationHistory =  disk              %starFormationHistory()
     case (componentTypeSpheroid          %ID)
-       spheroid             => node    %spheroid            ()
-       starFormationHistory =  spheroid%starFormationHistory()
+       spheroid             => node              %spheroid            ()
+       starFormationHistory =  spheroid          %starFormationHistory()
     case (componentTypeNuclearStarCluster%ID)
-       NSC                  => node    %NSC                 ()
-       starFormationHistory =  NSC     %starFormationHistory()
+       nuclearStarCluster   => node              %NSC                 ()
+       starFormationHistory =  nuclearStarCluster%starFormationHistory()
     end select
     if (starFormationHistory%exists()) then
        times=self%starFormationHistory_%times(node=node,starFormationHistory=starFormationHistory,allowTruncation=.true.)

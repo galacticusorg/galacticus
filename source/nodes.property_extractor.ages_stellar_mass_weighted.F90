@@ -119,81 +119,82 @@ contains
     type            (multiCounter                                ), intent(inout), optional    :: instance
     class           (nodeComponentDisk                           )               , pointer     :: disk
     class           (nodeComponentSpheroid                       )               , pointer     :: spheroid
-    class           (nodeComponentNSC                            )               , pointer     :: NSC
+    class           (nodeComponentNSC                            )               , pointer     :: nuclearStarCluster
 
-    double precision                                                                           :: massStellarDisk               , massTimeStellarDisk    , &
-         &                                                                                        massStellarSpheroid           , massTimeStellarSpheroid, &
-         &                                                                                        massStellarNSC                , massTimeStellarNSC     , &
-         &                                                                                        ageDisk                       , ageSpheroid            , &
-                                                                                                  ageNSC              
+    double precision                                                                           :: massStellarDisk               , massTimeStellarDisk              , &
+         &                                                                                        massStellarSpheroid           , massTimeStellarSpheroid          , &
+         &                                                                                        massStellarNuclearStarCluster , massTimeStellarNuclearStarCluster, &
+         &                                                                                        ageDisk                       , ageSpheroid                      , &
+         &                                                                                        ageNuclearStarCluster              
     !$GLC attributes unused :: time, instance
 
     ! Extract required quantities.
-    disk     => node%disk    ()
-    spheroid => node%spheroid()
-    NSC      => node%NSC     ()
+    disk               => node%disk    ()
+    spheroid           => node%spheroid()
+    nuclearStarCluster => node%NSC     ()
 
-    select type (disk    )
+    select type (disk              )
     type is (nodeComponentDisk    )
        ! Disk does not yet exist.
-       massStellarDisk        =0.0d0
-       massTimeStellarDisk    =0.0d0
+       massStellarDisk                   =0.0d0
+       massTimeStellarDisk               =0.0d0
     class default
-       massStellarDisk        =disk    %floatRank0MetaPropertyGet(self%    stellarMassFormedDiskID    )
-       massTimeStellarDisk    =disk    %floatRank0MetaPropertyGet(self%timeStellarMassFormedDiskID    )
+       massStellarDisk                   =disk               %floatRank0MetaPropertyGet(self%    stellarMassFormedDiskID    )
+       massTimeStellarDisk               =disk               %floatRank0MetaPropertyGet(self%timeStellarMassFormedDiskID    )
     end select
 
-    select type (spheroid)
+    select type (spheroid          )
     type is (nodeComponentSpheroid)
        ! Spheroid does not yet exist.
-       massStellarSpheroid    =0.0d0
-       massTimeStellarSpheroid=0.0d0
+       massStellarSpheroid               =0.0d0
+       massTimeStellarSpheroid           =0.0d0
     class default
-       massStellarSpheroid    =spheroid%floatRank0MetaPropertyGet(self%    stellarMassFormedSpheroidID)
-       massTimeStellarSpheroid=spheroid%floatRank0MetaPropertyGet(self%timeStellarMassFormedSpheroidID)
+       massStellarSpheroid               =spheroid           %floatRank0MetaPropertyGet(self%    stellarMassFormedSpheroidID)
+       massTimeStellarSpheroid           =spheroid           %floatRank0MetaPropertyGet(self%timeStellarMassFormedSpheroidID)
     end select
 
-    select type (NSC    )
+    select type (nuclearStarCluster)
     type is (nodeComponentNSC     )
-        ! NSC does not yet exist.
-        massStellarNSC        =0.0d0
-        massTimeStellarNSC    =0.0d0
+        ! Nuclear star cluster does not yet exist.
+        massStellarNuclearStarCluster    =0.0d0
+        massTimeStellarNuclearStarCluster=0.0d0
     class default
-        massStellarNSC        =NSC    %floatRank0MetaPropertyGet(self%    stellarMassFormedNSCID      )
-        massTimeStellarNSC    =NSC    %floatRank0MetaPropertyGet(self%timeStellarMassFormedNSCID      ) 
+        massStellarNuclearStarCluster    =nuclearStarCluster%floatRank0MetaPropertyGet(self%    stellarMassFormedNSCID      )
+        massTimeStellarNuclearStarCluster=nuclearStarCluster%floatRank0MetaPropertyGet(self%timeStellarMassFormedNSCID      ) 
     end select     
     ! Compute ages.
 
     if (massStellarDisk > 0.0d0) then
-       ageDisk    =+time                    &
-            &      -massTimeStellarDisk     &
-            &      /massStellarDisk
+       ageDisk              =+time                              &
+            &                -massTimeStellarDisk               &
+            &                /massStellarDisk
     else
-       ageDisk    =-1.0d0
+       ageDisk              =-1.0d0
     end if
 
     if (massStellarSpheroid > 0.0d0) then
-       ageSpheroid=+time                    &
-            &      -massTimeStellarSpheroid &
-            &      /massStellarSpheroid
+       ageSpheroid          =+time                              &
+            &                -massTimeStellarSpheroid           &
+            &                /massStellarSpheroid
     else
-       ageSpheroid=-1.0d0
+       ageSpheroid          =-1.0d0
     end if
 
-    if (massStellarNSC > 0.0d0) then
-       ageNSC     =+time                    &
-            &      -massTimeStellarNSC      &
-            &      /massStellarNSC
+    if (massStellarNuclearStarCluster > 0.0d0) then
+       ageNuclearStarCluster=+time                              &
+            &                -massTimeStellarNuclearStarCluster &
+            &                /massStellarNuclearStarCluster
     else
-       ageNSC     =-1.0d0
+       ageNuclearStarCluster     =-1.0d0
     end if 
 
     ! Set return results.
     allocate(agesStellarMassWeightedExtract(3))
-    agesStellarMassWeightedExtract=[             &
-         &                          ageDisk    , &
-         &                          ageSpheroid, &
-         &                          ageNSC]
+    agesStellarMassWeightedExtract=[                       &
+         &                          ageDisk              , &
+         &                          ageSpheroid          , &
+         &                          ageNuclearStarCluster  &
+         &                         ]
     return
   end function agesStellarMassWeightedExtract
 
@@ -208,9 +209,9 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(names(3))
-    names(1)=var_str('diskAgeStellarMassWeighted'    )
-    names(2)=var_str('spheroidAgeStellarMassWeighted')
-    names(3)=var_str('NSCAgeStellarMassWeighted'     )
+    names(1)=var_str('diskAgeStellarMassWeighted'              )
+    names(2)=var_str('spheroidAgeStellarMassWeighted'          )
+    names(3)=var_str('nuclearStarClusterAgeStellarMassWeighted')
     return
   end subroutine agesStellarMassWeightedNames
 
@@ -225,9 +226,9 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(descriptions(3))
-    descriptions(1)=var_str('Stellar mass-weighted age of the disk [Gyr].'    )
-    descriptions(2)=var_str('Stellar mass-weighted age of the spheroid [Gyr].')
-    descriptions(3)=var_str('stellar mass-weighted age of the NSC [Gyr].'     )
+    descriptions(1)=var_str('Stellar mass-weighted age of the disk [Gyr].'                )
+    descriptions(2)=var_str('Stellar mass-weighted age of the spheroid [Gyr].'            )
+    descriptions(3)=var_str('stellar mass-weighted age of the nuclear star cluster [Gyr].')
     return
   end subroutine agesStellarMassWeightedDescriptions
 

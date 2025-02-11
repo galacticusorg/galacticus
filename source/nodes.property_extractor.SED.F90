@@ -196,13 +196,13 @@ contains
     <constructorAssign variables="component, frame, wavelengthMinimum, wavelengthMaximum, resolution, toleranceRelative, *stellarPopulationSpectra_, *stellarPopulationSpectraPostprocessor_, *starFormationHistory_, *outputTimes_, *cosmologyFunctions_"/>
     !!]
     
-    if     (                                                                                                               &
-         &   component /= componentTypeDisk                                                                                &
-         &  .and.                                                                                                          &
-         &   component /= componentTypeSpheroid                                                                            &
-         &  .and.                                                                                                          &
-         &   component /= componentTypeNuclearStarCluster                                                                                 &
-         & ) call Error_Report("only 'disk', 'spheroid' and 'NSC' components are supported"//{introspection:location})
+    if     (                                                                                                                          &
+         &   component /= componentTypeDisk                                                                                           &
+         &  .and.                                                                                                                     &
+         &   component /= componentTypeSpheroid                                                                                       &
+         &  .and.                                                                                                                     &
+         &   component /= componentTypeNuclearStarCluster                                                                             &
+         & ) call Error_Report("only 'disk', 'spheroid' and 'nuclearStarCluster' components are supported"//{introspection:location})
     call self%stellarPopulationSpectra_%wavelengths(self%countWavelengths                   ,self%wavelengths_              )
     call self%stellarPopulationSpectra_%tabulation (     agesCount       ,metallicitiesCount,     ages        ,metallicities)    
     self%metallicityBoundaries       =self%starFormationHistory_%metallicityBoundaries()
@@ -337,7 +337,7 @@ contains
     type            (multiCounter            ), intent(inout)   , optional              :: instance
     class           (nodeComponentDisk       )                  , pointer               :: disk
     class           (nodeComponentSpheroid   )                  , pointer               :: spheroid
-    class           (nodeComponentNSC        )                  , pointer               :: NSC
+    class           (nodeComponentNSC        )                  , pointer               :: nuclearStarCluster
     double precision                          , dimension(:,:,:), pointer               :: sedTemplate_
     double precision                          , dimension(:,:,:), target  , allocatable :: sedTemplate
     double precision                          , dimension(  :,:)          , allocatable :: masses
@@ -351,14 +351,14 @@ contains
     ! Get the relevant star formation history.
     select case (self%component%ID)
     case (componentTypeDisk               %ID)
-       disk                 => node    %disk                ()
-       starFormationHistory =  disk    %starFormationHistory()
+       disk                 => node              %disk                ()
+       starFormationHistory =  disk              %starFormationHistory()
     case (componentTypeSpheroid           %ID)
-       spheroid             => node    %spheroid            ()
-       starFormationHistory =  spheroid%starFormationHistory()
+       spheroid             => node              %spheroid            ()
+       starFormationHistory =  spheroid          %starFormationHistory()
      case (componentTypeNuclearStarCluster%ID)
-       NSC                  => node    %NSC                 ()
-       starFormationHistory =  NSC     %starFormationHistory()
+       nuclearStarCluster   => node              %NSC                 ()
+       starFormationHistory =  nuclearStarCluster%starFormationHistory()
     end select
     if (.not.starFormationHistory%exists()) return
     ! Get the index of the template to use.

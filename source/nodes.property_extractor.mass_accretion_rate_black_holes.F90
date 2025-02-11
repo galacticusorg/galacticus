@@ -121,19 +121,19 @@ contains
     type            (treeNode                                        ), intent(inout)               :: node
     type            (multiCounter                                    ), intent(inout) , optional    :: instance
     class           (nodeComponentBlackHole                          )                , pointer     :: blackHole
-    integer                                                                                         :: i                        , countBlackHoles
-    double precision                                                                                :: rateMassAccretionSpheroid, rateMassAccretionHotHalo, &
-        &                                                                                              rateMassAccretionNSC
+    integer                                                                                         :: i                                  , countBlackHoles
+    double precision                                                                                :: rateMassAccretionSpheroid          , rateMassAccretionHotHalo, &
+        &                                                                                              rateMassAccretionNuclearStarCluster
     !$GLC attributes unused :: instance
 
     countBlackHoles=node%blackHoleCount()
     allocate(massAccretionRate(countBlackHoles,1))
     do i=1,countBlackHoles
        blackHole                =>  node%blackHole(instance=i)
-       call self%blackHoleAccretionRate_%rateAccretion(blackHole,rateMassAccretionSpheroid, rateMassAccretionHotHalo, rateMassAccretionNSC)
-       massAccretionRate  (i,1) =  +rateMassAccretionSpheroid &
-            &                      +rateMassAccretionHotHalo  &
-            &                      +rateMassAccretionNSC  
+       call self%blackHoleAccretionRate_%rateAccretion(blackHole,rateMassAccretionSpheroid,rateMassAccretionHotHalo,rateMassAccretionNuclearStarCluster)
+       massAccretionRate  (i,1) =  +rateMassAccretionSpheroid           &
+            &                      +rateMassAccretionHotHalo            &
+            &                      +rateMassAccretionNuclearStarCluster  
     end do
     return
   end function massAccretionRateBlackHolesExtract

@@ -41,10 +41,10 @@
      Implementation of a timescale for star formation which scales with the dynamical time.
      !!}
      private
-     double precision :: efficiency      , exponentVelocity , &
+     double precision :: efficiency                 , exponentVelocity , &
           &              timescaleMinimum
-     logical          :: diskSupported   , spheroidSupported, &
-          &              NSCSupported
+     logical          :: diskSupported              , spheroidSupported, &
+          &              nuclearStarClusterSupported
    contains
      procedure :: timescale => dynamicalTimeTimescale
   end type starFormationTimescaleDynamicalTime
@@ -117,7 +117,7 @@ contains
     self%spheroidSupported          = defaultSpheroidComponent%velocityIsGettable() &
          &                            .and.                                         &
          &                            defaultSpheroidComponent%  radiusIsGettable() 
-    self%NSCSupported               = defaultNSCComponent     %velocityIsGettable() &
+    self%nuclearStarClusterSupported= defaultNSCComponent     %velocityIsGettable() &
          &                            .and.                                         &
          &                            defaultNSCComponent     %  radiusIsGettable() 
     return
@@ -137,8 +137,8 @@ contains
     !!}
     use :: Array_Utilities                 , only : operator(.intersection.)
     use :: Error                           , only : Error_Report
-    use :: Galacticus_Nodes                , only : defaultDiskComponent    , defaultSpheroidComponent, defaultNSCComponent, nodeComponent, nodeComponentDisk, &
-          &                                         nodeComponentSpheroid   , nodeComponentNSC
+    use :: Galacticus_Nodes                , only : defaultDiskComponent    , defaultSpheroidComponent, defaultNSCComponent, nodeComponent, &
+          &                                         nodeComponentDisk       , nodeComponentSpheroid   , nodeComponentNSC
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
     implicit none
     class           (starFormationTimescaleDynamicalTime), intent(inout) :: self
@@ -179,14 +179,14 @@ contains
        velocity=component%velocity()
        radius  =component%radius  ()
     class is (nodeComponentNSC)
-       if (.not.self%NSCSupported) then
+       if (.not.self%nuclearStarClusterSupported) then
           call Error_Report(                                                                                          &
                &            'nuclear star cluster component must have gettable radius and velocity properties.'    // &
                &            Component_List(                                                                           &
-               &                           'NSC'                                                    ,  &
-               &                            defaultNSCComponent%velocityAttributeMatch(requireGettable=.true.)   &
+               &                           'NSC'                                                                   ,  &
+               &                            defaultNSCComponent     %velocityAttributeMatch(requireGettable=.true.)   &
                &                           .intersection.                                                             &
-               &                            defaultNSCComponent%radiusAttributeMatch(requireGettable=.true.)   &
+               &                            defaultNSCComponent     %  radiusAttributeMatch(requireGettable=.true.)   &
                &                          )                                                                        // &
                &            {introspection:location}                                                                  &
                &           )

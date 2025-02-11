@@ -91,7 +91,7 @@ contains
     <inputParameter>
       <name>radiusEfficiency</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>Specifies the efficiency of the radius used to compute the critcal mass.</description>
+      <description>Specifies the efficiency of the radius used to compute the critical mass.</description>
       <source>parameters</source>
     </inputParameter>
      <inputParameter>
