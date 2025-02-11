@@ -43,7 +43,7 @@ module Node_Component_NSC_Standard
   <component>
    <class>NSC</class>
    <name>standard</name>
-   <isDefault>true</isDefault>
+   <isDefault>false</isDefault>
    <createFunction isDeferred="true" />
    <properties>
     <property>
