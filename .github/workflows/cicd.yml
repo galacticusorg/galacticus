@@ -177,6 +177,33 @@ jobs:
           name: galacticus-exec-instrumented
           path: 'Galacticus.exe'
       - run: echo "This job's status is ${{ job.status }}."
+  ### Executable with dark matter only components
+  Build-Executable-DMO-Linux:
+    runs-on: ubuntu-latest
+    container: ghcr.io/galacticusorg/buildenv:latest
+    steps:
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_ACTIVE_COMPONENTS='basic darkMatterProfile satellite spin'" >> $GITHUB_ENV
+      - name: Build the code
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          make -j4 Galacticus.exe
+      - name: Upload executables
+        uses: actions/upload-artifact@v4
+        with:
+          name: galacticus-exec-dmo
+          path: 'Galacticus.exe'
+      - run: echo "This job's status is ${{ job.status }}."
   ### Executable MPI
   Build-Executables-MPI-Linux:
     runs-on: ubuntu-latest
@@ -759,12 +786,12 @@ jobs:
       uploadName: validate-milkyWayModel
     secrets: inherit
   Validate-PonosV:
-    needs: Build-Executable-Linux
+    needs: Build-Executable-DMO-Linux
     uses: ./.github/workflows/testModel.yml
     with:
       install: python3 python3-h5py python3-numpy python3-git
       file: validate-PonosV.py
-      artifact: galacticus-exec
+      artifact: galacticus-exec-dmo
       runPath: ./testSuite
       cacheData: 0
       uploadFile: ./testSuite/outputs/*.json
