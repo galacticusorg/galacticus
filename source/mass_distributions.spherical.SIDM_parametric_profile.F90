@@ -164,7 +164,6 @@ contains
     term2 = (1.0d0 + r / self%scaleRadius) ** 2
 
     SIDMParametricProfileDensity=self%densityNormalization/(term1 * term2)
-
     return
   end function SIDMParametricProfileDensity
 
@@ -177,27 +176,42 @@ contains
     class           (coordinate                  ), intent(in   )           :: coordinates
     logical                                       , intent(in   ), optional :: logarithmic
     double precision                                                        :: r, term1, term2, term3
+    logical :: logarithmicActual
 
     ! Set default options.
-!    logarithmicActual=.false.
-!    if (present(logarithmic)) logarithmicActual=logarithmic
+    logarithmicActual=.false.
+    if (present(logarithmic)) logarithmicActual=logarithmic
     ! Get position in spherical coordinate system.
     r=coordinates%rSpherical()
-
-    ! Compute density gradient.
-    term1 = (r ** self%beta + self%coreRadius ** self%beta) ** ((-1.0d0-self%beta)/self%beta)
-    term2 = 3.0d0 * r**(1.0d0+self%beta) + 2.0d0 * r * self%coreRadius**self%beta + self%scaleRadius * r**self%beta
-    term3 = r * (r+self%scaleRadius)**3.0d0
-
-!    print *,'r, self%scaleRadius, term3, self%coreRadius: ', r, self%scaleRadius, term3, self%coreRadius
-    if (r>0.0d0) then
-       SIDMParametricProfileDensityGradientRadial= (-1.0d0) * term1 * term2 * self%scaleRadius**3.0d0 *self%densityNormalization / term3
+    ! Compute the density gradient.
+    if (r > 0.0d0) then
+       ! Evaluate the logarithmic density profile.
+       term1=-1.0d0
+       term2=+1.0d0/(1.0d0+(r/self%coreRadius)**self%beta)
+       term3=-2.0d0*r/(r+self%scaleRadius)
+       SIDMParametricProfileDensityGradientRadial=term1+term2+term3
+       ! Convert to non-logarithmic form if necessary.
+       if (.not.logarithmicActual) SIDMParametricProfileDensityGradientRadial=SIDMParametricProfileDensityGradientRadial*self%density(coordinates)/r
     else
-!       print *,'correct gradient is used!'
-       SIDMParametricProfileDensityGradientRadial= 0.0d0
-!       SIDMParametricProfileDensityGradientRadial= (-2.0d0)/(self%coreRadius * self%scaleRadius**3)
+       SIDMParametricProfileDensityGradientRadial=0.0d0
     end if
+    
+!     ! Compute density gradient.
+!     term1 = (r ** self%beta + self%coreRadius ** self%beta) ** ((-1.0d0-self%beta)/self%beta)
+!     term2 = 3.0d0 * r**(1.0d0+self%beta) + 2.0d0 * r * self%coreRadius**self%beta + self%scaleRadius * r**self%beta
+!     term3 = r * (r+self%scaleRadius)**3.0d0
 
+! !    print *,'r, self%scaleRadius, term3, self%coreRadius: ', r, self%scaleRadius, term3, self%coreRadius
+!     if (r>0.0d0) then
+!        SIDMParametricProfileDensityGradientRadial= (-1.0d0) * term1 * term2 * self%scaleRadius**3.0d0 *self%densityNormalization / term3
+!     else
+! !       print *,'correct gradient is used!'
+!        SIDMParametricProfileDensityGradientRadial= 0.0d0
+! !       SIDMParametricProfileDensityGradientRadial= (-2.0d0)/(self%coreRadius * self%scaleRadius**3)
+!     end if
+
+
+    
     return
   end function SIDMParametricProfileDensityGradientRadial
 
