@@ -88,7 +88,7 @@ contains
     Return the 1D velocity dispersion at the specified {\normalfont \ttfamily coordinates} in an Burkert kinematic distribution.
     !!}
     use :: Dilogarithms                    , only : Dilogarithm
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (kinematicsDistributionBurkert), intent(inout), target :: self
     class           (coordinate                   ), intent(in   )         :: coordinates
@@ -155,7 +155,7 @@ contains
                &                      /4.0d0                                                                                                                                                                        &
                &                     )                                                                                                                                                                              &
                &                    *sqrt(                                                                                                                                                                          &
-               &                          +gravitationalConstantGalacticus                                                                                                                                          &
+               &                          +gravitationalConstant_internal                                                                                                                                           &
                &                          *massDistributionEmbedding%densityNormalization                                                                                                                           &
                &                         )                                                                                                                                                                          &
                &                    *      massDistributionEmbedding%scaleLength

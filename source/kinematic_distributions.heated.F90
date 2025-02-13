@@ -201,8 +201,8 @@ contains
     \end{equation}
     !!}
     use :: Error                           , only : Error_Report
-    use :: Coordinates                     , only : coordinateSpherical            , assignment(=)
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (kinematicsDistributionHeated), intent(inout) :: self
     double precision                              , intent(in   ) :: radius
@@ -216,14 +216,14 @@ contains
        class is (massDistributionSphericalHeated)
           massEnclosed  =+massDistributionEmbedding                         %massDistribution_%massEnclosedBySphere(radius                                            )
           energySpecific=+massDistributionEmbedding%massDistributionHeating_                  %specificEnergy      (radius,massDistributionEmbedding%massDistribution_)
-          radiusFinal   =+1.0d0                                                               &
-               &         /(                                                                   &
-               &           +1.0d0/radius                                                      &
-               &           -2.0d0*energySpecific/gravitationalConstantGalacticus/massEnclosed &
+          radiusFinal   =+1.0d0                                                              &
+               &         /(                                                                  &
+               &           +1.0d0/radius                                                     &
+               &           -2.0d0*energySpecific/gravitationalConstant_internal/massEnclosed &
                &          )
           if (radiusFinal > 0.0d0) then
              coordinates                 = [radius,0.0d0,0.0d0]
-             heatedJeansEquationIntegrand=+gravitationalConstantGalacticus                                  &
+             heatedJeansEquationIntegrand=+gravitationalConstant_internal                                   &
                   &                       *massEnclosed                                                     &
                   &                       *massDistributionEmbedding%massDistribution_%density(coordinates) &
                   &                       / radius             **2                                          &

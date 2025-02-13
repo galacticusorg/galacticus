@@ -123,8 +123,8 @@ contains
     !!{
     Filter based on whether a subhalo can impact a stream in the timestep.
     !!}
-    use :: Galacticus_Nodes                , only : nodeComponentBasic     , nodeComponentSatellite
-    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
+    use :: Galacticus_Nodes                , only : nodeComponentBasic, nodeComponentSatellite
+    use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr
     use :: Vectors                         , only : Vector_Magnitude
     implicit none
     class           (galacticFilterStreamImpact), intent(inout)          :: self
@@ -149,8 +149,8 @@ contains
        end do
        ! Find the minimum and maximum times of possible impact on the stream.
        speed            =Vector_Magnitude(velocity)
-       timeImpactMinimum=(-speed*self%radiusOrbitalStream-Dot_Product(velocity,position))/speed**2*Mpc_per_km_per_s_To_Gyr
-       timeImpactMaximum=(+speed*self%radiusOrbitalStream-Dot_Product(velocity,position))/speed**2*Mpc_per_km_per_s_To_Gyr
+       timeImpactMinimum=(-speed*self%radiusOrbitalStream-Dot_Product(velocity,position))/speed**2*MpcPerKmPerSToGyr
+       timeImpactMaximum=(+speed*self%radiusOrbitalStream-Dot_Product(velocity,position))/speed**2*MpcPerKmPerSToGyr
        ! Determine if the node passes. Note that the impact times computed above are relative to the current time, so we must
        ! include that offset here.
        basic          => node             %basic   (            )

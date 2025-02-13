@@ -181,7 +181,7 @@ contains
     stable circular orbit for the given {\normalfont \ttfamily blackHole}.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentBlackHole
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (nodeComponentBlackHole), intent(inout)           :: blackHole
     integer                                 , intent(in   ), optional :: orbit        , units
@@ -203,7 +203,7 @@ contains
 
     ! Convert to physical units if necessary.
     if (unitsActual == unitsPhysical) Black_Hole_ISCO_Specific_Energy_Node=Black_Hole_ISCO_Specific_Energy_Node&
-         &*gravitationalConstantGalacticus*blackHole%mass()**2/Black_Hole_Gravitational_Radius(blackHole)
+         &*gravitationalConstant_internal*blackHole%mass()**2/Black_Hole_Gravitational_Radius(blackHole)
     return
   end function Black_Hole_ISCO_Specific_Energy_Node
 
@@ -242,7 +242,7 @@ contains
     innermost stable circular orbit for the black hole in {\normalfont \ttfamily blackHole}.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentBlackHole
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (nodeComponentBlackHole)           , intent(inout)           :: blackHole
     integer                                            , intent(in   ), optional :: orbit                            , units
@@ -282,7 +282,7 @@ contains
 
     ! Convert to physical units if necessary.
     if (unitsActual == unitsPhysical) Black_Hole_ISCO_Specific_Angular_Momentum=Black_Hole_ISCO_Specific_Angular_Momentum &
-         &*sqrt(gravitationalConstantGalacticus*blackHole%mass()*Black_Hole_Gravitational_Radius(blackHole))
+         &*sqrt(gravitationalConstant_internal*blackHole%mass()*Black_Hole_Gravitational_Radius(blackHole))
     return
   end function Black_Hole_ISCO_Specific_Angular_Momentum
 
@@ -291,13 +291,13 @@ contains
     Computes the gravitational radius (in Mpc) for the {\normalfont \ttfamily blackHole}.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentBlackHole
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Numerical_Constants_Physical    , only : speedLight
     use :: Numerical_Constants_Prefixes    , only : milli
     implicit none
     class(nodeComponentBlackHole), intent(inout) :: blackHole
 
-    Black_Hole_Gravitational_Radius=gravitationalConstantGalacticus*blackHole%mass()/(milli*speedLight)**2
+    Black_Hole_Gravitational_Radius=gravitationalConstant_internal*blackHole%mass()/(milli*speedLight)**2
     return
   end function Black_Hole_Gravitational_Radius
 

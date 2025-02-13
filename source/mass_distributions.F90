@@ -679,7 +679,7 @@ module Mass_Distributions
       type(coordinateSpherical) :: coordinates
       if (radius > 0.0d0) then
         coordinates                                 = [radius,0.0d0,0.0d0]
-        kinematicsDistributionJeansEquationIntegrand=+gravitationalConstantGalacticus                                &amp;
+        kinematicsDistributionJeansEquationIntegrand=+gravitationalConstant_internal                                 &amp;
              &amp;                                   *massDistributionEmbedding%massEnclosedBySphere(radius     )    &amp;
              &amp;                                   *massDistributionEmbedding%density             (coordinates)    &amp;
              &amp;                                   /                                               radius      **2
@@ -1045,8 +1045,8 @@ contains
     !!{
     Integrand used in computing potential differences.
     !!}
-    use :: Coordinates                     , only : coordinateCartesian    , assignment(=)
-    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
+    use :: Coordinates                     , only : coordinateCartesian, assignment(=)
+    use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr
     implicit none
     double precision                     , intent(in   ) :: distance
     double precision                     , dimension(3)  :: position   , acceleration
@@ -1058,7 +1058,7 @@ contains
     coordinates                 =                                   position
     acceleration                =massSolvers(massSolversCount)%self%acceleration(coordinates)
     potentialDifferenceIntegrand=-Dot_Product(acceleration,massSolvers(massSolversCount)%vectorUnit) &
-         &                       *Mpc_per_km_per_s_To_Gyr
+         &                       *MpcPerKmPerSToGyr
     return
   end function potentialDifferenceIntegrand
   

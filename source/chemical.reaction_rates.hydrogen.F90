@@ -1311,7 +1311,7 @@ contains
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Numerical_Constants_Physical , only : plancksConstant    , speedLight
-    use :: Numerical_Constants_Units    , only : angstromsPerMeter  , electronVolt
+    use :: Numerical_Constants_Units    , only : metersToAngstroms  , electronVolt
     use :: Radiation_Fields             , only : radiationFieldClass, radiationFieldCosmicMicrowaveBackground
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
@@ -1323,7 +1323,7 @@ contains
     ! Energy range for the cross-section.
     double precision                                     , parameter     :: crossSectionEnergyLow           =0.755d0
     ! Wavelength range for the cross-section.
-    double precision                                     , parameter     :: crossSectionWavelengthHigh      =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyLow
+    double precision                                     , parameter     :: crossSectionWavelengthHigh      =plancksConstant*speedLight*metersToAngstroms/electronVolt/crossSectionEnergyLow
     logical                                              , save          :: reactionActive                  =.false.                                                                        , reactionInitialized        =.false.
     integer                                              , save          :: atomicHydrogenAnionChemicalIndex                                                                                , atomicHydrogenChemicalIndex        , &
          &                                                                  electronChemicalIndex
@@ -1379,7 +1379,7 @@ contains
     \cite{nascimento_photodetachment_1977}.
     !!}
     use :: Numerical_Constants_Physical, only : plancksConstant         , speedLight
-    use :: Numerical_Constants_Units   , only : angstromsPerMeter       , electronVolt
+    use :: Numerical_Constants_Units   , only : metersToAngstroms       , electronVolt
     use :: Tables                      , only : table1DLogarithmicLinear
     use :: Table_Labels                , only : extrapolationTypeZero
     implicit none
@@ -1408,7 +1408,7 @@ contains
        initialized=.true.
     end if
     ! Convert from wavelength (in Angstroms) to energy (in eV).
-    energy=plancksConstant*speedLight*angstromsPerMeter/electronVolt/wavelength
+    energy=plancksConstant*speedLight*metersToAngstroms/electronVolt/wavelength
     ! Evaluate the cross section.
     crossSection_Hminus_Gamma_to_H_Electron=interpolator_%interpolate(energy)
     return
@@ -1420,7 +1420,7 @@ contains
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Numerical_Constants_Physical , only : plancksConstant    , speedLight
-    use :: Numerical_Constants_Units    , only : angstromsPerMeter  , electronVolt
+    use :: Numerical_Constants_Units    , only : metersToAngstroms  , electronVolt
     use :: Radiation_Fields             , only : radiationFieldClass, radiationFieldCosmicMicrowaveBackground
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
@@ -1433,8 +1433,8 @@ contains
     double precision                                     , parameter     :: crossSectionEnergyLow              =2.65d0
     double precision                                     , parameter     :: crossSectionEnergyHigh             =21.00d0
     ! Wavelength range for the cross-section.
-    double precision                                     , parameter     :: crossSectionWavelengthLow          =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyHigh
-    double precision                                     , parameter     :: crossSectionWavelengthHigh         =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyLow
+    double precision                                     , parameter     :: crossSectionWavelengthLow          =plancksConstant*speedLight*metersToAngstroms/electronVolt/crossSectionEnergyHigh
+    double precision                                     , parameter     :: crossSectionWavelengthHigh         =plancksConstant*speedLight*metersToAngstroms/electronVolt/crossSectionEnergyLow
     logical                                              , save          :: reactionActive                     =.false.                                                                         , reactionInitialized        =.false.
     integer                                              , save          :: atomicHydrogenCationChemicalIndex                                                                                   , atomicHydrogenChemicalIndex        , &
          &                                                                  chemicalHydrogenCationChemicalIndex
@@ -1489,7 +1489,7 @@ contains
     as given by \cite{shapiro_hydrogen_1987}.
     !!}
     use :: Numerical_Constants_Physical, only : plancksConstant      , speedLight
-    use :: Numerical_Constants_Units   , only : angstromsPerMeter    , electronVolt
+    use :: Numerical_Constants_Units   , only : metersToAngstroms    , electronVolt
     use :: Tables                      , only : table1DLinearLinear
     use :: Table_Labels                , only : extrapolationTypeZero
     implicit none
@@ -1527,7 +1527,7 @@ contains
        initialized=.true.
     end if
     ! Convert from wavelength (in Angstroms) to energy (in eV).
-    energy=plancksConstant*speedLight*angstromsPerMeter/electronVolt/wavelength
+    energy=plancksConstant*speedLight*metersToAngstroms/electronVolt/wavelength
     ! Evaluate the cross-section.
     crossSection_H2plus_Gamma_to_H_Hplus=interpolator_%interpolate(energy)
     return
@@ -1541,7 +1541,7 @@ contains
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Numerical_Constants_Math     , only : Pi
     use :: Numerical_Constants_Physical , only : plancksConstant    , speedLight
-    use :: Numerical_Constants_Units    , only : angstromsPerMeter  , electronVolt
+    use :: Numerical_Constants_Units    , only : metersToAngstroms  , electronVolt
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
@@ -1555,7 +1555,7 @@ contains
     ! Median energy of the Lyman band in chemical hydrogen (in eV).
     double precision                                     , parameter     :: energyLymanBand            =12.87d0
     ! Corresponding median wavelength of the Lyman band in chemical hydrogen (in Å).
-    double precision                                     , parameter     :: wavelengthLymanBand        =angstromsPerMeter*plancksConstant*speedLight/(energyLymanBand*electronVolt)
+    double precision                                     , parameter     :: wavelengthLymanBand        =metersToAngstroms*plancksConstant*speedLight/(energyLymanBand*electronVolt)
     ! Exponent appearing in self-shielding equation.
     double precision                                     , parameter     :: alpha                      =1.1d0
     double precision                                                     :: rate                                                                                                   , rateCoefficient                                  , &
@@ -1633,7 +1633,7 @@ contains
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Numerical_Constants_Physical , only : plancksConstant    , speedLight
-    use :: Numerical_Constants_Units    , only : angstromsPerMeter  , electronVolt
+    use :: Numerical_Constants_Units    , only : metersToAngstroms  , electronVolt
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
@@ -1646,7 +1646,7 @@ contains
     ! Energy of the edge in the cross-section.
     double precision                                     , parameter     :: crossSectionEdgeEnergy             =15.42d0
     ! Wavelength of the edge in the cross-section.
-    double precision                                     , parameter     :: crossSectionEdgeWavelength         =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEdgeEnergy
+    double precision                                     , parameter     :: crossSectionEdgeWavelength         =plancksConstant*speedLight*metersToAngstroms/electronVolt/crossSectionEdgeEnergy
     integer                                              , save          :: chemicalHydrogenCationChemicalIndex                                                                                 , chemicalHydrogenChemicalIndex        , &
          &                                                                  electronChemicalIndex
     double precision                                                     :: rate                                                                                                                , rateCoefficient
@@ -1700,7 +1700,7 @@ contains
     \cite{abel_modeling_1997}.
     !!}
     use :: Numerical_Constants_Physical, only : plancksConstant         , speedLight
-    use :: Numerical_Constants_Units   , only : angstromsPerMeter       , electronVolt
+    use :: Numerical_Constants_Units   , only : metersToAngstroms       , electronVolt
     use :: Tables                      , only : table1DLogarithmicLinear
     use :: Table_Labels                , only : extrapolationTypeZero
     implicit none
@@ -1732,7 +1732,7 @@ contains
        initialized=.true.
     end if
     ! Convert from wavelength (in Angstroms) to energy (in eV).
-    energy=plancksConstant*speedLight*angstromsPerMeter/electronVolt/wavelength
+    energy=plancksConstant*speedLight*metersToAngstroms/electronVolt/wavelength
     ! Evaluate the cross-section.
     crossSection_H2_Gamma_to_H2plus_Electron=interpolator_%interpolate(energy)
     return
@@ -1745,7 +1745,7 @@ contains
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Numerical_Constants_Physical , only : plancksConstant    , speedLight
-    use :: Numerical_Constants_Units    , only : angstromsPerMeter  , electronVolt
+    use :: Numerical_Constants_Units    , only : metersToAngstroms  , electronVolt
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
@@ -1759,8 +1759,8 @@ contains
     double precision                                     , parameter     :: crossSectionEnergyLow            =30.0d0
     double precision                                     , parameter     :: crossSectionEnergyHigh           =90.0d0
     ! Wavelength range for the cross-section.
-    double precision                                     , parameter     :: crossSectionWavelengthLow        =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyHigh
-    double precision                                     , parameter     :: crossSectionWavelengthHigh       =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyLow
+    double precision                                     , parameter     :: crossSectionWavelengthLow        =plancksConstant*speedLight*metersToAngstroms/electronVolt/crossSectionEnergyHigh
+    double precision                                     , parameter     :: crossSectionWavelengthHigh       =plancksConstant*speedLight*metersToAngstroms/electronVolt/crossSectionEnergyLow
     integer                                              , save          :: atomicHydrogenCationChemicalIndex                                                                                 , chemicalHydrogenCationChemicalIndex        , &
          &                                                                  electronChemicalIndex
     double precision                                                     :: rate                                                                                                              , rateCoefficient
@@ -1811,7 +1811,7 @@ contains
     \hbox{e}^-$ as given by \cite{shapiro_hydrogen_1987}.
     !!}
     use :: Numerical_Constants_Physical, only : plancksConstant      , speedLight
-    use :: Numerical_Constants_Units   , only : angstromsPerMeter    , electronVolt
+    use :: Numerical_Constants_Units   , only : metersToAngstroms    , electronVolt
     use :: Tables                      , only : table1DLinearLinear
     use :: Table_Labels                , only : extrapolationTypeZero
     implicit none
@@ -1844,7 +1844,7 @@ contains
        initialized=.true.
     end if
     ! Convert from wavelength (in Angstroms) to energy (in eV).
-    energy=plancksConstant*speedLight*angstromsPerMeter/electronVolt/wavelength
+    energy=plancksConstant*speedLight*metersToAngstroms/electronVolt/wavelength
     ! Evaluate the cross-section.
     crossSection_H2plus_Gamma_to_2Hplus_Electron=interpolator_%interpolate(energy)
     return
@@ -1856,7 +1856,7 @@ contains
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Numerical_Constants_Physical , only : plancksConstant    , speedLight
-    use :: Numerical_Constants_Units    , only : angstromsPerMeter  , electronVolt
+    use :: Numerical_Constants_Units    , only : metersToAngstroms  , electronVolt
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
@@ -1870,8 +1870,8 @@ contains
     double precision                                     , parameter     :: crossSectionEnergyLow      =14.159d0
     double precision                                     , parameter     :: crossSectionEnergyHigh     =17.700d0
     ! Wavelength range for the cross-section.
-    double precision                                     , parameter     :: crossSectionWavelengthLow  =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyHigh
-    double precision                                     , parameter     :: crossSectionWavelengthHigh =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyLow
+    double precision                                     , parameter     :: crossSectionWavelengthLow  =plancksConstant*speedLight*metersToAngstroms/electronVolt/crossSectionEnergyHigh
+    double precision                                     , parameter     :: crossSectionWavelengthHigh =plancksConstant*speedLight*metersToAngstroms/electronVolt/crossSectionEnergyLow
     integer                                              , save          :: atomicHydrogenChemicalIndex                                                                                 , chemicalHydrogenChemicalIndex
     double precision                                                     :: rate                                                                                                        , rateCoefficient
     !$GLC attributes unused :: self, temperature
@@ -1914,7 +1914,7 @@ contains
     \cite{abel_modeling_1997}.
     !!}
     use :: Numerical_Constants_Physical, only : plancksConstant      , speedLight
-    use :: Numerical_Constants_Units   , only : angstromsPerMeter    , electronVolt
+    use :: Numerical_Constants_Units   , only : metersToAngstroms    , electronVolt
     use :: Tables                      , only : table1DLinearLinear
     use :: Table_Labels                , only : extrapolationTypeZero
     implicit none
@@ -1972,7 +1972,7 @@ contains
        initialized=.true.
     end if
     ! Convert from wavelength (in Angstroms) to energy (in eV).
-    energy=plancksConstant*speedLight*angstromsPerMeter/electronVolt/wavelength
+    energy=plancksConstant*speedLight*metersToAngstroms/electronVolt/wavelength
     ! Evaluate the cross-section.
     crossSection_H2_Gamma_to_2H=interpolator_%interpolate(energy)
     return
@@ -1985,7 +1985,7 @@ contains
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Numerical_Constants_Physical , only : plancksConstant    , speedLight
-    use :: Numerical_Constants_Units    , only : angstromsPerMeter  , electronVolt
+    use :: Numerical_Constants_Units    , only : metersToAngstroms  , electronVolt
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), target   , intent(inout) :: self
@@ -1998,7 +1998,7 @@ contains
     ! Energy range for the cross-section (in eV).
     double precision                                     , parameter                :: crossSectionEnergyLow            =13.60d0
     ! Wavelength range for the cross-section (in Angstroms).
-    double precision                                     , parameter                :: crossSectionWavelengthHigh       =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyLow
+    double precision                                     , parameter                :: crossSectionWavelengthHigh       =plancksConstant*speedLight*metersToAngstroms/electronVolt/crossSectionEnergyLow
     integer                                              , save                     :: atomicHydrogenCationChemicalIndex                                                                                , atomicHydrogenChemicalIndex        , &
          &                                                                             electronChemicalIndex
     double precision                                                                :: rate                                                                                                             , rateCoefficient
@@ -2047,7 +2047,7 @@ contains
     Compute the cross-section (in units of cm$^{2}$) for the reaction $\hbox{H}_2 + \gamma \rightarrow 2\hbox{H}$ as given by
     \cite{abel_modeling_1997}.
     !!}
-    use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen
+    use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen_atomic
     use :: Tables                    , only : table1DLogarithmicLinear
     use :: Table_Labels              , only : extrapolationTypeZero
     implicit none
@@ -2061,7 +2061,7 @@ contains
     integer                                                   :: i
 
     if (.not.initialized) then
-       call interpolator_%create(wavelengthFactor*lymanSeriesLimitWavelengthHydrogen,lymanSeriesLimitWavelengthHydrogen,wavelengthCount,extrapolationType=[extrapolationTypeZero,extrapolationTypeZero])
+       call interpolator_%create(wavelengthFactor*lymanSeriesLimitWavelengthHydrogen_atomic,lymanSeriesLimitWavelengthHydrogen_atomic,wavelengthCount,extrapolationType=[extrapolationTypeZero,extrapolationTypeZero])
        do i=1,wavelengthCount
           ! Use the hydrogen photoionization cross section method.
           crossSection=self_%atomicCrossSectionIonizationPhoto_%crossSection(1,1,1,interpolator_%x(i))

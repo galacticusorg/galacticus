@@ -140,11 +140,11 @@ contains
     !!{
     Return a evaporation for satellites due to dark matter self-interactions using the formulation of \cite{kummer_effective_2018}.
     !!}
-    use :: Coordinates                     , only : coordinateSpherical            , coordinateCartesian        , assignment(=)
-    use :: Galactic_Structure_Options      , only : coordinateSystemCartesian      , radiusLarge
-    use :: Galacticus_Nodes                , only : nodeComponentSatellite         , nodeComponentBasic
-    use :: Mass_Distributions              , only : massDistributionClass          , kinematicsDistributionClass
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Coordinates                     , only : coordinateSpherical           , coordinateCartesian        , assignment(=)
+    use :: Galactic_Structure_Options      , only : coordinateSystemCartesian     , radiusLarge
+    use :: Galacticus_Nodes                , only : nodeComponentSatellite        , nodeComponentBasic
+    use :: Mass_Distributions              , only : massDistributionClass         , kinematicsDistributionClass
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Vectors                         , only : Vector_Magnitude
     implicit none
     class           (satelliteEvaporationSIDMKummer2018), intent(inout) :: self
@@ -204,7 +204,7 @@ contains
           coordinatesBoundary=[radiusBoundary,0.0d0,0.0d0]
           coordinatesHalfMass=[radiusHalfMass,0.0d0,0.0d0]
           potentialEscape    =+massDistribution_%potentialDifference(coordinatesBoundary,coordinatesHalfMass) &
-               &              +gravitationalConstantGalacticus                                                &
+               &              +gravitationalConstant_internal                                                 &
                &              *massBoundary                                                                   &
                &              /radiusBoundary
           if (potentialEscape > 0.0d0) then

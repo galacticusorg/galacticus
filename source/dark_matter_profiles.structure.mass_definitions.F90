@@ -37,14 +37,14 @@ contains
     use :: Cosmology_Functions             , only : cosmologyFunctionsClass
     use :: Cosmology_Parameters            , only : cosmologyParametersClass
     use :: Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMOClass
-    use :: Galacticus_Nodes                , only : nodeComponentBasic             , treeNode
+    use :: Galacticus_Nodes                , only : nodeComponentBasic            , treeNode
     use :: Mass_Distributions              , only : massDistributionClass
     use :: Math_Exponentiation             , only : cubeRoot
     use :: Numerical_Comparison            , only : Values_Agree
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Virial_Density_Contrast         , only : virialDensityContrastClass
-    use :: Galactic_Structure_Options      , only : componentTypeDarkMatterOnly    , massTypeDark
+    use :: Galactic_Structure_Options      , only : componentTypeDarkMatterOnly   , massTypeDark
     implicit none
     double precision                                                      :: massHalo
     type            (treeNode                  )          , intent(inout) :: node
@@ -118,7 +118,7 @@ contains
     if (present(radius  )) radius=radiusHalo
     if (present(velocity)) then
        if (radiusHalo > 0.0d0) then
-          velocity=sqrt(gravitationalConstantGalacticus*massHalo/radiusHalo)
+          velocity=sqrt(gravitationalConstant_internal*massHalo/radiusHalo)
        else
           velocity=0.0d0
        end if

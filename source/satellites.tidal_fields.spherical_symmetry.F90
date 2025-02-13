@@ -125,7 +125,7 @@ contains
     use :: Kepler_Orbits                   , only : keplerOrbit
     use :: Mass_Distributions              , only : massDistributionClass
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Satellite_Orbits                , only : Satellite_Orbit_Extremum_Phase_Space_Coordinates, extremumPericenter
     implicit none
     class           (satelliteTidalFieldSphericalSymmetry), intent(inout) :: self
@@ -157,9 +157,9 @@ contains
        <objectDestructor name="massDistribution_"/>
        !!]
        ! Compute the tidal field.
-       sphericalSymmetryTidalTensorRadial=+         gravitationalConstantGalacticus*enclosedMassHost/                 radiusOrbital **3 &
-            &                             -4.0d0*Pi*gravitationalConstantGalacticus*densityHost                                         &
-            &                             +                                                          (velocityOrbital/radiusOrbital)**2
+       sphericalSymmetryTidalTensorRadial=+         gravitationalConstant_internal*enclosedMassHost/                 radiusOrbital **3 &
+            &                             -4.0d0*Pi*gravitationalConstant_internal*densityHost                                         &
+            &                             +                                                         (velocityOrbital/radiusOrbital)**2
        ! Boost the tidal field.
        sphericalSymmetryTidalTensorRadial=+self%factorBoost                   &
             &                             *sphericalSymmetryTidalTensorRadial

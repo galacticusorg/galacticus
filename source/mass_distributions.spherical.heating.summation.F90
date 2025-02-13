@@ -132,7 +132,6 @@ contains
     !!{
     Returns the specific energy of heating in the given {\normalfont \ttfamily node}.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (massDistributionHeatingSummation), intent(inout) :: self
     double precision                                  , intent(in   ) :: radius

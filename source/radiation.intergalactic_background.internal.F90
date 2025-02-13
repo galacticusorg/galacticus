@@ -486,7 +486,7 @@ contains
     use            :: Numerical_Constants_Math    , only : Pi
     use            :: Numerical_Constants_Physical, only : plancksConstant                  , speedLight
     use            :: Numerical_Constants_Prefixes, only : centi
-    use            :: Numerical_Constants_Units   , only : angstromsPerMeter                , ergs
+    use            :: Numerical_Constants_Units   , only : metersToAngstroms                , ergs
     use            :: Numerical_Integration       , only : integrator
     use            :: Numerical_ODE_Solvers       , only : odeSolver
     use            :: Stellar_Population_Spectra  , only : stellarPopulationSpectraClass
@@ -625,7 +625,7 @@ contains
              state%flux(:,iNow)=max(                                   &
                   &                 +plancksConstant                   &
                   &                 *speedLight                   **2  &
-                  &                 *angstromsPerMeter                 &
+                  &                 *metersToAngstroms                 &
                   &                 /4.0d0                             &
                   &                 /Pi                                &
                   &                 /self%wavelength                   &
@@ -666,7 +666,7 @@ contains
              !$ call hdf5Access%set()
              outputGroup=outputFile%openGroup('backgroundRadiation','Cosmic background radiation data.')
              call    outputGroup  %writeDataset  (self%wavelength        ,'wavelength','Wavelength at which the background radiation is tabulated [Å].'    ,datasetReturned=outputDataset)
-             call    outputDataset%writeAttribute(1.0d0/angstromsPerMeter,'unitsInSI'                                                                                                    )
+             call    outputDataset%writeAttribute(1.0d0/metersToAngstroms,'unitsInSI'                                                                                                    )
              call    outputDataset%close         (                                                                                                                                       )
              call    outputGroup  %writeDataset  (self%redshift          ,'redshift'  ,'Redshift at which the background radiation is tabulated [].'       ,datasetReturned=outputDataset)
              call    outputDataset%writeAttribute(0.0d0                  ,'unitsInSI'                                                                                                    )
@@ -729,7 +729,7 @@ contains
     use :: Numerical_Constants_Atomic      , only : atomicMassHelium , atomicMassHydrogen    , atomicMassUnit
     use :: Numerical_Constants_Physical    , only : plancksConstant  , speedLight
     use :: Numerical_Constants_Prefixes    , only : centi
-    use :: Numerical_Constants_Units       , only : angstromsPerMeter
+    use :: Numerical_Constants_Units       , only : metersToAngstroms
     implicit none
     double precision, intent(in   )               :: time
     double precision, intent(in   ), dimension(:) :: spectrum
@@ -751,7 +751,7 @@ contains
          &  *self_%wavelength                                      &
          &  *luminositySolar                                       &
          &  *gigaYear                                              &
-         &  /angstromsPerMeter                                     &
+         &  /metersToAngstroms                                     &
          &  /plancksConstant                                       &
          &  /speedLight                                            &
          &  /megaParsec**3
