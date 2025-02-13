@@ -5,7 +5,7 @@
 <!-- 25-February-2011 -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
+  <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
   <cosmologyParameters value="simple">
     <OmegaMatter value="0.2725"/>
     <OmegaBaryon value="0.0455"/>
@@ -77,12 +77,16 @@
 	<stabilityThresholdStellar value="1.1"/>
       </galacticDynamicsBarInstability>
     </nodeOperator>
+    <!-- Black hole physics -->
     <nodeOperator value="blackHolesSeed">
       <blackHoleSeeds value="fixed">
         <mass value="100"/>
         <spin value="0"/>
       </blackHoleSeeds>
     </nodeOperator>
+    <nodeOperator value="blackHolesAccretion"/>
+    <nodeOperator value="blackHolesWinds"/>
+    <nodeOperator value="blackHolesCGMHeating"/>
   </nodeOperator>
 
   <cosmologicalMassVariance value="filteredPower">
@@ -113,12 +117,7 @@
   </mergerTreeBuildMasses>
   <cosmologyFunctions value="matterLambda"/>
   <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
-  <componentBlackHole value="standard">
-    <efficiencyWind value="0.001"/>
-    <bondiHoyleAccretionTemperatureSpheroid value="100"/>
-    <bondiHoyleAccretionEnhancementHotHalo value="1"/>
-    <bondiHoyleAccretionEnhancementSpheroid value="1"/>
-  </componentBlackHole>
+  <componentBlackHole value="standard"/>
   <componentSpheroid value="standard">
     <efficiencyEnergeticOutflow value="1"/>
     <toleranceAbsoluteMass value="1e-06"/>
@@ -243,6 +242,19 @@
   </outputTimes>
 
   <coolingRadius value="simple"/>
+  <blackHoleAccretionRate value="standard">
+    <bondiHoyleAccretionEnhancementSpheroid value="  1.0"/>
+    <bondiHoyleAccretionEnhancementHotHalo  value="  1.0"/>
+    <bondiHoyleAccretionTemperatureSpheroid value="100.0"/>
+    <bondiHoyleAccretionHotModeOnly         value="true"/>
+  </blackHoleAccretionRate>
+  <blackHoleWind value="ciotti2009">
+    <efficiencyWind                              value="0.001"/>
+    <efficiencyWindScalesWithEfficiencyRadiative value="true" />
+  </blackHoleWind>
+  <blackHoleCGMHeating value="jetPower">
+    <efficiencyRadioMode value="1.0"/>
+  </blackHoleCGMHeating>
   <blackHoleBinaryMerger value="rezzolla2008"/>
   <galacticStructureSolver value="equilibrium"/>
   <mergerTreeConstructor value="build">

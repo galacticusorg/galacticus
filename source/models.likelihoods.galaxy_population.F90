@@ -36,7 +36,8 @@
      private
      type   (varying_string               )          :: failedParametersFileName
      logical                                         :: randomize                         , collaborativeMPI, &
-          &                                             outputAnalyses                    , setOutputGroup
+          &                                             outputAnalyses                    , setOutputGroup  , &
+          &                                             reportEvaluationTimes
      type   (enumerationVerbosityLevelType)          :: evolveForestsVerbosity
      class  (*                            ), pointer :: task_                    => null()
      class  (outputAnalysisClass          ), pointer :: outputAnalysis_          => null()
@@ -70,7 +71,8 @@ contains
     type   (varying_string)                                           :: baseParametersFileName, failedParametersFileName
     logical                                                           :: randomize             , collaborativeMPI        , &
          &                                                               outputAnalyses        , reportFileName          , &
-         &                                                               reportState           , setOutputGroup
+         &                                                               reportState           , setOutputGroup          , &
+         &                                                               reportEvaluationTimes
     type   (varying_string)                                           :: evolveForestsVerbosity
     type   (inputParameters                          ), pointer       :: parametersModel
 
@@ -89,6 +91,12 @@ contains
     <inputParameter>
       <name>setOutputGroup</name>
       <description>If true, set the primary output group for each step.</description>
+      <defaultValue>.false.</defaultValue>
+      <source>parameters</source>
+    </inputParameter>
+     <inputParameter>
+     <name>reportEvaluationTimes</name>
+      <description>If true, report the time taken to evaluate each model.</description>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
     </inputParameter>
@@ -131,7 +139,7 @@ contains
     !!]
     allocate(parametersModel)
     parametersModel=inputParameters                          (baseParametersFileName,noOutput=.true.)
-    self           =posteriorSampleLikelihoodGalaxyPopulation(parametersModel,baseParametersFileName,randomize,outputAnalyses,setOutputGroup,collaborativeMPI,reportFileName,reportState,enumerationVerbosityLevelEncode(evolveForestsVerbosity,includesPrefix=.false.),failedParametersFileName)
+    self           =posteriorSampleLikelihoodGalaxyPopulation(parametersModel,baseParametersFileName,randomize,outputAnalyses,setOutputGroup,reportEvaluationTimes,collaborativeMPI,reportFileName,reportState,enumerationVerbosityLevelEncode(evolveForestsVerbosity,includesPrefix=.false.),failedParametersFileName)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
@@ -139,7 +147,7 @@ contains
     return
   end function galaxyPopulationConstructorParameters
 
-  function galaxyPopulationConstructorInternal(parametersModel,baseParametersFileName,randomize,outputAnalyses,setOutputGroup,collaborativeMPI,reportFileName,reportState,evolveForestsVerbosity,failedParametersFileName) result(self)
+  function galaxyPopulationConstructorInternal(parametersModel,baseParametersFileName,randomize,outputAnalyses,setOutputGroup,reportEvaluationTimes,collaborativeMPI,reportFileName,reportState,evolveForestsVerbosity,failedParametersFileName) result(self)
     !!{
     Constructor for ``galaxyPopulation'' posterior sampling likelihood class.
     !!}
@@ -150,11 +158,12 @@ contains
     type   (inputParameters                          ), intent(inout), target :: parametersModel
     logical                                           , intent(in   )         :: randomize               , collaborativeMPI, &
          &                                                                       outputAnalyses          , reportFileName  , &
-         &                                                                       reportState             , setOutputGroup
+         &                                                                       reportState             , setOutputGroup  , &
+         &                                                                       reportEvaluationTimes
     type   (enumerationVerbosityLevelType            ), intent(in   )         :: evolveForestsVerbosity
     type   (varying_string                           ), intent(in   )         :: failedParametersFileName, baseParametersFileName
     !![
-    <constructorAssign variables="*parametersModel, baseParametersFileName, randomize, outputAnalyses, setOutputGroup, collaborativeMPI, reportFileName, reportState, evolveForestsVerbosity, failedParametersFileName"/>
+    <constructorAssign variables="*parametersModel, baseParametersFileName, randomize, outputAnalyses, setOutputGroup, reportEvaluationTimes, collaborativeMPI, reportFileName, reportState, evolveForestsVerbosity, failedParametersFileName"/>
     !!]
 
     if (setOutputGroup.and.collaborativeMPI) call Error_Report('[setOutputGroup]=true and [collaborativeMPI]=true is not recommended'//char(10)//displayGreen()//'  HELP: '//displayReset()//'[setOutputGroup]=true suggests that you want results of each model evaluation written to its own group, but [collaborativeMPI]=true results in each MPI process evolving a subset of trees from each model evaluation, and writing them to its own output file - this will result in a random mix of trees in each output group - it is recommended that you set [collaborativeMPI]=false to avoid this problem'//{introspection:location})
@@ -189,6 +198,7 @@ contains
     use :: Model_Parameters              , only : modelParameterDerived
     use :: Models_Likelihoods_Constants  , only : logImpossible                  , logImprobable
     use :: Output_HDF5_Open              , only : Output_HDF5_Set_Group
+    use :: Numerical_Constants_Prefixes  , only : siFormat
     use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
     use :: Posterior_Sampling_State      , only : posteriorSampleStateClass
     use :: String_Handling               , only : String_Count_Words             , String_Join                  , String_Split_Words          , operator(//)
@@ -304,6 +314,7 @@ contains
           if (verbosityLevel >= verbosityLevelStandard) then
              write (valueText,'(e12.4)') logLikelihoodProposed
              message=var_str("Chain ")//simulationState%chainIndex()//" has logℒ="//trim(valueText)
+             if (self%reportEvaluationTimes) message=message//" (evaluation in "//trim(siFormat(dble(timeEvaluate),'f5.1,1x'))//"s)"
              call displayMessage(message,verbosityLevelSilent)
           end if
        end if

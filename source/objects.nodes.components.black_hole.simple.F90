@@ -25,16 +25,12 @@ module Node_Component_Black_Hole_Simple
   !!{
   Implements the simple black hole node component.
   !!}
-  use :: Black_Hole_Binary_Mergers     , only : blackHoleBinaryMergerClass
-  use :: Black_Hole_Accretion_Rates    , only : blackHoleAccretionRateClass
-  use :: Cooling_Radii                 , only : coolingRadiusClass
-  use :: Dark_Matter_Halo_Scales       , only : darkMatterHaloScaleClass
+  use :: Black_Hole_Binary_Mergers , only : blackHoleBinaryMergerClass
   implicit none
   private
-  public :: Node_Component_Black_Hole_Simple_Initialize         , Node_Component_Black_Hole_Simple_Scale_Set        , &
-       &    Node_Component_Black_Hole_Simple_Thread_Uninitialize, Node_Component_Black_Hole_Simple_Thread_Initialize, &
+  public :: Node_Component_Black_Hole_Simple_Thread_Uninitialize, Node_Component_Black_Hole_Simple_Thread_Initialize, &
        &    Node_Component_Black_Hole_Simple_State_Store        , Node_Component_Black_Hole_Simple_State_Restore    , &
-       &    Node_Component_Black_Hole_Simple_Rate_Compute 
+       &    Node_Component_Black_Hole_Simple_Scale_Set 
 
   !![
   <component>
@@ -59,70 +55,14 @@ module Node_Component_Black_Hole_Simple
   !!]
 
   ! Objects used by this component.
-  class(darkMatterHaloScaleClass       ), pointer :: darkMatterHaloScale_
-  class(coolingRadiusClass             ), pointer :: coolingRadius_
-  class(blackHoleBinaryMergerClass     ), pointer :: blackHoleBinaryMerger_
-  class(blackHoleAccretionRateClass    ), pointer :: blackHoleAccretionRate_
-  !$omp threadprivate(darkMatterHaloScale_,blackHoleAccretionRate_,coolingRadius_,blackHoleBinaryMerger_)
-
-  ! Feedback parameters.
-  double precision :: efficiencyHeating, efficiencyWind
-  logical          :: heatsHotHalo
+  class(blackHoleBinaryMergerClass), pointer :: blackHoleBinaryMerger_
+  !$omp threadprivate(blackHoleBinaryMerger_)
 
   ! A threadprivate object used to track to which thread events are attached.
   integer :: thread
   !$omp threadprivate(thread)
 
 contains
-
-  !![
-  <nodeComponentInitializationTask>
-   <unitName>Node_Component_Black_Hole_Simple_Initialize</unitName>
-  </nodeComponentInitializationTask>
-  !!]
-  subroutine Node_Component_Black_Hole_Simple_Initialize(parameters)
-    !!{
-    Initializes the simple black hole node component module.
-    !!}
-    use :: Input_Parameters, only : inputParameter, inputParameters
-    implicit none
-    type(inputParameters), intent(inout) :: parameters
-    type(inputParameters)                :: subParameters
-
-    ! Find our parameters.
-    subParameters=parameters%subParameters('componentBlackHole')
-    ! Options controlling AGN feedback.
-    !![
-    <inputParameter>
-      <name>heatsHotHalo</name>
-      <defaultValue>.true.</defaultValue>
-      <description>Specifies whether or not the black hole should heat the hot halo.</description>
-      <source>subParameters</source>
-    </inputParameter>
-    !!]
-    if (heatsHotHalo) then
-       !![
-       <inputParameter>
-         <name>efficiencyHeating</name>
-         <defaultValue>1.0d-3</defaultValue>
-         <description>The efficiency with which accretion onto a black hole heats the hot halo.</description>
-         <source>subParameters</source>
-       </inputParameter>
-       !!]
-    else
-       efficiencyHeating=0.0d0
-    end if
-    ! Get options controlling winds.
-    !![
-    <inputParameter>
-      <name>efficiencyWind</name>
-      <defaultValue>2.2157d-3</defaultValue>
-      <description>The efficiency of the black hole accretion-driven wind.</description>
-      <source>subParameters</source>
-    </inputParameter>
-    !!]
-    return
-  end subroutine Node_Component_Black_Hole_Simple_Initialize
 
   !![
   <nodeComponentThreadInitializationTask>
@@ -145,10 +85,7 @@ contains
        ! Find our parameters.
        subParameters=parameters%subParameters('componentBlackHole')
        !![
-       <objectBuilder class="darkMatterHaloScale"    name="darkMatterHaloScale_"    source="subParameters"/>
-       <objectBuilder class="coolingRadius"          name="coolingRadius_"          source="subParameters"/>
-       <objectBuilder class="blackHoleBinaryMerger"  name="blackHoleBinaryMerger_"  source="subParameters"/>
-       <objectBuilder class="blackHoleAccretionRate" name="blackHoleAccretionRate_" source="subParameters"/>
+       <objectBuilder class="blackHoleBinaryMerger" name="blackHoleBinaryMerger_" source="subParameters"/>
        !!]
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        call satelliteMergerEvent%attach(thread,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentBlackHoleSimple',dependencies=dependencies)
@@ -171,10 +108,7 @@ contains
 
     if (defaultBlackHoleComponent%simpleIsActive()) then
        !![
-       <objectDestructor name="darkMatterHaloScale_"   />
-       <objectDestructor name="coolingRadius_"         />
-       <objectDestructor name="blackHoleBinaryMerger_" />
-       <objectDestructor name="blackHoleAccretionRate_"/>
+       <objectDestructor name="blackHoleBinaryMerger_"/>
        !!]
        if (satelliteMergerEvent%isAttached(thread,satelliteMerger)) call satelliteMergerEvent%detach(thread,satelliteMerger)
     end if
@@ -220,97 +154,6 @@ contains
     end select
     return
   end subroutine Node_Component_Black_Hole_Simple_Scale_Set
-
-  !![
-  <rateComputeTask>
-   <unitName>Node_Component_Black_Hole_Simple_Rate_Compute</unitName>
-  </rateComputeTask>
-  !!]
-  subroutine Node_Component_Black_Hole_Simple_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
-    !!{
-    Compute the black hole mass rate of change.
-    !!}
-    use :: Error                       , only : Error_Report
-    use :: Galacticus_Nodes            , only : defaultBlackHoleComponent, interruptTask        , nodeComponentBlackHole, nodeComponentBlackHoleSimple, &
-          &                                     nodeComponentHotHalo     , nodeComponentSpheroid, propertyInactive      , treeNode
-    use :: Numerical_Constants_Physical, only : speedLight
-    use :: Numerical_Constants_Prefixes, only : kilo
-    implicit none
-    type            (treeNode                ), intent(inout)          :: node
-    logical                                   , intent(inout)          :: interrupt
-    procedure       (interruptTask           ), intent(inout), pointer :: interruptProcedure
-    integer                                   , intent(in   )          :: propertyType
-    class           (nodeComponentBlackHole  )               , pointer :: blackHole
-    class           (nodeComponentSpheroid   )               , pointer :: spheroid
-    class           (nodeComponentHotHalo    )               , pointer :: hotHalo
-    double precision                          , parameter              :: coolingRadiusFractionalTransitionMinimum=0.9d0
-    double precision                          , parameter              :: coolingRadiusFractionalTransitionMaximum=1.0d0
-    double precision                                                   :: coolingRadiusFractional                       , couplingEfficiency   , &
-         &                                                                energyInputRate                               , heatingRate          , &
-         &                                                                massAccretionRate                             , restMassAccretionRate, &
-         &                                                                accretionRateSpheroid                         , accretionRateHotHalo , &
-         &                                                                x
-
-    ! Return immediately if inactive variables are requested.
-    if (propertyInactive(propertyType)) return
-    if (defaultBlackHoleComponent%simpleIsActive()) then
-
-       ! Get the black hole component.
-       blackHole => node%blackHole()
-
-       ! Find the rate of rest mass accretion onto the black hole.
-       call blackHoleAccretionRate_%rateAccretion(blackHole,accretionRateSpheroid,accretionRateHotHalo)
-       restMassAccretionRate=+accretionRateSpheroid &
-            &                +accretionRateHotHalo
-
-       ! Finish if there is no accretion.
-       if (restMassAccretionRate <= 0.0d0) return
-
-       ! Find the rate of increase in mass of the black hole.
-       massAccretionRate=restMassAccretionRate*max((1.0d0-efficiencyHeating-efficiencyWind),0.0d0)
-
-       ! Detect black hole component type.
-       select type (blackHole)
-       type is (nodeComponentBlackHole)
-          ! Generic type - interrupt and create a simple black hole if accretion rate is non-zero.
-          if (massAccretionRate /= 0.0d0) call Error_Report('accretion onto non-existant black hole'//{introspection:location})
-       class is (nodeComponentBlackHoleSimple)
-          ! Get the spheroid component.
-          spheroid => node%spheroid()
-          ! Add accretion to the black hole.
-          call blackHole%massRate       (     massAccretionRate)
-          ! Remove the accreted mass from the spheroid component.
-          call spheroid %massGasSinkRate(-restMassAccretionRate)
-          ! Add heating to the hot halo component.
-          if (heatsHotHalo) then
-             ! Compute jet coupling efficiency based on whether halo is cooling quasistatically.
-             coolingRadiusFractional=+coolingRadius_      %      radius(node) &
-                  &                  /darkMatterHaloScale_%radiusVirial(node)
-             if      (coolingRadiusFractional < coolingRadiusFractionalTransitionMinimum) then
-                couplingEfficiency=1.0d0
-             else if (coolingRadiusFractional > coolingRadiusFractionalTransitionMaximum) then
-                couplingEfficiency=0.0d0
-             else
-                x=      (coolingRadiusFractional                 -coolingRadiusFractionalTransitionMinimum) &
-                     & /(coolingRadiusFractionalTransitionMaximum-coolingRadiusFractionalTransitionMinimum)
-                couplingEfficiency=x**2*(2.0d0*x-3.0d0)+1.0d0
-             end if
-             ! Compute the heating rate.
-             heatingRate=couplingEfficiency*efficiencyHeating*restMassAccretionRate*(speedLight/kilo)**2
-             ! Pipe this power to the hot halo.
-             hotHalo => node%hotHalo()
-             call hotHalo%heatSourceRate(heatingRate,interrupt,interruptProcedure)
-          end if
-          ! Add energy to the spheroid component.
-          if (efficiencyWind > 0.0d0) then
-             ! Compute the energy input and send it down the spheroid gas energy input pipe.
-             energyInputRate=efficiencyWind*restMassAccretionRate*(speedLight/kilo)**2
-             call spheroid%energyGasInputRate(energyInputRate)
-          end if
-       end select
-    end if
-    return
-  end subroutine Node_Component_Black_Hole_Simple_Rate_Compute
 
   subroutine satelliteMerger(self,node)
     !!{
@@ -362,7 +205,7 @@ contains
 
     call displayMessage('Storing state for: componentBlackHole -> simple',verbosity=verbosityLevelInfo)
     !![
-    <stateStore variables="darkMatterHaloScale_ coolingRadius_ blackHoleBinaryMerger_"/>
+    <stateStore variables="blackHoleBinaryMerger_"/>
     !!]
     return
   end subroutine Node_Component_Black_Hole_Simple_State_Store
@@ -385,7 +228,7 @@ contains
 
     call displayMessage('Retrieving state for: componentBlackHole -> simple',verbosity=verbosityLevelInfo)
     !![
-    <stateRestore variables="darkMatterHaloScale_ coolingRadius_ blackHoleBinaryMerger_"/>
+    <stateRestore variables="blackHoleBinaryMerger_"/>
     !!]
     return
   end subroutine Node_Component_Black_Hole_Simple_State_Restore

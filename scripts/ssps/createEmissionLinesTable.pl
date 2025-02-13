@@ -87,6 +87,7 @@ my $hecto                    = pdl 1.0000000000000e+02;
 my $mega                     = pdl 1.0000000000000e+06;
 my $joulesPerErg             = pdl 1.0000000000000e-07;
 my $secondsPerGyr            = pdl 3.1557600000000e-16;
+my $unitsIntensity           = pdl $joulesPerErg*$hecto**2;
 
 # Specify abundances and depletion model. This is based upon the work by Gutkin, Charlot & Bruzual (2016;
 # https://ui.adsabs.harvard.edu/abs/2016MNRAS.462.1757G).
@@ -479,7 +480,8 @@ sub establishGridSSP {
     $grid->{'logHydrogenDensities'   } = pdl [ 1.0,  1.5,  2.0,  2.5,  3.0, 3.5, 4.0 ];
 
     # Specify the iterables in the grid.
-    @{$grid->{'iterables'}} = ( "ages", "logMetallicities", "logHydrogenLuminosities", "logHydrogenDensities" );
+    @{$grid->{'iterables'}} = ( "ages", "logMetallicities", "logHydrogenLuminosities"   , "logHydrogenDensities" );
+    @{$grid->{'names'    }} = ( "age" , "metallicity"     , "ionizingLuminosityHydrogen", "densityHydrogen"      );
 }
 
 sub establishGridAGN {
@@ -501,6 +503,7 @@ sub establishGridAGN {
 
     # Specify the iterables in the grid.
     @{$grid->{'iterables'}} = ( "spectralIndices", "logMetallicities", "logIonizationParameters", "logHydrogenDensities" );
+    @{$grid->{'names'    }} = ( "spectralIndex"  , "metallicity"     , "ionizationParameter"    , "densityHydrogen"      );
 
     # Construct spectra, and their bolometric luminosity normalization factors.
     ## Our spectrum is (Feltre, Charlot & Gutkin; 2016; MNRAS; 456; 3354; https://ui.adsabs.harvard.edu/abs/2016MNRAS.456.3354F):
@@ -1096,7 +1099,12 @@ sub outputSSP {
     $tableFile->dataset('densityHydrogen'                     )->attrSet(description => "Hydrogen density."                                             );
     $tableFile->dataset('densityHydrogen'                     )->attrSet(units       => "cm¯³"                                                          );
     $tableFile->dataset('densityHydrogen'                     )->attrSet(unitsInSI   => $mega                                                           );
-    
+    # Write index in the tables for each iterable.
+    my $i = 0;
+    foreach my $iterable ( @{$grid->{'names'}} ) {
+	$tableFile->dataset($iterable)->attrSet(index => pdl long $i);
+	++$i;
+    }
     # Write table of ionizing rates per unit mass of stars formed.
     $tableFile->dataset('ionizingLuminosityHydrogenNormalized')->    set(               $grid->{'ionizingLuminosityPerMass'}                            );
     $tableFile->dataset('ionizingLuminosityHydrogenNormalized')->attrSet(description => "Hydrogen ionizing photon emission rate per unit mass of stars.");
@@ -1136,6 +1144,12 @@ sub outputAGN {
     $tableFile->dataset('densityHydrogen'    )->attrSet(description => "Hydrogen density."                                  );
     $tableFile->dataset('densityHydrogen'    )->attrSet(units       => "cm¯³"                                               );
     $tableFile->dataset('densityHydrogen'    )->attrSet(unitsInSI   => $mega                                                );
+    # Write index in the tables for each iterable.
+    my $i = 0;
+    foreach my $iterable ( @{$grid->{'names'}} ) {
+	$tableFile->dataset($iterable)->attrSet(index => pdl long $i);
+	++$i;
+    }
 
     # Write line data.
     my $lineGroup = $tableFile->group('lines');
@@ -1146,10 +1160,10 @@ sub outputAGN {
     foreach ( keys(%lineList) ) {
 	my $lineName = $lineList{$_};
 	$lineGroup->dataset($lineName)->    set(               $grid->{'lineData'}->{$lineName}->{'luminosity'});
-	$lineGroup->dataset($lineName)->attrSet(description => "Luminosity of the line."                       );
-	$lineGroup->dataset($lineName)->attrSet(units       => "erg s¯¹"                                       );
-	$lineGroup->dataset($lineName)->attrSet(unitsInSI   => $joulesPerErg                                   );
-	$lineGroup->dataset($lineName)->attrSet(wavelength  => $grid->{'lineData'}->{$lineName}->{'wavelength'});
+	$lineGroup->dataset($lineName)->attrSet(description => "Energy radiated by a unit area of cloud into 4 π sr.");
+	$lineGroup->dataset($lineName)->attrSet(units       => "erg cm¯² s¯¹"                                        );
+	$lineGroup->dataset($lineName)->attrSet(unitsInSI   => $unitsIntensity                                       );
+	$lineGroup->dataset($lineName)->attrSet(wavelength  => $grid->{'lineData'}->{$lineName}->{'wavelength'}      );
     }
 }
 

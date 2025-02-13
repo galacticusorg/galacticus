@@ -3,7 +3,7 @@
   <!-- Posterior sampling simulation parameter file for search of Galacticus model parameter space -->
   <!-- Andrew Benson (29-April-2020) -->  
   <formatVersion>2</formatVersion>
-  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
+  <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
 
   <verbosityLevel value="standard"/>
 
@@ -294,7 +294,7 @@
      
      <!-- Black hole -->
      <modelParameter value="active">
-       <name value="componentBlackHole::growthRatioToStellarSpheroid"/>
+       <name value="blackHoleAccretionRate::growthRatioToStellarSpheroid"/>
        <distributionFunction1DPrior value="logUniform">
 	 <limitLower value="1.0e-1"/>
 	 <limitUpper value="1.0e+2"/>
@@ -330,11 +330,11 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="derived">
-       <name value="componentBlackHole::efficiencyWind"/>
+       <name value="blackHoleWind::efficiencyWind"/>
        <definition value="%[componentBlackHole::efficiency]*(1.0-%[componentBlackHole::fractionJet])"/>
      </modelParameter>
      <modelParameter value="derived">
-       <name value="componentBlackHole::efficiencyHeating"/>
+       <name value="blackHoleCGMHeating::efficiencyHeating"/>
        <definition value="%[componentBlackHole::efficiency]*%[componentBlackHole::fractionJet]"/>
      </modelParameter>
      

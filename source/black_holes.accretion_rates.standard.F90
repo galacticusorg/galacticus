@@ -170,7 +170,7 @@ contains
     <objectDestructor name="self%hotHaloTemperatureProfile_"          />
     <objectDestructor name="self%coolingRadius_"                      />
     <objectDestructor name="self%darkMatterHaloScale_"                />
-    !!]                                                                                                                                                                                                               
+    !!]
     return
   end subroutine standardDestructor
   
