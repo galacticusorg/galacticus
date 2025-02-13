@@ -21,6 +21,10 @@
   An implementation of the accretion disk spectra class for tabulated spectra read from file.
   !!}
 
+  use :: Black_Hole_Accretion_Rates, only : blackHoleAccretionRateClass
+  use :: Accretion_Disks           , only : accretionDisksClass
+  use :: Numerical_Interpolation   , only : interpolator
+
   !![
   <accretionDiskSpectra name="accretionDiskSpectraFile">
    <description>Accretion disk spectra are interpolated from tables read from file.</description>
@@ -28,17 +32,17 @@
   </accretionDiskSpectra>
   !!]
 
-  use :: Numerical_Interpolation, only : interpolator
-
   type, extends(accretionDiskSpectraClass) :: accretionDiskSpectraFile
      !!{
      An accretion disk spectra class which interpolates in spectra read from file.
      !!}
      private
-     type            (varying_string)                              :: fileName
-     double precision                , allocatable, dimension(:  ) :: luminosity            , wavelength
-     double precision                , allocatable, dimension(:,:) :: SED
-     type            (interpolator  )                              :: interpolatorLuminosity, interpolatorWavelength
+     class           (blackHoleAccretionRateClass), pointer                     :: blackHoleAccretionRate_ => null()
+     class           (accretionDisksClass        ), pointer                     :: accretionDisks_         => null()
+     type            (varying_string             )                              :: fileName
+     double precision                             , allocatable, dimension(:  ) :: luminosity                       , wavelength
+     double precision                             , allocatable, dimension(:,:) :: SED
+     type            (interpolator               )                              :: interpolatorLuminosity           , interpolatorWavelength
    contains
      !![
      <methods>
@@ -69,9 +73,11 @@ contains
     Constructor for the {\normalfont \ttfamily file} accretion disk spectra class which takes a parameter set as input.
     !!}
     implicit none
-    type(accretionDiskSpectraFile)                :: self
-    type(inputParameters         ), intent(inout) :: parameters
-    type(varying_string          )                :: fileName
+    type (accretionDiskSpectraFile   )                :: self
+    type (inputParameters            ), intent(inout) :: parameters
+    type (varying_string             )                :: fileName
+    class(blackHoleAccretionRateClass), pointer       :: blackHoleAccretionRate_
+    class(accretionDisksClass        ), pointer       :: accretionDisks_
 
     !![
     <inputParameter>
@@ -79,45 +85,31 @@ contains
       <source>parameters</source>
       <description>The name of a file from which to read tabulated spectra of accretion disks.</description>
     </inputParameter>
+    <objectBuilder class="blackHoleAccretionRate" name="blackHoleAccretionRate_" source="parameters"/>
+    <objectBuilder class="accretionDisks"         name="accretionDisks_"         source="parameters"/>
     !!]
-    self=accretionDiskSpectraFile(char(fileName))
+    self=accretionDiskSpectraFile(char(fileName),blackHoleAccretionRate_,accretionDisks_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="blackHoleAccretionRate_"/>
+    <objectDestructor name="accretionDisks_"        />
     !!]
     return
   end function fileConstructorParameters
 
-  function fileConstructorInternal(fileName) result(self)
+  function fileConstructorInternal(fileName,blackHoleAccretionRate_,accretionDisks_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily file} accretion disk spectra class.
     !!}
-    use :: Array_Utilities , only : operator(.intersection.)
-    use :: Error           , only : Component_List           , Error_Report
-    use :: Galacticus_Nodes, only : defaultBlackHoleComponent
     implicit none
-    type     (accretionDiskSpectraFile)                :: self
-    character(len=*                   ), intent(in   ) :: fileName
+    type     (accretionDiskSpectraFile   )                        :: self
+    character(len=*                      )        , intent(in   ) :: fileName
+    class    (blackHoleAccretionRateClass), target, intent(in   ) :: blackHoleAccretionRate_
+    class    (accretionDisksClass        ), target, intent(in   ) :: accretionDisks_
+    !![
+    <constructorAssign variables="fileName, *blackHoleAccretionRate_, *accretionDisks_"/>
+    !!]
 
-    ! Ensure that the required methods are supported.
-    if     (                                                                                                                           &
-            &  .not.(                                                                                                                  &
-            &         defaultBlackHoleComponent%radiativeEfficiencyIsGettable()                                                        &
-            &        .and.                                                                                                             &
-            &         defaultBlackHoleComponent%      accretionRateIsGettable()                                                        &
-            &       )                                                                                                                  &
-            & ) call Error_Report                                                                                                      &
-            & (                                                                                                                        &
-            &  'This method requires that the "radiativeEfficiency", and "accretionRate" properties of the black hole are gettable.'// &
-            &  Component_List(                                                                                                         &
-            &                 'blackHole'                                                                                           ,  &
-            &                  defaultBlackHoleComponent%radiativeEfficiencyAttributeMatch(requireGettable=.true.)                     &
-            &                 .intersection.                                                                                           &
-            &                  defaultBlackHoleComponent%      accretionRateAttributeMatch(requireGettable=.true.)                     &
-            &                )                                                                                                      // &
-            &  {introspection:location}                                                                                                &
-            & )
-    ! Load the file.
-    self%fileName=fileName
     call self%loadFile(fileName)
     return
   end function fileConstructorInternal
@@ -129,13 +121,10 @@ contains
     implicit none
     type(accretionDiskSpectraFile), intent(inout) :: self
 
-    if (allocated(self%wavelength)) then
-       deallocate(self%wavelength)
-    end if
-    if (allocated(self%luminosity)) then
-       deallocate(self%luminosity)
-    end if
-    if (allocated(self%SED       )) deallocate(self%SED)
+    !![
+    <objectDestructor name="self%blackHoleAccretionRate_"/>
+    <objectDestructor name="self%accretionDisks_"        />
+    !!]
     return
   end subroutine fileDestructor
 
@@ -178,15 +167,21 @@ contains
     !!{
     Return the accretion disk spectrum for tabulated spectra.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBlackHole, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none
     class           (accretionDiskSpectraFile), intent(inout)  :: self
     type            (treeNode                ), intent(inout)  :: node
     double precision                          , intent(in   )  :: wavelength
     class           (nodeComponentBlackHole  ), pointer        :: blackHole
+    double precision                                           :: rateAccretionSpheroid, rateAccretionHotHalo, &
+         &                                                        rateAccretion        , efficiencyRadiative
 
     blackHole => node%blackHole()
-    fileSpectrumNode=self%spectrum(blackHole%accretionRate(),blackHole%radiativeEfficiency(),wavelength)
+    call self%blackHoleAccretionRate_%rateAccretion(blackHole,rateAccretionSpheroid,rateAccretionHotHalo)
+    rateAccretion      =+                    rateAccretionSpheroid                                                         &
+         &              +                    rateAccretionHotHalo
+    efficiencyRadiative=self%accretionDisks_%efficiencyRadiative  (blackHole,rateAccretion                               )
+    fileSpectrumNode   =self                %spectrum             (          rateAccretion,efficiencyRadiative,wavelength)
     return
   end function fileSpectrumNode
 

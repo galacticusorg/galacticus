@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  An implementation of dark matter halo profiles for self-interacting dark matter following the ``isothermal'' model of \cite{iang_semi-analytic_2023}.
+  An implementation of dark matter halo profiles for self-interacting dark matter following the ``isothermal'' model of \cite{jiang_semi-analytic_2023}.
   !!}
 
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
@@ -27,13 +27,13 @@
   <darkMatterProfileDMO name="darkMatterProfileDMOSIDMIsothermal">
     <description>
       Dark matter halo profiles for self-interacting dark matter following the ``isothermal'' model of
-      \cite{iang_semi-analytic_2023} are built via the \refClass{massDistributionSphericalSIDMIsothermal} class.
+      \cite{jiang_semi-analytic_2023} are built via the \refClass{massDistributionSphericalSIDMIsothermal} class.
     </description>
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOSIDMIsothermal
      !!{
-     A dark matter halo profile class implementing profiles for self-interacting dark matter following the ``isothermal'' model of \cite{iang_semi-analytic_2023}.
+     A dark matter halo profile class implementing profiles for self-interacting dark matter following the ``isothermal'' model of \cite{jiang_semi-analytic_2023}.
      !!}
      private
      class(darkMatterParticleClass  ), pointer :: darkMatterParticle_   => null()

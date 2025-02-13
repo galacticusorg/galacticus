@@ -15,19 +15,11 @@
 
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6" time="2024-09-20T17:34:51"/>
+    <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5" time="2025-02-05T00:25:15"/>
 
     <!-- Component selection -->
     <componentBasic value="standard"/>
-    <componentBlackHole value="standard">
-      <heatsHotHalo value="false"/>
-      <efficiencyWind value="0.0024"/>
-      <efficiencyWindScalesWithEfficiencyRadiative value="true"/>
-      <bondiHoyleAccretionEnhancementHotHalo value="6.0"/>
-      <bondiHoyleAccretionEnhancementSpheroid value="5.0"/>
-      <bondiHoyleAccretionTemperatureSpheroid value="100"/>
-      <bondiHoyleAccretionHotModeOnly value="true"/>
-    </componentBlackHole>
+    <componentBlackHole value="standard"/>
     <componentDarkMatterProfile value="scale"/>
     <componentDisk value="standard">
       <toleranceAbsoluteMass value="1.0e-6"/>
@@ -233,6 +225,11 @@
 
     <!-- AGN feedback options -->
     <hotHaloExcessHeatDrivesOutflow value="true"/>
+    <blackHoleWind value="ciotti2009">
+      <efficiencyWind                              value="0.0024"/>
+      <efficiencyWindScalesWithEfficiencyRadiative value="true"  />
+    </blackHoleWind>
+
     <!-- Accretion disk properties -->
     <accretionDisks value="switched">
       <accretionRateThinDiskMaximum value="0.30"/>
@@ -249,7 +246,18 @@
     </accretionDisks>
 
     <!-- Black hole options -->
+    <blackHoleSeeds value="fixed">
+      <mass value="0"/>
+      <spin value="0"/>
+    </blackHoleSeeds>
+    <blackHoleAccretionRate value="standard">
+      <bondiHoyleAccretionEnhancementSpheroid value="  5.0"/>
+      <bondiHoyleAccretionEnhancementHotHalo  value="  6.0"/>
+      <bondiHoyleAccretionTemperatureSpheroid value="100.0"/>
+      <bondiHoyleAccretionHotModeOnly         value="true"/>
+    </blackHoleAccretionRate>
     <blackHoleBinaryMerger value="rezzolla2008"/>
+
     <!-- Galaxy merger options -->
     <virialOrbit value="benson2005"/>
     <satelliteMergingTimescales value="jiang2008">
@@ -308,12 +316,10 @@
 	  <stabilityThresholdStellar value="1.1"/>
 	</galacticDynamicsBarInstability>
       </nodeOperator>
-      <nodeOperator value="blackHolesSeed" iterable="no">
-	<blackHoleSeeds value="fixed">
-	  <mass value="0"/>
-	  <spin value="0"/>
-	</blackHoleSeeds>
-      </nodeOperator>
+      <!-- Black hole physics -->
+      <nodeOperator value="blackHolesSeed" iterable="no"/>
+      <nodeOperator value="blackHolesAccretion" iterable="no"/>
+      <nodeOperator value="blackHolesWinds" iterable="no"/>
     </nodeOperator>
 
     <!-- Numerical tolerances -->

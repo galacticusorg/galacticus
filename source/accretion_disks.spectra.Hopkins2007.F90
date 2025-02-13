@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
 !!           2019, 2020, 2021, 2022, 2023, 2024, 2025
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
@@ -59,26 +59,38 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(accretionDiskSpectraHopkins2007)                :: self
-    type(inputParameters                ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
+    type (accretionDiskSpectraHopkins2007)                :: self
+    type (inputParameters                ), intent(inout) :: parameters
+    class(blackHoleAccretionRateClass    ), pointer       :: blackHoleAccretionRate_
+    class(accretionDisksClass            ), pointer       :: accretionDisks_
 
-    self=accretionDiskSpectraHopkins2007()
+    !![
+    <objectBuilder class="blackHoleAccretionRate" name="blackHoleAccretionRate_" source="parameters"/>
+    <objectBuilder class="accretionDisks"         name="accretionDisks_"         source="parameters"/>
+    !!]
+    self=accretionDiskSpectraHopkins2007(blackHoleAccretionRate_,accretionDisks_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="blackHoleAccretionRate_"/>
+    <objectDestructor name="accretionDisks_"        />
     !!]
     return
   end function hopkins2007ConstructorParameters
 
-  function hopkins2007ConstructorInternal() result(self)
+  function hopkins2007ConstructorInternal(blackHoleAccretionRate_,accretionDisks_) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily hopkins2007} accretion disk spectra class.
     !!}
     use :: File_Utilities, only : File_Lock, File_Unlock
     use :: Input_Paths   , only : inputPath, pathTypeDataStatic
     implicit none
-    type(accretionDiskSpectraHopkins2007) :: self
-
+    type (accretionDiskSpectraHopkins2007)                        :: self
+    class(blackHoleAccretionRateClass    ), target, intent(in   ) :: blackHoleAccretionRate_
+    class(accretionDisksClass            ), target, intent(in   ) :: accretionDisks_
+    !![
+    <constructorAssign variables="*blackHoleAccretionRate_, *accretionDisks_"/>
+    !!]
+    
     ! Set the file name.
     self%fileName=inputPath(pathTypeDataStatic)//"blackHoles/AGN_SEDs_Hopkins2007.hdf5"
     ! Build the file.

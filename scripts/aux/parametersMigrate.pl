@@ -382,3 +382,146 @@ sub blackHoleSeedMass {
     # Insert the new parameters.
     $nodeOperators[0]->insertAfter($operatorNode,$nodeOperators[0]->lastChild);
 }
+
+sub blackHolePhysics {
+    # Special handling to move black hole physics from components to operators.
+    my $input      = shift();
+    my $parameters = shift();
+    # Set defaults for parameters.
+    my $defaults =
+    {
+	"simple" =>
+	{
+	    heatsHotHalo                 => "false"    ,
+	    efficiencyHeating            => "1.0e-3"   ,
+	    efficiencyWind               => "2.2157e-3",
+	    growthRatioToStellarSpheroid => "1.0e-3"
+	},
+	"standard" =>
+	{
+	    bondiHoyleAccretionEnhancementSpheroid      => "5.0e0" ,
+	    bondiHoyleAccretionEnhancementHotHalo       => "6.0e0" ,
+	    bondiHoyleAccretionHotModeOnly              => "true"  ,
+	    bondiHoyleAccretionTemperatureSpheroid      => "1.0e2" ,
+	    efficiencyWind                              => "2.4e-3",
+	    efficiencyWindScalesWithEfficiencyRadiative => "false" ,
+	    efficiencyRadioMode                         => "1.0"   ,
+	    heatsHotHalo                                => "true"
+	}
+    };
+    # Look for "componentBlackHole" parameters.
+    my $componentProperties;
+    my $componentNode;
+    foreach my $node ( $parameters->findnodes("//componentBlackHole[\@value='simple' or \@value='standard' or \@value='nonCentral']")->get_nodelist() ) {
+	print "   translate special '//componentBlackHole[\@value]'\n";
+	$componentNode = $node;
+	# Extract the type of component.
+	my $componentType = $node->getAttribute('value');
+	if ( $componentType eq "simple" ) {
+	    $componentProperties->{'type'} = "simple";
+	} elsif ( $componentType eq "standard" || $componentType eq "nonCentral" ) {
+	    $componentProperties->{'type'} = "standard";
+	}
+	# Extract all sub-parameters.
+	foreach my $nodeChild ( $node->findnodes("*[\@value]")->get_nodelist() ) {
+	    $componentProperties->{$nodeChild->nodeName()} = $nodeChild->getAttribute('value');
+	    $node->removeChild($nodeChild);
+	}
+	# Insert default parameters.
+	if ( exists($defaults->{$componentProperties->{'type'}}) ) {
+	    foreach my $parameterName ( keys(%{$defaults->{$componentProperties->{'type'}}}) ) {
+		$componentProperties->{$parameterName} = $defaults->{$componentProperties->{'type'}}->{$parameterName}
+		    unless ( exists($componentProperties->{$parameterName}) );
+	    }
+	}
+    }
+    # Find nodeOperators.
+    my @nodeOperators = $parameters->findnodes("//nodeOperator[\@value='multi']")->get_nodelist();
+    die("can not find any `nodeOperator[\@value='multi']` into which to insert a black hole seed operator")
+     	if ( scalar(@nodeOperators) == 0 );
+    die("found multiple `nodeOperator[\@value='multi']` nodes - unknown into which to insert a black hole seed operator")
+     	if ( scalar(@nodeOperators) >  1 );
+    # Build node operators.
+    my $operatorAccretionNode = $input->createElement("nodeOperator");
+    my $operatorWindsNode     = $input->createElement("nodeOperator");
+    my $operatorCGMHeatNode   = $input->createElement("nodeOperator");
+    $operatorAccretionNode->setAttribute('value','blackHolesAccretion' );
+    $operatorWindsNode    ->setAttribute('value','blackHolesWinds'     );
+    $operatorCGMHeatNode  ->setAttribute('value','blackHolesCGMHeating');
+    $nodeOperators[0]->insertAfter($operatorAccretionNode,$nodeOperators[0]->lastChild);
+    $nodeOperators[0]->insertAfter($operatorWindsNode    ,$nodeOperators[0]->lastChild);
+    $nodeOperators[0]->insertAfter($operatorCGMHeatNode  ,$nodeOperators[0]->lastChild)
+	if ( $componentProperties->{'heatsHotHalo'} eq "true" );
+    # Handle the "simple" black hole component.
+    if ( $componentProperties->{'type'} eq "simple" ) {
+	{
+	    # Accretion.
+	    my $accretionNode  = $input->createElement("blackHoleAccretionRate"      );
+	    my $growthRateNode = $input->createElement("growthRatioToStellarSpheroid");
+	    $accretionNode             ->setAttribute('value'        ,'spheroidTracking'                                    );
+	    $growthRateNode            ->setAttribute('value'        ,$componentProperties->{'growthRatioToStellarSpheroid'});
+	    $accretionNode             ->addChild    ($growthRateNode                                                       );
+	    $componentNode ->parentNode->insertAfter ($accretionNode ,$componentNode                                        );
+	}
+	{
+	    # Winds.
+	    my $windNode       = $input->createElement("blackHoleWind" );
+	    my $efficiencyNode = $input->createElement("efficiencyWind");
+	    $windNode                  ->setAttribute('value'        ,'simple'                                );
+	    $efficiencyNode            ->setAttribute('value'        ,$componentProperties->{'efficiencyWind'});
+	    $windNode                  ->addChild    ($efficiencyNode                                         );
+	    $componentNode ->parentNode->insertAfter ($windNode      ,$componentNode                          );
+	}
+	if ( $componentProperties->{'heatsHotHalo'} eq "true" ) {
+	    # CGM heating.
+	    my $heatingNode    = $input->createElement("blackHoleCGMHeating");
+	    my $efficiencyNode = $input->createElement("efficiencyHeating"  );
+	    $heatingNode               ->setAttribute('value'        ,'quasistatic'                               );
+	    $efficiencyNode            ->setAttribute('value'        ,$componentProperties->{'efficiencyHeating'});
+	    $heatingNode               ->addChild    ($efficiencyNode                                            );
+	    $componentNode ->parentNode->insertAfter ($heatingNode   ,$componentNode                             );
+	}
+    }
+    # Handle the "standard" black hole component.
+    if ( $componentProperties->{'type'} eq "standard" ) {
+	{
+	    # Accretion.
+	    my $accretionNode   = $input->createElement("blackHoleAccretionRate"                );
+	    my $spheroidNode    = $input->createElement("bondiHoyleAccretionEnhancementSpheroid");
+	    my $hotHaloNode     = $input->createElement("bondiHoyleAccretionEnhancementHotHalo" );
+	    my $hotModeNode     = $input->createElement("bondiHoyleAccretionHotModeOnly"        );
+	    my $temperatureNode = $input->createElement("bondiHoyleAccretionTemperatureSpheroid");
+	    $accretionNode             ->setAttribute('value'        ,'standard'                                                     );
+	    $spheroidNode              ->setAttribute('value'        ,$componentProperties->{'bondiHoyleAccretionEnhancementSpheroid'});
+	    $hotHaloNode               ->setAttribute('value'        ,$componentProperties->{'bondiHoyleAccretionEnhancementHotHalo' });
+	    $hotModeNode               ->setAttribute('value'        ,$componentProperties->{'bondiHoyleAccretionHotModeOnly'        });
+	    $temperatureNode           ->setAttribute('value'        ,$componentProperties->{'bondiHoyleAccretionTemperatureSpheroid'});
+	    $accretionNode             ->addChild    ($spheroidNode                                                                   );
+	    $accretionNode             ->addChild    ($hotHaloNode                                                                    );
+	    $accretionNode             ->addChild    ($hotModeNode                                                                    );
+	    $accretionNode             ->addChild    ($temperatureNode                                                                );
+	    $componentNode ->parentNode->insertAfter ($accretionNode ,$componentNode                                                  );
+	}
+	{
+	    # Winds.
+	    my $windNode       = $input->createElement("blackHoleWind"                              );
+	    my $efficiencyNode = $input->createElement("efficiencyWind"                             );
+	    my $scaleNode      = $input->createElement("efficiencyWindScalesWithEfficiencyRadiative");
+	    $windNode                  ->setAttribute('value'        ,'ciotti2009'                                                         );
+	    $efficiencyNode            ->setAttribute('value'        ,$componentProperties->{'efficiencyWind'                             });
+	    $scaleNode                 ->setAttribute('value'        ,$componentProperties->{'efficiencyWindScalesWithEfficiencyRadiative'});
+	    $windNode                  ->addChild    ($efficiencyNode                                                                      );
+	    $windNode                  ->addChild    ($scaleNode                                                                           );
+	    $componentNode ->parentNode->insertAfter ($windNode      ,$componentNode                                                       );
+	}
+	if ( $componentProperties->{'heatsHotHalo'} eq "true" ) {
+	    # CGM heating.
+	    my $heatingNode    = $input->createElement("blackHoleCGMHeating");
+	    my $efficiencyNode = $input->createElement("efficiencyRadioMode");
+	    $heatingNode               ->setAttribute('value'        ,'jetPower'                                   );
+	    $efficiencyNode            ->setAttribute('value'        ,$componentProperties->{'efficiencyRadioMode'});
+	    $heatingNode               ->addChild    ($efficiencyNode                                              );
+	    $componentNode ->parentNode->insertAfter ($heatingNode   ,$componentNode                               );
+	}
+    }
+}
