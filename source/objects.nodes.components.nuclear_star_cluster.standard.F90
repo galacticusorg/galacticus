@@ -93,12 +93,6 @@ module Node_Component_NSC_Standard
       <output unitsInSI="massSolar" comment="Mass of the black hole seed created in the standard nuclear star cluster."/>
     </property>
     <property>
-      <name>fractionMassRetained</name>
-      <type>double</type>
-      <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-    </property>
-    <property>
       <name>abundancesStellar</name>
       <type>abundances</type>
       <rank>0</rank>
@@ -778,8 +772,6 @@ contains
        call nuclearStarCluster%massGasScale          (mass)
        call nuclearStarCluster%massStellarScale      (mass)
        call nuclearStarCluster%massStellarFormedScale(mass)
-       ! Set the scale for the retained stellar mass fraction.
-       call nuclearStarCluster%fractionMassRetainedScale(fractionTolerance*nuclearStarCluster%fractionMassRetained())
        ! Set scales for abundances if necessary.
        if (abundancesCount > 0) then
           ! Set scale for abundances.
@@ -843,8 +835,6 @@ contains
     stellarPropertiesHistory      =nuclearStarCluster%stellarPropertiesHistory       ()
     createStellarPropertiesHistory=.not.             stellarPropertiesHistory%exists ()
     call                                             stellarPropertiesHistory%destroy()
-    ! Set the fraction of mass retained.
-    call nuclearStarCluster%fractionMassRetainedSet(1.0d0)
     ! Create the stellar properties history.
     if (createStellarPropertiesHistory) then
        ! Create the stellar properties history.
