@@ -228,7 +228,7 @@ contains
     use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : defaultNSCComponent      , nodeComponentNSCStandard
     use :: Input_Parameters                , only : inputParameter           , inputParameters
-    use :: Node_Component_NSC_Standard_Data, only : radiusNorm
+    use :: Node_Component_NSC_Standard_Data, only : radiusNormalization
     implicit none
     type(inputParameters         ), intent(inout) :: parameters
     type(nodeComponentNSCStandard)                :: NSCStandardComponent
@@ -237,7 +237,7 @@ contains
     if (defaultNSCComponent%standardIsActive()) then
        ! Get number of abundance properties.
        abundancesCount  =Abundances_Property_Count            ()
-       ! Bind the Chandrasekhar integral function.
+       ! Bind deferred functions.
        call NSCStandardComponent%             massGasSinkRateFunction(Node_Component_NSC_Standard_Mass_Gas_Sink_Rate         )
        call NSCStandardComponent%    starFormationHistoryRateFunction(Node_Component_NSC_Standard_Star_Formation_History_Rate)
        call NSCStandardComponent%stellarPropertiesHistoryRateFunction(Node_Component_NSC_Standard_Stellar_Prprts_History_Rate)
@@ -246,7 +246,7 @@ contains
        ! Read parameters controlling the physical implementation.
        !![
        <inputParameter>
-          <name>radiusNorm</name>
+          <name>radiusNormalization</name>
           <defaultValue>3.3d-6</defaultValue>
           <description>The initial value appearing in the radius-mass relation</description>
           <source>subParameters</source>

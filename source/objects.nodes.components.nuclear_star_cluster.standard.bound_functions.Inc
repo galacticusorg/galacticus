@@ -25,19 +25,20 @@ double precision function Node_Component_NSC_Standard_Radius(self) result(radius
    !!{
    Return the radius of the standard nuclear star cluster.
    !!}
-   use :: Node_Component_NSC_Standard_Data, only : radiusNorm
+   use :: Node_Component_NSC_Standard_Data, only : radiusNormalization
    implicit none
    class           (nodeComponentNSCStandard), intent(inout) :: self
    double precision                                          :: massNuclearStarCluster
+   double precision                          , parameter     :: massNormalization     = 1.0d6 ! M⊙
 
    massNuclearStarCluster=+self%massGas    () &
         &                 +self%massStellar()
-   ! The radius is returned in Mpc.
+   ! The radius is computed using the radius model from F. Antonini, E. Barausse & J. Silk (2015; https://ui.adsabs.harvard.edu/abs/2015ApJ...812...72A).
    if (massNuclearStarCluster > 0.0d0) then
-      radius=+radiusNorm                   &
+      radius=+radiusNormalization          &
            & *sqrt(                        &
            &       +massNuclearStarCluster &
-           &       /1.0d6                  &
+           &       /massNormalization      &
            &      )
    else 
       radius=+0.0d0
@@ -191,15 +192,18 @@ double precision function Node_Component_NSC_Standard_Angular_Momentum(self) res
    !!}
    implicit none
    class           (nodeComponentNSCStandard), intent(inout) :: self
-   double precision                                          :: massDynamical, velocity
+   double precision                                          :: massDynamical, velocity, &
+        &                                                       radius
    
    ! Get the velocity and the dynamical mass of the nuclear star cluster.
+   radius       =+self%radius     ()
    velocity     =+self%velocity   ()
    massDynamical=+self%massGas    () &
         &        +self%massStellar()
-   if (massDynamical > 0.0d0) then
+   if (massDynamical > 0.0d0.and.radius>0.0d0) then
       angularMomentum=+massDynamical &
-           &          *velocity
+           &          *velocity      &
+           &          *radius
    else
        angularMomentum=+0.0d0
    end if
