@@ -44,7 +44,6 @@
           &                                                      normalization
      type            (table1DLogarithmicLinear )              :: distributionTable
      class           (table1D                  ), allocatable :: distributionInverse
-     logical                                                  :: isInvertible
    contains
      final     ::                 bett2007Destructor
      procedure :: sample       => bett2007Sample
@@ -61,9 +60,9 @@
   end interface haloSpinDistributionBett2007
 
   ! Tabulation parameters.
-  integer         , parameter :: countPointsTabulation=1000
-  double precision, parameter :: spinMaximum          =   0.2d+0
-  double precision, parameter :: spinMinimum          =   1.0d-6
+  double precision, parameter :: countPointsPerDecade=200.0d+0
+  double precision, parameter :: spinMaximum         =  1.0d+0
+  double precision, parameter :: spinMinimum         =  1.0d-6
 
 contains
 
@@ -116,8 +115,9 @@ contains
     type            (haloSpinDistributionBett2007)                        :: self
     double precision                              , intent(in   )         :: lambda0             , alpha
     class           (darkMatterHaloScaleClass    ), intent(in   ), target :: darkMatterHaloScale_
-    double precision                                                      :: spinDimensionless   , tableMaximum
-    integer                                                               :: iSpin
+    double precision                                                      :: spinDimensionless   , spinMaximum_
+    integer                                                               :: iSpin               , countPointsTabulation
+    logical                                                               :: success
     !![
     <constructorAssign variables="alpha, lambda0, *darkMatterHaloScale_"/>
     !!]
@@ -127,34 +127,49 @@ contains
          &             *self%alpha**(self%alpha-1.0d0) &
          &             /Gamma_Function(self%alpha)
     ! Tabulate the cumulative distribution.
-    tableMaximum=(spinMaximum/lambda0)**(3.0d0/alpha)
-    call self%distributionTable%destroy()
-    call self%distributionTable%create (                                                                                        &
-         &                              lambda0*spinMinimum**(alpha/3.0d0),                                                     &
-         &                              lambda0*tableMaximum       **(alpha/3.0d0)                                            , &
-         &                              countPointsTabulation                                                                 , &
-         &                              extrapolationType                         =[extrapolationTypeFix,extrapolationTypeFix]  &
-         &                             )
-    ! Compute the cumulative probability distribution.
-    self%isInvertible=.true.
-    do iSpin=1,countPointsTabulation
-       spinDimensionless=(                                 &
-            &             +self%distributionTable%x(iSpin) &
-            &             /lambda0                         &
-            &            )**(3.0d0/alpha)
-       call self%distributionTable%populate(                                                            &
-            &                               Gamma_Function_Incomplete_Complementary(                    &
-            &                                                                       +alpha            , &
-            &                                                                       +alpha              &
-            &                                                                       *spinDimensionless  &
-            &                                                                      )                  , &
-            &                               iSpin                                                       &
-            &                              )
-       if (iSpin > 1) then
-          if (self%distributionTable%y(iSpin) <= self%distributionTable%y(iSpin-1)) self%isInvertible=.false.
-       end if
+    success     =.false.
+    spinMaximum_=spinMaximum
+    do while (.not.success)
+       success=.true.
+       countPointsTabulation=+int(                      &
+            &                     +log10(               &
+            &                            +spinMaximum_  &
+            &                            /spinMinimum   &
+            &                           )               &
+            &                     *countPointsPerDecade &
+            &                    )                      &
+            &                +1
+       call self%distributionTable%destroy()
+       call self%distributionTable%create (                                                                   &
+            &                              spinMinimum                                                      , &
+            &                              spinMaximum_                                                     , &
+            &                              countPointsTabulation                                            , &
+            &                              extrapolationType    =[extrapolationTypeFix,extrapolationTypeFix]  &
+            &                             )
+       ! Compute the cumulative probability distribution.
+       do iSpin=1,countPointsTabulation
+          spinDimensionless=(                                 &
+               &             +self%distributionTable%x(iSpin) &
+               &             /lambda0                         &
+               &            )**(3.0d0/alpha)
+          call self%distributionTable%populate(                                                            &
+               &                               Gamma_Function_Incomplete_Complementary(                    &
+               &                                                                       +alpha            , &
+               &                                                                       +alpha              &
+               &                                                                       *spinDimensionless  &
+               &                                                                      )                  , &
+               &                               iSpin                                                       &
+               &                              )
+          if (iSpin > 1) then
+             if (self%distributionTable%y(iSpin) <= self%distributionTable%y(iSpin-1)) then
+                success     =.false.
+                spinMaximum_=self%distributionTable%x(iSpin-1)
+                exit
+             end if
+          end if
+       end do
     end do
-    if (self%isInvertible) call self%distributionTable%reverse(self%distributionInverse)
+    call self%distributionTable%reverse(self%distributionInverse)
     return
   end function bett2007ConstructorInternal
 
@@ -179,17 +194,11 @@ contains
     Sample from a \cite{bett_spin_2007} spin parameter distribution for the given {\normalfont
     \ttfamily node}.
     !!}
-    use :: Error, only : Error_Report
     implicit none
     class(haloSpinDistributionBett2007), intent(inout) :: self
     type (treeNode                    ), intent(inout) :: node
 
-    if (self%isInvertible) then
-       bett2007Sample=self%distributionInverse%interpolate(node%hostTree%randomNumberGenerator_%uniformSample())
-    else
-       bett2007Sample=0.0d0
-       call Error_Report('can not sample - cumulative distribution table was not monotonic'//{introspection:location})
-    end if
+    bett2007Sample=self%distributionInverse%interpolate(node%hostTree%randomNumberGenerator_%uniformSample())
     return
   end function bett2007Sample
 
