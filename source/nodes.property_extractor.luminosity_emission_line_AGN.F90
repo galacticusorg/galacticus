@@ -73,7 +73,7 @@ Implements an emission line luminosity for AGN node property extractor class.
   end interface nodePropertyExtractorLmnstyEmssnLineAGN
 
   ! Enumerations for galactic components and ionizing continuua.
-  !![
+  /*!![
   <enumeration>
    <name>interpolants</name>
    <description>Specifies the different interpolants for AGN emission line calculations.</description>
@@ -83,7 +83,7 @@ Implements an emission line luminosity for AGN node property extractor class.
    <entry label="metallicity"/>
    <entry label="spectralIndex"/>
   </enumeration>
-  !!]
+  !!]*/
 contains
   function lmnstyEmssnLineAGNConstructorParameters(parameters) result(self)
     !!{
@@ -456,6 +456,8 @@ contains
                           &                     *                interpolateFactor(l,4)  
                     luminosityLineAGN=+luminosityLineAGN                                      &
                           &                     +weight                                  &
+                          ! intensity given by emission line models of Cloudy (intensity*4pi) is multiplied by stromgren radius**2 (cm^2)
+                          !&                     *stromgren_radius*stromgren_radius*1.0d4 &
                           &                     *self%luminosity(                        &
                           &                                      interpolateIndex (l,4), &
                           &                                      interpolateIndex (k,3), &
@@ -470,6 +472,7 @@ contains
         lmnstyEmssnLineAGNExtract=+lmnstyEmssnLineAGNExtract                           &
         &                        + luminosityLineAGN                                                            
     end do
+    write(0,*) "lmnstyEmssnLineAGNExtract ",lmnstyEmssnLineAGNExtract
    return
   end function lmnstyEmssnLineAGNExtract
 
