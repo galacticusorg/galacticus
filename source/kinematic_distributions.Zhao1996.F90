@@ -89,7 +89,7 @@ contains
     !!{
     Return the 1D velocity dispersion at the specified {\normalfont \ttfamily coordinates} in an Zhao1996 kinematic distribution.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Dilogarithms                    , only : Dilogarithm
     implicit none
     class           (kinematicsDistributionZhao1996), intent(inout), target :: self
@@ -246,7 +246,7 @@ contains
           end select
           velocityDispersion=+sqrt(                                                &
                &                   +velocityDispersion                             &
-               &                   *gravitationalConstantGalacticus                &
+               &                   *gravitationalConstant_internal                 &
                &                   *massDistributionEmbedding%densityNormalization &
                &                  )                                                &
                &                   *      massDistributionEmbedding%scaleLength

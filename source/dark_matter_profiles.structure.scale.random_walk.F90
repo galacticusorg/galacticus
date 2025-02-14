@@ -150,8 +150,8 @@ contains
     Initialize dark matter profile scale radii.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentBasic
-    use :: Root_Finder                     , only : rootFinder                     , rangeExpandMultiplicative, rangeExpandSignExpectPositive, rangeExpandSignExpectNegative    
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Root_Finder                     , only : rootFinder                    , rangeExpandMultiplicative, rangeExpandSignExpectPositive, rangeExpandSignExpectNegative    
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Mass_Distributions              , only : massDistributionClass
     implicit none
     class           (darkMatterProfileScaleRadiusRandomWalk), intent(inout), target  :: self
@@ -173,10 +173,10 @@ contains
        darkMatterProfileChild =>  node                  %firstChild           %darkMatterProfile(                                        )
        radiusVirial_          =   self                  %darkMatterHaloScale_ %radiusVirial     (node                                    )
        radiusVirialChild      =   self                  %darkMatterHaloScale_ %radiusVirial     (node%firstChild                         )
-       energyScale            =  +gravitationalConstantGalacticus                                                                             &
+       energyScale            =  +gravitationalConstant_internal                                                                              &
             &                    *basic                                       %mass             (                                        )**2 &
             &                    /self                  %darkMatterHaloScale_ %radiusVirial     (node                                    )
-       energyScaleChild       =  +gravitationalConstantGalacticus                                                                             &
+       energyScaleChild       =  +gravitationalConstant_internal                                                                              &
             &                    *basicChild                                  %mass             (                                        )**2 &
             &                    /radiusVirialChild       
        massDistributionChild_ =>  self                  %darkMatterProfileDMO_%get              (node%firstChild                         )

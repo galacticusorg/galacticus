@@ -172,7 +172,7 @@ contains
     use :: Galacticus_Nodes                , only : nodeComponentBasic             , nodeComponentDarkMatterProfile     , nodeComponentSatellite
     use :: Root_Finder                     , only : rootFinder                     , rangeExpandMultiplicative          , rangeExpandSignExpectPositive, rangeExpandSignExpectNegative
     use :: Kepler_Orbits                   , only : keplerOrbit
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Beta_Functions                  , only : Beta_Function                  , Beta_Function_Incomplete_Normalized
     use :: Hypergeometric_Functions        , only : Hypergeometric_2F1
     use :: Mass_Distributions              , only : massDistributionClass
@@ -362,7 +362,7 @@ contains
        ! Add mutual gravitational binding energy of any sibling halo and any unresolved mass.
        if (associated(nodeChild%sibling))                                      &
             & energyTotal=+energyTotal                                         &
-            &             -gravitationalconstantGalacticus                     &
+            &             -gravitationalConstant_internal                      &
             &             *basicSibling             %mass        (         )   &
             &             *massUnresolved                                      &
             &             /0.5d0                                               &

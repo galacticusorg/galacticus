@@ -2291,9 +2291,9 @@ contains
       !!{
       Normalization for conversion of spin to angular momentum.
       !!}
-      use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+      use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
       implicit none
-      spinNormalization=+gravitationalConstantGalacticus                                     &
+      spinNormalization=+gravitationalConstant_internal                                      &
            &            *basic%mass()**2.5d0                                                 &
            &            /sqrt(abs(massDistribution_%energy(radiusVirial,massDistribution_)))
       return

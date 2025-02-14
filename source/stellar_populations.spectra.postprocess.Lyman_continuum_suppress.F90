@@ -68,13 +68,13 @@ contains
     !!{
     Suppress the Lyman continuum in a spectrum.
     !!}
-    use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen
+    use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen_atomic
     implicit none
     class           (stellarPopulationSpectraPostprocessorLycSuppress), intent(inout) :: self
     double precision                                                  , intent(in   ) :: age , redshift, wavelength
     !$GLC attributes unused :: self, age, redshift
 
-    if (wavelength < lymanSeriesLimitWavelengthHydrogen) then
+    if (wavelength < lymanSeriesLimitWavelengthHydrogen_atomic) then
        lycSuppressMultiplier=0.0d0
     else
        lycSuppressMultiplier=1.0d0

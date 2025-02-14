@@ -70,7 +70,7 @@ contains
     !!}
     use :: Factorials                , only : Factorial
     use :: Gamma_Functions           , only : Gamma_Function_Logarithmic
-    use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen
+    use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen_atomic
     implicit none
     class           (stellarPopulationSpectraPostprocessorMeiksin2006), intent(inout) :: self
     double precision                                                  , intent(in   ) :: age                                    , redshift           , &
@@ -93,7 +93,7 @@ contains
        return
     else
        ! Compute the observed wavelength in units of the Lyman-continuum wavelength.
-       wavelengthObservedLymanContinuum=wavelength*(1.0d0+redshift)/lymanSeriesLimitWavelengthHydrogen
+       wavelengthObservedLymanContinuum=wavelength*(1.0d0+redshift)/lymanSeriesLimitWavelengthHydrogen_atomic
        ! Evaluate redshifts of various Lyman-series lines.
        forall (iLine=3:9)
           redshiftLymanLines(iLine)=wavelengthObservedLymanContinuum*(1.0d0-1.0d0/dble(iLine**2))-1.0d0
