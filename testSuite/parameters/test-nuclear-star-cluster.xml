@@ -156,6 +156,8 @@
 
   <starFormationRateNuclearStarClusters value="krumholz2009"/>
 
+  <nuclearStarClusterGrowthRates value="antonini2015"/>
+
   <!-- Stellar populations options -->
   <stellarPopulationProperties value="instantaneous"/>
   <stellarPopulationSpectra value="FSPS"/>
@@ -219,9 +221,7 @@
     <nodeOperator value="satelliteMergingTime"/>
     <nodeOperator value="satelliteMassLoss"/>
     <!-- Nuclear star cluster gass growth -->
-    <nodeOperator value="nuclearStarClusterGrowth">
-      <Ares value="1.0d-3"/>
-    </nodeOperator>
+    <nodeOperator value="nuclearStarClusterGrowth"/>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>
     <nodeOperator value="starFormationSpheroids"/>

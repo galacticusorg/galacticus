@@ -21,26 +21,21 @@
   Implements a node operator class that handle the gas mass rate in the nuclear star cluster using the model of
   \cite{antonini_coevolution_2015}.
   !!}
-  
-  use :: Star_Formation_Rates_Spheroids , only : starFormationRateSpheroidsClass
 
+  use :: Nuclear_Star_Cluster_Growth_Rates   , only : nuclearStarClusterGrowthRatesClass 
   !![
   <nodeOperator name="nodeOperatorNuclearStarClusterGrowth">
     <description>
-      A node operator class that handle the gas mass rate in the nuclear star cluster using the model of
-      \cite{antonini_coevolution_2015}.
-    </description>
+      A node operator class that handle the gas inflow rate ontothe nuclear star cluster.</description>
   </nodeOperator>
   !!]
 
   type, extends(nodeOperatorClass) :: nodeOperatorNuclearStarClusterGrowth
      !!{
-     A node operator class that handle the gas mass rate in the nuclear star cluster using the model of
-     \cite{antonini_coevolution_2015}.
+     A node operator class that performsthe gas rate onto the nuclear star cluster.
      !!}
      private
-     class(starFormationRateSpheroidsClass), pointer :: starFormationRateSpheroids_ => null()
-     double precision                                :: Ares
+     class  (nuclearStarClusterGrowthRatesClass), pointer :: nuclearStarClusterGrowthRates_ => null()
    contains
      final     ::                          nuclearStarClusterGrowthDestructor
      procedure :: differentialEvolution => nuclearStarClusterGrowthDifferentialEvolution
@@ -64,36 +59,27 @@ contains
     implicit none
     type (nodeOperatorNuclearStarClusterGrowth)                :: self
     type (inputParameters                     ), intent(inout) :: parameters
-    class(starFormationRateSpheroidsClass     ), pointer       :: starFormationRateSpheroids_
-    double precision                                           :: Ares
+    class(nuclearStarClusterGrowthRatesClass  ), pointer       :: nuclearStarClusterGrowthRates_
     !![
-    <inputParameter>
-    <name>Ares</name>
-    <defaultValue>6.0d-3</defaultValue>
-    <description> Free parameter controlling the transference of gas from the spheroid to the NSC gas reservoir</description>
-    <source>parameters</source>
-    </inputParameter>
-    <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
+    <objectBuilder class="nuclearStarClusterGrowthRates" name="nuclearStarClusterGrowthRates_" source="parameters"/>
     !!]
-    self=nodeOperatorNuclearStarClusterGrowth(Ares,starFormationRateSpheroids_)
+    self=nodeOperatorNuclearStarClusterGrowth(nuclearStarClusterGrowthRates_)
     !![
-    <inputParametersValidate source="parameters"        />
-    <objectDestructor name="starFormationRateSpheroids_"/>
+    <inputParametersValidate source="parameters"      />
+    <objectDestructor name="nuclearStarClusterGrowthRates_"/>
     !!]
     return
   end function nuclearStarClusterGrowthConstructorParameters
   
-  function nuclearStarClusterGrowthConstructorInternal(Ares, starFormationRateSpheroids_) result(self)
+  function nuclearStarClusterGrowthConstructorInternal(nuclearStarClusterGrowthRates_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily NuclearStarClusterGrowth} node operator class.
     !!}
     implicit none
     type (nodeOperatorNuclearStarClusterGrowth)                        :: self
-    class(starFormationRateSpheroidsClass     ), intent(in   ), target :: starFormationRateSpheroids_
-    double precision                           , intent(in   ), target :: Ares
+    class(nuclearStarClusterGrowthRatesClass  ), intent(in   ), target :: nuclearStarClusterGrowthRates_
     !![
-    <constructorAssign variables="Ares"                        />
-    <constructorAssign variables="*starFormationRateSpheroids_"/>
+    <constructorAssign variables="*nuclearStarClusterGrowthRates_"/>
     !!]
     return
   end function nuclearStarClusterGrowthConstructorInternal
@@ -105,7 +91,7 @@ contains
     implicit none
     type(nodeOperatorNuclearStarClusterGrowth), intent(inout) :: self
     !![
-    <objectDestructor name="self%starFormationRateSpheroids_"/>
+    <objectDestructor name="self%nuclearStarClusterGrowthRates_"/>
     !!]
     return
   end subroutine nuclearStarClusterGrowthDestructor
@@ -125,38 +111,28 @@ contains
     integer                                    , intent(in   )         :: propertyType
     class (nodeComponentNSC                   ),                pointer:: nuclearStarCluster
     class (nodeComponentSpheroid              ),                pointer:: spheroid
-    double precision                                                   :: gasMassAccretionRate , rateStarFormationSpheroid
+    double precision                                                   :: gasMassAccretionRate
 
-    gasMassAccretionRate = 0.0d0
 
     ! Return immediately if inactive variables are requested.
     if (propertyInactive(propertyType)) return
 
-    ! Get the spheroid component.
-    spheroid => node%spheroid()
+    gasMassAccretionRate = self%nuclearStarClusterGrowthRates_%rate(node)
   
-    ! Get the star formation rate of the spheroid component.
-    rateStarFormationSpheroid =  self%starFormationRateSpheroids_%rate(node)   
-
-    ! Find the rate of mass accretion onto the nuclear star cluster.
-    if  (rateStarFormationSpheroid <= 0.0d0) then
-      gasMassAccretionRate = 0.0d0
-    else
-      ! Gas mass accretion rate model from F. Antonini, E. Barausse & J. Silk (2015; https://ui.adsabs.harvard.edu/abs/2015ApJ...812...72A).
-      gasMassAccretionRate = self%Ares*rateStarFormationSpheroid
-    end if 
-    
-    ! Finish if there is no accretion.
+    ! Finish if there is no gas inflow.
     if (gasMassAccretionRate <= 0.0d0) return
 
-    ! Get the nuclear star cluster component.
-    nuclearStarCluster => node%NSC()
+   ! Get the spheroid and nuclear star cluster component.
+    spheroid           => node%spheroid()
+    nuclearStarCluster => node%     NSC()
+
+
 
     ! Detect nuclear star cluster component type.
     select type (nuclearStarCluster)
     type is (nodeComponentNSC)
       ! Generic type - interrupt and create a standard nuclear star cluster if accretion rate is non-zero.
-      if (gasmassAccretionRate /= 0.0d0) then
+      if (gasMassAccretionRate /= 0.0d0) then
         interrupt=.true.
         functionInterrupt => nuclearStarClusterCreate
       end if
