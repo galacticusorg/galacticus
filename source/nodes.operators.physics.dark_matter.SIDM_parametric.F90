@@ -368,13 +368,13 @@ contains
              RmaxCDM = massDistribution_%radiusRotationCurveMaximum()
              RmaxSIDM = RmaxSIDM+RmaxCDM
 
-!             RmaxNFW0 = Rmax_NFW(RmaxSIDM, tau)
-!             VmaxNFW0 = Vmax_NFW(VmaxSIDM, tau)
+             RmaxNFW0 = Rmax_NFW(RmaxSIDM, tau)
+             VmaxNFW0 = Vmax_NFW(VmaxSIDM, tau)
 
-!             r_sNFW0 = r_s0(RmaxNFW0)
-!             rho_sNFW0 = rho_s0(r_sNFW0, VmaxNFW0)
-             r_sNFW0 = r_s0(massDistribution_%radiusRotationCurveMaximum())
-             rho_sNFW0 = rho_s0(r_sNFW0, massDistribution_%velocityRotationCurveMaximum())
+             r_sNFW0 = r_s0(RmaxNFW0)
+             rho_sNFW0 = rho_s0(r_sNFW0, VmaxNFW0)
+!             r_sNFW0 = r_s0(massDistribution_%radiusRotationCurveMaximum())
+!             rho_sNFW0 = rho_s0(r_sNFW0, massDistribution_%velocityRotationCurveMaximum())
 
              rho_s = get_rho_s(rho_sNFW0, tau)
              r_s = get_r_s(r_sNFW0, tau)
@@ -459,7 +459,7 @@ contains
     class           (nodeComponentBasic          ), pointer       :: basic            , basicParent
     class         (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
     class           (massDistributionClass       ), pointer       :: massDistribution_
-    double precision                                              :: tau, r_sNFW0, rho_sNFW0, rho_s, r_s, r_c
+    double precision                                              :: tau, r_sNFW0, rho_sNFW0, rho_s, r_s, r_c, VmaxSIDM, RmaxSIDM, RmaxNFW0, VmaxNFW0
 !         &                                                           massRateAccretion
 
 !    basic             => node %basic                    (                                )
@@ -469,12 +469,22 @@ contains
     darkMatterProfile => node%darkMatterProfile()
     tau = darkMatterProfile%floatRank0MetaPropertyGet(self%tauID)   
     massDistribution_ => self%darkMatterProfileDMO_%get(node)
-    r_sNFW0 = r_s0(massDistribution_%radiusRotationCurveMaximum())
-    rho_sNFW0 = rho_s0(r_sNFW0, massDistribution_%velocityRotationCurveMaximum())
+
+    VmaxSIDM = darkMatterProfile%floatRank0MetaPropertyGet(self%VmaxSIDMID)+massDistribution_%velocityRotationCurveMaximum()
+    RmaxSIDM = darkMatterProfile%floatRank0MetaPropertyGet(self%RmaxSIDMID)+massDistribution_%radiusRotationCurveMaximum()
+
+    RmaxNFW0 = Rmax_NFW(RmaxSIDM, tau)
+    VmaxNFW0 = Vmax_NFW(VmaxSIDM, tau)
+    r_sNFW0 = r_s0(RmaxNFW0)
+    rho_sNFW0 = rho_s0(r_sNFW0, VmaxNFW0)
+
+!    r_sNFW0 = r_s0(massDistribution_%radiusRotationCurveMaximum())
+!    rho_sNFW0 = rho_s0(r_sNFW0, massDistribution_%velocityRotationCurveMaximum())
 
     rho_s = get_rho_s(rho_sNFW0, tau)
     r_s = get_r_s(r_sNFW0, tau)
     r_c = get_r_c(r_sNFW0, tau)
+
 
     call darkMatterProfile%floatRank0MetaPropertySet(self%RhosSIDMID, rho_s)
     call darkMatterProfile%floatRank0MetaPropertySet(self%RsSIDMID, r_s)
@@ -521,9 +531,9 @@ contains
 
 
 !    print *, 'Test inside nodePromote ...'
-    call darkMatterProfile%floatRank0MetaPropertySet(self%RhosSIDMID,darkMatterProfileParent%floatRank0MetaPropertyGet(self%RhosSIDMID))
-    call darkMatterProfile%floatRank0MetaPropertySet(self%RsSIDMID,darkMatterProfileParent%floatRank0MetaPropertyGet(self%RsSIDMID))
-    call darkMatterProfile%floatRank0MetaPropertySet(self%RcSIDMID,darkMatterProfileParent%floatRank0MetaPropertyGet(self%RcSIDMID))
+!    call darkMatterProfile%floatRank0MetaPropertySet(self%RhosSIDMID,darkMatterProfileParent%floatRank0MetaPropertyGet(self%RhosSIDMID))
+!    call darkMatterProfile%floatRank0MetaPropertySet(self%RsSIDMID,darkMatterProfileParent%floatRank0MetaPropertyGet(self%RsSIDMID))
+!    call darkMatterProfile%floatRank0MetaPropertySet(self%RcSIDMID,darkMatterProfileParent%floatRank0MetaPropertyGet(self%RcSIDMID))
 
 
 
@@ -826,7 +836,7 @@ contains
 
 !    print *, "tau_local =", tau_local, "rho_s0 =", rho_s0
 
-    get_rho_s = rho_s0 * (2.033d0 + 0.7381d0 * tau_local + 7.264d0 * tau_local ** 5 - 12.73d0 * tau_local ** 7 + 9.915d0 * tau_local ** 9 + (1.0d0 + 2.033d0) * log(tau_local + 0.001d0) / log(0.001d0))
+    get_rho_s = rho_s0 * (2.033d0 + 0.7381d0 * tau_local + 7.264d0 * tau_local ** 5 - 12.73d0 * tau_local ** 7 + 9.915d0 * tau_local ** 9 + (1.0d0 - 2.033d0) * log(tau_local + 0.001d0) / log(0.001d0))
   end function get_rho_s
 
   double precision function get_r_s(r_s0, tau)
