@@ -211,8 +211,8 @@ contains
     !!{
     Compute the stability estimator for the \cite{efstathiou_stability_1982} model for galactic disk bar instability.
     !!}
-    use :: Galacticus_Nodes                , only : nodeComponentDisk              , treeNode
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Galacticus_Nodes                , only : nodeComponentDisk             , treeNode
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (galacticDynamicsBarInstabilityEfstathiou1982), intent(inout) :: self
     type            (treeNode                                    ), intent(inout) :: node
@@ -233,10 +233,10 @@ contains
     massDisk=disk%massGas()+disk%massStellar()
     if (massDisk < 0.0d0) return
     ! Compute the velocity due to the disk's self-gravity.
-    velocitySelf=+sqrt(                                 &
-         &             +gravitationalConstantGalacticus &
-         &             *massDisk                        &
-         &             /disk%radius  ()                 &
+    velocitySelf=+sqrt(                                &
+         &             +gravitationalConstant_internal &
+         &             *massDisk                       &
+         &             /disk%radius  ()                &
          &            )  
     if     (                                                                                           &
          &                                                          velocitySelf  <=            0.0d0  &

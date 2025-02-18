@@ -50,7 +50,7 @@ double precision function Node_Component_NSC_Standard_Velocity(self)
    !!{
    Return the circular velocity of the standard nuclear star cluster.
    !!}
-   use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+   use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
    implicit none
    class(nodeComponentNSCStandard), intent(inout) :: self
    double precision                               :: radiusNuclearStarCluster, massNuclearStarCluster
@@ -64,10 +64,10 @@ double precision function Node_Component_NSC_Standard_Velocity(self)
         &  .and.                             &
         &   radiusNuclearStarCluster > 0.0d0 &
         & ) then
-      Node_Component_NSC_Standard_Velocity=+sqrt(                                 &
-           &                                     +gravitationalConstantGalacticus &
-           &                                     *massNuclearStarCluster          &
-           &                                     /radiusNuclearStarCluster        &
+      Node_Component_NSC_Standard_Velocity=+sqrt(                                &
+           &                                     +gravitationalConstant_internal &
+           &                                     *massNuclearStarCluster         &
+           &                                     /radiusNuclearStarCluster       &
            &                                    )
    else 
       Node_Component_NSC_Standard_Velocity=+0.0d0

@@ -141,7 +141,7 @@ contains
     !!{
     Compute the specific energy in a monotonically-heated mass distribution.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (massDistributionHeatingMonotonic), intent(inout) :: self
     double precision                                  , intent(in   ) :: radius
@@ -157,10 +157,10 @@ contains
             &                                                      massDistribution_  &
             &                                                     )
     else
-       energySpecific=+self%energyPerturbationShellCrossing                         &
-            &         *0.5d0                                                        &
-            &         *gravitationalConstantGalacticus                              &
-            &         *massDistribution_              %massEnclosedBySphere(radius) &
+       energySpecific=+self%energyPerturbationShellCrossing                        &
+            &         *0.5d0                                                       &
+            &         *gravitationalConstant_internal                              &
+            &         *massDistribution_             %massEnclosedBySphere(radius) &
             &         /radius
     end if
     return
@@ -170,8 +170,8 @@ contains
     !!{
     Returns the gradient of the specific energy of heating.
     !!}
-    use :: Coordinates                     , only : coordinateSpherical            , assignment(=)
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Numerical_Constants_Math        , only : Pi
     implicit none
     class           (massDistributionHeatingMonotonic), intent(inout) :: self
@@ -192,7 +192,7 @@ contains
        coordinates           =[radius,0.0d0,0.0d0]
        energySpecificGradient=+self%energyPerturbationShellCrossing                  &
             &                 *0.5d0                                                 &
-            &                 *gravitationalConstantGalacticus                       &
+            &                 *gravitationalConstant_internal                        &
             &                 *(                                                     &
             &                   +4.0d0                                               &
             &                   *Pi                                                  &
@@ -220,9 +220,9 @@ contains
     !!{
     Determines if the no shell crossing assumption is valid.
     !!}
-    use :: Coordinates                     , only : coordinateSpherical            , assignment(=)
+    use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (massDistributionHeatingMonotonic), intent(inout) :: self
     class           (massDistributionClass           ), intent(inout) :: massDistribution_
@@ -243,8 +243,8 @@ contains
             &                                                                                radius           , &
             &                                                                                massDistribution_  &     
             &                                                                               )
-       energySpecificScale            =+gravitationalConstantGalacticus &
-            &                          *massEnclosed                    &
+       energySpecificScale            =+gravitationalConstant_internal &
+            &                          *massEnclosed                   &
             &                          /radius
        monotonicNoShellCrossingIsValid=+energySpecific                              &
             &                          *                            radius          &
@@ -270,8 +270,8 @@ contains
     !!{
     Determines if the no shell crossing assumption is valid.
     !!}
-    use :: Root_Finder                     , only : rangeExpandMultiplicative      , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Root_Finder                     , only : rangeExpandMultiplicative     , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (massDistributionHeatingMonotonic), intent(inout), target :: self
     class           (massDistributionClass           ), intent(inout), target :: massDistribution_
@@ -324,7 +324,7 @@ contains
           self%energyPerturbationShellCrossing =+self%massDistributionHeating_%specificEnergy      (self%radiusShellCrossing,massDistribution_) &
                &                                /(                                                                                              &
                &                                  +0.5d0                                                                                        &
-               &                                  *gravitationalConstantGalacticus                                                              &
+               &                                  *gravitationalConstant_internal                                                               &
                &                                  *massDistribution_          %massEnclosedBySphere(self%radiusShellCrossing                  ) &
                &                                  /                                                 self%radiusShellCrossing                    &
                &                                 )

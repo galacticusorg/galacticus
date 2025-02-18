@@ -158,8 +158,8 @@ contains
     !!{
     Returns the gradient of the specific energy of heating.
     !!}
-    use :: Coordinates                     , only : coordinateSpherical            , assignment(=)
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (massDistributionHeatingTidal), intent(inout) :: self
     double precision                              , intent(in   ) :: radius
@@ -177,7 +177,7 @@ contains
                &                                                   -0.5d0                                                                                                        & ! ⎧ dlog[σ_r(r)]/dlog[r] term
                &                                                   *massDistribution_%densityGradientRadial                       (coordinates,logarithmic=.true.           )    & ! ⎥
                &                                                   -0.5d0                                                                                                        & ! ⎥ Assumes the Jeans equation in
-               &                                                   *gravitationalConstantGalacticus                                                                              & ! ⎥ spherical symmetry with anisotropy
+               &                                                   *gravitationalConstant_internal                                                                               & ! ⎥ spherical symmetry with anisotropy
                &                                                   *massDistribution_%massEnclosedBySphere                        (radius                                   )    & ! ⎥ parameter β=0. Would be better to
                &                                                   /                                                               radius                                        & ! ⎥ have this provided by the
                &                                                   /massDistribution_%kinematicsDistribution_%velocityDispersion1D(coordinates,            massDistribution_)**2 & ! ⎩ darkMatterProfileDMO class.

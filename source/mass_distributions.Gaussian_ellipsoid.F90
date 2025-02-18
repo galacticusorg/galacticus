@@ -317,9 +317,9 @@ contains
     !!{
     Computes the gravitational acceleration at {\normalfont \ttfamily coordinates} for Gaussian ellipsoid mass distributions.
     !!}
-    use :: Coordinates                     , only : assignment(=)                  , coordinateCartesian
-    use :: Linear_Algebra                  , only : assignment(=)                  , operator(*)        , vector
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Coordinates                     , only : assignment(=)                 , coordinateCartesian
+    use :: Linear_Algebra                  , only : assignment(=)                 , operator(*)        , vector
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     double precision                                   , dimension(3)  :: gaussianEllipsoidAcceleration
     class           (massDistributionGaussianEllipsoid), intent(inout) :: self
@@ -355,10 +355,10 @@ contains
     accelerationVectorUnrotated  = self%rotationOut              &
          &                        *accelerationVector
     gaussianEllipsoidAcceleration= accelerationVectorUnrotated
-    if (.not.self%isDimensionless())                                      &
-         & gaussianEllipsoidAcceleration=+gaussianEllipsoidAcceleration   &
-         &                               *gravitationalConstantGalacticus &
-         &                               *self%mass                       &
+    if (.not.self%isDimensionless())                                     &
+         & gaussianEllipsoidAcceleration=+gaussianEllipsoidAcceleration  &
+         &                               *gravitationalConstant_internal &
+         &                               *self%mass                      &
          &                               /self%scaleLengthMaximum**2
     return
   end function gaussianEllipsoidAcceleration

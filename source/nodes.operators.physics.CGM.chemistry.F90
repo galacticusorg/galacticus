@@ -29,7 +29,7 @@
   use :: Dark_Matter_Halo_Scales               , only : darkMatterHaloScaleClass
   use :: Radiation_Fields                      , only : radiationFieldClass                   , crossSectionFunctionTemplate
   use :: Numerical_Constants_Physical          , only : plancksConstant                       , speedLight
-  use :: Numerical_Constants_Units             , only : angstromsPerMeter                     , electronVolt
+  use :: Numerical_Constants_Units             , only : metersToAngstroms                     , electronVolt
 
   !![
   <nodeOperator name="nodeOperatorCGMChemistry">
@@ -105,7 +105,7 @@
   double precision                              , parameter :: energyIonizationAtomicHydrogen     =  +13.6d0
   double precision                              , parameter :: wavelengthIonizationAtomicHydrogen =  +plancksConstant                &
        &                                                                                             *speedLight                     &
-       &                                                                                             *angstromsPerMeter              &
+       &                                                                                             *metersToAngstroms              &
        &                                                                                             /electronVolt                   &
        &                                                                                             /energyIonizationAtomicHydrogen
   ! Pointers to cross-section functions.
@@ -503,7 +503,7 @@ contains
     Compute the cross-section (in units of cm$^{2}$) for the reaction $\hbox{H}_2 + \gamma \rightarrow 2\hbox{H}$ as given by
     \cite{abel_modeling_1997}.
     !!}
-    use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen
+    use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen_atomic
     use :: Tables                    , only : table1DLogarithmicLinear
     use :: Table_Labels              , only : extrapolationTypeZero
     implicit none
@@ -517,7 +517,7 @@ contains
     integer                                                   :: i
 
     if (.not.initialized) then
-       call interpolator_%create(wavelengthFactor*lymanSeriesLimitWavelengthHydrogen,lymanSeriesLimitWavelengthHydrogen,wavelengthCount,extrapolationType=[extrapolationTypeZero,extrapolationTypeZero])
+       call interpolator_%create(wavelengthFactor*lymanSeriesLimitWavelengthHydrogen_atomic,lymanSeriesLimitWavelengthHydrogen_atomic,wavelengthCount,extrapolationType=[extrapolationTypeZero,extrapolationTypeZero])
        do i=1,wavelengthCount
           ! Use the hydrogen photoionization cross section method.
           crossSection=self_%atomicCrossSectionIonizationPhoto_%crossSection(1,1,1,interpolator_%x(i))

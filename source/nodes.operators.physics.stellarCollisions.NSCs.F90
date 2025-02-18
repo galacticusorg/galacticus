@@ -140,7 +140,7 @@ contains
         &                                           nodeComponentBasic             , treeNode        
     use :: Galactic_Structure_Options      , only : componentTypeNuclearStarCluster, massTypeStellar
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus, parsec          , megaParsec              , gigaYear
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal , parsec          , megaParsec              , gigaYear
     use :: Numerical_Constants_Prefixes    , only : mega, kilo
     implicit none
     class(nodeOperatorstellarCollisionsNSC), intent(inout), target :: self
@@ -205,7 +205,7 @@ contains
           CrossSectionNSC  = 16.0d0* sqrt(Pi)*(1+Theta)*(self%radiusSingleStar*solarRadiusTopc)**2.0d0
 
           ! Critical mass computation using equation (3) in the model of M.C. Vergara, A. Escala, D.R.G. Schleicher and B. Reinoso. (2023, https://ui.adsabs.harvard.edu/abs/2023MNRAS.522.4224V/abstract)
-          massCriticalNSC  = radiusNSC**(7.0d0/3.0d0)*((4.0d0*Pi*self%massSingleStar)/(3.0d0*CrossSectionNSC*ageNSC*sqrt((gravitationalConstantGalacticus*megaParsec*(kilo*gigaYear)**2.0d0)*parsec**-3.0d0)))**(2.0d0/3.0d0)
+          massCriticalNSC  = radiusNSC**(7.0d0/3.0d0)*((4.0d0*Pi*self%massSingleStar)/(3.0d0*CrossSectionNSC*ageNSC*sqrt((gravitationalConstant_internal*megaParsec*(kilo*gigaYear)**2.0d0)*parsec**-3.0d0)))**(2.0d0/3.0d0)
           massFormedSeedNSC= self%massEfficiency*NSC%massStellar()
           
           call NSC%massCriticalSet(massCriticalNSC)
