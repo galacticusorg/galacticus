@@ -56,6 +56,11 @@
      module procedure galaxyPopulationConstructorInternal
   end interface posteriorSampleLikelihoodGalaxyPopulation
 
+  ! Sub-module-scope pointer to self, used to allow writing of current parameters in case of failures.
+  class  (posteriorSampleLikelihoodGalaxyPopulation), pointer :: self_
+  integer                                                     :: iRank_
+  !$omp threadprivate(self_,iRank_)
+  
 contains
 
   function galaxyPopulationConstructorParameters(parameters) result(self)
@@ -191,7 +196,7 @@ contains
     use :: Display                       , only : displayIndent                  , displayMessage               , displayUnindent             , displayVerbosity, &
           &                                       displayVerbositySet            , verbosityLevelSilent         , verbosityLevelStandard
     use :: Functions_Global              , only : Tasks_Evolve_Forest_Construct_ , Tasks_Evolve_Forest_Destruct_, Tasks_Evolve_Forest_Perform_
-    use :: Error                         , only : errorStatusSuccess
+    use :: Error                         , only : errorStatusSuccess             , signalHandlerRegister        , signalHandlerDeregister     , signalHandlerInterface
     use :: ISO_Varying_String            , only : char                           , operator(//)                 , var_str
     use :: Kind_Numbers                  , only : kind_int8
     use :: MPI_Utilities                 , only : mpiBarrier                     , mpiSelf
@@ -203,7 +208,7 @@ contains
     use :: Posterior_Sampling_State      , only : posteriorSampleStateClass
     use :: String_Handling               , only : String_Count_Words             , String_Join                  , String_Split_Words          , operator(//)
     implicit none
-    class           (posteriorSampleLikelihoodGalaxyPopulation), intent(inout)                 :: self
+    class           (posteriorSampleLikelihoodGalaxyPopulation), intent(inout), target         :: self
     class           (posteriorSampleStateClass                ), intent(inout)                 :: simulationState
     type            (modelParameterList                       ), intent(inout), dimension(:  ) :: modelParametersActive_, modelParametersInactive_
     class           (posteriorSampleConvergenceClass          ), intent(inout)                 :: simulationConvergence
@@ -214,6 +219,7 @@ contains
     logical                                                    , intent(inout), optional       :: forceAcceptance
     double precision                                           , allocatable  , dimension(:  ) :: logPriorsProposed
     double precision                                           , allocatable  , dimension(:,:) :: stateVector
+    procedure       (signalHandlerInterface                   ), pointer                       :: handler
     integer                                                                                    :: iRank                 , status                  , &
          &                                                                                        rankStart             , rankStop
     type            (enumerationVerbosityLevelType            )                                :: verbosityLevel
@@ -224,6 +230,10 @@ contains
     logical                                                                                    :: isActive
     !$GLC attributes unused :: logPriorCurrent, logLikelihoodCurrent, forceAcceptance, temperature, simulationConvergence
 
+    ! Register an error handler.
+    self_   => self
+    handler => posteriorSampleLikelihoodGalaxyPopulationSignalHandler
+    call signalHandlerRegister(handler)
     ! Set the output group if required.
     if (self%setOutputGroup) then
        groupName=var_str("step")//simulationState%count()//":chain"//simulationState%chainIndex()
@@ -254,6 +264,7 @@ contains
     end if
     ! Iterate over all chains.
     do iRank=rankStart,rankStop
+       iRank_=iRank
        ! Determine if this is the active rank.
        isActive=iRank == mpiSelf%rank() .or. .not.self%collaborativeMPI
        ! If prior probability is impossible, then no need to waste time evaluating the likelihood.
@@ -332,6 +343,8 @@ contains
     end if
     ! Restore verbosity level.
     call displayVerbositySet(verbosityLevel)
+    ! Deregister our error handler.
+    call signalHandlerDeregister(handler)
     return
   end function galaxyPopulationEvaluate
 
@@ -366,3 +379,24 @@ contains
     galaxyPopulationWillEvaluate=(logPriorProposed > logImpossible)
     return
   end function galaxyPopulationWillEvaluate
+
+  subroutine posteriorSampleLikelihoodGalaxyPopulationSignalHandler(signal)
+    !!{
+    Write out current parameters if a signal was caught during model evaluation.
+    !!}
+    use :: Display           , only : displayMessage         , displayBold   , displayRed, displayReset, &
+         &                            verbosityLevelSilent
+    use :: ISO_Varying_String, only : operator(//)           , varying_string
+    use :: String_Handling   , only : operator(//)
+    use :: Error_Utilities   , only : enumerationSignalDecode
+    implicit none
+    integer                , intent(in   ) :: signal
+    type   (varying_string)                :: fileName
+    
+    ! Dump the failed parameter set to file.
+    fileName=self_%failedParametersFileName//"."//iRank_//"."//enumerationSignalDecode(signal,includePrefix=.false.)
+    call displayMessage(displayRed()//displayBold()//"Error condition:"//displayReset()//" `posteriorSampleLikelihoodGalaxyPopulation` parameter state will be written to '"//fileName//"'",verbosityLevelSilent)
+    call self_%parametersModel%serializeToXML(fileName)
+    return
+  end subroutine posteriorSampleLikelihoodGalaxyPopulationSignalHandler
+  

@@ -25,13 +25,13 @@ program Test_Mass_Distributions_Tabulated
   !!{
   Tests mass distributions.
   !!}
-  use :: Coordinates                     , only : coordinateSpherical    , assignment(=)
-  use :: Display                         , only : displayVerbositySet    , verbosityLevelWorking
+  use :: Coordinates                     , only : coordinateSpherical  , assignment(=)
+  use :: Display                         , only : displayVerbositySet  , verbosityLevelWorking
   use :: Events_Hooks                    , only : eventsHooksInitialize
-  use :: Mass_Distributions              , only : massDistributionClass  , massDistributionSpherical      , massDistributionCoredNFW, kinematicsDistributionCollisionlessTabulated
-  use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr, gravitationalConstantGalacticus
+  use :: Mass_Distributions              , only : massDistributionClass, massDistributionSpherical      , massDistributionCoredNFW, kinematicsDistributionCollisionlessTabulated
+  use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr    , gravitationalConstant_internal
   use :: Numerical_Constants_Math        , only : Pi
-  use :: Unit_Tests                      , only : Assert                 , Unit_Tests_Begin_Group         , Unit_Tests_End_Group    , Unit_Tests_Finish
+  use :: Unit_Tests                      , only : Assert               , Unit_Tests_Begin_Group         , Unit_Tests_End_Group    , Unit_Tests_Finish
   implicit none
   class           (massDistributionClass                       ), allocatable             :: massDistribution_
   type            (kinematicsDistributionCollisionlessTabulated), pointer                 :: kinematicsDistribution_
@@ -106,16 +106,16 @@ program Test_Mass_Distributions_Tabulated
      massDistribution_   =massDistributionCoredNFW(mass=massVirial,radiusVirial=radiusVirial,radiusScale=radiusScale,radiusCore=radiusCore,dimensionless=.false.,toleranceRelativePotential=1.0d-3)
      call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
   end select
-  timeScale=+1.0d0                                 &
-       &    /sqrt(                                 &
-       &          +gravitationalConstantGalacticus &
-       &          *3.0d0                           &
-       &          /4.0d0                           &
-       &          /Pi                              &
-       &          *massVirial                      &
-       &          /radiusVirial**3                 &
-       &         )                                 &
-       &    *Mpc_per_km_per_s_To_Gyr
+  timeScale=+1.0d0                                &
+       &    /sqrt(                                &
+       &          +gravitationalConstant_internal &
+       &          *3.0d0                          &
+       &          /4.0d0                          &
+       &          /Pi                             &
+       &          *massVirial                     &
+       &          /radiusVirial**3                &
+       &         )                                &
+       &    *MpcPerKmPerSToGyr
   select type (massDistribution_)
   class is (massDistributionSpherical)
      do i=1,7

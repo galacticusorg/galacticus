@@ -809,7 +809,7 @@ contains
     !!{
     Return the energy for this orbit.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class(keplerOrbit), intent(inout) :: orbit
 
@@ -818,7 +818,7 @@ contains
        ! Assert that the orbit is defined.
        call orbit%assertIsDefined()
        ! Compute the energy.
-       orbit%energyValue=-gravitationalConstantGalacticus*orbit%massHost()/orbit%radius()+0.5d0&
+       orbit%energyValue=-gravitationalConstant_internal*orbit%massHost()/orbit%radius()+0.5d0&
             &*(orbit%velocityRadial()**2+orbit%velocityTangential()**2)*orbit%specificReducedMass()
        orbit%energyIsSet=.true.
     end if
@@ -941,14 +941,14 @@ contains
     Return the velocity scale for the orbit.
     !!}
     use :: Error                           , only : Error_Report
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class(keplerOrbit), intent(inout) :: orbit
 
     ! Check that masses and radius have been specified.
     if (.not.(orbit%radiusIsSet.and.orbit%massesIsSet)) call Error_Report('orbit masses and radius must be specified'//{introspection:location})
     ! Compute the velocity scale.
-    Kepler_Orbits_Velocity_Scale=sqrt(gravitationalConstantGalacticus*orbit%massHost()/orbit%radius())
+    Kepler_Orbits_Velocity_Scale=sqrt(gravitationalConstant_internal*orbit%massHost()/orbit%radius())
     return
   end function Kepler_Orbits_Velocity_Scale
 
@@ -957,8 +957,8 @@ contains
     Propagate an orbit along its path.
     !!}
     use :: Error                           , only : Error_Report
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-    use :: Vectors                         , only : Vector_Magnitude               , Vector_Product
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
+    use :: Vectors                         , only : Vector_Magnitude              , Vector_Product
     implicit none
     class           (keplerOrbit), intent(inout)           :: orbit
     double precision             , intent(in   )           :: newRadius
@@ -989,7 +989,7 @@ contains
     angularMomentum=orbit%angularMomentum()
     ! Compute velocity components.
     newVelocityTangential=angularMomentum/newRadius/orbit%specificReducedMass()
-    newVelocityRadial    =sqrt(2.0d0*(energy+gravitationalConstantGalacticus*orbit%massHost()/newRadius)/orbit%specificReducedMass()-newVelocityTangential**2)
+    newVelocityRadial    =sqrt(2.0d0*(energy+gravitationalConstant_internal*orbit%massHost()/newRadius)/orbit%specificReducedMass()-newVelocityTangential**2)
     ! Move to the infalling phase of the orbit if requested.
     if (present(infalling)) then
        if (infalling) newVelocityRadial=-newVelocityRadial

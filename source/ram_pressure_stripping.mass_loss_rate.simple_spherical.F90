@@ -147,11 +147,11 @@ contains
     is the gravitational restoring force at the half-mass radius, $r_\mathrm{1/2}$ \citep{takeda_ram_1984}.
     !!}
     use :: Coordinates                     , only : coordinateSpherical  , assignment(=)
-    use :: Display                         , only : displayGreen         , displayBlue                    , displayMagenta, displayReset
-    use :: Galactic_Structure_Options      , only : componentTypeSpheroid, enumerationComponentTypeType   , massTypeAll   , massTypeGaseous
+    use :: Display                         , only : displayGreen         , displayBlue                   , displayMagenta, displayReset
+    use :: Galactic_Structure_Options      , only : componentTypeSpheroid, enumerationComponentTypeType  , massTypeAll   , massTypeGaseous
     use :: Galacticus_Nodes                , only : nodeComponentSpheroid, treeNode
     use :: Mass_Distributions              , only : massDistributionClass
-    use :: Numerical_Constants_Astronomical, only : gigaYear             , gravitationalConstantGalacticus, megaParsec
+    use :: Numerical_Constants_Astronomical, only : gigaYear             , gravitationalConstant_internal, megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     class           (ramPressureStrippingSimpleSpherical), intent(inout) :: self
@@ -205,11 +205,11 @@ contains
     !!]
     ! Compute the gravitational restoring force.
     if (massHalf > 0.0d0 .and. densityGas > 0.0d0) then
-       forceGravitational  =  +4.0d0                           &
-            &                 *gravitationalConstantGalacticus &
-            &                 *densityGas                      &
-            &                 *massHalf                        &
-            &                 /3.0d0                           &
+       forceGravitational  =  +4.0d0                          &
+            &                 *gravitationalConstant_internal &
+            &                 *densityGas                     &
+            &                 *massHalf                       &
+            &                 /3.0d0                          &
             &                 /radiusHalfMass
     else
        forceGravitational=0.0d0

@@ -98,7 +98,7 @@ contains
     !!{
     Return attenuation of stellar spectra according to the model of \cite{cardelli_relationship_1989}.
     !!}
-    use :: Numerical_Constants_Units, only : angstromsPerMicron
+    use :: Numerical_Constants_Units, only : micronsToAngstroms
     implicit none
     class           (stellarSpectraDustAttenuationCardelli1989), intent(inout) :: self
     double precision                                           , intent(in   ) :: wavelength      , age, &
@@ -106,7 +106,7 @@ contains
     double precision                                                           :: x
     !$GLC attributes unused :: age
 
-    x                      =1.0d0/(wavelength/angstromsPerMicron)
+    x                      =1.0d0/(wavelength/micronsToAngstroms)
     cardelli1989Attenuation=vBandAttenuation*(self%a(x)+self%b(x)/self%Rv) ! Eqn. (1) of Cardelli et al.
     return
   end function cardelli1989Attenuation

@@ -69,17 +69,17 @@ module Numerical_Constants_Astronomical
 
   ! Newton's gravitational constant (in Galacticus' M_Solar, Mpc, km/s unit system).
   !![
-  <constant variable="gravitationalConstantGalacticus" value="gravitationalConstant*massSolar/(kilo**2)/megaParsec" group="units:physical" description="Newton's gravitational constant in Galacticus' $\mathrm{M}_\odot$, Mpc, km/s unit system." units="km$^2$s$^{-2}$Mpc/$\mathrm{M}_\odot$" unitsInSI="6.456507" reference="Derived."/>
+  <constant variable="gravitationalConstant_internal" value="gravitationalConstant*massSolar/(kilo**2)/megaParsec" group="units:physical" description="Newton's gravitational constant in Galacticus' $\mathrm{M}_\odot$, Mpc, km/s unit system." units="km$^2$s$^{-2}$Mpc/$\mathrm{M}_\odot$" unitsInSI="6.456507" reference="Derived."/>
   !!]
 
   ! Conversion from Mpc/(km/s) to Gyr.
   !![
-  <constant variable="Mpc_per_km_per_s_To_Gyr" value="megaParsec/kilo/gigaYear" group="units:astrophysical" description="The conversion from Mpc/(km s$^{-1})$ to Gyr." units="Mpc/km s$^{-1}$/Gyr" unitsInSI="1.022712e-3" reference="Derived."/>
+  <constant variable="MpcPerKmPerSToGyr" value="megaParsec/kilo/gigaYear" group="units:astrophysical" description="The conversion from Mpc/(km s$^{-1})$ to Gyr." units="Mpc/km s$^{-1}$/Gyr" unitsInSI="1.022712e-3" reference="Derived."/>
   !!]
 
   ! Conversion from magnitudes to optical depth.
   !![
-  <constant variable="magnitudesPerOpticalDepth" value="2.5d0/log(10.0d0)" group="astrophysical" description="The conversion factor between magnitudes of extinction and optical depth." units="dimensionless" unitsInSI="1.0" reference="Derived."/>
+  <constant variable="opticalDepthToMagnitudes" value="2.5d0/log(10.0d0)" group="astrophysical" description="The conversion factor between magnitudes of extinction and optical depth." units="dimensionless" unitsInSI="1.0" reference="Derived."/>
   !!]
 
   ! AB magnitude system.

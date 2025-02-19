@@ -1978,7 +1978,7 @@ contains
     !!}
     use :: Numerical_Constants_Physical, only : plancksConstant  , speedLight
     use :: Numerical_Constants_Prefixes, only : centi            , mega
-    use :: Numerical_Constants_Units   , only : angstromsPerMeter, barn      , electronVolt
+    use :: Numerical_Constants_Units   , only : metersToAngstroms, barn      , electronVolt
     implicit none
     class           (atomicCrossSectionIonizationPhotoVerner), intent(inout) :: self
     integer                                                  , intent(in   ) :: atomicNumber  , ionizationState , shellNumber
@@ -2009,7 +2009,7 @@ contains
     ! Compute the energy (in electronvolts) corresponding to the given wavelength (in Angstroms).
     energy=+plancksConstant   &
          & *speedLight        &
-         & *angstromsPerMeter &
+         & *metersToAngstroms &
          & /electronVolt      &
          & /wavelength
     ! Return if the energy is less than the ionization energy for the given shell.

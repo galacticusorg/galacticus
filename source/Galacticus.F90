@@ -32,7 +32,7 @@ program Galacticus
   use    :: Functions_Global_Utilities, only : Functions_Global_Set
   use    :: Display_Banner            , only : Display_Banner_Show
   use    :: Error                     , only : Error_Handler_Register           , Error_Report         , errorStatusSuccess
-  use    :: Error_Wait                , only : Error_Wait_Set_From_Parameters
+  use    :: Error_Utilities           , only : Error_Wait_Set_From_Parameters
   use    :: Output_HDF5_Open          , only : Output_HDF5_Close_File           , Output_HDF5_Open_File, Output_HDF5_Completion_Status
   use    :: ISO_Varying_String        , only : assignment(=)                    , varying_string
   use    :: Input_Parameters          , only : inputParameter                   , inputParameters
