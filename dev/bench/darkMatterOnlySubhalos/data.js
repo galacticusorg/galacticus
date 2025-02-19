@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1739568932506,
+  "lastUpdate": 1740007816667,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "c94146ffaa5bb9a39a9e2dc555b98ec5b5761d17",
-          "message": "Merge pull request #610 from galacticusorg/featLogNormalConstructor\n\nAdd alternative specificiation of log-normal distribution parameters",
-          "timestamp": "2024-05-06T20:55:32Z",
-          "tree_id": "e4dd16ee1ef6a39c816357ef190457c6496a15c1",
-          "url": "https://github.com/galacticusorg/galacticus/commit/c94146ffaa5bb9a39a9e2dc555b98ec5b5761d17"
-        },
-        "date": 1715046997168,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 52.494,
-            "unit": "seconds",
-            "range": 0.0588931235368681
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8732,6 +8702,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": "20590.180724716218",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e52facabfcee0cec8db3d2d4c73b8854697e0e0f",
+          "message": "Merge pull request #798 from galacticusorg/featParametersOnSignal\n\nAdd an error handler when evaluating likelihood in the `posteriorSampleLikelihoodGalaxyPopulation` class",
+          "timestamp": "2025-02-19T15:11:19Z",
+          "tree_id": "e914a43473b5590d7be22fd6da80e8f2390fce73",
+          "url": "https://github.com/galacticusorg/galacticus/commit/e52facabfcee0cec8db3d2d4c73b8854697e0e0f"
+        },
+        "date": 1740007813645,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 53.885,
+            "unit": "seconds",
+            "range": 0.188733939713977
           }
         ]
       }
