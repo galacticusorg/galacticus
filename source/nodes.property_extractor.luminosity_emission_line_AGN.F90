@@ -72,8 +72,8 @@ Implements an emission line luminosity for AGN node property extractor class.
      module procedure lmnstyEmssnLineAGNConstructorInternal
   end interface nodePropertyExtractorLmnstyEmssnLineAGN
 
-  ! Enumerations for galactic components and ionizing continuua.
-  /*!![
+  ! Enumerations for galactic components and spectral index.
+  !![
   <enumeration>
    <name>interpolants</name>
    <description>Specifies the different interpolants for AGN emission line calculations.</description>
@@ -83,7 +83,7 @@ Implements an emission line luminosity for AGN node property extractor class.
    <entry label="metallicity"/>
    <entry label="spectralIndex"/>
   </enumeration>
-  !!]*/
+  !!]
 contains
   function lmnstyEmssnLineAGNConstructorParameters(parameters) result(self)
     !!{
