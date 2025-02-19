@@ -123,7 +123,7 @@ contains
     !!}
     use :: Numerical_Constants_Math    , only : Pi
     use :: Numerical_Constants_Physical, only : plancksConstant  , speedLight
-    use :: Numerical_Constants_Units   , only : angstromsPerMeter, electronVolt
+    use :: Numerical_Constants_Units   , only : metersToAngstroms, electronVolt
     use :: Numerical_Ranges            , only : Make_Range       , rangeTypeLogarithmic, rangeTypeLinear
     implicit none
     type            (radiativeTransferOutputterSpectrum)                :: self
@@ -154,7 +154,7 @@ contains
     ! Compute energies in electronvolts.
     self%energies   =+plancksConstant           &
          &           *speedLight                &
-         &           *angstromsPerMeter         &
+         &           *metersToAngstroms         &
          &           /self%wavelengths          &
          &           /electronVolt
     ! Compute the solid angle associated with each theta bin.

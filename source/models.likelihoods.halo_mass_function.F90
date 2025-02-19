@@ -349,7 +349,7 @@ contains
     use :: Gamma_Functions                  , only : Gamma_Function_Logarithmic
     use :: Galacticus_Nodes                 , only : treeNode                       , nodeComponentBasic
     implicit none
-    class           (posteriorSampleLikelihoodHaloMassFunction), intent(inout)               :: self
+    class           (posteriorSampleLikelihoodHaloMassFunction), intent(inout), target       :: self
     class           (posteriorSampleStateClass                ), intent(inout)               :: simulationState
     type            (modelParameterList                       ), intent(inout), dimension(:) :: modelParametersActive_                   , modelParametersInactive_
     class           (posteriorSampleConvergenceClass          ), intent(inout)               :: simulationConvergence

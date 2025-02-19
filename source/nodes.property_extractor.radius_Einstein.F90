@@ -159,8 +159,8 @@ contains
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Prefixes    , only : kilo 
     use :: Numerical_Constants_Physical    , only : speedLight
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus, arcsecondsToDegrees   , degreesToRadians
-    use :: Galacticus_Nodes                , only : nodeComponentBasic             , nodeComponentSatellite
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal, arcsecondsToDegrees   , degreesToRadians
+    use :: Galacticus_Nodes                , only : nodeComponentBasic            , nodeComponentSatellite
     implicit none
     class           (nodePropertyExtractorRadiusEinstein), intent(inout), target   :: self
     type            (treeNode                           ), intent(inout), target   :: node
@@ -183,15 +183,15 @@ contains
     distanceAngularLensSource=self%cosmologyFunctions_%distanceAngular(self%timeSource,basic%time())
     if (distanceAngularLens <= 0.0d0 .or. distanceAngularLensSource <= 0.0d0) return
     ! Compute the critical surface density.
-    densitySurfaceCritical=+(                               &
-         &                   +speedLight                    &
-         &                   /kilo                          &
-         &                  )**2                            &
-         &                 /4.0d0                           &
-         &                 /Pi                              &
-         &                 /gravitationalConstantGalacticus &
-         &                 *distanceAngularSource           &
-         &                 /distanceAngularLens             &
+    densitySurfaceCritical=+(                              &
+         &                   +speedLight                   &
+         &                   /kilo                         &
+         &                  )**2                           &
+         &                 /4.0d0                          &
+         &                 /Pi                             &
+         &                 /gravitationalConstant_internal &
+         &                 *distanceAngularSource          &
+         &                 /distanceAngularLens            &
          &                 /distanceAngularLensSource
     ! Find the outer radius of the halo.
     massDistribution_ => node%massDistribution()

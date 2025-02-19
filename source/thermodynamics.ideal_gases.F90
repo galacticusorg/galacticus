@@ -35,11 +35,11 @@ contains
     !!{
     Return the Jeans length (in Mpc) for gas of given temperature and density).
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     double precision, intent(in   ) :: density, temperature
 
-    Ideal_gas_Jeans_Length=Ideal_Gas_Sound_Speed(temperature)/sqrt(gravitationalConstantGalacticus)/sqrt(density)
+    Ideal_gas_Jeans_Length=Ideal_Gas_Sound_Speed(temperature)/sqrt(gravitationalConstant_internal)/sqrt(density)
     return
   end function Ideal_Gas_Jeans_Length
 

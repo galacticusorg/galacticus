@@ -123,7 +123,7 @@ contains
     !!{
     Return the 1D velocity dispersion at the specified {\normalfont \ttfamily coordinates} in an finite-resolution NFW kinematic distribution.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (kinematicsDistributionFiniteResolutionNFW), intent(inout) , target :: self
     class           (coordinate                               ), intent(in   )          :: coordinates
@@ -158,7 +158,7 @@ contains
              end do
              self%velocityDispersion1DPrevious=+self%velocityDispersion1DPrevious                       &
                   &                            *sqrt(                                                   &
-                  &                                  +gravitationalConstantGalacticus                   &
+                  &                                  +gravitationalConstant_internal                    &
                   &                                  *massDistributionEmbedding%densityNormalization    &
                   &                                  *massDistributionEmbedding%radiusScale         **2 &
                   &                                 )

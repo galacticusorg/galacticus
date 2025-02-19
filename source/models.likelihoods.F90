@@ -39,6 +39,7 @@ module Models_Likelihoods
     <description>Evaluate the likelihood.</description>
     <type>double precision</type>
     <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
     <argument>class           (posteriorSampleStateClass      ), intent(inout)               :: simulationState</argument>
     <argument>type            (modelParameterList             ), intent(inout), dimension(:) :: modelParametersActive_, modelParametersInactive_</argument>
     <argument>class           (posteriorSampleConvergenceClass), intent(inout)               :: simulationConvergence</argument>
