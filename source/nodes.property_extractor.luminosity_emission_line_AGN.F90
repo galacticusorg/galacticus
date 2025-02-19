@@ -157,7 +157,7 @@ contains
     double precision                                                                                         :: wavelength_
     type            (hdf5Object                                 )                                            :: emissionLinesFile, lines, lineDataset, dataset
     integer                                                                                                  :: i,k, countBlackHoles
-    integer                                                        , dimension(5    )                        :: shapeLines
+    integer         (c_size_t)                                               , dimension(5    )                        :: shapeLines, permutation
     double precision                                               , allocatable  , dimension(:,:,:,:,:)     :: luminosity
     !![
     <constructorAssign variables="lineNames, alpha, volume_filling_factor, *accretionDisks_, *blackHoleAccretionRate_, *outputTimes_"/>
@@ -197,7 +197,8 @@ contains
     shapeLines(self%indexMetallicity               )=size(self%metallicity               )
     shapeLines(self%indexSpectralIndex             )=size(self%spectralIndex             )
     shapeLines(     5                              )=size(     lineNames                 )
-    !Allocate luminosities array
+    ! Allocate a temporary luminosities array into which we will read data from the table. The dimension ordering here is whatever
+    ! ordering was used in the table file. This will be reordered into our preferred, internal order later.
     !![
     <allocate variable="luminosity" shape="shapeLines"/>
     !!]
@@ -214,6 +215,29 @@ contains
     call emissionLinesFile%close      (                                                                 )
     !$ call hdf5Access%unset()
 
+    ! Re-order the luminosities table into our preferred order.
+    !! First, allocate our final table array with our preferred ordering of dimensions.
+    allocate(                                          &
+         &   self%luminosity                           &
+         &   (                                         &
+         &    size(self%spectralIndex               ), &
+         &    size(self%metallicity                 ), &
+         &    size(self%ionizationParameter         ), &
+         &    size(self%densityHydrogen             ), &
+         &    size(self%lineNames                   )  &
+         &   )                                         &
+         &  )
+    !! Construct a permutation - mapping the indices of dimensions in the file into the order we want internally.
+    permutation=[                               &
+         &       self%indexSpectralIndex      , &
+         &       self%indexMetallicity        , &
+         &       self%indexIonizationParameter, &
+         &       self%indexDensityHydrogen    , &
+         &       5_c_size_t                     &
+         &      ]
+    !! Reorder the table read from file into our internal table.
+    self%luminosity=reshape(luminosity,shape(self%luminosity),order=permutation)
+    
     ! Convert parameters and luminosities to log form.
     self%densityHydrogen             =log10(self%densityHydrogen             )
     self%ionizationParameter         =log10(self%ionizationParameter         )
