@@ -155,8 +155,12 @@
   </starFormationRateSpheroids>
 
   <starFormationRateNuclearStarClusters value="krumholz2009"/>
-
   <nuclearStarClusterGrowthRates value="antonini2015"/>
+  <blackHoleSeeds value="vergara2023">
+    <radiusEfficiency value="0.1"/>
+    <massEfficiency value="0.5"/>
+    <massThreshold value="100"/>
+  </blackHoleSeeds>
 
   <!-- Stellar populations options -->
   <stellarPopulationProperties value="instantaneous"/>
@@ -253,12 +257,7 @@
       </galacticDynamicsBarInstability>
     </nodeOperator>
     <nodeOperator value="agesStellarMassWeighted"/>
-    <nodeOperator value="blackHolesSeed">
-      <blackHoleSeeds value="stellarCollisionsNSCs">
-        <radiusEfficiency value="0.1"/>
-	<massEfficiency value="0.5"/>
-      </blackHoleSeeds>
-    </nodeOperator>
+    <nodeOperator value="blackHolesSeed"/>
   </nodeOperator>
 
 </parameters>

@@ -1,0 +1,239 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019, 2020, 2021, 2022, 2023, 2024
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+  !!{
+  Implements a black hole seed based on collapse of nuclear star clusters due to runaway stellar collisions.
+  !!}
+
+  use :: Mass_Distributions, only : massDistributionClass  , kinematicsDistributionClass
+
+  !![
+  <blackHoleSeeds name="blackHoleSeedsVergara2023">
+   <description>
+    A model of black hole seeds in which seeds are formed due to the collapse of nuclear star clusters into a black hole. 
+     Based on the model of \cite{Vergara_2023} and \cite{Escala_2021}.
+   </description>
+  </blackHoleSeeds>
+  !!]
+
+  type, extends(blackHoleSeedsClass) :: blackHoleSeedsVergara2023
+     !!{
+     A node operator class that handle the collapse of nuclear star clusters into a black hole.
+     !!}
+     private
+     double precision                        :: massSingleStar        , radiusSingleStar            , &
+         &                                      massEfficiency        , radiusEfficiency            , &
+         &                                      massThreshold         
+     integer                                 :: stellarMassFormedNSCID, timeStellarMassFormedNSCID     
+
+   contains
+     procedure :: mass => Vergara2023SeedMass
+     procedure :: spin => Vergara2023SeedSpin
+  end type blackHoleSeedsVergara2023
+  
+  interface blackHoleSeedsVergara2023
+     !!{
+     Constructors for the {\normalfont \ttfamily Vergara2023} black hole seeds class.
+     !!}
+     module procedure Vergara2023ConstructorParameters
+     module procedure Vergara2023ConstructorInternal
+  end interface blackHoleSeedsVergara2023
+
+  class (massDistributionClass ), pointer :: massDistribution_, massDistributionStellarNuclearStarCluster_ 
+  !$omp threadprivate(massDistribution_,massDistributionStellarNuclearStarCluster_)
+
+contains
+
+  function Vergara2023ConstructorParameters(parameters) result(self)
+    !!{
+    Constructor for the {\normalfont \ttfamily Vergara2023} node operator class which takes a parameter set as input.
+    !!}
+    use :: Input_Parameters, only : inputParameters
+    implicit none
+    type (blackHoleSeedsVergara2023)                :: self
+    type (inputParameters          ), intent(inout) :: parameters
+    double precision                                :: massSingleStar, radiusSingleStar, &
+       &                                               massEfficiency, radiusEfficiency, &
+       &                                               massThreshold 
+
+    !![
+    <inputParameter>
+      <name>massSingleStar</name>
+      <defaultValue>1.0d0</defaultValue>
+      <description>Specifies the mass of a single star in Solar units.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>radiusSingleStar</name>
+      <defaultValue>1.0d0</defaultValue>
+      <description>Specifies the radius of a single star in Solar units.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massEfficiency</name>
+      <defaultValue>1.0d-1</defaultValue>
+      <description>Specifies the efficiency of the mass converted into a black hole seed</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>radiusEfficiency</name>
+      <defaultValue>1.0d0</defaultValue>
+      <description>Specifies the efficiency of the radius used to compute the critical mass</description>
+      <source>parameters</source>
+    </inputParameter>
+     <inputParameter>
+      <name>massThreshold</name>
+      <defaultValue>1.0d3</defaultValue>
+      <description>Specifies the minimum stellar mass to apply the operator</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
+    self=blackHoleSeedsVergara2023(massSingleStar, radiusSingleStar, massEfficiency, radiusEfficiency, massThreshold)
+
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
+    return
+  end function Vergara2023ConstructorParameters
+  
+  function Vergara2023ConstructorInternal(massSingleStar, radiusSingleStar, massEfficiency, radiusEfficiency, massThreshold) result(self)
+    !!{
+    Internal constructor for the {\normalfont \ttfamily Vergara2023} node operator class.
+    !!}
+    implicit none
+    type            (blackHoleSeedsVergara2023)                 :: self
+    double precision                           , intent(in   )  :: massSingleStar
+    double precision                           , intent(in   )  :: radiusSingleStar
+    double precision                           , intent(in   )  :: massEfficiency
+    double precision                           , intent(in   )  :: radiusEfficiency
+    double precision                           , intent(in   )  :: massThreshold
+
+    !![
+    <constructorAssign variables="massSingleStar, radiusSingleStar, massEfficiency, radiusEfficiency, massThreshold"/>
+    !!]
+    !![
+    <addMetaProperty   component="NSC" name="agesStellarMassFormed"     id="self%stellarMassFormedNSCID"     isEvolvable="yes" isCreator="no" />
+    <addMetaProperty   component="NSC" name="agesTimeStellarMassFormed" id="self%timeStellarMassFormedNSCID" isEvolvable="yes" isCreator="no" />
+    !!]
+    return
+  end function Vergara2023ConstructorInternal
+
+  double precision function Vergara2023SeedMass(self,node) result(mass)
+      !!{
+        Compute the nuclear star cluster collapse condition.
+      !!}
+    use :: Galacticus_Nodes                , only : nodeComponentNSC               , nodeComponentBasic, nodeComponentNSCStandard, treeNode  
+    use :: Numerical_Constants_Math        , only : Pi
+    use :: Galactic_Structure_Options      , only : componentTypenuclearStarCluster, massTypeStellar
+    use :: Numerical_Constants_Prefixes    , only : mega                           , kilo
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus, radiusSolar       , megaParsec              , gigaYear, &
+        &                                           parsec
+    implicit none
+    class(blackHoleSeedsVergara2023), intent(inout)          :: self
+    type (treeNode                 ), intent(inout)          :: node
+    class(nodeComponentNSC         )               , pointer :: nuclearStarCluster
+    class(nodeComponentBasic       )               , pointer :: basic
+    double precision                                         :: radiusNuclearStarCluster        , velocityNuclearStarCluster       , &
+        &                                                       massStellarNuclearStarCluster   , massCriticalNuclearStarCluster   , &
+        &                                                       Theta                           , crossSectionNuclearStarCluster   , &
+        &                                                       massFormedSeedNuclearStarCluster, massTimeStellarNuclearStarCluster, &
+        &                                                       ageNuclearStarCluster           , time
+    double precision                                         :: velocity        = 100.0d0 !km s¯¹
+    
+    ! Get the nuclear star cluster component.
+    nuclearStarCluster => node%NSC()
+
+    ! Detect the type of the nuclear star cluster component.
+    select type (nuclearStarCluster)
+      type is (nodeComponentNSC)
+          ! Generic type, do nothing.
+          mass = 0.0d0
+          return
+      class is (nodeComponentNSCStandard)
+          ! Standard class, get the properties of the nuclear star cluster component.
+          radiusNuclearStarCluster                   =  self%radiusEfficiency*nuclearStarCluster%radius()
+          massDistributionStellarNuclearStarCluster_ => node                                      %massDistribution(componentType=componentTypenuclearStarCluster, massType=massTypeStellar)
+          velocityNuclearStarCluster                 =  massDistributionStellarNuclearStarCluster_%rotationCurve   (radiusNuclearStarCluster)
+          !![
+          <objectDestructor name="massDistributionStellarNuclearStarCluster_"/>
+          !!]
+          ! Unphysical nuclear star cluster, do nothing.
+          if (nuclearStarCluster%massStellar()<=0.0d0.or.nuclearStarCluster%radius()<=0.0d0) then
+            mass=0.0d0
+            return
+          end if 
+
+          massStellarNuclearStarCluster     = nuclearStarCluster%floatRank0MetaPropertyGet(self%    stellarMassFormedNSCID)
+          massTimeStellarNuclearStarCluster = nuclearStarCluster%floatRank0MetaPropertyGet(self%timeStellarMassFormedNSCID)
+          
+          basic=> node%basic()
+          time =  basic%time()
+
+          ! Get the age of the nuclear star cluster.
+          if ( 0.0d0 < massStellarNuclearStarCluster) then 
+            ageNuclearStarCluster= +time                              &
+               &                   -massTimeStellarNuclearStarCluster &
+               &                   /massStellarNuclearStarCluster
+          else 
+            ageNuclearStarCluster=0.0d0
+          end if 
+          ! Do nothing if the nuclear star cluster has an unphysicall age or already formed a black hole seed.
+          if (ageNuclearStarCluster<=0.0d0.or.nuclearStarCluster%Collapse()) then
+            mass = 0.0d0
+            return 
+          end if 
+          ! Safronov number defined by Binney & Tremaine (2008, https://ui.adsabs.harvard.edu/abs/2008gady.book.....B/abstract)
+          Theta            =9.54d0*(self%massSingleStar/self%radiusSingleStar)*(velocity/velocityNuclearStarCluster)**2.0d0                   !Adimensional
+          
+          ! Probabilistic mean free path defined as in Landau & Lifshitz (1980, https://ui.adsabs.harvard.edu/abs/1981PhT....34a..74L/abstract) and Shu (1991, https://ui.adsabs.harvard.edu/abs/1991pav..book.....S/abstract)
+          crossSectionNuclearStarCluster  = 16.0d0* sqrt(Pi)*(1+Theta)*(self%radiusSingleStar*radiusSolar/parsec)**2.0d0      !pc²
+
+          ! Critical mass computation using equation (3) in the model of M.C. Vergara, A. Escala, D.R.G. Schleicher and B. Reinoso. (2023, https://ui.adsabs.harvard.edu/abs/2023MNRAS.522.4224V/abstract)
+          massCriticalNuclearStarCluster  = (mega*radiusNuclearStarCluster)**(7.0d0/3.0d0)*((4.0d0*Pi*self%massSingleStar)/(3.0d0*crossSectionNuclearStarCluster*ageNuclearStarCluster*sqrt((gravitationalConstantGalacticus*megaParsec*(kilo*gigaYear)**2.0d0)*parsec**-3.0d0)))**(2.0d0/3.0d0)
+          massFormedSeedNuclearStarCluster= self%massEfficiency*nuclearStarCluster%massStellar()
+          
+          ! Generic type - interrupt and create a standard Black Hole if nuclear star cluster mass is greater than the critical mass.
+          if (0.0d0<= massCriticalNuclearStarCluster.and. massCriticalNuclearStarCluster<= nuclearStarCluster%massStellar() .and. self%massThreshold <= nuclearStarCluster%massStellar()) then
+            !call NSC%massSeedSet   ( massFormedSeedNuclearStarCluster)
+            !call Collapse_Output   (node, radiusNuclearStarCluster, velocityNuclearStarCluster, NSC%massStellar()                  , NSC%massGas(), massCriticalNSC, ageNuclearStarCluster, massFormedSeedNuclearStarCluster)
+            call nuclearStarCluster%massStellarSet(nuclearStarCluster%massStellar()-massFormedSeedNuclearStarCluster)
+            call nuclearStarCluster%CollapseSet   (                                                           .true.)
+            mass = massFormedSeedNuclearStarCluster
+            PRINT*, "Seed Formed:", mass, "M⊙"
+            return
+          else
+            mass=0.0d0
+            return
+          end if 
+    end select
+    return
+  end function Vergara2023SeedMass
+
+  double precision function Vergara2023SeedSpin(self,node) result(spin)
+    !!{
+    Compute the spin of the seed black hole.
+    !!}
+    implicit none
+    class(blackHoleSeedsVergara2023), intent(inout) :: self
+    type (treeNode                 ), intent(inout) :: node
+    !$GLC attributes unused :: node
+    ! Assume zero spin.
+    spin=0.0d0
+    return
+  end function Vergara2023SeedSpin
