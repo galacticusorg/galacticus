@@ -295,7 +295,7 @@ contains
     use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass         , nbodyHaloMassErrorPowerLaw         , nbodyHaloMassErrorSOHaloFinder, nbodyHaloMassErrorTrenti2010
     use :: Factorials                       , only : Logarithmic_Factorial
     implicit none
-    class           (posteriorSampleLikelihoodHaloMassFunction), intent(inout)               :: self
+    class           (posteriorSampleLikelihoodHaloMassFunction), intent(inout), target       :: self
     class           (posteriorSampleStateClass                ), intent(inout)               :: simulationState
     type            (modelParameterList                       ), intent(inout), dimension(:) :: modelParametersActive_        , modelParametersInactive_
     class           (posteriorSampleConvergenceClass          ), intent(inout)               :: simulationConvergence

@@ -226,7 +226,7 @@ contains
     use :: Error                       , only : Error_Report
     use :: Models_Likelihoods_Constants, only : logImpossible
     implicit none
-    class           (posteriorSampleLikelihoodIndependentLikelihoods), intent(inout)               :: self
+    class           (posteriorSampleLikelihoodIndependentLikelihoods), intent(inout), target       :: self
     class           (posteriorSampleStateClass                      ), intent(inout)               :: simulationState
     type            (modelParameterList                             ), intent(inout), dimension(:) :: modelParametersActive_, modelParametersInactive_
     class           (posteriorSampleConvergenceClass                ), intent(inout)               :: simulationConvergence
