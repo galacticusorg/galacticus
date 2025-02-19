@@ -102,7 +102,7 @@ contains
   
   subroutine blackHoleSeedDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
     !!{
-      Create any initial black hole seeds
+      Create any initial black hole seeds via interrupt.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole, nodeComponentBlackHoleStandard
     implicit none
@@ -130,7 +130,7 @@ contains
           PRINT *, "Before Interrupt Task", massSeed_, "M⊙"
           interrupt=.true.
           functionInterrupt => blackHoleCreate
-          PRINT *, "After creation", blackHole%mass(), "M⊙"
+          PRINT *, "After Interrupt Task", blackHole%mass(), "M⊙"
         end if
     end select
     return
@@ -141,18 +141,17 @@ contains
       Creates the black hole via interrupt.
   !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole, nodeComponentBlackHoleStandard, treeNode
-    use :: Black_Hole_Seeds, only : blackHoleSeedsClass
     implicit none
     type            (treeNode                  ), intent(inout), target  :: node
     double precision                            , intent(in   ), optional:: timeEnd
     class           (nodeComponentBlackHole    ),                pointer :: blackHole 
-
     !$GLC attributes unused :: timeEnd
 
     blackHole=> node%blackHole(autoCreate=.true.)
-    PRINT *, "Create:", massSeed_, "M⊙"
+    PRINT *, "Before creation:", massSeed_, "M⊙"
     call        blackHole%massSet(massSeed_)
     if (blackHole%spinIsSettable()) &
          & call blackHole%spinSet(spinSeed_)
+    PRINT *, "After creation:", blackHole%mass(), "M⊙"
     return 
   end subroutine blackHoleCreate
