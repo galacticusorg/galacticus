@@ -115,7 +115,7 @@ contains
     !!}
     use :: Models_Likelihoods_Constants, only : logImprobable
     implicit none
-    class           (posteriorSampleLikelihoodHeated), intent(inout)               :: self
+    class           (posteriorSampleLikelihoodHeated), intent(inout), target       :: self
     class           (posteriorSampleStateClass      ), intent(inout)               :: simulationState
     type            (modelParameterList             ), intent(inout), dimension(:) :: modelParametersActive_, modelParametersInactive_
     class           (posteriorSampleConvergenceClass), intent(inout)               :: simulationConvergence
