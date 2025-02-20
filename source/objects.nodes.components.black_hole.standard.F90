@@ -308,10 +308,10 @@ contains
              massBlackHoleNew=0.0d0
              spinBlackHoleNew=0.0d0
           end if
-          ! Move the black hole to the host.
+          ! Set the new black hole mass in the host.
           call Node_Component_Black_Hole_Standard_Output_Merger(node,massBlackHole1,massBlackHole2)
-          call blackHoleHostCentral%massSet(blackHoleSeeds_%mass(node))
-          call blackHoleHostCentral%spinSet(blackHoleSeeds_%spin(node))
+          call blackHoleHostCentral%massSet(massBlackHoleNew)
+          call blackHoleHostCentral%spinSet(spinBlackHoleNew)
        end do
     else
        ! Adjust the radii of the black holes in the satellite galaxy.
