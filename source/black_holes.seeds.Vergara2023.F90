@@ -161,7 +161,7 @@ contains
 
     ! Detect the type of the nuclear star cluster component.
     select type (nuclearStarCluster)
-      type is (nodeComponentNSC)
+      class default
           ! Generic type, do nothing.
           mass = 0.0d0
           return
@@ -215,7 +215,6 @@ contains
             call nuclearStarCluster%massStellarSet(nuclearStarCluster%massStellar()-massFormedSeedNuclearStarCluster)
             call nuclearStarCluster%CollapseSet   (                                                           .true.)
             mass = massFormedSeedNuclearStarCluster
-            PRINT*, "Seed Formed:", mass, "M⊙"
             return
           else
             mass=0.0d0
