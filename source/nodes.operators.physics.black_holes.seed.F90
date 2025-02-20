@@ -35,8 +35,9 @@
      private
      class(blackHoleSeedsClass), pointer :: blackHoleSeeds_ => null()
    contains
-     final     ::                   blackHolesSeedDestructor
-     procedure :: nodeInitialize => blackHolesSeedNodeInitialize
+     final     ::                          blackHolesSeedDestructor
+     procedure :: nodeInitialize        => blackHolesSeedNodeInitialize
+     procedure :: differentialEvolution => blackHoleSeedDifferentialEvolution
   end type nodeOperatorBlackHolesSeed
   
   interface nodeOperatorBlackHolesSeed
@@ -46,7 +47,11 @@
      module procedure blackHolesSeedConstructorParameters
      module procedure blackHolesSeedConstructorInternal
   end interface nodeOperatorBlackHolesSeed
-  
+
+  ! Submodule-scope variable used in create function.
+  double precision   :: massSeed_, spinSeed_
+  !$omp threadprivate(massSeed_,spinSeed_)
+
 contains
 
   function blackHolesSeedConstructorParameters(parameters) result(self)
@@ -96,7 +101,7 @@ contains
     !!]
     return
   end subroutine blackHolesSeedDestructor
-  
+
   subroutine blackHolesSeedNodeInitialize(self,node)
     !!{
     Create any initial black hole seeds.
@@ -118,3 +123,54 @@ contains
     end if
     return
   end subroutine blackHolesSeedNodeInitialize
+  
+  subroutine blackHoleSeedDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
+    !!{
+      Create any initial black hole seeds via interrupt.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentBlackHole
+    implicit none
+    class           (nodeOperatorBlackHolesSeed), intent(inout), target  :: self
+    type            (treeNode                  ), intent(inout), target  :: node
+    logical                                     , intent(inout),         :: interrupt
+    procedure       (interruptTask             ), intent(inout), pointer :: functionInterrupt
+    integer                                     , intent(in   )          :: propertyType
+    class           (nodeComponentBlackHole    )               , pointer :: blackHole
+    double precision                                                     :: massSeed         , spinSeed
+    
+    blackHole => node%blackHole()
+
+    select type (blackHole)
+      type is (nodeComponentBlackHole)
+        massSeed=self%blackHoleSeeds_%mass(node)
+        spinSeed=self%blackHoleSeeds_%spin(node)
+        ! Create a black hole component only if the seed mass is non-zero and the type is non-standard.
+        if (massSeed > 0.0d0) then
+          massSeed_ = massSeed
+          spinSeed_ = spinSeed
+          interrupt=.true.
+          functionInterrupt => blackHoleCreate
+        end if
+      class default
+        ! A black hole already exists - nothing to do.
+    end select
+    return
+  end subroutine blackHoleSeedDifferentialEvolution 
+
+  subroutine blackHoleCreate(node,timeEnd)
+  !!{
+      Creates the black hole via interrupt.
+  !!}
+    use :: Galacticus_Nodes, only : nodeComponentBlackHole
+    implicit none
+    type            (treeNode              ), intent(inout), target  :: node
+    double precision                        , intent(in   ), optional:: timeEnd
+    class           (nodeComponentBlackHole),                pointer :: blackHole 
+    !$GLC attributes unused :: timeEnd
+
+    blackHole=> node%blackHole(autoCreate=.true.)
+    call        blackHole%massSet(massSeed_)
+    if (blackHole%spinIsSettable()) &
+         & call blackHole%spinSet(spinSeed_)
+    return 
+  end subroutine blackHoleCreate

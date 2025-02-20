@@ -53,20 +53,6 @@ module Node_Component_NSC_Standard
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
     </property>
     <property>
-      <name>age</name>
-      <type>double</type>
-      <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="false"/>
-      <output unitsInSI="gigaYear" comment="Age (in Gyr) of nuclear star cluster."/>
-    </property>
-    <property>
-      <name>massCritical</name>
-      <type>double</type>
-      <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="false"/>
-      <output unitsInSI="massSolar" comment="Critical aass of the nuclear star cluster at its last collapse."/>
-    </property>
-    <property>
       <name>Collapse</name>
       <type>logical</type>
       <rank>0</rank>
@@ -84,13 +70,6 @@ module Node_Component_NSC_Standard
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-    </property>
-    <property>
-      <name>massSeed</name>
-      <type>double</type>
-      <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-      <output unitsInSI="massSolar" comment="Mass of the black hole seed created in the standard nuclear star cluster."/>
     </property>
     <property>
       <name>abundancesStellar</name>
@@ -1211,10 +1190,7 @@ contains
           call nuclearStarCluster%  abundancesStellarSet(         zeroAbundances)
           call nuclearStarCluster%luminositiesStellarSet(zeroStellarLuminosities)
           call nuclearStarCluster%    angularMomentumSet(                  0.0d0)
-          call nuclearStarCluster%                ageSet(                  0.0d0)
-          call nuclearStarCluster%           massSeedSet(                  0.0d0)
           call nuclearStarCluster%           CollapseSet(                .false.)
-          call nuclearStarCluster%       massCriticalSet(                  0.0d0)
        end if
     end select
     return

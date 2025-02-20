@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implementation of the \cite{antonini_coevolution_2015} star formation rate law for galactic NSCs.
+  Implementation of the \cite{antonini_coevolution_2015} star formation rate law for galactic \glspl{nsc}.
   !!}
   use :: Abundances_Structure, only : abundances
 
@@ -26,7 +26,7 @@
   <starFormationRateNuclearStarClusters name="starFormationRateNuclearStarClustersKrumholz2009">
    <description>
     A star formation rate implementing the model of \citep{antonini_coevolution_2015} for galactic \glspl{nsc}. This model
-    uses the \citep{krumholz_star_2009} star formation rule, with minor modifications.
+    uses the \citep{krumholz_star_2009} star formation rule:
     \begin{equation}
      \dot{M}_\star^\mathrm{NSC} = f_c\frac{M_\mathrm{gas}^\mathrm{gas}}{t_{SF}},
     \end{equation}
@@ -46,11 +46,11 @@
     \begin{equation}
      \chi = 0.77 \left[ 1 + 3.1 Z^{\prime 0.365} \right],
     \end{equation}
-    and $\Sigma_1= \Sigma_\mathrm{gas}^\mathrm{NSC}/M_\odot \hbox{pc}^{-2}$ where $\Sigma_\mathrm{gas}^\mathrm{NSC}=\frac{M_\mathrm{gas}^{NSC}}{2\pi r^\mathrm{NSC}}$
+    and $\Sigma_1= \Sigma_\mathrm{gas}^\mathrm{NSC}/M_\odot \hbox{pc}^{-2}$ where $\Sigma_\mathrm{gas}^\mathrm{NSC}=\frac{M_\mathrm{gas}^{NSC}}{4\pi r^\mathrm{NSC}}$
     is the surface density of the NSC gas reservoir. The timescale is given by 
     \begin{equation}
-    t_\mathrm{SF}^{-1} = (2.6~\mathrm{Gyr})^{-1}\times \left\{ \begin{array}{cc} \left(\frac{\Sigma_\mathrm{res}}{\Sigma_\mathrm{th}} \right) ^{-0.33}, &amp;
-    \Sigma_\mathrm{res} \le \Sigma_\mathrm{th} \\  \left(\frac{\Sigma_\mathrm{res}}{\Sigma_\mathrm{th}} \right) ^{0.34}, &amp; \Sigma_\mathrm{res} &gt; \Sigma_\mathrm{th} \end{array}  \right. ,
+    t_\mathrm{SF}^{-1} = (2.36~\mathrm{Gyr})^{-1}\times \left\{ \begin{array}{cc} \left(\frac{\Sigma_\mathrm{res}}{\Sigma_\mathrm{th}} \right) ^{-0.33}, &amp;
+    \Sigma_\mathrm{res} \le \Sigma_\mathrm{th} \\  \left(\frac{\Sigma_\mathrm{res}}{\Sigma_\mathrm{th}} \right) ^{0.33}, &amp; \Sigma_\mathrm{res} &gt; \Sigma_\mathrm{th} \end{array}  \right. ,
     \end{equation}
     with $\Sigma_\mathrm{th}=85\mathrm{M}_\odot\,\hbox{pc}^{-2}$
    </description>
@@ -58,17 +58,17 @@
   !!]
   type, extends(starFormationRateNuclearStarClustersClass) :: starFormationRateNuclearStarClustersKrumholz2009
      !!{
-     Implementation of the \cite{krumholz_star_2009} star formation rate surface density law for galactic \glspl{nsc}.
+     Implementation of the \cite{krumholz_star_2009} star formation rate law for galactic \glspl{nsc}.
      !!}
      private
      double precision :: frequencyStarFormation                       
      contains
-     procedure :: rate                  => krumholz2009Rate
+     procedure :: rate => krumholz2009Rate
   end type starFormationRateNuclearStarClustersKrumholz2009
 
   interface starFormationRateNuclearStarClustersKrumholz2009
      !!{
-     Constructors for the {\normalfont \ttfamily krumholz2009} star formation surface density rate in NSCs class.
+     Constructors for the {\normalfont \ttfamily krumholz2009} star formation rate law for galactic \glspl{nsc}.
      !!}
      module procedure krumholz2009ConstructorParameters
      module procedure krumholz2009ConstructorInternal
@@ -78,7 +78,7 @@ contains
 
   function krumholz2009ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily krumholz2009} star formation surface density rate in NSCs class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily krumholz2009} star formation rate law for galactic \glspl{nsc} which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -104,7 +104,7 @@ contains
 
   function krumholz2009ConstructorInternal(frequencyStarFormation) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily krumholz2009} star formation surface density rate from NSCs class.
+    Internal constructor for the {\normalfont \ttfamily krumholz2009} star formation rate law for galactic \glspl{nsc}.
     !!}
     implicit none
     type            (starFormationRateNuclearStarClustersKrumholz2009)                 :: self
@@ -120,36 +120,38 @@ contains
     Returns the star formation rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic \gls{nsc} of {\normalfont \ttfamily
     node}. The \gls{nsc} is assumed to obey the \cite{krumholz_star_2009} star formation rule.
     !!}
-    use :: Galacticus_Nodes    , only : nodeComponentNSC
-    use :: Abundances_Structure, only : metallicityTypeLinearByMassSolar
+    use :: Galacticus_Nodes                          , only : nodeComponentNSC
+    use :: Abundances_Structure                      , only : metallicityTypeLinearByMassSolar
+    use :: Star_Formation_Rate_Krumholz2009_Utilities, only : krumholz2009MolecularFractionSlow
     implicit none
     class           (starFormationRateNuclearStarClustersKrumholz2009), intent(inout), target :: self
     type            (treeNode                                        ), intent(inout)         :: node
-    double precision                                                  , parameter             :: surfaceDensityThreshold            =85.0d0 ! M⊙ pc⁻²
-    class           (nodeComponentNSC                                ), pointer               :: nuclearStarCluster
+    double precision                                                  , parameter             :: surfaceDensityThreshold    =85.0d0 ! M☉/pc²
+    double precision                                                  , parameter             :: surfaceDensityNormalization= 1.0d0 ! M☉/pc²
+    class           (nodeComponentNSC                                ), pointer               :: nuclearStarCluster              
     type            (abundances                                      ), save                  :: abundancesFuel
     !$omp threadprivate(abundancesFuel)
     double precision                                                                          :: molecularGasFraction                      , radiusNuclearStarCluster                 , &
-         &                                                                                       massGasNuclearStarCluster                 , timescaleStarFormation, &
+         &                                                                                       massGasNuclearStarCluster                 , timescaleStarFormation                   , &
          &                                                                                       surfaceDensityGasNuclearStarCluster       , surfaceDensityGasNuclearStarClusterScaled, &
          &                                                                                       metallicityRelativeToSolar                , chi                                      , &
          &                                                                                       s
 
     nuclearStarCluster        => node              %NSC    ()
     massGasNuclearStarCluster =  nuclearStarCluster%massGas()
-    radiusNuclearStarCluster  =  nuclearStarCluster%radius ()*1.0d6 !pc
+    radiusNuclearStarCluster  =  nuclearStarCluster%radius ()
     if     (                                    &
          &   massGasNuclearStarCluster <= 0.0d0 &
          &  .or.                                &
          &   radiusNuclearStarCluster  <= 0.0d0 &
          & ) then
-       ! It is not, so return zero rate.
+       ! Unphysical nclear star cluster, so return zero rate.
        krumholz2009Rate=0.0d0
        return
     else 
        surfaceDensityGasNuclearStarCluster      =+surfaceDensityGas(radiusNuclearStarCluster,massGasNuclearStarCluster)
        surfaceDensityGasNuclearStarClusterScaled=+surfaceDensityGasNuclearStarCluster &
-            &                                    /1.0d0
+            &                                    /surfaceDensityNormalization
        ! Find the hydrogen fraction in the nuclear star cluster gas fuel supply.
        abundancesFuel=nuclearStarCluster%abundancesGas()
        call abundancesFuel%massToMassFraction(massGasNuclearStarCluster)
@@ -170,7 +172,7 @@ contains
            timescaleStarFormation=(1.0d0/self%frequencyStarFormation)*(surfaceDensityGasNuclearStarCluster/surfaceDensityThreshold)**(+0.34d0)
        end if 
        ! Compute the molecular fraction.
-       molecularGasFraction=+molecularFraction(s)
+       molecularGasFraction=max(0.02d0,krumholz2009MolecularFractionSlow(s))
        !Compute the star formation rate density.
        krumholz2009Rate    =+massGasNuclearStarCluster &
             &               *molecularGasFraction      &
@@ -183,46 +185,15 @@ contains
     !!{
     Compute surface density of the nuclear star cluster.
     !!}
-    use :: Numerical_Constants_Math, only : Pi
+    use :: Numerical_Constants_Math    , only : Pi
+    use :: Numerical_Constants_Prefixes, only : mega
     implicit none
     double precision, intent(in   ) :: radiusNuclearStarCluster, massGasNuclearStarCluster
     
     ! Return the surface gas density in units of M☉/pc² of the nuclear star cluster.
-    surfaceDensityGas=+massGasNuclearStarCluster    &
-         &            /4.0d0                        &
-         &            /Pi                           &
-         &            /radiusNuclearStarCluster **2
+    surfaceDensityGas=+massGasNuclearStarCluster         &
+         &            /4.0d0                             &
+         &            /Pi                                &
+         &            /(mega*radiusNuclearStarCluster) **2
     return
   end function surfaceDensityGas
-
-  double precision function molecularFraction(s)
-    !!{
-    Slow (but more accurate at low molecular fraction) fitting function from \cite{krumholz_star_2009} for the molecular
-    hydrogen fraction.
-    !!}
-    implicit none
-    double precision, intent(in   ) :: s
-    double precision, parameter     :: sTiny        =1.000000d-06
-    double precision, parameter     :: sHuge        =1.000000d+10
-    double precision, parameter     :: deltaInfinity=0.214008d+00 ! The value of δ for s → ∞.
-    double precision, parameter     :: sMaximum     =1.000000d+01
-    double precision                :: delta
-
-    if      (s <  sTiny   ) then
-       ! Series expansion for very small s.
-       molecularFraction=1.0d0-0.75d0*s
-    else if (s >= sHuge   ) then
-       ! Truncate to zero for extremely large s.
-       molecularFraction=0.0d0
-    else if (s >= sMaximum) then
-       ! Simplified form for very large s.
-       molecularFraction=1.0d0/(0.75d0/(1.0d0+deltaInfinity))**5.0d0/5.0d0/s**5.0d0
-    else
-       ! Full expression.
-       delta            =0.0712d0/((0.1d0/s+0.675d0)**2.8d0)
-       molecularFraction=1.0d0-1.0d0/((1.0d0+(((1.0d0+delta)/0.75d0/s)**5.0d0))**0.2d0)
-    end if
-    ! Limit the molecular fraction.
-    molecularFraction=max(0.02d0,molecularFraction)
-    return
-  end function molecularFraction

@@ -297,12 +297,11 @@ contains
              massBlackHoleNew=0.0d0
              spinBlackHoleNew=0.0d0
           end if
-          ! Move the black hole to the host.
+          ! Set the new black hole mass in the host.
           call Node_Component_Black_Hole_Standard_Output_Merger(node,massBlackHole1,massBlackHole2)
-
-          call blackHoleHostCentral%massSet(blackHoleSeeds_%mass(node))
-          call blackHoleHostCentral%spinSet(blackHoleSeeds_%spin(node))
-          !Track if the origin of the black hole is due to runaway stellar collisions in nuclear star clusters.
+          call blackHoleHostCentral%massSet(massBlackHoleNew)
+          call blackHoleHostCentral%spinSet(spinBlackHoleNew)
+                    !Track if the origin of the black hole is due to runaway stellar collisions in nuclear star clusters.
           if (blackHoleHostCentral %NSCChannel().or.blackHole%NSCChannel()) then
              call blackHoleHostCentral%NSCChannelSet(              .true.)
           else
