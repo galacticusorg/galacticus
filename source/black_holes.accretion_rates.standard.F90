@@ -201,7 +201,7 @@ contains
     use :: Galacticus_Nodes                , only : nodeComponentBlackHole                , nodeComponentHotHalo                , nodeComponentSpheroid, nodeComponentNSC               , &
           &                                         treeNode
     use :: Ideal_Gases_Thermodynamics      , only : Ideal_Gas_Jeans_Length                , Ideal_Gas_Sound_Speed
-    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr               , gigaYear                            , megaParsec
+    use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr                     , gigaYear                            , megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Mass_Distributions              , only : massDistributionClass                 , kinematicsDistributionClass
     use :: Coordinates                     , only : coordinateSpherical                   , assignment(=)
@@ -236,7 +236,7 @@ contains
        ! Compute the relative velocity of black hole and gas. We assume that relative motion arises only from the radial
        ! migration of the black hole.
        velocityRelative=+self%blackHoleBinarySeparationGrowthRate_%growthRate(blackHole) &
-            &           *Mpc_per_km_per_s_To_Gyr
+            &           *MpcPerKmPerSToGyr
        ! Contribution from spheroid:
        ! Get the accretion radius. We take this to be the larger of the Bondi-Hoyle radius and the current radius position of
        ! the black hole.
@@ -379,7 +379,7 @@ contains
                &                   /(                                            &
                &                     +hotHalo%outerRadius()                      &
                &                     /Ideal_Gas_Sound_Speed(temperatureHotHalo)  &
-               &                     *Mpc_per_km_per_s_To_Gyr                    &
+               &                     *MpcPerKmPerSToGyr                          &
                &                    )                                          , &
                &                   +0.0d0                                        &
                &                  )

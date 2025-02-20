@@ -119,7 +119,7 @@ contains
     use, intrinsic :: ISO_Fortran_Env
     use            :: Numerical_Constants_Astronomical, only : luminositySolar
     use            :: Numerical_Constants_Physical    , only : speedLight
-    use            :: Numerical_Constants_Units       , only : angstromsPerMeter
+    use            :: Numerical_Constants_Units       , only : metersToAngstroms
     use            :: Numerical_Ranges                , only : Make_Range             , rangeTypeLogarithmic
     use            :: String_Handling                 , only : operator(//)
     use            :: System_Command                  , only : System_Command_Do
@@ -199,7 +199,7 @@ contains
              read (line,*) frequencyLogarithmic,spectrumLogarithmic
              if (frequencyLogarithmic <  0.0d0     ) cycle
              j=j-1
-             wavelength(j)=speedLight/10.0d0**frequencyLogarithmic*angstromsPerMeter
+             wavelength(j)=speedLight/10.0d0**frequencyLogarithmic*metersToAngstroms
              SED(j,i)=10.0d0**spectrumLogarithmic/10.0d0**frequencyLogarithmic
           end do
           close(sedUnit)
@@ -210,7 +210,7 @@ contains
        call file   %openFile      (char(self%fileName)                             ,overWrite      =.true. )
        call file   %writeDataset  (wavelength               ,"wavelength"          ,datasetReturned=dataset)
        call dataset%writeAttribute("Angstroms (Å)"          ,"units"                                       )
-       call dataset%writeAttribute(1.0d0/angstromsPerMeter  ,"unitsInSI"                                   )
+       call dataset%writeAttribute(1.0d0/metersToAngstroms  ,"unitsInSI"                                   )
        call dataset%close         (                                                                        )
        call file   %writeDataset  (luminosityBolometric     ,"bolometricLuminosity",datasetReturned=dataset)
        call dataset%writeAttribute("Solar luminosities (L☉)","units"                                       )

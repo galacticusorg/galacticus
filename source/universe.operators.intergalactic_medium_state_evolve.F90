@@ -558,7 +558,7 @@ contains
      use :: Numerical_Constants_Physical         , only : boltzmannsConstant, electronMass     , electronRadius, fineStructure      , &
           &                                               plancksConstant   , radiationConstant, speedLight    , thomsonCrossSection
      use :: Numerical_Constants_Prefixes         , only : centi
-     use :: Numerical_Constants_Units            , only : angstromsPerMeter , electronVolt
+     use :: Numerical_Constants_Units            , only : metersToAngstroms , electronVolt
      use :: Numerical_Integration                , only : integrator
      implicit none
      double precision                                          , intent(in  )                :: time
@@ -744,7 +744,7 @@ contains
                    &            *speedLight                                                              &
                    &            /self_%atomicIonizationPotential_%potential(atomicNumber,electronNumber) &
                    &            /electronVolt                                                            &
-                   &            *angstromsPerMeter
+                   &            *metersToAngstroms
               ! Integrate photoionizations over wavelength.
               ionizationPhotoRateFrom=-integratorPhotoionization%integrate(wavelengthMinimum,wavelengthMaximum) &
                    &                  *densityThisIon
@@ -761,7 +761,7 @@ contains
                    &            *speedLight                                                                &
                    &            /self_%atomicIonizationPotential_%potential(atomicNumber,electronNumber+1) &
                    &            /electronVolt                                                              &
-                   &            *angstromsPerMeter
+                   &            *metersToAngstroms
               ! Integrate photoionizations over wavelength.
               ionizationPhotoRateTo            =+integratorPhotoionization%integrate(wavelengthMinimum,wavelengthMaximum) &
                    &                            *densityLowerIon
@@ -959,7 +959,7 @@ contains
                &                              *(                                                                                           &
                &                                +plancksConstant                                                                           &
                &                                *speedLight                                                                                &
-               &                                *angstromsPerMeter                                                                         &
+               &                                *metersToAngstroms                                                                         &
                &                                /wavelength                                                                                &
                &                                -self_%atomicIonizationPotential_      %potential   (                                      &
                &                                                                                     atomicNumber                        , &

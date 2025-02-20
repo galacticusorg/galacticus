@@ -395,10 +395,10 @@ contains
     !!}
     use :: Abundances_Structure            , only : abundances
     use :: Galacticus_Nodes                , only : nodeComponentDisk
-    use :: Galactic_Structure_Options      , only : componentTypeDisk              , massTypeGaseous                  , massTypeStellar
-    use :: Mass_Distributions              , only : massDistributionClass          , massDistributionCylindricalScaler, massDistributionExponentialDisk
+    use :: Galactic_Structure_Options      , only : componentTypeDisk             , massTypeGaseous                  , massTypeStellar
+    use :: Mass_Distributions              , only : massDistributionClass         , massDistributionCylindricalScaler, massDistributionExponentialDisk
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class(starFormationRateSurfaceDensityDisksBlitz2006), intent(inout) :: self
     type (treeNode                                     ), intent(inout) :: node
@@ -462,24 +462,24 @@ contains
 	  !!]
           ! Properties required for exponential disks.
           if (self%isExponentialDisk .and. self%massStellar >= 0.0d0 .and. self%radiusDisk > 0.0d0) then
-             self%pressureRatioCoefficient     =+gravitationalConstantGalacticus          &
-                  &                             /8.0d0                                    &
-                  &                             /Pi                                       &
-                  &                             *self%massGas                         **2 &
-                  &                             /self%pressureCharacteristic              &
-                  &                             /self%radiusDisk                      **4
-             self%factorBoostStellarCoefficient=+self%velocityDispersionDiskGas           &
-                  &                             *2.0d0                                    &
-                  &                             *Pi                                       &
-                  &                             *self%radiusDisk                      **2 &
-                  &                             /self%massGas                             &
-                  &                             *sqrt(                                    &
-                  &                                   +self%massStellar                   &
-                  &                                   /2.0d0                              &
-                  &                                   /Pi                             **2 &
-                  &                                   /gravitationalConstantGalacticus    &
-                  &                                   /self%heightToRadialScaleDisk       &
-                  &                                   /self%radiusDisk                **3 &
+             self%pressureRatioCoefficient     =+gravitationalConstant_internal          &
+                  &                             /8.0d0                                   &
+                  &                             /Pi                                      &
+                  &                             *self%massGas                        **2 &
+                  &                             /self%pressureCharacteristic             &
+                  &                             /self%radiusDisk                     **4
+             self%factorBoostStellarCoefficient=+self%velocityDispersionDiskGas          &
+                  &                             *2.0d0                                   &
+                  &                             *Pi                                      &
+                  &                             *self%radiusDisk                     **2 &
+                  &                             /self%massGas                            &
+                  &                             *sqrt(                                   &
+                  &                                   +self%massStellar                  &
+                  &                                   /2.0d0                             &
+                  &                                   /Pi                            **2 &
+                  &                                   /gravitationalConstant_internal    &
+                  &                                   /self%heightToRadialScaleDisk      &
+                  &                                   /self%radiusDisk               **3 &
                   &                                  ) 
           end if
        else
@@ -499,9 +499,9 @@ contains
     Returns intervals to use for integrating the \cite{krumholz_star_2009} star formation rate over a galactic disk.
     !!}
     use :: Mass_Distributions              , only : massDistributionClass
-    use :: Galactic_Structure_Options      , only : componentTypeDisk              , massTypeGaseous                  , massTypeStellar
+    use :: Galactic_Structure_Options      , only : componentTypeDisk             , massTypeGaseous, massTypeStellar
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (starFormationRateSurfaceDensityDisksBlitz2006), intent(inout), target                      :: self
     double precision                                                              , allocatable, dimension(:,:) :: blitz2006Intervals
@@ -673,25 +673,25 @@ contains
       coefficientFactorBoost       =    +self%massGas/2.0d0/Pi/self%radiusDisk**2    *self%hydrogenMassFraction/self%surfaceDensityCritical
       coefficientMolecular         =+(                                                &
            &                          +(+self%massGas/2.0d0/Pi/self%radiusDisk**2)**2 &
-           &                          *gravitationalConstantGalacticus                &
+           &                          *gravitationalConstant_internal                 &
            &                          *Pi                                             &
            &                          /2.0d0                                          &
            &                          /self%pressureCharacteristic                    &
            &                         )**self%pressureExponent
-      coefficientFactorBoostStellar=+self%velocityDispersionDiskGas        &
-           &                        *2.0d0                                 &
-           &                        *Pi                                    &
-           &                        *self%radiusDisk**2                    &
-           &                        /self%massGas                          &
-           &                        *sqrt(                                 &
-           &                              +self%massStellar                &
-           &                              /2.0d0                           &
-           &                              /Pi                              &
-           &                              /self%radiusDisk**2              &
-           &                              /Pi                              &
-           &                              /gravitationalConstantGalacticus &
-           &                              /self%heightToRadialScaleDisk    &
-           &                              /self%radiusDisk                 &
+      coefficientFactorBoostStellar=+self%velocityDispersionDiskGas       &
+           &                        *2.0d0                                &
+           &                        *Pi                                   &
+           &                        *self%radiusDisk**2                   &
+           &                        /self%massGas                         &
+           &                        *sqrt(                                &
+           &                              +self%massStellar               &
+           &                              /2.0d0                          &
+           &                              /Pi                             &
+           &                              /self%radiusDisk**2             &
+           &                              /Pi                             &
+           &                              /gravitationalConstant_internal &
+           &                              /self%heightToRadialScaleDisk   &
+           &                              /self%radiusDisk                &
            &                             ) 
       return
     end subroutine computeCoefficients
@@ -1168,8 +1168,8 @@ contains
     Root function used in finding the radius in a disk where the pressure ratio exceeds the critical ratio.
     !!}
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-    use :: Galactic_Structure_Options      , only : componentTypeDisk              , coordinateSystemCylindrical, massTypeGaseous, massTypeStellar
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
+    use :: Galactic_Structure_Options      , only : componentTypeDisk             , coordinateSystemCylindrical, massTypeGaseous, massTypeStellar
     use :: Mass_Distributions              , only : massDistributionClass
     use :: Coordinates, only : coordinateCylindrical, assignment(=)
     implicit none
@@ -1197,10 +1197,10 @@ contains
        ! Compute the pressure ratio that Blitz & Rosolowsky (2006) use to compute the molecular fraction.    
        !! We first compute the pressure ratio ignoring the boost from the stellar mass. If this already exceeds the characteristic
        !! limit then we will not need to compute the stellar contribution.
-       pressureRatio=+0.5d0                              &
-            &        *Pi                                 &
-            &        *gravitationalConstantGalacticus    &
-            &        *surfaceDensityGas_             **2 &
+       pressureRatio=+0.5d0                             &
+            &        *Pi                                &
+            &        *gravitationalConstant_internal    &
+            &        *surfaceDensityGas_            **2 &
             &        /self%pressureCharacteristic
        if (pressureRatio > 0.0d0 .and. pressureRatio < 1.0d0) then
           ! Compute the stellar boost factor.
@@ -1209,17 +1209,17 @@ contains
           !![
 	  <objectDestructor name="massDistribution_"/>
           !!]
-          factorBoostStellar   =+1.0d0                                 &
-               &                +self%velocityDispersionDiskGas        &
-               &                /surfaceDensityGas_                    &
-               &                *sqrt(                                 &
-               &                      +surfaceDensityStellar           &
-               &                      /Pi                              &
-               &                      /gravitationalConstantGalacticus &
-               &                      /self%heightToRadialScaleDisk    &
-               &                      /self%radiusDisk                 &
+          factorBoostStellar   =+1.0d0                                &
+               &                +self%velocityDispersionDiskGas       &
+               &                /surfaceDensityGas_                   &
+               &                *sqrt(                                &
+               &                      +surfaceDensityStellar          &
+               &                      /Pi                             &
+               &                      /gravitationalConstant_internal &
+               &                      /self%heightToRadialScaleDisk   &
+               &                      /self%radiusDisk                &
                &                     ) 
-          pressureRatio        =+pressureRatio                         &
+          pressureRatio        =+pressureRatio                        &
                &                *factorBoostStellar
        end if
     end if

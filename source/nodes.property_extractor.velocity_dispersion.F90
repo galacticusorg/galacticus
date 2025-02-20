@@ -748,14 +748,14 @@ contains
     \int_{r_\mathrm{i}}^{r_\mathrm{o}} {\mathrm{G} M(<r) \over r^2} \rho(r) \sqrt{r^2-r_\mathrm{i}^2} \mathrm{d}r.
     \end{equation}
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     double precision, intent(in   ) :: radius
 
     if (radius <= radiusImpact_) then
        velocityDispersionVelocityDensityIntegrand=+0.0d0
     else
-       velocityDispersionVelocityDensityIntegrand=+gravitationalConstantGalacticus                           &
+       velocityDispersionVelocityDensityIntegrand=+gravitationalConstant_internal                            &
             &                                     *massDistributionWeighted_%densitySphericalAverage(radius) &
             &                                     *massDistributionTotal_   %massEnclosedBySphere   (radius) &
             &                                     /     radius**2                                            &

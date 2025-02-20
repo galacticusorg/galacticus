@@ -123,7 +123,7 @@ contains
     !!{
     Return the temperature at the specified {\normalfont \ttfamily coordinates} in an Enzo hydrostatic kinematic distribution.
     !!}
-    use :: Numerical_Constants_Astronomical, only : meanAtomicMassPrimordial, gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : meanAtomicMassPrimordial, gravitationalConstant_internal
     use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
     use :: Numerical_Constants_Physical    , only : boltzmannsConstant
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -136,16 +136,16 @@ contains
        temperature =temperatureMinimum
     else
        massEnclosed=self%massDistribution_%massEnclosedBySphere(coordinates%rSpherical())
-       temperature =max(                                     &
-            &           +kilo                           **2  &
-            &           *gravitationalConstantGalacticus     &
-            &           *massEnclosed                        &
-            &           *meanAtomicMassPrimordial            &
-            &           *massHydrogenAtom                    &
-            &           /3.0d0                               &
-            &           /boltzmannsConstant                  &
-            &           /coordinates%rSpherical()          , &
-            &           temperatureMinimum                   &
+       temperature =max(                                    &
+            &           +kilo                          **2  &
+            &           *gravitationalConstant_internal     &
+            &           *massEnclosed                       &
+            &           *meanAtomicMassPrimordial           &
+            &           *massHydrogenAtom                   &
+            &           /3.0d0                              &
+            &           /boltzmannsConstant                 &
+            &           /coordinates%rSpherical()         , &
+            &           temperatureMinimum                  &
             &          )
     end if
     return

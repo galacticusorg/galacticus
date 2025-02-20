@@ -213,11 +213,11 @@ contains
     !!{
     Compute the size of the merger remnant for {\normalfont \ttfamily node} using the \cite{covington_predicting_2008} algorithm.
     !!}
-    use :: Display                         , only : displayMagenta                 , displayMessage, displayReset, displayVerbosity, &
+    use :: Display                         , only : displayMagenta                , displayMessage, displayReset, displayVerbosity, &
           &                                         verbosityLevelWarn
-    use :: Error                           , only : Error_Report                   , Warn
+    use :: Error                           , only : Error_Report                  , Warn
     use :: Numerical_Comparison            , only : Values_Agree
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: String_Handling                 , only : operator(//)
     implicit none
     class           (mergerRemnantSizeCovington2008), intent(inout) :: self
@@ -361,7 +361,7 @@ contains
              ! Compute the remnant radius.
              self%radius=(massSpheroidSatellite+massSpheroidHost)**2/(energyProgenitors+energyRadiated)
              ! Also compute the specific angular momentum at the half-mass radius.
-             self%velocityCircular=sqrt(gravitationalConstantGalacticus*(massSpheroidSatellite+massSpheroidHost)/self%radius)
+             self%velocityCircular=sqrt(gravitationalConstant_internal*(massSpheroidSatellite+massSpheroidHost)/self%radius)
              self%angularMomentumSpecific=self%radius*self%velocityCircular*factorAngularMomentum
              ! Check that the specific angular momentum is reasonable.
              if (.not.self%warningIssued.and.displayVerbosity() >= verbosityLevelWarn) then

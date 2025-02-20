@@ -963,28 +963,35 @@ contains
     Check well-ordering of time for the given node.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
+    use :: Error           , only : Warn
+    use :: Display         , only : displayReset      , displayMagenta
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
     double precision                    , intent(in   )          :: massResolution
     type            (mergerTree        ), intent(in   )          :: tree
-    class           (nodeComponentBasic)               , pointer :: basic_        , basicParent_
+    class           (nodeComponentBasic)               , pointer :: basic_                   , basicParent_
     character       (len=20            )                         :: label
     type            (varying_string    )                         :: message
+    logical                                                      :: closeToResolution
+    logical                             , save                   :: warned           =.false.
     
     if (associated(node%parent)) then
        basic_       => node       %basic()
        basicParent_ => node%parent%basic()
        if (basicParent_%time() < basic_%time()) then
-          if     (                                                                                &
-               &   self_%ignoreWellOrdering                                                       &
-               &  .or.                                                                            &
-               &   (                                                                              &
-               &     basicParent_%mass() < massResolution*(1.0d0+self_%toleranceResolutionParent) &
-               &    .and.                                                                         &
-               &     basic_      %mass() < massResolution*(1.0d0+self_%toleranceResolutionSelf  ) &
-               &   )                                                                              &
-               & ) then
+          closeToResolution= basicParent_%mass() < massResolution*(1.0d0+self_%toleranceResolutionParent) &
+               &            .and.                                                                         &
+               &             basic_      %mass() < massResolution*(1.0d0+self_%toleranceResolutionSelf  )
+          if (self_%ignoreWellOrdering .or. closeToResolution) then
              ! Parent halo is very close to the resolution limit, or we are ignoring well-ordering errors. Simply prune away the remainder of this branch.
+             if (.not.closeToResolution.and..not.warned) then
+                !$omp critical(mergerTreeBuilderCole2000WellOrderingWarn)
+                if (.not.warned) then
+                   call Warn(displayMagenta()//'WARNING:'//displayReset()//' tree is not well-ordered - pruning branch and ignoring')
+                   warned=.true.
+                end if
+                !$omp end critical(mergerTreeBuilderCole2000WellOrderingWarn)
+             end if
              call node%destroyBranch()
              deallocate(node)
              node => null()
