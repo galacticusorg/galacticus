@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implementation of the \cite{antonini_coevolution_2015} star formation rate law for galactic NSCs.
+  Implementation of the \cite{antonini_coevolution_2015} star formation rate law for galactic \glspl{nsc}.
   !!}
   use :: Abundances_Structure, only : abundances
 
@@ -26,7 +26,7 @@
   <starFormationRateNuclearStarClusters name="starFormationRateNuclearStarClustersKrumholz2009">
    <description>
     A star formation rate implementing the model of \citep{antonini_coevolution_2015} for galactic \glspl{nsc}. This model
-    uses the \citep{krumholz_star_2009} star formation rule, with minor modifications.
+    uses the \citep{krumholz_star_2009} star formation rule:
     \begin{equation}
      \dot{M}_\star^\mathrm{NSC} = f_c\frac{M_\mathrm{gas}^\mathrm{gas}}{t_{SF}},
     \end{equation}
@@ -46,11 +46,11 @@
     \begin{equation}
      \chi = 0.77 \left[ 1 + 3.1 Z^{\prime 0.365} \right],
     \end{equation}
-    and $\Sigma_1= \Sigma_\mathrm{gas}^\mathrm{NSC}/M_\odot \hbox{pc}^{-2}$ where $\Sigma_\mathrm{gas}^\mathrm{NSC}=\frac{M_\mathrm{gas}^{NSC}}{2\pi r^\mathrm{NSC}}$
+    and $\Sigma_1= \Sigma_\mathrm{gas}^\mathrm{NSC}/M_\odot \hbox{pc}^{-2}$ where $\Sigma_\mathrm{gas}^\mathrm{NSC}=\frac{M_\mathrm{gas}^{NSC}}{4\pi r^\mathrm{NSC}}$
     is the surface density of the NSC gas reservoir. The timescale is given by 
     \begin{equation}
-    t_\mathrm{SF}^{-1} = (2.6~\mathrm{Gyr})^{-1}\times \left\{ \begin{array}{cc} \left(\frac{\Sigma_\mathrm{res}}{\Sigma_\mathrm{th}} \right) ^{-0.33}, &amp;
-    \Sigma_\mathrm{res} \le \Sigma_\mathrm{th} \\  \left(\frac{\Sigma_\mathrm{res}}{\Sigma_\mathrm{th}} \right) ^{0.34}, &amp; \Sigma_\mathrm{res} &gt; \Sigma_\mathrm{th} \end{array}  \right. ,
+    t_\mathrm{SF}^{-1} = (2.36~\mathrm{Gyr})^{-1}\times \left\{ \begin{array}{cc} \left(\frac{\Sigma_\mathrm{res}}{\Sigma_\mathrm{th}} \right) ^{-0.33}, &amp;
+    \Sigma_\mathrm{res} \le \Sigma_\mathrm{th} \\  \left(\frac{\Sigma_\mathrm{res}}{\Sigma_\mathrm{th}} \right) ^{0.33}, &amp; \Sigma_\mathrm{res} &gt; \Sigma_\mathrm{th} \end{array}  \right. ,
     \end{equation}
     with $\Sigma_\mathrm{th}=85\mathrm{M}_\odot\,\hbox{pc}^{-2}$
    </description>
@@ -58,17 +58,17 @@
   !!]
   type, extends(starFormationRateNuclearStarClustersClass) :: starFormationRateNuclearStarClustersKrumholz2009
      !!{
-     Implementation of the \cite{krumholz_star_2009} star formation rate surface density law for galactic \glspl{nsc}.
+     Implementation of the \cite{krumholz_star_2009} star formation rate law for galactic \glspl{nsc}.
      !!}
      private
      double precision :: frequencyStarFormation                       
      contains
-     procedure :: rate                  => krumholz2009Rate
+     procedure :: rate => krumholz2009Rate
   end type starFormationRateNuclearStarClustersKrumholz2009
 
   interface starFormationRateNuclearStarClustersKrumholz2009
      !!{
-     Constructors for the {\normalfont \ttfamily krumholz2009} star formation surface density rate in NSCs class.
+     Constructors for the {\normalfont \ttfamily krumholz2009} star formation rate law for galactic \glspl{nsc}.
      !!}
      module procedure krumholz2009ConstructorParameters
      module procedure krumholz2009ConstructorInternal
@@ -78,7 +78,7 @@ contains
 
   function krumholz2009ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily krumholz2009} star formation surface density rate in NSCs class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily krumholz2009} star formation rate law for galactic \glspl{nsc} which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -104,7 +104,7 @@ contains
 
   function krumholz2009ConstructorInternal(frequencyStarFormation) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily krumholz2009} star formation surface density rate from NSCs class.
+    Internal constructor for the {\normalfont \ttfamily krumholz2009} star formation rate law for galactic \glspl{nsc}.
     !!}
     implicit none
     type            (starFormationRateNuclearStarClustersKrumholz2009)                 :: self
@@ -132,7 +132,7 @@ contains
     type            (abundances                                      ), save                  :: abundancesFuel
     !$omp threadprivate(abundancesFuel)
     double precision                                                                          :: molecularGasFraction                      , radiusNuclearStarCluster                 , &
-         &                                                                                       massGasNuclearStarCluster                 , timescaleStarFormation, &
+         &                                                                                       massGasNuclearStarCluster                 , timescaleStarFormation                   , &
          &                                                                                       surfaceDensityGasNuclearStarCluster       , surfaceDensityGasNuclearStarClusterScaled, &
          &                                                                                       metallicityRelativeToSolar                , chi                                      , &
          &                                                                                       s

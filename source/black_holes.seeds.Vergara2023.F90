@@ -139,10 +139,11 @@ contains
         Compute the nuclear star cluster collapse condition.
       !!}
     use :: Galacticus_Nodes                , only : nodeComponentNSC               , nodeComponentBasic, nodeComponentNSCStandard, treeNode  
+    use :: Abundances_Structure            , only : operator(*)
     use :: Numerical_Constants_Math        , only : Pi
     use :: Galactic_Structure_Options      , only : componentTypenuclearStarCluster, massTypeStellar
     use :: Numerical_Constants_Prefixes    , only : mega                           , kilo
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus, radiusSolar       , megaParsec              , gigaYear, &
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal , radiusSolar       , megaParsec              , gigaYear, &
         &                                           parsec
     implicit none
     class(blackHoleSeedsVergara2023), intent(inout)          :: self
@@ -152,7 +153,7 @@ contains
     double precision                                         :: radiusNuclearStarCluster        , velocityNuclearStarCluster       , &
         &                                                       massStellarNuclearStarCluster   , massCriticalNuclearStarCluster   , &
         &                                                       Theta                           , crossSectionNuclearStarCluster   , &
-        &                                                       massFormedSeedNuclearStarCluster, massTimeStellarNuclearStarCluster, &
+        &                                                       massBlackHoleSeed               , massTimeStellarNuclearStarCluster, &
         &                                                       ageNuclearStarCluster           , time
     double precision                                         :: velocity        = 100.0d0 !km s¯¹
     
@@ -202,16 +203,23 @@ contains
           crossSectionNuclearStarCluster  = 16.0d0* sqrt(Pi)*(1+Theta)*(self%radiusSingleStar*radiusSolar/parsec)**2.0d0      !pc²
 
           ! Critical mass computation using equation (3) in the model of M.C. Vergara, A. Escala, D.R.G. Schleicher and B. Reinoso. (2023, https://ui.adsabs.harvard.edu/abs/2023MNRAS.522.4224V/abstract)
-          massCriticalNuclearStarCluster  = (mega*radiusNuclearStarCluster)**(7.0d0/3.0d0)*((4.0d0*Pi*self%massSingleStar)/(3.0d0*crossSectionNuclearStarCluster*ageNuclearStarCluster*sqrt((gravitationalConstantGalacticus*megaParsec*(kilo*gigaYear)**2.0d0)*parsec**-3.0d0)))**(2.0d0/3.0d0)
-          massFormedSeedNuclearStarCluster= self%massEfficiency*nuclearStarCluster%massStellar()
+          massCriticalNuclearStarCluster  = (mega*radiusNuclearStarCluster)**(7.0d0/3.0d0)*((4.0d0*Pi*self%massSingleStar)/(3.0d0*crossSectionNuclearStarCluster*ageNuclearStarCluster*sqrt((gravitationalConstant_internal*megaParsec*(kilo*gigaYear)**2.0d0)*parsec**-3.0d0)))**(2.0d0/3.0d0)
           
           ! Generic type - interrupt and create a standard Black Hole if nuclear star cluster mass is greater than the critical mass.
-          if (0.0d0<= massCriticalNuclearStarCluster.and. massCriticalNuclearStarCluster<= nuclearStarCluster%massStellar() .and. self%massThreshold <= nuclearStarCluster%massStellar()) then
-            !call NSC%massSeedSet   ( massFormedSeedNuclearStarCluster)
-            !call Collapse_Output   (node, radiusNuclearStarCluster, velocityNuclearStarCluster, NSC%massStellar()                  , NSC%massGas(), massCriticalNSC, ageNuclearStarCluster, massFormedSeedNuclearStarCluster)
-            call nuclearStarCluster%massStellarSet(nuclearStarCluster%massStellar()-massFormedSeedNuclearStarCluster)
-            call nuclearStarCluster%CollapseSet   (                                                           .true.)
-            mass = massFormedSeedNuclearStarCluster
+          if (massCriticalNuclearStarCluster<= nuclearStarCluster%massStellar() .and. self%massThreshold <= nuclearStarCluster%massStellar()) then
+            ! Adjust stellar mass of the nuclear star cluster
+            call nuclearStarCluster%massStellarSet      (                                          &
+                &                                        ( 1.0d0-self%massEfficiency             ) &
+                &                                         *nuclearStarCluster%massStellar      ()  &
+                &                                       )
+            ! Adjust stellar abundances of the nuclear star cluster 
+            call nuclearStarCluster%abundancesStellarSet(                                          &
+                &                                        ( 1.0d0-self%massEfficiency             ) &
+                &                                         *nuclearStarCluster%abundancesStellar()  &
+                &                                       )
+
+            call nuclearStarCluster%CollapseSet(.true.)
+            mass = self%massEfficiency*nuclearStarCluster%massStellar()
           else
             mass=0.0d0
           end if 
