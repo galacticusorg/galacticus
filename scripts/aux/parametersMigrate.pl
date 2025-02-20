@@ -353,8 +353,10 @@ sub blackHoleSeedMass {
     my $parameters = shift();
     # Look for "componentBlackHole" parameters.
     my $massSeed = 100.0; # This was the default value, to be used if no value was explicitly set.
+    my $componentBlackHole;
     foreach my $node ( $parameters->findnodes("//componentBlackHole[\@value='simple' or \@value='standard' or \@value='nonCentral']/massSeed[\@value]")->get_nodelist() ) {
 	print "   translate special '//componentBlackHole[\@value]/massSeed[\@value]'\n";
+	$componentBlackHole = $node->parentNode;
 	# Extract the seed mass.
 	$massSeed = $node->getAttribute('value');
 	# Delete this node.
@@ -376,11 +378,15 @@ sub blackHoleSeedMass {
     $massNode    ->setAttribute('value',$massSeed       );
     $spinNode    ->setAttribute('value',0.0             );
     # Assemble our new nodes.
-    $operatorNode->addChild($seedNode);
     $seedNode    ->addChild($massNode);
     $seedNode    ->addChild($spinNode);
     # Insert the new parameters.
     $nodeOperators[0]->insertAfter($operatorNode,$nodeOperators[0]->lastChild);
+    if ( defined($componentBlackHole) ) {
+	$componentBlackHole->parentNode->insertAfter($seedNode,$componentBlackHole);
+    } else {
+	$parameters->addChild($seedNode);
+    }
 }
 
 sub blackHolePhysics {
