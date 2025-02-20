@@ -120,8 +120,9 @@ contains
     Returns the star formation rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic \gls{nsc} of {\normalfont \ttfamily
     node}. The \gls{nsc} is assumed to obey the \cite{krumholz_star_2009} star formation rule.
     !!}
-    use :: Galacticus_Nodes            , only : nodeComponentNSC
-    use :: Abundances_Structure        , only : metallicityTypeLinearByMassSolar
+    use :: Galacticus_Nodes                          , only : nodeComponentNSC
+    use :: Abundances_Structure                      , only : metallicityTypeLinearByMassSolar
+    use :: Star_Formation_Rate_Krumholz2009_Utilities, only : krumholz2009MolecularFractionSlow
     implicit none
     class           (starFormationRateNuclearStarClustersKrumholz2009), intent(inout), target :: self
     type            (treeNode                                        ), intent(inout)         :: node
@@ -144,7 +145,7 @@ contains
          &  .or.                                &
          &   radiusNuclearStarCluster  <= 0.0d0 &
          & ) then
-       ! It is not, so return zero rate.
+       ! Unphysical nclear star cluster, so return zero rate.
        krumholz2009Rate=0.0d0
        return
     else 
@@ -171,7 +172,7 @@ contains
            timescaleStarFormation=(1.0d0/self%frequencyStarFormation)*(surfaceDensityGasNuclearStarCluster/surfaceDensityThreshold)**(+0.34d0)
        end if 
        ! Compute the molecular fraction.
-       molecularGasFraction=+molecularFraction(s)
+       molecularGasFraction=max(0.02d0,krumholz2009MolecularFractionSlow(s))
        !Compute the star formation rate density.
        krumholz2009Rate    =+massGasNuclearStarCluster &
             &               *molecularGasFraction      &
@@ -196,35 +197,3 @@ contains
          &            /(mega*radiusNuclearStarCluster) **2
     return
   end function surfaceDensityGas
-
-  double precision function molecularFraction(s)
-    !!{
-    Slow (but more accurate at low molecular fraction) fitting function from \cite{krumholz_star_2009} for the molecular
-    hydrogen fraction.
-    !!}
-    implicit none
-    double precision, intent(in   ) :: s
-    double precision, parameter     :: sTiny        =1.000000d-06
-    double precision, parameter     :: sHuge        =1.000000d+10
-    double precision, parameter     :: deltaInfinity=0.214008d+00 ! The value of δ for s → ∞.
-    double precision, parameter     :: sMaximum     =1.000000d+01
-    double precision                :: delta
-
-    if      (s <  sTiny   ) then
-       ! Series expansion for very small s.
-       molecularFraction=1.0d0-0.75d0*s
-    else if (s >= sHuge   ) then
-       ! Truncate to zero for extremely large s.
-       molecularFraction=0.0d0
-    else if (s >= sMaximum) then
-       ! Simplified form for very large s.
-       molecularFraction=1.0d0/(0.75d0/(1.0d0+deltaInfinity))**5.0d0/5.0d0/s**5.0d0
-    else
-       ! Full expression.
-       delta            =0.0712d0/((0.1d0/s+0.675d0)**2.8d0)
-       molecularFraction=1.0d0-1.0d0/((1.0d0+(((1.0d0+delta)/0.75d0/s)**5.0d0))**0.2d0)
-    end if
-    ! Limit the molecular fraction.
-    molecularFraction=max(0.02d0,molecularFraction)
-    return
-  end function molecularFraction
