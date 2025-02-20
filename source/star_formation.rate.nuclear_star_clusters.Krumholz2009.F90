@@ -120,13 +120,14 @@ contains
     Returns the star formation rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic \gls{nsc} of {\normalfont \ttfamily
     node}. The \gls{nsc} is assumed to obey the \cite{krumholz_star_2009} star formation rule.
     !!}
-    use :: Galacticus_Nodes    , only : nodeComponentNSC
-    use :: Abundances_Structure, only : metallicityTypeLinearByMassSolar
+    use :: Galacticus_Nodes            , only : nodeComponentNSC
+    use :: Abundances_Structure        , only : metallicityTypeLinearByMassSolar
     implicit none
     class           (starFormationRateNuclearStarClustersKrumholz2009), intent(inout), target :: self
     type            (treeNode                                        ), intent(inout)         :: node
-    double precision                                                  , parameter             :: surfaceDensityThreshold            =85.0d0 ! M⊙ pc⁻²
-    class           (nodeComponentNSC                                ), pointer               :: nuclearStarCluster
+    double precision                                                  , parameter             :: surfaceDensityThreshold    =85.0d0 ! M☉/pc²
+    double precision                                                  , parameter             :: surfaceDensityNormalization= 1.0d0 ! M☉/pc²
+    class           (nodeComponentNSC                                ), pointer               :: nuclearStarCluster              
     type            (abundances                                      ), save                  :: abundancesFuel
     !$omp threadprivate(abundancesFuel)
     double precision                                                                          :: molecularGasFraction                      , radiusNuclearStarCluster                 , &
@@ -137,7 +138,7 @@ contains
 
     nuclearStarCluster        => node              %NSC    ()
     massGasNuclearStarCluster =  nuclearStarCluster%massGas()
-    radiusNuclearStarCluster  =  nuclearStarCluster%radius ()*1.0d6 !pc
+    radiusNuclearStarCluster  =  nuclearStarCluster%radius ()
     if     (                                    &
          &   massGasNuclearStarCluster <= 0.0d0 &
          &  .or.                                &
@@ -149,7 +150,7 @@ contains
     else 
        surfaceDensityGasNuclearStarCluster      =+surfaceDensityGas(radiusNuclearStarCluster,massGasNuclearStarCluster)
        surfaceDensityGasNuclearStarClusterScaled=+surfaceDensityGasNuclearStarCluster &
-            &                                    /1.0d0
+            &                                    /surfaceDensityNormalization
        ! Find the hydrogen fraction in the nuclear star cluster gas fuel supply.
        abundancesFuel=nuclearStarCluster%abundancesGas()
        call abundancesFuel%massToMassFraction(massGasNuclearStarCluster)
@@ -183,15 +184,16 @@ contains
     !!{
     Compute surface density of the nuclear star cluster.
     !!}
-    use :: Numerical_Constants_Math, only : Pi
+    use :: Numerical_Constants_Math    , only : Pi
+    use :: Numerical_Constants_Prefixes, only : mega
     implicit none
     double precision, intent(in   ) :: radiusNuclearStarCluster, massGasNuclearStarCluster
     
     ! Return the surface gas density in units of M☉/pc² of the nuclear star cluster.
-    surfaceDensityGas=+massGasNuclearStarCluster    &
-         &            /4.0d0                        &
-         &            /Pi                           &
-         &            /radiusNuclearStarCluster **2
+    surfaceDensityGas=+massGasNuclearStarCluster         &
+         &            /4.0d0                             &
+         &            /Pi                                &
+         &            /(mega*radiusNuclearStarCluster) **2
     return
   end function surfaceDensityGas
 
