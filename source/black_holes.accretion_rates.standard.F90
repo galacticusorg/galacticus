@@ -53,8 +53,6 @@
      logical                                                             :: bondiHoyleAccretionHotModeOnly
      ! Record of whether cold mode is explicitly tracked.
      logical                                                             :: coldModeTracked
-     ! Control for Accretion
-     logical                                                             :: stopAccretion  
 
    contains
      !![
@@ -93,15 +91,9 @@ contains
     double precision                                                          :: bondiHoyleAccretionEnhancementHotHalo           , bondiHoyleAccretionEnhancementSpheroid, &
          &                                                                       bondiHoyleAccretionEnhancementNuclearStarCluster, bondiHoyleAccretionTemperatureSpheroid, &
          &                                                                       bondiHoyleAccretionTemperatureNuclearStarCluster
-    logical                                                                   :: bondiHoyleAccretionHotModeOnly                  , stopAccretion
+    logical                                                                   :: bondiHoyleAccretionHotModeOnly
 
     !![
-    <inputParameter>
-      <name>stopAccretion</name>
-      <defaultValue>.false.</defaultValue>
-      <description>Determines if the SMBH initialized in each galaxy accretes or not.</description>
-      <source>parameters</source>
-    </inputParameter>
     <inputParameter>
       <name>bondiHoyleAccretionEnhancementSpheroid</name>
       <defaultValue>5.0d0</defaultValue>
@@ -144,7 +136,7 @@ contains
     <objectBuilder class="coolingRadius"                       name="coolingRadius_"                       source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"                 name="darkMatterHaloScale_"                 source="parameters"/>
     !!]
-    self=blackHoleAccretionRateStandard(stopAccretion,bondiHoyleAccretionEnhancementHotHalo,bondiHoyleAccretionEnhancementSpheroid,bondiHoyleAccretionEnhancementNuclearStarCluster,bondiHoyleAccretionTemperatureSpheroid,bondiHoyleAccretionTemperatureNuclearStarCluster,bondiHoyleAccretionHotModeOnly,blackHoleBinarySeparationGrowthRate_,hotHaloTemperatureProfile_,accretionDisks_,coolingRadius_,darkMatterHaloScale_)
+    self=blackHoleAccretionRateStandard(bondiHoyleAccretionEnhancementHotHalo,bondiHoyleAccretionEnhancementSpheroid,bondiHoyleAccretionEnhancementNuclearStarCluster,bondiHoyleAccretionTemperatureSpheroid,bondiHoyleAccretionTemperatureNuclearStarCluster,bondiHoyleAccretionHotModeOnly,blackHoleBinarySeparationGrowthRate_,hotHaloTemperatureProfile_,accretionDisks_,coolingRadius_,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="accretionDisks_"                     />
@@ -156,7 +148,7 @@ contains
     return
   end function standardConstructorParameters
 
-  function standardConstructorInternal(stopAccretion,bondiHoyleAccretionEnhancementHotHalo,bondiHoyleAccretionEnhancementSpheroid,bondiHoyleAccretionEnhancementNuclearStarCluster,bondiHoyleAccretionTemperatureSpheroid,bondiHoyleAccretionTemperatureNuclearStarCluster,bondiHoyleAccretionHotModeOnly,blackHoleBinarySeparationGrowthRate_,hotHaloTemperatureProfile_,accretionDisks_,coolingRadius_,darkMatterHaloScale_) result(self)
+  function standardConstructorInternal(bondiHoyleAccretionEnhancementHotHalo,bondiHoyleAccretionEnhancementSpheroid,bondiHoyleAccretionEnhancementNuclearStarCluster,bondiHoyleAccretionTemperatureSpheroid,bondiHoyleAccretionTemperatureNuclearStarCluster,bondiHoyleAccretionHotModeOnly,blackHoleBinarySeparationGrowthRate_,hotHaloTemperatureProfile_,accretionDisks_,coolingRadius_,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily standard} node operator class.
     !!}
@@ -171,9 +163,9 @@ contains
     double precision                                                  , intent(in   ) :: bondiHoyleAccretionEnhancementHotHalo           , bondiHoyleAccretionEnhancementSpheroid          , &
          &                                                                               bondiHoyleAccretionEnhancementNuclearStarCluster, bondiHoyleAccretionTemperatureNuclearStarCluster, &
          &                                                                               bondiHoyleAccretionTemperatureSpheroid
-    logical                                                           , intent(in   ) :: bondiHoyleAccretionHotModeOnly                  , stopAccretion
+    logical                                                           , intent(in   ) :: bondiHoyleAccretionHotModeOnly
     !![
-    <constructorAssign variables="stopAccretion,bondiHoyleAccretionEnhancementHotHalo,bondiHoyleAccretionEnhancementSpheroid,bondiHoyleAccretionEnhancementNuclearStarCluster,bondiHoyleAccretionTemperatureSpheroid,bondiHoyleAccretionTemperatureNuclearStarCluster,bondiHoyleAccretionHotModeOnly, *blackHoleBinarySeparationGrowthRate_, *hotHaloTemperatureProfile_, *accretionDisks_, *coolingRadius_, *darkMatterHaloScale_"/>
+    <constructorAssign variables="bondiHoyleAccretionEnhancementHotHalo,bondiHoyleAccretionEnhancementSpheroid,bondiHoyleAccretionEnhancementNuclearStarCluster,bondiHoyleAccretionTemperatureSpheroid,bondiHoyleAccretionTemperatureNuclearStarCluster,bondiHoyleAccretionHotModeOnly, *blackHoleBinarySeparationGrowthRate_, *hotHaloTemperatureProfile_, *accretionDisks_, *coolingRadius_, *darkMatterHaloScale_"/>
     !!]
 
     ! Check if cold mode is explicitly tracked.
@@ -238,30 +230,7 @@ contains
     node          => blackHole%host()
     ! Get black hole mass.
     massBlackHole =  blackHole%mass()
-    ! First, we check the formation channel of the black hole.
-    select case (blackHole%NSCChannel())
-    ! If the nuclear star cluster was created via nuclear star cluster, the accretion is allowed.
-    case (.true.)
-      self%stopAccretion = .false.
-    ! if the BH wasn't form via nuclear star cluster collapse we need to check if the StopAccretion is set to true of false in the parameter file.
-    case (.false.)
-      select case (self%stopAccretion)
-    ! In case that StopAccretion=true in the parameter file, this stop the accretion for all the BHs, so the rest accretion rate is 0.0.
-      case (.true.)
-        self%stopAccretion = .true.
 
-    ! In case that StopAccretion=false in the parameter file, the accretion rate is computed as normal.
-      case (.false.)
-        self%stopAccretion = .false.
-      end select
-    end select
-
-    select case (self%stopAccretion)
-    case(.true.)
-        rateMassAccretionSpheroid          =0.0d0
-        rateMassAccretionHotHalo           =0.0d0
-        rateMAssAccretionNuclearStarCluster=0.0d0
-    case(.false.)
     ! Check black hole mass is positive.
     if (massBlackHole > 0.0d0) then
        ! Compute the relative velocity of black hole and gas. We assume that relative motion arises only from the radial
@@ -439,7 +408,6 @@ contains
        rateMassAccretionHotHalo           =0.0d0
        rateMassAccretionNuclearStarCluster=0.0d0
     end if
-    end select
     return
   end subroutine standardRateAccretion
 
