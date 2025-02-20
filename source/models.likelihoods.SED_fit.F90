@@ -265,7 +265,7 @@ contains
           &                                                     stellarSpectraDustAttenuationClass  , stellarSpectraDustAttenuationGordon2003  , stellarSpectraDustAttenuationWittGordon2000, stellarSpectraDustAttenuationZero           , &
           &                                                     wittGordon2000ModelMilkyWayShellTau3
     implicit none
-    class           (posteriorSampleLikelihoodSEDFit   ), intent(inout)                 :: self
+    class           (posteriorSampleLikelihoodSEDFit   ), intent(inout), target         :: self
     class           (posteriorSampleStateClass         ), intent(inout)                 :: simulationState
     type            (modelParameterList                ), intent(inout), dimension(:  ) :: modelParametersActive_                          , modelParametersInactive_
     class           (posteriorSampleConvergenceClass   ), intent(inout)                 :: simulationConvergence
