@@ -164,7 +164,6 @@ contains
       class default
           ! Generic type, do nothing.
           mass = 0.0d0
-          return
       class is (nodeComponentNSCStandard)
           ! Standard class, get the properties of the nuclear star cluster component.
           radiusNuclearStarCluster                   =  self%radiusEfficiency*nuclearStarCluster%radius()
@@ -176,7 +175,6 @@ contains
           ! Unphysical nuclear star cluster, do nothing.
           if (nuclearStarCluster%massStellar()<=0.0d0.or.nuclearStarCluster%radius()<=0.0d0) then
             mass=0.0d0
-            return
           end if 
 
           massStellarNuclearStarCluster     = nuclearStarCluster%floatRank0MetaPropertyGet(self%    stellarMassFormedNSCID)
@@ -196,7 +194,6 @@ contains
           ! Do nothing if the nuclear star cluster has an unphysicall age or already formed a black hole seed.
           if (ageNuclearStarCluster<=0.0d0.or.nuclearStarCluster%Collapse()) then
             mass = 0.0d0
-            return 
           end if 
           ! Safronov number defined by Binney & Tremaine (2008, https://ui.adsabs.harvard.edu/abs/2008gady.book.....B/abstract)
           Theta            =9.54d0*(self%massSingleStar/self%radiusSingleStar)*(velocity/velocityNuclearStarCluster)**2.0d0                   !Adimensional
@@ -215,10 +212,8 @@ contains
             call nuclearStarCluster%massStellarSet(nuclearStarCluster%massStellar()-massFormedSeedNuclearStarCluster)
             call nuclearStarCluster%CollapseSet   (                                                           .true.)
             mass = massFormedSeedNuclearStarCluster
-            return
           else
             mass=0.0d0
-            return
           end if 
     end select
     return
