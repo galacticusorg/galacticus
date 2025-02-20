@@ -16,7 +16,7 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!+    Contributions to this file made by: Sachi Weerasooriya
+!+    Contributions to this file made by: Sachi Weerasooriya, Andrew Benson
 !!{
 Implements an emission line luminosity for AGN node property extractor class.
 !!}
@@ -375,7 +375,8 @@ contains
              &     )                                                  &
              &    *(2*(SQRT(nu_25)   -  SQRT(nu_10)) ) )             &
              &    + ((1.0d0/(self%alpha+1.0d0))* ( (nu_001**(self%alpha+1.0d0)) - (nu_25**(self%alpha+1.0d0)) ) ) 
-
+    
+    ! recombination coefficient
     recombinationCoefficient=micro*2.6d-13
 
 
@@ -390,26 +391,23 @@ contains
     radiativeEfficiency =  self%accretionDisks_%efficiencyRadiative(blackHole,rateMassAccretionSpheroid+rateMassAccretionHotHalo)
 
 
-    !Luminosity in J/s
+    !Luminosity of AGN in J/s
     L_agn=blackHoleAccretionRate*speedLight*speedLight*radiativeEfficiency
-
+    
+    !normalization constant for the integral over ionizing spectrum
     normalizationConstant=1/integral
     
+    ! Rate of ionizing photons Q_H
     rateIonizingPhotons=L_agn*((nu_001**self%alpha) - (nu_091**self%alpha)) &
             &                     /(plancksConstant*self%alpha)
     
-
+    ! Normalized rate of ionizing photons
     rateIonizingPhotonsNormalized=rateIonizingPhotons*normalizationConstant
-    
-    ! Volume filling factor
     
     ! Calculate stromgren radius
     stromgren_radius = (3*rateIonizingPhotonsNormalized/(4*Pi*((hydrogenDensity*mega)**2.0d0)*self%volume_filling_factor*recombinationCoefficient))**(1.0d0/3.0d0)
 
- 
     if(L_agn>0.0d0) then
-
-      !using half mass radius for now, should use Stromgren radius
       ionizationParam = rateIonizingPhotonsNormalized/(4*Pi*stromgren_radius*stromgren_radius*hydrogenDensity*mega*speedLight)
       ionizationParam=log10(ionizationParam)
     else
@@ -424,23 +422,6 @@ contains
       ionizationParam=0.0d0        
     end if                                                        
     ! Truncate properties to table bounds where necessary to avoid unphysical extrapolations.
-    !
-    !! Hydrogen density and H-ionizing flux are truncated at both the lower and upper extent
-    !! of the tabulated range. The assumption is that the table covers the plausible
-    !! physical range for these values. In the case of H-ionizing flux, if we truncate the
-    !! value we must then apply a multiplicative correction to the line luminosity to ensure
-    !! that we correctly account for all ionizing photons produced.
-    !!
-    !! For metallicity and the He/H and O/He ionizing flux ratios we truncate only at the
-    !! upper extent of the tabulated range. The table is assumed to be tabulated up to the
-    !! maximum physically plausible extent for these quantities. Extrapolation to lower
-    !! values should be reasonably robust (and the table is assumed to extend to
-    !! sufficiently low values that the consequences of extrapolation are unlikely to be
-    !! observationally relevant anyway).
-    !where     (densityHydrogen             < self%densityHydrogen       (1)
-    !elsewhere (densityHydrogen                < self%densityHydrogen              (size(self%densityHydrogen             )))
-    !   densityHydrogen                =self%densityHydrogen             (size(self%densityHydrogen             ))
-    !end where
     if (metallicityGas                  < self%metallicity (1)) then
       metallicityGas = self%metallicity(1)
     else if     (metallicityGas                  > self%metallicity                 (size(self%metallicity                 ))) then
@@ -481,7 +462,7 @@ contains
                     luminosityLineAGN=+luminosityLineAGN                                      &
                           &                     +weight                                  &
                           ! intensity given by emission line models of Cloudy (intensity*4pi) is multiplied by stromgren radius**2 (cm^2)
-                          !&                     *stromgren_radius*stromgren_radius*1.0d4 &
+                          &                     *stromgren_radius*stromgren_radius*1.0d4 &
                           &                     *self%luminosity(                        &
                           &                                      interpolateIndex (l,4), &
                           &                                      interpolateIndex (k,3), &
@@ -496,7 +477,6 @@ contains
         lmnstyEmssnLineAGNExtract=+lmnstyEmssnLineAGNExtract                           &
         &                        + luminosityLineAGN                                                            
     end do
-    write(0,*) "lmnstyEmssnLineAGNExtract ",lmnstyEmssnLineAGNExtract
    return
   end function lmnstyEmssnLineAGNExtract
 
