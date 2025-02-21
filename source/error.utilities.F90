@@ -76,11 +76,10 @@ contains
     type   (inputParameters), intent(inout) :: parameters
     integer                                 :: errorWaitTime
 
-    ! Get the verbosity level parameter.
     !![
     <inputParameter>
       <name>errorWaitTime</name>
-      <defaultValue>86400</defaultValue>
+      <defaultValue>0</defaultValue>
       <description>The time, in seconds, for which \glc\ should sleep after a fatal error when running under MPI.</description>
       <source>parameters</source>
     </inputParameter>
