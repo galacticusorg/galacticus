@@ -97,19 +97,19 @@ contains
     <inputParameter>
       <name>bondiHoyleAccretionEnhancementSpheroid</name>
       <defaultValue>5.0d0</defaultValue>
-      <description>The factor by which the Bondi-Hoyle accretion rate of spheroid gas onto black holes in enhanced.</description>
+      <description>The factor by which the Bondi-Hoyle accretion rate of spheroid gas onto black holes is enhanced.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>bondiHoyleAccretionEnhancementHotHalo</name>
       <defaultValue>6.0d0</defaultValue>
-      <description>The factor by which the Bondi-Hoyle accretion rate of hot halo gas onto black holes in enhanced.</description>
+      <description>The factor by which the Bondi-Hoyle accretion rate of hot halo gas onto black holes is enhanced.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>bondiHoyleAccretionEnhancementNuclearStarCluster</name>
       <defaultValue>5.0d0</defaultValue>
-      <description>The factor by which the Bondi-Hoyle accretion rate of \gls{nsc} gas onto black holes in enhanced.</description>
+      <description>The factor by which the Bondi-Hoyle accretion rate of \gls{nsc} gas onto black holes is enhanced.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
