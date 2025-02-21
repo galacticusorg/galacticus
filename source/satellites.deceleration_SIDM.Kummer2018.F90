@@ -22,8 +22,10 @@
   \cite{kummer_effective_2018}.
   !!}
 
+  use :: Cosmology_Parameters    , only : cosmologyParametersClass
   use :: Dark_Matter_Particles   , only : darkMatterParticleClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
   use :: Numerical_Interpolation , only : interpolator2D
 
   !![
@@ -37,10 +39,14 @@
      \cite{kummer_effective_2018}.
      !!}
      private
+     class           (cosmologyParametersClass ), pointer     :: cosmologyParameters_        => null()
      class           (darkMatterParticleClass  ), pointer     :: darkMatterParticle_         => null()
+     class           (darkMatterHaloScaleClass ), pointer     :: darkMatterHaloScale_        => null()
      class           (darkMatterProfileDMOClass), pointer     :: darkMatterProfileDMO_       => null()
      type            (interpolator2D           ), allocatable :: decelerationFactor_
-     double precision                                         :: rateScatteringNormalization          , xMaximum, vMaximum, vMinimum
+     double precision                                         :: rateScatteringNormalization          , xMaximum, &
+          &                                                      vMinimum                             , vMaximum, &
+          &                                                      fractionDarkMatter
    contains
      !![
      <methods>
@@ -72,42 +78,55 @@ contains
     implicit none
     type (satelliteDecelerationSIDMKummer2018)                :: self
     type (inputParameters                    ), intent(inout) :: parameters
+    class(cosmologyParametersClass           ), pointer       :: cosmologyParameters_
     class(darkMatterParticleClass            ), pointer       :: darkMatterParticle_
+    class(darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
     class(darkMatterProfileDMOClass          ), pointer       :: darkMatterProfileDMO_
   
     !![
+    <objectBuilder class="cosmologyParameters"  name="cosmologyParameters_"  source="parameters"/>
     <objectBuilder class="darkMatterParticle"   name="darkMatterParticle_"   source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     !!]
-    self=satelliteDecelerationSIDMKummer2018(darkMatterParticle_,darkMatterProfileDMO_)
+    self=satelliteDecelerationSIDMKummer2018(cosmologyParameters_,darkMatterParticle_,darkMatterHaloScale_,darkMatterProfileDMO_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_" />
     <objectDestructor name="darkMatterParticle_"  />
+    <objectDestructor name="darkMatterHaloScale_" />
     <objectDestructor name="darkMatterProfileDMO_"/>
     !!]
     return
   end function kummer2018ConstructorParameters
 
-  function kummer2018ConstructorInternal(darkMatterParticle_,darkMatterProfileDMO_) result(self)
+  function kummer2018ConstructorInternal(cosmologyParameters_,darkMatterParticle_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily kummer2018} satellite deceleration due to dark matter self-interactions
     class.
     !!}
     implicit none
     type (satelliteDecelerationSIDMKummer2018)                        :: self
+    class(cosmologyParametersClass           ), intent(in   ), target :: cosmologyParameters_
     class(darkMatterParticleClass            ), intent(in   ), target :: darkMatterParticle_
+    class(darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
     class(darkMatterProfileDMOClass          ), intent(in   ), target :: darkMatterProfileDMO_
     !![
-    <constructorAssign variables="*darkMatterParticle_, *darkMatterProfileDMO_"/>
+    <constructorAssign variables="*cosmologyParameters_, *darkMatterParticle_, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
     !!]
 
     ! Initialize the maximum tabulated x to an unphysical value. This will force tabulation on the first attempt to evaluate the
     ! deceleration factor.
-    self%xMaximum=-1.0d0
-    self%vMinimum=huge(0.0d0)
+    self%xMaximum=-     1.0d0
+    self%vMinimum=+huge(0.0d0)
     self%vMaximum=-huge(0.0d0)
+    ! Evaluate the universal dark matter fraction.
+    self%fractionDarkMatter=+(                                         & 
+         &                    +self%cosmologyParameters_%OmegaMatter() &
+         &                    -self%cosmologyParameters_%OmegaBaryon() &
+         &                   )                                         &
+         &                  /  self%cosmologyParameters_%OmegaMatter()
     return
-
   end function kummer2018ConstructorInternal
 
   subroutine kummer2018Destructor(self)
@@ -118,8 +137,10 @@ contains
     type(satelliteDecelerationSIDMKummer2018), intent(inout) :: self
 
     !![
+    <objectDestructor name="self%cosmologyParameters_" />
     <objectDestructor name="self%darkMatterParticle_"  />
     <objectDestructor name="self%darkMatterProfileDMO_"/>
+    <objectDestructor name="self%darkMatterHaloScale_" />
     !!]
     return
   end subroutine kummer2018Destructor
@@ -128,15 +149,15 @@ contains
     !!{
     Return a deceleration for satellites due to dark matter self-interactions using the formulation of \cite{kummer_effective_2018}.
     !!}
-    use :: Coordinates                     , only : coordinateSpherical            , coordinateCartesian        , assignment(=)
-    use :: Galactic_Structure_Options      , only : coordinateSystemCartesian      , radiusLarge
-    use :: Galacticus_Nodes                , only : nodeComponentSatellite         , nodeComponentBasic
-    use :: Mass_Distributions              , only : massDistributionClass          , kinematicsDistributionClass
+    use :: Coordinates                     , only : coordinateSpherical                        , coordinateCartesian        , assignment(=)
+    use :: Galactic_Structure_Options      , only : coordinateSystemCartesian                  , radiusLarge                , massTypeDark
+    use :: Galacticus_Nodes                , only : nodeComponentSatellite                     , nodeComponentBasic
+    use :: Mass_Distributions              , only : massDistributionClass                      , kinematicsDistributionClass
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Vectors                         , only : Vector_Magnitude
     use :: Dark_Matter_Particles           , only : darkMatterParticleSelfInteractingDarkMatter
-    use :: Numerical_Constants_Prefixes    , only : centi , milli   , kilo
-    use :: Numerical_Constants_Astronomical, only : megaParsec , gigaYear, massSolar
+    use :: Numerical_Constants_Prefixes    , only : centi                                      , milli                      , kilo
+    use :: Numerical_Constants_Astronomical, only : megaParsec                                 , gigaYear                   , massSolar
     implicit none
     double precision                                     , dimension(3)  :: kummer2018Acceleration
     class           (satelliteDecelerationSIDMKummer2018), intent(inout) :: self
@@ -144,7 +165,8 @@ contains
     class           (nodeComponentSatellite             ), pointer       :: satellite
     class           (nodeComponentBasic                 ), pointer       :: basic
     type            (treeNode                           ), pointer       :: nodeHost
-    class           (massDistributionClass              ), pointer       :: massDistribution_     , massDistributionHost_
+    class           (massDistributionClass              ), pointer       :: massDistribution_     , massDistributionHost_      , &
+         &                                                                  massDistributionDark
     class           (kinematicsDistributionClass        ), pointer       :: kinematics_           , kinematicsHost_
     double precision                                     , dimension(3)  :: position              , velocity
     double precision                                                     :: radiusOrbital         , speedOrbital               , &
@@ -174,23 +196,20 @@ contains
     !![
     <objectDestructor name="massDistributionHost_"/>
     !!]
-    ! repositioned select block + if-expersion
     select type (darkMatterParticle_ => self%darkMatterParticle_)
     class is (darkMatterParticleSelfInteractingDarkMatter)
        ! Compute the normalization of the scattering rate in units such that when multiplied by a velocity in km s?~A?¹, and a
-       ! density in units of M?~X~I Mpc?~A?³, we get a rate in unitss ofGyr??~A?¹.
+       ! density in units of M?~X~I Mpc?~A?³, we get a rate in unitss of Gyr??~A?¹.
        self%rateScatteringNormalization=+darkMatterParticle_%crossSectionSelfInteraction(speedOrbital)*centi**2/milli & ! Convert cross-section from cm² g?~A?¹ to m² kg?~A?¹.
-            &                           * kilo                       & !Convertvelocity from km s?~A?¹ to m s?~A?¹.
-            &                           * massSolar   /megaParsec**3 & !Convertdensity from M?~X~I Mpc?~A?³ to kg m?~A??³.
-            &                           * gigaYear                     !Convertrate from s?~A?¹ to Gyr?~A?¹.
+            &                           * kilo                       & ! Convert velocity from km s?~A?¹ to m s?~A?¹.
+            &                           * massSolar   /megaParsec**3 & ! Convert density from M?~X~I Mpc?~A?³ to kg m?~A??³.
+            &                           * gigaYear                     ! Convert rate from s?~A?¹ to Gyr?~A?¹.
     class default
        ! No scattering.
        self%rateScatteringNormalization=+0.0d0
     end select
-
     ! If the scattering cross section is zero, we can return immediately.
     if (self%rateScatteringNormalization == 0.0d0) return
-
     ! Find the escape velocity from the half-mass radius of the subhalo. This is equal to the potential difference between the
     ! half-mass radius and outer boundary of the subhalo, plus the potential difference from the outer boundary to infinity (for
     ! which we can treat the subhalo as a point mass).
@@ -199,22 +218,32 @@ contains
     ! mass profile of the subhalo, M⁻¹∫ρ(r) v(r) d³r. Evaluating that integral would be computationally expensive. Instead, we use
     ! the escape velocity at the half-mass radius of the subhalo. For a scale-free Hernquist profile, M⁻¹∫ρ(r) v(r) d³r =
     ! 8√2/15=0.754, while v(r½=1+√2)=√(2/(2+√2))=0.765 - so the two choices result in very similar effective escape velocities.
-    basic        =>    node     %basic    ()
-    massBoundary = min(                       &
-         &             satellite%boundMass(), &
-         &             basic    %     mass()  &
-         &            )
+    basic        =>    node      %basic             ()
+    massBoundary =  +min(                               &
+         &              satellite%boundMass         (), &
+         &              basic    %     mass         ()  &
+         &             )                                &
+         &          *   self     %fractionDarkMatter
     if (massBoundary > 0.0d0) then
-       massDistribution_ => node             %massDistribution   (                       )
-       radiusBoundary    =  massDistribution_%radiusEnclosingMass(mass=      massBoundary)
-       radiusHalfMass    =  massDistribution_%radiusEnclosingMass(mass=0.5d0*massBoundary)
+       massDistribution_    => node%massDistribution(                           )
+       massDistributionDark => node%massDistribution(massType=      massTypeDark)
+       if (      massBoundary > massDistributionDark%massEnclosedBySphere(self%darkMatterHaloScale_%radiusVirial(node))) then
+          radiusBoundary=self                %darkMatterHaloScale_%radiusVirial       (           node        )
+       else
+          radiusBoundary=massDistributionDark                     %radiusEnclosingMass(mass=      massBoundary)
+       end if
+       if (0.5d0*massBoundary > massDistributionDark%massEnclosedBySphere(self%darkMatterHaloScale_%radiusVirial(node))) then
+          radiusHalfMass=self                %darkMatterHaloScale_%radiusVirial       (     node        )
+       else
+          radiusHalfMass=massDistributionDark                     %radiusEnclosingMass(mass=0.5d0*massBoundary)
+       end if
        if (radiusBoundary < 0.5d0*radiusLarge) then
           coordinatesBoundary=[radiusBoundary,0.0d0,0.0d0]
           coordinatesHalfMass=[radiusHalfMass,0.0d0,0.0d0]
-          potentialEscape    =+massDistribution_%potentialDifference(coordinatesBoundary,coordinatesHalfMass) &
-               &              +gravitationalConstantGalacticus                                                &
-               &              *massBoundary                                                                   &
-               &              /radiusBoundary
+          potentialEscape    =+massDistribution_%potentialDifference (coordinatesBoundary,coordinatesHalfMass) &
+               &              +gravitationalConstantGalacticus                                                 &
+               &              *massDistribution_%massEnclosedBySphere(     radiusBoundary                    ) &
+               &              /                                            radiusBoundary
           if (potentialEscape > 0.0d0) then
              velocityEscape=sqrt(2.0d0*potentialEscape)
           else
@@ -224,7 +253,8 @@ contains
           velocityEscape=0.0d0
        end if
        !![
-       <objectDestructor name="massDistribution_"/>
+       <objectDestructor name="massDistribution_"   />
+       <objectDestructor name="massDistributionDark"/>
        !!]
        ! Get the speed of a host particle at the half-mass radius of the subhalo - this is the sum of the kinetic energy or host
        ! particles in the rest-frame of the subhalo, plus the energy they gain by falling in to the half-mass radius of the
