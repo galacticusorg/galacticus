@@ -6,10 +6,10 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "eb389a34da021edba4971aee5be6c473f3ddcb83",
-        "message": "Merge pull request #799 from galacticusorg/fixBlackHoleMergers\n\nSet the mass of the central black hole correctly after a merger\n",
-        "timestamp": "2025-02-20 15:38:24+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/eb389a34da021edba4971aee5be6c473f3ddcb83"
+        "id": "a1c6a485eff809fd76b9d40d7893699f13e77b80",
+        "message": "Merge pull request #800 from galacticusorg/fixMPIWaitTime\n\nChange the MPI wait-on-error time to zero\n",
+        "timestamp": "2025-02-21 15:05:38+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/a1c6a485eff809fd76b9d40d7893699f13e77b80"
     },
     "surfaceDensity": {
         "percentageBelow": 42.857142857142854,
