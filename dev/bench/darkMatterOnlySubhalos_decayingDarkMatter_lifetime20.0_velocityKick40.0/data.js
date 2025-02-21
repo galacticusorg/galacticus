@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1740007886338,
+  "lastUpdate": 1740111004518,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=40 km/s)": [
@@ -507,6 +507,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
             "value": "1479.8823659775367",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "eb389a34da021edba4971aee5be6c473f3ddcb83",
+          "message": "Merge pull request #799 from galacticusorg/fixBlackHoleMergers\n\nSet the mass of the central black hole correctly after a merger",
+          "timestamp": "2025-02-20T15:38:24Z",
+          "tree_id": "70b5c41af6f2220ec8b0f3cceeeec58eaba84ab7",
+          "url": "https://github.com/galacticusorg/galacticus/commit/eb389a34da021edba4971aee5be6c473f3ddcb83"
+        },
+        "date": 1740111003562,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": "266.7988026287882",
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": "1139.1899697799695",
             "unit": "-logℒ"
           }
         ]
