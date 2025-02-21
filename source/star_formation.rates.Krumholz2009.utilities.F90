@@ -17,17 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module that implements various useful utility functions for calculations of  and rates.
-!!}
+  !!{  
+  Contains a module that implements various useful utility functions for calculations for the {\normalfont \ttfamily krumholz2009}
+  star formation surface density rate law.
+  !!}
 
 module Star_Formation_Rate_Krumholz2009_Utilities
-  !!{
-  Implements various useful utility functions for calculations for the {\normalfont \ttfamily krumholz2009} star formation surface density rate law.
+  !!{  
+  Implements various useful utility functions for calculations for the {\normalfont \ttfamily krumholz2009} star formation surface
+  density rate law.
   !!}
   implicit none
   private
   public :: krumholz2009MolecularFractionSlow
+
 contains
 
   double precision function krumholz2009MolecularFractionSlow(s)
