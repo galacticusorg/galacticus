@@ -1194,7 +1194,23 @@ contains
                            &            *toleranceRelative
                    end if
                 end do
-                if (status /= errorStatusSuccess) call Error_Report('integration of Jeans equation failed'//{introspection:location})
+                if (status /= errorStatusSuccess) then
+                   ! Failed to integrate the Jeans equation even with the largest allowed tolerance.
+                   block
+                     use :: File_Utilities, only : File_Name_Temporary
+                     type     (varying_string ) :: message   , fileName
+                     character(len=12         ) :: label
+                     type     (inputParameters) :: descriptor
+
+                     fileName  =File_Name_Temporary("massDistributionFailedJeanIntegration.xml")
+                     descriptor=inputParameters    (                                           )
+                     call massDistributionEmbedding%descriptor    (descriptor)
+                     call descriptor               %serializeToXML(fileName  )
+                     write (label,'(e12.6)') radius
+                     message="integration of Jeans equation failed at r = "//trim(adjustl(label)//" Mpc (massDistribution descriptor written to '"//fileName//"')")
+                     call Error_Report(message//{introspection:location})
+                   end block
+                end if
                 call integrator_%toleranceSet(toleranceRelative=self%toleranceRelativeVelocityDispersion)
              end if
              if (density <= 0.0d0) then
