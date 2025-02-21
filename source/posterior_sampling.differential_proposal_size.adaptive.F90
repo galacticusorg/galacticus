@@ -49,7 +49,8 @@
      double precision                 :: gammaMinimum            , gammaMaximum
      double precision                 :: acceptanceRateMinimum   , acceptanceRateMaximum
      integer                          :: updateCount             , lastUpdateCount
-     logical                          :: outliersInAcceptanceRate
+     logical                          :: outliersInAcceptanceRate, appendLog            , &
+          &                              restoreFromLog
      type            (varying_string) :: logFileName
      integer                          :: logFileUnit
    contains
@@ -80,7 +81,8 @@ contains
          &                                                                               gammaMaximum            , gammaAdjustFactor    , &
          &                                                                               acceptanceRateMinimum   , acceptanceRateMaximum
     integer                                                                           :: updateCount
-    logical                                                                           :: outliersInAcceptanceRate
+    logical                                                                           :: outliersInAcceptanceRate, appendLog            , &
+          &                                                                              restoreFromLog
     type            (varying_string                                 )                 :: logFileName
 
     !![
@@ -130,19 +132,31 @@ contains
       <description>The number of steps between potential updates of the proposal size.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>appendLog</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, append to the existing log file, otherwise overwrite.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>restoreFromLog</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, restore the value of $\gamma$ from the log file.</description>
+      <source>parameters</source>
+    </inputParameter>
     !!]
-    self=posteriorSampleDffrntlEvltnProposalSizeAdaptive(logFileName,gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate)
+    self=posteriorSampleDffrntlEvltnProposalSizeAdaptive(logFileName,gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate,appendLog,restoreFromLog)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function adaptiveConstructorParameters
 
-  function adaptiveConstructorInternal(logFileName,gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate) result(self)
+  function adaptiveConstructorInternal(logFileName,gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate,appendLog,restoreFromLog) result(self)
     !!{
     Constructor for the ``adaptive'' differential evolution proposal size class.
     !!}
-    use :: MPI_Utilities, only : mpiSelf
+    use :: MPI_Utilities, only : mpiSelf, mpiBarrier
     implicit none
     type            (posteriorSampleDffrntlEvltnProposalSizeAdaptive)                :: self
     type            (varying_string                                 ), intent(in   ) :: logFileName
@@ -150,15 +164,32 @@ contains
          &                                                                              gammaMinimum            , gammaMaximum         , &
          &                                                                              acceptanceRateMinimum   , acceptanceRateMaximum
     integer                                                          , intent(in   ) :: updateCount
-    logical                                                          , intent(in   ) :: outliersInAcceptanceRate
+    logical                                                          , intent(in   ) :: outliersInAcceptanceRate, appendLog            , &
+         &                                                                              restoreFromLog
+    character       (len=32                                         )                :: line
+    integer                                                                          :: ioStatus
     !![
-    <constructorAssign variables="logFileName,gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate"/>
+    <constructorAssign variables="logFileName,gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate, appendLog, restoreFromLog"/>
     !!]
 
     self%gammaCurrent   =gammaInitial
+    if (self%restoreFromLog .and. logFileName /= '') then
+       open(newunit=self%logFileUnit,file=char(logFileName),status='old',form='formatted',iostat=ioStatus)
+       do while (ioStatus == 0)
+          read (self%logFileUnit,'(a)',iostat=ioStatus) line
+          if (ioStatus /= 0) exit
+          if (index(line,"Adjusting") /= 0) read (line(index(trim(line)," ",back=.true.)+1:len_trim(line)),*) self%gammaCurrent
+       end do
+       close(self%logFileUnit)
+       call mpiBarrier()
+    end if
     self%lastUpdateCount=0
     if (mpiSelf%rank() == 0 .and. logFileName /= '') then
-       open(newunit=self%logFileUnit,file=char(logFileName),status='unknown',form='formatted')
+       if (self%appendLog) then
+          open(newunit=self%logFileUnit,file=char(logFileName),status='unknown',form='formatted',position='append')
+       else
+          open(newunit=self%logFileUnit,file=char(logFileName),status='unknown',form='formatted'                  )
+       end if
     else
        self%logFileUnit=-huge(0)
     end if
