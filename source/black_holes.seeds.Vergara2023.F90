@@ -150,12 +150,12 @@ contains
     type (treeNode                 ), intent(inout)          :: node
     class(nodeComponentNSC         )               , pointer :: nuclearStarCluster
     class(nodeComponentBasic       )               , pointer :: basic
-    double precision                                         :: radiusNuclearStarCluster        , velocityNuclearStarCluster       , &
-        &                                                       massStellarNuclearStarCluster   , massCriticalNuclearStarCluster   , &
-        &                                                       Theta                           , crossSectionNuclearStarCluster   , &
-        &                                                       massBlackHoleSeed               , massTimeStellarNuclearStarCluster, &
-        &                                                       ageNuclearStarCluster           , time
-    double precision                                         :: velocity        = 100.0d0 !km s¯¹
+    double precision                                         :: radiusNuclearStarCluster                  , velocityNuclearStarCluster    , &
+        &                                                       massStellarNuclearStarCluster             , massCriticalNuclearStarCluster, &
+        &                                                       Theta                                     , crossSectionNuclearStarCluster, &
+        &                                                       massTimeStellarNuclearStarCluster         , ageNuclearStarCluster         , &
+        &                                                       time
+    double precision                                         :: velocity                         = 100.0d0 !km s¯¹
     
     ! Get the nuclear star cluster component.
     nuclearStarCluster => node%NSC()
