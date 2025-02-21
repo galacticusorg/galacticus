@@ -65,34 +65,39 @@ my $hashHead;
 }
 ## Find last modified hash.
 my $hashLastModified;
-if ( exists($options{'lastModifiedRevision'}) ) {
-    $hashLastModified = $options{'lastModifiedRevision'};
-} elsif ( $isInGit ) {
-    # File is in git index, use git to determine the last revision at which it was modified.
-    ## Find the hash at which the file was last modified.
-    {
-	open(my $git,"git log -n 1 --pretty=format:\%H -- ".$inputFileName."|");
-	$hashLastModified = <$git>;
-	chomp($hashLastModified);
-    }
-} else {
-    # Look for a last modification hash.
-    my $elementLastModified = $root->findnodes('//lastModified')->[0];
-    if ( defined($elementLastModified) ) {
-	# A last modified element exists, extract the hash, and update.
-	$hashLastModified = $elementLastModified->getAttribute('revision');
-   }
-}
-## Update the last modified metadata.
-my $elementLastModified = $root->findnodes('lastModified')->[0];
+my $elementLastModified = $root->findnodes('//lastModified')->[0];
 unless ( defined($elementLastModified) ) {
-    $hashLastModified           = "6eab8997cd73cb0a474228ade542d133890ad138^";
     my $elementLastModifiedNode = $input->createElement("lastModified");
     my $newBreak                = $input->createTextNode("\n  "   );
     $root->insertBefore($elementLastModifiedNode,$root->firstChild());
-    $root->insertBefore($newBreak               ,$root->firstChild());    
+    $root->insertBefore($newBreak               ,$root->firstChild());
     $elementLastModified = $root->findnodes('lastModified')->[0];
 }
+if ( exists($options{'lastModifiedRevision'}) ) {
+    $hashLastModified = $options{'lastModifiedRevision'};
+} else {
+    # Look for a last modification hash.
+    if ( defined($elementLastModified) && grep {$_->name() eq 'revision'} $elementLastModified->attributes() ) {
+	# A last modified element exists, extract the hash, and update.
+	$hashLastModified = $elementLastModified->getAttribute('revision');
+    } elsif ( $isInGit ) {
+	# File is in git index, use git to determine the last revision at which it was modified.
+	## Find the hash at which the file was last modified.
+	{
+	    open(my $git,"git log -n 1 --pretty=format:\%H -- ".$inputFileName."|");
+	    $hashLastModified = <$git>;
+	    chomp($hashLastModified);
+	}
+    } else {
+	$hashLastModified           = "6eab8997cd73cb0a474228ade542d133890ad138^";
+	my $elementLastModifiedNode = $input->createElement("lastModified");
+	my $newBreak                = $input->createTextNode("\n  "   );
+	$root->insertBefore($elementLastModifiedNode,$root->firstChild());
+	$root->insertBefore($newBreak               ,$root->firstChild());
+	$elementLastModified = $root->findnodes('lastModified')->[0];
+    }
+}
+## Update the last modified metadata.
 $elementLastModified->setAttribute('revision',$hashHead);
 $elementLastModified->setAttribute('time'    ,DateTime->now());
 
