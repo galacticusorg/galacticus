@@ -219,14 +219,14 @@ contains
        <objectDestructor name="massDistribution_"/>
        !!]
        ! Find the combined velocity dispersion of satellite and host.
-       massDistribution_           =>  self                 %darkMatterProfileDMO_%get                   (node           )
-       massDistributionHost_       =>  self                 %darkMatterProfileDMO_%get                   (nodeHost       )       
-       kinematics_                 =>  massDistribution_                          %kinematicsDistribution(               )
-       kinematicsHost_             =>  massDistributionHost_                      %kinematicsDistribution(               )
+       massDistribution_           =>  self                 %darkMatterProfileDMO_%get                   (node                                                       )
+       massDistributionHost_       =>  self                 %darkMatterProfileDMO_%get                   (nodeHost                                                   ) 
+       kinematics_                 =>  massDistribution_                          %kinematicsDistribution(                                                           )
+       kinematicsHost_             =>  massDistributionHost_                      %kinematicsDistribution(                                                           )
        coordinates                 =  [radiusHalfMass,0.0d0,0.0d0]
        coordinatesHost             =  [radiusOrbital ,0.0d0,0.0d0]
-       velocityDispersionHost      =  +kinematicsHost_                            %velocityDispersion1D  (coordinatesHost,massDistributionHost_)
-       velocityDispersionSatellite =  +kinematics_                                %velocityDispersion1D  (coordinates    ,massDistribution_    )
+       velocityDispersionHost      =  +kinematicsHost_                            %velocityDispersion1D  (coordinatesHost,massDistributionHost_,massDistributionHost_)
+       velocityDispersionSatellite =  +kinematics_                                %velocityDispersion1D  (coordinates    ,massDistribution_    ,massDistribution_    )
        velocityDispersion          =  +sqrt(                                &
             &                               +velocityDispersionHost     **2 &
             &                               +velocityDispersionSatellite**2 &

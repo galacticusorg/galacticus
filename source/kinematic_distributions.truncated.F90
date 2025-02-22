@@ -87,36 +87,38 @@ contains
     return
   end function truncatedIsCollisional
 
-  double precision function truncatedVelocityDispersion1D(self,coordinates,massDistributionEmbedding) result(velocityDispersion)
+  double precision function truncatedVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
     !!{
     Return the 1D velocity dispersion at the specified {\normalfont \ttfamily coordinates} in an truncated kinematic distribution.
     !!}
     use :: Coordinates, only : coordinateSpherical, assignment(=)
     implicit none
-    class           (kinematicsDistributionTruncated), intent(inout), target :: self
-    class           (coordinate                     ), intent(in   )         :: coordinates
-    class           (massDistributionClass          ), intent(inout)         :: massDistributionEmbedding
-    class           (kinematicsDistributionClass    ), pointer               :: kinematicsDistribution_
-    type            (coordinateSpherical            )                        :: coordinatesTruncateMinimum
-    logical                                                                  :: analytic
-    double precision                                                         :: density                   , velocityDispersionDecorated
+    class           (kinematicsDistributionTruncated), intent(inout)          :: self
+    class           (coordinate                     ), intent(in   )          :: coordinates
+    class           (massDistributionClass          ), intent(inout), target  :: massDistribution_         , massDistributionEmbedding
+    class           (massDistributionClass          )               , pointer :: massDistribution__
+    class           (kinematicsDistributionClass    )               , pointer :: kinematicsDistribution_
+    type            (coordinateSpherical            )                         :: coordinatesTruncateMinimum
+    logical                                                                   :: analytic
+    double precision                                                          :: density                   , velocityDispersionDecorated
 
     analytic=.false.
-    if (associated(massDistributionEmbedding%kinematicsDistribution_,self)) then
+    massDistribution__ => massDistribution_
+    if (associated(massDistribution__,massDistributionEmbedding)) then
        ! For the case of a self-gravitating truncated distribution we have a piecewise solution for the velocity dispersion in some cases.
        select type (massDistributionEmbedding)
        class is (massDistributionSphericalTruncated)
           if (coordinates%rSpherical() < massDistributionEmbedding%radiusTruncateMinimum) then
              ! Use the decorated mass distribution solution, adjusted for the outer truncation shell.
              analytic                                           =   .true.
-             kinematicsDistribution_                            =>  massDistributionEmbedding%massDistribution_%kinematicsDistribution       (                                                                      )
-             density                                            =   massDistributionEmbedding                  %density                      (coordinates                                                           )
-             velocityDispersionDecorated                        =   kinematicsDistribution_                    %velocityDispersion1D         (coordinates               ,massDistributionEmbedding%massDistribution_)
+             kinematicsDistribution_                            =>  massDistributionEmbedding%massDistribution_%kinematicsDistribution       (                                                                                                                  )
+             density                                            =   massDistributionEmbedding                  %density                      (coordinates                                                                                                       )
+             velocityDispersionDecorated                        =   kinematicsDistribution_                    %velocityDispersion1D         (coordinates               ,massDistributionEmbedding%massDistribution_,massDistributionEmbedding%massDistribution_)
              if (.not.self%velocityDispersionTruncateMinimumComputed) then
                 coordinatesTruncateMinimum                      =  [massDistributionEmbedding                  %radiusTruncateMinimum,0.0d0,0.0d0]
-                self%densityTruncateMinimum                     =   massDistributionEmbedding                  %density                      (coordinatesTruncateMinimum                                            )
-                self%velocityDispersionDecoratedTruncateMinimum =   kinematicsDistribution_                    %velocityDispersion1D         (coordinatesTruncateMinimum,massDistributionEmbedding%massDistribution_)
-                self%velocityDispersionTruncateMinimum          =   self                                       %velocityDispersion1DNumerical(coordinatesTruncateMinimum,massDistributionEmbedding                  )
+                self%densityTruncateMinimum                     =   massDistributionEmbedding                  %density                      (coordinatesTruncateMinimum                                                                                        )
+                self%velocityDispersionDecoratedTruncateMinimum =   kinematicsDistribution_                    %velocityDispersion1D         (coordinatesTruncateMinimum,massDistributionEmbedding%massDistribution_,massDistributionEmbedding%massDistribution_)
+                self%velocityDispersionTruncateMinimum          =   self                                       %velocityDispersion1DNumerical(coordinatesTruncateMinimum,massDistributionEmbedding                  ,massDistributionEmbedding                  )
                 self%velocityDispersionTruncateMinimumComputed  =   .true.
              end if
              !![
@@ -127,14 +129,14 @@ contains
           if (coordinates%rSpherical() < massDistributionEmbedding%radiusTruncateMinimum) then
              ! Use the decorated mass distribution solution, adjusted for the outer truncation shell.
              analytic                                           =   .true.
-             kinematicsDistribution_                            =>  massDistributionEmbedding%massDistribution_%kinematicsDistribution       (                                                                      )
-             density                                            =   massDistributionEmbedding                  %density                      (coordinates                                                           )
-             velocityDispersionDecorated                        =   kinematicsDistribution_                    %velocityDispersion1D         (coordinates               ,massDistributionEmbedding%massDistribution_)
-             if (.not.self%velocityDispersionTruncateMinimumComputed) then
-                coordinatesTruncateMinimum                      =  [massDistributionEmbedding                  %radiusTruncateMinimum,0.0d0,0.0d0]
-                self%densityTruncateMinimum                     =   massDistributionEmbedding                  %density                      (coordinatesTruncateMinimum                                            )
-                self%velocityDispersionDecoratedTruncateMinimum =   kinematicsDistribution_                    %velocityDispersion1D         (coordinatesTruncateMinimum,massDistributionEmbedding%massDistribution_)
-                self%velocityDispersionTruncateMinimum          =   self                                       %velocityDispersion1DNumerical(coordinatesTruncateMinimum,massDistributionEmbedding                  )
+             kinematicsDistribution_                            =>  massDistributionEmbedding%massDistribution_%kinematicsDistribution       (                                                                                                                  )
+             density                                            =   massDistributionEmbedding                  %density                      (coordinates                                                                                                       )
+             velocityDispersionDecorated                        =   kinematicsDistribution_                    %velocityDispersion1D         (coordinates               ,massDistributionEmbedding%massDistribution_,massDistributionEmbedding%massDistribution_)
+             if (.not.self%velocityDispersionTruncateMinimumComputed) then                                                                                                                                                                                      
+                coordinatesTruncateMinimum                      =  [massDistributionEmbedding                  %radiusTruncateMinimum,0.0d0,0.0d0]                                                                                                              
+                self%densityTruncateMinimum                     =   massDistributionEmbedding                  %density                      (coordinatesTruncateMinimum                                                                                        )
+                self%velocityDispersionDecoratedTruncateMinimum =   kinematicsDistribution_                    %velocityDispersion1D         (coordinatesTruncateMinimum,massDistributionEmbedding%massDistribution_,massDistributionEmbedding%massDistribution_)
+                self%velocityDispersionTruncateMinimum          =   self                                       %velocityDispersion1DNumerical(coordinatesTruncateMinimum,massDistributionEmbedding                  ,massDistributionEmbedding                  )
                 self%velocityDispersionTruncateMinimumComputed  =   .true.
              end if
              !![
@@ -158,7 +160,7 @@ contains
             &                    )                                                    &
             &                  )
     else
-       velocityDispersion=+self%velocityDispersion1DNumerical(coordinates,massDistributionEmbedding)
+       velocityDispersion=+self%velocityDispersion1DNumerical(coordinates,massDistribution_,massDistributionEmbedding)
     end if
     return
   end function truncatedVelocityDispersion1D

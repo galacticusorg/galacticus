@@ -116,15 +116,15 @@ contains
     return
   end function collisionlessIsCollisional
 
-  double precision function collisionlessVelocityDispersion1D(self,coordinates,massDistributionEmbedding) result(velocityDispersion)
+  double precision function collisionlessVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
     !!{
     Return the 1D velocity dispersion at the specified {\normalfont \ttfamily coordinates} in an collisionless kinematic distribution.
     !!}
     implicit none
-    class(kinematicsDistributionCollisionless), intent(inout), target :: self
-    class(coordinate                         ), intent(in   )         :: coordinates
-    class(massDistributionClass              ), intent(inout)         :: massDistributionEmbedding
+    class(kinematicsDistributionCollisionless), intent(inout)          :: self
+    class(coordinate                         ), intent(in   )          :: coordinates
+    class(massDistributionClass              ), intent(inout), target  :: massDistribution_, massDistributionEmbedding
 
-    velocityDispersion=self%velocityDispersion1DNumerical(coordinates,massDistributionEmbedding)
+    velocityDispersion=self%velocityDispersion1DNumerical(coordinates,massDistribution_,massDistributionEmbedding)
     return
   end function collisionlessVelocityDispersion1D

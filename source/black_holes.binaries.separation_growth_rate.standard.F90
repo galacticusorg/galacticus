@@ -228,10 +228,10 @@ contains
     coordinates                      =  [blackHole%radialPosition(),0.0d0,0.0d0]
    ! Compute the velocity dispersion of stars and dark matter.
     if (self%computeVelocityDispersion) then
-       kinematicsDistributionSpheroidStellar_ => massDistributionSpheroidStellar_      %kinematicsDistribution(                             )
-       kinematicsDistributionDarkMatterHalo_  => massDistributionDarkMatterHalo_       %kinematicsDistribution(                             )
-       velocityDispersionSpheroid             =  kinematicsDistributionSpheroidStellar_%velocityDispersion1D  (coordinates,massDistribution_)
-       velocityDispersionDarkMatter           =  kinematicsDistributionDarkMatterHalo_ %velocityDispersion1D  (coordinates,massDistribution_)
+       kinematicsDistributionSpheroidStellar_ => massDistributionSpheroidStellar_      %kinematicsDistribution(                                               )
+       kinematicsDistributionDarkMatterHalo_  => massDistributionDarkMatterHalo_       %kinematicsDistribution(                                               )
+       velocityDispersionSpheroid             =  kinematicsDistributionSpheroidStellar_%velocityDispersion1D  (coordinates,massDistribution_,massDistribution_)
+       velocityDispersionDarkMatter           =  kinematicsDistributionDarkMatterHalo_ %velocityDispersion1D  (coordinates,massDistribution_,massDistribution_)
        !![
        <objectDestructor name="kinematicsDistributionSpheroidStellar_"/>
        <objectDestructor name="kinematicsDistributionDarkMatterHalo_" />

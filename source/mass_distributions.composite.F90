@@ -44,9 +44,9 @@
    contains
      !![
      <methods>
-       <method method="initialize" description="Initialize the mass distribution after construction."  />
-       <method method="subset"     description="Return a subset of a composite mass distribution."     />
-       <method method="describe"   description="Display a description of a composite mass distibution."/>
+       <method method="initialize" description="Initialize the mass distribution after construction."   />
+       <method method="subset"     description="Return a subset of a composite mass distribution."      />
+       <method method="describe"   description="Display a description of a composite mass distribution."/>
      </methods>
      !!]
      final     ::                                            compositeDestructor

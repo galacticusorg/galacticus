@@ -976,9 +976,9 @@ contains
     if (density  <= 0.0d0) return
     if (.not.associated(self%kinematicsDistribution_)) call Error_Report('a kinematics distribution is needed to compute the Chandrasekhar integral'//{introspection:location})
     if (self%kinematicsDistribution_%isCollisional()) then
-       velocityDispersion=Ideal_Gas_Sound_Speed(self%kinematicsDistribution_%temperature         (coordinates                          ))
+       velocityDispersion=Ideal_Gas_Sound_Speed(self%kinematicsDistribution_%temperature         (coordinates                               ))
     else
-       velocityDispersion=                      self%kinematicsDistribution_%velocityDispersion1D(coordinates,massDistributionEmbedding)
+       velocityDispersion=                      self%kinematicsDistribution_%velocityDispersion1D(coordinates,self,massDistributionEmbedding)
     end if
     if (velocityDispersion > 0.0d0) then    
        xV                         =+velocity_             &
@@ -1338,9 +1338,9 @@ contains
 
       if (radius > 0.0d0) then
          coordinates           =[radius,0.0d0,0.0d0]
-         integrandEnergyKinetic=+self                        %density             (coordinates                          )    &
-              &                 *self%kinematicsDistribution_%velocityDispersion1D(coordinates,massDistributionEmbedding)**2 &
-              &                 *                             radius                                                     **2
+         integrandEnergyKinetic=+self                        %density             (coordinates                               )    &
+              &                 *self%kinematicsDistribution_%velocityDispersion1D(coordinates,self,massDistributionEmbedding)**2 &
+              &                 *                             radius                                                          **2
       else
          integrandEnergyKinetic=0.0d0
       end if
