@@ -272,15 +272,15 @@ program Test_Dark_Matter_Profiles
   class is (massDistributionSpherical)
      do i=1,7
         coordinates=[radiusScale*radius(i),0.0d0,0.0d0]
-        mass                                      (i)=massDistribution_      %massEnclosedBySphere             (                                                         radiusScale   *radius      (i)                      )
-        density                                   (i)=massDistribution_      %density                          (                                                                        coordinates                          )*radiusScale**3
-        radiusRecoveredFromMass                   (i)=massDistribution_      %radiusEnclosingMass              (                                                 mass(i)                                                     )/radiusScale
-        radiusRecoveredFromDensity                (i)=massDistribution_      %radiusEnclosingDensity           (                                  3.0d0/4.0d0/Pi*mass(i)/radiusScale**3/radius      (i)**3                   )/radiusScale
-        radiusRecoveredFromSpecificAngularMomentum(i)=massDistribution_      %radiusFromSpecificAngularMomentum(             sqrt(gravitationalConstant_internal*mass(i)*radiusScale   *radius      (i)   )                  )/radiusScale
-        radiusRecoveredFromTimeFreefall           (i)=massDistribution_      %radiusFreefall                   (                                                         timeScale     *timeFreefall(i)                      )/radiusScale
-        potential                                 (i)=massDistribution_      %potential                        (                                                                        coordinates                          )*radiusScale/gravitationalConstant_internal
-        fourier                                   (i)=massDistribution_      %fourierTransform                 (radiusVirial,1.0d0                                      /radiusScale   /radius      (i)                      )
-        radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D             (                                                                        coordinates        ,massDistribution_)
+        mass                                      (i)=massDistribution_      %massEnclosedBySphere             (                                                         radiusScale   *radius      (i)                                        )
+        density                                   (i)=massDistribution_      %density                          (                                                                        coordinates                                            )*radiusScale**3
+        radiusRecoveredFromMass                   (i)=massDistribution_      %radiusEnclosingMass              (                                                 mass(i)                                                                       )/radiusScale
+        radiusRecoveredFromDensity                (i)=massDistribution_      %radiusEnclosingDensity           (                                  3.0d0/4.0d0/Pi*mass(i)/radiusScale**3/radius      (i)**3                                     )/radiusScale
+        radiusRecoveredFromSpecificAngularMomentum(i)=massDistribution_      %radiusFromSpecificAngularMomentum(             sqrt(gravitationalConstant_internal*mass(i)*radiusScale   *radius      (i)   )                                    )/radiusScale
+        radiusRecoveredFromTimeFreefall           (i)=massDistribution_      %radiusFreefall                   (                                                         timeScale     *timeFreefall(i)                                        )/radiusScale
+        potential                                 (i)=massDistribution_      %potential                        (                                                                        coordinates                                            )*radiusScale/gravitationalConstant_internal
+        fourier                                   (i)=massDistribution_      %fourierTransform                 (radiusVirial,1.0d0                                      /radiusScale   /radius      (i)                                        )
+        radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D             (                                                                        coordinates        ,massDistribution_,massDistribution_)
      end do
      radiusSmall             =massDistribution_%radiusEnclosingMass         (massSmall                              )
      radiusVelocityMaximum   =massDistribution_%radiusRotationCurveMaximum  (                                       )
@@ -442,15 +442,15 @@ program Test_Dark_Matter_Profiles
   class is (massDistributionSpherical)
      do i=1,7
         coordinates=[radiusScale*radius(i),0.0d0,0.0d0]
-        mass                                      (i)=massDistribution_      %massEnclosedBySphere             (                                                         radiusScale   *radius      (i)                      )
-        density                                   (i)=massDistribution_      %density                          (                                                                        coordinates                          )*radiusScale**3
-        radiusRecoveredFromMass                   (i)=massDistribution_      %radiusEnclosingMass              (                                                 mass(i)                                                     )/radiusScale
-        radiusRecoveredFromDensity                (i)=massDistribution_      %radiusEnclosingDensity           (                                  3.0d0/4.0d0/Pi*mass(i)/radiusScale**3/radius      (i)**3                   )/radiusScale
-        radiusRecoveredFromSpecificAngularMomentum(i)=massDistribution_      %radiusFromSpecificAngularMomentum(             sqrt(gravitationalConstant_internal*mass(i)*radiusScale   *radius      (i)   )                  )/radiusScale
-        radiusRecoveredFromTimeFreefall           (i)=massDistribution_      %radiusFreefall                   (                                                         timeScale     *timeFreefall(i)                      )/radiusScale
-        potential                                 (i)=massDistribution_      %potential                        (                                                                        coordinates                          )*radiusScale/gravitationalConstant_internal
-        fourier                                   (i)=massDistribution_      %fourierTransform                 (radiusVirial,1.0d0                                      /radiusScale   /radius      (i)                      )
-        radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D             (                                                                        coordinates        ,massDistribution_)
+        mass                                      (i)=massDistribution_      %massEnclosedBySphere             (                                                         radiusScale   *radius      (i)                                        )
+        density                                   (i)=massDistribution_      %density                          (                                                                        coordinates                                            )*radiusScale**3
+        radiusRecoveredFromMass                   (i)=massDistribution_      %radiusEnclosingMass              (                                                 mass(i)                                                                       )/radiusScale
+        radiusRecoveredFromDensity                (i)=massDistribution_      %radiusEnclosingDensity           (                                  3.0d0/4.0d0/Pi*mass(i)/radiusScale**3/radius      (i)**3                                     )/radiusScale
+        radiusRecoveredFromSpecificAngularMomentum(i)=massDistribution_      %radiusFromSpecificAngularMomentum(             sqrt(gravitationalConstant_internal*mass(i)*radiusScale   *radius      (i)   )                                    )/radiusScale
+        radiusRecoveredFromTimeFreefall           (i)=massDistribution_      %radiusFreefall                   (                                                         timeScale     *timeFreefall(i)                                        )/radiusScale
+        potential                                 (i)=massDistribution_      %potential                        (                                                                        coordinates                                            )*radiusScale/gravitationalConstant_internal
+        fourier                                   (i)=massDistribution_      %fourierTransform                 (radiusVirial,1.0d0                                      /radiusScale   /radius      (i)                                        )
+        radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D             (                                                                        coordinates        ,massDistribution_,massDistribution_)
      end do
      radiusVelocityMaximum   =massDistribution_%radiusRotationCurveMaximum  (                                       )
      velocityMaximum         =massDistribution_%velocityRotationCurveMaximum(                                       )
@@ -605,15 +605,15 @@ program Test_Dark_Matter_Profiles
   class is (massDistributionSpherical)
      do i=1,7
         coordinates=[radiusScale*radius(i),0.0d0,0.0d0]
-        mass                                      (i)=massDistribution_      %massEnclosedBySphere             (                                                         radiusScale   *radius      (i)                      )
-        density                                   (i)=massDistribution_      %density                          (                                                                        coordinates                          )*radiusScale**3
-        radiusRecoveredFromMass                   (i)=massDistribution_      %radiusEnclosingMass              (                                                 mass(i)                                                     )/radiusScale
-        radiusRecoveredFromDensity                (i)=massDistribution_      %radiusEnclosingDensity           (                                  3.0d0/4.0d0/Pi*mass(i)/radiusScale**3/radius      (i)**3                   )/radiusScale
-        radiusRecoveredFromSpecificAngularMomentum(i)=massDistribution_      %radiusFromSpecificAngularMomentum(             sqrt(gravitationalConstant_internal*mass(i)*radiusScale   *radius      (i)   )                  )/radiusScale
-        radiusRecoveredFromTimeFreefall           (i)=massDistribution_      %radiusFreefall                   (                                                         timeScale     *timeFreefall(i)                      )/radiusScale
-        potential                                 (i)=massDistribution_      %potential                        (                                                                        coordinates                          )*radiusScale/gravitationalConstant_internal
-        fourier                                   (i)=massDistribution_      %fourierTransform                 (radiusVirial,1.0d0                                      /radiusScale   /radius      (i)                      )
-        radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D             (                                                                        coordinates        ,massDistribution_)
+        mass                                      (i)=massDistribution_      %massEnclosedBySphere             (                                                         radiusScale   *radius      (i)                                        )
+        density                                   (i)=massDistribution_      %density                          (                                                                        coordinates                                            )*radiusScale**3
+        radiusRecoveredFromMass                   (i)=massDistribution_      %radiusEnclosingMass              (                                                 mass(i)                                                                       )/radiusScale
+        radiusRecoveredFromDensity                (i)=massDistribution_      %radiusEnclosingDensity           (                                  3.0d0/4.0d0/Pi*mass(i)/radiusScale**3/radius      (i)**3                                     )/radiusScale
+        radiusRecoveredFromSpecificAngularMomentum(i)=massDistribution_      %radiusFromSpecificAngularMomentum(             sqrt(gravitationalConstant_internal*mass(i)*radiusScale   *radius      (i)   )                                    )/radiusScale
+        radiusRecoveredFromTimeFreefall           (i)=massDistribution_      %radiusFreefall                   (                                                         timeScale     *timeFreefall(i)                                        )/radiusScale
+        potential                                 (i)=massDistribution_      %potential                        (                                                                        coordinates                                            )*radiusScale/gravitationalConstant_internal
+        fourier                                   (i)=massDistribution_      %fourierTransform                 (radiusVirial,1.0d0                                      /radiusScale   /radius      (i)                                        )
+        radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D             (                                                                        coordinates        ,massDistribution_,massDistribution_)
      end do
      radiusVelocityMaximum   =massDistribution_%radiusRotationCurveMaximum  (                                       )
      velocityMaximum         =massDistribution_%velocityRotationCurveMaximum(                                       )
@@ -768,15 +768,15 @@ program Test_Dark_Matter_Profiles
   class is (massDistributionSpherical)
      do i=1,7
         coordinates=[radiusScale*radius(i),0.0d0,0.0d0]
-        mass                                      (i)=massDistribution_      %massEnclosedBySphere             (                                                         radiusScale   *radius      (i)                      )
-        density                                   (i)=massDistribution_      %density                          (                                                                        coordinates                          )*radiusScale**3
-        radiusRecoveredFromMass                   (i)=massDistribution_      %radiusEnclosingMass              (                                                 mass(i)                                                     )/radiusScale
-        radiusRecoveredFromDensity                (i)=massDistribution_      %radiusEnclosingDensity           (                                  3.0d0/4.0d0/Pi*mass(i)/radiusScale**3/radius      (i)**3                   )/radiusScale
-        radiusRecoveredFromSpecificAngularMomentum(i)=massDistribution_      %radiusFromSpecificAngularMomentum(             sqrt(gravitationalConstant_internal*mass(i)*radiusScale   *radius      (i)   )                  )/radiusScale
-        radiusRecoveredFromTimeFreefall           (i)=massDistribution_      %radiusFreefall                   (                                                         timeScale     *timeFreefall(i)                      )/radiusScale
-        potential                                 (i)=massDistribution_      %potential                        (                                                                        coordinates                          )*radiusScale/gravitationalConstant_internal
-        fourier                                   (i)=massDistribution_      %fourierTransform                 (radiusVirial,1.0d0                                      /radiusScale   /radius      (i)                      )
-        radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D             (                                                                        coordinates        ,massDistribution_)
+        mass                                      (i)=massDistribution_      %massEnclosedBySphere             (                                                         radiusScale   *radius      (i)                                        )
+        density                                   (i)=massDistribution_      %density                          (                                                                        coordinates                                            )*radiusScale**3
+        radiusRecoveredFromMass                   (i)=massDistribution_      %radiusEnclosingMass              (                                                 mass(i)                                                                       )/radiusScale
+        radiusRecoveredFromDensity                (i)=massDistribution_      %radiusEnclosingDensity           (                                  3.0d0/4.0d0/Pi*mass(i)/radiusScale**3/radius      (i)**3                                     )/radiusScale
+        radiusRecoveredFromSpecificAngularMomentum(i)=massDistribution_      %radiusFromSpecificAngularMomentum(             sqrt(gravitationalConstant_internal*mass(i)*radiusScale   *radius      (i)   )                                    )/radiusScale
+        radiusRecoveredFromTimeFreefall           (i)=massDistribution_      %radiusFreefall                   (                                                         timeScale     *timeFreefall(i)                                        )/radiusScale
+        potential                                 (i)=massDistribution_      %potential                        (                                                                        coordinates                                            )*radiusScale/gravitationalConstant_internal
+        fourier                                   (i)=massDistribution_      %fourierTransform                 (radiusVirial,1.0d0                                      /radiusScale   /radius      (i)                                        )
+        radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D             (                                                                        coordinates        ,massDistribution_,massDistribution_)
      end do
      radiusVelocityMaximum   =massDistribution_%radiusRotationCurveMaximum  (                                       )
      velocityMaximum         =massDistribution_%velocityRotationCurveMaximum(                                       )
@@ -931,15 +931,15 @@ program Test_Dark_Matter_Profiles
   class is (massDistributionSpherical)
      do i=1,7
         coordinates=[radiusScale*radius(i),0.0d0,0.0d0]
-        mass                                      (i)=massDistribution_      %massEnclosedBySphere             (                                                         radiusScale   *radius      (i)                      )
-        density                                   (i)=massDistribution_      %density                          (                                                                        coordinates                          )*radiusScale**3
-        radiusRecoveredFromMass                   (i)=massDistribution_      %radiusEnclosingMass              (                                                 mass(i)                                                     )/radiusScale
-        radiusRecoveredFromDensity                (i)=massDistribution_      %radiusEnclosingDensity           (                                  3.0d0/4.0d0/Pi*mass(i)/radiusScale**3/radius      (i)**3                   )/radiusScale
-        radiusRecoveredFromSpecificAngularMomentum(i)=massDistribution_      %radiusFromSpecificAngularMomentum(             sqrt(gravitationalConstant_internal*mass(i)*radiusScale   *radius      (i)   )                  )/radiusScale
-        radiusRecoveredFromTimeFreefall           (i)=massDistribution_      %radiusFreefall                   (                                                         timeScale     *timeFreefall(i)                      )/radiusScale
-        potential                                 (i)=massDistribution_      %potential                        (                                                                        coordinates                          )*radiusScale/gravitationalConstant_internal
-        fourier                                   (i)=massDistribution_      %fourierTransform                 (radiusVirial,1.0d0                                      /radiusScale   /radius      (i)                      )
-        radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D             (                                                                        coordinates        ,massDistribution_)
+        mass                                      (i)=massDistribution_      %massEnclosedBySphere             (                                                         radiusScale   *radius      (i)                                        )
+        density                                   (i)=massDistribution_      %density                          (                                                                        coordinates                                            )*radiusScale**3
+        radiusRecoveredFromMass                   (i)=massDistribution_      %radiusEnclosingMass              (                                                 mass(i)                                                                       )/radiusScale
+        radiusRecoveredFromDensity                (i)=massDistribution_      %radiusEnclosingDensity           (                                  3.0d0/4.0d0/Pi*mass(i)/radiusScale**3/radius      (i)**3                                     )/radiusScale
+        radiusRecoveredFromSpecificAngularMomentum(i)=massDistribution_      %radiusFromSpecificAngularMomentum(             sqrt(gravitationalConstant_internal*mass(i)*radiusScale   *radius      (i)   )                                    )/radiusScale
+        radiusRecoveredFromTimeFreefall           (i)=massDistribution_      %radiusFreefall                   (                                                         timeScale     *timeFreefall(i)                                        )/radiusScale
+        potential                                 (i)=massDistribution_      %potential                        (                                                                        coordinates                                            )*radiusScale/gravitationalConstant_internal
+        fourier                                   (i)=massDistribution_      %fourierTransform                 (radiusVirial,1.0d0                                      /radiusScale   /radius      (i)                                        )
+        radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D             (                                                                        coordinates        ,massDistribution_,massDistribution_)
      end do
      radiusVelocityMaximum   =massDistribution_%radiusRotationCurveMaximum  (                                       )
      velocityMaximum         =massDistribution_%velocityRotationCurveMaximum(                                       )
@@ -1082,15 +1082,15 @@ program Test_Dark_Matter_Profiles
   class is (massDistributionSpherical)
      do i=1,7
         coordinates=[radiusScale*radius(i),0.0d0,0.0d0]
-        mass                                      (i)=massDistribution_      %massEnclosedBySphere             (                                                         radiusScale   *radius      (i)                      )
-        density                                   (i)=massDistribution_      %density                          (                                                                        coordinates                          )*radiusScale**3
-        radiusRecoveredFromMass                   (i)=massDistribution_      %radiusEnclosingMass              (                                                 mass(i)                                                     )/radiusScale
-        radiusRecoveredFromDensity                (i)=massDistribution_      %radiusEnclosingDensity           (                                  3.0d0/4.0d0/Pi*mass(i)/radiusScale**3/radius      (i)**3                   )/radiusScale
-        radiusRecoveredFromSpecificAngularMomentum(i)=massDistribution_      %radiusFromSpecificAngularMomentum(             sqrt(gravitationalConstant_internal*mass(i)*radiusScale   *radius      (i)   )                  )/radiusScale
-        radiusRecoveredFromTimeFreefall           (i)=massDistribution_      %radiusFreefall                   (                                                         timeScale     *timeFreefall(i)                      )/radiusScale
-        potential                                 (i)=massDistribution_      %potential                        (                                                                        coordinates                          )*radiusScale/gravitationalConstant_internal
-        fourier                                   (i)=massDistribution_      %fourierTransform                 (radiusVirial,1.0d0                                      /radiusScale   /radius      (i)                      )
-        radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D             (                                                                        coordinates        ,massDistribution_)
+        mass                                      (i)=massDistribution_      %massEnclosedBySphere             (                                                         radiusScale   *radius      (i)                                        )
+        density                                   (i)=massDistribution_      %density                          (                                                                        coordinates                                            )*radiusScale**3
+        radiusRecoveredFromMass                   (i)=massDistribution_      %radiusEnclosingMass              (                                                 mass(i)                                                                       )/radiusScale
+        radiusRecoveredFromDensity                (i)=massDistribution_      %radiusEnclosingDensity           (                                  3.0d0/4.0d0/Pi*mass(i)/radiusScale**3/radius      (i)**3                                     )/radiusScale
+        radiusRecoveredFromSpecificAngularMomentum(i)=massDistribution_      %radiusFromSpecificAngularMomentum(             sqrt(gravitationalConstant_internal*mass(i)*radiusScale   *radius      (i)   )                                    )/radiusScale
+        radiusRecoveredFromTimeFreefall           (i)=massDistribution_      %radiusFreefall                   (                                                         timeScale     *timeFreefall(i)                                        )/radiusScale
+        potential                                 (i)=massDistribution_      %potential                        (                                                                        coordinates                                            )*radiusScale/gravitationalConstant_internal
+        fourier                                   (i)=massDistribution_      %fourierTransform                 (radiusVirial,1.0d0                                      /radiusScale   /radius      (i)                                        )
+        radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D             (                                                                        coordinates        ,massDistribution_,massDistribution_)
      end do
      radiusVelocityMaximum   =massDistribution_%radiusRotationCurveMaximum  (                     )
      velocityMaximum         =massDistribution_%velocityRotationCurveMaximum(                     )
@@ -1223,15 +1223,15 @@ program Test_Dark_Matter_Profiles
   class is (massDistributionSpherical)
      do i=1,7
         coordinates=[radiusScale*radius(i),0.0d0,0.0d0]
-        mass                                      (i)=massDistribution_      %massEnclosedBySphere             (                                                         radiusScale   *radius      (i)                      )
-        density                                   (i)=massDistribution_      %density                          (                                                                        coordinates                          )*radiusScale**3
-        radiusRecoveredFromMass                   (i)=massDistribution_      %radiusEnclosingMass              (                                                 mass(i)                                                     )/radiusScale
-        radiusRecoveredFromDensity                (i)=massDistribution_      %radiusEnclosingDensity           (                                  3.0d0/4.0d0/Pi*mass(i)/radiusScale**3/radius      (i)**3                   )/radiusScale
-        radiusRecoveredFromSpecificAngularMomentum(i)=massDistribution_      %radiusFromSpecificAngularMomentum(             sqrt(gravitationalConstant_internal*mass(i)*radiusScale   *radius      (i)   )                  )/radiusScale
-        radiusRecoveredFromTimeFreefall           (i)=massDistribution_      %radiusFreefall                   (                                                         timeScale     *timeFreefall(i)                      )/radiusScale
-        potential                                 (i)=massDistribution_      %potential                        (                                                                        coordinates                          )*radiusScale/gravitationalConstant_internal
-        fourier                                   (i)=massDistribution_      %fourierTransform                 (radiusVirial,1.0d0                                      /radiusScale   /radius      (i)                      )
-        radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D             (                                                                        coordinates        ,massDistribution_)
+        mass                                      (i)=massDistribution_      %massEnclosedBySphere             (                                                         radiusScale   *radius      (i)                                        )
+        density                                   (i)=massDistribution_      %density                          (                                                                        coordinates                                            )*radiusScale**3
+        radiusRecoveredFromMass                   (i)=massDistribution_      %radiusEnclosingMass              (                                                 mass(i)                                                                       )/radiusScale
+        radiusRecoveredFromDensity                (i)=massDistribution_      %radiusEnclosingDensity           (                                  3.0d0/4.0d0/Pi*mass(i)/radiusScale**3/radius      (i)**3                                     )/radiusScale
+        radiusRecoveredFromSpecificAngularMomentum(i)=massDistribution_      %radiusFromSpecificAngularMomentum(             sqrt(gravitationalConstant_internal*mass(i)*radiusScale   *radius      (i)   )                                    )/radiusScale
+        radiusRecoveredFromTimeFreefall           (i)=massDistribution_      %radiusFreefall                   (                                                         timeScale     *timeFreefall(i)                                        )/radiusScale
+        potential                                 (i)=massDistribution_      %potential                        (                                                                        coordinates                                            )*radiusScale/gravitationalConstant_internal
+        fourier                                   (i)=massDistribution_      %fourierTransform                 (radiusVirial,1.0d0                                      /radiusScale   /radius      (i)                                        )
+        radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D             (                                                                        coordinates        ,massDistribution_,massDistribution_)
      end do
      energyPotential         =massDistribution_%energyPotential             (radiusVirial                           )
      energyPotentialNumerical=massDistribution_%energyPotentialNumerical    (radiusVirial                           )
@@ -1367,7 +1367,7 @@ program Test_Dark_Matter_Profiles
   class is (massDistributionSpherical)
      do i=1,7
         coordinates                               =[radiusScale*radius(i),0.0d0,0.0d0]
-        radialVelocityDispersionSeriesExpansion(i)=kinematicsDistribution_%velocityDispersion1D(coordinates,massDistribution_)
+        radialVelocityDispersionSeriesExpansion(i)=kinematicsDistribution_%velocityDispersion1D(coordinates,massDistribution_,massDistribution_)
      end do
   end select
   !![
@@ -1620,23 +1620,23 @@ program Test_Dark_Matter_Profiles
   select type (massDistribution_)
   class is (massDistributionSphericalSIDM)
      coordinates=[0.0d0,0.0d0,0.0d0]
-     call Assert(                                                                             &
-          &      'interaction radius'                                                       , &
-          &      massDistribution_      %radiusInteraction   (                             ), &
-          &      6.9732d-3                                                                  , &
-          &      relTol=1.0d-2                                                                &
+     call Assert(                                                                                               &
+          &      'interaction radius'                                                                         , &
+          &      massDistribution_      %radiusInteraction   (                                               ), &
+          &      6.9732d-3                                                                                    , &
+          &      relTol=1.0d-2                                                                                  &
           &     )
-     call Assert(                                                                             &
-          &      'central density'                                                          , &
-          &      massDistribution_      %density             (coordinates                  ), &
-          &      4.1168d16                                                                  , &
-          &      relTol=1.0d-1                                                                &
+     call Assert(                                                                                               &
+          &      'central density'                                                                            , &
+          &      massDistribution_      %density             (coordinates                                    ), &
+          &      4.1168d16                                                                                    , &
+          &      relTol=1.0d-1                                                                                  &
           &     )
-     call Assert(                                                                             &
-          &      'central velocity dispersion'                                              , &
-          &      kinematicsDistribution_%velocityDispersion1D(coordinates,massDistribution_), &
-          &      54.9811d0                                                                  , &
-          &      relTol=1.0d-2                                                                &
+     call Assert(                                                                                               &
+          &      'central velocity dispersion'                                                                , &
+          &      kinematicsDistribution_%velocityDispersion1D(coordinates,massDistribution_,massDistribution_), &
+          &      54.9811d0                                                                                    , &
+          &      relTol=1.0d-2                                                                                  &
           &     )
   end select
   call Unit_Tests_End_Group       ()
@@ -1661,23 +1661,23 @@ program Test_Dark_Matter_Profiles
   select type (massDistribution_)
   class is (massDistributionSphericalSIDM)
      coordinates=[0.0d0,0.0d0,0.0d0]
-     call Assert(                                                                             &
-          &      'interaction radius'                                                       , &
-          &      massDistribution_      %radiusInteraction   (                             ), &
-          &      6.9732d-3                                                                  , &
-          &      relTol=1.0d-2                                                                &
+     call Assert(                                                                                               &
+          &      'interaction radius'                                                                         , &
+          &      massDistribution_      %radiusInteraction   (                                               ), &
+          &      6.9732d-3                                                                                    , &
+          &      relTol=1.0d-2                                                                                  &
           &     )
-     call Assert(                                                                             &
-          &      'central density'                                                          , &
-          &      massDistribution_      %density             (coordinates                  ), &
-          &      4.1168d16                                                                  , &
-          &      relTol=1.0d-1                                                                &
+     call Assert(                                                                                               &
+          &      'central density'                                                                            , &
+          &      massDistribution_      %density             (coordinates                                    ), &
+          &      4.1168d16                                                                                    , &
+          &      relTol=1.0d-1                                                                                  &
           &     )
-     call Assert(                                                                             &
-          &      'central velocity dispersion'                                              , &
-          &      kinematicsDistribution_%velocityDispersion1D(coordinates,massDistribution_), &
-          &      54.9811d0                                                                  , &
-          &      relTol=1.0d-2                                                                &
+     call Assert(                                                                                               &
+          &      'central velocity dispersion'                                                                , &
+          &      kinematicsDistribution_%velocityDispersion1D(coordinates,massDistribution_,massDistribution_), &
+          &      54.9811d0                                                                                    , &
+          &      relTol=1.0d-2                                                                                  &
           &     )
   end select
   call Unit_Tests_End_Group       ()
@@ -1697,23 +1697,23 @@ program Test_Dark_Matter_Profiles
   select type (massDistribution_)
   class is (massDistributionSphericalSIDM)
      coordinates=[0.0d0,0.0d0,0.0d0]
-     call Assert(                                                                             &
-          &      'interaction radius'                                                       , &
-          &      massDistribution_      %radiusInteraction   (                             ), &
-          &      6.9732d-3                                                                  , &
-          &      relTol=1.0d-2                                                                &
+     call Assert(                                                                                               &
+          &      'interaction radius'                                                                         , &
+          &      massDistribution_      %radiusInteraction   (                                               ), &
+          &      6.9732d-3                                                                                    , &
+          &      relTol=1.0d-2                                                                                  &
           &     )
-     call Assert(                                                                             &
-          &      'central density'                                                          , &
-          &      massDistribution_      %density             (coordinates                  ), &
-          &      2.534d17                                                                   , &
-          &      relTol=2.0d-1                                                                &
+     call Assert(                                                                                               &
+          &      'central density'                                                                            , &
+          &      massDistribution_      %density             (coordinates                                    ), &
+          &      2.534d17                                                                                     , &
+          &      relTol=2.0d-1                                                                                  &
           &     )
-     call Assert(                                                                             &
-          &      'central velocity dispersion'                                              , &
-          &      kinematicsDistribution_%velocityDispersion1D(coordinates,massDistribution_), &
-          &      59.139d0                                                                   , &
-          &      relTol=5.0d-2                                                                &
+     call Assert(                                                                                               &
+          &      'central velocity dispersion'                                                                , &
+          &      kinematicsDistribution_%velocityDispersion1D(coordinates,massDistribution_,massDistribution_), &
+          &      59.139d0                                                                                     , &
+          &      relTol=5.0d-2                                                                                  &
           &     )
   end select
   call Unit_Tests_End_Group()

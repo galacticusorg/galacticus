@@ -254,7 +254,7 @@ contains
     end if
     kinematicsDistribution_ => self%massDistribution_%kinematicsDistribution()
     coordinates             =  [radius,0.0d0,0.0d0]
-    velocityDispersion      =  kinematicsDistribution_%velocityDispersion1D(coordinates,self%massDistribution_)
+    velocityDispersion      =  kinematicsDistribution_%velocityDispersion1D(coordinates,self%massDistribution_,self%massDistribution_)
     !![
     <objectDestructor name="kinematicsDistribution_"/>
     !!]

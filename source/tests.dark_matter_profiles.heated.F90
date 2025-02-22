@@ -71,7 +71,7 @@ program Test_Dark_Matter_Profiles_Heated
   double precision                                                                , parameter    :: toleranceRelativeVelocityDispersionMaximum  = 1.0d-03
   double precision                                                                , parameter    :: toleranceRelativePotential                  = 1.0d-03
   double precision                                                                , parameter    :: fractionRadiusFinalSmall                    = 1.0d-03
-  logical                                                                         , parameter    :: velocityDispersionApproximate               =.true.
+  logical                                                                         , parameter    :: velocityDispersionApproximate               =.false.
   logical                                                                         , parameter    :: tolerateVelocityMaximumFailure              =.false.
   logical                                                                         , parameter    :: tolerateEnclosedMassIntegrationFailure      =.false.
   logical                                                                         , parameter    :: tolerateVelocityDispersionFailure           =.false.
@@ -247,14 +247,14 @@ program Test_Dark_Matter_Profiles_Heated
         coordinates          = [radius,0.0d0,0.0d0]
         select type (massDistributionSphericalHeated_)
         class is (massDistributionSphericalHeated)
-           radiusInitial     =+massDistributionSphericalHeated_%radiusInitial           (radius                                      )
+           radiusInitial     =+massDistributionSphericalHeated_%radiusInitial           (radius                                                                       )
         class default
            radiusInitial     =-huge(0.0d0)
         end select
-        massEnclosed         =+massDistributionSphericalHeated_%massEnclosedBySphere    (radius                                      )
-        density              =+massDistributionSphericalHeated_%density                 (coordinates                                 )
-        potential            =+massDistributionSphericalHeated_%potential               (coordinates                                 )
-        velocityDispersion   =+kinematicsDistributionHeated_   %velocityDispersion1D    (coordinates,massDistributionSphericalHeated_)
+        massEnclosed         =+massDistributionSphericalHeated_%massEnclosedBySphere    (radius                                                                       )
+        density              =+massDistributionSphericalHeated_%density                 (coordinates                                                                  )
+        potential            =+massDistributionSphericalHeated_%potential               (coordinates                                                                  )
+        velocityDispersion   =+kinematicsDistributionHeated_   %velocityDispersion1D    (coordinates,massDistributionSphericalHeated_,massDistributionSphericalHeated_)
         radiusInitialAnalytic=+sqrt(                            &
              &                      +  radiusHeated         **4 &
              &                      /4.0d0                      &
