@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1740179442362,
+  "lastUpdate": 1740294519656,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=80 Gyr; vₖ=40 km/s)": [
@@ -575,6 +575,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
             "value": "45.25330545700945",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "35bbde0a9589995f07440bc0a616b6005a1c3111",
+          "message": "Merge pull request #802 from galacticusorg/fixKinematicsVelocityDispersion\n\nUse correct mass distribution in solving the Jeans equation",
+          "timestamp": "2025-02-22T22:27:09Z",
+          "tree_id": "cd69cbb27ff91dc2b9fd10d5a41570e3a8b3a20a",
+          "url": "https://github.com/galacticusorg/galacticus/commit/35bbde0a9589995f07440bc0a616b6005a1c3111"
+        },
+        "date": 1740294518988,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": "15.069828864257383",
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": "43.26351343154974",
             "unit": "-logℒ"
           }
         ]
