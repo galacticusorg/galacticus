@@ -238,7 +238,6 @@ contains
           if (massCriticalNuclearStarCluster<= nuclearStarCluster%massStellar() .and. self%massThreshold <= nuclearStarCluster%massStellar()) then
             
             redshift= self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(time))
-            PRINT *, redshift
             
             call nuclearStarCluster%floatRank0MetaPropertySet(self%ageNuclearStarClustersID             , ageNuclearStarCluster           )
             call nuclearStarCluster%floatRank0MetaPropertySet(self%gasMassNuclearStarClustersID         , nuclearStarCluster%massGas    ())
