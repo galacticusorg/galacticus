@@ -220,7 +220,7 @@
     <!-- Satellite evolution -->
     <nodeOperator value="satelliteMergingTime"/>
     <nodeOperator value="satelliteMassLoss"/>
-    <!-- Nuclear star cluster gass growth -->
+    <!-- Nuclear star cluster gas growth -->
     <nodeOperator value="nuclearStarClusterGrowth"/>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>

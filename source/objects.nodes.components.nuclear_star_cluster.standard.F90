@@ -53,7 +53,7 @@ module Node_Component_NSC_Standard
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
     </property>
     <property>
-      <name>Collapse</name>
+      <name>isCollapsed</name>
       <type>logical</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false"/>
@@ -836,7 +836,7 @@ contains
     ! Record that the nuclear star cluster has been initialized.
     call nuclearStarCluster%isInitializedSet(.true. )
     ! Allow the nuclear star cluster to form a new black hole seed.
-    call nuclearStarCluster%CollapseSet     (.false.)
+    call nuclearStarCluster%isCollapsedSet  (.false.)
     return
   end subroutine Node_Component_NSC_Standard_Create
 
@@ -1190,7 +1190,7 @@ contains
           call nuclearStarCluster%  abundancesStellarSet(         zeroAbundances)
           call nuclearStarCluster%luminositiesStellarSet(zeroStellarLuminosities)
           call nuclearStarCluster%    angularMomentumSet(                  0.0d0)
-          call nuclearStarCluster%           CollapseSet(                .false.)
+          call nuclearStarCluster%        isCollapsedSet(                .false.)
        end if
     end select
     return
