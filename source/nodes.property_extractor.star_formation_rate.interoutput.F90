@@ -21,7 +21,7 @@
   <nodePropertyExtractor name="nodePropertyExtractorStarFormationRateInterOutput">
    <description>
     A node property extractor which extracts the mean star formation rate between successive outputs. Intended to be paired with the
-      \refClass{nodeOperatorStarFormationRateInterOutput} class to compute those rates.
+    \refClass{nodeOperatorStarFormationRateInterOutput} class to compute those rates.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -31,7 +31,7 @@
      !!}
      private
      integer :: starFormationRateDiskInterOutputID, starFormationRateSpheroidInterOutputID, &
-          &     starFormationRateInterOutputNextID
+          &     starFormationRateNSCInterOutputID , starFormationRateInterOutputNextID
    contains
      procedure :: elementCount => starFormationRateInterOutputElementCount
      procedure :: extract      => starFormationRateInterOutputExtract
@@ -76,6 +76,7 @@ contains
     !![
     <addMetaProperty component="disk"     name="starFormationRateDiskInterOutput" isEvolvable="yes" id="self%starFormationRateDiskInterOutputID"    />
     <addMetaProperty component="spheroid" name="starFormationRateDiskInterOutput" isEvolvable="yes" id="self%starFormationRateSpheroidInterOutputID"/>
+    <addMetaProperty component="NSC"      name="starFormationRateNSCInterOutput"  isEvolvable="yes" id="self%starFormationRateNSCInterOutputID"     />
     !!]
     return
   end function starFormationRateInterOutputConstructorInternal
@@ -89,7 +90,7 @@ contains
     double precision                                                   , intent(in   ) :: time
     !$GLC attributes unused :: self, time
 
-    starFormationRateInterOutputElementCount=2
+    starFormationRateInterOutputElementCount=3
     return
   end function starFormationRateInterOutputElementCount
 
@@ -97,7 +98,7 @@ contains
     !!{
     Implement a starFormationRateInterOutput output extractor.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid
+    use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, nodeComponentNSC
     implicit none
     double precision                                                   , dimension(:) , allocatable :: starFormationRateInterOutputExtract
     class           (nodePropertyExtractorStarFormationRateInterOutput), intent(inout), target      :: self
@@ -106,29 +107,41 @@ contains
     type            (multiCounter                                     ), intent(inout), optional    :: instance
     class           (nodeComponentDisk                                ), pointer                    :: disk
     class           (nodeComponentSpheroid                            ), pointer                    :: spheroid
-    double precision                                                                                :: starFormationRateDisk              , starFormationRateSpheroid
+    class           (nodeComponentNSC                                 ), pointer                    :: nuclearStarCluster
+    double precision                                                                                :: starFormationRateDisk              , starFormationRateSpheroid, &
+                   &                                                                                   starFormationRatenuclearStarCluster
     !$GLC attributes unused :: time, instance
 
-    allocate(starFormationRateInterOutputExtract(2))
-    disk     => node%disk    ()
-    spheroid => node%spheroid()
+    allocate(starFormationRateInterOutputExtract(3))
+    disk               => node%disk    ()
+    spheroid           => node%spheroid()
+    nuclearStarCluster => node%NSC     ()
     select type (disk    )
     type is (nodeComponentDisk    )
        ! Disk does not yet exist.
-       starFormationRateDisk    =0.0d0
+       starFormationRateDisk               =0.0d0
     class default
-       starFormationRateDisk    =disk    %floatRank0MetaPropertyGet(self%starFormationRateDiskInterOutputID    )
+       starFormationRateDisk               =disk               %floatRank0MetaPropertyGet(self%starFormationRateDiskInterOutputID    )
     end select
     select type (spheroid)
     type is (nodeComponentSpheroid)
        ! Spheroid does not yet exist.
-       starFormationRateSpheroid=0.0d0
+       starFormationRateSpheroid           =0.0d0
     class default
-       starFormationRateSpheroid=spheroid%floatRank0MetaPropertyGet(self%starFormationRateSpheroidInterOutputID)
+       starFormationRateSpheroid           =spheroid           %floatRank0MetaPropertyGet(self%starFormationRateSpheroidInterOutputID)
     end select
-    starFormationRateInterOutputExtract=[                           &
-         &                               starFormationRateDisk    , &
-         &                               starFormationRateSpheroid  &
+    select type (nuclearStarCluster)
+    type is (nodeComponentNSC     )
+      ! NSC does not yet exist.
+        starFormationRatenuclearStarCluster=0.0d0
+    class default
+        starFormationRatenuclearStarCluster=nuclearStarCluster%floatRank0MetaPropertyGet(self%starFormationRateNSCInterOutputID     )
+    end select
+
+    starFormationRateInterOutputExtract=[                                     &
+         &                               starFormationRateDisk              , &
+         &                               starFormationRateSpheroid          , &
+         &                               starFormationRatenuclearStarCluster  &
          &                              ]
     return
   end function starFormationRateInterOutputExtract
@@ -143,9 +156,10 @@ contains
     type            (varying_string                                   ), intent(inout), dimension(:), allocatable :: names
     !$GLC attributes unused :: self, time
 
-    allocate(names(2))
-    names(1)=var_str(    'diskStarFormationRateInterOutputMean')
-    names(2)=var_str('spheroidStarFormationRateInterOutputMean')
+    allocate(names(3))
+    names(1)=var_str(              'diskStarFormationRateInterOutputMean')
+    names(2)=var_str(          'spheroidStarFormationRateInterOutputMean')
+    names(3)=var_str('nuclearStarClusterStarFormationRateInterOutputMean')
     return
   end subroutine starFormationRateInterOutputNames
 
@@ -159,9 +173,10 @@ contains
     type            (varying_string                                   ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: self, time
 
-    allocate(descriptions(2))
-    descriptions(1)=var_str('Mean star formation rate in the disk between this output and the previous output.'    )
-    descriptions(2)=var_str('Mean star formation rate in the spheroid between this output and the previous output.')
+    allocate(descriptions(3))
+    descriptions(1)=var_str('Mean star formation rate in the disk between this output and the previous output.'                )
+    descriptions(2)=var_str('Mean star formation rate in the spheroid between this output and the previous output.'            )
+    descriptions(3)=var_str('Mean star formation rate in the nuclear star cluster between this output and the previous output.')
     return
   end subroutine starFormationRateInterOutputDescriptions
 
@@ -176,7 +191,7 @@ contains
     double precision                                                   , intent(in   )              :: time
    !$GLC attributes unused :: self, time
 
-    allocate(starFormationRateInterOutputUnitsInSI(2))
+    allocate(starFormationRateInterOutputUnitsInSI(3))
     starFormationRateInterOutputUnitsInSI=+massSolar &
          &                                /gigaYear
     return

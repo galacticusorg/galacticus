@@ -95,7 +95,7 @@ contains
     end do
     return
   end function massBlackHolesExtract
-  
+
   subroutine massBlackHolesNames(self,names)
     !!{
     Return the names of the {\normalfont \ttfamily massBlackHoles} properties.

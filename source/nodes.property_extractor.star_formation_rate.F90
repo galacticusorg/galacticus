@@ -21,16 +21,17 @@
 Contains a module which implements a star formation rate property extractor class.
 !!}
 
-  use :: Star_Formation_Rates_Disks    , only : starFormationRateDisksClass
-  use :: Star_Formation_Rates_Spheroids, only : starFormationRateSpheroidsClass
+  use :: Star_Formation_Rates_Disks                , only : starFormationRateDisksClass
+  use :: Star_Formation_Rates_Spheroids            , only : starFormationRateSpheroidsClass
+  use :: Star_Formation_Rates_Nuclear_Star_Clusters, only : starFormationRateNuclearStarClustersClass
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorStarFormationRate">
    <description>
-    A node property extractor which extracts the star formation rate in a galaxy. The type of star formation rate is controlled
-    by the {\normalfont \ttfamily [component]} parameter, which can be either ``{\normalfont \ttfamily disk}'', ``{\normalfont
-    \ttfamily spheroid}'', or ``{\normalfont \ttfamily total}''. The corresponding star formation rate is extracted as
-    {\normalfont \ttfamily \textless\ component\textgreater\ StarFormationRate} in units of $M_\odot$/Gyr.
+    A node property extractor which extracts the star formation rate in a galaxy. The type of star formation rate is controlled by
+    the {\normalfont \ttfamily [component]} parameter, which can be either ``{\normalfont \ttfamily disk}'', ``{\normalfont
+    \ttfamily spheroid}'', ``{\normalfont \ttfamily nsc}'' or ``{\normalfont \ttfamily total}''. The corresponding star formation
+    rate is extracted as {\normalfont \ttfamily \textless\ component\textgreater\ StarFormationRate} in units of $M_\odot$/Gyr.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -39,10 +40,11 @@ Contains a module which implements a star formation rate property extractor clas
      A star formation rate property extractor class.
      !!}
      private
-     class(starFormationRateDisksClass     ), pointer :: starFormationRateDisks_     => null()
-     class(starFormationRateSpheroidsClass ), pointer :: starFormationRateSpheroids_ => null()
-     type (varying_string                  )          :: name_                                , description_, &
-          &                                              component
+     class(starFormationRateDisksClass              ), pointer :: starFormationRateDisks_               => null()
+     class(starFormationRateSpheroidsClass          ), pointer :: starFormationRateSpheroids_           => null()
+     class(starFormationRateNuclearStarClustersClass), pointer :: starFormationRateNuclearStarClusters_ => null()
+     type (varying_string                           )          :: name_                                          , description_, &
+          &                                                       component
    contains
      final     ::                starFormationRateDestructor
      procedure :: extract     => starFormationRateExtract
@@ -68,12 +70,13 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (nodePropertyExtractorStarFormationRate)                :: self
-    type (inputParameters                       ), intent(inout) :: parameters
-    class(starFormationRateDisksClass           ), pointer       :: starFormationRateDisks_
-    class(starFormationRateSpheroidsClass       ), pointer       :: starFormationRateSpheroids_
-    type (varying_string                        )                :: component
-    type (enumerationGalacticComponentType      )                :: component_
+    type (nodePropertyExtractorStarFormationRate   )                :: self
+    type (inputParameters                          ), intent(inout) :: parameters
+    class(starFormationRateDisksClass              ), pointer       :: starFormationRateDisks_
+    class(starFormationRateSpheroidsClass          ), pointer       :: starFormationRateSpheroids_
+    class(starFormationRateNuclearStarClustersClass), pointer       :: starFormationRateNuclearStarClusters_
+    type (varying_string                           )                :: component
+    type (enumerationGalacticComponentType         )                :: component_
 
     !![
     <inputParameter>
@@ -84,56 +87,71 @@ contains
     !!]
     component_=enumerationGalacticComponentEncode(char(component),includesPrefix=.false.)
     select case (component_%ID)
-    case (galacticComponentDisk    %ID)
+    case (galacticComponentDisk              %ID)
        !![
-       <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters"/>
+       <objectBuilder class="starFormationRateDisks"               name="starFormationRateDisks_"               source="parameters"/>
        !!]
-       starFormationRateSpheroids_ => null()
-    case (galacticComponentSpheroid%ID)
+       starFormationRateSpheroids_           => null()
+       starFormationRateNuclearStarClusters_ => null()
+    case (galacticComponentSpheroid          %ID)
        !![
-       <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
+       <objectBuilder class="starFormationRateSpheroids"           name="starFormationRateSpheroids_"           source="parameters"/>
        !!]
-       starFormationRateDisks_     => null()
-    case (galacticComponentTotal   %ID)
+       starFormationRateDisks_               => null()
+       starFormationRateNuclearStarClusters_ => null()
+    case (galacticComponentNuclearStarCluster%ID)
        !![
-       <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters"/>
-       <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
+       <objectBuilder class="starFormationRateNuclearStarClusters" name="starFormationRateNuclearStarClusters_" source="parameters"/>
+       !!]
+       starFormationRateDisks_              => null()
+       starFormationRateSpheroids_          => null()
+    case (galacticComponentTotal            %ID)
+       !![
+       <objectBuilder class="starFormationRateDisks"               name="starFormationRateDisks_"               source="parameters"/>
+       <objectBuilder class="starFormationRateSpheroids"           name="starFormationRateSpheroids_"           source="parameters"/>
+       <objectBuilder class="starFormationRateNuclearStarClusters" name="starFormationRateNuclearStarClusters_" source="parameters"/>
        !!]
     end select
-    self=nodePropertyExtractorStarFormationRate(starFormationRateDisks_,starFormationRateSpheroids_)
+    self=nodePropertyExtractorStarFormationRate(starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="starFormationRateDisks_"    />
-    <objectDestructor name="starFormationRateSpheroids_"/>
+    <objectDestructor name="starFormationRateDisks_"              />
+    <objectDestructor name="starFormationRateSpheroids_"          />
+    <objectDestructor name="starFormationRateNuclearStarClusters_"/>
     !!]
     return
   end function starFormationRateConstructorParameters
 
-  function starFormationRateConstructorInternal(starFormationRateDisks_,starFormationRateSpheroids_) result(self)
+  function starFormationRateConstructorInternal(starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_) result(self)
     !!{
     Internal constructor for the ``starFormationRate'' property extractor class.
     !!}
     use :: Error, only : Error_Report
     implicit none
-    type (nodePropertyExtractorStarFormationRate)                        :: self
-    class(starFormationRateDisksClass           ), intent(in   ), target :: starFormationRateDisks_
-    class(starFormationRateSpheroidsClass       ), intent(in   ), target :: starFormationRateSpheroids_
+    type (nodePropertyExtractorStarFormationRate   )                        :: self
+    class(starFormationRateDisksClass              ), intent(in   ), target :: starFormationRateDisks_
+    class(starFormationRateSpheroidsClass          ), intent(in   ), target :: starFormationRateSpheroids_
+    class(starFormationRateNuclearStarClustersClass), intent(in   ), target :: starFormationRateNuclearStarClusters_
     !![
-    <constructorAssign variables="*starFormationRateDisks_, *starFormationRateSpheroids_"/>
+    <constructorAssign variables="*starFormationRateDisks_, *starFormationRateSpheroids_, *starFormationRateNuclearStarClusters_"/>
     !!]
 
-    if      (associated(self%starFormationRateDisks_).and.associated(self%starFormationRateSpheroids_)) then
+    if      (associated(self%starFormationRateDisks_).and.associated(self%starFormationRateSpheroids_).and.associated(self%starFormationRateNuclearStarClusters_)) then
        self%name_       ="totalStarFormationRate"
-       self%description_="Total (disk + spheroid) star formation rate [M☉ Gyr⁻¹]."
+       self%description_="Total (disk + spheroid + nuclear star cluster) star formation rate [M☉ Gyr⁻¹]."
        self%component   ="total"
-    else if (associated(self%starFormationRateDisks_)                                                 ) then
+    else if (associated(self%starFormationRateDisks_)                                                                                                            ) then
        self%name_       ="diskStarFormationRate"
        self%description_="Disk star formation rate [M☉ Gyr⁻¹]."
        self%component   ="disk"
-    else if (                                             associated(self%starFormationRateSpheroids_)) then
+    else if (                                             associated(self%starFormationRateSpheroids_)                                                           ) then
        self%name_       ="spheroidStarFormationRate"
        self%description_="Spheroid star formation rate [M☉ Gyr⁻¹]."
        self%component   ="spheroid"
+    else if (                                                                                              associated(self%starFormationRateNuclearStarClusters_)) then
+       self%name_       ="nuclearStarClusterStarFormationRate"
+       self%description_="Nuclear star cluster star formation rate [M☉ Gyr⁻¹]."
+       self%component   ="NSC"
     else
        call Error_Report('No star formation rate specified.'//{introspection:location})
     end if
@@ -148,8 +166,9 @@ contains
     type(nodePropertyExtractorStarFormationRate), intent(inout) :: self
   
     !![
-    <objectDestructor name="self%starFormationRateDisks_"    />
-    <objectDestructor name="self%starFormationRateSpheroids_"/>
+    <objectDestructor name="self%starFormationRateDisks_"              />
+    <objectDestructor name="self%starFormationRateSpheroids_"          />
+    <objectDestructor name="self%starFormationRateNuclearStarClusters_"/>
     !!]
     return
   end subroutine starFormationRateDestructor
@@ -165,8 +184,9 @@ contains
     !$GLC attributes unused :: instance
 
     starFormationRateExtract=0.0d0
-    if (associated(self%starFormationRateDisks_    )) starFormationRateExtract=starFormationRateExtract+self%starFormationRateDisks_    %rate(node)
-    if (associated(self%starFormationRateSpheroids_)) starFormationRateExtract=starFormationRateExtract+self%starFormationRateSpheroids_%rate(node)
+    if (associated(self%starFormationRateDisks_              )) starFormationRateExtract=starFormationRateExtract+self%starFormationRateDisks_              %rate(node)
+    if (associated(self%starFormationRateSpheroids_          )) starFormationRateExtract=starFormationRateExtract+self%starFormationRateSpheroids_          %rate(node)
+    if (associated(self%starFormationRateNuclearStarClusters_)) starFormationRateExtract=starFormationRateExtract+self%starFormationRateNuclearStarClusters_%rate(node)
     return
   end function starFormationRateExtract
 
@@ -201,7 +221,7 @@ contains
     Return a description of the starFormationRate property.
     !!}
     implicit none
-    type (varying_string                      )                  :: starFormationRateDescription
+    type (varying_string                        )                :: starFormationRateDescription
     class(nodePropertyExtractorStarFormationRate), intent(inout) :: self
 
     starFormationRateDescription=self%description_
