@@ -139,10 +139,10 @@ contains
     !!}
     use :: Coordinates                     , only : coordinateCartesian      , assignment(=)
     use :: Error_Functions                 , only : Error_Function
-    use :: Galactic_Structure_Options      , only : coordinateSystemCartesian, componentTypeDarkHalo          , massTypeDark
-    use :: Galacticus_Nodes                , only : nodeComponentSatellite   , nodeComponentBasic             , treeNode
+    use :: Galactic_Structure_Options      , only : coordinateSystemCartesian, componentTypeDarkHalo         , massTypeDark
+    use :: Galacticus_Nodes                , only : nodeComponentSatellite   , nodeComponentBasic            , treeNode
     use :: Mass_Distributions              , only : massDistributionClass
-    use :: Numerical_Constants_Astronomical, only : gigaYear                 , gravitationalConstantGalacticus, megaParsec
+    use :: Numerical_Constants_Astronomical, only : gigaYear                 , gravitationalConstant_internal, megaParsec
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Vectors                         , only : Vector_Magnitude
@@ -169,7 +169,7 @@ contains
             &                        *Pi                                                                                                                   &
             &                        *massDistributionHost_%chandrasekharIntegral(massDistributionHost_,massDistribution_,massSatellite,position,velocity) &
             &                        *self                 %coulombLogarithm     (node                                                                   ) &
-            &                        *gravitationalConstantGalacticus**2                                                                                   &
+            &                        *gravitationalConstant_internal**2                                                                                    &
             &                        *massSatellite                                                                                                        &
             &                        *kilo                                                                                                                 &
             &                        *gigaYear                                                                                                             &

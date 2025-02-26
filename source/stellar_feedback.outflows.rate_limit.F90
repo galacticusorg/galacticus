@@ -110,8 +110,8 @@ contains
     fraction of the dynamical time.
     !!}
     use :: Error                           , only : Error_Report
-    use :: Galacticus_Nodes                , only : nodeComponentDisk      , nodeComponentSpheroid
-    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
+    use :: Galacticus_Nodes                , only : nodeComponentDisk, nodeComponentSpheroid
+    use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr
     implicit none
     class           (stellarFeedbackOutflowsRateLimit), intent(inout) :: self
     class           (nodeComponent                   ), intent(inout) :: component
@@ -147,8 +147,8 @@ contains
        timescaleDynamical=1.0d0
        if (rateOutflowTotal > 0.0d0) call Error_Report('outflow in unphysical component'//{introspection:location})
     else
-       timescaleDynamical=+Mpc_per_km_per_s_To_Gyr &
-            &             *radius                  &
+       timescaleDynamical=+MpcPerKmPerSToGyr &
+            &             *radius            &
             &             /velocity
     end if
     ! Compute the maximum outflow rate and current total outflow rate.

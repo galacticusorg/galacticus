@@ -398,7 +398,7 @@ contains
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
     use :: Hypergeometric_Functions        , only : Hypergeometric_2F1
     use :: Numerical_Comparison            , only : Values_Agree
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Numerical_Constants_Math        , only : Pi
     implicit none
     class           (massDistributionBetaProfile      ), intent(inout), target   :: self
@@ -481,10 +481,10 @@ contains
                &  )
        end if
     end if
-    if (.not.self%isDimensionless())          &
-         & betaProfilePotential=              &
-         &   betaProfilePotential             &
-         &   *gravitationalConstantGalacticus
+    if (.not.self%isDimensionless())         &
+         & betaProfilePotential=             &
+         &   betaProfilePotential            &
+         &   *gravitationalConstant_internal
     return
   end function betaProfilePotential
 

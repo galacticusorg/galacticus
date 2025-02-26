@@ -166,14 +166,14 @@ contains
     Returns an initial separation growth rate for a binary black holes that follows a modified version of
     \cite{volonteri_assembly_2003}.
     !!}
-    use :: Coordinates                     , only : coordinateCylindrical  , assignment(=)
-    use :: Display                         , only : displayIndent          , displayMessage                 , displayUnindent
-    use :: Galactic_Structure_Options      , only : componentTypeDarkHalo  , componentTypeSpheroid          , massTypeDark   , massTypeGalactic,&
+    use :: Coordinates                     , only : coordinateCylindrical , assignment(=)
+    use :: Display                         , only : displayIndent         , displayMessage                , displayUnindent
+    use :: Galactic_Structure_Options      , only : componentTypeDarkHalo , componentTypeSpheroid         , massTypeDark   , massTypeGalactic,&
           &                                         massTypeStellar
     use :: Error                           , only : Error_Report
-    use :: Galacticus_Nodes                , only : nodeComponentBlackHole , nodeComponentSpheroid          , treeNode
-    use :: Mass_Distributions              , only : massDistributionClass  , kinematicsDistributionClass
-    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr, gravitationalConstantGalacticus
+    use :: Galacticus_Nodes                , only : nodeComponentBlackHole, nodeComponentSpheroid         , treeNode
+    use :: Mass_Distributions              , only : massDistributionClass , kinematicsDistributionClass
+    use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr     , gravitationalConstant_internal
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Physical    , only : speedLight
     use :: Numerical_Constants_Prefixes    , only : milli
@@ -228,10 +228,10 @@ contains
     coordinates                      =  [blackHole%radialPosition(),0.0d0,0.0d0]
    ! Compute the velocity dispersion of stars and dark matter.
     if (self%computeVelocityDispersion) then
-       kinematicsDistributionSpheroidStellar_ => massDistributionSpheroidStellar_      %kinematicsDistribution(                             )
-       kinematicsDistributionDarkMatterHalo_  => massDistributionDarkMatterHalo_       %kinematicsDistribution(                             )
-       velocityDispersionSpheroid             =  kinematicsDistributionSpheroidStellar_%velocityDispersion1D  (coordinates,massDistribution_)
-       velocityDispersionDarkMatter           =  kinematicsDistributionDarkMatterHalo_ %velocityDispersion1D  (coordinates,massDistribution_)
+       kinematicsDistributionSpheroidStellar_ => massDistributionSpheroidStellar_      %kinematicsDistribution(                                               )
+       kinematicsDistributionDarkMatterHalo_  => massDistributionDarkMatterHalo_       %kinematicsDistribution(                                               )
+       velocityDispersionSpheroid             =  kinematicsDistributionSpheroidStellar_%velocityDispersion1D  (coordinates,massDistribution_,massDistribution_)
+       velocityDispersionDarkMatter           =  kinematicsDistributionDarkMatterHalo_ %velocityDispersion1D  (coordinates,massDistribution_,massDistribution_)
        !![
        <objectDestructor name="kinematicsDistributionSpheroidStellar_"/>
        <objectDestructor name="kinematicsDistributionDarkMatterHalo_" />
@@ -243,7 +243,7 @@ contains
     ! Compute the separation growth rate due to emission of gravitational waves.
     rateGravitationalWaves=-(                                        &
          &                   +256.0d0                                &
-         &                   *gravitationalConstantGalacticus**3     &
+         &                   *gravitationalConstant_internal**3      &
          &                   *  blackHole       %mass          ()    &
          &                   *  blackHoleCentral%mass          ()    &
          &                   *(                                      &
@@ -256,20 +256,20 @@ contains
          &                   *(speedLight*milli)**5                  &
          &                   *  blackHole       %radialPosition()**3 &
          &                  )                                        &
-         &                 /Mpc_per_km_per_s_To_Gyr
+         &                 /MpcPerKmPerSToGyr
     ! Compute the hard binary radius, where shrinking of the binary switches from dynamical friction to hardening due to strong
     ! scattering of individual stars.
     if (velocityDispersionSpheroid > 0.0d0) then
-       radiusHardBinary=+(                                 &
-            &             +gravitationalConstantGalacticus &
-            &             *(                               &
-            &               +blackHole       %mass()       &
-            &               +blackHoleCentral%mass()       &
-            &              )                               &
-            &            )                                 &
-            &           /(                                 &
-            &             +4.0d0                           &
-            &             *velocityDispersionSpheroid**2   &
+       radiusHardBinary=+(                                &
+            &             +gravitationalConstant_internal &
+            &             *(                              &
+            &               +blackHole       %mass()      &
+            &               +blackHoleCentral%mass()      &
+            &              )                              &
+            &            )                                &
+            &           /(                                &
+            &             +4.0d0                          &
+            &             *velocityDispersionSpheroid**2  &
             &            )
     else
        radiusHardBinary=0.0d0
@@ -278,19 +278,19 @@ contains
     stellarDensityFractionRemaining=1.0d0
     ! If it does change, we first compute the fraction of that change according to Volonteri et al. (2003) else we set it as the
     ! normal density.
-    if (self%stellarDensityChangeBinaryMotion .and. velocityDispersionSpheroid > 0.0d0)                                          &
-         &  stellarDensityFractionRemaining=(+                                                 blackHole       %radialPosition() &
-         &                                   *                                                 velocityDispersionSpheroid**2     &
-         &                                   *(4.0d0/3.0d0)/(gravitationalConstantGalacticus*(+blackHoleCentral%mass          () &
-         &                                                                                    +blackHole       %mass          () &
-         &                                                                                   )                                   &
-         &                                   *log                                            (                                   &
-         &                                                   gravitationalConstantGalacticus*  blackHole       %mass          () &
-         &                                                                                    /4.0d0                             &
-         &                                                                                    /velocityDispersionSpheroid**2     &
-         &                                                                                    /blackHole       %radialPosition() &
-         &                                                                                   )                                   &
-         &                                                  )                                                                    &
+    if (self%stellarDensityChangeBinaryMotion .and. velocityDispersionSpheroid > 0.0d0)                                         &
+         &  stellarDensityFractionRemaining=(+                                                blackHole       %radialPosition() &
+         &                                   *                                                velocityDispersionSpheroid**2     &
+         &                                   *(4.0d0/3.0d0)/(gravitationalConstant_internal*(+blackHoleCentral%mass          () &
+         &                                                                                   +blackHole       %mass          () &
+         &                                                                                  )                                   &
+         &                                   *log                                           (                                   &
+         &                                                   gravitationalConstant_internal*  blackHole       %mass          () &
+         &                                                                                   /4.0d0                             &
+         &                                                                                   /velocityDispersionSpheroid**2     &
+         &                                                                                   /blackHole       %radialPosition() &
+         &                                                                                  )                                   &
+         &                                                  )                                                                   &
          &                                  )**2
     ! Limit the density fraction to unity.
     stellarDensityFractionRemaining=min(stellarDensityFractionRemaining,1.0d0)
@@ -299,12 +299,12 @@ contains
          &         *stellarDensityFractionRemaining
     ! Compute the hardening rate due to strong scattering of individual stars.
     if (velocityDispersionSpheroid > 0.0d0) then
-       rateScatteringStars=-gravitationalConstantGalacticus &
-            &              *densityStellar                  &
-            &              *blackHole%radialPosition()**2   &
-            &              *hardeningRateDimensionless      &
-            &              /velocityDispersionSpheroid      &
-            &              /Mpc_per_km_per_s_To_Gyr
+       rateScatteringStars=-gravitationalConstant_internal &
+            &              *densityStellar                 &
+            &              *blackHole%radialPosition()**2  &
+            &              *hardeningRateDimensionless     &
+            &              /velocityDispersionSpheroid     &
+            &              /MpcPerKmPerSToGyr
     else
        rateScatteringStars=0.0d0
     end if
@@ -319,7 +319,7 @@ contains
             &                       *  velocityDispersionSpheroid**2     &
             &                      )                                     &
             &                     /(                                     &
-            &                        gravitationalConstantGalacticus     &
+            &                        gravitationalConstant_internal      &
             &                       *(                                   &
             &                          blackHole       %mass          () &
             &                         +blackHoleCentral%mass          () &
@@ -330,7 +330,7 @@ contains
             &                       *  velocityDispersionDarkMatter**2   &
             &                      )                                     &
             &                     /(                                     &
-            &                        gravitationalConstantGalacticus     &
+            &                        gravitationalConstant_internal      &
             &                       *(                                   &
             &                          blackHole       %mass          () &
             &                         +blackHoleCentral%mass          () &
@@ -353,11 +353,11 @@ contains
        ! Compute the acceleration due to dynamical friction.
        dynamicalFrictionAcceleration=-4.0d0                                                                  &
             &                        *Pi                                                                     &
-            &                        *gravitationalConstantGalacticus**2                                     &
+            &                        *gravitationalConstant_internal**2                                      &
             &                        *blackHole%mass()                                                       &
             &                        *0.5d0                                                                  &
             &                        /velocityRotation**2                                                    &
-            &                        /Mpc_per_km_per_s_To_Gyr                                                &
+            &                        /MpcPerKmPerSToGyr                                                      &
             &                        *(                                                                      &
             &                           densitySpheroid                                                      &
             &                          *log(1.0d0+coulombLogarithmSpheroid**2)                               &

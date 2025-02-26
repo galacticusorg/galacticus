@@ -4,7 +4,7 @@
 <!-- 30-November-2020                                                                   -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
+  <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
 
   <!-- Task and work control -->
   <task value="evolveForests">
@@ -18,12 +18,8 @@
   <!-- Component selection -->
   <componentBasic value="standard"/>
   <componentBlackHole value="simple">
-    <growthRatioToStellarSpheroid value="1.36151389582815"/>
-    <heatsHotHalo value="true"/>
     <efficiency value="0.00361121531459326"/>
     <fractionJet value="0.0436415271218433"/>
-    <efficiencyHeating value="0.000157598951094638"/>
-    <efficiencyWind value="0.00345361636349862"/>
   </componentBlackHole>
   <componentDarkMatterProfile value="scale"/>
   <componentDisk value="standard">
@@ -196,8 +192,18 @@
 
   <!-- AGN feedback options -->
   <hotHaloExcessHeatDrivesOutflow value="true"/>
+  <blackHoleWind value="simple">
+    <efficiencyWind value="0.00345361636349862"/>
+  </blackHoleWind>
+  <blackHoleCGMHeating value="quasistatic">
+    <efficiencyHeating value="0.000157598951094638"/>
+  </blackHoleCGMHeating>
+  
   <!-- Black hole options -->
   <blackHoleBinaryMerger value="rezzolla2008"/>
+  <blackHoleAccretionRate value="spheroidTracking">
+    <growthRatioToStellarSpheroid value="1.36151389582815"/>
+  </blackHoleAccretionRate>
 
   <!-- Galaxy merger options -->
   <virialOrbit value="li2020"/>

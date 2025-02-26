@@ -112,7 +112,7 @@
      double precision                                                                       :: accretionLimit                                    , timeEarliest                    , &
           &                                                                                    mergeProbability                                  , timeNow                         , &
           &                                                                                    redshiftMaximum                                   , toleranceTimeEarliest
-     logical                                                                                :: ignoreNoProgress
+     logical                                                                                :: ignoreNoProgress                                  , ignoreWellOrdering
      ! Random number sequence variables
      logical                                                                                :: branchIntervalStep
      ! Interval distribution.
@@ -190,7 +190,8 @@ contains
     double precision                                                     :: mergeProbability               , accretionLimit         , &
          &                                                                  redshiftMaximum                , toleranceResolutionSelf, &
          &                                                                  toleranceResolutionParent      , toleranceTimeEarliest
-    logical                                                              :: branchIntervalStep             , ignoreNoProgress
+    logical                                                              :: branchIntervalStep             , ignoreNoProgress       , &
+         &                                                                  ignoreWellOrdering
 
     ! Check and read parameters.
     !![
@@ -242,6 +243,12 @@ contains
       <defaultValue>.false.</defaultValue>
       <description>If true, failure to make progress on a branch will be ignored (and the branch terminated).</description>
     </inputParameter>
+    <inputParameter>
+      <name>ignoreWellOrdering</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, non-well-ordered tree branches are pruned away instead of causing errors..</description>
+    </inputParameter>
     <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbability_" source="parameters"/>
     <objectBuilder class="mergerTreeMassResolution"       name="mergerTreeMassResolution_"       source="parameters"/>
     <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters"/>
@@ -258,6 +265,7 @@ contains
          &                                                                                                           toleranceResolutionSelf          , &
          &                                                                                                           toleranceResolutionParent        , &
          &                                                                                                           ignoreNoProgress                 , &
+         &                                                                                                           ignoreWellOrdering               , &
          &                                                                                                           mergerTreeBranchingProbability_  , &
          &                                                                                                           mergerTreeMassResolution_        , &
          &                                                                                                           cosmologyFunctions_              , &
@@ -277,7 +285,7 @@ contains
     return
   end function cole2000ConstructorParameters
 
-  function cole2000ConstructorInternal(mergeProbability,accretionLimit,timeEarliest,toleranceTimeEarliest,branchIntervalStep,toleranceResolutionSelf,toleranceResolutionParent,ignoreNoProgress,mergerTreeBranchingProbability_,mergerTreeMassResolution_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,mergerTreeBuildController_) result(self)
+  function cole2000ConstructorInternal(mergeProbability,accretionLimit,timeEarliest,toleranceTimeEarliest,branchIntervalStep,toleranceResolutionSelf,toleranceResolutionParent,ignoreNoProgress,ignoreWellOrdering,mergerTreeBranchingProbability_,mergerTreeMassResolution_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,mergerTreeBuildController_) result(self)
     !!{
     Internal constructor for the \cite{cole_hierarchical_2000} merger tree building class.
     !!}
@@ -287,7 +295,8 @@ contains
     double precision                                     , intent(in   )         :: mergeProbability               , accretionLimit         , &
          &                                                                          timeEarliest                   , toleranceResolutionSelf, &
          &                                                                          toleranceResolutionParent      , toleranceTimeEarliest
-    logical                                              , intent(in   )         :: branchIntervalStep             , ignoreNoProgress
+    logical                                              , intent(in   )         :: branchIntervalStep             , ignoreNoProgress       , &
+         &                                                                          ignoreWellOrdering
     class           (mergerTreeBranchingProbabilityClass), intent(in   ), target :: mergerTreeBranchingProbability_
     class           (mergerTreeMassResolutionClass      ), intent(in   ), target :: mergerTreeMassResolution_
     class           (cosmologyFunctionsClass            ), intent(in   ), target :: cosmologyFunctions_
@@ -295,7 +304,7 @@ contains
     class           (cosmologicalMassVarianceClass      ), intent(in   ), target :: cosmologicalMassVariance_
     class           (mergerTreeBuildControllerClass     ), intent(in   ), target :: mergerTreeBuildController_
     !![
-    <constructorAssign variables="mergeProbability, accretionLimit, timeEarliest, toleranceTimeEarliest, branchIntervalStep, toleranceResolutionSelf, toleranceResolutionParent, ignoreNoProgress, *mergerTreeBranchingProbability_, *mergerTreeMassResolution_, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, *mergerTreeBuildController_"/>
+    <constructorAssign variables="mergeProbability, accretionLimit, timeEarliest, toleranceTimeEarliest, branchIntervalStep, toleranceResolutionSelf, toleranceResolutionParent, ignoreNoProgress, ignoreWellOrdering, *mergerTreeBranchingProbability_, *mergerTreeMassResolution_, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, *mergerTreeBuildController_"/>
     !!]
 
     ! Store maximum redshift.
@@ -954,24 +963,35 @@ contains
     Check well-ordering of time for the given node.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
+    use :: Error           , only : Warn
+    use :: Display         , only : displayReset      , displayMagenta
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
     double precision                    , intent(in   )          :: massResolution
     type            (mergerTree        ), intent(in   )          :: tree
-    class           (nodeComponentBasic)               , pointer :: basic_        , basicParent_
+    class           (nodeComponentBasic)               , pointer :: basic_                   , basicParent_
     character       (len=20            )                         :: label
     type            (varying_string    )                         :: message
+    logical                                                      :: closeToResolution
+    logical                             , save                   :: warned           =.false.
     
     if (associated(node%parent)) then
        basic_       => node       %basic()
        basicParent_ => node%parent%basic()
        if (basicParent_%time() < basic_%time()) then
-          if     (                                                                              &
-               &   basicParent_%mass() < massResolution*(1.0d0+self_%toleranceResolutionParent) &
-               &  .and.                                                                         &
-               &   basic_      %mass() < massResolution*(1.0d0+self_%toleranceResolutionSelf  ) &
-               & ) then
-             ! Parent halo is very close to the resolution limit. Simply prune away the remainder of this branch.
+          closeToResolution= basicParent_%mass() < massResolution*(1.0d0+self_%toleranceResolutionParent) &
+               &            .and.                                                                         &
+               &             basic_      %mass() < massResolution*(1.0d0+self_%toleranceResolutionSelf  )
+          if (self_%ignoreWellOrdering .or. closeToResolution) then
+             ! Parent halo is very close to the resolution limit, or we are ignoring well-ordering errors. Simply prune away the remainder of this branch.
+             if (.not.closeToResolution.and..not.warned) then
+                !$omp critical(mergerTreeBuilderCole2000WellOrderingWarn)
+                if (.not.warned) then
+                   call Warn(displayMagenta()//'WARNING:'//displayReset()//' tree is not well-ordered - pruning branch and ignoring')
+                   warned=.true.
+                end if
+                !$omp end critical(mergerTreeBuilderCole2000WellOrderingWarn)
+             end if
              call node%destroyBranch()
              deallocate(node)
              node => null()

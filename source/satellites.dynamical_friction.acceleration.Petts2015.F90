@@ -123,11 +123,11 @@ contains
     !!{
     Evaluate the Coulomb logarithm for the \cite{petts_semi-analytic_2015} dynamical friction model.
     !!}
-    use :: Coordinates                     , only : coordinateSpherical            , assignment(=)
-    use :: Galacticus_Nodes                , only : nodeComponentBasic             , nodeComponentSatellite, treeNode
-    use :: Galactic_Structure_Options      , only : componentTypeAll               , massTypeDark
+    use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
+    use :: Galacticus_Nodes                , only : nodeComponentBasic            , nodeComponentSatellite, treeNode
+    use :: Galactic_Structure_Options      , only : componentTypeAll              , massTypeDark
     use :: Mass_Distributions              , only : massDistributionClass
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Vectors                         , only : Vector_Magnitude
     implicit none
     class           (satelliteDynamicalFrictionPetts2015), intent(inout) :: self
@@ -180,7 +180,7 @@ contains
     else
        impactParameterMaximum=radiusOrbital
     end if
-    impactParameterMinimum=max(radiusHalfMassSatellite,gravitationalConstantGalacticus*massSatellite/speedOrbital**2)
+    impactParameterMinimum=max(radiusHalfMassSatellite,gravitationalConstant_internal*massSatellite/speedOrbital**2)
     ! Evaluate the Coulomb logarithm, using either the approximate or full expression.
     if (impactParameterMinimum <= 0.0d0) then
        coulombLogarithm=0.0d0

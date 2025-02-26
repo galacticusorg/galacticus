@@ -334,10 +334,10 @@ contains
     !!{
     Return the potential at the specified {\normalfont \ttfamily coordinates} in a S\'ersic mass distribution.
     !!}
-    use :: Coordinates                     , only : assignment(=)                  , coordinateSpherical
+    use :: Coordinates                     , only : assignment(=)                 , coordinateSpherical
     use :: Error                           , only : Error_Report
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (massDistributionSersic           ), intent(inout), target   :: self
     class           (coordinate                       ), intent(in   )           :: coordinates
@@ -374,7 +374,7 @@ contains
        end if
     end if
     !$ call OMP_Unset_Lock(self%tableLock)
-    if (.not.self%isDimensionless()) sersicPotential=+gravitationalConstantGalacticus &
+    if (.not.self%isDimensionless()) sersicPotential=+gravitationalConstant_internal &
          &                                           *sersicPotential
     return
   end function sersicPotential

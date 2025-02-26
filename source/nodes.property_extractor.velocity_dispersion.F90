@@ -335,7 +335,7 @@ contains
           case (directionRadial                    %ID)
              ! Radial velocity dispersion.
              coordinates                   =[radius,0.0d0,0.0d0]
-             velocityDispersionExtract(i,1)=kinematicsDistribution_%velocityDispersion1D(coordinates,massDistributionTotal_)
+             velocityDispersionExtract(i,1)=kinematicsDistribution_%velocityDispersion1D(coordinates,massDistribution_,massDistributionTotal_)
           case (directionLineOfSight               %ID)
              ! Line-of-sight velocity dispersion.
              self_               => self
@@ -611,10 +611,10 @@ contains
        velocityDispersionVelocitySurfaceDensityIntegrand=0.0d0
     else
        coordinates                                      =[radius,0.0d0,0.0d0]
-       velocityDispersionVelocitySurfaceDensityIntegrand=+                          velocityDispersionSolidAngleInCylinder(radius                            )    &
-            &                                            *                                                                 radius                             **2 &
-            &                                            *massDistributionWeighted_%density                               (coordinates                       )    &
-            &                                            *kinematicsDistribution_  %velocityDispersion1D                  (coordinates,massDistributionTotal_)**2
+       velocityDispersionVelocitySurfaceDensityIntegrand=+                          velocityDispersionSolidAngleInCylinder(radius                                              )    &
+            &                                            *                                                                 radius                                               **2 &
+            &                                            *massDistributionWeighted_%density                               (coordinates                                         )    &
+            &                                            *kinematicsDistribution_  %velocityDispersion1D                  (coordinates,massDistribution_,massDistributionTotal_)**2
     end if
    return
   end function velocityDispersionVelocitySurfaceDensityIntegrand
@@ -736,14 +736,14 @@ contains
     \int_{r_\mathrm{i}}^{r_\mathrm{o}} {\mathrm{G} M(<r) \over r^2} \rho(r) \sqrt{r^2-r_\mathrm{i}^2} \mathrm{d}r.
     \end{equation}
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     double precision, intent(in   ) :: radius
 
     if (radius <= radiusImpact_) then
        velocityDispersionVelocityDensityIntegrand=+0.0d0
     else
-       velocityDispersionVelocityDensityIntegrand=+gravitationalConstantGalacticus                           &
+       velocityDispersionVelocityDensityIntegrand=+gravitationalConstant_internal                            &
             &                                     *massDistributionWeighted_%densitySphericalAverage(radius) &
             &                                     *massDistributionTotal_   %massEnclosedBySphere   (radius) &
             &                                     /     radius**2                                            &

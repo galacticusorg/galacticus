@@ -506,7 +506,7 @@ contains
     !!{
     Return the peak velocity in the rotation curve for a Zhao1996 mass distribution.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class(massDistributionZhao1996), intent(inout) :: self
 
@@ -526,14 +526,14 @@ contains
        velocity=+0.0d0
        call Error_Report('unknown special case'//{introspection:location})
     end select
-    velocity=+velocity                                     &
-         &   *sqrt(                                        &
-         &         +self%densityNormalization              &
-         &        )                                        &
+    velocity=+velocity                                    &
+         &   *sqrt(                                       &
+         &         +self%densityNormalization             &
+         &        )                                       &
          &   *      self%scaleLength
-    if (.not.self%isDimensionless())                       &
-         & velocity=+velocity                              &
-         &          *sqrt(gravitationalConstantGalacticus)
+    if (.not.self%isDimensionless())                      &
+         & velocity=+velocity                             &
+         &          *sqrt(gravitationalConstant_internal)
     return
   end function zhao1996VelocityRotationCurveMaximum
 
@@ -785,8 +785,8 @@ contains
     !!{
     Computes the radius corresponding to a given specific angular momentum for zhao1996 mass distributions.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-    use :: Numerical_Ranges                , only : Make_Range                     , rangeTypeLogarithmic
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
+    use :: Numerical_Ranges                , only : Make_Range                    , rangeTypeLogarithmic
     implicit none
     class           (massDistributionZhao1996), intent(inout), target       :: self
     double precision                          , intent(in   )               :: angularMomentumSpecific
@@ -796,12 +796,12 @@ contains
     integer                                                                 :: countRadii
 
     if (angularMomentumSpecific > 0.0d0) then
-       angularMomentumSpecificScaleFree=+angularMomentumSpecific                  &
-            &                           /sqrt(                                    &
-            &                                 +gravitationalConstantGalacticus    &
-            &                                 *self%densityNormalization          &
-            &                                )                                    &
-            &                           /      self%scaleLength               **2
+       angularMomentumSpecificScaleFree=+angularMomentumSpecific                 &
+            &                           /sqrt(                                   &
+            &                                 +gravitationalConstant_internal    &
+            &                                 *self%densityNormalization         &
+            &                                )                                   &
+            &                           /      self%scaleLength              **2
        if     (                                                                                  &
             &   angularMomentumSpecificScaleFree <= self%angularMomentumSpecificScaleFreeMinimum &
             &  .or.                                                                              &
@@ -863,8 +863,8 @@ contains
     Return the potential at the specified {\normalfont \ttfamily coordinates} in an zhao1996 mass distribution.
     !!}
     use :: Coordinates                     , only : assignment(=)
-    use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess      , structureErrorCodeInfinite
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess     , structureErrorCodeInfinite
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Error                           , only : Error_Report
     implicit none
     class           (massDistributionZhao1996         ), intent(inout), target   :: self
@@ -879,7 +879,7 @@ contains
     potential=+potentialScaleFree       (radiusScaleFree)    &
          &    *self%densityNormalization                     &
          &    *self%scaleLength                          **2
-    if (.not.self%isDimensionless()) potential=+gravitationalConstantGalacticus &
+    if (.not.self%isDimensionless()) potential=+gravitationalConstant_internal &
          &                                     *potential
     return
   end function zhao1996Potential
@@ -1066,18 +1066,18 @@ contains
     !!{
     Compute the freefall radius at the given {\normalfont \ttfamily time} in an Zhao1996 mass distribution.
     !!}
-    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr, gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr, gravitationalConstant_internal
     implicit none
     class           (massDistributionZhao1996), intent(inout) :: self
     double precision                          , intent(in   ) :: time
     double precision                                          :: timeScaleFree, timeScale
     
-    timeScale    =+1.0d0/sqrt(                                 &
-         &                    +gravitationalConstantGalacticus &
-         &                    *self%densityNormalization       &
-         &                   )                                 &
-         &        *Mpc_per_km_per_s_To_Gyr
-    timeScaleFree=+time                                        &
+    timeScale    =+1.0d0/sqrt(                                &
+         &                    +gravitationalConstant_internal &
+         &                    *self%densityNormalization      &
+         &                   )                                &
+         &        *MpcPerKmPerSToGyr
+    timeScaleFree=+time                                       &
          &        /timeScale
     if (self%specialCase == specialCaseCoredNFW .and. timeScaleFree <= timeFreefallScaleFreeMinimumCoredNFW) then
        radius=0.0d0
@@ -1094,18 +1094,18 @@ contains
     Compute the rate of increase of the freefall radius at the given {\normalfont \ttfamily time} in an zhao1996 mass
     distribution.
     !!}
-    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr, gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr, gravitationalConstant_internal
     implicit none
     class           (massDistributionZhao1996), intent(inout) :: self
     double precision                          , intent(in   ) :: time
     double precision                                          :: timeScaleFree, timeScale
 
-    timeScale    =+1.0d0/sqrt(                                 &
-         &                    +gravitationalConstantGalacticus &
-         &                    *self%densityNormalization       &
-         &                   )                                 &
-         &        *Mpc_per_km_per_s_To_Gyr
-    timeScaleFree=+time                                        &
+    timeScale    =+1.0d0/sqrt(                                &
+         &                    +gravitationalConstant_internal &
+         &                    *self%densityNormalization      &
+         &                   )                                &
+         &        *MpcPerKmPerSToGyr
+    timeScaleFree=+time                                       &
          &        /timeScale
     if (self%specialCase == specialCaseCoredNFW .and. timeScaleFree <= timeFreefallScaleFreeMinimumCoredNFW) then
        radiusIncreaseRate=0.0d0
@@ -1287,7 +1287,7 @@ contains
     \end{eqnarray}
     where $x=r/r_\mathrm{s}$ and $\mathrm{G}$ is Catalan's constant.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Numerical_Constants_Math        , only : Pi
     implicit none
     class           (massDistributionZhao1996), intent(inout) :: self
@@ -1386,10 +1386,10 @@ contains
        call Error_Report('unknown special case'//{introspection:location})
     end select
     if (analytic) then
-       energy =-energy                             &
-            &  *gravitationalConstantGalacticus    &
-            &  *self%scaleLength               **5 &
-            &  *self%densityNormalization      **2
+       energy =-energy                            &
+            &  *gravitationalConstant_internal    &
+            &  *self%scaleLength              **5 &
+            &  *self%densityNormalization     **2
     else
        energy =+self%energyPotentialNumerical(radiusOuter)
     end if
@@ -1400,7 +1400,7 @@ contains
     !!{
     Compute the kinetic energy within a given {\normalfont \ttfamily radius} in a Zhao1996 mass distribution.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Numerical_Constants_Math        , only : Pi
     use :: Dilogarithms                    , only : Dilogarithm
     implicit none
@@ -1525,10 +1525,10 @@ contains
        end select
     end select
     if (analytic) then
-       energy=+energy                              &
-            & *gravitationalConstantGalacticus     &
-            & *self%scaleLength                **5 &
-            & *self%densityNormalization       **2
+       energy=+energy                            &
+            & *gravitationalConstant_internal    &
+            & *self%scaleLength              **5 &
+            & *self%densityNormalization     **2
     else
        energy=+self%energyKineticNumerical(radiusOuter,massDistributionEmbedding)
      end if

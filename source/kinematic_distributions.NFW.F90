@@ -97,28 +97,30 @@ contains
     return
   end function nfwIsCollisional
 
-  double precision function nfwVelocityDispersion1D(self,coordinates,massDistributionEmbedding) result(velocityDispersion)
+  double precision function nfwVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
     !!{
     Return the 1D velocity dispersion at the specified {\normalfont \ttfamily coordinates} in an NFW kinematic distribution.
     !!}
     use :: Dilogarithms                    , only : Dilogarithm
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
-    class           (kinematicsDistributionNFW), intent(inout)                     , target :: self
-    class           (coordinate               ), intent(in   )                              :: coordinates
-    class           (massDistributionClass    ), intent(inout)                              :: massDistributionEmbedding
-    double precision                           , parameter                                  :: minimumRadiusForExactSolution   =1.0d-2
-    double precision                           , parameter                                  :: maximumRadiusForExactSolution   =1.0d+2    
-    double precision                           , parameter                                  :: nfwNormalizationFactorUnitRadius=-8.5d0+Pi**2-6.0d0*log(2.0d0)+6.0d0*log(2.0d0)**2 ! Precomputed NFW normalization factor for unit radius.
-    integer                                    , parameter                                  :: maximumExpansionOrder           =7
-    double precision                           , dimension(maximumExpansionOrder+1)         :: coefficient                           , radiusPower
-    double precision                                                                        :: logRadius                             , onePlusRadius           , &
-         &                                                                                     logOnePlusRadius                      , velocityDispersionSquare, &
-         &                                                                                     radius
-    integer                                                                                 :: i
+    class           (kinematicsDistributionNFW), intent(inout)                      :: self
+    class           (coordinate               ), intent(in   )                      :: coordinates
+    class           (massDistributionClass    ), intent(inout), target              :: massDistribution_                      , massDistributionEmbedding
+    class           (massDistributionClass    )               , pointer             :: massDistribution__
+    double precision                           , parameter                          :: minimumRadiusForExactSolution   =1.0d-2
+    double precision                           , parameter                          :: maximumRadiusForExactSolution   =1.0d+2    
+    double precision                           , parameter                          :: nfwNormalizationFactorUnitRadius=-8.5d0+Pi**2-6.0d0*log(2.0d0)+6.0d0*log(2.0d0)**2 ! Precomputed NFW normalization factor for unit radius.
+    integer                                    , parameter                          :: maximumExpansionOrder           =7
+    double precision                           , dimension(maximumExpansionOrder+1) :: coefficient                           , radiusPower
+    double precision                                                                :: logRadius                             , onePlusRadius           , &
+         &                                                                             logOnePlusRadius                      , velocityDispersionSquare, &
+         &                                                                             radius
+    integer                                                                         :: i
 
-    if (associated(massDistributionEmbedding%kinematicsDistribution_,self)) then
+    massDistribution__ => massDistribution_
+    if (associated(massDistribution__,massDistributionEmbedding)) then
        ! For the case of a self-gravitating NFW distribution we have an analytic solution for the velocity dispersion.
        select type (massDistributionEmbedding)
        class is (massDistributionNFW)
@@ -247,7 +249,7 @@ contains
                &                   +4.0d0                                          &
                &                   *Pi                                             &
                &                   *velocityDispersionSquare                       &
-               &                   *gravitationalConstantGalacticus                &
+               &                   *gravitationalConstant_internal                 &
                &                   *massDistributionEmbedding%densityNormalization &
                &                  )                                                &
                &             *      massDistributionEmbedding%scaleLength
@@ -257,7 +259,7 @@ contains
        end select
     else
        ! Our NFW distribution is embedded in another distribution. We must compute the velocity dispersion numerically.
-       velocityDispersion=self%velocityDispersion1DNumerical(coordinates,massDistributionEmbedding)
+       velocityDispersion=self%velocityDispersion1DNumerical(coordinates,massDistribution_,massDistributionEmbedding)
     end if
     return
   end function nfwVelocityDispersion1D

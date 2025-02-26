@@ -4,7 +4,7 @@
 <!-- 30-November-2020                                                                   -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
+  <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
 
   <verbosityLevel value="working"/>
 
@@ -300,6 +300,14 @@
 
   <!-- AGN feedback options -->
   <hotHaloExcessHeatDrivesOutflow value="true"/>
+  <blackHoleWind value="ciotti2009">
+    <efficiencyWind                              value="0.213288020410184"/>
+    <efficiencyWindScalesWithEfficiencyRadiative value="true"             />
+  </blackHoleWind>
+  <blackHoleCGMHeating value="jetPower">
+    <efficiencyRadioMode value="0.00657974778017468"/>
+  </blackHoleCGMHeating>
+
   <stellarWinds value="leitherer1992"/>
   <initialMassForSupernovaTypeII value="8.0"/>
   <supernovaeIa value="nagashima"/>
@@ -307,11 +315,12 @@
   <stellarFeedback value="standard"/>
   
   <!-- Black hole options -->
-  <blackHoleBinaryMerger value="rezzolla2008"/>
-  <blackHoleEfficiency value="0.213288020410184"/>
-  <blackHoleJetFraction value="0.00657974778017468"/>
-
-  <!-- Satellite orbit options -->
+  <blackHoleAccretionRate value="standard">
+    <bondiHoyleAccretionEnhancementSpheroid value="  5.0"/>
+    <bondiHoyleAccretionEnhancementHotHalo  value="  6.0"/>
+    <bondiHoyleAccretionTemperatureSpheroid value="100.0"/>
+    <bondiHoyleAccretionHotModeOnly         value="true"/>
+  </blackHoleAccretionRate>
 
   <!-- Galaxy merger options -->
   <virialOrbit value="li2020">
@@ -419,12 +428,16 @@
      <beta value="0.01"/>
      </tidalStripping>
     </nodeOperator>
+    <!-- Black hole physics -->
     <nodeOperator value="blackHolesSeed">
       <blackHoleSeeds value="fixed">
         <mass value="100"/>
         <spin value="0"/>
       </blackHoleSeeds>
     </nodeOperator>
+    <nodeOperator value="blackHolesAccretion"/>
+    <nodeOperator value="blackHolesWinds"/>
+    <nodeOperator value="blackHolesCGMHeating"/>
   </nodeOperator>
   
   <starFormationHistory value="adaptive">

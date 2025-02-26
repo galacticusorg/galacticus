@@ -240,7 +240,7 @@ jobs:
         run: |
           cat warnings.md >> $GITHUB_STEP_SUMMARY
       - name: Comment on the PR if any warnings were found
-        if: steps.check_files.outputs.files_exists == 'true'
+        if: steps.check_files.outputs.files_exists == 'true' && github.event.pull_request.head.repo.full_name == github.repository
         continue-on-error: true
         uses: thollander/actions-comment-pull-request@v3
         with:
@@ -285,7 +285,7 @@ jobs:
         with:
           files: warnings.md
       - name: Comment on the PR if any warnings were found
-        if: steps.check_files.outputs.files_exists == 'true'
+        if: steps.check_files.outputs.files_exists == 'true' && github.event.pull_request.head.repo.full_name == github.repository
         uses: thollander/actions-comment-pull-request@v3
         with:
           file-path: warnings.md

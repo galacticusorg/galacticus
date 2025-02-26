@@ -421,7 +421,7 @@ contains
        massTarget=0.0d0
        call Error_Report('either "mass" or "massFractional" must be provided'//{introspection:location})
     end if
-    if (massTarget <= 0.0d0) then
+    if (massTarget <= 0.0d0 .or. self%massEnclosedBySphere(0.0d0) >= massTarget) then
        radius=0.0d0
        return
     end if
@@ -508,13 +508,13 @@ contains
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: Coordinates                     , only : assignment(=)
     use            :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
-    use            :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use            :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use            :: Numerical_Integration           , only : integrator
     use            :: Numerical_Comparison            , only : Values_Agree
-    use            :: Numerical_Ranges                , only : Make_Range                     , rangeTypeLogarithmic
+    use            :: Numerical_Ranges                , only : Make_Range                    , rangeTypeLogarithmic
     use            :: Table_Labels                    , only : extrapolationTypeExtrapolate
     use            :: Numerical_Interpolation         , only : gsl_interp_linear
-    use            :: Error                           , only : Error_Report                   , errorStatusSuccess
+    use            :: Error                           , only : Error_Report                  , errorStatusSuccess
     implicit none
     class           (massDistributionSpherical        ), intent(inout), target      :: self
     class           (coordinate                       ), intent(in   )              :: coordinates
@@ -688,7 +688,7 @@ contains
        potential=+0.0d0
     end if
     ! Convert to dimensionful units.    
-    if (.not.self%isDimensionless()) potential=+gravitationalConstantGalacticus &
+    if (.not.self%isDimensionless()) potential=+gravitationalConstant_internal &
          &                                     *potential
     return
   end function sphericalPotentialNumerical
@@ -700,7 +700,7 @@ contains
     !!}
     use :: Coordinates                     , only : assignment(=)
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Numerical_Integration           , only : integrator
     use :: Numerical_Comparison            , only : Values_Agree
     implicit none
@@ -719,7 +719,7 @@ contains
          &                            )
     call self%solverUnset()
     ! Convert to dimensionful units.    
-    if (.not.self%isDimensionless()) potential=+gravitationalConstantGalacticus &
+    if (.not.self%isDimensionless()) potential=+gravitationalConstant_internal &
          &                                     *potential
     return
   end function sphericalPotentialDifferenceNumerical
@@ -779,7 +779,7 @@ contains
     distributions.
     !!}
     use :: Coordinates                     , only : assignment(=), coordinateSpherical, coordinateCartesian
-    use :: Numerical_Constants_Astronomical, only : gigaYear     , megaParsec         , gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gigaYear     , megaParsec         , gravitationalConstant_internal
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     double precision                              , dimension(3)  :: acceleration
@@ -800,12 +800,12 @@ contains
        acceleration=-self%massEnclosedBySphere(radius           )    &
             &       *                          positionCartesian     &
             &       /                          radius            **3
-       if (.not.self%isDimensionless())                     &
-            & acceleration=+acceleration                    &
-            &              *kilo                            &
-            &              *gigaYear                        &
-            &              /megaParsec                      &
-            &              *gravitationalConstantGalacticus
+       if (.not.self%isDimensionless())                    &
+            & acceleration=+acceleration                   &
+            &              *kilo                           &
+            &              *gigaYear                       &
+            &              /megaParsec                     &
+            &              *gravitationalConstant_internal
     else
        acceleration=0.0d0
     end if
@@ -817,10 +817,10 @@ contains
     Computes the gravitational tidal tensor at {\normalfont \ttfamily coordinates} for spherically-symmetric mass
     distributions.
     !!}
-    use :: Coordinates                     , only : assignment(=)                  , coordinateSpherical, coordinateCartesian
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Coordinates                     , only : assignment(=)                 , coordinateSpherical, coordinateCartesian
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Tensors                         , only : tensorIdentityR2D3Sym          , assignment(=)      , operator(*)
+    use :: Tensors                         , only : tensorIdentityR2D3Sym         , assignment(=)      , operator(*)
     use :: Vectors                         , only : Vector_Outer_Product
     implicit none
     type            (tensorRank2Dimension3Symmetric)                :: sphericalTidalTensor
@@ -847,9 +847,9 @@ contains
          &               +(massEnclosed*3.0d0   /radius**5)*positionTensor        &
          &               -(density     *4.0d0*Pi/radius**2)*positionTensor
     ! For dimensionful profiles, add the appropriate normalization.
-    if (.not.self%isDimensionless())                              &
-         & sphericalTidalTensor=+sphericalTidalTensor             &
-         &                       *gravitationalConstantGalacticus
+    if (.not.self%isDimensionless())                             &
+         & sphericalTidalTensor=+sphericalTidalTensor            &
+         &                       *gravitationalConstant_internal
     return
   end function sphericalTidalTensor
 
@@ -857,7 +857,7 @@ contains
     !!{
     Return the rotation curve for a spherical mass distribution.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (massDistributionSpherical), intent(inout) :: self
     double precision                           , intent(in   ) :: radius
@@ -871,7 +871,7 @@ contains
             &                      )
        ! Make dimensionful if necessary.
        if (.not.self%dimensionless) sphericalRotationCurve= &
-            & +sqrt(gravitationalConstantGalacticus)        &
+            & +sqrt(gravitationalConstant_internal)         &
             & *sphericalRotationCurve
     end if
     return
@@ -881,8 +881,8 @@ contains
     !!{
     Return the rotation curve gradient for a spherical mass distribution.
     !!}
-    use :: Coordinates                     , only : assignment(=)                  , coordinateSpherical
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Coordinates                     , only : assignment(=)                 , coordinateSpherical
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Numerical_Constants_Math        , only : Pi
     implicit none
     class           (massDistributionSpherical), intent(inout) :: self
@@ -898,7 +898,7 @@ contains
          &                         /                          radius   **2
     ! Make dimensionful if necessary.
     if (.not.self%dimensionless) sphericalRotationCurveGradient= &
-         &  +gravitationalConstantGalacticus                     &
+         &  +gravitationalConstant_internal                      &
          &  *sphericalRotationCurveGradient
     return
   end function sphericalRotationCurveGradient
@@ -976,9 +976,9 @@ contains
     if (density  <= 0.0d0) return
     if (.not.associated(self%kinematicsDistribution_)) call Error_Report('a kinematics distribution is needed to compute the Chandrasekhar integral'//{introspection:location})
     if (self%kinematicsDistribution_%isCollisional()) then
-       velocityDispersion=Ideal_Gas_Sound_Speed(self%kinematicsDistribution_%temperature         (coordinates                          ))
+       velocityDispersion=Ideal_Gas_Sound_Speed(self%kinematicsDistribution_%temperature         (coordinates                               ))
     else
-       velocityDispersion=                      self%kinematicsDistribution_%velocityDispersion1D(coordinates,massDistributionEmbedding)
+       velocityDispersion=                      self%kinematicsDistribution_%velocityDispersion1D(coordinates,self,massDistributionEmbedding)
     end if
     if (velocityDispersion > 0.0d0) then    
        xV                         =+velocity_             &
@@ -1079,9 +1079,9 @@ contains
     time} in a spherical mass distribution using a numerical
     calculation.
     !!}
-    use :: Root_Finder                     , only : rangeExpandMultiplicative      , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
-    use :: Coordinates                     , only : coordinateSpherical            , assignment(=)
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus, Mpc_per_km_per_s_To_Gyr
+    use :: Root_Finder                     , only : rangeExpandMultiplicative     , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal, MpcPerKmPerSToGyr
     use :: Numerical_Constants_Math        , only : Pi
     implicit none
     class           (massDistributionSpherical), intent(inout), target :: self
@@ -1097,14 +1097,14 @@ contains
        ! For mass distributions with a constant density core, the potential in the center is harmonic. This means there is a
        ! minimum to the freefall time as a function of radius. Compute that minimum here so that we can return a zero radius for
        ! times less than this.
-       timeFreefallMinimum=+sqrt(                                 &
-            &                    + 3.0d0                          &
-            &                    /16.0d0                          &
-            &                    *Pi                              &
-            &                    /gravitationalConstantGalacticus &
-            &                    /self%density(coordinates)       &
-            &                   )                                 &
-            &              *Mpc_per_km_per_s_To_Gyr
+       timeFreefallMinimum=+sqrt(                                &
+            &                    + 3.0d0                         &
+            &                    /16.0d0                         &
+            &                    *Pi                             &
+            &                    /gravitationalConstant_internal &
+            &                    /self%density(coordinates)      &
+            &                   )                                &
+            &              *MpcPerKmPerSToGyr
     else
        timeFreefallMinimum=+0.0d0
     end if   
@@ -1145,8 +1145,8 @@ contains
     !!{
     Integrand for freefall time in a spherical mass distribution.
     !!}
-    use :: Coordinates                     , only : assignment(=)          , coordinateSpherical
-    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
+    use :: Coordinates                     , only : assignment(=)    , coordinateSpherical
+    use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr
     implicit none
     double precision                     , intent(in   ) :: radius
     double precision                                     :: potentialDifference
@@ -1156,7 +1156,7 @@ contains
     coordinatesFreefall=[massSphericalSolvers(massSphericalSolversCount)%radiusFreefall,0.0d0,0.0d0]
     potentialDifference=+massSphericalSolvers(massSphericalSolversCount)%self%potentialDifference(coordinates,coordinatesFreefall)
     if (potentialDifference < 0.0d0) then
-       integrandTimeFreefall=+Mpc_per_km_per_s_To_Gyr   &
+       integrandTimeFreefall=+MpcPerKmPerSToGyr         &
             &                /sqrt(                     &
             &                      -2.0d0               &
             &                      *potentialDifference &
@@ -1268,7 +1268,7 @@ contains
     !!{
     Compute (numerically) the potential energy within a given {\normalfont \ttfamily radius} in a spherical mass distribution.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Numerical_Integration           , only : integrator
     implicit none
     class           (massDistributionSpherical), intent(inout) :: self
@@ -1277,7 +1277,7 @@ contains
 
     integrator_= integrator(integrandEnergyPotential,toleranceRelative=1.0d-3)
     energy     =-0.5d0                                                    &
-         &      *gravitationalConstantGalacticus                          &
+         &      *gravitationalConstant_internal                           &
          &      *(                                                        &
          &        +integrator_%integrate           (0.0d0,radiusOuter)    &
          &        +self       %massEnclosedBySphere(      radiusOuter)**2 &
@@ -1338,9 +1338,9 @@ contains
 
       if (radius > 0.0d0) then
          coordinates           =[radius,0.0d0,0.0d0]
-         integrandEnergyKinetic=+self                        %density             (coordinates                          )    &
-              &                 *self%kinematicsDistribution_%velocityDispersion1D(coordinates,massDistributionEmbedding)**2 &
-              &                 *                             radius                                                     **2
+         integrandEnergyKinetic=+self                        %density             (coordinates                               )    &
+              &                 *self%kinematicsDistribution_%velocityDispersion1D(coordinates,self,massDistributionEmbedding)**2 &
+              &                 *                             radius                                                          **2
       else
          integrandEnergyKinetic=0.0d0
       end if

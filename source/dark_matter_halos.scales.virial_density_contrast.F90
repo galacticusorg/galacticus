@@ -230,8 +230,8 @@ contains
     !!{
     Returns the virial velocity scale for {\normalfont \ttfamily node}.
     !!}
-    use :: Galacticus_Nodes            , only : nodeComponentBasic             , treeNode
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Galacticus_Nodes                , only : nodeComponentBasic            , treeNode
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
     type (treeNode                                          ), intent(inout) :: node
@@ -249,7 +249,7 @@ contains
        ! Get the basic component.
        basic => node%basic()
        ! Compute the virial velocity.
-       self%velocityVirialStored=sqrt(gravitationalConstantGalacticus*basic%mass() &
+       self%velocityVirialStored=sqrt(gravitationalConstant_internal*basic%mass() &
             &/self%radiusVirial(node))
        ! Record that virial velocity has now been computed.
        self%velocityVirialComputed=.true.
