@@ -121,7 +121,7 @@ contains
         ! For the case of a self-gravitating distribution we can use the undecorated kinematic distribution in its own mass distribution.
        select type (massDistributionEmbedding)
        class is (massDistributionSphericalDecorator)
-          velocityDispersion=self%kinematicsDistribution_%velocityDispersion1D(coordinates,massDistribution_,massDistributionEmbedding%massDistribution_)
+          velocityDispersion=self%kinematicsDistribution_%velocityDispersion1D(coordinates,massDistributionEmbedding%massDistribution_,massDistributionEmbedding%massDistribution_)
        class default
           velocityDispersion=+0.0d0
           call Error_Report('mass distribution must be of the `massDistributionSphericalDecorator` class but found `'//char(massDistributionEmbedding%objectType())//'`'//{introspection:location})
