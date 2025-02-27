@@ -44,9 +44,10 @@
      !!}
      private
      type   (varying_string )                            :: baseParametersFileName
-     type   (inputParameters), pointer                   :: parametersModel        => null()
-     type   (parameterList  ), dimension(:), allocatable :: modelParametersActive_           , modelParametersInactive_
-     logical                                             :: reportFileName         =  .false., reportState             =.false.
+     type   (varying_string ), dimension(:), allocatable :: changeParametersFileNames
+     type   (inputParameters), pointer                   :: parametersModel           => null()
+     type   (parameterList  ), dimension(:), allocatable :: modelParametersActive_              , modelParametersInactive_
+     logical                                             :: reportFileName            =  .false., reportState             =.false.
    contains
      !![
      <methods>
@@ -64,26 +65,29 @@ contains
     !!{
     Initialize pointers into the base parameters object.
     !!}
-    use :: ISO_Varying_String, only : char              , operator(//)      , var_str
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : char              , operator(//), var_str
     use :: Kind_Numbers      , only : kind_int8
-    use :: String_Handling   , only : String_Count_Words, String_Join       , String_Split_Words, operator(//)
+    use :: String_Handling   , only : String_Count_Words, String_Join , String_Split_Words, operator(//)
     implicit none
     class    (posteriorSampleLikelihoodBaseParameters), intent(inout)                 :: self
     type     (modelParameterList                     ), intent(in   ), dimension(:  ) :: modelParametersActive_, modelParametersInactive_
     type     (varying_string                         ), allocatable  , dimension(:  ) :: parameterNames
     integer                                                                           :: i                     , j                       , &
          &                                                                               instance              , indexElement            , &
-         &                                                                               parameterCount
+         &                                                                               parameterCount        , ioStatus                , &
+         &                                                                               k
     type     (inputParameters                        ), pointer                       :: parameters_           , subParameters_
-    character(len=10                                 )                                :: labelIndex
+    character(len=1024                               )                                :: labelIndex            , labelValue              , &
+         &                                                                               parameterValue
 
     ! On first call we must build pointers to all parameter nodes which will be modified as a function of chain state.
     if (.not.allocated(self%modelParametersActive_)) then
        allocate(self%modelParametersActive_(size(modelParametersActive_)))
        do i=1,size(modelParametersActive_)
-          parameterCount=String_Count_Words(char(modelParametersActive_(i)%modelParameter_%name()),"::")
+          parameterCount=String_Count_Words(char(modelParametersActive_(i)%modelParameter_%name()),"/")
           allocate(parameterNames(parameterCount))
-          call String_Split_Words(parameterNames,char(modelParametersActive_(i)%modelParameter_%name()),"::")
+          call String_Split_Words(parameterNames,char(modelParametersActive_(i)%modelParameter_%name()),"/")
           allocate(parameters_)
           parameters_=inputParameters(self%parametersModel)
           do j=1,parameterCount
@@ -92,13 +96,29 @@ contains
              if (index(parameterNames(j),"[") /= 0) then
                 labelIndex       =extract(parameterNames(j),index(parameterNames(j),"[")+1,index(parameterNames(j),"]")-1)
                 parameterNames(j)=extract(parameterNames(j),                             1,index(parameterNames(j),"[")-1)
-                read (labelIndex,*) instance
-                instance=instance+1
+                read (labelIndex,*,iostat=ioStatus) instance
+                if (ioStatus == 0) then
+                   ! Integer indexing - nothing further to do.
+                else
+                   ! Non-integer indexing, expect an XPath expression.
+                   if (index(labelIndex,"@value='") == 1) then
+                      labelValue=labelIndex(9:index(labelIndex(9:),"'")+8-1)
+                      do k=1,parameters_%copiesCount(char(parameterNames(j)),requireValue=.true.)
+                         call parameters_%value(char(parameterNames(j)),parameterValue,copyInstance=k)
+                         if (trim(parameterValue) == trim(labelValue)) then
+                            instance=k
+                            exit
+                         end if
+                      end do
+                      if (instance == 0) call Error_Report("unable to find matching parameter `"//parameterNames(j)//"` with value `"//trim(parameterValue)//"`"//{introspection:location})                      
+                   else
+                      call Error_Report("expected a XPath attribute selector of the form `@value='...'`, but got `"//trim(labelIndex)//"`"//{introspection:location})
+                   end if
+                end if
              else if (index(parameterNames(j),"{") /= 0) then
                 labelIndex       =extract(parameterNames(j),index(parameterNames(j),"{")+1,index(parameterNames(j),"}")-1)
                 parameterNames(j)=extract(parameterNames(j),                             1,index(parameterNames(j),"{")-1)
                 read (labelIndex,*) indexElement
-                indexElement=indexElement+1
              end if
              if (j == parameterCount) then
                 ! This is the final parameter - so get and store a pointer to its node.
@@ -121,9 +141,9 @@ contains
     if (.not.allocated(self%modelParametersInactive_)) then
        allocate(self%modelParametersInactive_(size(modelParametersInactive_)))
        do i=1,size(modelParametersInactive_)
-          parameterCount=String_Count_Words(char(modelParametersInactive_(i)%modelParameter_%name()),"::")
+          parameterCount=String_Count_Words(char(modelParametersInactive_(i)%modelParameter_%name()),"/")
           allocate(parameterNames(parameterCount))
-          call String_Split_Words(parameterNames,char(modelParametersInactive_(i)%modelParameter_%name()),"::")
+          call String_Split_Words(parameterNames,char(modelParametersInactive_(i)%modelParameter_%name()),"/")
           allocate(parameters_)
           parameters_=inputParameters(self%parametersModel)
           do j=1,parameterCount
@@ -132,13 +152,29 @@ contains
               if (index(parameterNames(j),"[") /= 0) then
                 labelIndex       =extract(parameterNames(j),index(parameterNames(j),"[")+1,index(parameterNames(j),"]")-1)
                 parameterNames(j)=extract(parameterNames(j),                             1,index(parameterNames(j),"[")-1)
-                read (labelIndex,*) instance
-                instance=instance+1
+                read (labelIndex,*,iostat=ioStatus) instance
+                if (ioStatus == 0) then
+                   ! Integer indexing - nothing further to do.
+                else
+                   ! Non-integer indexing, expect an XPath expression.
+                   if (index(labelIndex,"@value='") == 1) then
+                      labelValue=labelIndex(9:index(labelIndex(9:),"'")+8-1)
+                      do k=1,parameters_%copiesCount(char(parameterNames(j)),requireValue=.true.)
+                         call parameters_%value(char(parameterNames(j)),parameterValue,copyInstance=k)
+                         if (trim(parameterValue) == trim(labelValue)) then
+                            instance=k
+                            exit
+                         end if
+                      end do
+                      if (instance == 0) call Error_Report("unable to find matching parameter `"//parameterNames(j)//"` with value `"//trim(parameterValue)//"`"//{introspection:location})
+                   else
+                      call Error_Report("expected a XPath attribute selector of the form `@value='...'`, but got `"//trim(labelIndex)//"`"//{introspection:location})
+                   end if
+                end if
              else if (index(parameterNames(j),"{") /= 0) then
                 labelIndex       =extract(parameterNames(j),index(parameterNames(j),"{")+1,index(parameterNames(j),"}")-1)
                 parameterNames(j)=extract(parameterNames(j),                             1,index(parameterNames(j),"{")-1)
                 read (labelIndex,*) indexElement
-                indexElement=indexElement+1
              end if
              if (j == parameterCount) then
                 ! This is the final parameter - so get and store a pointer to its node.

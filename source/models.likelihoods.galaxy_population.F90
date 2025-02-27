@@ -70,14 +70,15 @@ contains
     use :: Display         , only : displayVerbosity, enumerationVerbosityLevelDecode, enumerationVerbosityLevelEncode
     use :: Input_Parameters, only : inputParameter  , inputParameters
     implicit none
-    type   (posteriorSampleLikelihoodGalaxyPopulation)                :: self
-    type   (inputParameters                          ), intent(inout) :: parameters
-    type   (varying_string)                                           :: baseParametersFileName, failedParametersFileName
-    logical                                                           :: randomize             , collaborativeMPI        , &
-         &                                                               outputAnalyses        , reportFileName          , &
-         &                                                               reportState           , reportEvaluationTimes
-    type   (varying_string)                                           :: evolveForestsVerbosity
-    type   (inputParameters                          ), pointer       :: parametersModel
+    type   (posteriorSampleLikelihoodGalaxyPopulation)                              :: self
+    type   (inputParameters                          ), intent(inout)               :: parameters
+    type   (inputParameters                          ), pointer                     :: parametersModel
+    type   (varying_string)                           , allocatable  , dimension(:) :: changeParametersFileNames
+    type   (varying_string)                                                         :: baseParametersFileName   , failedParametersFileName
+    logical                                                                         :: randomize                , collaborativeMPI        , &
+         &                                                                             outputAnalyses           , reportFileName          , &
+         &                                                                             reportState              , reportEvaluationTimes
+    type   (varying_string)                                                         :: evolveForestsVerbosity
 
     !![
     <inputParameter>
@@ -134,9 +135,19 @@ contains
       <source>parameters</source>
     </inputParameter>
     !!]
+    allocate(changeParametersFileNames(parameters%count('changeParametersFileNames',zeroIfNotPresent=.true.)))
+    if (size(changeParametersFileNames) > 0) then
+       !![
+       <inputParameter>
+	 <name>changeParametersFileNames</name>
+	 <description>The names of files containing parameter changes to be applied.</description>
+	 <source>parameters</source>
+       </inputParameter>
+       !!]
+    end if
     allocate(parametersModel)
-    parametersModel=inputParameters                          (baseParametersFileName,noOutput=.true.)
-    self           =posteriorSampleLikelihoodGalaxyPopulation(parametersModel,baseParametersFileName,randomize,outputAnalyses,reportEvaluationTimes,collaborativeMPI,reportFileName,reportState,enumerationVerbosityLevelEncode(evolveForestsVerbosity,includesPrefix=.false.),failedParametersFileName)
+    parametersModel=inputParameters                          (baseParametersFileName,noOutput=.true.,changeFiles=changeParametersFileNames)
+    self           =posteriorSampleLikelihoodGalaxyPopulation(parametersModel,baseParametersFileName,randomize,outputAnalyses,reportEvaluationTimes,collaborativeMPI,reportFileName,reportState,enumerationVerbosityLevelEncode(evolveForestsVerbosity,includesPrefix=.false.),failedParametersFileName,changeParametersFileNames)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
@@ -144,20 +155,21 @@ contains
     return
   end function galaxyPopulationConstructorParameters
 
-  function galaxyPopulationConstructorInternal(parametersModel,baseParametersFileName,randomize,outputAnalyses,reportEvaluationTimes,collaborativeMPI,reportFileName,reportState,evolveForestsVerbosity,failedParametersFileName) result(self)
+  function galaxyPopulationConstructorInternal(parametersModel,baseParametersFileName,randomize,outputAnalyses,reportEvaluationTimes,collaborativeMPI,reportFileName,reportState,evolveForestsVerbosity,failedParametersFileName,changeParametersFileNames) result(self)
     !!{
     Constructor for ``galaxyPopulation'' posterior sampling likelihood class.
     !!}
     implicit none
-    type   (posteriorSampleLikelihoodGalaxyPopulation)                        :: self
-    type   (inputParameters                          ), intent(inout), target :: parametersModel
-    logical                                           , intent(in   )         :: randomize               , collaborativeMPI     , &
-         &                                                                       outputAnalyses          , reportFileName       , &
-         &                                                                       reportState             , reportEvaluationTimes
-    type   (enumerationVerbosityLevelType            ), intent(in   )         :: evolveForestsVerbosity
-    type   (varying_string                           ), intent(in   )         :: failedParametersFileName, baseParametersFileName
+    type   (posteriorSampleLikelihoodGalaxyPopulation)                              :: self
+    type   (inputParameters                          ), intent(inout), target       :: parametersModel
+    logical                                           , intent(in   )               :: randomize                , collaborativeMPI     , &
+         &                                                                             outputAnalyses           , reportFileName       , &
+         &                                                                             reportState              , reportEvaluationTimes
+    type   (enumerationVerbosityLevelType            ), intent(in   )               :: evolveForestsVerbosity
+    type   (varying_string                           ), intent(in   )               :: failedParametersFileName , baseParametersFileName
+    type   (varying_string                           ), intent(in   ), dimension(:) :: changeParametersFileNames
     !![
-    <constructorAssign variables="*parametersModel, baseParametersFileName, randomize, outputAnalyses, reportEvaluationTimes, collaborativeMPI, reportFileName, reportState, evolveForestsVerbosity, failedParametersFileName"/>
+    <constructorAssign variables="*parametersModel, baseParametersFileName, randomize, outputAnalyses, reportEvaluationTimes, collaborativeMPI, reportFileName, reportState, evolveForestsVerbosity, failedParametersFileName, changeParametersFileNames"/>
     !!]
 
     return

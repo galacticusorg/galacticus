@@ -286,32 +286,46 @@ contains
     Return a list of pointers to all nodes matching a given {\normalfont \ttfamily tagName}.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
-    use            :: FoX_DOM      , only : Element_Node, getFirstChild, getNextSibling, getNodeName, &
-          &                                 getNodeType , hasChildNodes, node
+    use            :: FoX_DOM      , only : Element_Node, getFirstChild, getNextSibling, getNodeName , &
+          &                                 getNodeType , hasChildNodes, node          , getAttribute
     implicit none
-    type     (xmlNodeList), intent(inout), allocatable, dimension(:) :: elements
-    integer  (c_size_t   )                                           :: countElements, offset
-    type     (node       ), intent(in   ), pointer                   :: xmlElement
-    character(len=*      ), intent(in   )                            :: tagName
-    type     (node       )               , pointer                   :: childNode
-    type     (xmlNodeList)               , allocatable, dimension(:) :: childElements
-    logical                                                          :: matchAll
+    type     (xmlNodeList     ), intent(inout), allocatable, dimension(:) :: elements
+    integer  (c_size_t        )                                           :: countElements , offset
+    type     (node            ), intent(in   ), pointer                   :: xmlElement
+    character(len=*           ), intent(in   )                            :: tagName
+    type     (node            )               , pointer                   :: childNode
+    type     (xmlNodeList     )               , allocatable, dimension(:) :: childElements
+    logical                                                               :: matchAll      , matches
+    character(len=len(tagName))                                           :: tagName_      , attributeName, &
+         &                                                                   attributeValue
 
     countElements=XML_Count_Elements_By_Tag_Name(xmlElement,tagName)    
     offset       =0_c_size_t
     if (allocated(elements)) deallocate(elements)
     allocate(elements(0:countElements-1))
     if (hasChildNodes(xmlElement)) then
-       matchAll  =  tagName == "*"
+      if (index(tagName,"[@") > 0) then
+         tagName_      =tagName(                    1:index(tagName,"[@")-1)
+         attributeName =tagName(index(tagName,"[@")+2:index(tagName,"=" )-1)
+         attributeValue=tagName(index(tagName,"=" )+2:index(tagName,"]" )-2)
+      else
+          tagName_      =tagName
+          attributeName =""
+          attributeValue=""
+       end if
+       matchAll  =  trim(tagName_) == "*"
        childNode => getFirstChild(xmlElement)
        do while (associated(childNode))
           call XML_Get_Elements_By_Tag_Name(childNode,tagName,childElements)
           elements(offset:offset+size(childElements)-1)=childElements
           offset=offset+size(childElements)
           deallocate(childElements)
-          if (getNodeType(childNode) == Element_Node .and. (matchAll .or. getNodeName(childNode) == tagName)) then
-             elements(offset)%element => childNode
-             offset=offset+1_c_size_t
+          if (getNodeType(childNode) == Element_Node .and. (matchAll .or. getNodeName(childNode) == trim(tagName_))) then
+             matches=attributeName == "" .or. getAttribute(childNode,trim(attributeName)) == trim(attributeValue)
+             if (matches) then
+                elements(offset)%element => childNode
+                offset=offset+1_c_size_t
+             end if
           end if
           childNode => getNextSibling(childNode)
        end do
@@ -325,36 +339,48 @@ contains
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: FoX_DOM      , only : Element_Node, getFirstChild, getNextSibling, getNodeName, &
-          &                                 getNodeType , hasChildNodes, node
+          &                                 getNodeType , hasChildNodes, node          , getAttribute
     implicit none
-    integer  (c_size_t)                         :: countElements
-    type     (node    ), intent(in   ), pointer :: xmlElement
-    character(len=*   ), intent(in   )          :: tagName
-    type     (node    )               , pointer :: childNode
-    logical                                     :: matchAll
+    integer  (c_size_t        )                         :: countElements
+    type     (node            ), intent(in   ), pointer :: xmlElement
+    character(len=*           ), intent(in   )          :: tagName
+    type     (node            )               , pointer :: childNode
+    logical                                             :: matchAll
+    character(len=len(tagName))                         :: tagName_      , attributeName, &
+         &                                                 attributeValue
 
     countElements=0_c_size_t
     if (hasChildNodes(xmlElement)) then
-       matchAll  =  tagName == "*"
+       if (index(tagName,"[@") > 0) then
+          tagName_      =tagName(                    1:index(tagName,"[@")-1)
+          attributeName =tagName(index(tagName,"[@")+2:index(tagName,"=" )-1)
+          attributeValue=tagName(index(tagName,"=" )+2:index(tagName,"]" )-2)
+       else
+          tagName_      =tagName
+          attributeName =""
+          attributeValue=""
+       end if
+       matchAll  =  trim(tagName_) == "*"
        childNode => getFirstChild(xmlElement)
        do while (associated(childNode))
           countElements=countElements+XML_Count_Elements_By_Tag_Name(childNode,tagName)
-          if (getNodeType(childNode) == Element_Node .and. (matchAll .or. getNodeName(childNode) == tagName)) &
-               & countElements=countElements+1_c_size_t
+          if (getNodeType(childNode) == Element_Node .and. (matchAll .or. getNodeName(childNode) == trim(tagName_))) then
+             if (attributeName == "" .or. getAttribute(childNode,trim(attributeName)) == trim(attributeValue)) countElements=countElements+1_c_size_t
+          end if
           childNode => getNextSibling(childNode)
        end do
     end if
     return
   end function XML_Count_Elements_By_Tag_Name
 
-  function XML_Get_First_Element_By_Tag_Name(xmlElement,tagName,directChildrenOnly)
+  function XML_Get_First_Element_By_Tag_Name(xmlElement,tagName,directChildrenOnly) result(element)
     !!{
     Return a pointer to the first node in an XML node that matches the given {\normalfont \ttfamily tagName}.
     !!}
     use :: FoX_dom, only : getParentNode, node
     use :: Error  , only : Error_Report
     implicit none
-    type     (node            )               , pointer      :: XML_Get_First_Element_By_Tag_Name
+    type     (node            )               , pointer      :: element
     type     (node            ), intent(in   ), pointer      :: xmlElement
     character(len=*           ), intent(in   )               :: tagName
     logical                    , intent(in   ), optional     :: directChildrenOnly
@@ -362,13 +388,16 @@ contains
     type     (node            )               , pointer      :: parent
     character(len=len(tagName))                              :: currentTagName                   , path
     integer                                                  :: pathPosition                     , i
-    logical                                                  :: directChildrenOnlyActual
+    logical                                                  :: found
+    !![
+    <optionalArgument name="directChildrenOnly" defaultsTo=".false."/>
+    !!]
 
-    ! Set default options.
-    directChildrenOnlyActual=.false.
-    if (present(directChildrenOnly)) directChildrenOnlyActual=directChildrenOnly
+    ! Validate.
+    if (index(tagName,"//") > 0                               ) call Error_Report('XPath `//` operator is not supported'                       //{introspection:location})
+    if (index(tagName,"/" ) > 0 .and. .not.directChildrenOnly_) call Error_Report('only direct children supported when using XPath expressions'//{introspection:location})
     ! Find element.
-    XML_Get_First_Element_By_Tag_Name => xmlElement
+    element => xmlElement
     path=tagName
     do while (path /= "")
        pathPosition=index(path,"/")
@@ -379,20 +408,23 @@ contains
           currentTagName=path(             1:pathPosition-1)
           path          =path(pathPosition+1:len(path)     )
        endif
-       call XML_Get_Elements_By_Tag_Name(XML_Get_First_Element_By_Tag_Name,currentTagName,elementList)
+       call XML_Get_Elements_By_Tag_Name(element,currentTagName,elementList)
        if (size(elementList) < 1) then
           call Error_Report('no elements match tag name "'//trim(currentTagName)//'"'//{introspection:location})
        else
-          if (directChildrenOnlyActual) then
+          if (directChildrenOnly_) then
+             found=.false.
              do i=0,size(elementList)-1
                 parent => getParentNode(elementList(i)%element)
-                if (associated(parent,XML_Get_First_Element_By_Tag_Name)) then
-                   XML_Get_First_Element_By_Tag_Name => elementList(i)%element
+                if (associated(parent,element)) then
+                   found=.true.
+                   element => elementList(i)%element
                    exit
                 end if
              end do
+             if (.not.found) call Error_Report('no direct child elements match tag name "'//trim(currentTagName)//'"'//{introspection:location})
           else
-             XML_Get_First_Element_By_Tag_Name => elementList(0)%element
+             element => elementList(0)%element
           end if
        end if
     end do

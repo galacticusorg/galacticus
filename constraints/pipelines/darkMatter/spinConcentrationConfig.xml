@@ -18,7 +18,7 @@
   <posteriorSampleLikelihood value="independentLikelihoods">
 
     <!-- HugeMDPL -->
-    <parameterMap         value="nodeOperator::nodeOperator[2]::exponentMass virialOrbit::alpha outputAnalysis::outputAnalysis[0]::logNormalRange darkMatterProfileScaleRadius::darkMatterProfileScaleRadius::massExponent darkMatterProfileScaleRadius::darkMatterProfileScaleRadius::energyBoost"/>
+    <parameterMap         value="nodeOperator/nodeOperator[@value='haloAngularMomentumVitvitska2002']/exponentMass virialOrbit/alpha outputAnalysis/outputAnalysis[@value='spinDistribution']/logNormalRange darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/massExponent darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/energyBoost"/>
     <parameterInactiveMap value=""                                                                                                                                                    />
     <posteriorSampleLikelihood value="galaxyPopulation">
       <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/spinConcentrationBaseHugeMDPL.xml"/>
@@ -27,7 +27,7 @@
     </posteriorSampleLikelihood>
 
     <!-- BigMDPL -->
-    <parameterMap         value="nodeOperator::nodeOperator[2]::exponentMass virialOrbit::alpha outputAnalysis::outputAnalysis[0]::logNormalRange darkMatterProfileScaleRadius::darkMatterProfileScaleRadius::massExponent darkMatterProfileScaleRadius::darkMatterProfileScaleRadius::energyBoost"/>
+    <parameterMap         value="nodeOperator/nodeOperator[@value='haloAngularMomentumVitvitska2002']/exponentMass virialOrbit/alpha outputAnalysis/outputAnalysis[@value='spinDistribution']/logNormalRange darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/massExponent darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/energyBoost"/>
     <parameterInactiveMap value=""                                                                                                                                                    />
     <posteriorSampleLikelihood value="galaxyPopulation">
       <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/spinConcentrationBaseBigMDPL.xml"/>
@@ -36,7 +36,7 @@
     </posteriorSampleLikelihood>
 
     <!-- MDPL2 -->
-    <parameterMap         value="nodeOperator::nodeOperator[2]::exponentMass virialOrbit::alpha outputAnalysis::outputAnalysis[0]::logNormalRange darkMatterProfileScaleRadius::darkMatterProfileScaleRadius::massExponent darkMatterProfileScaleRadius::darkMatterProfileScaleRadius::energyBoost"/>
+    <parameterMap         value="nodeOperator/nodeOperator[@value='haloAngularMomentumVitvitska2002']/exponentMass virialOrbit/alpha outputAnalysis/outputAnalysis[@value='spinDistribution']/logNormalRange darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/massExponent darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/energyBoost"/>
     <parameterInactiveMap value=""                                                                                                                                                    />
     <posteriorSampleLikelihood value="galaxyPopulation">
       <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/spinConcentrationBaseMDPL2.xml"/>
@@ -45,7 +45,7 @@
     </posteriorSampleLikelihood>
 
     <!-- SMDPL -->
-    <parameterMap         value="nodeOperator::nodeOperator[2]::exponentMass virialOrbit::alpha outputAnalysis::outputAnalysis[0]::logNormalRange darkMatterProfileScaleRadius::darkMatterProfileScaleRadius::massExponent darkMatterProfileScaleRadius::darkMatterProfileScaleRadius::energyBoost"/>
+    <parameterMap         value="nodeOperator/nodeOperator[@value='haloAngularMomentumVitvitska2002']/exponentMass virialOrbit/alpha outputAnalysis/outputAnalysis[@value='spinDistribution']/logNormalRange darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/massExponent darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/energyBoost"/>
     <parameterInactiveMap value=""                                                                                                                                                    />
     <posteriorSampleLikelihood value="galaxyPopulation">
       <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/spinConcentrationBaseSMDPL.xml"/>
@@ -54,7 +54,7 @@
     </posteriorSampleLikelihood>
 
     <!-- VSMDPL -->
-    <parameterMap         value="nodeOperator::nodeOperator[2]::exponentMass virialOrbit::alpha outputAnalysis::outputAnalysis[0]::logNormalRange darkMatterProfileScaleRadius::darkMatterProfileScaleRadius::massExponent darkMatterProfileScaleRadius::darkMatterProfileScaleRadius::energyBoost"/>
+    <parameterMap         value="nodeOperator/nodeOperator[@value='haloAngularMomentumVitvitska2002']/exponentMass virialOrbit/alpha outputAnalysis/outputAnalysis[@value='spinDistribution']/logNormalRange darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/massExponent darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/energyBoost"/>
     <parameterInactiveMap value=""                                                                                                                                                    />
     <posteriorSampleLikelihood value="galaxyPopulation">
       <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/spinConcentrationBaseVSMDPL.xml"/>
@@ -87,7 +87,7 @@
     
     <!-- Spin random walk model parameters -->
     <modelParameter value="active">
-      <name value="nodeOperator::nodeOperator[2]::exponentMass"/>
+      <name value="nodeOperator/nodeOperator[@value='haloAngularMomentumVitvitska2002']/exponentMass"/>
       <distributionFunction1DPrior value="uniform">
 	<limitLower value="0.60"/>
 	<limitUpper value="1.20"/>
@@ -99,7 +99,7 @@
       </distributionFunction1DPerturber>
     </modelParameter>
     <modelParameter value="active">
-      <name value="virialOrbit::alpha"/>
+      <name value="virialOrbit/alpha"/>
       <distributionFunction1DPrior value="uniform">
 	<limitLower value="0.1"/>
 	<limitUpper value="1.0"/>
@@ -111,7 +111,7 @@
       </distributionFunction1DPerturber>
     </modelParameter>
     <modelParameter value="active">
-      <name value="outputAnalysis::outputAnalysis[0]::logNormalRange"/>
+      <name value="outputAnalysis/outputAnalysis[@value='spinDistribution']/logNormalRange"/>
       <distributionFunction1DPrior value="uniform">
 	<limitLower value="1.2"/>
 	<limitUpper value="1.7"/>
@@ -125,7 +125,7 @@
 
     <!-- Concentration random walk model parameters -->
     <modelParameter value="active">
-      <name value="darkMatterProfileScaleRadius::darkMatterProfileScaleRadius::massExponent"/>
+      <name value="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/massExponent"/>
       <distributionFunction1DPrior value="uniform">
 	<limitLower value="1.25"/>
 	<limitUpper value="2.25"/>
@@ -137,7 +137,7 @@
       </distributionFunction1DPerturber>
     </modelParameter>
     <modelParameter value="active">
-      <name value="darkMatterProfileScaleRadius::darkMatterProfileScaleRadius::energyBoost"/>
+      <name value="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/energyBoost"/>
       <distributionFunction1DPrior value="uniform">
 	<limitLower value="0.40"/>
 	<limitUpper value="0.90"/>

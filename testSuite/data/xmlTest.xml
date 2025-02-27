@@ -121,5 +121,18 @@
       </level3>
     </level2>
   </level1>
+  <some>
+    <path>
+      <to value="shaggy"   />
+      <to value="scoobydoo" >
+	<find>
+	  9275932
+	</find>
+      </to>
+      <to>
+	653728
+      </to>
+    </path>
+  </some>
   <xi:include href="XIncludeTest.xml" xpointer="xpointer(outer/included)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
 </test>

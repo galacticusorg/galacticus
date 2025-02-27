@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Change a parameter file -->
+<changes>
+
+  <!-- Insert a parameter before a specific parameter -->
+  <change type="insertBefore" path="nodeOperator/nodeOperator[@value='stellarFeedbackSpheroids']">
+    <nodeOperator value="stellarFeedbackDisks">
+      <stellarFeedbackOutflows value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value="175.0"/>
+          <exponent               value="  3.5"/>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+  </change>
+
+</changes>

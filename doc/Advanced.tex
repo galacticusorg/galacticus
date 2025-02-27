@@ -132,6 +132,73 @@ Some scripts are provided which assist in the generation of parameter files. The
 \item [{\normalfont \ttfamily cosmologicalParametersMonteCarlo.pl}] This script will generate a set of cosmological parameters drawn at random from the WMAP-9 constraints \citep{hinshaw_nine-year_2012}. It uses the covariance matrix (currently defined in {\normalfont \ttfamily data/Cosmological\_Parameters\_WMAP-9.xml}) to produce correlated random variables\footnote{Note that this does not capture the full details of the correlations between parameters, since it uses just the covariance matrix. For a more accurate calculation the full Monte Carlo Markov Chains used in the WMAP-9 parameter fitting should be used instead.}. The generated parameters are printed to standard output as \glc-compatible XML.
 \end{description}
 
+\subsection{Changing Parameter Files}\index{parameters!changing}
+
+Galacticus allows parameter files to be modified before they are run, using a set of changes specified in one or more ``change files''. This can be useful to allow, for example, one base parameter file to be defined, and then to make small changes to allow different models/calculations to be performed (e.g. changing from running a fixed mass merger tree to simulate the Milky Way, to a distribution of merger tree masses to simulate an entire population of galaxies).
+
+Change files are simple XML files with a syntax described below. They can be included on the Galacticus command line after the primary parameter file, e.g.:
+\begin{verbatim}
+./Galacticus.exe parameters.xml changes1.xml changes2.xml
+\end{verbatim}
+which will cause Galacticus to first read the {\normalfont \ttfamily parameters.xml} file, then apply changes from {\normalfont \ttfamily changes1.xml} to it, and then to apply changes from {\normalfont \ttfamily changes2.xml}.
+
+An example change file can be found \href{https://raw.githubusercontent.com/galacticusorg/galacticus/master/testSuite/parameters/changes.xml}{here}, and looks as follows:
+\begin{verbatim}
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Change a parameter file -->
+<changes>
+
+  <!-- Append a parameter to the top-level section -->
+  <change type="append" path="">
+    <galacticFilter value="haloIsolated"/>
+  </change>
+
+  <!-- Insert a parameter before a specific parameter -->
+  <change type="insertBefore" path="nodeOperator/nodeOperator[@value='barInstability']">
+    <nodeOperator value="indexShift"/>
+    <nodeOperator value="null"      />
+  </change>
+
+  <!-- Insert a parameter after a specific parameter -->
+  <change type="insertAfter" path="nodeOperator/nodeOperator[@value='blackHolesSeed']">
+    <nodeOperator value="indexBranchTip"/>
+  </change>
+
+  <!-- Insert a parameter after a specific parameter (the last parameter in this case) -->
+  <change type="insertAfter" path="nodeOperator/nodeOperator[@value='blackHolesCGMHeating']">
+    <nodeOperator value="indexLastHost"/>
+  </change>
+
+  <!-- Remove a parameter -->
+  <change type="remove" path="nodeOperator/nodeOperator[@value='blackHolesWinds']">
+  </change>
+
+  <!-- Replace a parameter -->
+  <change type="replace" path="nodeOperator/nodeOperator[@value='stellarFeedbackSpheroids']/stellarFeedbackOutflows/stellarFeedbackOutflows">
+    <stellarFeedbackOutflows value="vlctyMxSclng">
+      <fraction value="0.015"/>
+      <exponentVelocity value="3.5"/>
+    </stellarFeedbackOutflows>
+  </change>
+
+  <!-- Update a parameter value -->
+  <change type="update" path="nodeOperator/nodeOperator[@value='barInstability']/galacticDynamicsBarInstability/stabilityThresholdGaseous" value="0.75">
+  </change>
+
+</changes>
+\end{verbatim}
+A parameter change file should contain one or more change elements. Each change element must have a path attribute which gives an \href{http://www.w3schools.com/Xml/xpath_syntax.asp}{XPath} expression that identifies a parameter in the parameter file that will be acted upon by the change. (Note that currently only a limited set of XPath functionality is supported - matching of element names and single attributes only.) An empty path indicates the top-level section of the parameter file.
+
+Each change element must also have a type attribute which specifies the type of change to be made. Supported types are:
+\begin{description}
+\item[{\normalfont \ttfamily append}:] This will append all parameters enclosed within the change element to the children of the parameter specified by the path attribute.
+\item[{\normalfont \ttfamily insertBefore}:] This will insert all parameters enclosed within the change element before the parameter specified by the path attribute.
+\item[{\normalfont \ttfamily insertAfter}:] This will insert all parameters enclosed within the change element after the parameter specified by the path attribute.
+\item[{\normalfont \ttfamily replace}:] This will replace the parameter specified by the path attribute with all parameters enclosed within the change element.
+\item[{\normalfont \ttfamily remove}:] This will remove the parameter specified by the path attribute.
+\item[{\normalfont \ttfamily update}:] This will update the value of the parameter specified by the path attribute with that given by the value attribute of the change element.
+\end{description}
+
 \section{General Structure of Output File}\label{sec:outputFile}
 
 Figure~\ref{fig:glcOutputFileStructure} shows the structure of a typical \glc\ output file. \glc\ can perform many different tasks, and output a wide variety of different data. The following describes the structure of an output file resulting from the ``{\normalfont \ttfamily evolveForests}'' \refClass{taskClass} (i.e. the usual mode of running \glc\ where it is asked to form and evolve a population of galaxies within a set of merger trees) using the ``{\normalfont \ttfamily standard}'' \refClass{mergerTreeOutputterClass}.
