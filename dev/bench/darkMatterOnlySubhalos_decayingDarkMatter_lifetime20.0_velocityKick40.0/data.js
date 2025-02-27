@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1740294508030,
+  "lastUpdate": 1740692577366,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=40 km/s)": [
@@ -609,6 +609,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
             "value": "1139.6692482898509",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "457e041d4d43b9bcae7e689cc70e268734e825ac",
+          "message": "Merge pull request #804 from galacticusorg/fixUndecoratedKinematics\n\nUse the correct mass distribution when undecorating kinematics distributions",
+          "timestamp": "2025-02-27T15:17:04Z",
+          "tree_id": "a6b1a7de8ebbb4fb11961e288f35cc1be08742b1",
+          "url": "https://github.com/galacticusorg/galacticus/commit/457e041d4d43b9bcae7e689cc70e268734e825ac"
+        },
+        "date": 1740692576417,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": "254.47503865894916",
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": "1465.5160998086062",
             "unit": "-logℒ"
           }
         ]
