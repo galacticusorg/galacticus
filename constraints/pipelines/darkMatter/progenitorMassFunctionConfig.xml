@@ -18,7 +18,7 @@
   <posteriorSampleLikelihood value="independentLikelihoods">
 
     <!-- HugeMDPL -->
-    <parameterMap         value="mergerTreeBranchingProbability::G0 mergerTreeBranchingProbability::gamma1 mergerTreeBranchingProbability::gamma2 mergerTreeBranchingProbability::gamma3"/>
+    <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
     <parameterInactiveMap value=""                                                                                                                                                       />
     <posteriorSampleLikelihood value="galaxyPopulation">
       <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/progenitorMassFunctionBaseHugeMDPL.xml"/>
@@ -28,7 +28,7 @@
     </posteriorSampleLikelihood>
 
     <!-- BigMDPL -->
-    <parameterMap         value="mergerTreeBranchingProbability::G0 mergerTreeBranchingProbability::gamma1 mergerTreeBranchingProbability::gamma2 mergerTreeBranchingProbability::gamma3"/>
+    <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
     <parameterInactiveMap value=""                                                                                                                                                       />
     <posteriorSampleLikelihood value="galaxyPopulation">
       <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/progenitorMassFunctionBaseBigMDPL.xml"/>
@@ -38,7 +38,7 @@
     </posteriorSampleLikelihood>
 
     <!-- MDPL2 -->
-    <parameterMap         value="mergerTreeBranchingProbability::G0 mergerTreeBranchingProbability::gamma1 mergerTreeBranchingProbability::gamma2 mergerTreeBranchingProbability::gamma3"/>
+    <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
     <parameterInactiveMap value=""                                                                                                                                                       />
     <posteriorSampleLikelihood value="galaxyPopulation">
       <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/progenitorMassFunctionBaseMDPL2.xml"/>
@@ -48,7 +48,7 @@
     </posteriorSampleLikelihood>
 
     <!-- SMDPL -->
-    <parameterMap         value="mergerTreeBranchingProbability::G0 mergerTreeBranchingProbability::gamma1 mergerTreeBranchingProbability::gamma2 mergerTreeBranchingProbability::gamma3"/>
+    <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
     <parameterInactiveMap value=""                                                                                                                                                       />
     <posteriorSampleLikelihood value="galaxyPopulation">
       <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/progenitorMassFunctionBaseSMDPL.xml"/>
@@ -58,7 +58,7 @@
     </posteriorSampleLikelihood>
 
     <!-- VSMDPL -->
-    <parameterMap         value="mergerTreeBranchingProbability::G0 mergerTreeBranchingProbability::gamma1 mergerTreeBranchingProbability::gamma2 mergerTreeBranchingProbability::gamma3"/>
+    <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
     <parameterInactiveMap value=""                                                                                                                                                       />
     <posteriorSampleLikelihood value="galaxyPopulation">
       <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/progenitorMassFunctionBaseVSMDPL.xml"/>
@@ -68,7 +68,7 @@
     </posteriorSampleLikelihood>
 
     <!-- Caterpillar LX12 -->
-    <parameterMap         value="mergerTreeBranchingProbability::G0 mergerTreeBranchingProbability::gamma1 mergerTreeBranchingProbability::gamma2 mergerTreeBranchingProbability::gamma3"/>
+    <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
     <parameterInactiveMap value=""                                                                                                                                                       />
     <posteriorSampleLikelihood value="galaxyPopulation">
       <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/progenitorMassFunctionBaseCaterpillar_LX12.xml"/>
@@ -78,7 +78,7 @@
     </posteriorSampleLikelihood>
 
     <!-- Caterpillar LX13 -->
-    <parameterMap         value="mergerTreeBranchingProbability::G0 mergerTreeBranchingProbability::gamma1 mergerTreeBranchingProbability::gamma2 mergerTreeBranchingProbability::gamma3"/>
+    <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
     <parameterInactiveMap value=""                                                                                                                                                       />
     <posteriorSampleLikelihood value="galaxyPopulation">
       <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/progenitorMassFunctionBaseCaterpillar_LX13.xml"/>
@@ -88,7 +88,7 @@
     </posteriorSampleLikelihood>
 
     <!-- Caterpillar LX14 -->
-    <parameterMap         value="mergerTreeBranchingProbability::G0 mergerTreeBranchingProbability::gamma1 mergerTreeBranchingProbability::gamma2 mergerTreeBranchingProbability::gamma3"/>
+    <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
     <parameterInactiveMap value=""                                                                                                                                                       />
     <posteriorSampleLikelihood value="galaxyPopulation">
       <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/progenitorMassFunctionBaseCaterpillar_LX14.xml"/>
@@ -122,7 +122,7 @@
     
     <!-- PCH parameters -->
     <modelParameter value="active">
-      <name value="mergerTreeBranchingProbability::G0"/>
+      <name value="mergerTreeBranchingProbability/G0"/>
       <distributionFunction1DPrior value="uniform">
 	<limitLower value="0.10"/>
 	<limitUpper value="3.00"/>
@@ -135,7 +135,7 @@
     </modelParameter>
     
     <modelParameter value="active">
-      <name value="mergerTreeBranchingProbability::gamma1"/>
+      <name value="mergerTreeBranchingProbability/gamma1"/>
       <distributionFunction1DPrior value="uniform">
 	<limitLower value="-1.00"/>
 	<limitUpper value="+0.99"/>	<!-- Avoid 1.0 as it leads to a divergence -->
@@ -148,7 +148,7 @@
     </modelParameter>
     
     <modelParameter value="active">
-      <name value="mergerTreeBranchingProbability::gamma2"/>
+      <name value="mergerTreeBranchingProbability/gamma2"/>
       <distributionFunction1DPrior value="uniform">
 	<limitLower value="-1.00"/>
 	<limitUpper value="+1.00"/>
@@ -161,7 +161,7 @@
     </modelParameter>
     
     <modelParameter value="active">
-      <name value="mergerTreeBranchingProbability::gamma3"/>
+      <name value="mergerTreeBranchingProbability/gamma3"/>
       <distributionFunction1DPrior value="uniform">
 	<limitLower value="+0.00"/>
 	<limitUpper value="+1.00"/>

@@ -1121,6 +1121,7 @@ jobs:
                 test-splitForests.pl,
                 test-parameters-diff.py,
                 test-parameters-extract.py,
+                test-parameters-changes.py,
                 test-output-datasets-suffixes.py,
                 test-star-formation-histories.py,
                 test-star-formation-histories-adaptive.py,
@@ -1320,7 +1321,7 @@ jobs:
     needs: Build-Executables-MPI-Linux
     uses: ./.github/workflows/testModel.yml
     with:
-      file: parameters/tutorials/mcmcConfig.xml
+      file: testSuite/parameters/mcmcConfig.xml
       artifact: galacticus-exec-MPI
       mpi: 1
       processesPerNode: 4

@@ -536,3 +536,20 @@ sub blackHolePhysics {
 	}
     }
 }
+
+sub modelParameterXPath {
+    # Special handling to switch `modelParameter` names to use XPath syntax.
+    my $input      = shift();
+    my $parameters = shift();
+    # Look for "modelParameter" parameters.
+    foreach my $modelParameter ( $parameters->findnodes("//modelParameter[\@value='active' or \@value='inactive']")->get_nodelist() ) {
+	print "   translate special '//modelParameter[\@value]'\n";
+	# Process `name` nodes.
+	foreach my $nameNode ( $modelParameter->findnodes("name") ) {
+	    my $value = $nameNode->getAttribute('value');	    
+	    $value =~ s/::/\//g;                               # Translate the old `::` separator to XPath standard `/`.
+	    $value =~ s/([\[\{])(\d+)([\]\}])/$1.($2+1).$3/ge; # Increment indices to XPath standard 1-indexing.
+	    $nameNode->setAttribute('value',$value);	    
+	}
+    }
+}
