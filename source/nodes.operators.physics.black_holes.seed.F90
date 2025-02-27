@@ -34,6 +34,7 @@
      !!}
      private
      class(blackHoleSeedsClass), pointer :: blackHoleSeeds_ => null()
+     integer                             :: blackHoleSeedsFormationChannelID
    contains
      final     ::                          blackHolesSeedDestructor
      procedure :: nodeInitialize        => blackHolesSeedNodeInitialize
@@ -49,8 +50,10 @@
   end interface nodeOperatorBlackHolesSeed
 
   ! Submodule-scope variable used in create function.
-  double precision   :: massSeed_, spinSeed_
-  !$omp threadprivate(massSeed_,spinSeed_)
+  ! Sub-module scope pointers used in integrations.
+  class           (nodeOperatorBlackHolesSeed), pointer :: self_ => null()
+  double precision                                      :: massSeed_      , spinSeed_
+  !$omp threadprivate(self_,massSeed_,spinSeed_)
 
 contains
 
@@ -85,7 +88,9 @@ contains
     !![
     <constructorAssign variables="*blackHoleSeeds_"/>
     !!]
-    
+    !![
+    <addMetaProperty component="blackHole" type="integer" name="blackHoleSeedsFormationChannel" id="self%blackHoleSeedsFormationChannelID" isEvolvable="no" isCreator="yes"/>
+    !!]
     return
   end function blackHolesSeedConstructorInternal
 
@@ -106,7 +111,7 @@ contains
     !!{
     Create any initial black hole seeds.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBlackHole
+    use :: Galacticus_Nodes        , only : nodeComponentBlackHole
     implicit none
     class           (nodeOperatorBlackHolesSeed), intent(inout), target  :: self
     type            (treeNode                  ), intent(inout), target  :: node
@@ -117,9 +122,10 @@ contains
     ! Create a black hole component only if the seed mass is non-zero.
     if (massSeed > 0.0d0) then
        blackHole => node%blackHole(autoCreate=.true.)
-       call        blackHole%massSet(                     massSeed      )
+       call        blackHole%massSet                    (                           massSeed)
+       call        blackHole%integerRank0MetaPropertySet(self%blackHoleSeedsFormationChannelID,self%blackHoleSeeds_%formationChannel(node))
        if (blackHole%spinIsSettable()) &
-            & call blackHole%spinSet(self%blackHoleSeeds_%spin    (node))
+            & call blackHole%spinSet                    (self%blackHoleSeeds_%spin    (node))
     end if
     return
   end subroutine blackHolesSeedNodeInitialize
@@ -146,9 +152,10 @@ contains
         spinSeed=self%blackHoleSeeds_%spin(node)
         ! Create a black hole component only if the seed mass is non-zero and the type is non-standard.
         if (massSeed > 0.0d0) then
-          massSeed_ = massSeed
-          spinSeed_ = spinSeed
-          interrupt=.true.
+          self_     => self
+          massSeed_ =  massSeed
+          spinSeed_ =  spinSeed
+          interrupt =  .true.
           functionInterrupt => blackHoleCreate
         end if
       class default
@@ -170,6 +177,7 @@ contains
 
     blackHole=> node%blackHole(autoCreate=.true.)
     call        blackHole%massSet(massSeed_)
+    call        blackHole%integerRank0MetaPropertySet(self_%blackHoleSeedsFormationChannelID,self_%blackHoleSeeds_%formationChannel(node))
     if (blackHole%spinIsSettable()) &
          & call blackHole%spinSet(spinSeed_)
     return 

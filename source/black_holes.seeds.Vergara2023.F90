@@ -42,16 +42,17 @@
      double precision                                   :: massSingleStar                       , radiusSingleStar                 , &
          &                                                 massEfficiency                       , radiusEfficiency                 , &
          &                                                 massThreshold
-     integer                                            :: blackHoleFormationChannelID          , timeStellarMassFormedNSCID       , &
-         &                                                 stellarMassFormedNSCID               , blackHoleSeedID                  , &
+     integer                                            :: timeStellarMassFormedNSCID           , stellarMassFormedNSCID           , &
+         &                                                 radiusNuclearStarClustersID          , blackHoleSeedMassID              , &
          &                                                 velocityNuclearStarClustersID        , ageNuclearStarClustersID         , &
          &                                                 gasMassNuclearStarClustersID         , criticalMassNuclearStarClustersID, &
          &                                                 redshiftBlackHoleSeedFormationID     , stellarMassNuclearStarClustersID , &                                                                    
-         &                                                 mergerTreeWeightNuclearStarClustersID, radiusNuclearStarClustersID
+         &                                                 mergerTreeWeightNuclearStarClustersID 
    contains
-     final     ::         Vergara2023Destructor              
-     procedure :: mass => Vergara2023SeedMass
-     procedure :: spin => Vergara2023SeedSpin
+     final     ::                     Vergara2023Destructor              
+     procedure :: mass             => Vergara2023Mass
+     procedure :: spin             => Vergara2023Spin
+     procedure :: formationChannel => Vergara2023FormationChannel
   end type blackHoleSeedsVergara2023
   
   interface blackHoleSeedsVergara2023
@@ -137,17 +138,17 @@ contains
     <constructorAssign variables="massSingleStar, radiusSingleStar, massEfficiency, radiusEfficiency, massThreshold, *cosmologyFunctions_"/>
     !!]
     !![
-    <addMetaProperty   component="NSC"  name="agesStellarMassFormed"               id="self%stellarMassFormedNSCID"                isEvolvable="yes" isCreator="no" />
-    <addMetaProperty   component="NSC"  name="agesTimeStellarMassFormed"           id="self%timeStellarMassFormedNSCID"            isEvolvable="yes" isCreator="no" />
-    <addMetaProperty   component="NSC"  name="blackHoleSeedFormed"                 id="self%blackHoleSeedID"                       isEvolvable="no"  isCreator="yes"/>
-    <addMetaProperty   component="NSC"  name="ageNuclearStarClusters"              id="self%ageNuclearStarClustersID"              isEvolvable="no"  isCreator="yes"/>
-    <addMetaProperty   component="NSC"  name="radiusNuclearStarClusters"           id="self%radiusNuclearStarClustersID"           isEvolvable="no"  isCreator="yes"/>
-    <addMetaProperty   component="NSC"  name="gasMassNuclearStarClusters"          id="self%gasMassNuclearStarClustersID"          isEvolvable="no"  isCreator="yes"/>
-    <addMetaProperty   component="NSC"  name="velocityNuclearStarClusters"         id="self%velocityNuclearStarClustersID"         isEvolvable="no"  isCreator="yes"/>
-    <addMetaProperty   component="NSC"  name="redshiftBlackHoleSeedFormation"      id="self%redshiftBlackHoleSeedFormationID"      isEvolvable="no"  isCreator="yes"/>
-    <addMetaProperty   component="NSC"  name="stellarMassNuclearStarClusters"      id="self%stellarMassNuclearStarClustersID"      isEvolvable="no"  isCreator="yes"/>
-    <addMetaProperty   component="NSC"  name="criticalMassNuclearStarClusters"     id="self%criticalMassNuclearStarClustersID"     isEvolvable="no"  isCreator="yes"/>
-    <addMetaProperty   component="NSC"  name="mergerTreeWeightNuclearStarClusters" id="self%mergerTreeWeightNuclearStarClustersID" isEvolvable="no"  isCreator="yes"/>
+    <addMetaProperty   component="NSC"        name="agesStellarMassFormed"               id="self%stellarMassFormedNSCID"                isEvolvable="yes" isCreator="no" />
+    <addMetaProperty   component="NSC"        name="agesTimeStellarMassFormed"           id="self%timeStellarMassFormedNSCID"            isEvolvable="yes" isCreator="no" />
+    <addMetaProperty   component="NSC"        name="blackHoleSeedMassFormed"             id="self%blackHoleSeedMassID"                   isEvolvable="no"  isCreator="yes"/>
+    <addMetaProperty   component="NSC"        name="ageNuclearStarClusters"              id="self%ageNuclearStarClustersID"              isEvolvable="no"  isCreator="yes"/>
+    <addMetaProperty   component="NSC"        name="radiusNuclearStarClusters"           id="self%radiusNuclearStarClustersID"           isEvolvable="no"  isCreator="yes"/>
+    <addMetaProperty   component="NSC"        name="gasMassNuclearStarClusters"          id="self%gasMassNuclearStarClustersID"          isEvolvable="no"  isCreator="yes"/>
+    <addMetaProperty   component="NSC"        name="velocityNuclearStarClusters"         id="self%velocityNuclearStarClustersID"         isEvolvable="no"  isCreator="yes"/>
+    <addMetaProperty   component="NSC"        name="redshiftBlackHoleSeedFormation"      id="self%redshiftBlackHoleSeedFormationID"      isEvolvable="no"  isCreator="yes"/>
+    <addMetaProperty   component="NSC"        name="stellarMassNuclearStarClusters"      id="self%stellarMassNuclearStarClustersID"      isEvolvable="no"  isCreator="yes"/>
+    <addMetaProperty   component="NSC"        name="criticalMassNuclearStarClusters"     id="self%criticalMassNuclearStarClustersID"     isEvolvable="no"  isCreator="yes"/>
+    <addMetaProperty   component="NSC"        name="mergerTreeWeightNuclearStarClusters" id="self%mergerTreeWeightNuclearStarClustersID" isEvolvable="no"  isCreator="yes"/>
     !!]
     return
   end function Vergara2023ConstructorInternal
@@ -165,7 +166,7 @@ contains
       return
   end subroutine Vergara2023Destructor
 
-  double precision function Vergara2023SeedMass(self,node) result(mass)
+  double precision function Vergara2023Mass(self,node) result(mass)
       !!{
         Compute the nuclear star cluster collapse condition.
       !!}
@@ -235,7 +236,7 @@ contains
           massCriticalNuclearStarCluster  = (mega*radiusNuclearStarCluster)**(7.0d0/3.0d0)*((4.0d0*Pi*self%massSingleStar)/(3.0d0*crossSectionNuclearStarCluster*ageNuclearStarCluster*sqrt((gravitationalConstant_internal*megaParsec*(kilo*gigaYear)**2.0d0)*parsec**-3.0d0)))**(2.0d0/3.0d0)
           
           ! Generic type - interrupt and create a standard Black Hole if nuclear star cluster mass is greater than the critical mass.
-          if (massCriticalNuclearStarCluster<= nuclearStarCluster%massStellar() .and. self%massThreshold <= nuclearStarCluster%massStellar()) then
+          if (0.0d0<massCriticalNuclearStarCluster.and.massCriticalNuclearStarCluster<= nuclearStarCluster%massStellar() .and. self%massThreshold <= nuclearStarCluster%massStellar()) then
             
             redshift= self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(time))
             
@@ -260,15 +261,15 @@ contains
 
             call nuclearStarCluster%isCollapsedSet(.true.)
             mass    = self%massEfficiency*nuclearStarCluster%massStellar()
-            call nuclearStarCluster%floatRank0MetaPropertySet(self%blackHoleSeedID, mass)
+            call nuclearStarCluster%floatRank0MetaPropertySet(self%blackHoleSeedMassID, mass)            
           else
             mass = 0.0d0
           end if 
     end select
     return
-  end function Vergara2023SeedMass
+  end function Vergara2023Mass
 
-  double precision function Vergara2023SeedSpin(self,node) result(spin)
+  double precision function Vergara2023Spin(self,node) result(spin)
     !!{
     Compute the spin of the seed black hole.
     !!}
@@ -279,4 +280,17 @@ contains
     ! Assume zero spin.
     spin=0.0d0
     return
-  end function Vergara2023SeedSpin
+  end function Vergara2023Spin
+
+  integer function Vergara2023FormationChannel (self,node) result(enumeration)
+    !!{
+    Compute the spin of the seed black hole.
+    !!}
+    implicit none
+    class(blackHoleSeedsVergara2023), intent(inout) :: self
+    type (treeNode                 ), intent(inout) :: node
+    !$GLC attributes unused :: node
+    ! Assume zero spin.
+    enumeration=1
+    return
+  end function Vergara2023FormationChannel

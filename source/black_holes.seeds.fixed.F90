@@ -35,8 +35,9 @@
      private
      double precision :: mass_, spin_   
    contains
-     procedure :: mass => fixedMass
-     procedure :: spin => fixedSpin
+     procedure :: mass             => fixedMass
+     procedure :: spin             => fixedSpin
+     procedure :: formationChannel => fixedFormationChannel
   end type blackHoleSeedsFixed
   
   interface blackHoleSeedsFixed
@@ -119,3 +120,15 @@ contains
     spin=self%spin_
     return
   end function fixedSpin
+
+  integer function FixedFormationChannel (self,node) result(enumeration)
+    !!{
+    Compute the spin of the seed black hole.
+    !!}
+    implicit none
+    class(blackHoleSeedsFixed), intent(inout) :: self
+    type (treeNode           ), intent(inout) :: node
+    !$GLC attributes unused :: node
+    enumeration=0
+    return
+  end function FixedFormationChannel

@@ -32,7 +32,7 @@
      A property extractor class for the velocity dispersion at a set of radii.
      !!}
      private
-     integer  :: radiusNuclearStarClustersID          , blackHoleSeedID                  , &
+     integer  :: radiusNuclearStarClustersID          , blackHoleSeedMassID              , &
          &       velocityNuclearStarClustersID        , ageNuclearStarClustersID         , &
          &       gasMassNuclearStarClustersID         , criticalMassNuclearStarClustersID, &
          &       redshiftBlackHoleSeedFormationID     , stellarMassNuclearStarClustersID , &                                                                    
@@ -78,7 +78,7 @@ contains
     implicit none
     type          (nodePropertyExtractorBlackHoleSeedingVergara2023) :: self
     !![
-    <addMetaProperty   component="NSC"  name="blackHoleSeedFormed"                 id="self%blackHoleSeedID"                       isEvolvable="no"  isCreator="no"/>
+    <addMetaProperty   component="NSC"  name="blackHoleSeedMassFormed"             id="self%blackHoleSeedMassID"                   isEvolvable="no"  isCreator="no"/>
     <addMetaProperty   component="NSC"  name="velocityNuclearStarClusters"         id="self%velocityNuclearStarClustersID"         isEvolvable="no"  isCreator="no"/>
     <addMetaProperty   component="NSC"  name="ageNuclearStarClusters"              id="self%ageNuclearStarClustersID"              isEvolvable="no"  isCreator="no"/>
     <addMetaProperty   component="NSC"  name="radiusNuclearStarClusters"           id="self%radiusNuclearStarClustersID"           isEvolvable="no"  isCreator="no"/>
@@ -140,7 +140,7 @@ contains
     class default
       blackHoleSeedingVergara2023Extract=[                                                                                          &
        &                                  nuclearStarCluster%floatRank0MetaPropertyGet(self%redshiftBlackHoleSeedFormationID     ), &
-       &                                  nuclearStarCluster%floatRank0MetaPropertyGet(self%blackHoleSeedID                      ), &
+       &                                  nuclearStarCluster%floatRank0MetaPropertyGet(self%blackHoleSeedMassID                  ), &
        &                                  nuclearStarCluster%floatRank0MetaPropertyGet(self%ageNuclearStarClustersID             ), &
        &                                  nuclearStarCluster%floatRank0MetaPropertyGet(self%radiusNuclearStarClustersID          ), &
        &                                  nuclearStarCluster%floatRank0MetaPropertyGet(self%velocityNuclearStarClustersID        ), &
