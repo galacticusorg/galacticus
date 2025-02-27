@@ -1321,7 +1321,7 @@ jobs:
     needs: Build-Executables-MPI-Linux
     uses: ./.github/workflows/testModel.yml
     with:
-      file: parameters/tutorials/mcmcConfig.xml
+      file: testSuite/parameters/mcmcConfig.xml
       artifact: galacticus-exec-MPI
       mpi: 1
       processesPerNode: 4
