@@ -231,6 +231,9 @@
   <migration commit="e87039e32d4d86a381ce015abf11e08a20c7e68e">
     <translation function="blackHolePhysics"/>
   </migration>
+  <migration commit="c71d2291b119918574bc006255028c62430b554b">
+    <translation function="modelParameterXPath"/>
+  </migration>
 
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />
