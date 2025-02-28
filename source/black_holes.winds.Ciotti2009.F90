@@ -170,16 +170,18 @@ contains
     double precision                         , parameter     :: velocityWind         =1.0d4
     double precision                         , parameter     :: temperatureISM       =1.0d4
     class           (nodeComponentSpheroid  ), pointer       :: spheroid
-    double precision                                         :: rateAccretionSpheroid      , rateAccretionHotHalo
-    double precision                                         :: efficiencyWind             , rateAccretion       , &
-         &                                                      pressureWind               , pressureISM         , &
-         &                                                      fractionWindCoupled        , massGasSpheroid     , &
-         &                                                      radiusSpheroid             , x
+    double precision                                         :: rateAccretionSpheroid                , rateAccretionHotHalo, &
+         &                                                      rateAccretionNuclearStarCluster      , rateAccretion       , &
+         &                                                      pressureWind                         , pressureISM         , &
+         &                                                      fractionWindCoupled                  , massGasSpheroid     , &
+         &                                                      radiusSpheroid                       , x                   , &
+         &                                                      efficiencyWind
     
     ! Find the accretion rate and wind production efficiency.
-    call self%blackHoleAccretionRate_%rateAccretion(blackHole,rateAccretionSpheroid,rateAccretionHotHalo)
-    rateAccretion =+     rateAccretionSpheroid &
-         &         +     rateAccretionHotHalo
+    call self%blackHoleAccretionRate_%rateAccretion(blackHole,rateAccretionSpheroid,rateAccretionHotHalo,rateAccretionNuclearStarCluster)
+    rateAccretion =+     rateAccretionSpheroid           &
+         &         +     rateAccretionHotHalo            &
+         &         +     rateAccretionNuclearStarCluster
     efficiencyWind=+self%efficiencyWind
     ! Apply any scaling of the wind production efficiency with the radiative efficiency of the accretion disk.
     if (self%efficiencyWindScalesWithEfficiencyRadiative)                                    &

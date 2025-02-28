@@ -49,6 +49,12 @@ module Black_Hole_Seeds
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
+   <method name="formationChannel">
+    <description>Returns the formation channel of the seed in the given {\normalfont \ttfamily node}.</description>
+    <type>integer</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+   </method>
   </functionClass>
   !!]
 

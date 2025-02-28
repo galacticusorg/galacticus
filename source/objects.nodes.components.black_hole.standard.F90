@@ -72,6 +72,12 @@ module Node_Component_Black_Hole_Standard
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
     </property>
+    <property>
+      <name>NSCChannel</name>
+      <type>logical</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" isVirtual="false"/>
+    </property>
    </properties>
    <bindings>
     <binding method="massDistribution" function="Node_Component_Black_Hole_Standard_Mass_Distribution" bindsTo="component"/>
@@ -94,13 +100,11 @@ module Node_Component_Black_Hole_Standard
 
   ! Record of whether cold mode is explicitly tracked.
   logical          :: coldModeTracked
-
   ! A threadprivate object used to track to which thread events are attached.
   integer :: thread
   !$omp threadprivate(thread)
 
 contains
-
   !![
   <nodeComponentInitializationTask>
    <unitName>Node_Component_Black_Hole_Standard_Initialize</unitName>
@@ -133,7 +137,6 @@ contains
     coldModeTracked=defaultHotHaloComponent%massColdIsGettable()
     return
   end subroutine Node_Component_Black_Hole_Standard_Initialize
-
   !![
   <nodeComponentThreadInitializationTask>
    <unitName>Node_Component_Black_Hole_Standard_Thread_Initialize</unitName>
@@ -150,7 +153,6 @@ contains
     type(inputParameters), intent(inout) :: parameters
     type(dependencyRegEx), dimension(1)  :: dependencies
     type(inputParameters)                :: subParameters
-
     if (defaultBlackHoleComponent%standardIsActive()) then
        dependencies(1)=dependencyRegEx(dependencyDirectionBefore,'^remnantStructure:')
        call satelliteMergerEvent%attach(thread,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentBlackHoleStandard',dependencies=dependencies)
@@ -166,7 +168,6 @@ contains
     end if
     return
   end subroutine Node_Component_Black_Hole_Standard_Thread_Initialize
-
   !![
   <nodeComponentThreadUninitializationTask>
    <unitName>Node_Component_Black_Hole_Standard_Thread_Uninitialize</unitName>
@@ -179,7 +180,6 @@ contains
     use :: Events_Hooks    , only : satelliteMergerEvent
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent
     implicit none
-
     if (defaultBlackHoleComponent%standardIsActive()) then
        if (satelliteMergerEvent%isAttached(thread,satelliteMerger)) call satelliteMergerEvent%detach(thread,satelliteMerger)
        !![
@@ -192,8 +192,8 @@ contains
     end if
     return
   end subroutine Node_Component_Black_Hole_Standard_Thread_Uninitialize
-
   !![
+
   <scaleSetTask>
    <unitName>Node_Component_Black_Hole_Standard_Scale_Set</unitName>
   </scaleSetTask>
@@ -202,13 +202,15 @@ contains
     !!{
     Set scales for properties of {\normalfont \ttfamily node}.
     !!}
-    use :: Galacticus_Nodes, only : defaultBlackHoleComponent, nodeComponentBlackHole, nodeComponentSpheroid, treeNode
+    use :: Galacticus_Nodes, only : defaultBlackHoleComponent, nodeComponentBlackHole, nodeComponentSpheroid, nodeComponentNSC, &
+      &                             treeNode
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
     double precision                        , parameter              :: scaleMassRelative=1.0d-4
     double precision                        , parameter              :: scaleSizeRelative=1.0d-4
     double precision                        , parameter              :: scaleSizeAbsolute=1.0d-6
     double precision                        , parameter              :: scaleMassAbsolute=1.0d+0
+    class           (nodeComponentNSC      )               , pointer :: nuclearStarCluster
     class           (nodeComponentSpheroid )               , pointer :: spheroid
     class           (nodeComponentBlackHole)               , pointer :: blackHole
     integer                                                          :: instance
@@ -217,24 +219,28 @@ contains
     if (defaultBlackHoleComponent%standardIsActive().and.node%blackHoleCount() > 0) then
        ! Get the spheroid component.
        spheroid => node%spheroid()
+       ! Get the nuclear star cluster component.
+       nuclearStarCluster => node%NSC()
        ! Loop over instances.
        do instance=1,node%blackHoleCount()
           ! Get the black hole.
           blackHole => node%blackHole(instance=instance)
           ! Set scale for mass.
-          call blackHole%massScale(                                                   &
-               &                   max(                                               &
-               &                           scaleMassRelative*spheroid %massStellar(), &
-               &                       max(                                           &
-               &                           scaleMassAbsolute                        , &
-               &                                             blackHole%mass       ()  &
-               &                          )                                           &
-               &                      )                                               &
+          call blackHole%massScale(                                                            &
+               &                   max(                                                        &
+               &                       min(                                                    &
+               &                           scaleMassRelative*spheroid          %massStellar(), &
+               &                           scaleMassRelative*nuclearStarCluster%massStellar()  &
+               &                           )                                                 , &
+               &                       max(                                                    &
+               &                           scaleMassAbsolute                                 , &
+               &                                             blackHole%mass       ()           &
+               &                           )                                                   &
+               &                      )                                                        &
                &                  )
 
           ! Set scale for spin.
           call blackHole%spinScale(1.0d0)
-
           ! Set scale for radius.
           call blackHole%radialPositionScale(                                                    &
                &                             maxval(                                             &
@@ -249,7 +255,6 @@ contains
     end if
     return
   end subroutine Node_Component_Black_Hole_Standard_Scale_Set
-
   subroutine satelliteMerger(self,node)
     !!{
     Merge any black hole associated with {\normalfont \ttfamily node} before it merges with its host halo.
@@ -312,6 +317,12 @@ contains
           call Node_Component_Black_Hole_Standard_Output_Merger(node,massBlackHole1,massBlackHole2)
           call blackHoleHostCentral%massSet(massBlackHoleNew)
           call blackHoleHostCentral%spinSet(spinBlackHoleNew)
+                    !Track if the origin of the black hole is due to runaway stellar collisions in nuclear star clusters.
+          if (blackHoleHostCentral %NSCChannel().or.blackHole%NSCChannel()) then
+             call blackHoleHostCentral%NSCChannelSet(              .true.)
+          else
+             call blackHoleHostCentral%NSCChannelSet(             .false.)
+          end if 
        end do
     else
        ! Adjust the radii of the black holes in the satellite galaxy.
@@ -328,7 +339,6 @@ contains
     end if
     return
   end subroutine satelliteMerger
-
   logical function Node_Component_Black_Hole_Standard_Recoil_Escapes(node,velocityRecoil,radius,ignoreCentralBlackHole)
     !!{
     Return true if the given recoil velocity is sufficient to eject a black hole from the halo.
@@ -391,16 +401,12 @@ contains
     double precision                    , intent(in   ) :: massBlackHole1    , massBlackHole2
     class           (nodeComponentBasic), pointer       :: basic
     type            (hdf5Object        )                :: mergersGroup
-
     ! Exit if merger data is not to be output.
     if (.not.outputMergers) return
-
     ! Ignore mergers with zero mass black holes.
     if (massBlackHole2 <= 0.0d0    ) return
-
     ! Get the basic component.
     basic => node%basic()
-
     ! Open the group to which black hole mergers should be written.
     !$ call hdf5Access%set()
     mergersGroup=outputFile%openGroup("blackHoleMergers","Black hole mergers data.")
@@ -432,7 +438,6 @@ contains
     double precision                        , parameter              :: spinMaximum=0.9999d0
     integer                                                          :: i                   , instanceCount
     double precision                                                 :: spin
-
     ! Check if the standard component is active.
     if (defaultBlackHoleComponent%standardIsActive()) then
        ! Get a count of the number of black holes associated with this node.
@@ -468,6 +473,7 @@ contains
    <unitName>Node_Component_Black_Hole_Standard_State_Store</unitName>
   </stateStoreTask>
   !!]
+
   subroutine Node_Component_Black_Hole_Standard_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
     Store object state,
@@ -485,7 +491,6 @@ contains
     !!]
     return
   end subroutine Node_Component_Black_Hole_Standard_State_Store
-
   !![
   <stateRetrieveTask>
    <unitName>Node_Component_Black_Hole_Standard_State_Restore</unitName>
