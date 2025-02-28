@@ -1291,9 +1291,10 @@ contains
        self%outputGroups(indexOutput)%integerAttributesWritten=.false.
        self%outputGroups(indexOutput)%doubleAttributesWritten =.false.
        ! Add the time to this group.
-       call self%outputGroups(indexOutput)%hdf5Group%writeAttribute(time                                          ,'outputTime'           )
-       call self%outputGroups(indexOutput)%hdf5Group%writeAttribute(gigaYear                                      ,'timeUnitInSI'         )
-       call self%outputGroups(indexOutput)%hdf5Group%writeAttribute(self%cosmologyFunctions_%expansionFactor(time),'outputExpansionFactor')
+       call self%outputGroups(indexOutput)%hdf5Group%writeAttribute(time                                           ,'outputTime'            )
+       call self%outputGroups(indexOutput)%hdf5Group%writeAttribute(gigaYear                                       ,'timeUnitInSI'          )
+       call self%outputGroups(indexOutput)%hdf5Group%writeAttribute(self%cosmologyFunctions_%expansionFactor (time),'outputExpansionFactor' )
+       call self%outputGroups(indexOutput)%hdf5Group%writeAttribute(self%cosmologyFunctions_%distanceComoving(time),'outputComovingDistance')
        !$ call hdf5Access%unset()
     end if
     return
