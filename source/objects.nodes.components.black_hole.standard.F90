@@ -202,13 +202,15 @@ contains
     !!{
     Set scales for properties of {\normalfont \ttfamily node}.
     !!}
-    use :: Galacticus_Nodes, only : defaultBlackHoleComponent, nodeComponentBlackHole, nodeComponentSpheroid, treeNode
+    use :: Galacticus_Nodes, only : defaultBlackHoleComponent, nodeComponentBlackHole, nodeComponentSpheroid, nodeComponentNSC, &
+      &                             treeNode
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
     double precision                        , parameter              :: scaleMassRelative=1.0d-4
     double precision                        , parameter              :: scaleSizeRelative=1.0d-4
     double precision                        , parameter              :: scaleSizeAbsolute=1.0d-6
     double precision                        , parameter              :: scaleMassAbsolute=1.0d+0
+    class           (nodeComponentNSC      )               , pointer :: nuclearStarCluster
     class           (nodeComponentSpheroid )               , pointer :: spheroid
     class           (nodeComponentBlackHole)               , pointer :: blackHole
     integer                                                          :: instance
@@ -217,12 +219,26 @@ contains
     if (defaultBlackHoleComponent%standardIsActive().and.node%blackHoleCount() > 0) then
        ! Get the spheroid component.
        spheroid => node%spheroid()
+       ! Get the nuclear star cluster component.
+       nuclearStarCluster => node%NSC()
        ! Loop over instances.
        do instance=1,node%blackHoleCount()
           ! Get the black hole.
           blackHole => node%blackHole(instance=instance)
           ! Set scale for mass.
-          call blackHole%massScale(1.0d0)
+          call blackHole%massScale(                                                            &
+               &                   max(                                                        &
+               &                       min(                                                    &
+               &                           scaleMassRelative*spheroid          %massStellar(), &
+               &                           scaleMassRelative*nuclearStarCluster%massStellar()  &
+               &                           )                                                 , &
+               &                       max(                                                    &
+               &                           scaleMassAbsolute                                 , &
+               &                                             blackHole%mass       ()           &
+               &                           )                                                   &
+               &                      )                                                        &
+               &                  )
+
           ! Set scale for spin.
           call blackHole%spinScale(1.0d0)
           ! Set scale for radius.
