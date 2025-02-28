@@ -181,6 +181,11 @@ An example change file can be found \href{https://raw.githubusercontent.com/gala
     </stellarFeedbackOutflows>
   </change>
 
+  <!-- Replace or append a parameter -->
+  <change type="replaceOrAppend" path="starFormationRateSpheroids/starFormationTimescale/efficiency">
+    <efficiency value="0.06"/>
+  </change>
+
   <!-- Update a parameter value -->
   <change type="update" path="nodeOperator/nodeOperator[@value='barInstability']/galacticDynamicsBarInstability/stabilityThresholdGaseous" value="0.75">
   </change>
@@ -195,6 +200,7 @@ Each change element must also have a type attribute which specifies the type of 
 \item[{\normalfont \ttfamily insertBefore}:] This will insert all parameters enclosed within the change element before the parameter specified by the path attribute.
 \item[{\normalfont \ttfamily insertAfter}:] This will insert all parameters enclosed within the change element after the parameter specified by the path attribute.
 \item[{\normalfont \ttfamily replace}:] This will replace the parameter specified by the path attribute with all parameters enclosed within the change element.
+\item[{\normalfont \ttfamily replaceOrAppend}:] This will replace the parameter specified by the path attribute, if it exists, with all parameters enclosed within the change element. If the parameter does not exist, instead all parameters enclosed within the change element will be appended to the children of the parent element.
 \item[{\normalfont \ttfamily remove}:] This will remove the parameter specified by the path attribute.
 \item[{\normalfont \ttfamily update}:] This will update the value of the parameter specified by the path attribute with that given by the value attribute of the change element.
 \end{description}
