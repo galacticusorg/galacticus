@@ -347,7 +347,7 @@ contains
           case (directionRadial                    %ID)
              ! Radial velocity dispersion.
              coordinates                   =[radius,0.0d0,0.0d0]
-             velocityDispersionExtract(i,1)=kinematicsDistribution_%velocityDispersion1D(coordinates,massDistributionTotal_)
+             velocityDispersionExtract(i,1)=kinematicsDistribution_%velocityDispersion1D(coordinates,massDistribution_,massDistributionTotal_)
           case (directionLineOfSight               %ID)
              ! Line-of-sight velocity dispersion.
              self_               => self
@@ -623,10 +623,10 @@ contains
        velocityDispersionVelocitySurfaceDensityIntegrand=0.0d0
     else
        coordinates                                      =[radius,0.0d0,0.0d0]
-       velocityDispersionVelocitySurfaceDensityIntegrand=+                          velocityDispersionSolidAngleInCylinder(radius                            )    &
-            &                                            *                                                                 radius                             **2 &
-            &                                            *massDistributionWeighted_%density                               (coordinates                       )    &
-            &                                            *kinematicsDistribution_  %velocityDispersion1D                  (coordinates,massDistributionTotal_)**2
+       velocityDispersionVelocitySurfaceDensityIntegrand=+                          velocityDispersionSolidAngleInCylinder(radius                                              )    &
+            &                                            *                                                                 radius                                               **2 &
+            &                                            *massDistributionWeighted_%density                               (coordinates                                         )    &
+            &                                            *kinematicsDistribution_  %velocityDispersion1D                  (coordinates,massDistribution_,massDistributionTotal_)**2
     end if
    return
   end function velocityDispersionVelocitySurfaceDensityIntegrand

@@ -602,9 +602,9 @@ contains
        class is (kinematicsDistributionIsothermal)
           analytic   =.true.
           coordinates=[radiusOuter,0.0d0,0.0d0]
-          energy     =+1.5d0                                                                               &
-               &      *self                   %massEnclosedBySphere(radiusOuter                          ) &
-               &      *kinematicsDistribution_%velocityDispersion1D(coordinates,massDistributionEmbedding)
+          energy     =+1.5d0                                                                                    &
+               &      *self                   %massEnclosedBySphere(radiusOuter                               ) &
+               &      *kinematicsDistribution_%velocityDispersion1D(coordinates,self,massDistributionEmbedding)
        end select
     end select
     if (.not.analytic) energy=self%energyKineticNumerical(radiusOuter,massDistributionEmbedding)

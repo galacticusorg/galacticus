@@ -171,22 +171,22 @@ contains
        call self%specificEnergyTerms(radius,massDistribution_,energyPerturbationFirstOrder,energyPerturbationSecondOrder)
        if (energyPerturbationSecondOrder > 0.0d0) then
           coordinates=[radius,0.0d0,0.0d0]
-          energySpecificGradient=+(                                                                                                                                              &
-               &                   +energyPerturbationFirstOrder *  2.0d0                                                                                                        & !   dlog[r²    ]/dlog(r) term
-               &                   +energyPerturbationSecondOrder*(                                                                                                              &
-               &                                                   -0.5d0                                                                                                        & ! ⎧ dlog[σ_r(r)]/dlog[r] term
-               &                                                   *massDistribution_%densityGradientRadial                       (coordinates,logarithmic=.true.           )    & ! ⎥
-               &                                                   -0.5d0                                                                                                        & ! ⎥ Assumes the Jeans equation in
-               &                                                   *gravitationalConstant_internal                                                                               & ! ⎥ spherical symmetry with anisotropy
-               &                                                   *massDistribution_%massEnclosedBySphere                        (radius                                   )    & ! ⎥ parameter β=0. Would be better to
-               &                                                   /                                                               radius                                        & ! ⎥ have this provided by the
-               &                                                   /massDistribution_%kinematicsDistribution_%velocityDispersion1D(coordinates,            massDistribution_)**2 & ! ⎩ darkMatterProfileDMO class.
-               &                                                   +1.0d0                                                                                                        & !   dlog[r     ]/dlog(r) term
-               &                                                  )                                                                                                              &
-               &                  )                                                                                                                                              &
+          energySpecificGradient=+(                                                                                                                                                                &
+               &                   +energyPerturbationFirstOrder *  2.0d0                                                                                                                          & !   dlog[r²    ]/dlog(r) term
+               &                   +energyPerturbationSecondOrder*(                                                                                                                                &
+               &                                                   -0.5d0                                                                                                                          & ! ⎧ dlog[σ_r(r)]/dlog[r] term
+               &                                                   *massDistribution_%densityGradientRadial                       (coordinates,logarithmic=.true.                             )    & ! ⎥
+               &                                                   -0.5d0                                                                                                                          & ! ⎥ Assumes the Jeans equation in
+               &                                                   *gravitationalConstant_internal                                                                                                 & ! ⎥ spherical symmetry with anisotropy
+               &                                                   *massDistribution_%massEnclosedBySphere                        (radius                                                     )    & ! ⎥ parameter β=0. Would be better to
+               &                                                   /                                                               radius                                                          & ! ⎥ have this provided by the
+               &                                                   /massDistribution_%kinematicsDistribution_%velocityDispersion1D(coordinates,            massDistribution_,massDistribution_)**2 & ! ⎩ darkMatterProfileDMO class.
+               &                                                   +1.0d0                                                                                                                          & !   dlog[r     ]/dlog(r) term
+               &                                                  )                                                                                                                                &
+               &                  )                                                                                                                                                                &
                &                 /radius
        else
-          energySpecificGradient=+  energyPerturbationFirstOrder *  2.0d0                                                                                                        & !   dlog[r²    ]/dlog(r) term
+          energySpecificGradient=+  energyPerturbationFirstOrder *  2.0d0                                                                                                                          & !   dlog[r²    ]/dlog(r) term
                &                 /radius
        end if
     else
@@ -224,14 +224,14 @@ contains
             &                 +self             %coefficientSecondOrder1*densityLogSlope    &
             &                 +self             %coefficientSecondOrder2*densityLogSlope**2
        ! Compute the second order energy perturbation.
-       energyPerturbationSecondOrder=+sqrt(2.0d0)                                                                                   &
-            &                        *coefficientSecondOrder                                                                        &
-            &                        *(                                                                                             &
-            &                          +1.0d0                                                                                       &
-            &                          +self%correlationVelocityRadius                                                              &
-            &                         )                                                                                             &
-            &                        *sqrt(energyPerturbationFirstOrder)                                                            &
-            &                        *massDistribution_%kinematicsDistribution_%velocityDispersion1D(coordinates,massDistribution_)
+       energyPerturbationSecondOrder=+sqrt(2.0d0)                                                                                                     &
+            &                        *coefficientSecondOrder                                                                                          &
+            &                        *(                                                                                                               &
+            &                          +1.0d0                                                                                                         &
+            &                          +self%correlationVelocityRadius                                                                                &
+            &                         )                                                                                                               &
+            &                        *sqrt(energyPerturbationFirstOrder)                                                                              &
+            &                        *massDistribution_%kinematicsDistribution_%velocityDispersion1D(coordinates,massDistribution_,massDistribution_)
     else
        energyPerturbationSecondOrder=+0.0d0
     end if

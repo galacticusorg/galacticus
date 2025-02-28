@@ -119,22 +119,24 @@ contains
     return
   end function finiteResolutionNFWIsCollisional
 
-  double precision function finiteResolutionNFWVelocityDispersion1D(self,coordinates,massDistributionEmbedding) result(velocityDispersion)
+  double precision function finiteResolutionNFWVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
     !!{
     Return the 1D velocity dispersion at the specified {\normalfont \ttfamily coordinates} in an finite-resolution NFW kinematic distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
-    class           (kinematicsDistributionFiniteResolutionNFW), intent(inout) , target :: self
-    class           (coordinate                               ), intent(in   )          :: coordinates
-    class           (massDistributionClass                    ), intent(inout)          :: massDistributionEmbedding
-    double precision                                           , parameter              :: lengthResolutionScaleFreeSmall=1.0d-3
-    integer         (c_size_t                                 ), dimension(0:1)         :: jLengthResolution
-    double precision                                           , dimension(0:1)         :: hLengthResolution
-    integer                                                                             :: iLengthResolution
-    double precision                                                                    :: radiusScaleFree                      , radiusScaleFreeEffective
+    class           (kinematicsDistributionFiniteResolutionNFW), intent(inout)           :: self
+    class           (coordinate                               ), intent(in   )           :: coordinates
+    class           (massDistributionClass                    ), intent(inout) , target  :: massDistribution_                    , massDistributionEmbedding
+    class           (massDistributionClass                    )                , pointer :: massDistribution__
+    double precision                                           , parameter               :: lengthResolutionScaleFreeSmall=1.0d-3
+    integer         (c_size_t                                 ), dimension(0:1)          :: jLengthResolution
+    double precision                                           , dimension(0:1)          :: hLengthResolution
+    integer                                                                              :: iLengthResolution
+    double precision                                                                     :: radiusScaleFree                      , radiusScaleFreeEffective
 
-    if (associated(massDistributionEmbedding%kinematicsDistribution_,self)) then
+    massDistribution__ => massDistribution_
+    if (associated(massDistribution__,massDistributionEmbedding)) then
        ! For the case of a self-gravitating finite-resolution NFW distribution we have a tabulated solution for the velocity dispersion.
        select type (massDistributionEmbedding)
        class is (massDistributionSphericalFiniteResolutionNFW)
@@ -164,13 +166,13 @@ contains
                   &                                 )
           end if
           velocityDispersion=self%velocityDispersion1DPrevious
-          class default
+       class default
           velocityDispersion=0.0d0
           call Error_Report('expecting a finite-resolution NFW mass distribution, but received '//char(massDistributionEmbedding%objectType())//{introspection:location})
        end select
     else
        ! Our finite resolution NFW distribution is embedded in another distribution. We must compute the velocity dispersion numerically.
-       velocityDispersion=self%velocityDispersion1DNumerical(coordinates,massDistributionEmbedding)
+       velocityDispersion=self%velocityDispersion1DNumerical(coordinates,massDistribution_,massDistributionEmbedding)
     end if
     return
   end function finiteResolutionNFWVelocityDispersion1D

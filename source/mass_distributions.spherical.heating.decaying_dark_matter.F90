@@ -237,7 +237,7 @@ contains
        ! Compute the velocity dispersion.
        kinematicsDistribution_ => massDistribution_%kinematicsDistribution()
        coordinates             =  [radius,0.0d0,0.0d0]
-       self%velocityDispersion =kinematicsDistribution_%velocityDispersion1D(coordinates,massDistribution_)
+       self%velocityDispersion =kinematicsDistribution_%velocityDispersion1D(coordinates,massDistribution_,massDistribution_)
        !![
        <objectDestructor name="kinematicsDistribution_"/>
        !!]
