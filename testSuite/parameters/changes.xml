@@ -35,6 +35,16 @@
     </stellarFeedbackOutflows>
   </change>
 
+  <!-- Replace or append a parameter (parameter exists) -->
+  <change type="replaceOrAppend" path="starFormationRateSpheroids/starFormationTimescale/efficiency">
+    <efficiency value="0.06"/>
+  </change>
+
+  <!-- Replace or append a parameter (parameter does not exist) -->
+  <change type="replaceOrAppend" path="starFormationRateSpheroids/starFormationTimescale/timescaleMinimum">
+    <timescaleMinimum value="0.01"/>
+  </change>
+
   <!-- Update a parameter value -->
   <change type="update" path="nodeOperator/nodeOperator[@value='barInstability']/galacticDynamicsBarInstability/stabilityThresholdGaseous" value="0.75">
   </change>

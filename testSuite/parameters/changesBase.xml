@@ -148,7 +148,6 @@
     <starFormationTimescale value="dynamicalTime">
       <efficiency value="0.04"/>
       <exponentVelocity value="2.0"/>
-      <timescaleMinimum value="0.001"/>
     </starFormationTimescale>
   </starFormationRateSpheroids>
 

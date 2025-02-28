@@ -42,6 +42,8 @@ feedbackNew     = parameters.findall("./nodeOperator/nodeOperator[@value='stella
 stability       = parameters.findall("./nodeOperator/nodeOperator[@value='barInstability']/galacticDynamicsBarInstability/stabilityThresholdGaseous")
 lastHost        = parameters.findall("./nodeOperator/nodeOperator[@value='indexLastHost']")
 branchTip       = parameters.findall("./nodeOperator/nodeOperator[@value='indexBranchTip']")
+efficiency      = parameters.findall("./starFormationRateSpheroids/starFormationTimescale/efficiency")
+timescale       = parameters.findall("./starFormationRateSpheroids/starFormationTimescale/timescaleMinimum")
 if len(galacticFilter ) != 1:
     print('`<galacticFilter value="haloIsolated">` is not present')
     status="FAILED"
@@ -66,12 +68,22 @@ if len(feedbackOld    ) != 0:
 if len(feedbackNew    ) != 1:
     print('`<stellarFeedbackOutflows value="vlctyMxSclng">` is not present')
     status="FAILED"
+if len(timescale      ) != 1:
+    print('`<timescaleMinimum>` is not present')
+    status="FAILED"
 if len(stability      ) != 1:
     print('`<stabilityThresholdGaseous>` is not present')
     status="FAILED"
 else:
     if stability[0].get('value') != "0.75":
         print('`<stabilityThresholdGaseous>` has incorrect value')
+        status="FAILED"
+if len(efficiency     ) != 1:
+    print('`<efficiency>` is not present')
+    status="FAILED"
+else:
+    if efficiency[0].get('value') != "0.06":
+        print('`<efficiency>` has incorrect value')
         status="FAILED"
 
 # Report status.

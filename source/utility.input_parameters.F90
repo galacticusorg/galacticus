@@ -351,11 +351,12 @@ contains
     use :: File_Utilities    , only : File_Exists
     use :: FoX_dom           , only : node                             , getAttribute, setAttribute          , getParentNode, &
          &                            removeChild                      , getNodeName , hasAttribute          , appendChild  , &
-         &                            importNode                       , insertBefore, getNextSibling
+         &                            importNode                       , insertBefore, getNextSibling        , destroy
     use :: Error             , only : Error_Report
-    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Parse   , XML_Get_Child_Elements, xmlNodeList
+    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Parse   , XML_Get_Child_Elements, xmlNodeList  , &
+         &                            XML_Path_Exists
     use :: ISO_Varying_String, only : trim                             , char        , assignment(=)         , operator(//) , &
-         &                            operator(==)
+         &                            operator(==)                     , index       , extract
     implicit none
     type     (inputParameters)                                        :: self
     character(len=*          )              , intent(in   )           :: fileName
@@ -371,6 +372,7 @@ contains
     integer                                                           :: errorStatus          , i                , &
          &                                                               j                    , k
     type     (varying_string )                                        :: changePath
+    character(len=32         )                                        :: changeType
 
     ! Check that the file exists.
     if (.not.File_Exists(fileName)) call Error_Report("parameter file '"//trim(fileName)//"' does not exist"//{introspection:location})
@@ -396,9 +398,6 @@ contains
          &                                             'parameters'  &
          &                                            )
     !$omp end critical (FoX_DOM_Access)
-
-
-
     ! Apply changes from any changes files.
     if (present(changeFiles).and.size(changeFiles) > 0) then
        do i=1,size(changeFiles)
@@ -434,15 +433,27 @@ contains
              ! Validate that the node has the required attributes.
              if (.not.hasAttribute(childNode,"type")) call Error_Report('`change` element must have the `type` attribute'//{introspection:location})
              if (.not.hasAttribute(childNode,"path")) call Error_Report('`change` element must have the `path` attribute'//{introspection:location})
+             ! Extract the change type.
+             changeType=getAttribute(childNode,"type")
              ! Find the node in the parameters document to be changed.
              changePath=getAttribute(childNode,"path")
-             if (changePath == "") then
-                changeNode =>                                   parameterNode
-             else
+             if (XML_Path_Exists(parameterNode,char(changePath))) then
+                if (changePath == "") then
+                   changeNode =>                                   parameterNode
+                else
+                   changeNode => XML_Get_First_Element_By_Tag_Name(parameterNode,char(changePath),directChildrenOnly=.true.)
+                end if
+                if (trim(changeType) == "replaceOrAppend") changeType="replace"
+             else if (trim(changeType) == "replaceOrAppend") then
+                ! replaceOrAppend change, but path does not exist - therefore we switch to appending to the parent.
+                changePath =  extract(changePath,1,index(changePath,"/",back=.true.)-1)
                 changeNode => XML_Get_First_Element_By_Tag_Name(parameterNode,char(changePath),directChildrenOnly=.true.)
+                changeType =  "append"
+             else
+                call Error_Report("path '"//trim(changePath)//"' does not exist"//{introspection:location})
              end if
              ! Process each type of change.
-             select case (getAttribute(childNode,"type"))
+             select case (trim(changeType))
              case ("remove")
                 ! Remove the identified node.
                 changeNodeParent => getParentNode(                 changeNode)
@@ -467,7 +478,7 @@ contains
                 do k=0,size(newNodes)-1
                    newNode      => newNodes(k)%element
                    importedNode => importNode(doc,newNode,deep=.true.)
-                   if (getAttribute(childNode,"type") == "insertAfter") then
+                   if (trim(changeType) == "insertAfter") then
                       changeSiblingNode => getNextSibling(changeNode)
                       if (associated(changeSiblingNode)) then
                          importedNode => insertBefore(changeNodeParent,importedNode,changeSiblingNode)
@@ -478,18 +489,15 @@ contains
                       importedNode    => insertBefore(changeNodeParent,importedNode,changeNode       )
                    end if
                 end do
-                if (getAttribute(childNode,"type") == "replace") changeNode => removeChild(changeNodeParent,changeNode)
+                if (trim(changeType) == "replace") changeNode => removeChild(changeNodeParent,changeNode)
              case default
-                call Error_Report("unknown change type `"//getAttribute(childNode,"type")//"`"//{introspection:location})
+                call Error_Report("unknown change type `"//trim(changeType)//"`"//{introspection:location})
              end select
           end do
+          call destroy(changesDoc)
           !$omp end critical (FoX_DOM_Access)
        end do
     end if
-
-
-
-
     ! Construct the parameter tree from the XML document.
     self=inputParameters(                                &
          &                        parameterNode        , &
