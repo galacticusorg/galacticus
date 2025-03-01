@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Change a parameter file -->
+<changes>
+
+  <!-- Append a parameter to the top-level section -->
+  <change type="append" path="">
+    <galacticFilter value="haloIsolated"/>
+  </change>
+
+  <!-- Insert a parameter before a specific parameter -->
+  <change type="insertBefore" path="nodeOperator/nodeOperator[@value='barInstability']">
+    <nodeOperator value="indexShift"/>
+    <nodeOperator value="null"      />
+  </change>
+
+  <!-- Insert a parameter after a specific parameter -->
+  <change type="insertAfter" path="nodeOperator/nodeOperator[@value='blackHolesSeed']">
+    <nodeOperator value="indexBranchTip"/>
+  </change>
+
+  <!-- Insert a parameter after a specific parameter (the last parameter in this case) -->
+  <change type="insertAfter" path="nodeOperator/nodeOperator[@value='blackHolesCGMHeating']">
+    <nodeOperator value="indexLastHost"/>
+  </change>
+
+  <!-- Remove a parameter -->
+  <change type="remove" path="nodeOperator/nodeOperator[@value='blackHolesWinds']">
+  </change>
+
+  <!-- Replace a parameter -->
+  <change type="replace" path="nodeOperator/nodeOperator[@value='stellarFeedbackSpheroids']/stellarFeedbackOutflows/stellarFeedbackOutflows">
+    <stellarFeedbackOutflows value="vlctyMxSclng">
+      <fraction value="0.015"/>
+      <exponentVelocity value="3.5"/>
+    </stellarFeedbackOutflows>
+  </change>
+
+  <!-- Replace or append a parameter (parameter exists) -->
+  <change type="replaceOrAppend" path="starFormationRateSpheroids/starFormationTimescale/efficiency">
+    <efficiency value="0.06"/>
+  </change>
+
+  <!-- Replace or append a parameter (parameter does not exist) -->
+  <change type="replaceOrAppend" path="starFormationRateSpheroids/starFormationTimescale/timescaleMinimum">
+    <timescaleMinimum value="0.01"/>
+  </change>
+
+  <!-- Update a parameter value -->
+  <change type="update" path="nodeOperator/nodeOperator[@value='barInstability']/galacticDynamicsBarInstability/stabilityThresholdGaseous" value="0.75">
+  </change>
+
+</changes>

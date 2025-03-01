@@ -71,7 +71,7 @@ Lastly, a text parameter can also be evaluated by starting it with an initial ``
 \begin{verbatim}
 <outputFileName value="=myFile_m[%5.2f|darkMatterParticle::mass]keV.hdf5"/>
 \end{verbatim}
-would set the output file name by replacing ``{\normalfont \ttfamily [\%5.2f|darkMatterParticle::mass]}'' in the above with the value of the dark matter particle mass. Note that, for these text parameter substitutions a format specifer must be given---in this case ``{\normalfont \ttfamily \%5.2f}''---which specifies how to format the parameter before inserting it into the value. The \ref{https://www.w3resource.com/c-programming/stdio/c_library_method_sprintf.php}{format specifier} should follow standard C conventions. Currently the {\normalfont \ttfamily s}, {\normalfont \ttfamily d}, {\normalfont \ttfamily f}, and{\normalfont \ttfamily e} specifiers are supported.
+would set the output file name by replacing ``{\normalfont \ttfamily [\%5.2f|darkMatterParticle::mass]}'' in the above with the value of the dark matter particle mass. Note that, for these text parameter substitutions a format specifier must be given---in this case ``{\normalfont \ttfamily \%5.2f}''---which specifies how to format the parameter before inserting it into the value. The \ref{https://www.w3resource.com/c-programming/stdio/c_library_method_sprintf.php}{format specifier} should follow standard C conventions. Currently the {\normalfont \ttfamily s}, {\normalfont \ttfamily d}, {\normalfont \ttfamily f}, and{\normalfont \ttfamily e} specifiers are supported.
 
 The optional {\normalfont \ttfamily version} element specifies which version of \glc\ this parameter file is intended for. The optional {\normalfont \ttfamily formatVersion} element specifies the parameter file version number (the current standard for parameter files is version 2). While optional, these elements can be useful when migrating parameter files between versions of \glc.
 
@@ -93,7 +93,7 @@ The differences between two parameter files can be shown using the {\normalfont 
 \end{verbatim}
 will show the differences between {\normalfont \ttfamily parameters1.xml} and {\normalfont \ttfamily parameters2.xml}.
 
-By default, the \emph{order} of differently-named parameters is ignored when looking for differences---the order of differently-named parametersmakes no difference to \glc. However, this involves re-ordering parameters alphabetically to allow differences to be seen, which can make it more difficult for the user to identify where in the files the differences occur. By adding the option {\normalfont \ttfamily --respectOrder} the order of parameters is preserved. This may result in more differences being shown, but with more useful context for finding them in the parameter files. 
+By default, the \emph{order} of differently-named parameters is ignored when looking for differences---the order of differently-named parameters makes no difference to \glc. However, this involves re-ordering parameters alphabetically to allow differences to be seen, which can make it more difficult for the user to identify where in the files the differences occur. By adding the option {\normalfont \ttfamily --respectOrder} the order of parameters is preserved. This may result in more differences being shown, but with more useful context for finding them in the parameter files. 
 
 Differences are detected via a textual comparison. Consequently, parameters:
 \begin{verbatim}
@@ -130,6 +130,79 @@ No output (and an exit value of 0) indicates a valid parameter file. Invalid par
 Some scripts are provided which assist in the generation of parameter files. These are located in the {\normalfont \ttfamily scripts/parameters/} folder and are detailed below:
 \begin{description}
 \item [{\normalfont \ttfamily cosmologicalParametersMonteCarlo.pl}] This script will generate a set of cosmological parameters drawn at random from the WMAP-9 constraints \citep{hinshaw_nine-year_2012}. It uses the covariance matrix (currently defined in {\normalfont \ttfamily data/Cosmological\_Parameters\_WMAP-9.xml}) to produce correlated random variables\footnote{Note that this does not capture the full details of the correlations between parameters, since it uses just the covariance matrix. For a more accurate calculation the full Monte Carlo Markov Chains used in the WMAP-9 parameter fitting should be used instead.}. The generated parameters are printed to standard output as \glc-compatible XML.
+\end{description}
+
+\subsection{Changing Parameter Files}\index{parameters!changing}
+
+Galacticus allows parameter files to be modified before they are run, using a set of changes specified in one or more ``change files''. This can be useful to allow, for example, one base parameter file to be defined, and then to make small changes to allow different models/calculations to be performed (e.g. changing from running a fixed mass merger tree to simulate the Milky Way, to a distribution of merger tree masses to simulate an entire population of galaxies).
+
+Change files are simple XML files with a syntax described below. They can be included on the Galacticus command line after the primary parameter file, e.g.:
+\begin{verbatim}
+./Galacticus.exe parameters.xml changes1.xml changes2.xml
+\end{verbatim}
+which will cause Galacticus to first read the {\normalfont \ttfamily parameters.xml} file, then apply changes from {\normalfont \ttfamily changes1.xml} to it, and then to apply changes from {\normalfont \ttfamily changes2.xml}.
+
+An example change file can be found \href{https://raw.githubusercontent.com/galacticusorg/galacticus/master/testSuite/parameters/changes.xml}{here}, and looks as follows:
+\begin{verbatim}
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Change a parameter file -->
+<changes>
+
+  <!-- Append a parameter to the top-level section -->
+  <change type="append" path="">
+    <galacticFilter value="haloIsolated"/>
+  </change>
+
+  <!-- Insert a parameter before a specific parameter -->
+  <change type="insertBefore" path="nodeOperator/nodeOperator[@value='barInstability']">
+    <nodeOperator value="indexShift"/>
+    <nodeOperator value="null"      />
+  </change>
+
+  <!-- Insert a parameter after a specific parameter -->
+  <change type="insertAfter" path="nodeOperator/nodeOperator[@value='blackHolesSeed']">
+    <nodeOperator value="indexBranchTip"/>
+  </change>
+
+  <!-- Insert a parameter after a specific parameter (the last parameter in this case) -->
+  <change type="insertAfter" path="nodeOperator/nodeOperator[@value='blackHolesCGMHeating']">
+    <nodeOperator value="indexLastHost"/>
+  </change>
+
+  <!-- Remove a parameter -->
+  <change type="remove" path="nodeOperator/nodeOperator[@value='blackHolesWinds']">
+  </change>
+
+  <!-- Replace a parameter -->
+  <change type="replace" path="nodeOperator/nodeOperator[@value='stellarFeedbackSpheroids']/stellarFeedbackOutflows/stellarFeedbackOutflows">
+    <stellarFeedbackOutflows value="vlctyMxSclng">
+      <fraction value="0.015"/>
+      <exponentVelocity value="3.5"/>
+    </stellarFeedbackOutflows>
+  </change>
+
+  <!-- Replace or append a parameter -->
+  <change type="replaceOrAppend" path="starFormationRateSpheroids/starFormationTimescale/efficiency">
+    <efficiency value="0.06"/>
+  </change>
+
+  <!-- Update a parameter value -->
+  <change type="update" path="nodeOperator/nodeOperator[@value='barInstability']/galacticDynamicsBarInstability/stabilityThresholdGaseous" value="0.75">
+  </change>
+
+</changes>
+\end{verbatim}
+A parameter change file should contain one or more change elements. Each change element must have a path attribute which gives an \href{http://www.w3schools.com/Xml/xpath_syntax.asp}{XPath} expression that identifies a parameter in the parameter file that will be acted upon by the change. (Note that currently only a limited set of XPath functionality is supported - matching of element names and single attributes only.) An empty path indicates the top-level section of the parameter file.
+
+Each change element must also have a type attribute which specifies the type of change to be made. Supported types are:
+\begin{description}
+\item[{\normalfont \ttfamily append}:] This will append all parameters enclosed within the change element to the children of the parameter specified by the path attribute.
+\item[{\normalfont \ttfamily insertBefore}:] This will insert all parameters enclosed within the change element before the parameter specified by the path attribute.
+\item[{\normalfont \ttfamily insertAfter}:] This will insert all parameters enclosed within the change element after the parameter specified by the path attribute.
+\item[{\normalfont \ttfamily replace}:] This will replace the parameter specified by the path attribute with all parameters enclosed within the change element.
+\item[{\normalfont \ttfamily replaceOrAppend}:] This will replace the parameter specified by the path attribute, if it exists, with all parameters enclosed within the change element. If the parameter does not exist, instead all parameters enclosed within the change element will be appended to the children of the parent element.
+\item[{\normalfont \ttfamily remove}:] This will remove the parameter specified by the path attribute.
+\item[{\normalfont \ttfamily update}:] This will update the value of the parameter specified by the path attribute with that given by the value attribute of the change element.
 \end{description}
 
 \section{General Structure of Output File}\label{sec:outputFile}
@@ -284,7 +357,7 @@ The {\normalfont \ttfamily Parameters} group contains a record of all parameter 
 
 \subsection{Version}
 
-The {\normalfont \ttfamily Version} group contains a record of the \glc\ version used for this model, storing the {\normalfont \scshape Git} commit branch and hash (if the code is being maintained using {\normalfont \scshape Git}, otherwise a value of ``{\normalfont \ttfamily unknown}'' is entered) in the attributes {\normalfont \ttfamily gitBranch} and {\normalfont \ttfamily gitHash} respectively, along with the time at which the executable was built as {\normalfont \ttfamily buildTime}. If the {\normalfont \ttfamily datasets} path is a {\normalfont \scshape Git} repo then the hash of the checked-out commit is stored as {\normalfont \ttfamily gitHashDatasets} (if {\normalfont \ttfamily datasets} is not a {\normalfont \scshape Git} repo then a value of ``{\normalfont \ttfamily unknown}'' is entered instead). Additionally, the times at which the model run started and eneded are stored as {\normalfont \ttfamily runStartTime} and {\normalfont \ttfamily runEndTime}, with the duration of the run (in seconds) stored as {\normalfont \ttfamily runDuration}, and the maximum memory used by the model (in bytes) is stored as {\normalfont \ttfamily memoryUsageMaximum}. If the {\normalfont \ttfamily galacticusConfig.xml} file (see \S\ref{sec:ConfigFile}) is present and contains contact details, the name and e-mail address of the person who ran the model are stored as {\normalfont \ttfamily runByName} and {\normalfont \ttfamily runByEmail} respectively.
+The {\normalfont \ttfamily Version} group contains a record of the \glc\ version used for this model, storing the {\normalfont \scshape Git} commit branch and hash (if the code is being maintained using {\normalfont \scshape Git}, otherwise a value of ``{\normalfont \ttfamily unknown}'' is entered) in the attributes {\normalfont \ttfamily gitBranch} and {\normalfont \ttfamily gitHash} respectively, along with the time at which the executable was built as {\normalfont \ttfamily buildTime}. If the {\normalfont \ttfamily datasets} path is a {\normalfont \scshape Git} repo then the hash of the checked-out commit is stored as {\normalfont \ttfamily gitHashDatasets} (if {\normalfont \ttfamily datasets} is not a {\normalfont \scshape Git} repo then a value of ``{\normalfont \ttfamily unknown}'' is entered instead). Additionally, the times at which the model run started and ended are stored as {\normalfont \ttfamily runStartTime} and {\normalfont \ttfamily runEndTime}, with the duration of the run (in seconds) stored as {\normalfont \ttfamily runDuration}, and the maximum memory used by the model (in bytes) is stored as {\normalfont \ttfamily memoryUsageMaximum}. If the {\normalfont \ttfamily galacticusConfig.xml} file (see \S\ref{sec:ConfigFile}) is present and contains contact details, the name and e-mail address of the person who ran the model are stored as {\normalfont \ttfamily runByName} and {\normalfont \ttfamily runByEmail} respectively.
 
 \subsection{Outputs}
 
