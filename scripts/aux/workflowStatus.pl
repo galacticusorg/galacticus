@@ -21,7 +21,7 @@ my @workflows =
 foreach my $workflow ( @workflows ) {
 
     my $json;
-    open(my $gh,"gh run list --workflow ".$workflow->{'file'}." --branch master --json conclusion |");
+    open(my $gh,"gh run list --workflow ".$workflow->{'file'}." --branch master --commit `git rev-parse HEAD` --json conclusion |");
     while ( my $line = <$gh> ) {
 	$json .= $line;
     }
