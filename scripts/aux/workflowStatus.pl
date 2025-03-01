@@ -30,6 +30,7 @@ foreach my $workflow ( @workflows ) {
     my $status = ":question:";
     foreach my $run ( @{$data} ) {
 	# Exclude commits that are not ancestors of the current HEAD (e.g. PRs from forks).
+	system("git fetch origin ".$run->{'headSha'});
 	system("git merge-base --is-ancestor ".$run->{'headSha'}." `git rev-parse HEAD`");
 	next
 	    unless ( $? == 0 );
