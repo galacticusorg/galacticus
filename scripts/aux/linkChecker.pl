@@ -151,7 +151,11 @@ sub checkLink {
 	    if ( $url =~ m/camb\.info/ );
 	$options .= " --retry 5"
 	    if ( $url =~ m/ui\.adsabs\.harvard\.edu/ );
-	sleep(1);
+	my $sleepTime = 1;
+	# Avoid NASA ADS rate limits by sleeping for longer.
+	$sleepTime = 10
+	    if ( $url =~ m/ui\.adsabs\.harvard\.edu/ );
+	sleep($sleepTime);
 	&System::Redirect::tofile("curl ".$options." \"".$url."\"","curl.log");
 	$status = $? == 0 ? 1 : 0;
 	unless ( $status ) {
