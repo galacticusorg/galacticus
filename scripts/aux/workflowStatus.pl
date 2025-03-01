@@ -21,7 +21,7 @@ my @workflows =
 foreach my $workflow ( @workflows ) {
 
     my $json;
-    open(my $gh,"gh run list --workflow ".$workflow->{'file'}." --branch master --commit `git rev-parse HEAD` --json conclusion |");
+    open(my $gh,"gh run list --workflow ".$workflow->{'file'}." --branch master --json conclusion,headSha |");
     while ( my $line = <$gh> ) {
 	$json .= $line;
     }
@@ -29,6 +29,10 @@ foreach my $workflow ( @workflows ) {
     my $data = decode_json($json);
     my $status = ":question:";
     foreach my $run ( @{$data} ) {
+	# Exclude commits that are not ancestors of the current HEAD (e.g. PRs from forks).
+	system("git merge-base --is-ancestor ".$run->{'headSha'}." `git rev-parse HEAD`");
+	next
+	    unless ( $? == 0 );
 	if      ( $run->{'conclusion'} eq ""        ) {
 	    $status = ":clock2:";
 	} elsif ( $run->{'conclusion'} eq "failure" ) {
@@ -39,7 +43,7 @@ foreach my $workflow ( @workflows ) {
 	last
 	    unless ( $status eq ":question:" );
     }
-    system("curl -X POST -H 'Content-type: application/json' --data '{\"repo\":\"".$repo."\",\"workflow\":\"".$workflow->{'name'}."\",\"status\":\"".$status."\",\"url\":\"https://github.com/galacticusorg/".$repo."/actions/workflows/".$workflow->{'file'}."\"}' ".$ENV{'SLACK_WEBHOOK_STATUS_URL'});
+#    system("curl -X POST -H 'Content-type: application/json' --data '{\"repo\":\"".$repo."\",\"workflow\":\"".$workflow->{'name'}."\",\"status\":\"".$status."\",\"url\":\"https://github.com/galacticusorg/".$repo."/actions/workflows/".$workflow->{'file'}."\"}' ".$ENV{'SLACK_WEBHOOK_STATUS_URL'});
 
 }
 
