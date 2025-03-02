@@ -137,7 +137,7 @@ sub checkLink {
 	# An external link. Include a short sleep here to rate limit requests.
 	## --cipher 'DEFAULT:!DH' - this reduces the default security level which otherwise prevents some URLs from being downloaded.
 	## --range 0-0 - this causes no bytes to actually be downloaded - this is disabled on some sites as it seems to break them.
-	my $options = "--max-time 60 --insecure --location --output /dev/null --fail-with-body --cipher 'DEFAULT:!DH'";
+	my $options = "--max-time 60 --insecure --location --output ./url.log --fail-with-body --cipher 'DEFAULT:!DH'";
 	$options .= " --range 0-0"
 	    unless ( $url =~ m/^https:\/\/www\.drdobbs\.com\// );
 	$options .= " --user-agent \"Mozilla\""
