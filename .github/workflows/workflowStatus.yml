@@ -27,4 +27,5 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+	  git fetch --unshallow
           ./scripts/aux/workflowStatus.pl
