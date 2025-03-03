@@ -27,5 +27,5 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          ./scripts/aux/linkChecker.pl
+          ./scripts/aux/linkChecker.pl ${{ secrets.NASA_ADS_API_TOKEN }}
       - run: echo "This job's status is ${{ job.status }}."
