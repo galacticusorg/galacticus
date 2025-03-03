@@ -9,6 +9,8 @@ jobs:
     concurrency:
       group: checklinks-${{ github.ref }}
       cancel-in-progress: true
+    env: 
+      adstoken: ${{ secrets.NASA_ADS_API_TOKEN }}
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -22,8 +24,9 @@ jobs:
       - name: Install tools
         run: |
           sudo apt -y update
-          sudo apt install -y python3-pypdf2 perl libregexp-common-perl curl git 
+          sudo apt install -y python3-pypdf2 perl libregexp-common-perl curl git libwww-curl-perl libjson-pp-perl
       - name: Check for broken links
+        if: ${{ env.adstoken != '' }}
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
