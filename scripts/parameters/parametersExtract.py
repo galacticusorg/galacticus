@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 import h5py
 import numpy as np
-import xml.etree.ElementTree as ET
+import lxml.etree as ET
 import sys
 import re
 import argparse
+import copy
 
 # Extract parameters from a Galacticus HDF5 file and output as an Galacticus XML parameter file.
 # Andrew Benson (06-September-2024)
@@ -13,6 +14,7 @@ import argparse
 parser = argparse.ArgumentParser(prog='parametersExtract.py',description='Extract parameters from a Galacticus HDF5 file and output as an Galacticus XML parameter file.')
 parser.add_argument('hdf5FileName')
 parser.add_argument('xmlFileName' )
+parser.add_argument('--dereference', action='store_true',help='dereference any `idRef` pointers')
 args = parser.parse_args()
 
 # Create the root `parameters` element.
@@ -117,6 +119,26 @@ assignValues('parameters',parametersGroup)
 # Assign parameter values in all sub-parameters.
 parametersGroup.visititems(assignValues)
 
+# Dereference `idRef`s if requested.
+if args.dereference:
+    references = parameters.findall('.//*[@idRef]')
+    for reference in references:
+        name   = reference.tag
+        id     = reference.attrib['idRef']
+        target = parameters.findall(".//"+name+"[@id='"+id+"']")
+        if len(target) == 0:
+            print('`<'+name+' id="'+id+'"/>` not found')
+            sys.exit(1)
+        elif len(target) > 1:
+            print('multiple `<'+name+' id="'+id+'"/>` found')
+            sys.exit(1)
+        else:
+            reference.getparent().replace(reference,copy.deepcopy(target[0]))
+    # Now remove all remaining `id` attributes.
+    targets = parameters.findall('.//*[@id]')
+    for target in targets:
+        del target.attrib['id']
+        
 # Write out the parameter file.
 tree = ET.ElementTree(parameters)
 ET.indent(tree, space="  ", level=0)
