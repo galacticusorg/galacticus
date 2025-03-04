@@ -460,7 +460,7 @@ contains
     !!{
     Return column descriptions of the {\normalfont \ttfamily sed} property.
     !!}
-    use :: Numerical_Constants_Units, only : angstromsPerMeter
+    use :: Numerical_Constants_Units, only : metersToAngstroms
     implicit none
     class           (nodePropertyExtractorSED), intent(inout)                            :: self
     double precision                          , intent(in   ), optional                  :: time
@@ -479,7 +479,7 @@ contains
        descriptions(i)=trim(label)
     end do
     valuesDescription=var_str('Wavelengths at which the SED is tabulated [in units of Å].')
-    valuesUnitsInSI  =1.0d0/angstromsPerMeter
+    valuesUnitsInSI  =1.0d0/metersToAngstroms
     return
   end subroutine sedColumnDescriptions
 

@@ -38,7 +38,7 @@ contains
     wavelength} is in Angstroms, input temperature is in Kelvin.
     !!}
     use :: Numerical_Constants_Physical, only : boltzmannsConstant, plancksConstant, speedLight
-    use :: Numerical_Constants_Units   , only : angstromsPerMeter
+    use :: Numerical_Constants_Units   , only : metersToAngstroms
     implicit none
     double precision, intent(in   )           :: temperature                       , wavelength
     integer         , intent(in   ), optional :: radianceType
@@ -60,14 +60,14 @@ contains
     end if
 
     ! Compute the argument appearing in the exponential term.
-    exponentialArgument=plancksConstant*speedLight*angstromsPerMeter/wavelength/boltzmannsConstant/temperature
+    exponentialArgument=plancksConstant*speedLight*metersToAngstroms/wavelength/boltzmannsConstant/temperature
     ! If the exponential argument is not too large, then compute the spectrum, otherwise return zero.
     if (exponentialArgument < exponentialArgumentMaximum) then
        select case (radianceTypeActual)
        case (radianceTypeWavelength)
-          Blackbody_Emission=2.0d0*plancksConstant*speedLight**2*angstromsPerMeter**4/wavelength**5/(exp(exponentialArgument)-1.0d0)
+          Blackbody_Emission=2.0d0*plancksConstant*speedLight**2*metersToAngstroms**4/wavelength**5/(exp(exponentialArgument)-1.0d0)
        case (radianceTypeFrequency )
-          Blackbody_Emission=2.0d0*plancksConstant*speedLight   *angstromsPerMeter**3/wavelength**3/(exp(exponentialArgument)-1.0d0)
+          Blackbody_Emission=2.0d0*plancksConstant*speedLight   *metersToAngstroms**3/wavelength**3/(exp(exponentialArgument)-1.0d0)
        end select
     else
        Blackbody_Emission=0.0d0

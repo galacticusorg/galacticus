@@ -126,7 +126,7 @@ contains
     use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
     use :: Posterior_Sampling_State      , only : posteriorSampleStateClass
     implicit none
-    class           (posteriorSampleLikelihoodMultivariateNormal), intent(inout)               :: self
+    class           (posteriorSampleLikelihoodMultivariateNormal), intent(inout), target       :: self
     class           (posteriorSampleStateClass                  ), intent(inout)               :: simulationState
     type            (modelParameterList                         ), intent(inout), dimension(:) :: modelParametersActive_, modelParametersInactive_
     class           (posteriorSampleConvergenceClass            ), intent(inout)               :: simulationConvergence

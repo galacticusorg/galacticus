@@ -109,20 +109,20 @@ contains
     !!{
     Root function used in seeking the characteristic interaction radius in self-interacting dark matter profiles.
     !!}
-    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
-    use :: Coordinates                     , only : coordinateSpherical    , assignment(=)
+    use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr
+    use :: Coordinates                     , only : coordinateSpherical, assignment(=)
     implicit none
     double precision                     , intent(in   ) :: radius
     type            (coordinateSpherical)                :: coordinates
     
     coordinates= [radius,0.0d0,0.0d0]
-    residual   =+4.0d0                                                                                   &
-         &      /sqrt(Pi)                                                                                &
-         &      /Mpc_per_km_per_s_To_Gyr                                                                 &
-         &      *self_%massDistribution_      %density             (coordinates                        ) &
-         &      *      kinematicsDistribution_%velocityDispersion1D(coordinates,self_%massDistribution_) &
-         &      *crossSection_                                                                           &
-         &      -1.0d0                                                                                   &
+    residual   =+4.0d0                                                                                                           &
+         &      /sqrt(Pi)                                                                                                        &
+         &      /MpcPerKmPerSToGyr                                                                                               &
+         &      *self_%massDistribution_      %density             (coordinates                                                ) &
+         &      *      kinematicsDistribution_%velocityDispersion1D(coordinates,self_%massDistribution_,self_%massDistribution_) &
+         &      *crossSection_                                                                                                   &
+         &      -1.0d0                                                                                                           &
          &      /self_%timeAge
     return
   end function sidmRadiusInteractionRoot

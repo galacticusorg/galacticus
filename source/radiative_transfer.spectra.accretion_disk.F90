@@ -158,14 +158,14 @@ contains
     Return the spectrum of the accretion disk.
     !!}
     use :: Numerical_Constants_Physical, only : speedLight
-    use :: Numerical_Constants_Units   , only : angstromsPerMeter
+    use :: Numerical_Constants_Units   , only : metersToAngstroms
     implicit none
     class           (radiativeTransferSpectrumAccretionDisk), intent(inout) :: self
     double precision                                        , intent(in   ) :: wavelength
 
     accretionDiskSpectrum=+self%accretionDiskSpectra_%spectrum(self%accretionRate,1.0d0,wavelength) &
          &                *speedLight                                                               &
-         &                *angstromsPerMeter                                                        &
+         &                *metersToAngstroms                                                        &
          &                /wavelength**2
     return
   end function accretionDiskSpectrum

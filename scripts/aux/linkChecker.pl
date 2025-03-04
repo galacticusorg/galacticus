@@ -4,12 +4,19 @@ use warnings;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use System::Redirect;
 use Regexp::Common;
+use WWW::Curl::Easy;
+use JSON::PP qw(encode_json decode_json);
 
 # Check for broken links in Galacticus documentation.
 # Andrew Benson (21-September-2020)
 
-# Extract PDF destinations.
-our $pdfDestinations;
+# Read arguments.
+die("Usage: linkChecker.pl <apiToken>")
+    unless ( scalar(@ARGV) == 1 );
+my $apiToken = $ARGV[0];
+
+# # Extract PDF destinations.
+my $pdfDestinations;
 foreach my $suffix ( "Usage", "Physics", "Development", "Source" ) {
     system("curl --silent -L --insecure --output Galacticus_".$suffix.".pdf https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_".$suffix.".pdf");
     system("./scripts/aux/pdfDestinationsExtract.py Galacticus_".$suffix.".pdf Galacticus_".$suffix.".dests");
@@ -21,9 +28,8 @@ foreach my $suffix ( "Usage", "Physics", "Development", "Source" ) {
     close($destFile);
 }
 
-# Initialize list of broken URLs.
-our @brokenURLs;
-our $urlCount = 0;
+# Initialize structure of links to check.
+my $urls;
 
 # Scan files in the doc folder.
 my $docPath = "./doc";
@@ -54,8 +60,10 @@ while ( my $fileName = readdir($wikiFolder) ) {
 }
 closedir($wikiFolder);
 
-# Check status.
-my $status = scalar(@brokenURLs) != 0;
+# Check the URLs.
+my $status = &checkURLs($urls,$pdfDestinations,$apiToken);
+
+# Finished.
 exit $status;
 
 sub scanFile {
@@ -70,28 +78,19 @@ sub scanFile {
 	    $line =~ s/\\href\{([^\}]+)\}//;
             # Remove escapes.
 	    $url =~ s/\\(.)/$1/g;
-	    unless ( &checkLink($url) ) {
-		print "Broken link: \"".$url."\" in ".$path."/".$fileName." line ".$lineNumber."\n";
-		push(@brokenURLs,$url." in ".$path."/".$fileName." line ".$lineNumber);
-	    }
+	    push(@{$urls->{$url}},{file => $fileName, path => $path, lineNumber => $lineNumber});
 	}
 	while ( $line =~ m/\\refPhysics\{([^\}]+)\}/ ) {
 	    my $ref = $1;
 	    my $url = "https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#physics.".$ref;
 	    $line =~ s/\\refPhysics\{([^\}]+)\}//;
-	    unless ( &checkLink($url) ) {
-		print "Broken refPhysics link: \"".$ref."\" in ".$path."/".$fileName." line ".$lineNumber."\n";
-		push(@brokenURLs,$ref." (refPhysics) in ".$path."/".$fileName." line ".$lineNumber);
-	    }
+	    push(@{$urls->{$url}},{type => "refPhysics", ref => $ref, file => $fileName, path => $path, lineNumber => $lineNumber});
 	}
 	while ( $line =~ m/\\refClass\{([^\}]+)\}/ ) {
 	    my $ref = $1;
 	    my $url = "https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Development.pdf\#class.".$ref;
 	    $line =~ s/\\refClass\{([^\}]+)\}//;
-	    unless ( &checkLink($url) ) {
-		print "Broken refClass link: \"".$ref."\" in ".$path."/".$fileName." line ".$lineNumber."\n";
-		push(@brokenURLs,$ref." (refClass) in ".$path."/".$fileName." line ".$lineNumber);
-	    }
+	    push(@{$urls->{$url}},{type => "refClass", ref => $ref, file => $fileName, path => $path, lineNumber => $lineNumber});
 	}
     }
     close($file);
@@ -109,86 +108,154 @@ sub scanWiki {
 	while ( $line =~ m/$bracket$parens/ ) {
 	    (my $url = $2) =~ s/^\((.*)\)$/$1/;
 	    $line =~ s/\[[^\]]+\]\(([^\)]+)\)//;
-	    unless ( &checkLink($url) ) {
-	    	print "Broken link: \"".$url."\" in ".$path."/".$fileName." line ".$lineNumber." (see preceededing log)\n";
-	    	push(@brokenURLs,$url." in ".$path."/".$fileName." line ".$lineNumber);
-	    }
+	    push(@{$urls->{$url}},{file => $fileName, path => $path, lineNumber => $lineNumber});
 	}
     }
     close($file);
 }
 
-sub checkLink {
-    my $url = shift();
-    my $status;
-    $url =~ s/\\#/#/g;
-    if ( $url =~ m/^mailto:/ ) {
+sub checkURLs {
+    # Check URLs are valid.
+    my $urls            = shift();
+    my $pdfDestinations = shift();
+    my $status          = 0;
+    my $bibCodes;
+    foreach my $urlKey ( keys(%{$urls}) ) {
+	(my $url = $urlKey) =~ s/\\#/#/g;
 	# Ignore mailto URLs.
+	next
+	    if ( $url =~ m/^mailto:/ );
 	$status = 1;
-    } elsif ( $url =~ m/^#/ ) {
 	# Ignore in-page anchors.
-	$status = 1;
-    } elsif ( $url =~ m/^https:\/\/github\.com\/galacticusorg\/galacticus\/releases\/download\/bleeding-edge\/Galacticus_(Usage|Physics|Development|Source)\.pdf\\??#(.+)/ ) {
-	# Link to an anchor in Galacticus PDF documentation.
-	my $suffix = $1;
-	my $anchor = $2;
-	$status = exists($pdfDestinations->{$suffix}) && exists($pdfDestinations->{$suffix}->{$anchor});
-    } else {
-	# An external link. Include a short sleep here to rate limit requests.
-	## --cipher 'DEFAULT:!DH' - this reduces the default security level which otherwise prevents some URLs from being downloaded.
-	## --range 0-0 - this causes no bytes to actually be downloaded - this is disabled on some sites as it seems to break them.
-	my $options = "--max-time 60 --insecure --location --output /dev/null --fail-with-body --cipher 'DEFAULT:!DH'";
-	$options .= " --range 0-0"
-	    unless ( $url =~ m/^https:\/\/www\.drdobbs\.com\// );
-	$options .= " --user-agent \"Mozilla\""
-	    if ( $url =~ m/sharepoint\.com/ );
-	# docker.com issues a 403 unless we make cURL pretend to be wget...
-	$options .= " --user-agent \"Wget/1.21.2\""
-	    if ( $url =~ m/docker\.com/ );
-	$options .= " --compressed"
-	    if ( $url =~ m/docs\.github\.com/ );
-	$options .= " --http1.1"
-	    if ( $url =~ m/camb\.info/ );
-	$options .= " --retry 5"
-	    if ( $url =~ m/ui\.adsabs\.harvard\.edu/ );
-	sleep(1);
-	&System::Redirect::tofile("curl ".$options." \"".$url."\"","curl.log");
-	$status = $? == 0 ? 1 : 0;
-	unless ( $status ) {
-	    # Check for known problems.
-	    open(my $logFile,"curl.log");
-	    while ( my $line = <$logFile> ) {
-		# Some servers do not correctly terminate their connections. Ignore such cases.
-		if ( $url =~ m/http:\/\/heasarc\.gsfc\.nasa\.gov\/xanadu\/xspec\// ) {
-		    if ( $line =~ m/error:0A000126:SSL routines::unexpected eof while reading, errno 0/ ) {
-			$status = 1;
-			last;
-		    }
+	next
+	    if ( $url =~ m/^#/ );
+	# Process links.
+	if ( $url =~ m/^https:\/\/github\.com\/galacticusorg\/galacticus\/releases\/download\/bleeding-edge\/Galacticus_(Usage|Physics|Development|Source)\.pdf\\??#(.+)/ ) {
+	    # Link to an anchor in Galacticus PDF documentation.
+	    my $suffix = $1;
+	    my $anchor = $2;
+	    unless ( exists($pdfDestinations->{$suffix}) && exists($pdfDestinations->{$suffix}->{$anchor}) ) {
+		$status = 1;
+	      print "Broken ".$urls->{$urlKey}->[0]->{'type'}."{".$urls->{$urlKey}->[0]->{'ref'}."} link in:\n";
+		foreach my $source ( @{$urls->{$urlKey}} ) {
+		    print "\t ".$source->{'path'}."/".$source->{'file'}." line ".$source->{'lineNumber'}."\n";
 		}
-		if ( $url =~ m/^https?:\/\/adsabs\.harvard\.edu\/abs\// || $url =~ m/^https?:\/\/ui\.adsabs\.harvard\.edu\/abs\// ) {
-		    # ADS server has issues.
-		    if ( $line =~ m/^curl: \(28\) Operation timed out after/ ) {
-			$status = 1;
-			last;
-		    }
-		    if ( $line =~ m/^curl: \(22\) The requested URL returned error: (\d+)/ ) {
-			my $httpErrorCode = $1;
-			if ( $httpErrorCode == 500 || $httpErrorCode == 502 || $httpErrorCode == 504 ) {
-			    $status = 1;
+	    }   
+	} elsif ( $url =~ m/\.adsabs\.harvard\.edu\/abs\/([^\/]+)/ ) {
+	    # NASA ADS link - accumulate the bibCode.
+	    my $bibCode = $1;
+	    push(@{$bibCodes->{$bibCode}->{'sources'}},@{$urls->{$urlKey}});
+	    ${$bibCodes->{$bibCode}->{'urls'}}{$urlKey} = 1;
+	} else {
+	    # An external link. Include a short sleep here to rate limit requests.
+	    sleep(1);
+	    ## --cipher 'DEFAULT:!DH' - this reduces the default security level which otherwise prevents some URLs from being downloaded.
+	    ## --range 0-0 - this causes no bytes to actually be downloaded - this is disabled on some sites as it seems to break them.
+	    my $options = "--max-time 60 --insecure --location --output /dev/null --fail-with-body --cipher 'DEFAULT:!DH'";
+	    $options .= " --range 0-0"
+		unless ( $url =~ m/^https:\/\/www\.drdobbs\.com\// );
+	    $options .= " --user-agent \"Mozilla\""
+		if ( $url =~ m/sharepoint\.com/ );
+	    # docker.com issues a 403 unless we make cURL pretend to be wget...
+	    $options .= " --user-agent \"Wget/1.21.2\""
+		if ( $url =~ m/docker\.com/ );
+	    $options .= " --compressed"
+		if ( $url =~ m/docs\.github\.com/ );
+	    $options .= " --http1.1"
+		if ( $url =~ m/camb\.info/ );
+	    my $sleepTime = 1;
+	    &System::Redirect::tofile("curl ".$options." \"".$url."\"","curl.log");
+	    my $error = $?;
+	    if ( $error ) {
+		# Check for known problems.
+		open(my $logFile,"curl.log");
+		while ( my $line = <$logFile> ) {
+		    # Some servers do not correctly terminate their connections. Ignore such cases.
+		    if ( $url =~ m/http:\/\/heasarc\.gsfc\.nasa\.gov\/xanadu\/xspec\// ) {
+			if ( $line =~ m/error:0A000126:SSL routines::unexpected eof while reading, errno 0/ ) {
+			    $error = 0;
 			    last;
 			}
 		    }
 		}
+		close($logFile);
 	    }
-	    close($logFile);
-	}
-	unless ( $status ) {
-	    open(my $logFile,"curl.log");
-	    while ( my $line = <$logFile> ) {
-		print $line;
+	    if ( $error ) {		
+		$status = 1;
+		print "Broken link: \"".$url."\" in:\n";
+		foreach my $source ( @{$urls->{$urlKey}} ) {
+		    print "\t".$source->{'path'}."/".$source->{'file'}." line ".$source->{'lineNumber'}."\n";
+		}
+		print "Log:\n";
+		open(my $logFile,"curl.log");
+		while ( my $line = <$logFile> ) {
+		    print $line;
+		}
+		close($logFile);
 	    }
-	    close($logFile);
 	}
     }
+    # Check NASA ADS bibcodes.
+    my $curl = WWW::Curl::Easy->new();
+    $curl->setopt(CURLOPT_HEADER,1);
+    $curl->setopt(CURLOPT_HTTPHEADER, ['Authorization: Bearer:'.$apiToken]);
+    my $countRecords = scalar(keys(%{$bibCodes}));
+    $curl->setopt(CURLOPT_URL, 'https://api.adsabs.harvard.edu/v1/search/bigquery?q=*:*&rows='.$countRecords.'&fl=bibcode,alternate_bibcode,title,author,year,pub,volume,page');
+    $curl->setopt(CURLOPT_HTTPHEADER, ['Authorization: Bearer:'.$apiToken,"Content-Type: big-query/csv"]);
+    my $response_body;
+    $curl->setopt(CURLOPT_WRITEDATA,\$response_body);
+    $curl->setopt(CURLOPT_POST, 1);
+    $curl->setopt(CURLOPT_POSTFIELDS, "bibcode\n".join("\n",sort(keys(%{$bibCodes}))));
+    my $retcode = $curl->perform;
+    my $records;
+    if ($retcode == 0) {
+	my $response_code = $curl->getinfo(CURLINFO_HTTP_CODE);
+	if ( $response_code == 200 ) {
+	    # Extract the JSON.
+	    my $json;
+	    my $startFound = 0;
+	    open(my $response,"<",\$response_body);
+	    while ( my $line = <$response> ) {
+		$startFound = 1
+		    if ( $line =~ m/^\{/ );
+		$json .= $line
+		    if ( $startFound );
+	    }
+	    close($response);
+	    $records = decode_json($json);
+	} else {
+	    die("Failed to retrieve record identifiers: ".$response_code.$response_body);
+	}
+    } else {
+	die("Failed to retrieve record identifiers: ".$retcode." ".$curl->strerror($retcode)." ".$curl->errbuf);
+    }
+    # Parse records.
+    foreach my $entry ( @{$records->{'response'}->{'docs'}} ) {
+	my $found = 0;
+	if ( exists($bibCodes->{$entry->{'bibcode'}}) ) {
+	    $bibCodes->{$entry->{'bibcode'}}->{'found'} = 1;
+	    $found = 1;
+	}
+	if ( exists($entry->{'alternate_bibcode'}) ) {
+	    foreach my $altBibCode ( @{$entry->{'alternate_bibcode'}} ) {
+		if ( exists($bibCodes->{$altBibCode}) ) {
+		    $bibCodes->{$altBibCode}->{'found'} = 1;
+		    $found = 1;
+		}
+	    }
+	}
+	die("Received unrequested record for bibcode '".$entry->{'bibcode'}."'\n")
+	    unless ( $found );
+    }
+    # Look for any bibcodes that were not found.
+    foreach my $bibCode ( keys(%{$bibCodes}) ) {
+	next
+	    if ( exists($bibCodes->{$bibCode}->{'found'}) );
+	print "Broken link: \"".join("; ",keys(%{$bibCodes->{$bibCode}->{'urls'}}))."\" in:\n";
+	foreach my $source ( @{$bibCodes->{$bibCode}->{'sources'}} ) {
+	    print "\t".$source->{'path'}."/".$source->{'file'}." line ".$source->{'lineNumber'}."\n";
+	}	
+    }
+    # Return final status.
     return $status;
 }

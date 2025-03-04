@@ -130,7 +130,7 @@ contains
     !!}
     use :: Error                           , only : Error_Report
     use :: IO_HDF5                         , only : hdf5Object
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (nbodyOperatorRotationCurve), intent(inout)                 :: self
     type            (nBodyData                 ), intent(inout), dimension(:  ) :: simulations
@@ -187,7 +187,7 @@ contains
           end forall
           !$omp end parallel workshare
           ! Compute corresponding rotation curve.
-          rotationCurve(:,i)=sqrt(gravitationalConstantGalacticus*massParticle*rotationCurve(:,i)/self%radius)
+          rotationCurve(:,i)=sqrt(gravitationalConstant_internal*massParticle*rotationCurve(:,i)/self%radius)
        end do
        ! Store results to file.
        rotationCurveGroup=simulations(iSimulation)%analysis%openGroup('rotationCurve')

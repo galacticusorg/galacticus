@@ -116,24 +116,33 @@ contains
     return
   end function collisionlessTabulatedIsCollisional
 
-  double precision function collisionlessTabulatedVelocityDispersion1D(self,coordinates,massDistributionEmbedding) result(velocityDispersion)
+  double precision function collisionlessTabulatedVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
     !!{
     Return the 1D velocity dispersion at the specified {\normalfont \ttfamily coordinates} in a tabulated collisionless kinematic distribution.
     !!}
+    use :: Error, only : Error_Report
     implicit none
-    class(kinematicsDistributionCollisionlessTabulated), intent(inout), target :: self
-    class(coordinate                                  ), intent(in   )         :: coordinates
-    class(massDistributionClass                       ), intent(inout)         :: massDistributionEmbedding
+    class(kinematicsDistributionCollisionlessTabulated), intent(inout)          :: self
+    class(coordinate                                  ), intent(in   )          :: coordinates
+    class(massDistributionClass                       ), intent(inout), target  :: massDistribution_ , massDistributionEmbedding
+    class(massDistributionClass                       )               , pointer :: massDistribution__
 
-    select type (massDistributionEmbedding)
-    class is (massDistributionSphericalTabulated)
-       if (.not.massDistributionEmbedding%isTabulating()) then
-          velocityDispersion=massDistributionEmbedding%velocityDispersion1D         (coordinates                          )
-       else
-          velocityDispersion=self                     %velocityDispersion1DNumerical(coordinates,massDistributionEmbedding)
-       end if
-    class default
-       velocityDispersion   =self                     %velocityDispersion1DNumerical(coordinates,massDistributionEmbedding)
-    end select
+    massDistribution__ => massDistribution_
+    if (associated(massDistribution__,massDistributionEmbedding)) then
+       select type (massDistributionEmbedding)
+       class is (massDistributionSphericalTabulated)
+          if (.not.massDistributionEmbedding%isTabulating()) then
+             velocityDispersion=massDistributionEmbedding%velocityDispersion1D         (coordinates                          )
+          else
+             velocityDispersion=self                     %velocityDispersion1DNumerical(coordinates,massDistribution_,massDistributionEmbedding)
+          end if
+       class default
+          velocityDispersion   =0.0d0
+          call Error_Report('expecting a tabulated mass distribution, but received '//char(massDistributionEmbedding%objectType())//{introspection:location})
+       end select
+    else
+       ! Our tabulated distribution is embedded in another distribution. We must compute the velocity dispersion numerically.
+       velocityDispersion      =self                     %velocityDispersion1DNumerical(coordinates,massDistribution_,massDistributionEmbedding)
+    end if
     return
   end function collisionlessTabulatedVelocityDispersion1D

@@ -549,8 +549,8 @@ contains
     !!{
     Computes the radius corresponding to a given specific angular momentum for nfw mass distributions.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-    use :: Numerical_Ranges                , only : Make_Range                     , rangeTypeLogarithmic
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
+    use :: Numerical_Ranges                , only : Make_Range                    , rangeTypeLogarithmic
     implicit none
     class           (massDistributionNFW), intent(inout), target       :: self
     double precision                     , intent(in   )               :: angularMomentumSpecific
@@ -560,12 +560,12 @@ contains
     integer                                                            :: countRadii
 
     if (angularMomentumSpecific > 0.0d0) then
-       angularMomentumSpecificScaleFree=+angularMomentumSpecific                  &
-            &                           /sqrt(                                    &
-            &                                 +gravitationalConstantGalacticus    &
-            &                                 *self%densityNormalization          &
-            &                                )                                    &
-            &                           /      self%scaleLength               **2
+       angularMomentumSpecificScaleFree=+angularMomentumSpecific                 &
+            &                           /sqrt(                                   &
+            &                                 +gravitationalConstant_internal    &
+            &                                 *self%densityNormalization         &
+            &                                )                                   &
+            &                           /      self%scaleLength              **2
        if     (                                                                            &
             &   angularMomentumSpecificScaleFree < angularMomentumSpecificScaleFreeMinimum &
             &  .or.                                                                        &
@@ -614,23 +614,23 @@ contains
     !!{
     Return the peak velocity in the rotation curve for an nfw mass distribution.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Numerical_Constants_Math        , only : Pi
     implicit none
     class           (massDistributionNFW), intent(inout) :: self
     double precision                     , parameter     :: circularVelocityMaximumScaleFree=0.4649909628174221d0 ! The circular velocity (in scale-free units) at the peak of the NFW rotation curve.
     !                                                                                                               Numerical value found using Mathematica.
 
-    velocity=+circularVelocityMaximumScaleFree             &
-         &   *sqrt(                                        &
-         &         +4.0d0                                  &
-         &         *Pi                                     &
-         &         *self%densityNormalization              &
-         &        )                                        &
+    velocity=+circularVelocityMaximumScaleFree            &
+         &   *sqrt(                                       &
+         &         +4.0d0                                 &
+         &         *Pi                                    &
+         &         *self%densityNormalization             &
+         &        )                                       &
          &   *      self%scaleLength
-    if (.not.self%isDimensionless())                       &
-         & velocity=+velocity                              &
-         &          *sqrt(gravitationalConstantGalacticus)
+    if (.not.self%isDimensionless())                      &
+         & velocity=+velocity                             &
+         &          *sqrt(gravitationalConstant_internal)
     return
   end function nfwVelocityRotationCurveMaximum
 
@@ -664,8 +664,8 @@ contains
     Return the potential at the specified {\normalfont \ttfamily coordinates} in an nfw mass distribution.
     !!}
     use :: Coordinates                     , only : assignment(=)
-    use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess      , structureErrorCodeInfinite
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess     , structureErrorCodeInfinite
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Error                           , only : Error_Report
     implicit none
     class           (massDistributionNFW              ), intent(inout), target   :: self
@@ -679,7 +679,7 @@ contains
     potential=+potentialScaleFree       (radiusScaleFree)    &
          &    *self%densityNormalization                     &
          &    *self%scaleLength                          **2
-    if (.not.self%isDimensionless()) potential=+gravitationalConstantGalacticus &
+    if (.not.self%isDimensionless()) potential=+gravitationalConstant_internal &
          &                                     *potential
     return
   end function nfwPotential
@@ -768,19 +768,19 @@ contains
     !!{
     Compute the freefall radius at the given {\normalfont \ttfamily time} in an NFW mass distribution.
     !!}
-    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr, gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr, gravitationalConstant_internal
     implicit none
     class           (massDistributionNFW), intent(inout) :: self
     double precision                     , intent(in   ) :: time
     double precision                                     :: timeScaleFree, timeScale
 
     if (time > 0.0d0) then
-       timeScale    =+1.0d0/sqrt(                                 &
-            &                    +gravitationalConstantGalacticus &
-            &                    *self%densityNormalization       &
-            &                   )                                 &
-            &        *Mpc_per_km_per_s_To_Gyr
-       timeScaleFree=+time                                  &
+       timeScale    =+1.0d0/sqrt(                                &
+            &                    +gravitationalConstant_internal &
+            &                    *self%densityNormalization      &
+            &                   )                                &
+            &        *MpcPerKmPerSToGyr
+       timeScaleFree=+time                                       &
             &        /timeScale
        call self%timeFreefallTabulate(timeScaleFree)
        radius=+timeFreefallScaleFree_%interpolate(timeScaleFree) &
@@ -797,19 +797,19 @@ contains
     Compute the rate of increase of the freefall radius at the given {\normalfont \ttfamily time} in an nfw mass
     distribution.
     !!}
-    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr, gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr, gravitationalConstant_internal
     implicit none
     class           (massDistributionNFW), intent(inout) :: self
     double precision                     , intent(in   ) :: time
     double precision                                     :: timeScaleFree, timeScale
 
     if (time > 0.0d0) then
-       timeScale    =+1.0d0/sqrt(                                 &
-            &                    +gravitationalConstantGalacticus &
-            &                    *self%densityNormalization       &
-            &                   )                                 &
-            &        *Mpc_per_km_per_s_To_Gyr
-       timeScaleFree=+time                                        &
+       timeScale    =+1.0d0/sqrt(                                &
+            &                    +gravitationalConstant_internal &
+            &                    *self%densityNormalization      &
+            &                   )                                &
+            &        *MpcPerKmPerSToGyr
+       timeScaleFree=+time                                       &
             &        /timeScale
        call self%timeFreefallTabulate(timeScaleFree)
        radiusIncreaseRate=+timeFreefallScaleFree_%derivative(timeScaleFree) &
@@ -922,7 +922,7 @@ contains
     \end{eqnarray}
     where $x=r/r_\mathrm{s}$ and $m(x)$ is the scale-free mass distribution.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Numerical_Constants_Math        , only : Pi
     implicit none
     class           (massDistributionNFW), intent(inout) :: self
@@ -931,7 +931,7 @@ contains
     
     radiusOuterScaleFree=+     radiusOuter                                                                                   &
          &               /self%scaleLength
-    energy=-gravitationalConstantGalacticus                                                                                  &
+    energy=-gravitationalConstant_internal                                                                                   &
          & *self%scaleLength                           **5                                                                   &
          & *self%densityNormalization                  **2                                                                   &
          & *8.0d0                                                                                                            &
@@ -955,7 +955,7 @@ contains
     !!}
     use :: Dilogarithms                    , only : Dilogarithm
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (massDistributionNFW  ), intent(inout) :: self
     double precision                       , intent(in   ) :: radiusOuter
@@ -971,7 +971,7 @@ contains
           analytic   =.true.
           radiusOuterScaleFree=+     radiusOuter                                                                      &
                &               /self%scaleLength          
-          energy              =+gravitationalConstantGalacticus                                                       &
+          energy              =+gravitationalConstant_internal                                                        &
                &               *self%scaleLength                **5                                                   &
                &               *self%densityNormalization       **2                                                   &
                &               *4.0d0                                                                                 &

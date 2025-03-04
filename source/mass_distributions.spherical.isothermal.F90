@@ -145,7 +145,7 @@ contains
     use :: Error                           , only : Error_Report
     use :: Numerical_Comparison            , only : Values_Differ
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     type            (massDistributionIsothermal   )                          :: self
     double precision                               , intent(in   ), optional :: densityNormalization, mass, &
@@ -191,12 +191,12 @@ contains
     if (self%isDimensionless()) then
        self%velocityRotation=+1.0d0
     else
-       self%velocityRotation=+sqrt(                                    &
-            &                      +4.0d0                              &
-            &                      *Pi                                 &
-            &                      *gravitationalConstantGalacticus    &
-            &                      *self%lengthReference           **2 &
-            &                      *self%densityNormalization          &
+       self%velocityRotation=+sqrt(                                   &
+            &                      +4.0d0                             &
+            &                      *Pi                                &
+            &                      *gravitationalConstant_internal    &
+            &                      *self%lengthReference          **2 &
+            &                      *self%densityNormalization         &
             &                     )
     end if
     return
@@ -326,7 +326,7 @@ contains
     Computes the radius corresponding to a given specific angular momentum for isothermal mass distributions.
     !!}
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (massDistributionIsothermal), intent(inout), target :: self
     double precision                            , intent(in   )         :: angularMomentumSpecific
@@ -338,8 +338,8 @@ contains
          &       *self%densityNormalization &
          &       *self%lengthReference**2   &
          &      )
-    if (.not.self%isDimensionless()) radius=+radius                                &
-         &                                  /sqrt(gravitationalConstantGalacticus)
+    if (.not.self%isDimensionless()) radius=+radius                               &
+         &                                  /sqrt(gravitationalConstant_internal)
     return
   end function isothermalRadiusFromSpecificAngularMomentum
   
@@ -466,8 +466,8 @@ contains
     Return the potential at the specified {\normalfont \ttfamily coordinates} in an isothermal mass distribution.
     !!}
     use :: Coordinates                     , only : assignment(=)
-    use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess      , structureErrorCodeInfinite
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess     , structureErrorCodeInfinite
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Numerical_Constants_Math        , only : Pi
     use :: Error                           , only : Error_Report
     implicit none
@@ -494,7 +494,7 @@ contains
          &                   +coordinates%rSpherical          ()    &
          &                   /self       %lengthReference           &
          &                  )
-    if (.not.self%isDimensionless()) isothermalPotential=+gravitationalConstantGalacticus &
+    if (.not.self%isDimensionless()) isothermalPotential=+gravitationalConstant_internal &
          &                                               *isothermalPotential
     return
   end function isothermalPotential
@@ -525,7 +525,7 @@ contains
     \end{equation}
     !!}
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
+    use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr
     implicit none
     class           (massDistributionIsothermal), intent(inout) :: self
     double precision                            , intent(in   ) :: time
@@ -536,7 +536,7 @@ contains
          &      )                   &
          & *self%velocityRotation   &
          & *     time               &
-         & /Mpc_per_km_per_s_To_Gyr
+         & /MpcPerKmPerSToGyr
     return
   end function isothermalRadiusFreefall
   
@@ -549,7 +549,7 @@ contains
     \end{equation}
     !!}
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
+    use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr
     implicit none
     class           (massDistributionIsothermal), intent(inout) :: self
     double precision                            , intent(in   ) :: time
@@ -560,7 +560,7 @@ contains
          &                   /Pi                &
          &                  )                   &
          &             *self%velocityRotation   &
-         &             /Mpc_per_km_per_s_To_Gyr
+         &             /MpcPerKmPerSToGyr
     return
   end function isothermalRadiusFreefallIncreaseRate
   
@@ -568,17 +568,17 @@ contains
     !!{
     Compute the potential energy within a given {\normalfont \ttfamily radius} in an isothermal mass distribution.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Numerical_Constants_Math        , only : Pi
     implicit none
     class           (massDistributionIsothermal), intent(inout) :: self
     double precision                            , intent(in   ) :: radiusOuter
 
-    energy=-16.0d0                                  &
-         & *Pi                                  **2 &
-         & *     gravitationalConstantGalacticus    &
-         & *self%lengthReference                **4 &
-         & *self%densityNormalization           **2 &
+    energy=-16.0d0                                 &
+         & *Pi                                 **2 &
+         & *     gravitationalConstant_internal    &
+         & *self%lengthReference               **4 &
+         & *self%densityNormalization          **2 &
          & *     radiusOuter
     return
   end function isothermalEnergyPotential
@@ -602,9 +602,9 @@ contains
        class is (kinematicsDistributionIsothermal)
           analytic   =.true.
           coordinates=[radiusOuter,0.0d0,0.0d0]
-          energy     =+1.5d0                                                                               &
-               &      *self                   %massEnclosedBySphere(radiusOuter                          ) &
-               &      *kinematicsDistribution_%velocityDispersion1D(coordinates,massDistributionEmbedding)
+          energy     =+1.5d0                                                                                    &
+               &      *self                   %massEnclosedBySphere(radiusOuter                               ) &
+               &      *kinematicsDistribution_%velocityDispersion1D(coordinates,self,massDistributionEmbedding)
        end select
     end select
     if (.not.analytic) energy=self%energyKineticNumerical(radiusOuter,massDistributionEmbedding)

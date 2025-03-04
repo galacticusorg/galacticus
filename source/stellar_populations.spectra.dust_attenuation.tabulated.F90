@@ -57,16 +57,16 @@ contains
     !!{
     Return attenuation of stellar spectra according to the model of \cite{gordon_quantitative_2003}.
     !!}
-    use :: Numerical_Constants_Units, only : angstromsPerMicron
+    use :: Numerical_Constants_Units, only : micronsToAngstroms
     implicit none
     class           (stellarSpectraDustAttenuationTabulated), intent(inout) :: self
-    double precision                                        , intent(in   ) :: wavelength      , age, &
+    double precision                                        , intent(in   ) :: wavelength                                                    , age, &
          &                                                                     vBandAttenuation
-    double precision                                        , parameter     :: xV=1.0d0/(5504.61227375652d0/angstromsPerMicron)
+    double precision                                        , parameter     :: xV              =1.0d0/(5504.61227375652d0/micronsToAngstroms)
     double precision                                                        :: x
     !$GLC attributes unused :: age
 
-    x=1.0d0/(wavelength/angstromsPerMicron)
+    x=1.0d0/(wavelength/micronsToAngstroms)
     tabulatedAttenuation=vBandAttenuation*self%attenuationTable%interpolate(x)/self%attenuationTable%interpolate(xV)
     return
   end function tabulatedAttenuation

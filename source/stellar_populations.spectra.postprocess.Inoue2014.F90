@@ -158,7 +158,7 @@ contains
     !!{
     Apply the \cite{inoue_updated_2014} calculation of the attenuation of spectra by the intergalactic medium.
     !!}
-    use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen
+    use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen_atomic
     implicit none
     class           (stellarPopulationSpectraPostprocessorInoue2014), intent(inout) :: self
     double precision                                                , intent(in   ) :: age                      , redshift                        , &
@@ -177,7 +177,7 @@ contains
     ! Line absorption.
     do i=2,40
        ! Lyman-α forest.
-       wavelengthLymanLine=lymanSeriesLimitWavelengthHydrogen/(1.0d0-1.0d0/dble(i**2))
+       wavelengthLymanLine=lymanSeriesLimitWavelengthHydrogen_atomic/(1.0d0-1.0d0/dble(i**2))
        wavelengthScaled   =wavelength*(1.0d0+redshift)/wavelengthLymanLine
        if (wavelengthScaled < 1.0d0+redshiftZero .or. wavelengthScaled > 1.0d0+redshift) cycle
        if      (wavelengthScaled < 2.2d0) then
@@ -195,7 +195,7 @@ contains
        end if
     end do
     ! Compute the observed wavelength in units of the Lyman-continuum wavelength.
-    wavelengthObservedLymanContinuum=wavelength*(1.0d0+redshift)/lymanSeriesLimitWavelengthHydrogen
+    wavelengthObservedLymanContinuum=wavelength*(1.0d0+redshift)/lymanSeriesLimitWavelengthHydrogen_atomic
     ! Add continuum absorption is wavelength is sufficiently short.
     if (wavelengthObservedLymanContinuum < 1.0d0+redshift) then
        ! Lyman-α forest continuum absorption.

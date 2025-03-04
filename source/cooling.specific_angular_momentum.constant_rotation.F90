@@ -205,11 +205,10 @@ contains
     !!{
     Return the specific angular momentum of cooling gas in the constantRotation model.
     !!}
-    use :: Error                           , only : Error_Report
-    use :: Galacticus_Nodes                , only : nodeComponentBasic             , nodeComponentHotHalo, nodeComponentSpin, treeNode
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-    use :: Mass_Distributions              , only : massDistributionClass
-    use :: Galactic_Structure_Options      , only : componentTypeHotHalo           , massTypeGaseous
+    use :: Error                     , only : Error_Report
+    use :: Galacticus_Nodes          , only : nodeComponentBasic   , nodeComponentHotHalo, nodeComponentSpin, treeNode
+    use :: Mass_Distributions        , only : massDistributionClass
+    use :: Galactic_Structure_Options, only : componentTypeHotHalo , massTypeGaseous
     implicit none
     class           (coolingSpecificAngularMomentumConstantRotation), intent(inout) :: self
     type            (treeNode                                      ), intent(inout) :: node

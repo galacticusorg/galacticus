@@ -245,14 +245,14 @@ contains
     Return the present day critical density of the Universe in units of $M_\odot$/Mpc$^3$.
     !!}
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class(cosmologyParametersSimple), intent(inout) :: self
 
-    simpleDensityCritical=+3.0d0                                &
-         &                *self%HubbleConstant            ()**2 &
-         &                /8.0d0                                &
-         &                /Pi                                   &
-         &                /gravitationalConstantGalacticus
+    simpleDensityCritical=+3.0d0                               &
+         &                *self%HubbleConstant           ()**2 &
+         &                /8.0d0                               &
+         &                /Pi                                  &
+         &                /gravitationalConstant_internal
     return
   end function simpleDensityCritical

@@ -116,7 +116,7 @@ module Intergalactic_Medium_State
           &amp;                          /sqrt(                                                     &amp;
           &amp;                                +4.0d0                                               &amp;
           &amp;                                *Pi                                                  &amp;
-          &amp;                                *gravitationalConstantGalacticus                     &amp;
+          &amp;                                *gravitationalConstant_internal                      &amp;
           &amp;                                *self%cosmologyFunctions_%matterDensityEpochal(time) &amp;
           &amp;                               )                                                     &amp;
           &amp;                         )**3

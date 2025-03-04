@@ -52,7 +52,7 @@ program Test_Dark_Matter_Profiles_Heated
        &                                          treeNode
   use :: ISO_Varying_String              , only : varying_string
   use :: Input_Parameters                , only : inputParameters
-  use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+  use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
   use :: Numerical_Constants_Math        , only : Pi
   use :: Mass_Distributions              , only : massDistributionSphericalHeated                                  , massDistributionClass              , massDistributionSpherical               , massDistributionHeatingClass       , &
        &                                          nonAnalyticSolversNumerical                                      , kinematicsDistributionHeated       , massDistributionSphericalHeatedMonotonic, kinematicsDistributionCollisionless, &
@@ -71,7 +71,7 @@ program Test_Dark_Matter_Profiles_Heated
   double precision                                                                , parameter    :: toleranceRelativeVelocityDispersionMaximum  = 1.0d-03
   double precision                                                                , parameter    :: toleranceRelativePotential                  = 1.0d-03
   double precision                                                                , parameter    :: fractionRadiusFinalSmall                    = 1.0d-03
-  logical                                                                         , parameter    :: velocityDispersionApproximate               =.true.
+  logical                                                                         , parameter    :: velocityDispersionApproximate               =.false.
   logical                                                                         , parameter    :: tolerateVelocityMaximumFailure              =.false.
   logical                                                                         , parameter    :: tolerateEnclosedMassIntegrationFailure      =.false.
   logical                                                                         , parameter    :: tolerateVelocityDispersionFailure           =.false.
@@ -187,7 +187,7 @@ program Test_Dark_Matter_Profiles_Heated
   massDistributionHeatingTidal_ => darkMatterProfileHeatingTidal_ %get(node)
   ! Compute the characteristic radius for heating.
   radiusVirial=darkMatterHaloScale_%radiusVirial(node)
-  radiusHeated=sqrt(gravitationalConstantGalacticus*massVirial/2.0d0/heatingSpecific/radiusVirial)
+  radiusHeated=sqrt(gravitationalConstant_internal*massVirial/2.0d0/heatingSpecific/radiusVirial)
   ! Iterate over heated profile classes.
   do profileType=1,2
      select case (profileType)
@@ -247,14 +247,14 @@ program Test_Dark_Matter_Profiles_Heated
         coordinates          = [radius,0.0d0,0.0d0]
         select type (massDistributionSphericalHeated_)
         class is (massDistributionSphericalHeated)
-           radiusInitial     =+massDistributionSphericalHeated_%radiusInitial           (radius                                      )
+           radiusInitial     =+massDistributionSphericalHeated_%radiusInitial           (radius                                                                       )
         class default
            radiusInitial     =-huge(0.0d0)
         end select
-        massEnclosed         =+massDistributionSphericalHeated_%massEnclosedBySphere    (radius                                      )
-        density              =+massDistributionSphericalHeated_%density                 (coordinates                                 )
-        potential            =+massDistributionSphericalHeated_%potential               (coordinates                                 )
-        velocityDispersion   =+kinematicsDistributionHeated_   %velocityDispersion1D    (coordinates,massDistributionSphericalHeated_)
+        massEnclosed         =+massDistributionSphericalHeated_%massEnclosedBySphere    (radius                                                                       )
+        density              =+massDistributionSphericalHeated_%density                 (coordinates                                                                  )
+        potential            =+massDistributionSphericalHeated_%potential               (coordinates                                                                  )
+        velocityDispersion   =+kinematicsDistributionHeated_   %velocityDispersion1D    (coordinates,massDistributionSphericalHeated_,massDistributionSphericalHeated_)
         radiusInitialAnalytic=+sqrt(                            &
              &                      +  radiusHeated         **4 &
              &                      /4.0d0                      &
@@ -294,7 +294,7 @@ program Test_Dark_Matter_Profiles_Heated
         ! component of this is independent of radius and so cancels when finding potential differences. As such, we simply discard
         ! it here.
         potentialAnalytic=real(                                                                                                                  &
-             &                 +gravitationalConstantGalacticus                                                                                  &
+             &                 +gravitationalConstant_internal                                                                                   &
              &                 *massVirial                                                                                                       &
              &                 /4.0d0                                                                                                            &
              &                 /radiusVirial                                                                                                     &
@@ -326,7 +326,7 @@ program Test_Dark_Matter_Profiles_Heated
         potentialAnalytic=+potentialAnalytic          &
              &            -potentialAnalyticZeroPoint
         velocityDispersionAnalytic=+sqrt(                                                                                                                                                         &
-             &                           +gravitationalConstantGalacticus                                                                                                                         &
+             &                           +gravitationalConstant_internal                                                                                                                          &
              &                           *(                                                                                                                                                       &
              &                             +massDistributionIsothermal_%massEnclosedBySphere(radiusHeated         )*massDistributionIsothermal_%density(coordinatesHeated )/radiusHeated          &
              &                             *(+10.0d0                                                                                                      )                                       &

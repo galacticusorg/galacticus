@@ -478,8 +478,8 @@ contains
     \end{eqnarray}
     !!}
     use :: Coordinates                     , only : assignment(=)
-    use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess      , structureErrorCodeInfinite
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess     , structureErrorCodeInfinite
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Error                           , only : Error_Report
     implicit none
     class           (massDistributionSphericalFiniteResolutionNFW), intent(inout), target   :: self
@@ -543,7 +543,7 @@ contains
           self%potentialPrevious=0.0d0
        else if (radiusScaleFree < radiusScaleFreeSmall) then
           ! Series expansion for small radii.
-          self%potentialPrevious       =  -gravitationalConstantGalacticus        &
+          self%potentialPrevious       =  -gravitationalConstant_internal         &
                &                          *self%mass                              &
                &                          /self%radiusScale                       &
                &                          *(                                      &
@@ -555,7 +555,7 @@ contains
                &                           )                                      &
                &                          *self%concentrationPotentialTerm
        else
-          self%potentialPrevious       =  -gravitationalConstantGalacticus                                                                                               &
+          self%potentialPrevious       =  -gravitationalConstant_internal                                                                                                &
                &                          *self%mass                                                                                                                     &
                &                          /self%radiusScale                                                                                                              &
                &                          *(                                                                                                                             &
@@ -1096,7 +1096,7 @@ contains
     !!{
     Compute the energy within a given {\normalfont \ttfamily radius} in a finite-resolution NFW mass distribution.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (massDistributionSphericalFiniteResolutionNFW), intent(inout) , target :: self
     double precision                                              , intent(in   )          :: radiusOuter
@@ -1118,7 +1118,7 @@ contains
                &              *                                                                                                    hLengthResolution(iLengthResolution)
        end do
        self%energyPrevious=+self             %energyPrevious          &
-            &              *gravitationalConstantGalacticus           &
+            &              *gravitationalConstant_internal            &
             &              *self             %densityNormalization**2 &
             &              *self             %radiusScale         **5
     end if

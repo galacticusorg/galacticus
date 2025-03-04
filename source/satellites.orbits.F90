@@ -334,7 +334,7 @@ contains
     !!}
     use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleClass
     use :: Kepler_Orbits                   , only : keplerOrbit
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     type            (keplerOrbit             )                :: orbitCurrent
     type            (keplerOrbit             ), intent(inout) :: orbit
@@ -344,8 +344,8 @@ contains
          &                                                       velocityVirialOriginal, radiusVirial
 
     ! Compute the properties of the initial orbit, and the current potential.
-    radiusVirialOriginal   =gravitationalConstantGalacticus*orbit%massHost()/orbit%velocityScale()**2
-    velocityVirialOriginal =                                                 orbit%velocityScale()    
+    radiusVirialOriginal   =gravitationalConstant_internal*orbit%massHost()/orbit%velocityScale()**2
+    velocityVirialOriginal =                                                orbit%velocityScale()    
     radiusVirial           =darkMatterHaloScale_%radiusVirial    (currentHost)
     potentialHost          =Satellite_Orbit_Potential(radiusVirialOriginal,radiusVirial,orbit%massHost())
     ! Create a new orbit with an adjusted energy.
@@ -361,7 +361,7 @@ contains
     !!}
     use :: Galactic_Structure_Options      , only : enumerationStructureErrorCodeType
     use :: Coordinates                     , only : coordinateCartesian              , assignment(=)
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     double precision                                   , intent(in   )           :: radius     , radiusVirial     , &
          &                                                                          massVirial
@@ -371,7 +371,7 @@ contains
     coordinates      =[radius      ,0.0d0,0.0d0]
     coordinatesVirial=[radiusVirial,0.0d0,0.0d0]
     potential        =+massDistribution__%potentialDifference(coordinates,coordinatesVirial,status) &
-         &            -gravitationalConstantGalacticus                                              &
+         &            -gravitationalConstant_internal                                               &
          &            *  massVirial                                                                 &
          &            /radiusVirial
     return

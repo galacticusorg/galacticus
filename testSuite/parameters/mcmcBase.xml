@@ -4,7 +4,7 @@
 <parameters>
   <!-- Parameters for tutorial on constraining Galacticus parameters - https://github.com/galacticusorg/galacticus/wiki/Tutorial%3A-Constraining-Galacticus-Parameters -->
   <formatVersion>2</formatVersion>
-  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
+  <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
 
   <!-- Task and work control -->
   <task                   value="evolveForests"/>
@@ -86,15 +86,6 @@
       <luminositiesStellarInactive value="true"/>
     </nodeOperator>
     <!--Stellar feedback outflows-->
-    <nodeOperator value="stellarFeedbackDisks">
-      <stellarFeedbackOutflows value="rateLimit">
-        <timescaleOutflowFractionalMinimum value="0.001"/>
-        <stellarFeedbackOutflows value="powerLaw">
-          <velocityCharacteristic value="175.0"/>
-          <exponent               value="  3.5"/>
-        </stellarFeedbackOutflows>
-      </stellarFeedbackOutflows>
-    </nodeOperator>
     <nodeOperator value="stellarFeedbackSpheroids">
       <stellarFeedbackOutflows value="rateLimit">
         <timescaleOutflowFractionalMinimum value="0.001"/>

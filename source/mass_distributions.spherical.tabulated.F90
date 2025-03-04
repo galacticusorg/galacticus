@@ -249,7 +249,7 @@ contains
             &             *     radiusNormalization
     else
        ! If tabulating then fall back to a numerical evaluation.
-       velocityDispersion=+self%kinematicsDistribution_%velocityDispersion1D(coordinates,self)
+       velocityDispersion=+self%kinematicsDistribution_%velocityDispersion1D(coordinates,self,self)
     end if
     return
   end function sphericalTabulatedVelocityDispersion1D

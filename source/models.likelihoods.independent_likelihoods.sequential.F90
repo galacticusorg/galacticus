@@ -152,7 +152,7 @@ contains
     use :: Models_Likelihoods_Constants, only : logImpossible , logImprobable
     use :: String_Handling             , only : operator(//)
     implicit none
-    class           (posteriorSampleLikelihoodIndpndntLklhdsSqntl), intent(inout)               :: self
+    class           (posteriorSampleLikelihoodIndpndntLklhdsSqntl), intent(inout), target       :: self
     class           (posteriorSampleStateClass                   ), intent(inout)               :: simulationState
     type            (modelParameterList                          ), intent(inout), dimension(:) :: modelParametersActive_, modelParametersInactive_
     class           (posteriorSampleConvergenceClass             ), intent(inout)               :: simulationConvergence

@@ -119,11 +119,11 @@ contains
     !!{
     Determine the kinetic and potential energy tensors of N-body particles.
     !!}
-    use    :: Display                         , only : displayCounter                 , displayCounterClear   , displayIndent, displayMessage, &
-         &                                             displayUnindent                , verbosityLevelStandard
+    use    :: Display                         , only : displayCounter                , displayCounterClear   , displayIndent, displayMessage, &
+         &                                             displayUnindent               , verbosityLevelStandard
     use    :: Error                           , only : Error_Report
-    use    :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-    use    :: Linear_Algebra                  , only : matrix                         , vector                , operator(*)  , assignment(=)
+    use    :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
+    use    :: Linear_Algebra                  , only : matrix                        , vector                , operator(*)  , assignment(=)
 #ifdef USEMPI
     use    :: MPI_Utilities                   , only : mpiSelf
 #endif
@@ -309,19 +309,19 @@ contains
        end if
 #endif
        ! Apply constant factors to the tensors.
-       energyTensorPotential=-gravitationalConstantGalacticus    &
-            &                *massParticle                   **2 &
-            &                /sampleRate                     **2 &
-            &                *  dble(size(position,dim=2))       &
-            &                /(                                  &
-            &                  +dble(size(position,dim=2))       &
-            &                  -1.0d0                            &
-            &                  -sampleRate                       &
-            &                 )                                  &
+       energyTensorPotential=-gravitationalConstant_internal    &
+            &                *massParticle                  **2 &
+            &                /sampleRate                    **2 &
+            &                *  dble(size(position,dim=2))      &
+            &                /(                                 &
+            &                  +dble(size(position,dim=2))      &
+            &                  -1.0d0                           &
+            &                  -sampleRate                      &
+            &                 )                                 &
             &                *energyTensorPotential
-       energyTensorKinetic  =+0.5d0                              &
-            &                *massParticle                       &
-            &                /sampleRate                         &
+       energyTensorKinetic  =+0.5d0                             &
+            &                *massParticle                      &
+            &                /sampleRate                        &
             &                *energyTensorKinetic
        ! Symmetrize the tensors.
        do j=2,3

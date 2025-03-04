@@ -4,21 +4,11 @@
 <!-- running Galacticus on Bolshoi merger trees -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
+  <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
 
   <!-- Component selection -->
   <componentBasic value="standard"/>
-  <componentBlackHole value="standard">
-    <growthRatioToStellarSpheroid value="1.0d-3"/>
-    <heatsHotHalo value="true"/>
-    <efficiencyWind value="0.001"/>
-    <efficiencyWindScalesWithEfficiencyRadiative value="true"/>
-    <outputMergers value="true"/>
-    <bondiHoyleAccretionEnhancementHotHalo value="1.0"/>
-    <bondiHoyleAccretionEnhancementSpheroid value="1.0"/>
-    <bondiHoyleAccretionTemperatureSpheroid value="100"/>
-    <bondiHoyleAccretionHotModeOnly value="true"/>
-  </componentBlackHole>
+  <componentBlackHole value="standard"/>
   <componentDarkMatterProfile value="scale"/>
   <componentDisk value="standard">
     <toleranceAbsoluteMass value="1.0e-6"/>
@@ -194,6 +184,14 @@
 
   <!-- AGN feedback options -->
   <hotHaloExcessHeatDrivesOutflow value="true"/>
+  <blackHoleWind value="ciotti2009">
+    <efficiencyWind                              value="0.001"/>
+    <efficiencyWindScalesWithEfficiencyRadiative value="true" />
+  </blackHoleWind>
+  <blackHoleCGMHeating value="jetPower">
+    <efficiencyRadioMode value="1.0"/>
+  </blackHoleCGMHeating>
+
   <!-- Accretion disk properties -->
   <accretionDisks value="switched">
     <accretionRateThinDiskMaximum value="0.30"/>
@@ -211,8 +209,13 @@
   </accretionDisks>
 
   <!-- Black hole options -->
+  <blackHoleAccretionRate value="standard">
+    <bondiHoyleAccretionEnhancementSpheroid value="  1.0"/>
+    <bondiHoyleAccretionEnhancementHotHalo  value="  1.0"/>
+    <bondiHoyleAccretionTemperatureSpheroid value="100.0"/>
+    <bondiHoyleAccretionHotModeOnly         value="true"/>
+  </blackHoleAccretionRate>
   <blackHoleBinaryMerger value="rezzolla2008"/>
-  <!-- Satellite orbit options -->
 
   <!-- Galaxy merger options -->
   <virialOrbit value="benson2005"/>
@@ -271,12 +274,16 @@
     </nodeOperator>
     <!-- Shift preset named N-body properties -->
     <nodeOperator value="presetNamedShift"/>
+    <!-- Black hole physics -->
     <nodeOperator value="blackHolesSeed">
       <blackHoleSeeds value="fixed">
         <mass value="100"/>
         <spin value="0"/>
       </blackHoleSeeds>
     </nodeOperator>
+    <nodeOperator value="blackHolesAccretion"/>
+    <nodeOperator value="blackHolesWinds"/>
+    <nodeOperator value="blackHolesCGMHeating"/>
   </nodeOperator>
 
   <!-- Numerical tolerances -->

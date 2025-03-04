@@ -153,7 +153,7 @@ contains
       equation (2.6) is missing a factor (1/2) in the exponential term.
       !!}
       use :: Numerical_Constants_Math    , only : Pi
-      use :: Numerical_Constants_Units   , only : angstromsPerMeter, electronVolt
+      use :: Numerical_Constants_Units   , only : metersToAngstroms, electronVolt
       use :: Numerical_Constants_Physical, only : plancksConstant  , speedLight  , electronMass, fineStructure
       use :: Numerical_Constants_Prefixes, only : centi
       implicit none
@@ -163,7 +163,7 @@ contains
       
       energyIonization=self%atomicIonizationPotential_%potential(atomicNumber,ionizationState)*electronVolt
       energyPhoton=0.5d0*electronMass*velocity**2+energyIonization
-      wavelengthPhoton=angstromsPerMeter*speedLight*plancksConstant/energyPhoton
+      wavelengthPhoton=metersToAngstroms*speedLight*plancksConstant/energyPhoton
       if (velocity > 0.0d0) then
          ! Recombination cross section is computed from the corresponding photoionization cross section using the result from
          ! detailed balance (Arfken, 1961, Ionization of the Interplanetary Gas, Rept. LAMS-2596, Los Alamos Scientific Laboratory

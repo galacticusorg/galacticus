@@ -141,7 +141,7 @@ contains
     use :: Galacticus_Nodes                    , only : nodeComponentBasic
     use :: Kepler_Orbits                       , only : keplerOrbitPhi                     , keplerOrbitRadius, keplerOrbitTheta, keplerOrbitVelocityTangential
     use :: Mass_Distributions                  , only : massDistributionClass
-    use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical    , only : gravitationalConstant_internal
     use :: Galactic_Structure_Options          , only : componentTypeAll                   , massTypeAll
     use :: Virial_Density_Contrast             , only : virialDensityContrastClass
     implicit none
@@ -192,13 +192,13 @@ contains
        ! Get the dark matter-only orbit.
        orbit=self%virialOrbit_%orbit(node,host,acceptUnboundOrbits)
        ! Keeping the angular momentum unchanged, adjust the energy of the orbit.
-       velocityRadialSquared=+orbit%velocityRadial()**2       &
-            &                +2.0d0                           &
-            &                *gravitationalConstantGalacticus &
-            &                *(                               &
-            &                  +massHost                      &
-            &                  -massHostDMO                   &
-            &                 )                               &
+       velocityRadialSquared=+orbit%velocityRadial()**2      &
+            &                +2.0d0                          &
+            &                *gravitationalConstant_internal &
+            &                *(                              &
+            &                  +massHost                     &
+            &                  -massHostDMO                  &
+            &                 )                              &
             &                /radiusHost
        if (velocityRadialSquared < 0.0d0) then
           acceptOrbit=.false.
@@ -246,7 +246,7 @@ contains
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic
     use :: Mass_Distributions                  , only : massDistributionClass
-    use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical    , only : gravitationalConstant_internal
     use :: Galactic_Structure_Options          , only : componentTypeAll                   , massTypeAll
     use :: Virial_Density_Contrast             , only : virialDensityContrastClass
     implicit none
@@ -284,7 +284,7 @@ contains
     velocityRootMeanSquared =  +sqrt(                                                              &
          &                           +self%virialOrbit_%velocityTotalRootMeanSquared(node,host)**2 &
          &                           +2.0d0                                                        &
-         &                           *gravitationalConstantGalacticus                              &
+         &                           *gravitationalConstant_internal                               &
          &                           *(                                                            &
          &                             +massHost                                                   &
          &                             -massHostDMO                                                &
@@ -300,7 +300,7 @@ contains
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic
-    use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical    , only : gravitationalConstant_internal
     use :: Galactic_Structure_Options          , only : componentTypeAll                   , massTypeAll
     use :: Mass_Distributions                  , only : massDistributionClass
     use :: Virial_Density_Contrast             , only : virialDensityContrastClass
@@ -336,7 +336,7 @@ contains
     <objectDestructor name="massDistribution_"/>
     !!]
     energyMean=+self%virialOrbit_%energyMean(node,host) &
-         &     +gravitationalConstantGalacticus         &
+         &     +gravitationalConstant_internal          &
          &     *(                                       &
          &       +massHost                              &
          &       -massHostDMO                           &

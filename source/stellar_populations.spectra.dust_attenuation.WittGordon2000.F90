@@ -88,8 +88,8 @@ contains
     !!}
     use :: Array_Utilities                 , only : Array_Reverse
     use :: Error                           , only : Error_Report
-    use :: Numerical_Constants_Astronomical, only : magnitudesPerOpticalDepth
-    use :: Numerical_Constants_Units       , only : angstromsPerMicron
+    use :: Numerical_Constants_Astronomical, only : opticalDepthToMagnitudes
+    use :: Numerical_Constants_Units       , only : micronsToAngstroms
     use :: Table_Labels                    , only : extrapolationTypeExtrapolate
     implicit none
     type(stellarSpectraDustAttenuationWittGordon2000)                :: self
@@ -97,13 +97,13 @@ contains
 
     ! Initialize fitting function parameters for the chosen model.
     if (.not.enumerationWittGordon2000ModelIsValid(model)) call Error_Report('invalid model'//{introspection:location})
-    call self%attenuationTable%create(angstromsPerMicron/Array_Reverse([ 1000.0d0,   1142.0d0,   1285.0d0,   1428.0d0,   1571.0d0,  1714.0d0,  1857.0d0,  2000.0d0,   2142.0d0,  2285.0d0,   2428.0d0,   2571.0d0,   2714.0d0,   2857.0d0,   3000.0d0,   3776.0d0,   4754.0d0,   5985.0d0,   7535.0d0,   9487.0d0,  11943.0d0,  15036.0d0,  18929.0d0,  23830.0d0,  30001.0d0]),tableCount=1,extrapolationType=spread(extrapolationTypeExtrapolate,1,2))
+    call self%attenuationTable%create(micronsToAngstroms/Array_Reverse([ 1000.0d0,   1142.0d0,   1285.0d0,   1428.0d0,   1571.0d0,  1714.0d0,  1857.0d0,  2000.0d0,   2142.0d0,  2285.0d0,   2428.0d0,   2571.0d0,   2714.0d0,   2857.0d0,   3000.0d0,   3776.0d0,   4754.0d0,   5985.0d0,   7535.0d0,   9487.0d0,  11943.0d0,  15036.0d0,  18929.0d0,  23830.0d0,  30001.0d0]),tableCount=1,extrapolationType=spread(extrapolationTypeExtrapolate,1,2))
      self%model=model
      select case (model%ID)
      case (wittGordon2000ModelMilkyWayShellTau3%ID)
-        call self%attenuationTable%populate(magnitudesPerOpticalDepth*Array_Reverse([ 15.714d0,  11.754d0,   9.546d0,   8.340d0,   7.752d0,   7.527d0,   7.683d0,   8.529d0,   9.570d0,   8.730d0,   7.416d0,   6.582d0,   6.066d0,   5.715d0,   5.454d0,   4.581d0,   3.597d0,   2.727d0,   2.001d0,   1.320d0,   0.912d0,   0.630d0,   0.435d0,   0.300d0,   0.207d0]))
+        call self%attenuationTable%populate(opticalDepthToMagnitudes*Array_Reverse([ 15.714d0,  11.754d0,   9.546d0,   8.340d0,   7.752d0,   7.527d0,   7.683d0,   8.529d0,   9.570d0,   8.730d0,   7.416d0,   6.582d0,   6.066d0,   5.715d0,   5.454d0,   4.581d0,   3.597d0,   2.727d0,   2.001d0,   1.320d0,   0.912d0,   0.630d0,   0.435d0,   0.300d0,   0.207d0]))
      case (wittGordon2000ModelSMCShellTau3     %ID)
-        call self%attenuationTable%populate(magnitudesPerOpticalDepth*Array_Reverse([ 29.025d0,  22.320d0,  18.204d0,  15.501d0,  13.608d0,  12.222d0,  11.100d0,  10.137d0,   9.303d0,   8.571d0,   7.926d0,   7.356d0,   6.846d0,   6.399d0,   6.093d0,   4.830d0,   3.663d0,   2.640d0,   1.890d0,   1.290d0,   0.816d0,   0.498d0,   0.333d0,   0.225d0,   0.099d0]))
+        call self%attenuationTable%populate(opticalDepthToMagnitudes*Array_Reverse([ 29.025d0,  22.320d0,  18.204d0,  15.501d0,  13.608d0,  12.222d0,  11.100d0,  10.137d0,   9.303d0,   8.571d0,   7.926d0,   7.356d0,   6.846d0,   6.399d0,   6.093d0,   4.830d0,   3.663d0,   2.640d0,   1.890d0,   1.290d0,   0.816d0,   0.498d0,   0.333d0,   0.225d0,   0.099d0]))
      end select
      return
   end function wittGordon2003ConstructorInternal

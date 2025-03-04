@@ -135,7 +135,7 @@ contains
     use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : defaultDiskComponent    , defaultSpheroidComponent, nodeComponent, nodeComponentDisk, &
           &                                         nodeComponentSpheroid
-    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
+    use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr
     implicit none
     class           (starFormationTimescaleDynamicalTime), intent(inout) :: self
     class           (nodeComponent                      ), intent(inout) :: component
@@ -188,8 +188,8 @@ contains
        dynamicalTimeTimescale=0.0d0
     else
        ! Get the dynamical time in Gyr.
-       timeDynamical=+Mpc_per_km_per_s_To_Gyr &
-            &        *radius                  &
+       timeDynamical=+MpcPerKmPerSToGyr &
+            &        *radius            &
             &        /velocity
        ! Compute the star formation timescale using a simple scaling factor.
        dynamicalTimeTimescale=max(                           &

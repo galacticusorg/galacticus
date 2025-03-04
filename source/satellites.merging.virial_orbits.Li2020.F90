@@ -715,7 +715,7 @@ contains
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
-    use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical    , only : gravitationalConstant_internal
     implicit none
     class           (virialOrbitLi2020 ), intent(inout) :: self
     type            (treeNode          ), intent(inout) :: node        , host
@@ -742,7 +742,7 @@ contains
          &                +basic    %mass()                              &
          &                /basicHost%mass()                              &
          &               )                                               &
-         &              -gravitationalConstantGalacticus                 &
+         &              -gravitationalConstant_internal                  &
          &              *massHost                                        &
          &              /radiusHost
     return

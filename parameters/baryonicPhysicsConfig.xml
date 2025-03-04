@@ -3,7 +3,7 @@
   <!-- Posterior sampling simulation parameter file for search of Galacticus model parameter space -->
   <!-- Andrew Benson (29-April-2020) -->  
   <formatVersion>2</formatVersion>
-  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
+  <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
 
   <verbosityLevel value="standard"/>
 
@@ -46,7 +46,7 @@
 
      <!-- Hot halo -->
      <modelParameter value="active">
-       <name value="componentHotHalo::fractionLossAngularMomentum"/>
+       <name value="componentHotHalo/fractionLossAngularMomentum"/>
        <distributionFunction1DPrior value="logUniform">
 	 <limitLower value="0.01"/>
 	 <limitUpper value="0.95"/>
@@ -58,7 +58,7 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
-       <name value="hotHaloMassDistributionCoreRadius::coreRadiusOverVirialRadius"/>
+       <name value="hotHaloMassDistributionCoreRadius/coreRadiusOverVirialRadius"/>
        <distributionFunction1DPrior value="logUniform">
 	 <limitLower value="0.01"/>
 	 <limitUpper value="0.80"/>
@@ -70,7 +70,7 @@
        </distributionFunction1DPerturber>
      </modelParameter>
       <modelParameter value="active">
-       <name value="hotHaloOutflowReincorporation::multiplier"/>
+       <name value="hotHaloOutflowReincorporation/multiplier"/>
        <distributionFunction1DPrior value="logUniform">
 	 <limitLower value="0.03"/>
 	 <limitUpper value="30.0"/>
@@ -82,7 +82,7 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
-       <name value="coolingTimeAvailable::ageFactor"/>
+       <name value="coolingTimeAvailable/ageFactor"/>
        <distributionFunction1DPrior value="uniform">
 	 <limitLower value="0.0"/>
 	 <limitUpper value="1.0"/>
@@ -94,7 +94,7 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
-       <name value="coolingRate::multiplier"/>
+       <name value="coolingRate/multiplier"/>
        <distributionFunction1DPrior value="logUniform">
 	 <limitLower value="0.03"/>
 	 <limitUpper value="100.0"/>
@@ -108,7 +108,7 @@
 
      <!-- Disk instability -->
      <modelParameter value="active">
-       <name value="nodeOperator::nodeOperator[4]::galacticDynamicsBarInstability::stabilityThresholdGaseous"/>
+       <name value="nodeOperator/nodeOperator[@value='barInstability']/galacticDynamicsBarInstability/stabilityThresholdGaseous"/>
        <distributionFunction1DPrior value="uniform">
 	 <limitLower value="0.7"/>
 	 <limitUpper value="1.2"/>
@@ -120,7 +120,7 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
-       <name value="nodeOperator::nodeOperator[4]::galacticDynamicsBarInstability::stabilityThresholdStellar"/>
+       <name value="nodeOperator/nodeOperator[@value='barInstability']/galacticDynamicsBarInstability/stabilityThresholdStellar"/>
        <distributionFunction1DPrior value="uniform">
 	 <limitLower value="0.7"/>
 	 <limitUpper value="1.2"/>
@@ -132,7 +132,7 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
-       <name value="nodeOperator::nodeOperator[4]::galacticDynamicsBarInstability::fractionAngularMomentumRetainedDisk"/>
+       <name value="nodeOperator/nodeOperator[@value='barInstability']/galacticDynamicsBarInstability/fractionAngularMomentumRetainedDisk"/>
        <distributionFunction1DPrior value="uniform">
 	 <limitLower value="0.0"/>
 	 <limitUpper value="1.0"/>
@@ -146,7 +146,7 @@
 
      <!-- Star formation -->
      <modelParameter value="active">
-       <name value="starFormationRateDisks::starFormationTimescale::efficiency"/>
+       <name value="starFormationRateDisks/starFormationTimescale/efficiency"/>
        <distributionFunction1DPrior value="logUniform">
 	 <limitLower value="0.001"/>
 	 <limitUpper value="1.000"/>
@@ -158,7 +158,7 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
-       <name value="starFormationRateDisks::starFormationTimescale::exponentVelocity"/>
+       <name value="starFormationRateDisks/starFormationTimescale/exponentVelocity"/>
        <distributionFunction1DPrior value="uniform">
 	 <limitLower value="-4.0"/>
 	 <limitUpper value="+4.0"/>
@@ -170,7 +170,7 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
-       <name value="starFormationRateDisks::starFormationTimescale::timescaleMinimum"/>
+       <name value="starFormationRateDisks/starFormationTimescale/timescaleMinimum"/>
        <distributionFunction1DPrior value="logUniform">
 	 <limitLower value="1.0e-3"/>
 	 <limitUpper value="30.0"/>
@@ -182,7 +182,7 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
-       <name value="starFormationRateSpheroids::starFormationTimescale::efficiency"/>
+       <name value="starFormationRateSpheroids/starFormationTimescale/efficiency"/>
        <distributionFunction1DPrior value="logUniform">
 	 <limitLower value="0.001"/>
 	 <limitUpper value="1.000"/>
@@ -194,7 +194,7 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
-       <name value="starFormationRateSpheroids::starFormationTimescale::exponentVelocity"/>
+       <name value="starFormationRateSpheroids/starFormationTimescale/exponentVelocity"/>
        <distributionFunction1DPrior value="uniform">
 	 <limitLower value="-4.0"/>
 	 <limitUpper value="+4.0"/>
@@ -206,7 +206,7 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
-       <name value="starFormationRateSpheroids::starFormationTimescale::timescaleMinimum"/>
+       <name value="starFormationRateSpheroids/starFormationTimescale/timescaleMinimum"/>
        <distributionFunction1DPrior value="logUniform">
 	 <limitLower value="1.0e-3"/>
 	 <limitUpper value="30.0"/>
@@ -220,7 +220,7 @@
 
      <!-- Feedback -->
      <modelParameter value="active">
-       <name value="nodeOperator::nodeOperator[2]::stellarFeedbackOutflows::stellarFeedbackOutflows::velocityCharacteristic"/>
+       <name value="nodeOperator/nodeOperator[@value='stellarFeedbackDisks']/stellarFeedbackOutflows/stellarFeedbackOutflows/velocityCharacteristic"/>
        <distributionFunction1DPrior value="uniform">
 	 <limitLower value="25.0"/>
 	 <limitUpper value="500.0"/>
@@ -232,7 +232,7 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
-       <name value="nodeOperator::nodeOperator[3]::stellarFeedbackOutflows::stellarFeedbackOutflows::velocityCharacteristic"/>
+       <name value="nodeOperator/nodeOperator[@value='stellarFeedbackSpheroids']/stellarFeedbackOutflows/stellarFeedbackOutflows/velocityCharacteristic"/>
        <distributionFunction1DPrior value="uniform">
 	 <limitLower value="25.0"/>
 	 <limitUpper value="500.0"/>
@@ -244,7 +244,7 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
-       <name value="nodeOperator::nodeOperator[2]::stellarFeedbackOutflows::stellarFeedbackOutflows::exponent"/>
+       <name value="nodeOperator/nodeOperator[@value='stellarFeedbackDisks']/stellarFeedbackOutflows/stellarFeedbackOutflows/exponent"/>
        <distributionFunction1DPrior value="uniform">
 	 <limitLower value="1.0"/>
 	 <limitUpper value="6.0"/>
@@ -256,7 +256,7 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
-       <name value="nodeOperator::nodeOperator[3]::stellarFeedbackOutflows::stellarFeedbackOutflows::exponent"/>
+       <name value="nodeOperator/nodeOperator[@value='stellarFeedbackSpheroids']/stellarFeedbackOutflows/stellarFeedbackOutflows/exponent"/>
        <distributionFunction1DPrior value="uniform">
 	 <limitLower value="1.0"/>
 	 <limitUpper value="6.0"/>
@@ -268,7 +268,7 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
-       <name value="nodeOperator::nodeOperator[2]::stellarFeedbackOutflows::timescaleOutflowFractionalMinimum"/>
+       <name value="nodeOperator/nodeOperator[@value='stellarFeedbackDisks']/stellarFeedbackOutflows/timescaleOutflowFractionalMinimum"/>
        <distributionFunction1DPrior value="logUniform">
 	 <limitLower value="1.0e-6"/>
 	 <limitUpper value="100.0"/>
@@ -280,7 +280,7 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
-       <name value="nodeOperator::nodeOperator[3]::stellarFeedbackOutflows::timescaleOutflowFractionalMinimum"/>
+       <name value="nodeOperator/nodeOperator[@value='stellarFeedbackSpheroids']/stellarFeedbackOutflows/timescaleOutflowFractionalMinimum"/>
        <distributionFunction1DPrior value="logUniform">
 	 <limitLower value="1.0e-6"/>
 	 <limitUpper value="100.0"/>
@@ -294,7 +294,7 @@
      
      <!-- Black hole -->
      <modelParameter value="active">
-       <name value="componentBlackHole::growthRatioToStellarSpheroid"/>
+       <name value="blackHoleAccretionRate/growthRatioToStellarSpheroid"/>
        <distributionFunction1DPrior value="logUniform">
 	 <limitLower value="1.0e-1"/>
 	 <limitUpper value="1.0e+2"/>
@@ -306,7 +306,7 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
-       <name value="componentBlackHole::efficiency"/>
+       <name value="componentBlackHole/efficiency"/>
        <distributionFunction1DPrior value="logUniform">
 	 <limitLower value="1.0e-4"/>
 	 <limitUpper value="1.0e-2"/>
@@ -318,7 +318,7 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
-       <name value="componentBlackHole::fractionJet"/>
+       <name value="componentBlackHole/fractionJet"/>
        <distributionFunction1DPrior value="logUniform">
 	 <limitLower value="1.0e-4"/>
 	 <limitUpper value="1.0"/>
@@ -330,17 +330,17 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="derived">
-       <name value="componentBlackHole::efficiencyWind"/>
-       <definition value="%[componentBlackHole::efficiency]*(1.0-%[componentBlackHole::fractionJet])"/>
+       <name value="blackHoleWind/efficiencyWind"/>
+       <definition value="%[componentBlackHole/efficiency]*(1.0-%[componentBlackHole/fractionJet])"/>
      </modelParameter>
      <modelParameter value="derived">
-       <name value="componentBlackHole::efficiencyHeating"/>
-       <definition value="%[componentBlackHole::efficiency]*%[componentBlackHole::fractionJet]"/>
+       <name value="blackHoleCGMHeating/efficiencyHeating"/>
+       <definition value="%[componentBlackHole/efficiency]*%[componentBlackHole/fractionJet]"/>
      </modelParameter>
      
      <!-- Yield and recycled fraction -->
      <modelParameter value="active">
-       <name value="stellarPopulation::metalYield"/>
+       <name value="stellarPopulation/metalYield"/>
        <!-- Prior is chosen to be centered on the approximately expected value for a Chabrier IMF, but is broad since yields are
             highly uncertain according to Vincenzo et al. (arXiv:1503.08300) [0.2 dex just due to choice of stellar yield models,
             up to a factor 10 due to choice of IMF and upper stellar mass cut-off] -->
@@ -374,13 +374,13 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="derived">
-       <name value="stellarPopulation::recycledFraction"/>
+       <name value="stellarPopulation/recycledFraction"/>
        <definition value="%[recycledFraction]"/>
      </modelParameter>
 
      <!-- Merging -->
      <modelParameter value="active">
-       <name value="satelliteMergingTimescales::exponent"/>
+       <name value="satelliteMergingTimescales/exponent"/>
        <distributionFunction1DPrior value="uniform">
 	 <limitLower value="0.0"/>
 	 <limitUpper value="1.0"/>
@@ -392,7 +392,7 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
-       <name value="satelliteMergingTimescales::satelliteMergingTimescales::timescaleMultiplier"/>
+       <name value="satelliteMergingTimescales/satelliteMergingTimescales/timescaleMultiplier"/>
        <distributionFunction1DPrior value="logUniform">
 	 <limitLower value="1.0e-1"/>
 	 <limitUpper value="1.0e+1"/>
@@ -404,7 +404,7 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
-       <name value="mergerMassMovements::massRatioMajorMerger"/>
+       <name value="mergerMassMovements/massRatioMajorMerger"/>
        <distributionFunction1DPrior value="uniform">
 	 <limitLower value="0.05"/>
 	 <limitUpper value="1.00"/>
@@ -416,7 +416,7 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
-       <name value="mergerRemnantSize::energyOrbital"/>
+       <name value="mergerRemnantSize/energyOrbital"/>
        <distributionFunction1DPrior value="uniform">
 	 <limitLower value="0.20"/>
 	 <limitUpper value="2.50"/>
@@ -473,11 +473,11 @@
      </modelParameter>
      <!-- Apply to ALFALFA HI mass function -->
      <modelParameter value="derived">
-       <name value="outputAnalysis::outputAnalysis[6]::systematicErrorPolynomialCoefficient{0}"/>
+       <name value="outputAnalysis/outputAnalysis[@value='massFunctionHIALFALFAMartin2010']/systematicErrorPolynomialCoefficient{1}"/>
        <definition value="%[alfalfaMassSystematics0]"/>
      </modelParameter>
      <modelParameter value="derived">
-       <name value="outputAnalysis::outputAnalysis[6]::systematicErrorPolynomialCoefficient{1}"/>
+       <name value="outputAnalysis/outputAnalysis[@value='massFunctionHIALFALFAMartin2010']/systematicErrorPolynomialCoefficient{2}"/>
        <definition value="%[alfalfaMassSystematics1]"/>
      </modelParameter>
 
@@ -513,18 +513,18 @@
      <!-- Apply to ULTRAVISTA stellar mass function -->
      <modelParameter value="derived">
        <!-- Shift masses to correct to Kroupa IMF used by Muzzin et al. -->
-       <name value="outputAnalysis::outputAnalysis[1]::systematicErrorPolynomialCoefficient{0}"/>
+       <name value="outputAnalysis/outputAnalysis[@value='massFunctionStellarULTRAVISTA']/systematicErrorPolynomialCoefficient{1}"/>
        <definition value="%[ultravistaStellarMassSystematics0]+0.4"/>
      </modelParameter>
      <modelParameter value="derived">
-       <name value="outputAnalysis::outputAnalysis[1]::systematicErrorPolynomialCoefficient{1}"/>
+       <name value="outputAnalysis/outputAnalysis[@value='massFunctionStellarULTRAVISTA']/systematicErrorPolynomialCoefficient{2}"/>
        <definition value="%[ultravistaStellarMassSystematics1]"/>
      </modelParameter>
 
      <!-- GAMA stellar mass incompleteness model -->
      <!-- Model (plus priors) are from Benson equation 10 of Benson (2019; MNRAS; 482; 1062) -->
      <modelParameter value="active">
-       <name value="outputAnalysis::outputAnalysis[0]::massFunctionIncompleteness::slope"/>
+       <name value="outputAnalysis/outputAnalysis[@value='massFunctionStellarBaldry2012GAMA']/massFunctionIncompleteness/slope"/>
        <distributionFunction1DPrior value="normal">
          <limitLower value="-1.9500"/>
          <limitUpper value="-0.4500"/>
@@ -538,7 +538,7 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
-       <name value="outputAnalysis::outputAnalysis[0]::massFunctionIncompleteness::offset"/>
+       <name value="outputAnalysis/outputAnalysis[@value='massFunctionStellarBaldry2012GAMA']/massFunctionIncompleteness/offset"/>
        <distributionFunction1DPrior value="normal">
          <limitLower value="+23.300"/>
          <limitUpper value="+25.300"/>
@@ -552,7 +552,7 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
-       <name value="outputAnalysis::outputAnalysis[0]::massFunctionIncompleteness::scatter"/>
+       <name value="outputAnalysis/outputAnalysis[@value='massFunctionStellarBaldry2012GAMA']/massFunctionIncompleteness/scatter"/>
        <distributionFunction1DPrior value="normal">
          <limitLower value="+0.60000"/>
          <limitUpper value="+1.10000"/>
@@ -597,20 +597,20 @@
      </modelParameter>
      <!-- Apply to GAMA stellar mass function -->
      <modelParameter value="derived">
-       <name value="outputAnalysis::outputAnalysis[0]::systematicErrorPolynomialCoefficient{0}"/>
+       <name value="outputAnalysis/outputAnalysis[@value='massFunctionStellarBaldry2012GAMA']/systematicErrorPolynomialCoefficient{1}"/>
        <definition value="%[gamaStellarMassSystematics0]"/>
      </modelParameter>
      <modelParameter value="derived">
-       <name value="outputAnalysis::outputAnalysis[0]::systematicErrorPolynomialCoefficient{1}"/>
+       <name value="outputAnalysis/outputAnalysis[@value='massFunctionStellarBaldry2012GAMA']/systematicErrorPolynomialCoefficient{2}"/>
        <definition value="%[gamaStellarMassSystematics1]"/>
      </modelParameter>
      <!-- Apply to GAMA morphological fraction -->
      <modelParameter value="derived">
-       <name value="outputAnalysis::outputAnalysis[7]::systematicErrorPolynomialCoefficient{0}"/>
+       <name value="outputAnalysis/outputAnalysis[@value='morphologicalFractionGAMAMoffett2016']/systematicErrorPolynomialCoefficient{1}"/>
        <definition value="%[gamaStellarMassSystematics0]"/>
      </modelParameter>
      <modelParameter value="derived">
-       <name value="outputAnalysis::outputAnalysis[7]::systematicErrorPolynomialCoefficient{1}"/>
+       <name value="outputAnalysis/outputAnalysis[@value='morphologicalFractionGAMAMoffett2016']/systematicErrorPolynomialCoefficient{2}"/>
        <definition value="%[gamaStellarMassSystematics1]"/>
      </modelParameter>
 
@@ -630,7 +630,7 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
-       <name value="outputAnalysis::outputAnalysis[7]::ratioEarlyTypeError"/>
+       <name value="outputAnalysis/outputAnalysis[@value='morphologicalFractionGAMAMoffett2016']/ratioEarlyTypeError"/>
        <distributionFunction1DPrior value="uniform">
          <limitLower value="+0.0000+0"/>
          <limitUpper value="+1.0000+0"/>
@@ -642,23 +642,23 @@
        </distributionFunction1DPerturber>
      </modelParameter>
       <modelParameter value="derived">
-       <name value="outputAnalysis::outputAnalysis[7]::ratioEarlyType"/>
+       <name value="outputAnalysis/outputAnalysis[@value='morphologicalFractionGAMAMoffett2016']/ratioEarlyType"/>
        <definition value="%[ratioEarlyType]"/>
      </modelParameter>
      <modelParameter value="derived">
-       <name value="outputAnalysis::outputAnalysis[8]::massStellarRatio"/>
+       <name value="outputAnalysis/outputAnalysis[@value='galaxySizesSDSS']/distributionNumber[@value='10']/../massStellarRatio"/>
        <definition value="%[ratioEarlyType]"/>
      </modelParameter>
      <modelParameter value="derived">
-       <name value="outputAnalysis::outputAnalysis[9]::massStellarRatio"/>
+       <name value="outputAnalysis/outputAnalysis[@value='galaxySizesSDSS']/distributionNumber[@value='15']/../massStellarRatio"/>
        <definition value="%[ratioEarlyType]"/>
      </modelParameter>
      <modelParameter value="derived">
-       <name value="outputAnalysis::outputAnalysis[10]::massStellarRatio"/>
+       <name value="outputAnalysis/outputAnalysis[@value='galaxySizesSDSS']/distributionNumber[@value='24']/../massStellarRatio"/>
        <definition value="%[ratioEarlyType]"/>
      </modelParameter>
      <modelParameter value="derived">
-       <name value="outputAnalysis::outputAnalysis[11]::massStellarRatio"/>
+       <name value="outputAnalysis/outputAnalysis[@value='galaxySizesSDSS']/distributionNumber[@value='29']/../massStellarRatio"/>
        <definition value="%[ratioEarlyType]"/>
      </modelParameter>
 
@@ -692,45 +692,48 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <!-- Apply to SHMR relations -->
+     <!-- Note that we use array indexing here - we can address by attributes as we don't yet support multiple matching in XPath expressions.    -->
+     <!-- Something like this would be needed:                                                                                                   -->
+     <!-- outputAnalysis/outputAnalysis[redshiftInterval[@value='1'] and computeScatter[@value='false']]/systematicErrorPolynomialCoefficient{1} -->
      <modelParameter value="derived">
-       <name value="outputAnalysis::outputAnalysis[2]::systematicErrorPolynomialCoefficient{0}"/>
+       <name value="outputAnalysis/outputAnalysis[3]/systematicErrorPolynomialCoefficient{1}"/>
        <definition value="%[sdssStellarMassSystematics0]"/>
      </modelParameter>
      <modelParameter value="derived">
-       <name value="outputAnalysis::outputAnalysis[2]::systematicErrorPolynomialCoefficient{1}"/>
+       <name value="outputAnalysis/outputAnalysis[3]/systematicErrorPolynomialCoefficient{2}"/>
        <definition value="%[sdssStellarMassSystematics1]"/>
      </modelParameter>
      <modelParameter value="derived">
-       <name value="outputAnalysis::outputAnalysis[3]::systematicErrorPolynomialCoefficient{0}"/>
+       <name value="outputAnalysis/outputAnalysis[4]/systematicErrorPolynomialCoefficient{1}"/>
        <definition value="%[sdssStellarMassSystematics0]"/>
      </modelParameter>
      <modelParameter value="derived">
-       <name value="outputAnalysis::outputAnalysis[3]::systematicErrorPolynomialCoefficient{1}"/>
+       <name value="outputAnalysis/outputAnalysis[4]/systematicErrorPolynomialCoefficient{2}"/>
        <definition value="%[sdssStellarMassSystematics1]"/>
      </modelParameter>
      <modelParameter value="derived">
-       <name value="outputAnalysis::outputAnalysis[4]::systematicErrorPolynomialCoefficient{0}"/>
+       <name value="outputAnalysis/outputAnalysis[5]/systematicErrorPolynomialCoefficient{1}"/>
        <definition value="%[sdssStellarMassSystematics0]"/>
      </modelParameter>
      <modelParameter value="derived">
-       <name value="outputAnalysis::outputAnalysis[4]::systematicErrorPolynomialCoefficient{1}"/>
+       <name value="outputAnalysis/outputAnalysis[5]/systematicErrorPolynomialCoefficient{2}"/>
        <definition value="%[sdssStellarMassSystematics1]"/>
      </modelParameter>
      <modelParameter value="derived">
-       <name value="outputAnalysis::outputAnalysis[5]::systematicErrorPolynomialCoefficient{0}"/>
+       <name value="outputAnalysis/outputAnalysis[6]/systematicErrorPolynomialCoefficient{1}"/>
        <definition value="%[sdssStellarMassSystematics0]"/>
      </modelParameter>
      <modelParameter value="derived">
-       <name value="outputAnalysis::outputAnalysis[5]::systematicErrorPolynomialCoefficient{1}"/>
+       <name value="outputAnalysis/outputAnalysis[6]/systematicErrorPolynomialCoefficient{2}"/>
        <definition value="%[sdssStellarMassSystematics1]"/>
      </modelParameter>
      <!-- Apply to mass-metallicity relation -->
      <modelParameter value="derived">
-       <name value="outputAnalysis::outputAnalysis[16]::systematicErrorPolynomialCoefficient{0}"/>
+       <name value="outputAnalysis/outputAnalysis[@value='massMetallicityBlanc2019']/systematicErrorPolynomialCoefficient{1}"/>
        <definition value="%[sdssStellarMassSystematics0]"/>
      </modelParameter>
      <modelParameter value="derived">
-       <name value="outputAnalysis::outputAnalysis[16]::systematicErrorPolynomialCoefficient{1}"/>
+       <name value="outputAnalysis/outputAnalysis[@value='massMetallicityBlanc2019']/systematicErrorPolynomialCoefficient{2}"/>
        <definition value="%[sdssStellarMassSystematics1]"/>
      </modelParameter>
 
@@ -765,20 +768,20 @@
      </modelParameter>
      <!-- Apply to g-band luminosity function -->
      <modelParameter value="derived">
-       <name value="outputAnalysis::outputAnalysis[12]::systematicErrorPolynomialCoefficient{0}"/>
+       <name value="outputAnalysis/outputAnalysis[@value='luminosityFunctionMonteroDorta2009SDSS']/systematicErrorPolynomialCoefficient{1}"/>
        <definition value="%[sdssMagnitudeSystematics0]"/>
      </modelParameter>
      <modelParameter value="derived">
-       <name value="outputAnalysis::outputAnalysis[12]::systematicErrorPolynomialCoefficient{1}"/>
+       <name value="outputAnalysis/outputAnalysis[@value='luminosityFunctionMonteroDorta2009SDSS']/systematicErrorPolynomialCoefficient{2}"/>
        <definition value="%[sdssMagnitudeSystematics1]"/>
      </modelParameter>
      <!-- Apply to r-band luminosity function -->
      <modelParameter value="derived">
-       <name value="outputAnalysis::outputAnalysis[13]::systematicErrorPolynomialCoefficient{0}"/>
+       <name value="outputAnalysis/outputAnalysis[@value='luminosityFunctionMonteroDorta2009SDSS']/systematicErrorPolynomialCoefficient{1}"/>
        <definition value="%[sdssMagnitudeSystematics0]"/>
      </modelParameter>
      <modelParameter value="derived">
-       <name value="outputAnalysis::outputAnalysis[13]::systematicErrorPolynomialCoefficient{1}"/>
+       <name value="outputAnalysis/outputAnalysis[@value='luminosityFunctionMonteroDorta2009SDSS']/systematicErrorPolynomialCoefficient{2}"/>
        <definition value="%[sdssMagnitudeSystematics1]"/>
      </modelParameter>
 
@@ -813,26 +816,26 @@
      </modelParameter>
      <!-- Apply to SDSS luminosity function -->
      <modelParameter value="derived">
-       <name value="outputAnalysis::outputAnalysis[14]::systematicErrorPolynomialCoefficient{0}"/>
+       <name value="outputAnalysis/outputAnalysis[@value='luminosityFunctionGunawardhana2013SDSS']/systematicErrorPolynomialCoefficient{1}"/>
        <definition value="%[emissionLineLuminositySystematics0]"/>
      </modelParameter>
      <modelParameter value="derived">
-       <name value="outputAnalysis::outputAnalysis[14]::systematicErrorPolynomialCoefficient{1}"/>
+       <name value="outputAnalysis/outputAnalysis[@value='luminosityFunctionGunawardhana2013SDSS']/systematicErrorPolynomialCoefficient{2}"/>
        <definition value="%[emissionLineLuminositySystematics1]"/>
      </modelParameter>
      Apply to HiZELS luminosity function
      <modelParameter value="derived">
-       <name value="outputAnalysis::outputAnalysis[15]::systematicErrorPolynomialCoefficient{0}"/>
+       <name value="outputAnalysis/outputAnalysis[@value='luminosityFunctionSobral2013HiZELS']/systematicErrorPolynomialCoefficient{1}"/>
        <definition value="%[emissionLineLuminositySystematics0]"/>
      </modelParameter>
      <modelParameter value="derived">
-       <name value="outputAnalysis::outputAnalysis[15]::systematicErrorPolynomialCoefficient{1}"/>
+       <name value="outputAnalysis/outputAnalysis[@value='luminosityFunctionSobral2013HiZELS']/systematicErrorPolynomialCoefficient{2}"/>
        <definition value="%[emissionLineLuminositySystematics1]"/>
      </modelParameter>
 
      <!-- Metallicity systematics, e.g. Peeples and Shankar (http://adsabs.harvard.edu/abs/2011MNRAS.417.2962P) -->
      <modelParameter value="active">
-       <name value="outputAnalysis::outputAnalysis[16]::metallicitySystematicErrorPolynomialCoefficient"/>
+       <name value="outputAnalysis/outputAnalysis[@value='massMetallicityBlanc2019']/metallicitySystematicErrorPolynomialCoefficient"/>
        <distributionFunction1DPrior value="normal">
          <limitLower value="-1.00"/>
          <limitUpper value="+1.00"/>
@@ -848,7 +851,7 @@
      
      <!-- Black hole-bulge relation stellar mass systematics -->
      <modelParameter value="active">
-       <name value="outputAnalysis::outputAnalysis[17]::systematicErrorPolynomialCoefficient{0}"/>
+       <name value="outputAnalysis/outputAnalysis[@value='blackHoleBulgeRelation']/systematicErrorPolynomialCoefficient{1}"/>
        <distributionFunction1DPrior value="normal">
          <limitLower value="-0.2500+0"/>
          <limitUpper value="+0.2500+0"/>
@@ -862,7 +865,7 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
-       <name value="outputAnalysis::outputAnalysis[17]::systematicErrorPolynomialCoefficient{1}"/>
+       <name value="outputAnalysis/outputAnalysis[@value='blackHoleBulgeRelation']/systematicErrorPolynomialCoefficient{2}"/>
        <distributionFunction1DPrior value="normal">
          <limitLower value="-0.100e+0"/>
          <limitUpper value="+0.100e+0"/>

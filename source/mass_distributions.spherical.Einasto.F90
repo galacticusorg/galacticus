@@ -534,8 +534,8 @@ contains
     !!{
     Computes the radius corresponding to a given specific angular momentum for einasto mass distributions.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-    use :: Numerical_Ranges                , only : Make_Range                     , rangeTypeLogarithmic
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
+    use :: Numerical_Ranges                , only : Make_Range                    , rangeTypeLogarithmic
     implicit none
     class           (massDistributionEinasto), intent(inout), target       :: self
     double precision                         , intent(in   )               :: angularMomentumSpecific
@@ -545,12 +545,12 @@ contains
     integer                                                                :: countRadii                              , i
 
     if (angularMomentumSpecific > 0.0d0) then
-       angularMomentumSpecificScaleFree=+angularMomentumSpecific                  &
-            &                           /sqrt(                                    &
-            &                                 +gravitationalConstantGalacticus    &
-            &                                 *self%densityNormalization          &
-            &                                )                                    &
-            &                           /      self%scaleLength               **2
+       angularMomentumSpecificScaleFree=+angularMomentumSpecific                 &
+            &                           /sqrt(                                   &
+            &                                 +gravitationalConstant_internal    &
+            &                                 *self%densityNormalization         &
+            &                                )                                   &
+            &                           /      self%scaleLength              **2
        if     (                                                                                  &
             &   angularMomentumSpecificScaleFree <= self%angularMomentumSpecificScaleFreeMinimum &
             &  .or.                                                                              &
@@ -613,8 +613,8 @@ contains
     Return the potential at the specified {\normalfont \ttfamily coordinates} in an einasto mass distribution.
     !!}
     use :: Coordinates                     , only : assignment(=)
-    use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess      , structureErrorCodeInfinite
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess     , structureErrorCodeInfinite
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Error                           , only : Error_Report
     implicit none
     class           (massDistributionEinasto          ), intent(inout), target   :: self
@@ -628,7 +628,7 @@ contains
     potential=+potentialScaleFree       (radiusScaleFree,self%shapeParameter)    &
          &    *self%densityNormalization                                         &
          &    *self%scaleLength                                              **2
-    if (.not.self%isDimensionless()) potential=+gravitationalConstantGalacticus &
+    if (.not.self%isDimensionless()) potential=+gravitationalConstant_internal &
          &                                     *potential
     return
   end function einastoPotential
@@ -686,19 +686,19 @@ contains
     !!{
     Compute the freefall radius at the given {\normalfont \ttfamily time} in an Einasto mass distribution.
     !!}
-    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr, gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr, gravitationalConstant_internal
     implicit none
     class           (massDistributionEinasto), intent(inout) :: self
     double precision                         , intent(in   ) :: time
     double precision                                         :: timeScaleFree, timeScale
     
-    timeScale    =+1.0d0                                 &
-         &        /sqrt(                                 &
-         &              +gravitationalConstantGalacticus &
-         &              *self%densityNormalization       &
-         &             )                                 &
-         &        *Mpc_per_km_per_s_To_Gyr
-    timeScaleFree=+time                                  &
+    timeScale    =+1.0d0                                &
+         &        /sqrt(                                &
+         &              +gravitationalConstant_internal &
+         &              *self%densityNormalization      &
+         &             )                                &
+         &        *MpcPerKmPerSToGyr
+    timeScaleFree=+time                                 &
          &        /timeScale
     if (timeScaleFree <= self%timeFreefallMinimum()) then
        radius=0.0d0
@@ -715,19 +715,19 @@ contains
     Compute the rate of increase of the freefall radius at the given {\normalfont \ttfamily time} in an einasto mass
     distribution.
     !!}
-    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr, gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr, gravitationalConstant_internal
     implicit none
     class           (massDistributionEinasto), intent(inout) :: self
     double precision                         , intent(in   ) :: time
     double precision                                         :: timeScaleFree, timeScale
 
-    timeScale    =+1.0d0                                 &
-         &        /sqrt(                                 &
-         &              +gravitationalConstantGalacticus &
-         &              *self%densityNormalization       &
-         &             )                                 &
-         &        *Mpc_per_km_per_s_To_Gyr
-    timeScaleFree=+time                                  &
+    timeScale    =+1.0d0                                &
+         &        /sqrt(                                &
+         &              +gravitationalConstant_internal &
+         &              *self%densityNormalization      &
+         &             )                                &
+         &        *MpcPerKmPerSToGyr
+    timeScaleFree=+time                                 &
          &        /timeScale
     if (timeScaleFree <= self%timeFreefallMinimum()) then
        radiusIncreaseRate=0.0d0

@@ -4,7 +4,7 @@
 <!-- 30-November-2020                                                                   -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
+  <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
 
   <!-- Task and work control -->
   <task value="evolveForests">
@@ -18,12 +18,8 @@
   <!-- Component selection -->
   <componentBasic value="standard"/>
   <componentBlackHole value="simple">
-    <growthRatioToStellarSpheroid value="1.36151389582815"/>
-    <heatsHotHalo value="true"/>
     <efficiency value="0.00361121531459326"/>
     <fractionJet value="0.0436415271218433"/>
-    <efficiencyHeating value="0.000157598951094638"/>
-    <efficiencyWind value="0.00345361636349862"/>
   </componentBlackHole>
   <componentDarkMatterProfile value="scale"/>
   <componentDisk value="standard">
@@ -196,8 +192,18 @@
 
   <!-- AGN feedback options -->
   <hotHaloExcessHeatDrivesOutflow value="true"/>
+  <blackHoleWind value="simple">
+    <efficiencyWind value="0.00345361636349862"/>
+  </blackHoleWind>
+  <blackHoleCGMHeating value="quasistatic">
+    <efficiencyHeating value="0.000157598951094638"/>
+  </blackHoleCGMHeating>
+  
   <!-- Black hole options -->
   <blackHoleBinaryMerger value="rezzolla2008"/>
+  <blackHoleAccretionRate value="spheroidTracking">
+    <growthRatioToStellarSpheroid value="1.36151389582815"/>
+  </blackHoleAccretionRate>
 
   <!-- Galaxy merger options -->
   <virialOrbit value="li2020"/>
@@ -315,7 +321,7 @@
   <outputAnalysis value="multi">
 
     <!-- Stellar mass functions -->
-    <outputAnalysis value="massFunctionStellarBaldry2012GAMA"> <!-- Analysis #0 -->
+    <outputAnalysis value="massFunctionStellarBaldry2012GAMA"> <!-- Analysis #1 -->
       <!-- z~0 GAMA -->
       <randomErrorMinimum value="0.20"/>
       <randomErrorMaximum value="0.20"/>
@@ -331,7 +337,7 @@
 	<scatter value="0.926814651398173"/>
       </massFunctionIncompleteness>
     </outputAnalysis>
-    <outputAnalysis value="massFunctionStellarULTRAVISTA"> <!-- Analysis #1 -->
+    <outputAnalysis value="massFunctionStellarULTRAVISTA"> <!-- Analysis #2 -->
     <!-- z=2.5-3.0 ULTRAVISTA -->
       <redshiftInterval value="5"/>
       <randomErrorMinimum value="0.20"/>
@@ -342,22 +348,22 @@
     </outputAnalysis>
 
     <!-- Stellar-halo mass relations -->
-    <outputAnalysis value="stellarVsHaloMassRelationLeauthaud2012"> <!-- Analysis #2 -->
+    <outputAnalysis value="stellarVsHaloMassRelationLeauthaud2012"> <!-- Analysis #3 -->
       <redshiftInterval value="1"/>
       <computeScatter value="false"/>
       <systematicErrorPolynomialCoefficient value="0.0582454381888318 -0.058115287792454"/>
     </outputAnalysis>
-    <outputAnalysis value="stellarVsHaloMassRelationLeauthaud2012"> <!-- Analysis #3 -->
+    <outputAnalysis value="stellarVsHaloMassRelationLeauthaud2012"> <!-- Analysis #4 -->
       <redshiftInterval value="1"/>
       <computeScatter value="true"/>
       <systematicErrorPolynomialCoefficient value="0.0582454381888318 -0.058115287792454"/>
     </outputAnalysis>
-    <outputAnalysis value="stellarVsHaloMassRelationLeauthaud2012"> <!-- Analysis #4 -->
+    <outputAnalysis value="stellarVsHaloMassRelationLeauthaud2012"> <!-- Analysis #5 -->
       <redshiftInterval value="3"/>
       <computeScatter value="false"/>
       <systematicErrorPolynomialCoefficient value="0.0582454381888318 -0.058115287792454"/>
     </outputAnalysis>
-    <outputAnalysis value="stellarVsHaloMassRelationLeauthaud2012"> <!-- Analysis #5 -->
+    <outputAnalysis value="stellarVsHaloMassRelationLeauthaud2012"> <!-- Analysis #6 -->
       <redshiftInterval value="3"/>
       <computeScatter value="true"/>
       <systematicErrorPolynomialCoefficient value="0.0582454381888318 -0.058115287792454"/>
@@ -367,39 +373,39 @@
     <!-- <outputAnalysis value="HIVsHaloMassRelationPadmanabhan2017"    > -->
     <!--   <systematicErrorPolynomialCoefficient            value="0.0 0.0"         /> -->
     <!-- </outputAnalysis> -->
-    <outputAnalysis value="massFunctionHIALFALFAMartin2010"> <!-- Analysis #6 -->
+    <outputAnalysis value="massFunctionHIALFALFAMartin2010"> <!-- Analysis #7 -->
       <systematicErrorPolynomialCoefficient value="-0.126745570595433 0.00149220388187935"/>
       <outputAnalysisDistributionOperator value="randomErrorALFLF"/>
       <outputAnalysisMolecularRatio value="obreschkow2009"/>
     </outputAnalysis>
 
     <!-- Morphology -->
-    <outputAnalysis value="morphologicalFractionGAMAMoffett2016"> <!-- Analysis #7 -->
+    <outputAnalysis value="morphologicalFractionGAMAMoffett2016"> <!-- Analysis #8 -->
       <ratioEarlyType value="0.719247501103713"/>
       <ratioEarlyTypeError value="0.236806923974236"/>
       <systematicErrorPolynomialCoefficient value="-0.155872721559837 0.0077688225143428"/>
     </outputAnalysis>
 
     <!-- Galaxy sizes -->
-    <outputAnalysis value="galaxySizesSDSS"> <!-- Analysis #8 -->
+    <outputAnalysis value="galaxySizesSDSS"> <!-- Analysis #9 -->
       <distributionNumber value="10"/>
       <massStellarRatio value="0.719247501103713"/>
     </outputAnalysis>
-    <outputAnalysis value="galaxySizesSDSS"> <!-- Analysis #9 -->
+    <outputAnalysis value="galaxySizesSDSS"> <!-- Analysis #10 -->
       <distributionNumber value="15"/>
       <massStellarRatio value="0.719247501103713"/>
     </outputAnalysis>
-    <outputAnalysis value="galaxySizesSDSS"> <!-- Analysis #10 -->
+    <outputAnalysis value="galaxySizesSDSS"> <!-- Analysis #11 -->
       <distributionNumber value="24"/>
       <massStellarRatio value="0.719247501103713"/>
     </outputAnalysis>
-    <outputAnalysis value="galaxySizesSDSS"> <!-- Analysis #11 -->
+    <outputAnalysis value="galaxySizesSDSS"> <!-- Analysis #12 -->
       <distributionNumber value="29"/>
       <massStellarRatio value="0.719247501103713"/>
     </outputAnalysis>
 
     <!-- Broad-band luminosity functions -->
-    <outputAnalysis value="luminosityFunctionMonteroDorta2009SDSS"> <!-- Analysis #12 -->
+    <outputAnalysis value="luminosityFunctionMonteroDorta2009SDSS"> <!-- Analysis #13 -->
       <band value="g"/>
       <randomErrorMinimum value="0.013"/>
       <randomErrorMaximum value="0.013"/>
@@ -407,7 +413,7 @@
       <systematicErrorPolynomialCoefficient value="0.0021761064660743 0.00711985285823365"/>
       <sizeSourceLensing value="2.0e-3"/>
     </outputAnalysis>
-    <outputAnalysis value="luminosityFunctionMonteroDorta2009SDSS"> <!-- Analysis #13 -->
+    <outputAnalysis value="luminosityFunctionMonteroDorta2009SDSS"> <!-- Analysis #14 -->
       <band value="r"/>
       <randomErrorMinimum value="0.010"/>
       <randomErrorMaximum value="0.010"/>
@@ -417,7 +423,7 @@
     </outputAnalysis>
 
     <!-- Emission line luminosity functions -->
-    <outputAnalysis value="luminosityFunctionGunawardhana2013SDSS"> <!-- Analysis #14 -->
+    <outputAnalysis value="luminosityFunctionGunawardhana2013SDSS"> <!-- Analysis #15 -->
       <randomErrorMinimum value="+0.1"/>
       <randomErrorMaximum value="+0.1"/>
       <randomErrorPolynomialCoefficient value="+0.1"/>
@@ -425,7 +431,7 @@
       <sizeSourceLensing value="2.0e-3"/>
       <depthOpticalISMCoefficient value="0.0"/>
     </outputAnalysis>
-    <outputAnalysis value="luminosityFunctionSobral2013HiZELS"> <!-- Analysis #15 -->
+    <outputAnalysis value="luminosityFunctionSobral2013HiZELS"> <!-- Analysis #16 -->
       <redshiftInterval value="4"/>
       <randomErrorMinimum value="+0.1"/>
       <randomErrorMaximum value="+0.1"/>
@@ -436,7 +442,7 @@
     </outputAnalysis>
 
     <!-- Mass-metallicity relations -->
-    <outputAnalysis value="massMetallicityBlanc2019"> <!-- Analysis #16 -->
+    <outputAnalysis value="massMetallicityBlanc2019"> <!-- Analysis #17 -->
       <fractionGasThreshold value="0.10"/>
       <systematicErrorPolynomialCoefficient value="0.0582454381888318 -0.058115287792454"/>
       <metallicitySystematicErrorPolynomialCoefficient value="-0.0432432683189376"/>
@@ -445,7 +451,7 @@
     </outputAnalysis>
 
     <!-- Black hole-bulge relation -->
-    <outputAnalysis value="blackHoleBulgeRelation"> <!-- Analysis #17 -->
+    <outputAnalysis value="blackHoleBulgeRelation"> <!-- Analysis #18 -->
       <randomErrorMinimum value="+0.090"/>
       <randomErrorMaximum value="+0.090"/>
       <randomErrorPolynomialCoefficient value="+0.000"/>
@@ -453,7 +459,7 @@
     </outputAnalysis>
 
     <!-- Local Group stellar mass function -->
-    <outputAnalysis value="localGroupStellarMassFunction"/> <!-- Analysis #18 -->
+    <outputAnalysis value="localGroupStellarMassFunction"/> <!-- Analysis #19 -->
 
   </outputAnalysis>
 

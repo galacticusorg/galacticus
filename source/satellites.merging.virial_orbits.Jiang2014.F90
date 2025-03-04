@@ -278,7 +278,7 @@ contains
        call File_Lock(char(fileName),fileLock,lockIsShared=attempt == 0)
        if (File_Exists(fileName)) then
           !$ call hdf5Access%set()
-          call file%openFile         (char(fileName)                                                   )
+          call file%openFile         (char(fileName)                ,readOnly=.true.                   )
           call file%readAttribute    ('limitLower'                  ,     limitLower                   ) 
           call file%readAttribute    ('limitUpper'                  ,     limitUpper                   ) 
           call file%readDatasetStatic('velocityTangentialMean'      ,self%velocityTangentialMean_      )
@@ -785,7 +785,7 @@ contains
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
-    use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical    , only : gravitationalConstant_internal
     implicit none
     class           (virialOrbitJiang2014), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node        , host
@@ -812,7 +812,7 @@ contains
          &                   +basic    %mass()                              &
          &                   /basicHost%mass()                              &
          &                  )                                               &
-         &                 -gravitationalConstantGalacticus                 &
+         &                 -gravitationalConstant_internal                  &
          &                 *massHost                                        &
          &                 /radiusHost
     return

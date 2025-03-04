@@ -36,7 +36,7 @@ contains
     Computes the Bondi-Hoyle-Lyttleton accretion rate (in $M_\odot$ Gyr$^{-1}$; \citealt{edgar_review_2004}).
     !!}
     use :: Ideal_Gases_Thermodynamics      , only : Ideal_Gas_Sound_Speed
-    use :: Numerical_Constants_Astronomical, only : gigaYear             , megaParsec, gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gigaYear             , megaParsec, gravitationalConstant_internal
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
@@ -52,7 +52,7 @@ contains
        Bondi_Hoyle_Lyttleton_Accretion_Rate=(kilo*gigaYear/megaParsec)*4.0d0*Pi*radius**2*density*sqrt(soundSpeed**2+velocity**2)
     else
        ! Assume that the accretion radius is equal to the Bondi-Hoyle-Lyttleton radius.
-       Bondi_Hoyle_Lyttleton_Accretion_Rate=(kilo*gigaYear/megaParsec)*4.0d0*Pi*(gravitationalConstantGalacticus*mass)**2*density &
+       Bondi_Hoyle_Lyttleton_Accretion_Rate=(kilo*gigaYear/megaParsec)*4.0d0*Pi*(gravitationalConstant_internal*mass)**2*density &
             &/(soundSpeed**2+velocity**2)**1.5d0
     end if
     return
@@ -63,14 +63,14 @@ contains
     Computes the Bondi-Hoyle-Lyttleton accretion radius (in Mpc; \citealt{edgar_review_2004}).
     !!}
     use :: Ideal_Gases_Thermodynamics      , only : Ideal_Gas_Sound_Speed
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     double precision, intent(in   ) :: mass      , temperature
     double precision                :: soundSpeed
 
     if (temperature > 0.0d0) then
        soundSpeed     =Ideal_Gas_Sound_Speed(temperature)
-       radiusAccretion=gravitationalConstantGalacticus*mass/soundSpeed**2
+       radiusAccretion=gravitationalConstant_internal*mass/soundSpeed**2
     else
        radiusAccretion=huge(0.0d0)
     end if

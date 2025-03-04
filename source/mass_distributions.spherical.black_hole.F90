@@ -109,7 +109,7 @@ contains
     !!}
     use :: Error                           , only : Error_Report
     use :: Numerical_Comparison            , only : Values_Differ
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Numerical_Constants_Physical    , only : speedLight
     use :: Numerical_Constants_Prefixes    , only : milli
     implicit none
@@ -140,10 +140,10 @@ contains
     if (self%dimensionless) then
        self%radiusGravitational=+1.0d0
     else
-       self%radiusGravitational=+     gravitationalConstantGalacticus     &
-            &                   *self%mass                                &
-            &                   /     milli                           **2 &
-            &                   /     speedLight                      **2
+       self%radiusGravitational=+     gravitationalConstant_internal     &
+            &                   *self%mass                               &
+            &                   /     milli                          **2 &
+            &                   /     speedLight                     **2
     end if
     return
   end function blackHoleConstructorInternal
@@ -205,7 +205,7 @@ contains
     !!{
     Return the rotation curve for a blackHole mass distribution.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Numerical_Constants_Physical    , only : speedLight
     use :: Numerical_Constants_Prefixes    , only : milli
     implicit none
@@ -227,7 +227,7 @@ contains
             &                       /                          radius  &
             &                      )
        ! Make dimensionful if necessary.
-       if (.not.self%dimensionless) blackHoleRotationCurve=+sqrt(gravitationalConstantGalacticus) &
+       if (.not.self%dimensionless) blackHoleRotationCurve=+sqrt(gravitationalConstant_internal) &
             &                                              *blackHoleRotationCurve
     end if
     return
@@ -237,7 +237,7 @@ contains
     !!{
     Return the rotation curve gradient for a spherical mass distribution.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Numerical_Constants_Math        , only : Pi
     implicit none
     class           (massDistributionBlackHole), intent(inout) :: self
@@ -253,7 +253,7 @@ contains
        blackHoleRotationCurveGradient=-self%mass      &
             &                         /     radius**2
        ! Make dimensionful if necessary.
-       if (.not.self%dimensionless) blackHoleRotationCurveGradient=+gravitationalConstantGalacticus &
+       if (.not.self%dimensionless) blackHoleRotationCurveGradient=+gravitationalConstant_internal &
             &                                                      *blackHoleRotationCurveGradient
     end if
     return
@@ -275,7 +275,7 @@ contains
     Return the potential at the specified {\normalfont \ttfamily coordinates} for a point mass.
     !!}
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class(massDistributionBlackHole        ), intent(inout), target   :: self
     class(coordinate                       ), intent(in   )           :: coordinates
@@ -288,8 +288,8 @@ contains
          &                   self       %radiusGravitational    &
          &                  )
     if (.not.self%dimensionless)                               &
-         & blackHolePotential=+blackHolePotential              &
-         &                    *gravitationalConstantGalacticus
+         & blackHolePotential=+blackHolePotential            &
+         &                    *gravitationalConstant_internal
     return
   end function blackHolePotential
 

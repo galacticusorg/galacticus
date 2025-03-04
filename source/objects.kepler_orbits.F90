@@ -62,17 +62,21 @@ module Kepler_Orbits
   !!]
 
   type keplerOrbit
-     !!{
-     The structure used for describing orbits in \glc. This object will automatically convert from one set of orbital
-     parameters to another where possible. The orbiting bodies (a satellite orbiting around its host) are treated as point
-     masses, and the usual ``reduced mass'' framework is used, such that radii and velocities are measured relative to a
-     stationary host. Energy and angular momentum are defined per unit satellite mass (not per unit reduced mass). Note that
-     not all interconversions between elements are implemented. The object works by attempting to get the radial and tangential
-     velocities and the radius. If it can obtain these, any other parameter can be computed. Getting these three parameters
-     relies on having known conversions from other possible combinations of parameters. The position of the object is described
-     by $(r,\theta,\phi)$ in standard spherical coordinates. The direction of the tangential component is velocity is taken to
-     be the direction of the vector $\mathbf{r} \times \mathbf{\hat{e}}_\mathrm{z}$, rotated by an angle $\epsilon$ around the
-     vector $\mathbf{r}$.
+     !!{     
+     The structure used for describing orbits in \glc. This object will automatically convert from one set of orbital parameters
+     to another where possible. The orbiting bodies (a satellite orbiting around its host) are treated as point masses, and the
+     usual ``reduced mass'' framework is used, such that radii and velocities are measured relative to a stationary host. Energy
+     and angular momentum are defined per unit satellite mass (not per unit reduced mass). Note that not all interconversions
+     between elements are implemented. The object works by attempting to get the radial and tangential velocities and the
+     radius. If it can obtain these, any other parameter can be computed. Getting these three parameters relies on having known
+     conversions from other possible combinations of parameters. The position of the object is described by $(r,\theta,\phi)$ in
+     standard spherical coordinates. The direction of the tangential component is velocity is taken to be the direction of the
+     vector $\mathbf{r} \times \mathbf{\hat{e}}_\mathrm{z}$, rotated by an angle $\epsilon$ around the vector $\mathbf{r}$. In
+     cases where $\mathbf{r}$ is parallel to $\mathbf{\hat{e}}_\mathrm{z}$ we set $\epsilon=\pi/2$, since at some infinitesimally
+     later time, $\delta t$ the position vector will become $\mathbf{r} + \mathbf{v}\delta t$ such that the above cross product is
+     $(\mathbf{r} + \mathbf{v}\delta t) \times \mathbf{\hat{e}}_\mathrm{z} \propto \mathbf{v}_\mathrm{t} \times
+     \mathbf{\hat{e}}_\mathrm{z}$ where $\mathbf{v}_\mathrm{t}$ is the tangential component of the velocity vector, and, by
+     definition, we then must have $\epsilon=\pi/2$ as this vector is normal to $\mathbf{v}_\mathrm{t}$.
      !!}
      private
      double precision :: massHostValue        , specificReducedMassValue
@@ -805,7 +809,7 @@ contains
     !!{
     Return the energy for this orbit.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class(keplerOrbit), intent(inout) :: orbit
 
@@ -814,7 +818,7 @@ contains
        ! Assert that the orbit is defined.
        call orbit%assertIsDefined()
        ! Compute the energy.
-       orbit%energyValue=-gravitationalConstantGalacticus*orbit%massHost()/orbit%radius()+0.5d0&
+       orbit%energyValue=-gravitationalConstant_internal*orbit%massHost()/orbit%radius()+0.5d0&
             &*(orbit%velocityRadial()**2+orbit%velocityTangential()**2)*orbit%specificReducedMass()
        orbit%energyIsSet=.true.
     end if
@@ -937,14 +941,14 @@ contains
     Return the velocity scale for the orbit.
     !!}
     use :: Error                           , only : Error_Report
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class(keplerOrbit), intent(inout) :: orbit
 
     ! Check that masses and radius have been specified.
     if (.not.(orbit%radiusIsSet.and.orbit%massesIsSet)) call Error_Report('orbit masses and radius must be specified'//{introspection:location})
     ! Compute the velocity scale.
-    Kepler_Orbits_Velocity_Scale=sqrt(gravitationalConstantGalacticus*orbit%massHost()/orbit%radius())
+    Kepler_Orbits_Velocity_Scale=sqrt(gravitationalConstant_internal*orbit%massHost()/orbit%radius())
     return
   end function Kepler_Orbits_Velocity_Scale
 
@@ -953,8 +957,8 @@ contains
     Propagate an orbit along its path.
     !!}
     use :: Error                           , only : Error_Report
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-    use :: Vectors                         , only : Vector_Magnitude               , Vector_Product
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
+    use :: Vectors                         , only : Vector_Magnitude              , Vector_Product
     implicit none
     class           (keplerOrbit), intent(inout)           :: orbit
     double precision             , intent(in   )           :: newRadius
@@ -985,7 +989,7 @@ contains
     angularMomentum=orbit%angularMomentum()
     ! Compute velocity components.
     newVelocityTangential=angularMomentum/newRadius/orbit%specificReducedMass()
-    newVelocityRadial    =sqrt(2.0d0*(energy+gravitationalConstantGalacticus*orbit%massHost()/newRadius)/orbit%specificReducedMass()-newVelocityTangential**2)
+    newVelocityRadial    =sqrt(2.0d0*(energy+gravitationalConstant_internal*orbit%massHost()/newRadius)/orbit%specificReducedMass()-newVelocityTangential**2)
     ! Move to the infalling phase of the orbit if requested.
     if (present(infalling)) then
        if (infalling) newVelocityRadial=-newVelocityRadial

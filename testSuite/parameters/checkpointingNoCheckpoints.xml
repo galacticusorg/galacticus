@@ -3,7 +3,7 @@
 <!-- No baryonic physics is included - a purely dark matter universe is assumed. -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
+  <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
 
   <!-- Set verbosity to show when background work is being performed -->
   <verbosityLevel value="working"/>
@@ -333,7 +333,13 @@
 
   <!-- AGN feedback options -->
   <hotHaloExcessHeatDrivesOutflow value="true"/>
-  <blackHoleHeatsHotHalo value="true"/>
+  <blackHoleWind value="ciotti2009">
+    <efficiencyWind                              value="0.0024"/>
+    <efficiencyWindScalesWithEfficiencyRadiative value="true"  />
+  </blackHoleWind>
+  <blackHoleCGMHeating value="jetPower">
+    <efficiencyRadioMode value="1.0"/>
+  </blackHoleCGMHeating>
 
   <!-- Accretion disk properties -->
   <accretionDisks value="switched">
@@ -351,14 +357,13 @@
   </accretionDisks>
 
   <!-- Black hole options -->
+  <blackHoleAccretionRate value="standard">
+    <bondiHoyleAccretionEnhancementSpheroid value="  5.0"/>
+    <bondiHoyleAccretionEnhancementHotHalo  value="  6.0"/>
+    <bondiHoyleAccretionTemperatureSpheroid value="100.0"/>
+    <bondiHoyleAccretionHotModeOnly         value="true"/>
+  </blackHoleAccretionRate>
   <blackHoleBinaryMerger value="rezzolla2008"/>
-  <blackHoleSeedMass value="100"/>
-  <blackHoleWindEfficiency value="0.0024"/>
-  <blackHoleWindEfficiencyScalesWithRadiativeEfficiency value="true"/>
-  <bondiHoyleAccretionEnhancementHotHalo value="6.0"/>
-  <bondiHoyleAccretionEnhancementSpheroid value="5.0"/>
-  <bondiHoyleAccretionTemperatureSpheroid value="100"/>
-  <bondiHoyleAccretionHotModeOnly value="true"/>
 
   <!-- Galaxy merger options -->
   <mergerMassMovements value="simple">
@@ -444,12 +449,16 @@
     <nodeOperator value="nodeFormationTimeMassFraction">
       <fractionMassFormation value="0.5"/>
     </nodeOperator>
+    <!-- Black hole physics -->
     <nodeOperator value="blackHolesSeed">
       <blackHoleSeeds value="fixed">
         <mass value="100"/>
         <spin value="0"/>
       </blackHoleSeeds>
     </nodeOperator>
+    <nodeOperator value="blackHolesAccretion"/>
+    <nodeOperator value="blackHolesWinds"/>
+    <nodeOperator value="blackHolesCGMHeating"/>
   </nodeOperator>
 
   <!-- Merger tree evolution -->
