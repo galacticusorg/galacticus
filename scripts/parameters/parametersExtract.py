@@ -31,6 +31,7 @@ def createStructure(name, node):
             parent = parameters
         # Array parameters (i.e. multiple copies of the same named parameter) are defined by a `[N]` suffix. Detect these.
         isArray = re.match(r'(.*)\[(\d+)\]',elementNames[-1])
+        child = None
         if isArray:
             # For array parameters, construct a list of elements of length equal to the current array index.
             elementName  =     isArray.group(1)
@@ -42,7 +43,7 @@ def createStructure(name, node):
         else:
             # For non-array parameters simply add an appropriately-named child element.
             child = ET.SubElement(parent, elementNames[-1])
-
+            
 # Create a function to assign parameter values.
 def assignValues(name, node):
     # Ignore everything other than groups.
@@ -54,6 +55,8 @@ def assignValues(name, node):
             parent = parameters.find(name)
         # Iterate over all attributes in this group.
         for attributeName in node.attrs.keys():
+            isReference = None
+            idReference = None
             # Extract the attribute value and convert to a string.
             value = node.attrs[attributeName]
             if isinstance(value,bytes):
@@ -65,15 +68,31 @@ def assignValues(name, node):
                     value = " ".join(map(lambda x: x.decode(),value))
                 else:
                     value = " ".join(map(lambda x: str(x),value))
-            else:
-                value = str(value)
+            value = str(value)
+            isReference = re.match(r'\{idRef:([a-zA-Z0-9_]+)\}',value)
+            if isReference:
+                idReference = isReference.group(1)
+            isTarget = re.match(r'(.*)\{id:([a-zA-Z0-9_]+)\}',attributeName)
+            if isTarget:
+                attributeName = isTarget.group(1)
+                idTarget      = isTarget.group(2)
             # Set the value of the parameter (creating the element first if needed).
             if attributeName in node:
                 child = parent.find(attributeName)
-                child.set('value', value)
+                if isReference:
+                    child.set('idRef', idReference)
+                else:
+                    child.set('value', value      )
+                    if isTarget:
+                        child.set('id',idTarget)
             else:
                 newChild = ET.SubElement(parent, attributeName)
-                newChild.set('value', value)
+                if isReference:
+                    newChild.set('idRef', idReference)
+                else:
+                    newChild.set('value', value      )
+                    if isTarget:
+                        newChild.set('id',idTarget)
 
 # Open the HDF5 file and get the `Parameters` group.
 fileIn = h5py.File(args.hdf5FileName,"r")

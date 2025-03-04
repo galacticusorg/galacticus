@@ -901,6 +901,7 @@ contains
                       parameterTest => parameterTest%sibling
                    end do
                    if (.not.associated(parameterTest)) call Error_Report('no child parameter exists'//{introspection:location})
+                   if (associated(parameterTest%referenced)) parameterTest => parameterTest%referenced
                 end if
              end do
              if (parameterTest%activeEvaluated) then
@@ -1052,16 +1053,11 @@ contains
 
     !$omp critical (FoX_DOM_Access)
     if (associated(self%content) .and. getNodeType(self%content) == ELEMENT_NODE) then
-       inputParameterIsParameter=                        &
-            &    .not.hasAttribute(self%content,'id'   ) &
-            &   .and.                                    &
-            &    (                                       &
-            &         hasAttribute(self%content,'value') &
-            &     .or.                                   &
-            &      XML_Path_Exists(self%content,'value') &
-            &     .or.                                   &
-            &         hasAttribute(self%content,"idRef") &
-            &    )
+       inputParameterIsParameter=    hasAttribute(self%content,'value') &
+            &                    .or.                                   &
+            &                     XML_Path_Exists(self%content,'value') &
+            &                    .or.                                   &
+            &                        hasAttribute(self%content,"idRef")
     else
        inputParameterIsParameter=.false.
     end if
@@ -1543,25 +1539,29 @@ contains
     return
   end subroutine inputParametersValidateName
 
-  function inputParametersNode(self,parameterName,requireValue,copyInstance)
+  function inputParametersNode(self,parameterName,requireValue,copyInstance,writeOutput)
     !!{
     Return the node containing the parameter.
     !!}
-    use :: FoX_dom, only : ELEMENT_NODE   , getNodeName, getNodeType, hasAttribute, &
-          &                node
-    use :: Error  , only : Error_Report
-    use :: IO_XML , only : XML_Path_Exists
+    use :: FoX_DOM           , only : ELEMENT_NODE   , getNodeName   , getNodeType     , hasAttribute, &
+          &                           node           , getTextContent, getAttributeNode
+    use :: Error             , only : Error_Report
+    use :: IO_XML            , only : XML_Path_Exists
+    use :: HDF5_Access       , only : hdf5Access
+    use :: ISO_Varying_String, only : assignment(=)  , char
     implicit none
     type     (inputParameter ), pointer                 :: inputParametersNode
-    class    (inputParameters), intent(in   )           :: self
+    class    (inputParameters), intent(inout)           :: self
     character(len=*          ), intent(in   )           :: parameterName
-    logical                   , intent(in   ), optional :: requireValue
+    logical                   , intent(in   ), optional :: requireValue       , writeOutput
     integer                   , intent(in   ), optional :: copyInstance
-    type     (node           ), pointer                 :: node_
+    type     (node           ), pointer                 :: node_              , identifierNode
     integer                                             :: skipInstances
+    type     (varying_string )                          :: attributeName
     !![
-    <optionalArgument name="requireValue" defaultsTo=".true." />
-    <optionalArgument name="copyInstance" defaultsTo="1"      />
+    <optionalArgument name="requireValue" defaultsTo=".true."/>
+    <optionalArgument name="writeOutput"  defaultsTo=".true."/>
+    <optionalArgument name="copyInstance" defaultsTo="1"     />
     !!]
 
     call self%validateName(parameterName)
@@ -1572,18 +1572,14 @@ contains
        if (.not.inputParametersNode%removed.and.inputParametersNode%active) then
           node_ => inputParametersNode%content
           if (getNodeType(node_) == ELEMENT_NODE .and. trim(parameterName) == getNodeName(node_)) then
-             if     (                                  &
-                  &   .not.hasAttribute(node_,'id'   ) &
-                  &  .and.                             &
-                  &   (                                &
-                  &    .not.requireValue_              &
-                  &    .or.                            &
-                  &        hasAttribute(node_,'value') &
-                  &    .or.                            &
-                  &     XML_Path_Exists(node_,"value") &
-                  &    .or.                            &
-                  &        hasAttribute(node_,"idRef") &
-                  &   )                                &
+             if     (                                &
+                  &  .not.requireValue_              &
+                  &  .or.                            &
+                  &      hasAttribute(node_,'value') &
+                  &  .or.                            &
+                  &   XML_Path_Exists(node_,"value") &
+                  &  .or.                            &
+                  &      hasAttribute(node_,"idRef") &
                   & ) then
                 if (skipInstances > 0) then
                    skipInstances=skipInstances-1
@@ -1597,7 +1593,22 @@ contains
     end do
     !$omp end critical (FoX_DOM_Access)
     if (.not.associated(inputParametersNode)) call Error_Report('parameter node ['//trim(parameterName)//'] not found'//{introspection:location})
-    if (associated(inputParametersNode%referenced)) inputParametersNode => inputParametersNode%referenced
+    if (associated(inputParametersNode%referenced)) then
+       ! We have a reference to another parameter.
+       !$omp critical (FoX_DOM_Access)
+       attributeName  =  getNodeName     (inputParametersNode%content        )
+       identifierNode => getAttributeNode(inputParametersNode%content,'idRef')
+       !$omp end critical (FoX_DOM_Access)
+       !$ call hdf5Access%set()
+       if (self%outputParameters%isOpen()) then
+          if (.not.self%outputParameters%hasAttribute(char(attributeName))) then
+             call self%outputParameters%writeAttribute("{idRef:"//getTextContent(identifierNode)//"}",char(attributeName))
+          end if
+       end if
+       !$ call hdf5Access%unset()
+       ! Return the referenced parameter.
+       inputParametersNode => inputParametersNode%referenced
+    end if
     return
   end function inputParametersNode
 
@@ -1630,18 +1641,14 @@ contains
           if (.not.currentParameter%removed.and.currentParameter%active) then
              node_ => currentParameter%content
              if (getNodeType(node_) == ELEMENT_NODE .and. trim(parameterName) == getNodeName(node_)) then
-                if     (                                  &
-                     &   .not.hasAttribute(node_,'id'   ) &
-                     &  .and.                             &
-                     &   (                                &
-                     &    .not.requireValue_              &
-                     &    .or.                            &
-                     &        hasAttribute(node_,'value') &
-                     &    .or.                            &
-                     &     XML_Path_Exists(node_,"value") &
-                     &    .or.                            &
-                     &        hasAttribute(node_,"idRef") &
-                     &   )                                &
+                if     (                                &
+                     &  .not.requireValue_              &
+                     &  .or.                            &
+                     &      hasAttribute(node_,'value') &
+                     &  .or.                            &
+                     &   XML_Path_Exists(node_,"value") &
+                     &  .or.                            &
+                     &      hasAttribute(node_,"idRef") &
                      & ) then
                    inputParametersIsPresent=.true.
                    exit
@@ -1688,21 +1695,17 @@ contains
           if (.not.currentParameter%removed.and.currentParameter%active) then
              node_ => currentParameter%content
              if (getNodeType(node_) == ELEMENT_NODE .and. trim(parameterName) == getNodeName(node_)) then
-                if     (                                    &
-                     &   .not.requireValue_                 &
-                     &  .or.                                &
-                     &   (                                  &
-                     &     .not.hasAttribute(node_,'id'   ) &
-                     &    .and.                             &
-                     &     (                                &
-                     &          hasAttribute(node_,'value') &
-                     &      .or.                            &
-                     &       XML_Path_Exists(node_,"value") &
-                     &      .or.                            &
-                     &          hasAttribute(node_,"idRef") &
-                     &     )                                &
-                     &   )                                  &
-                     & )                                    &
+                if     (                                  &
+                     &   .not.requireValue_               &
+                     &  .or.                              &
+                     &   (                                &
+                     &        hasAttribute(node_,'value') &
+                     &    .or.                            &
+                     &     XML_Path_Exists(node_,"value") &
+                     &    .or.                            &
+                     &        hasAttribute(node_,"idRef") &
+                     &   )                                &
+                     & )                                  &
                      & inputParametersCopiesCount=inputParametersCopiesCount+1
              end if
           end if
@@ -1831,7 +1834,7 @@ contains
     use :: String_Handling   , only : operator(//)
     implicit none
     type     (inputParameters)                          :: inputParametersSubParameters
-    class    (inputParameters), intent(in   ), target   :: self
+    class    (inputParameters), intent(inout), target   :: self
     character(len=*          ), intent(in   )           :: parameterName
     logical                   , intent(in   ), optional :: requireValue                , requirePresent
     integer                   , intent(in   ), optional :: copyInstance
@@ -1854,6 +1857,7 @@ contains
     else
        copyCount                               =  self%copiesCount(parameterName        ,requireValue=requireValue                          )
        parameterNode                           => self%node       (parameterName        ,requireValue=requireValue,copyInstance=copyInstance)
+       if (associated(parameterNode%referenced)) parameterNode => parameterNode%referenced
        inputParametersSubParameters            =  inputParameters (parameterNode%content,noOutput    =.true.      ,noBuild     =.true.      )
        inputParametersSubParameters%parameters => parameterNode
     end if
@@ -1919,7 +1923,7 @@ contains
     !!]
 
     if (self%isPresent(parameterName)) then
-       parameterNode => self%node(parameterName,copyInstance=copyInstance)
+       parameterNode => self%node(parameterName,copyInstance=copyInstance,writeOutput=writeOutput)
        call self%value(parameterNode,parameterValue,errorStatus,writeOutput,evaluate)
     else if (present(defaultValue)) then
        parametersRoot => self
@@ -1975,7 +1979,7 @@ contains
     external                                                                            :: Evaluator_Destroy_
 #endif
     type            (inputParameter                          )               , pointer  :: sibling
-    type            (node                                    )               , pointer  :: valueElement
+    type            (node                                    )               , pointer  :: valueElement       , identifierNode
     type            (inputParameters                         )               , pointer  :: parentParameters
     type            (DOMException                            )                          :: exception
     integer                                                                             :: copyInstance       , copyCount       , &
@@ -2182,6 +2186,10 @@ contains
                       sibling      => sibling%sibling
                    end do
                    attributeName=attributeName//"["//copyInstance//"]"
+                end if
+                if (hasAttribute(parameterNode%content,'id')) then
+                   identifierNode => getAttributeNode(parameterNode%content,'id')
+                   attributeName  =  attributeName//"{id:"//getTextContent(identifierNode)//"}"
                 end if
                 !$ call hdf5Access%set()
                 if (.not.self%outputParameters%hasAttribute(char(attributeName))) call self%outputParameters%writeAttribute({Type¦outputConverter¦parameterValue},char(attributeName))
