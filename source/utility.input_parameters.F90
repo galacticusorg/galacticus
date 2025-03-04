@@ -2337,19 +2337,24 @@ contains
     return
   end subroutine inputParametersSerializeToXML
 
-  subroutine inputParametersAddParameter(self,parameterName,parameterValue)
+  subroutine inputParametersAddParameter(self,parameterName,parameterValue,writeOutput)
     !!{
     Add a parameter to the set.
     !!}
-    use :: FoX_dom, only : ELEMENT_NODE, appendChild, createElementNS, getNamespaceURI, &
-          &                getNodeName , getNodeType, hasAttribute   , node           , &
-          &                setAttribute
-         implicit none
-    class    (inputParameters), intent(inout) :: self
-    character(len=*          ), intent(in   ) :: parameterName   , parameterValue
-    type     (node           ), pointer       :: parameterNode   , dummy
-    type     (inputParameter ), pointer       :: currentParameter
-    logical                                   :: previouslyAdded
+    use :: FoX_DOM    , only : ELEMENT_NODE, appendChild, createElementNS, getNamespaceURI, &
+          &                    getNodeName , getNodeType, hasAttribute   , node           , &
+          &                    setAttribute
+    use :: HDF5_Access, only : hdf5Access
+    implicit none
+    class    (inputParameters), intent(inout)           :: self
+    character(len=*          ), intent(in   )           :: parameterName   , parameterValue
+    logical                   , intent(in   ), optional :: writeOutput
+    type     (node           ), pointer                 :: parameterNode   , dummy
+    type     (inputParameter ), pointer                 :: currentParameter
+    logical                                             :: previouslyAdded
+    !![
+    <optionalArgument name="writeOutput" defaultsTo=".true."/>
+    !!]
     
     ! Check if the parameter was previously added but then removed, in which case it still exists but is just flagged as removed.
     previouslyAdded=.false.
@@ -2378,6 +2383,12 @@ contains
        call setAttribute(parameterNode,"value",trim(parameterValue))
        dummy           => appendChild  (self%rootNode,parameterNode)
        !$omp end critical(FoX_DOM_Access)
+       ! Write the parameter file to an HDF5 object.
+       if (self%outputParameters%isOpen().and.writeOutput_) then
+          !$ call hdf5Access%set()
+          if (.not.self%outputParameters%hasAttribute(parameterName)) call self%outputParameters%writeAttribute(parameterValue,parameterName)
+          !$ call hdf5Access%unset()
+       end if
        if (associated(self%parameters)) then
           if (associated(self%parameters%firstChild)) then
              currentParameter => self%parameters%firstChild
