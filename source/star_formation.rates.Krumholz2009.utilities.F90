@@ -18,13 +18,13 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{  
-  Contains a module that implements various useful utility functions for calculations for the {\normalfont \ttfamily krumholz2009}
+  Contains a module that implements various useful utility functions for calculations for the \cite{krumholz_star_2009}
   star formation surface density rate law.
   !!}
 
 module Star_Formation_Rate_Krumholz2009_Utilities
   !!{  
-  Implements various useful utility functions for calculations for the {\normalfont \ttfamily krumholz2009} star formation surface
+  Implements various useful utility functions for calculations for the \cite{krumholz_star_2009} star formation surface
   density rate law.
   !!}
   implicit none
@@ -33,7 +33,7 @@ module Star_Formation_Rate_Krumholz2009_Utilities
 
 contains
 
-  double precision function krumholz2009MolecularFractionSlow(s)
+  double precision function krumholz2009MolecularFractionSlow(s) result(fraction)
     !!{
     Slow (but more accurate at low molecular fraction) fitting function from \cite{krumholz_star_2009} for the molecular
     hydrogen fraction.
@@ -48,17 +48,17 @@ contains
 
     if      (s <  sTiny   ) then
        ! Series expansion for very small s.
-       krumholz2009MolecularFractionSlow=1.0d0-0.75d0*s
+       fraction=1.0d0-0.75d0*s
     else if (s >= sHuge   ) then
        ! Truncate to zero for extremely large s.
-       krumholz2009MolecularFractionSlow=0.0d0
+       fraction=0.0d0
     else if (s >= sMaximum) then
        ! Simplified form for very large s.
-       krumholz2009MolecularFractionSlow=1.0d0/(0.75d0/(1.0d0+deltaInfinity))**5/5.0d0/s**5
+       fraction=1.0d0/(0.75d0/(1.0d0+deltaInfinity))**5/5.0d0/s**5
     else
        ! Full expression.
-       delta                            =0.0712d0/((0.1d0/s+0.675d0)**2.8d0)
-       krumholz2009MolecularFractionSlow=1.0d0-1.0d0/((1.0d0+(((1.0d0+delta)/0.75d0/s)**5))**0.2d0)
+       delta   =0.0712d0/((0.1d0/s+0.675d0)**2.8d0)
+       fraction=1.0d0-1.0d0/((1.0d0+(((1.0d0+delta)/0.75d0/s)**5))**0.2d0)
     end if
     return
   end function krumholz2009MolecularFractionSlow
