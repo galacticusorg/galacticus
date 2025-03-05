@@ -33,11 +33,16 @@ As described above, \glc\ requires a file of parameters to be given as a command
    .
    .
    .
-   <parameter4Name idRef="myRefParam"/>
+   <parameter5Name value= "parameter5Value" >
+      <parameter4Name idRef="myRefParam"/>
+      .
+      .
+      .
+   </parameter5Name>
    .
    .
    .
-   <parameter5Name value="=10.0*[parameter4Name::subParameter1Name]"/>
+   <parameter6Name value="=10.0*[parameter4Name::subParameter1Name]"/>
  </parameters>
 \end{verbatim}
 Each named element must have a {\normalfont \ttfamily value} attribute (preferred), or else contains a value element, which contains the desired value. The value can be a number, word or an array of space-separated numbers or words. Parameters are used to control the values of numerical parameters and also to select methods and other options. In many cases, if a parameter is not specified in the file a default value (hard coded into \glc) will be used instead. The default values have been chosen to produce a realistic model of galaxy formation, but may change as \glc\ evolves. Parameters may have sub-parameters embedded within them, as in the example above.
@@ -57,7 +62,7 @@ Sub-parameters are used in object composition within \glc. For example, the foll
 \end{verbatim}
 The linear growth function object requires knowledge about the cosmological parameters and model. In the above, we specify this explicitly by including a definition of the cosmological parameter object and cosmological functions object that our linear growth function object should use. Note that the cosmological functions object also requires knowledge of the cosmological parameters. When the {\normalfont \ttfamily cosmologyFunctions} object is built from the above definition it will first check for a cosmological parameters object defined in its own subparameters. Since it does not find one in this instance it will check for a cosmological parameters definition in its parent object (the {\normalfont \ttfamily linearGrowth} element) and, in this case, will use that definition. If no definition were to be found in any parent element, a default set of cosmological parameters would be used instead\footnote{This approach allows a direct connection to be made between the structure of the input parameter XML file and the internal object hierarchy used by \glc, allowing very fine-grained control over the composition of \glc\ functionality. In particular it permits easy construction of objects which work by modifying results from other objects, such as the \protect\refPhysics{darkMatterProfileConcentrationSchneider2015} model for dark matter halo concentrations.}.
 
-Parameters can also be defined with an ``{\normalfont \ttfamily id}'' attribute. Such parameters are targets for pointers elsewhere in the file, and as such are inactive (i.e. they will be ignored by \glc\ except as targets for pointers). A pointer to a target is created by specifying an element with the same parameter name and an ``{\normalfont \ttfamily idRef}'' element with a value equal to that of the {\normalfont \ttfamily id} element of the target. The pointer then acts as a regular parameter, adopting the value and subparameters of the target. Targets can be targeted by multiple pointers. This allows for a single object to be shared between multiple other objects.
+Parameters can also be defined with an ``{\normalfont \ttfamily id}'' attribute. Such parameters are targets for pointers elsewhere in the file (but also act as regular parameters and will be utilized as such by \glc). A pointer to a target is created by specifying an element with the same parameter name and an ``{\normalfont \ttfamily idRef}'' element with a value equal to that of the {\normalfont \ttfamily id} element of the target. The pointer then acts as a regular parameter, adopting the value and subparameters of the target. Targets can be targeted by multiple pointers. This allows for a single object to be shared between multiple other objects.
 
 It is possible to make a parameter conditional upon the value of another parameter. This can be useful, for example, if you want to include a specific \refClass{nodeOperatorClass} only if merger trees are being read from file, and not if trees are being constructed internally. This is achieved using the {\normalfont \ttfamily active} attribute of a parameter. For example:
 \begin{verbatim}
