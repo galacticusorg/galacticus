@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implementation of the \cite{antonini_coevolution_2015} star formation rate law for galactic NSCs.
+  Implementation of the \cite{antonini_coevolution_2015} star formation rate law for galactic \glspl{nsc}.
   !!}
   
   use :: Star_Formation_Rates_Spheroids, only : starFormationRateSpheroidsClass
@@ -26,11 +26,12 @@
   !![
   <nuclearStarClusterGrowthRates name="nuclearStarClusterGrowthRatesAntonini2015">
    <description>
-    A gas inflowrate implementing the model of \citep{antonini_coevolution_2015} for galactic \glspl{nsc}.
+    A gas inflow rate implementing the model of \citep{antonini_coevolution_2015} for galactic \glspl{nsc}.
     \begin{equation}
      \dot{M}_\mathrm{gas}^\mathrm{NSC} = A_\mathrm{res}\dot{M}_\star^\mathrm{spheroid},
-    \end{equation}
-    where $A_\mathrm{res}$ is a free parameter, and $\dot{M}_\star^\mathrm{spheroid}$ is the star formation rate of the spheroid component.
+    \end{equation}    
+    where $A_\mathrm{res}=${\normalfont \ttfamily [efficiency]} is a free parameter, and $\dot{M}_\star^\mathrm{spheroid}$ is the
+    star formation rate of the spheroid component.
    </description>
   </nuclearStarClusterGrowthRates>
   !!]
@@ -39,8 +40,8 @@
      Implementation of the \cite{antonini_coevolution_2015} gas inflow rate for galactic \glspl{nsc}.
      !!}
      private
-     class(starFormationRateSpheroidsClass), pointer :: starFormationRateSpheroids_ => null()
-     double precision                                :: Ares                    
+     class           (starFormationRateSpheroidsClass), pointer :: starFormationRateSpheroids_ => null()
+     double precision                                           :: efficiency
      contains
      final     ::          antonini2015Destructor
      procedure :: rate  => antonini2015Rate
@@ -48,7 +49,7 @@
 
   interface nuclearStarClusterGrowthRatesAntonini2015
      !!{
-     Constructors for the {\normalfont \ttfamily antonini2015} gas inflow rate in NSCs class.
+     Constructors for the {\normalfont \ttfamily antonini2015} gas inflow rate in \glspl{nsc} class.
      !!}
      module procedure antonini2015ConstructorParameters
      module procedure antonini2015ConstructorInternal
@@ -58,26 +59,26 @@ contains
 
   function antonini2015ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily antonini2015} gas inflow rate in NSCs class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily antonini2015} gas inflow rate in \glspl{nsc} class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nuclearStarClusterGrowthRatesAntonini2015)                :: self
     type            (inputParameters                          ), intent(inout) :: parameters
     class           (starFormationRateSpheroidsClass          ), pointer       :: starFormationRateSpheroids_
-    double precision                                                           :: Ares       
+    double precision                                                           :: efficiency       
 
     !![
     <inputParameter>
-      <name>Ares</name>
+      <name>efficiency</name>
       <defaultSource>\citep{antonini_coevolution_2015}</defaultSource>
       <defaultValue>1.0d-2</defaultValue>
-      <description>Free parameter controlling the rate of the gas inflow onto the nuclear star cluster.</description>
+      <description>Parameter controlling the rate of the gas inflow onto the nuclear star cluster.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
     !!]
-    self=nuclearStarClusterGrowthRatesAntonini2015(Ares,starFormationRateSpheroids_)
+    self=nuclearStarClusterGrowthRatesAntonini2015(efficiency,starFormationRateSpheroids_)
     !![
     <inputParametersValidate source="parameters"        />
     <objectDestructor name="starFormationRateSpheroids_"/>
@@ -85,17 +86,16 @@ contains
     return
   end function antonini2015ConstructorParameters
 
-  function antonini2015ConstructorInternal(Ares,starFormationRateSpheroids_) result(self)
+  function antonini2015ConstructorInternal(efficiency,starFormationRateSpheroids_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily antonini2015} gas inflow rate from NSCs class.
     !!}
     implicit none
     type            (nuclearStarClusterGrowthRatesAntonini2015)                        :: self
     class           (starFormationRateSpheroidsClass          ), intent(in   ), target :: starFormationRateSpheroids_
-    double precision                                           , intent(in   )         :: Ares
+    double precision                                           , intent(in   )         :: efficiency
     !![
-    <constructorAssign variables="Ares"/>
-    <constructorAssign variables="*starFormationRateSpheroids_"/>
+    <constructorAssign variables="efficiency, *starFormationRateSpheroids_"/>
     !!]
     return
   end function antonini2015ConstructorInternal
@@ -112,30 +112,29 @@ contains
     return
   end subroutine antonini2015Destructor
 
-  double precision function antonini2015Rate(self,node)
+  double precision function antonini2015Rate(self,node) result(rate)
     !!{
     Returns the gas inflow rate (in $M_\odot$ Gyr$^{-1}$) onto the galactic \gls{nsc} of {\normalfont \ttfamily
     node}. The \gls{nsc} is assumed to obey the \cite{antonini_coevolution_2015} gas inflow rate model.
     !!}
-    use :: Galacticus_Nodes    , only : nodeComponentNSC, nodeComponentSpheroid
+    use :: Galacticus_Nodes, only : nodeComponentNSC, nodeComponentSpheroid
     implicit none
-    class (nuclearStarClusterGrowthRatesAntonini2015), intent(inout), target :: self
-    type  (treeNode                                 ), intent(inout)         :: node
-    class (nodeComponentSpheroid                    ),                pointer:: spheroid
-    double precision                                                         :: rateStarFormationSpheroid
+    class           (nuclearStarClusterGrowthRatesAntonini2015), intent(inout), target  :: self
+    type            (treeNode                                 ), intent(inout)          :: node
+    class           (nodeComponentSpheroid                    ),                pointer :: spheroid
+    double precision                                                                    :: rateStarFormationSpheroid
 
     ! Get the spheroid component.
-    spheroid => node%spheroid()
-  
+    spheroid                  => node                            %spheroid(    )
     ! Get the star formation rate of the spheroid component.
-    rateStarFormationSpheroid =  self%starFormationRateSpheroids_%rate(node)  
-
+    rateStarFormationSpheroid =  self%starFormationRateSpheroids_%rate    (node)  
     ! Find the rate of mass accretion onto the nuclear star cluster.
-    if  (rateStarFormationSpheroid <= 0.0d0) then
-      antonini2015Rate = 0.0d0
+    if (rateStarFormationSpheroid <= 0.0d0) then
+      rate    =+0.0d0
     else
       ! Gas accretion rate model from F. Antonini, E. Barausse & J. Silk (2015; https://ui.adsabs.harvard.edu/abs/2015ApJ...812...72A).
-      antonini2015Rate = self%Ares*rateStarFormationSpheroid
+       rate   =+self%efficiency                &
+            &  *     rateStarFormationSpheroid
     end if 
     return
   end function antonini2015Rate
