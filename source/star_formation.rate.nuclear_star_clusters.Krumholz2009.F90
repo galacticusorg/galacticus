@@ -191,9 +191,9 @@ contains
     double precision, intent(in   ) :: radiusNuclearStarCluster, massGasNuclearStarCluster
     
     ! Return the surface gas density in units of M☉/pc² of the nuclear star cluster.
-    surfaceDensityGas=+massGasNuclearStarCluster         &
-         &            /4.0d0                             &
-         &            /Pi                                &
-         &            /(mega*radiusNuclearStarCluster) **2
+    surfaceDensityGas=+massGasNuclearStarCluster          &
+         &            /4.0d0                              &
+         &            /Pi                                 &
+         &            /(mega*radiusNuclearStarCluster)**2
     return
   end function surfaceDensityGas

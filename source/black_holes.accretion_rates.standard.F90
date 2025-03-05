@@ -165,7 +165,7 @@ contains
          &                                                                               bondiHoyleAccretionTemperatureSpheroid
     logical                                                           , intent(in   ) :: bondiHoyleAccretionHotModeOnly
     !![
-    <constructorAssign variables="bondiHoyleAccretionEnhancementHotHalo,bondiHoyleAccretionEnhancementSpheroid,bondiHoyleAccretionEnhancementNuclearStarCluster,bondiHoyleAccretionTemperatureSpheroid,bondiHoyleAccretionTemperatureNuclearStarCluster,bondiHoyleAccretionHotModeOnly, *blackHoleBinarySeparationGrowthRate_, *hotHaloTemperatureProfile_, *accretionDisks_, *coolingRadius_, *darkMatterHaloScale_"/>
+    <constructorAssign variables="bondiHoyleAccretionEnhancementHotHalo, bondiHoyleAccretionEnhancementSpheroid, bondiHoyleAccretionEnhancementNuclearStarCluster, bondiHoyleAccretionTemperatureSpheroid, bondiHoyleAccretionTemperatureNuclearStarCluster, bondiHoyleAccretionHotModeOnly, *blackHoleBinarySeparationGrowthRate_, *hotHaloTemperatureProfile_, *accretionDisks_, *coolingRadius_, *darkMatterHaloScale_"/>
     !!]
 
     ! Check if cold mode is explicitly tracked.
