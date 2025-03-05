@@ -18,8 +18,9 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a property extractor class  the properties of nuclear star cluster when a black hole seed is formed using the model of \cite{Vergara_2023}
+  Implements a property extractor class the properties of nuclear star cluster when a black hole seed is formed using the model of \cite{vergara_global_2023}.
   !!}
+  
   !![
   <nodePropertyExtractor name="nodePropertyExtractorBlackHoleSeedingVergara2023">
    <description>
@@ -100,7 +101,7 @@ contains
     double precision                                                  , intent(in   ) :: time
     !$GLC attributes unused :: time
 
-    blackHoleSeedingVergara2023ElementCount=9
+    blackHoleSeedingVergara2023ElementCount=8
     return
   end function blackHoleSeedingVergara2023ElementCount
 
@@ -119,10 +120,8 @@ contains
 
     !$GLC attributes unused :: time, instance
 
-    allocate(blackHoleSeedingVergara2023Extract(9))
-
+    allocate(blackHoleSeedingVergara2023Extract(8))
     nuclearStarCluster => node%NSC()
-
     select type (nuclearStarCluster)
     type is (nodeComponentNSC)
       ! Nuclear star cluster does not yet exist.
@@ -134,20 +133,18 @@ contains
         &                                 0.0d0, &
         &                                 0.0d0, &
         &                                 0.0d0, &
-        &                                 0.0d0, &
         &                                 0.0d0  &
         &                                ]
     class default
-      blackHoleSeedingVergara2023Extract=[                                                                                          &
-       &                                  nuclearStarCluster%floatRank0MetaPropertyGet(self%redshiftBlackHoleSeedFormationID     ), &
-       &                                  nuclearStarCluster%floatRank0MetaPropertyGet(self%blackHoleSeedMassID                  ), &
-       &                                  nuclearStarCluster%floatRank0MetaPropertyGet(self%ageNuclearStarClustersID             ), &
-       &                                  nuclearStarCluster%floatRank0MetaPropertyGet(self%radiusNuclearStarClustersID          ), &
-       &                                  nuclearStarCluster%floatRank0MetaPropertyGet(self%velocityNuclearStarClustersID        ), &
-       &                                  nuclearStarCluster%floatRank0MetaPropertyGet(self%gasMassNuclearStarClustersID         ), &
-       &                                  nuclearStarCluster%floatRank0MetaPropertyGet(self%stellarMassNuclearStarClustersID     ), &
-       &                                  nuclearStarCluster%floatRank0MetaPropertyGet(self%criticalMassNuclearStarClustersID    ), &
-       &                                  nuclearStarCluster%floatRank0MetaPropertyGet(self%mergerTreeWeightNuclearStarClustersID)  &
+      blackHoleSeedingVergara2023Extract=[                                                                                      &
+       &                                  nuclearStarCluster%floatRank0MetaPropertyGet(self%redshiftBlackHoleSeedFormationID ), &
+       &                                  nuclearStarCluster%floatRank0MetaPropertyGet(self%blackHoleSeedMassID              ), &
+       &                                  nuclearStarCluster%floatRank0MetaPropertyGet(self%ageNuclearStarClustersID         ), &
+       &                                  nuclearStarCluster%floatRank0MetaPropertyGet(self%radiusNuclearStarClustersID      ), &
+       &                                  nuclearStarCluster%floatRank0MetaPropertyGet(self%velocityNuclearStarClustersID    ), &
+       &                                  nuclearStarCluster%floatRank0MetaPropertyGet(self%gasMassNuclearStarClustersID     ), &
+       &                                  nuclearStarCluster%floatRank0MetaPropertyGet(self%stellarMassNuclearStarClustersID ), &
+       &                                  nuclearStarCluster%floatRank0MetaPropertyGet(self%criticalMassNuclearStarClustersID)  &
        &                                 ]
     end select
     return
@@ -163,22 +160,21 @@ contains
     type            (varying_string                                  ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: self, time
     
-    allocate(names(9))
-    names(1)=var_str('redshift'                       )
-    names(2)=var_str('blackHoleSeedMass'              )
-    names(3)=var_str('nuclearStarClusterAge'          )
-    names(4)=var_str('nuclearStarClusterRadius'       )
-    names(5)=var_str('nuclearStarClusterVelocity'     )
-    names(6)=var_str('nuclearStarClusterGasMass'      )
-    names(7)=var_str('nuclearStarClusterStellarMass'  )
-    names(8)=var_str('nuclearStarClusterCriticalMass ')
-    names(9)=var_str('mergerTreeWeightAtFormation'    )
+    allocate(names(8))
+    names(1)=var_str('blackHoleFormationRedshift'    )
+    names(2)=var_str('blackHoleSeedMass'             )
+    names(3)=var_str('nuclearStarClusterAge'         )
+    names(4)=var_str('nuclearStarClusterRadius'      )
+    names(5)=var_str('nuclearStarClusterVelocity'    )
+    names(6)=var_str('nuclearStarClusterGasMass'     )
+    names(7)=var_str('nuclearStarClusterStellarMass' )
+    names(8)=var_str('nuclearStarClusterCriticalMass')
     return
   end subroutine blackHoleSeedingVergara2023Names
 
   subroutine blackHoleSeedingVergara2023Descriptions(self,time,descriptions)
     !!{
-    Return descriptions of the {\normalfont \ttfamily BlackHoleSeedingVergara2023} property.
+    Return descriptions of the {\normalfont \ttfamily blackHoleSeedingVergara2023} property.
     !!}
     implicit none
     class           (nodePropertyExtractorBlackHoleSeedingVergara2023), intent(inout)                             :: self
@@ -186,16 +182,15 @@ contains
     type            (varying_string                                  ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
-    allocate(descriptions(9))
-    descriptions(1)=var_str('Redshift at the formation of the black hole seed.'                                                            )
-    descriptions(2)=var_str('Black hole seed mass [M⊙].'                                                                                   )
+    allocate(descriptions(8))
+    descriptions(1)=var_str('Redshift at the formation of the black hole seed in the Vergara et al. (2024) model.'                         )
+    descriptions(2)=var_str('Black hole seed mass in the Vergara et al. (2024) model [M⊙].'                                                )
     descriptions(3)=var_str('Mass-weighted age of the nuclear star cluster at which black hole seed is formed [Gyr].'                      )
     descriptions(4)=var_str('Radius of the nuclear star cluster used to compute the critical mass (multiplied by radius efficiency) [Mpc].')
     descriptions(5)=var_str('Velocity of the nuclear star cluster used to compute the critical mass [km s⁻¹].'                             )
     descriptions(6)=var_str('Gaseous mass of the nuclear star cluster used to compute the critical mass [M⊙].'                             )
     descriptions(7)=var_str('Stellar mass of the nuclear star cluster used to compute the critical mass [M⊙].'                             )
     descriptions(8)=var_str('Critical mass of the nuclear star cluster [M⊙].'                                                              )
-    descriptions(9)=var_str('Merger tree weight of the nuclear star cluster [Mpc⁻³].'                                                      )
     return
   end subroutine blackHoleSeedingVergara2023Descriptions
 
@@ -211,18 +206,16 @@ contains
     double precision                                                  , intent(in   )               :: time
     !$GLC attributes unused :: time
 
-    allocate(blackHoleSeedingVergara2023UnitsInSI(9))
-
-    blackHoleSeedingVergara2023UnitsInSI = [                 &
-     &                                      1.0d0          , &
-     &                                      massSolar      , &
-     &                                      gigayear       , &
-     &                                      megaParsec     , &
-     &                                      kilo           , &
-     &                                      massSolar      , &
-     &                                      massSolar      , &
-     &                                      massSolar      , &
-     &                                      1/megaParsec**3  &
+    allocate(blackHoleSeedingVergara2023UnitsInSI(8))
+    blackHoleSeedingVergara2023UnitsInSI = [            &
+     &                                      1.0d0     , &
+     &                                      massSolar , &
+     &                                      gigayear  , &
+     &                                      megaParsec, &
+     &                                      kilo      , &
+     &                                      massSolar , &
+     &                                      massSolar , &
+     &                                      massSolar   &
      &                                     ]
     return
   end function blackHoleSeedingVergara2023UnitsInSI
