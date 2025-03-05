@@ -172,7 +172,7 @@ contains
     names(6)=var_str('nuclearStarClusterGasMass'      )
     names(7)=var_str('nuclearStarClusterStellarMass'  )
     names(8)=var_str('nuclearStarClusterCriticalMass ')
-    names(9)=var_str('mergerTreeWeight'               )
+    names(9)=var_str('mergerTreeWeightAtFormation'    )
     return
   end subroutine blackHoleSeedingVergara2023Names
 
