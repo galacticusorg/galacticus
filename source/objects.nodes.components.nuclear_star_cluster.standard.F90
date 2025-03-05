@@ -266,9 +266,9 @@ contains
     use :: Node_Component_NSC_Standard_Data, only : massDistributionStellar_       , massDistributionGas_       , kinematicDistribution_                
     use :: Galactic_Structure_Options      , only : componentTypeNuclearStarCluster, massTypeStellar            , massTypeGaseous
     implicit none
-    type            (inputParameters), intent(inout) :: parameters
-    type            (dependencyRegEx), dimension(1)  :: dependencies
-    type            (inputParameters)                :: subParameters
+    type(inputParameters), intent(inout) :: parameters
+    type(dependencyRegEx), dimension(1)  :: dependencies
+    type(inputParameters)                :: subParameters
 
     ! Check if this implementation is selected. If so, initialize the mass distribution.
     if (defaultNSCComponent%standardIsActive()) then
@@ -279,12 +279,12 @@ contains
        ! Find our parameters.
        subParameters=parameters%subParameters('componentNSC')
        !![
-       <objectBuilder class="stellarPopulationProperties"                                    name="stellarPopulationProperties_" source="subParameters"                    />
-       <objectBuilder class="darkMatterHaloScale"                                            name="darkMatterHaloScale_"         source="subParameters"                    />
-       <objectBuilder class="starFormationHistory"                                           name="starFormationHistory_"        source="subParameters"                    />
-       <objectBuilder class="mergerMassMovements"                                            name="mergerMassMovements_"         source="subParameters"                    />
-       <objectBuilder class="mergerRemnantSize"                                              name="mergerRemnantSize_"           source="subParameters"                    />
-       <objectBuilder class="massDistribution"           parameterName="massDistributionNSC" name="massDistributionStellar_"     source="subParameters" threadPrivate="yes" >
+       <objectBuilder class="stellarPopulationProperties"                                     name="stellarPopulationProperties_" source="subParameters"                    />
+       <objectBuilder class="darkMatterHaloScale"                                             name="darkMatterHaloScale_"         source="subParameters"                    />
+       <objectBuilder class="starFormationHistory"                                            name="starFormationHistory_"        source="subParameters"                    />
+       <objectBuilder class="mergerMassMovements"                                             name="mergerMassMovements_"         source="subParameters"                    />
+       <objectBuilder class="mergerRemnantSize"                                               name="mergerRemnantSize_"           source="subParameters"                    />
+       <objectBuilder class="massDistribution"            parameterName="massDistributionNSC" name="massDistributionStellar_"     source="subParameters" threadPrivate="yes" >
         <default>
          <massDistributionNSC value="hernquist">
           <dimensionless value="true"/>
@@ -335,18 +335,18 @@ contains
     implicit none
 
     if (defaultNSCComponent%standardIsActive()) then
-        if (satelliteMergerEvent      %isAttached(thread,satelliteMerger      )) call satelliteMergerEvent      %detach(thread,satelliteMerger      )
-        if (postEvolveEvent           %isAttached(thread,postEvolve           )) call postEvolveEvent           %detach(thread,postEvolve           )
-        if (mergerTreeExtraOutputEvent%isAttached(thread,mergerTreeExtraOutput)) call mergerTreeExtraOutputEvent%detach(thread,mergerTreeExtraOutput)
+       if (satelliteMergerEvent      %isAttached(thread,satelliteMerger      )) call satelliteMergerEvent      %detach(thread,satelliteMerger      )
+       if (postEvolveEvent           %isAttached(thread,postEvolve           )) call postEvolveEvent           %detach(thread,postEvolve           )
+       if (mergerTreeExtraOutputEvent%isAttached(thread,mergerTreeExtraOutput)) call mergerTreeExtraOutputEvent%detach(thread,mergerTreeExtraOutput)
        !![
-       <objectDestructor name="stellarPopulationProperties_" />
-       <objectDestructor name="darkMatterHaloScale_"         />
-       <objectDestructor name="starFormationHistory_"        />
-       <objectDestructor name="mergerMassMovements_"         />
-       <objectDestructor name="mergerRemnantSize_"           />
-       <objectDestructor name="massDistributionStellar_"     />
-       <objectDestructor name="massDistributionGas_"         />
-       <objectDestructor name="kinematicDistribution_"       />
+       <objectDestructor name="stellarPopulationProperties_"/>
+       <objectDestructor name="darkMatterHaloScale_"        />
+       <objectDestructor name="starFormationHistory_"       />
+       <objectDestructor name="mergerMassMovements_"        />
+       <objectDestructor name="mergerRemnantSize_"          />
+       <objectDestructor name="massDistributionStellar_"    />
+       <objectDestructor name="massDistributionGas_"        />
+       <objectDestructor name="kinematicDistribution_"      />
        !!]
     end if
     return
@@ -430,7 +430,7 @@ contains
     class           (nodeComponentNSC   )               , pointer :: nuclearStarCluster
     double precision                     , parameter              :: angularMomentumTolerance=1.0d-2
     double precision                     , save                   :: fractionalErrorMaximum  =0.0d+0
-    double precision                                              :: massNuclearStarCluster                        , fractionalError, &
+    double precision                                              :: massNuclearStarCluster         , fractionalError, &
          &                                                           specificAngularMomentum
     character       (len=20             )                         :: valueString
     type            (varying_string     ), save                   :: message
@@ -715,18 +715,18 @@ contains
     use :: Histories                     , only : history
     use :: Stellar_Luminosities_Structure, only : abs                   , max             , stellarLuminosities     , unitStellarLuminosities
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: node
-    class           (nodeComponentNSC      )               , pointer :: nuclearStarCluster
-    class           (nodeComponentSpheroid )               , pointer :: spheroid
-    double precision                        , parameter              :: massMinimum                   =1.0d0
-    double precision                        , parameter              :: scaleMassRelative             =1.0d-3
-    double precision                        , parameter              :: angularMomentumMinimum        =1.0d-1
-    double precision                        , parameter              :: fractionTolerance             =1.0d-4
-    double precision                        , parameter              :: luminosityMinimum             =1.0d+0
-    double precision                                                 :: angularMomentum                       , mass
-    type            (history               )                         :: stellarPopulationHistoryScales
-    type            (stellarLuminosities   )                         :: stellarLuminositiesScale
-    type            (abundances            )                         :: abundancesScale
+    type            (treeNode             ), intent(inout), pointer :: node
+    class           (nodeComponentNSC     )               , pointer :: nuclearStarCluster
+    class           (nodeComponentSpheroid)               , pointer :: spheroid
+    double precision                       , parameter              :: massMinimum                   =1.0d0
+    double precision                       , parameter              :: scaleMassRelative             =1.0d-3
+    double precision                       , parameter              :: angularMomentumMinimum        =1.0d-1
+    double precision                       , parameter              :: fractionTolerance             =1.0d-4
+    double precision                       , parameter              :: luminosityMinimum             =1.0d+0
+    double precision                                                :: angularMomentum                       , mass
+    type            (history              )                         :: stellarPopulationHistoryScales
+    type            (stellarLuminosities  )                         :: stellarLuminositiesScale
+    type            (abundances           )                         :: abundancesScale
 
     ! Check if we are the default method.
     if (.not.defaultNSCComponent%standardIsActive()) return
@@ -870,9 +870,9 @@ contains
     !!}
     use :: Abundances_Structure            , only : zeroAbundances
     use :: Error                           , only : Error_Report
-    use :: Galacticus_Nodes                , only : nodeComponentNSC         , nodeComponentNSCStandard        , nodeComponentSpheroid   , nodeComponentDisk               , &
+    use :: Galacticus_Nodes                , only : nodeComponentNSC         , nodeComponentNSCStandard, nodeComponentSpheroid   , nodeComponentDisk               , &
        &                                            treeNode
-    use :: Satellite_Merging_Mass_Movements, only : destinationMergerSpheroid, destinationMergerDisk           , destinationMergerUnmoved, enumerationDestinationMergerType
+    use :: Satellite_Merging_Mass_Movements, only : destinationMergerSpheroid, destinationMergerDisk   , destinationMergerUnmoved, enumerationDestinationMergerType
     use :: Satellite_Merging_Remnant_Sizes , only : remnantNoChange
     use :: Stellar_Luminosities_Structure  , only : zeroStellarLuminosities
     implicit none
@@ -899,7 +899,6 @@ contains
        nodeHost    => node    %mergesWith(                 )
        spheroidHost=> nodeHost%spheroid  (autoCreate=.true.)
        diskHost    => nodeHost%disk      (autoCreate=.true.)
-
        ! Get specific angular momentum of the nuclear star cluster material.
        if (nuclearStarCluster%massGas()+nuclearStarCluster%massStellar() > 0.0d0) then
           angularMomentumSpecificNuclearStarCluster=+  nuclearStarCluster%angularMomentum() &
@@ -1208,7 +1207,7 @@ contains
     type            (history         )                          :: historyStarFormation
     !$GLC attributes unused :: timeEnd
     
-    ! Get the spheroid component.
+    ! Get the nuclear star cluster component.
     nuclearStarCluster => node%NSC()
     ! Extend the range as necessary.
     historyStarFormation=nuclearStarCluster%starFormationHistory()
@@ -1229,7 +1228,7 @@ contains
     type            (history         )                          :: stellarPropertiesHistory
     !$GLC attributes unused :: timeEnd
     
-    ! Get the spheroid component.
+    ! Get the nuclear star cluster component.
     nuclearStarCluster => node%NSC()
     ! Extend the range as necessary.
     stellarPropertiesHistory=nuclearStarCluster%stellarPropertiesHistory()
@@ -1242,11 +1241,11 @@ contains
    !!{
      Update the star formation history after an output time is reached.
      !!}
-     use            :: Galacticus_Nodes          , only : defaultNSCComponent, nodeComponentNSC, nodeComponentNSCStandard, treeNode
-     use            :: Histories                 , only : history
-     use, intrinsic :: ISO_C_Binding             , only : c_size_t
-     use            :: Kind_Numbers              , only : kind_int8
-     use            :: Locks                     , only : ompLock
+     use            :: Galacticus_Nodes, only : defaultNSCComponent, nodeComponentNSC, nodeComponentNSCStandard, treeNode
+     use            :: Histories       , only : history
+     use, intrinsic :: ISO_C_Binding   , only : c_size_t
+     use            :: Kind_Numbers    , only : kind_int8
+     use            :: Locks           , only : ompLock
      implicit none
      class  (*               ), intent(inout)          :: self
      type   (treeNode        ), intent(inout)          :: node

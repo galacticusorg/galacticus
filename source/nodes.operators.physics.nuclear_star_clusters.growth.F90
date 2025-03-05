@@ -18,21 +18,22 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implements a node operator class that handle the gas mass rate in the nuclear star cluster using the model of
-  \cite{antonini_coevolution_2015}.
+  Implements a node operator class that computes the growth of the \gls{nsc} from spheroid gas.
   !!}
 
-  use :: Nuclear_Star_Cluster_Growth_Rates   , only : nuclearStarClusterGrowthRatesClass 
+  use :: Nuclear_Star_Cluster_Growth_Rates, only : nuclearStarClusterGrowthRatesClass
+  
   !![
   <nodeOperator name="nodeOperatorNuclearStarClusterGrowth">
     <description>
-      A node operator class that handle the gas inflow rate ontothe nuclear star cluster.</description>
+      A node operator class that handle the gas inflow rate ontothe nuclear star cluster.
+    </description>
   </nodeOperator>
   !!]
 
   type, extends(nodeOperatorClass) :: nodeOperatorNuclearStarClusterGrowth
      !!{
-     A node operator class that performsthe gas rate onto the nuclear star cluster.
+     A node operator class that computes the growth of the \gls{nsc} from spheroid gas.
      !!}
      private
      class  (nuclearStarClusterGrowthRatesClass), pointer :: nuclearStarClusterGrowthRates_ => null()
@@ -60,6 +61,7 @@ contains
     type (nodeOperatorNuclearStarClusterGrowth)                :: self
     type (inputParameters                     ), intent(inout) :: parameters
     class(nuclearStarClusterGrowthRatesClass  ), pointer       :: nuclearStarClusterGrowthRates_
+
     !![
     <objectBuilder class="nuclearStarClusterGrowthRates" name="nuclearStarClusterGrowthRates_" source="parameters"/>
     !!]
@@ -81,6 +83,7 @@ contains
     !![
     <constructorAssign variables="*nuclearStarClusterGrowthRates_"/>
     !!]
+
     return
   end function nuclearStarClusterGrowthConstructorInternal
   
@@ -90,6 +93,7 @@ contains
     !!}
     implicit none
     type(nodeOperatorNuclearStarClusterGrowth), intent(inout) :: self
+    
     !![
     <objectDestructor name="self%nuclearStarClusterGrowthRates_"/>
     !!]
@@ -97,62 +101,54 @@ contains
   end subroutine nuclearStarClusterGrowthDestructor
 
   subroutine nuclearStarClusterGrowthDifferentialEvolution(self,node,interrupt,functioninterrupt,propertyType)
-      !!{
-        Compute the nuclear star cluster gas mass rate change.
-      !!}
+    !!{
+    Compute the growth rate of \gls{nsc} due to accretion from the spheroid.
+    !!}
     use :: Galacticus_Nodes    , only : interruptTask   , nodeComponentNSC, nodeComponentNSCStandard, nodeComponentSpheroid, &
        &                                propertyInactive, treeNode
     use :: Abundances_Structure, only : operator(*)
     implicit none
-    class(nodeOperatorNuclearStarClusterGrowth), intent(inout), target :: self
-    type (treeNode                            ), intent(inout), target :: node
-    logical                                    , intent(inout)         :: interrupt
-    procedure (interruptTask                  ), intent(inout), pointer:: functioninterrupt
-    integer                                    , intent(in   )         :: propertyType
-    class (nodeComponentNSC                   ),                pointer:: nuclearStarCluster
-    class (nodeComponentSpheroid              ),                pointer:: spheroid
-    double precision                                                   :: gasMassAccretionRate
-
+    class           (nodeOperatorNuclearStarClusterGrowth), intent(inout), target :: self
+    type            (treeNode                            ), intent(inout), target :: node
+    logical                                               , intent(inout)         :: interrupt
+    procedure       (interruptTask                       ), intent(inout), pointer:: functioninterrupt
+    integer                                               , intent(in   )         :: propertyType
+    class           (nodeComponentNSC                    ),                pointer:: nuclearStarCluster
+    class           (nodeComponentSpheroid               ),                pointer:: spheroid
+    double precision                                                              :: rateMassAccretionGas
 
     ! Return immediately if inactive variables are requested.
     if (propertyInactive(propertyType)) return
-
-    gasMassAccretionRate = self%nuclearStarClusterGrowthRates_%rate(node)
-  
-    ! Finish if there is no gas inflow.
-    if (gasMassAccretionRate <= 0.0d0) return
-
-   ! Get the spheroid and nuclear star cluster component.
+    ! Find the rate of gas accretion.
+    rateMassAccretionGas=self%nuclearStarClusterGrowthRates_%rate(node)
+    ! Finish if there is no gas inflow onto the nuclear star cluster.
+    if (rateMassAccretionGas <= 0.0d0) return
+    ! Get the spheroid and nuclear star cluster component.
     spheroid           => node%spheroid()
     nuclearStarCluster => node%     NSC()
-
-
-
     ! Detect nuclear star cluster component type.
     select type (nuclearStarCluster)
     type is (nodeComponentNSC)
-      ! Generic type - interrupt and create a standard nuclear star cluster if accretion rate is non-zero.
-      if (gasMassAccretionRate /= 0.0d0) then
-        interrupt=.true.
-        functionInterrupt => nuclearStarClusterCreate
-      end if
-      return
-      ! Standard type - continue processing.
-      class is (nodeComponentNSCStandard)
-        ! Remove gas from the spheroid component and add to the nuclear star cluster component.
-        call spheroid          %        massGasRate(-gasMassAccretionRate)
-        call spheroid          %angularMomentumRate(-gasMassAccretionRate*spheroid%angularMomentum()/(spheroid%massGas()+spheroid%massStellar()))
-        call spheroid          %  abundancesGasRate(-gasMassAccretionRate*spheroid%abundancesGas  ()/ spheroid%massGas()                        )
-        call nuclearStarCluster%        massGasRate(+gasMassAccretionRate)
-        call nuclearStarCluster%angularMomentumRate(-gasMassAccretionRate*spheroid%angularMomentum()/(spheroid%massGas()+spheroid%massStellar()))
-        call nuclearStarCluster%  abundancesGasRate(+gasMassAccretionRate*spheroid%abundancesGas  ()/ spheroid%massGas()                        )
+       ! Generic type - interrupt and create a nuclear star cluster.
+       interrupt         =  .true.
+       functionInterrupt => nuclearStarClusterCreate
+       return
+    class default
+       ! A nuclear star cluster exists - continue processing.
+       ! Remove gas from the spheroid component and add to the nuclear star cluster component.
+       call spheroid          %        massGasRate(-rateMassAccretionGas)
+       call spheroid          %angularMomentumRate(-rateMassAccretionGas*spheroid%angularMomentum()/(spheroid%massGas()+spheroid%massStellar()))
+       call spheroid          %  abundancesGasRate(-rateMassAccretionGas*spheroid%abundancesGas  ()/ spheroid%massGas()                        )
+       call nuclearStarCluster%        massGasRate(+rateMassAccretionGas)
+       call nuclearStarCluster%angularMomentumRate(-rateMassAccretionGas*spheroid%angularMomentum()/(spheroid%massGas()+spheroid%massStellar()))
+       call nuclearStarCluster%  abundancesGasRate(+rateMassAccretionGas*spheroid%abundancesGas  ()/ spheroid%massGas()                        )
     end select
     return
   end subroutine nuclearStarClusterGrowthDifferentialEvolution
 
   subroutine nuclearStarClusterCreate(node,timeEnd)
     !!{
-       Creates the nuclear star cluster via interrupt.
+    Creates the nuclear star cluster via interrupt.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentNSC, treeNode
     implicit none
@@ -161,7 +157,6 @@ contains
     class            (nodeComponentNSC),                pointer :: nuclearStarCluster
     !$GLC attributes unused :: timeEnd
 
-    ! Creates the nuclear star cluster.
     nuclearStarCluster => node%NSC(autoCreate=.true.)
     return 
   end subroutine nuclearStarClusterCreate

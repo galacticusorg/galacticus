@@ -103,7 +103,7 @@ function Node_Component_NSC_Standard_Mass_Distribution(self,componentType,massTy
   <optionalArgument name="weightBy" defaultsTo="weightByMass" />
   !!]
   
-  ! Determine which components of the spheroid to include.
+  ! Determine which components of the nuclear star cluster to include.
   includeGas  =massDistributionMatches_(componentTypeNuclearStarCluster,massTypeGaseous,componentType,massType) .and.  weightBy_ == weightByMass
   includeStars=massDistributionMatches_(componentTypeNuclearStarCluster,massTypeStellar,componentType,massType) .and. (weightBy_ == weightByMass .or. weightBy_ == weightByLuminosity)  
   ! Get properties of the mass distribution and ensure they are physical.
@@ -161,7 +161,7 @@ function Node_Component_NSC_Standard_Mass_Distribution(self,componentType,massTy
         <objectDestructor name="massDistributionGas"    />
         !!]
         nullify(massDistributionComponents)
-        ! Return a pointer to the spheroid mass distribution.
+        ! Return a pointer to the nuclear star cluster mass distribution.
         massDistribution_ => massDistributionTotal
      else if (includeStars                 ) then
         ! Return just the stellar component.
@@ -200,7 +200,11 @@ double precision function Node_Component_NSC_Standard_Angular_Momentum(self) res
    velocity     =+self%velocity   ()
    massDynamical=+self%massGas    () &
         &        +self%massStellar()
-   if (massDynamical > 0.0d0.and.radius>0.0d0) then
+   if     (                       &
+        &   massDynamical > 0.0d0 &
+        &  .and.                  &
+        &   radius        > 0.0d0 &
+        & ) then
       angularMomentum=+massDynamical &
            &          *velocity      &
            &          *radius

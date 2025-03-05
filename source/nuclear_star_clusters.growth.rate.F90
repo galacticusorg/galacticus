@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which provides a class that implements rates of star formation in nuclear star clusters.
+Contains a module which provides a class that implements rates of gas inflows onto nuclear star clusters.
 !!}
 
 module Nuclear_Star_Cluster_Growth_Rates
@@ -39,7 +39,7 @@ module Nuclear_Star_Cluster_Growth_Rates
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
-    <argument>type(treeNode)  , intent(inout) :: node</argument>
+    <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
   </functionClass>
   !!]
