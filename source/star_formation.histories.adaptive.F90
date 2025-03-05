@@ -565,7 +565,6 @@ contains
     double precision                              , intent(  out), optional     :: timeStart
     !$GLC attributes unused :: allowTruncation
     
-    if (     present(node       ).or.present(starFormationHistory)) call Error_Report('`node` is not supported'  //{introspection:location})
     if (.not.present(indexOutput)                                 ) call Error_Report('`indexOutput` is required'//{introspection:location})
     ! Set the times. These are just our tabulated intervals, except for the final time which is pinned to the output time. This is
     ! because our final interval may extend past the output time due to the finite size of our minimum interval. Pinning to the
