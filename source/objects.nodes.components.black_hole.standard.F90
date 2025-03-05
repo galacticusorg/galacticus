@@ -72,12 +72,6 @@ module Node_Component_Black_Hole_Standard
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
     </property>
-    <property>
-      <name>NSCChannel</name>
-      <type>logical</type>
-      <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="false" isVirtual="false"/>
-    </property>
    </properties>
    <bindings>
     <binding method="massDistribution" function="Node_Component_Black_Hole_Standard_Mass_Distribution" bindsTo="component"/>
@@ -214,6 +208,7 @@ contains
     class           (nodeComponentSpheroid )               , pointer :: spheroid
     class           (nodeComponentBlackHole)               , pointer :: blackHole
     integer                                                          :: instance
+    double precision                                                 :: massStellar
 
     ! Determine if the standard implementation is active and at least one black hole exists.
     if (defaultBlackHoleComponent%standardIsActive().and.node%blackHoleCount() > 0) then
@@ -225,41 +220,48 @@ contains
        do instance=1,node%blackHoleCount()
           ! Get the black hole.
           blackHole => node%blackHole(instance=instance)
-          ! Set scale for mass.
-          call blackHole%massScale(                                                            &
-               &                   max(                                                        &
-               &                       min(                                                    &
-               &                           scaleMassRelative*spheroid          %massStellar(), &
-               &                           scaleMassRelative*nuclearStarCluster%massStellar()  &
-               &                           )                                                 , &
-               &                       max(                                                    &
-               &                           scaleMassAbsolute                                 , &
-               &                                             blackHole%mass       ()           &
-               &                           )                                                   &
-               &                      )                                                        &
+          ! Set scale for mass. We set an absolute mass scale that depends on the stellar masses of spheroid and nuclear star
+          ! cluster components, if present. We use the smaller of the two masses (if both are present) to ensure accurate tracking
+          ! of the black hole as it couples to each of these components.
+          if      (spheroid%massStellar() > 0.0d0 .and. nuclearStarCluster%massStellar() > 0.0d0) then
+             massStellar=min(spheroid%massStellar(),nuclearStarCluster%massStellar())
+          else if (spheroid%massStellar() > 0.0d0                                               ) then
+             massStellar=    spheroid%massStellar()
+          else
+             massStellar=                           nuclearStarCluster%massStellar()
+          end if
+          call blackHole%massScale(                                            &
+               &                   maxval(                                     &
+               &                          [                                    &
+               &                           scaleMassAbsolute                 , &
+               &                           scaleMassRelative*massStellar     , &
+               &                                             blackHole%mass()  &
+               &                           ]                                   &
+               &                      )                                        &
                &                  )
-
           ! Set scale for spin.
           call blackHole%spinScale(1.0d0)
           ! Set scale for radius.
-          call blackHole%radialPositionScale(                                                    &
-               &                             maxval(                                             &
-               &                                  [                                              &
-               &                                   scaleSizeAbsolute,                            &
-               &                                   scaleSizeRelative*spheroid %halfMassRadius(), &
-               &                                                     blackHole%radialPosition()  &
-               &                                  ]                                              &
-               &                                   )                                             &
+          call blackHole%radialPositionScale(                                                      &
+               &                             maxval(                                               &
+               &                                    [                                              &
+               &                                     scaleSizeAbsolute,                            &
+               &                                     scaleSizeRelative*spheroid %halfMassRadius(), &
+               &                                                       blackHole%radialPosition()  &
+               &                                    ]                                              &
+               &                                   )                                               &
                &                            )
        end do
     end if
     return
   end subroutine Node_Component_Black_Hole_Standard_Scale_Set
+
   subroutine satelliteMerger(self,node)
     !!{
     Merge any black hole associated with {\normalfont \ttfamily node} before it merges with its host halo.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBlackHole, treeNode
+    use :: Galacticus_Nodes        , only : nodeComponentBlackHole , treeNode
+    use :: Events_Black_Hole_Merger, only : Event_Black_Hole_Merger
     implicit none
     class           (*                     ), intent(inout) :: self
     type            (treeNode              ), intent(inout) :: node
@@ -307,6 +309,8 @@ contains
           massBlackHole2=blackHoleSecondary%mass()
           spinBlackHole1=blackHolePrimary  %spin()
           spinBlackHole2=blackHoleSecondary%spin()
+          ! Process the black hole merger.
+          call Event_Black_Hole_Merger(blackHolePrimary,blackHoleSecondary,blackHoleHostCentral)
           ! Now calculate the recoil velocity of the binary black hole and check whether it escapes the galaxy.
           velocityRecoil=blackHoleBinaryRecoil_%velocity(blackHolePrimary,blackHoleSecondary)
           if (Node_Component_Black_Hole_Standard_Recoil_Escapes(node,velocityRecoil,radius=0.0d0,ignoreCentralBlackHole=.true.)) then
@@ -317,12 +321,6 @@ contains
           call Node_Component_Black_Hole_Standard_Output_Merger(node,massBlackHole1,massBlackHole2)
           call blackHoleHostCentral%massSet(massBlackHoleNew)
           call blackHoleHostCentral%spinSet(spinBlackHoleNew)
-                    !Track if the origin of the black hole is due to runaway stellar collisions in nuclear star clusters.
-          if (blackHoleHostCentral %NSCChannel().or.blackHole%NSCChannel()) then
-             call blackHoleHostCentral%NSCChannelSet(              .true.)
-          else
-             call blackHoleHostCentral%NSCChannelSet(             .false.)
-          end if 
        end do
     else
        ! Adjust the radii of the black holes in the satellite galaxy.
@@ -339,6 +337,7 @@ contains
     end if
     return
   end subroutine satelliteMerger
+  
   logical function Node_Component_Black_Hole_Standard_Recoil_Escapes(node,velocityRecoil,radius,ignoreCentralBlackHole)
     !!{
     Return true if the given recoil velocity is sufficient to eject a black hole from the halo.
