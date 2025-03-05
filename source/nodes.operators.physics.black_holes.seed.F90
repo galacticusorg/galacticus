@@ -33,7 +33,7 @@
      A node operator class that creates black hole seeds in nodes. 
      !!}
      private
-     class(blackHoleSeedsClass), pointer :: blackHoleSeeds_ => null()
+     class(blackHoleSeedsClass), pointer :: blackHoleSeeds_                  => null()
      integer                             :: blackHoleSeedsFormationChannelID
    contains
      final     ::                          blackHolesSeedDestructor
@@ -50,9 +50,8 @@
   end interface nodeOperatorBlackHolesSeed
 
   ! Submodule-scope variable used in create function.
-  ! Sub-module scope pointers used in integrations.
-  class           (nodeOperatorBlackHolesSeed), pointer :: self_ => null()
-  double precision                                      :: massSeed_      , spinSeed_
+  class           (nodeOperatorBlackHolesSeed), pointer :: self_     => null()
+  double precision                                      :: massSeed_          , spinSeed_
   !$omp threadprivate(self_,massSeed_,spinSeed_)
 
 contains
@@ -88,6 +87,7 @@ contains
     !![
     <constructorAssign variables="*blackHoleSeeds_"/>
     !!]
+
     !![
     <addMetaProperty component="blackHole" type="integer" name="blackHoleSeedsFormationChannel" id="self%blackHoleSeedsFormationChannelID" isEvolvable="no" isCreator="yes"/>
     !!]
@@ -111,21 +111,24 @@ contains
     !!{
     Create any initial black hole seeds.
     !!}
-    use :: Galacticus_Nodes        , only : nodeComponentBlackHole
+    use :: Galacticus_Nodes, only : nodeComponentBlackHole
+    use :: Black_Hole_Seeds, only : enumerationBlackHoleFormationChannelType
     implicit none
-    class           (nodeOperatorBlackHolesSeed), intent(inout), target  :: self
-    type            (treeNode                  ), intent(inout), target  :: node
-    class           (nodeComponentBlackHole    )               , pointer :: blackHole
-    double precision                                                     :: massSeed
+    class           (nodeOperatorBlackHolesSeed              ), intent(inout), target  :: self
+    type            (treeNode                                ), intent(inout), target  :: node
+    class           (nodeComponentBlackHole                  )               , pointer :: blackHole
+    double precision                                                                   :: massSeed
+    type            (enumerationBlackHoleFormationChannelType)                         :: formationChannel
 
     massSeed=self%blackHoleSeeds_%mass(node)
     ! Create a black hole component only if the seed mass is non-zero.
     if (massSeed > 0.0d0) then
-       blackHole => node%blackHole(autoCreate=.true.)
-       call        blackHole%massSet                    (                           massSeed)
-       call        blackHole%integerRank0MetaPropertySet(self%blackHoleSeedsFormationChannelID,self%blackHoleSeeds_%formationChannel(node))
+       blackHole        => node                %blackHole       (autoCreate=.true.)
+       formationChannel =  self%blackHoleSeeds_%formationChannel(           node  )
+       call        blackHole%massSet                    (                                                                       massSeed  )
+       call        blackHole%integerRank0MetaPropertySet(self%blackHoleSeedsFormationChannelID,formationChannel                %ID        )
        if (blackHole%spinIsSettable()) &
-            & call blackHole%spinSet                    (self%blackHoleSeeds_%spin    (node))
+            & call blackHole%spinSet                    (                                      self            %blackHoleSeeds_%spin(node))
     end if
     return
   end subroutine blackHolesSeedNodeInitialize

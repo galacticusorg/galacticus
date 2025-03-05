@@ -24,15 +24,13 @@
   !![
   <nodePropertyExtractor name="nodePropertyExtractorBlackHoleFormationChannel">
    <description>
-    A node property extractor class which extracts the formation channel for black hole seeds, with a value of 1 indicating the \cite{Vergara_2023} black hole seeding scenario
-    and a value of 0 indicating the fixed black hole seeding scenario.
+    A node property extractor class which extracts the formation channel for black hole seeds.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorBlackHoleFormationChannel
      !!{
-     A node property extractor class which extracts the formation channel for black hole seeds, with a value of 1 indicating the \cite{Vergara_2023} black hole seeding scenario
-    and a value of 0 indicating the fixed black hole seeding scenario.
+     A node property extractor class which extracts the formation channel for black hole seeds.
      !!}
      private
      integer :: blackHoleSeedsFormationChannelID
@@ -74,6 +72,7 @@ contains
     !!}
     implicit none
     type(nodePropertyExtractorBlackHoleFormationChannel) :: self
+    
     !![
     <addMetaProperty component="blackHole" name="blackHoleSeedsFormationChannel" type="integer" id="self%blackHoleSeedsFormationChannelID" isCreator="no"/>
     !!]
@@ -84,7 +83,8 @@ contains
     !!{
     Implement a {\normalfont \ttfamily blackHoleFormationChannel} node property extractor.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBlackHole, nodeComponentBlackHoleStandard
+    use :: Galacticus_Nodes, only : nodeComponentBlackHole               , nodeComponentBlackHoleStandard
+    use :: Black_Hole_Seeds, only : blackHoleFormationChannelUndetermined
     implicit none
     integer         (kind_int8                                     )                          :: blackHoleFormationChannelExtract
     class           (nodePropertyExtractorBlackHoleFormationChannel), intent(inout)           :: self
@@ -96,9 +96,12 @@ contains
 
     blackHole => node%blackHole()
     select type (blackHole)
-      class is (nodeComponentBlackHoleStandard)
-        ! Standard class, extract the integer.
-        blackHoleFormationChannelExtract= blackHole%integerRank0MetaPropertyGet(self%blackHoleSeedsFormationChannelID)
+    class is (nodeComponentBlackHole)
+       ! No black hole exists - the formation channel is undetermined.
+       blackHoleFormationChannelExtract=blackHoleFormationChannelUndetermined%ID
+    class default
+       ! Extract the formation channel.
+       blackHoleFormationChannelExtract=blackHole                            %integerRank0MetaPropertyGet(self%blackHoleSeedsFormationChannelID)
     end select
     return
   end function blackHoleFormationChannelExtract
@@ -116,15 +119,27 @@ contains
     return
   end function blackHoleFormationChannelName
   
-  function blackHoleFormationChannelDescription(self)
+  function blackHoleFormationChannelDescription(self) result(description)
     !!{
     Return a description of the blackHoleFormationChannel property.
     !!}
+    use :: Black_Hole_Seeds, only : blackHoleFormationChannelMin, blackHoleFormationChannelMax, enumerationBlackHoleFormationChannelDecode
     implicit none
-    type (varying_string                                )                :: blackHoleFormationChannelDescription
-    class(nodePropertyExtractorBlackHoleFormationChannel), intent(inout) :: self
+    type     (varying_string                                )                :: description
+    class    (nodePropertyExtractorBlackHoleFormationChannel), intent(inout) :: self
+    integer                                                                  :: i
+    character(len=2                                         )                :: label      , separator
     !$GLC attributes unused :: self
 
-    blackHoleFormationChannelDescription=var_str('Indicates the formation channel of the black hole seed 0:fixed, 1: stellar collisions in nuclear star clusters.')
+    description='Indicates the formation channel of the black hole seed:'
+    do i=blackHoleFormationChannelMin,blackHoleFormationChannelMax
+       write (label,'(i2)') i
+       if (i == blackHoleFormationChannelMax) then
+          separator="."
+       else
+          separator=";"
+       end if
+       description=description//char(10)//"   "//label//" = "//enumerationBlackHoleFormationChannelDecode(i)//trim(separator)
+    end do
     return
   end function blackHoleFormationChannelDescription
