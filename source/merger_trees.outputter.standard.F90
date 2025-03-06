@@ -1237,7 +1237,7 @@ contains
     !!{
     Create a group in which to store this output.
     !!}
-    use            :: Output_HDF5                     , only : outputFile
+    use            :: Output_HDF5                     , only : outputTo     => outputGroup
     use            :: HDF5_Access                     , only : hdf5Access
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Numerical_Constants_Astronomical, only : gigaYear    , megaParsec
@@ -1272,7 +1272,7 @@ contains
     end if
     ! Make the enclosing group if it has not been created.
     if (.not.self%outputsGroupOpened) then
-       self%outputsGroup=outputFile%openGroup(char(self%outputsGroupName),'Contains all outputs from Galacticus.')
+       self%outputsGroup      =outputTo%openGroup(char(self%outputsGroupName),'Contains all outputs from Galacticus.')
        self%outputsGroupOpened=.true.
     end if
     !$ call hdf5Access%unset()

@@ -125,7 +125,6 @@ sub checkURLs {
 	# Ignore mailto URLs.
 	next
 	    if ( $url =~ m/^mailto:/ );
-	$status = 1;
 	# Ignore in-page anchors.
 	next
 	    if ( $url =~ m/^#/ );
@@ -136,7 +135,7 @@ sub checkURLs {
 	    my $anchor = $2;
 	    unless ( exists($pdfDestinations->{$suffix}) && exists($pdfDestinations->{$suffix}->{$anchor}) ) {
 		$status = 1;
-	      print "Broken ".$urls->{$urlKey}->[0]->{'type'}."{".$urls->{$urlKey}->[0]->{'ref'}."} link in:\n";
+		print "Broken ".$urls->{$urlKey}->[0]->{'type'}."{".$urls->{$urlKey}->[0]->{'ref'}."} link in:\n";
 		foreach my $source ( @{$urls->{$urlKey}} ) {
 		    print "\t ".$source->{'path'}."/".$source->{'file'}." line ".$source->{'lineNumber'}."\n";
 		}
@@ -163,6 +162,8 @@ sub checkURLs {
 		if ( $url =~ m/docs\.github\.com/ );
 	    $options .= " --http1.1"
 		if ( $url =~ m/camb\.info/ );
+	    $options .= " --retry 5"
+		if ( $url =~ m/www\.gnu\.org/ );
 	    my $sleepTime = 1;
 	    &System::Redirect::tofile("curl ".$options." \"".$url."\"","curl.log");
 	    my $error = $?;
@@ -251,6 +252,7 @@ sub checkURLs {
     foreach my $bibCode ( keys(%{$bibCodes}) ) {
 	next
 	    if ( exists($bibCodes->{$bibCode}->{'found'}) );
+	$status = 1;
 	print "Broken link: \"".join("; ",keys(%{$bibCodes->{$bibCode}->{'urls'}}))."\" in:\n";
 	foreach my $source ( @{$bibCodes->{$bibCode}->{'sources'}} ) {
 	    print "\t".$source->{'path'}."/".$source->{'file'}." line ".$source->{'lineNumber'}."\n";
