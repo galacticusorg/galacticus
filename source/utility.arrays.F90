@@ -27,7 +27,9 @@ module Array_Utilities
   !!}
   implicit none
   private
-  public :: Array_Reverse, Array_Cumulate, Array_Is_Monotonic, Array_Is_Uniform, Array_Which, Array_Index, operator(.intersection.), slice
+  public :: Array_Reverse, Array_Cumulate, Array_Is_Monotonic      , Array_Is_Uniform, &
+       &    Array_Which  , Array_Index   , operator(.intersection.), slice5Dto3D     , &
+       &    slice5Dto2D
 
   interface operator(.intersection.)
      module procedure Array_Intersection_Varying_String
@@ -67,13 +69,6 @@ module Array_Utilities
      module procedure Array_Index_Double_2D
   end interface Array_Index
 
-  interface slice
-     !!{
-     Interface to generic functions that return a slice of an array along a given dimension.
-     !!}
-     module procedure slice5Dto3D
-  end interface slice
-     
   ! Types of direction for monotonic arrays.
   integer, parameter, public :: directionDecreasing=-1
   integer, parameter, public :: directionIncreasing=+1
@@ -521,5 +516,48 @@ contains
     slice=arrayOrdered(:,:,:,index_(1),index_(2))
     return
   end function slice5Dto3D
+
+  function slice5Dto2D(array,dimension_,index_) result(slice)
+    !!{
+    Return a 2D slice of a 5D array.
+    !!}
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    use            :: Error        , only : Error_Report
+    implicit none
+    double precision          , allocatable  , dimension(:,:      ) :: slice
+    double precision          , intent(in   ), dimension(:,:,:,:,:) :: array
+    integer         (c_size_t), intent(in   ), dimension(3        ) :: dimension_  , index_
+    integer         (c_size_t)               , dimension(5        ) :: permutation , shape_
+    double precision          , allocatable  , dimension(:,:,:,:,:) :: arrayOrdered
+    integer                                                         :: i           , j
+
+    ! Validate inputs.
+    if (any(dimension_ < 1 .or. dimension_ > 5)) call Error_Report('dimension is out of range'//{introspection:location})
+    do i=1,2
+       if (any(dimension_(i) == dimension_(i+1:3))) call Error_Report('duplicated dimension'//{introspection:location})
+    end do
+    ! Permute the array so the dimensions to remove are the final three.
+    j=0
+    do i=1,5
+       if (.not.any(dimension_ == i)) then
+          j             =j+1
+          permutation(j)=               i
+          shape_     (j)=size(array,dim=i)
+       end if
+    end do
+    permutation(3)=               dimension_(1)
+    permutation(4)=               dimension_(2)
+    permutation(5)=               dimension_(3)
+    shape_     (3)=size(array,dim=dimension_(1))
+    shape_     (4)=size(array,dim=dimension_(2))
+    shape_     (5)=size(array,dim=dimension_(3))
+    arrayOrdered=reshape(array,shape_,order=permutation)
+    ! Slice the final three dimensions of the re-ordered array to get out request slice.
+    !![
+    <allocate variable="slice" shape="shape_"/>
+    !!]
+    slice=arrayOrdered(:,:,index_(1),index_(2),index_(3))
+    return
+  end function slice5Dto2D
   
 end module Array_Utilities

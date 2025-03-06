@@ -168,7 +168,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily sed} property extractor class.
     !!}
-    use :: Array_Utilities                 , only : slice
+    use :: Array_Utilities                 , only : slice5Dto2D
     use :: Galactic_Structure_Options      , only : componentTypeDisk, componentTypeSpheroid,componentTypeAll
     use :: Galacticus_Nodes                , only : nodeComponentDisk, nodeComponentSpheroid
     use :: Error                           , only : Error_Report
@@ -292,7 +292,7 @@ contains
                   &                   *self%hiiRegionDensityDistribution_%cumulativeDensityDistribution (            densityHydrogenMinimum,            densityHydrogenMaximum) &
                   &                   *(1.0d0-self%hiiRegionEscapeFraction_%escapeFractionMethod(self%ages(age_i))                                                            ) & 
                   &                   *reshape(                                                                                                                                 &
-                  &                                   slice(                                                                                                                    &
+                  &                                   slice5Dto2D(                                                                                                                    &
                   &                                         luminosities                                                                                                ,       &
                   &                                         [self%indexIonizingLuminosityHydrogen,self%indexDensityHydrogen,self%indexAge                                            ],       &
                   &                                         [     i                              ,     k  , age_i                                                             ]        &
