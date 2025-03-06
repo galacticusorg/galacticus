@@ -276,10 +276,9 @@ contains
 
     permutation(1)=self%indexMetallicity
     permutation(2)=     2
-    if (self%indexIonizingLuminosityHydrogen < self%indexAge        ) permutation(1)=permutation(1)-1_c_size_t
-    if (self%indexIonizingLuminosityHydrogen < self%indexMetallicity) permutation(2)=permutation(2)-1_c_size_t
-    if (self%indexDensityHydrogen            < self%indexAge        ) permutation(1)=permutation(1)-1_c_size_t
-    if (self%indexDensityHydrogen            < self%indexMetallicity) permutation(2)=permutation(2)-1_c_size_t
+    if (self%indexIonizingLuminosityHydrogen < self%indexMetallicity) permutation(1)=permutation(1)-1_c_size_t
+    if (self%indexDensityHydrogen            < self%indexMetallicity) permutation(1)=permutation(1)-1_c_size_t
+    if (self%indexAge                        < self%indexMetallicity) permutation(1)=permutation(1)-1_c_size_t
     do i=1,size(ionizingLuminosityHydrogen)
        rateHydrogenIonizingPhotonsMinimum=ionizingLuminosityHydrogen(i)/sqrt(deltaIonizingLuminosityHydrogen)
        rateHydrogenIonizingPhotonsMaximum=ionizingLuminosityHydrogen(i)*sqrt(deltaIonizingLuminosityHydrogen)
