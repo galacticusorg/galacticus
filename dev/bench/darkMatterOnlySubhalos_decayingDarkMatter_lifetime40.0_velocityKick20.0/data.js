@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1740866434131,
+  "lastUpdate": 1741220725382,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=40 Gyr; vₖ=20 km/s)": [
@@ -677,6 +677,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=40.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
             "value": "31.324290347766116",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "17b13094735a8519a2ec43375dc1fe9d39303090",
+          "message": "Merge pull request #808 from galacticusorg/featSizeMassConstraint\n\nAdd an output analysis class which implements a pointwise likelihood based on the [Shen et al. (2003)](https://ui.adsabs.harvard.edu/abs/2003MNRAS.343..978S) SDSS galaxy size-mass relation",
+          "timestamp": "2025-03-05T15:32:17Z",
+          "tree_id": "85feaf7d8e062020515bc6849a6c40e8a525926c",
+          "url": "https://github.com/galacticusorg/galacticus/commit/17b13094735a8519a2ec43375dc1fe9d39303090"
+        },
+        "date": 1741220724135,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=40.0 Gyr; vₖ=20.0 km/s) - Likelihood - mass function",
+            "value": "3.9189674996476307",
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=40.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
+            "value": "32.91012402350441",
             "unit": "-logℒ"
           }
         ]
