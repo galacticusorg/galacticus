@@ -7,7 +7,7 @@
 
   <!-- Component selection -->
   <componentBasic value="standard"/>
-  <componentBlackHole value="null"/>
+  <componentBlackHole value="standard"/>
   <componentDarkMatterProfile value="scale"/>
   <componentDisk value="standard"/>
   <componentHotHalo value="standard"/>
@@ -155,7 +155,6 @@
   </starFormationRateSpheroids>
 
   <starFormationRateNuclearStarClusters value="krumholz2009"/>
-
   <nuclearStarClusterGrowthRates value="antonini2015"/>
 
   <!-- Stellar populations options -->
@@ -182,6 +181,17 @@
     <energyOrbital value="1"/>
   </mergerRemnantSize>
 
+  <!-- Black hole options -->
+  <blackHoleBinaryMerger value="rezzolla2008"/>
+  <blackHoleAccretionRate value="standard"/>
+  <blackHoleSeeds value="vergara2023">
+      <radiusSingleStar value="1"   />
+      <massSingleStar   value="1"   />
+      <radiusEfficiency value="0.1" />
+      <massEfficiency   value="0.5" />
+      <massThreshold    value="100"/>
+  </blackHoleSeeds>
+
   <!-- Numerical tolerances -->
   <mergerTreeNodeEvolver value="standard">
     <odeToleranceAbsolute value="0.01"/>
@@ -202,6 +212,13 @@
   <mergerTreeOutputter value="standard">
     <outputReferences value="false"/>
   </mergerTreeOutputter>
+
+  <!-- Node property extractor -->
+   <nodePropertyExtractor value="multi">
+     <nodePropertyExtractor value="nodeIndices"/>
+     <nodePropertyExtractor value="treeWeight"/>
+     <nodePropertyExtractor value="blackHoleSeedingVergara2023"/>
+   </nodePropertyExtractor>
 
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
@@ -245,6 +262,9 @@
         </stellarFeedbackOutflows>
       </stellarFeedbackOutflows>
     </nodeOperator>
+    <nodeOperator value="agesStellarMassWeighted"/>
+    <!-- Black hole seed formation -->
+    <nodeOperator value="blackHolesSeed"/>
     <!-- Bar instability in galactic disks -->
     <nodeOperator value="barInstability">
       <galacticDynamicsBarInstability value="efstathiou1982">
