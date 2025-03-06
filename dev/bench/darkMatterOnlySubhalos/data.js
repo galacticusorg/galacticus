@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1741220649602,
+  "lastUpdate": 1741220660220,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "c658b260c3e293568db98bbbd90644f6cb1c74c5",
-          "message": "Merge pull request #616 from galacticusorg/fixCoolingRateDiscontinuous\n\nCatch cases where the cooling rate is discontinuous",
-          "timestamp": "2024-06-03T23:45:02Z",
-          "tree_id": "45e6b4783b3b3f038132d6cf4660485b7ad4f5ef",
-          "url": "https://github.com/galacticusorg/galacticus/commit/c658b260c3e293568db98bbbd90644f6cb1c74c5"
-        },
-        "date": 1717476342962,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 16.8583188967591,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 9.6162287002991,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 20638.7641722599,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8736,6 +8697,45 @@ window.BENCHMARK_DATA = {
             "value": 54.493,
             "unit": "seconds",
             "range": 0.112196702268394
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "17b13094735a8519a2ec43375dc1fe9d39303090",
+          "message": "Merge pull request #808 from galacticusorg/featSizeMassConstraint\n\nAdd an output analysis class which implements a pointwise likelihood based on the [Shen et al. (2003)](https://ui.adsabs.harvard.edu/abs/2003MNRAS.343..978S) SDSS galaxy size-mass relation",
+          "timestamp": "2025-03-05T15:32:17Z",
+          "tree_id": "85feaf7d8e062020515bc6849a6c40e8a525926c",
+          "url": "https://github.com/galacticusorg/galacticus/commit/17b13094735a8519a2ec43375dc1fe9d39303090"
+        },
+        "date": 1741220658939,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": "17.10871951914425",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": "8.955610999646783",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": "20727.878528251862",
+            "unit": "-logℒ"
           }
         ]
       }
