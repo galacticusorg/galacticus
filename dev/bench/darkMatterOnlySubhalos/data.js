@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1741220660220,
+  "lastUpdate": 1741383265292,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "3702136add1ae90beaf0f5d9951bbe04ada4a893",
-          "message": "Merge pull request #620 from galacticusorg/featSFHAdaptiveOpt\n\nStore `starFormationHistoryAdaptive` timesteps and mappings to file",
-          "timestamp": "2024-06-06T20:34:55Z",
-          "tree_id": "aae75663842e6c7e3f7f8ca0d732677e76d73abd",
-          "url": "https://github.com/galacticusorg/galacticus/commit/3702136add1ae90beaf0f5d9951bbe04ada4a893"
-        },
-        "date": 1717724380502,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 51.928,
-            "unit": "seconds",
-            "range": 0.0561391129237418
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8736,6 +8706,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": "20727.878528251862",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4ba13eb920d390b6518dce1e2a5b3c687c6d0747",
+          "message": "Merge pull request #779 from liempi/master\n\nAdd nuclear star cluster component",
+          "timestamp": "2025-03-07T15:04:31Z",
+          "tree_id": "7b1db710ee8b36ea7e726872ebec330af74f58ce",
+          "url": "https://github.com/galacticusorg/galacticus/commit/4ba13eb920d390b6518dce1e2a5b3c687c6d0747"
+        },
+        "date": 1741383263176,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 54.077,
+            "unit": "seconds",
+            "range": 0.127859688721857
           }
         ]
       }
