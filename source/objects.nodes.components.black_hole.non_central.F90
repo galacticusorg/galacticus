@@ -333,7 +333,8 @@ contains
     !!{
     Merge two black holes.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBlackHole, treeNode
+    use :: Galacticus_Nodes        , only : nodeComponentBlackHole , treeNode
+    use :: Events_Black_Hole_Merger, only : Event_Black_Hole_Merger
     implicit none
     type            (treeNode              ), intent(inout), target   :: node
     double precision                        , intent(in   ), optional :: timeEnd
@@ -368,6 +369,8 @@ contains
     massBlackHole2=blackHoleSecondary%mass()
     spinBlackHole1=blackHolePrimary  %spin()
     spinBlackHole2=blackHoleSecondary%spin()
+    ! Process the black hole merger.
+    call Event_Black_Hole_Merger(blackHolePrimary,blackHoleSecondary,blackHole1)
     ! Calculate the recoil velocity of the binary black hole and check whether it escapes the galaxy
     velocityRecoil=blackHoleBinaryRecoil_%velocity(blackHolePrimary,blackHoleSecondary)
     ! Compare the recoil velocity to the potential and determine whether the binary is ejected or stays in the galaxy.

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which provieds a class that implements on-the-fly analyses.
+Contains a module which provides a class that implements extraction of properties from nodes.
 !!}
 
 module Node_Property_Extractors
@@ -75,9 +75,10 @@ module Node_Property_Extractors
    <description>Specifies the galactic component for various node property extractors.</description>
    <visibility>public</visibility>
    <encodeFunction>yes</encodeFunction>
-   <entry label="disk"    />
-   <entry label="spheroid"/>
-   <entry label="total"   />
+   <entry label="disk"              />
+   <entry label="spheroid"          />
+   <entry label="nuclearStarCluster"/>
+   <entry label="total"             />
   </enumeration>
   !!]
 

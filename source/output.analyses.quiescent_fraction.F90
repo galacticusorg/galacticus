@@ -21,10 +21,11 @@
   Contains a module which implements a quiescent fraction output analysis class.
   !!}
 
-  use :: Cosmology_Functions           , only : cosmologyFunctionsClass
-  use :: Geometry_Surveys              , only : surveyGeometryClass
-  use :: Star_Formation_Rates_Disks    , only : starFormationRateDisksClass
-  use :: Star_Formation_Rates_Spheroids, only : starFormationRateSpheroidsClass
+  use :: Cosmology_Functions                       , only : cosmologyFunctionsClass
+  use :: Geometry_Surveys                          , only : surveyGeometryClass
+  use :: Star_Formation_Rates_Disks                , only : starFormationRateDisksClass
+  use :: Star_Formation_Rates_Spheroids            , only : starFormationRateSpheroidsClass
+  use :: Star_Formation_Rates_Nuclear_Star_Clusters, only : starFormationRateNuclearStarClustersClass
 
   !![
   <outputAnalysis name="outputAnalysisQuiescentFraction">
@@ -37,14 +38,15 @@
      A quiescent fraction output analysis class.
      !!}
      private
-     class           (surveyGeometryClass            ), pointer :: surveyGeometry_                               => null()
-     class           (cosmologyFunctionsClass        ), pointer :: cosmologyFunctions_                           => null(), cosmologyFunctionsData                    => null()
-     class           (starFormationRateDisksClass    ), pointer :: starFormationRateDisks_                       => null()
-     class           (starFormationRateSpheroidsClass), pointer :: starFormationRateSpheroids_                   => null()
-     type            (varying_string                 )          :: fileName
-     double precision                                           :: massMinimum                                            , massMaximum                                        , &
-          &                                                        starFormationRateSpecificQuiescentLogarithmic          , starFormationRateSpecificLogarithmicError          , &
-          &                                                        countMassesPerDecade     
+     class           (surveyGeometryClass                      ), pointer :: surveyGeometry_                               => null()
+     class           (cosmologyFunctionsClass                  ), pointer :: cosmologyFunctions_                           => null(), cosmologyFunctionsData                    => null()
+     class           (starFormationRateDisksClass              ), pointer :: starFormationRateDisks_                       => null()
+     class           (starFormationRateSpheroidsClass          ), pointer :: starFormationRateSpheroids_                   => null()
+     class           (starFormationRateNuclearStarClustersClass), pointer :: starFormationRateNuclearStarClusters_         => null()
+     type            (varying_string                           )          :: fileName
+     double precision                                                     :: massMinimum                                            , massMaximum                                        , &
+          &                                                                  starFormationRateSpecificQuiescentLogarithmic          , starFormationRateSpecificLogarithmicError          , &
+          &                                                                  countMassesPerDecade     
   end type outputAnalysisQuiescentFraction
 
   interface outputAnalysisQuiescentFraction
@@ -66,39 +68,41 @@ contains
     use :: Input_Parameters, only : inputParameter, inputParameters
     use :: Numerical_Ranges, only : Make_Range    , rangeTypeLogarithmic
     implicit none
-    type            (outputAnalysisQuiescentFraction        )                              :: self
-    type            (inputParameters                        ), intent(inout)               :: parameters
-    class           (galacticFilterClass                    ), pointer                     :: galacticFilter_
-    class           (surveyGeometryClass                    ), pointer                     :: surveyGeometry_
-    class           (cosmologyFunctionsClass                ), pointer                     :: cosmologyFunctions_                      , cosmologyFunctionsData
-    class           (outputTimesClass                       ), pointer                     :: outputTimes_
-    class           (starFormationRateDisksClass            ), pointer                     :: starFormationRateDisks_
-    class           (starFormationRateSpheroidsClass        ), pointer                     :: starFormationRateSpheroids_
-    class           (outputAnalysisPropertyOperatorClass    ), pointer                     :: outputAnalysisPropertyOperator_          , outputAnalysisWeightPropertyOperator_
-    class           (outputAnalysisDistributionOperatorClass), pointer                     :: outputAnalysisDistributionOperator_
-    double precision                                         , dimension(:  ), allocatable :: meanValueTarget                          , meanCovarianceTarget1D                       , &
-         &                                                                                    massesStellar
-    double precision                                         , dimension(:,:), allocatable :: meanCovarianceTarget
-    double precision                                                                       :: massMinimum                              , massMaximum                                  , &
-         &                                                                                    countMassesPerDecade                     , starFormationRateSpecificQuiescentLogarithmic, &
-         &                                                                                    starFormationRateSpecificLogarithmicError
-    type            (inputParameters                        )                              :: dataAnalysisParameters
-    integer         (c_size_t                               )                              :: countMasses
-    type            (varying_string                         )                              :: targetLabel                              , fileName                                     , &
-         &                                                                                    label                                    , comment
+    type            (outputAnalysisQuiescentFraction          )                              :: self
+    type            (inputParameters                          ), intent(inout)               :: parameters
+    class           (galacticFilterClass                      ), pointer                     :: galacticFilter_
+    class           (surveyGeometryClass                      ), pointer                     :: surveyGeometry_
+    class           (cosmologyFunctionsClass                  ), pointer                     :: cosmologyFunctions_                      , cosmologyFunctionsData
+    class           (outputTimesClass                         ), pointer                     :: outputTimes_
+    class           (starFormationRateDisksClass              ), pointer                     :: starFormationRateDisks_
+    class           (starFormationRateSpheroidsClass          ), pointer                     :: starFormationRateSpheroids_
+    class           (starFormationRateNuclearStarClustersClass), pointer                     :: starFormationRateNuclearStarClusters_
+    class           (outputAnalysisPropertyOperatorClass      ), pointer                     :: outputAnalysisPropertyOperator_          , outputAnalysisWeightPropertyOperator_
+    class           (outputAnalysisDistributionOperatorClass  ), pointer                     :: outputAnalysisDistributionOperator_
+    double precision                                           , dimension(:  ), allocatable :: meanValueTarget                          , meanCovarianceTarget1D                       , &
+         &                                                                                      massesStellar
+    double precision                                           , dimension(:,:), allocatable :: meanCovarianceTarget
+    double precision                                                                         :: massMinimum                              , massMaximum                                  , &
+         &                                                                                      countMassesPerDecade                     , starFormationRateSpecificQuiescentLogarithmic, &
+         &                                                                                      starFormationRateSpecificLogarithmicError
+    type            (inputParameters                          )                              :: dataAnalysisParameters
+    integer         (c_size_t                                 )                              :: countMasses
+    type            (varying_string                           )                              :: targetLabel                              , fileName                                     , &
+         &                                                                                      label                                    , comment
 
     dataAnalysisParameters=parameters%subParameters('dataAnalysis',requirePresent=.false.,requireValue=.false.)
     !![
-    <objectBuilder class="galacticFilter"                     name="galacticFilter_"                       source="parameters"                                                                 />
-    <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                   source="parameters"                                                                 />
-    <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctionsData"                source="dataAnalysisParameters"                                                     />
-    <objectBuilder class="outputTimes"                        name="outputTimes_"                          source="parameters"                                                                 />
-    <objectBuilder class="surveyGeometry"                     name="surveyGeometry_"                       source="parameters"                                                                 />
-    <objectBuilder class="starFormationRateDisks"             name="starFormationRateDisks_"               source="parameters"                                                                 />
-    <objectBuilder class="starFormationRateSpheroids"         name="starFormationRateSpheroids_"           source="parameters"                                                                 />
-    <objectBuilder class="outputAnalysisPropertyOperator"     name="outputAnalysisPropertyOperator_"       source="parameters"                                                                 />
-    <objectBuilder class="outputAnalysisDistributionOperator" name="outputAnalysisDistributionOperator_"   source="parameters"                                                                 />
-    <objectBuilder class="outputAnalysisPropertyOperator"     name="outputAnalysisWeightPropertyOperator_" source="parameters"             parameterName="outputAnalysisWeightPropertyOperator"/>
+    <objectBuilder class="galacticFilter"                       name="galacticFilter_"                       source="parameters"                                                                 />
+    <objectBuilder class="cosmologyFunctions"                   name="cosmologyFunctions_"                   source="parameters"                                                                 />
+    <objectBuilder class="cosmologyFunctions"                   name="cosmologyFunctionsData"                source="dataAnalysisParameters"                                                     />
+    <objectBuilder class="outputTimes"                          name="outputTimes_"                          source="parameters"                                                                 />
+    <objectBuilder class="surveyGeometry"                       name="surveyGeometry_"                       source="parameters"                                                                 />
+    <objectBuilder class="starFormationRateDisks"               name="starFormationRateDisks_"               source="parameters"                                                                 />
+    <objectBuilder class="starFormationRateSpheroids"           name="starFormationRateSpheroids_"           source="parameters"                                                                 />
+    <objectBuilder class="starFormationRateNuclearStarClusters" name="starFormationRateNuclearStarClusters_" source="parameters"                                                                 />
+    <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisPropertyOperator_"       source="parameters"                                                                 />
+    <objectBuilder class="outputAnalysisDistributionOperator"   name="outputAnalysisDistributionOperator_"   source="parameters"                                                                 />
+    <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisWeightPropertyOperator_" source="parameters"             parameterName="outputAnalysisWeightPropertyOperator"/>
     <inputParameter>
       <name>starFormationRateSpecificQuiescentLogarithmic</name>
       <source>parameters</source>
@@ -128,7 +132,7 @@ contains
          <description>A label for this analysis.</description>
        </inputParameter>
        !!]
-       self=outputAnalysisQuiescentFraction(char(fileName),label,comment,starFormationRateSpecificQuiescentLogarithmic,starFormationRateSpecificLogarithmicError,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_)
+       self=outputAnalysisQuiescentFraction(char(fileName),label,comment,starFormationRateSpecificQuiescentLogarithmic,starFormationRateSpecificLogarithmicError,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_)
     else
        !![
        <inputParameter>
@@ -217,7 +221,8 @@ contains
 	  &amp;                                outputAnalysisDistributionOperator_          , &amp;
 	  &amp;                                outputAnalysisWeightPropertyOperator_        , &amp;
 	  &amp;                                starFormationRateDisks_                      , &amp;
-	  &amp;                                starFormationRateSpheroids_                    &amp;
+	  &amp;                                starFormationRateSpheroids_                  , &amp;
+          &amp;                                starFormationRateNuclearStarClusters_          &amp;
           &amp;                                {conditions}                                   &amp;
           &amp;                               )
         </call>
@@ -236,6 +241,7 @@ contains
     <objectDestructor name="outputTimes_"                         />
     <objectDestructor name="starFormationRateDisks_"              />
     <objectDestructor name="starFormationRateSpheroids_"          />
+    <objectDestructor name="starFormationRateNuclearStarClusters_"/>
     <objectDestructor name="outputAnalysisPropertyOperator_"      />
     <objectDestructor name="outputAnalysisDistributionOperator_"  />
     <objectDestructor name="outputAnalysisWeightPropertyOperator_"/>
@@ -243,7 +249,7 @@ contains
     return
   end function quiescentFractionConstructorParameters
 
-  function quiescentFractionConstructorFile(fileName,label,comment,starFormationRateSpecificQuiescentLogarithmic,starFormationRateSpecificLogarithmicError,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_) result(self)
+  function quiescentFractionConstructorFile(fileName,label,comment,starFormationRateSpecificQuiescentLogarithmic,starFormationRateSpecificLogarithmicError,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_) result(self)
     !!{
     Constructor for the ``quiescentFraction'' output analysis class which reads all required properties from file.
     !!}
@@ -251,23 +257,24 @@ contains
     use :: HDF5_Access   , only : hdf5Access
     use :: File_Utilities, only : File_Name_Expand
     implicit none
-    type            (outputAnalysisQuiescentFraction        )                                :: self
-    character       (len=*                                  ), intent(in   )                 :: fileName
-    type            (varying_string                         ), intent(in   )                 :: label                                        , comment
-    class           (outputTimesClass                       ), intent(inout)                 :: outputTimes_
-    class           (galacticFilterClass                    ), intent(inout), target         :: galacticFilter_
-    class           (surveyGeometryClass                    ), intent(in   ), target         :: surveyGeometry_
-    class           (cosmologyFunctionsClass                ), intent(in   ), target         :: cosmologyFunctions_                          , cosmologyFunctionsData
-    class           (starFormationRateDisksClass            ), intent(in   ), target         :: starFormationRateDisks_
-    class           (starFormationRateSpheroidsClass        ), intent(in   ), target         :: starFormationRateSpheroids_
-    class           (outputAnalysisPropertyOperatorClass    ), intent(inout), target         :: outputAnalysisPropertyOperator_
-    class           (outputAnalysisPropertyOperatorClass    ), intent(inout), target         :: outputAnalysisWeightPropertyOperator_
-    class           (outputAnalysisDistributionOperatorClass), intent(inout), target         :: outputAnalysisDistributionOperator_
-    double precision                                         , intent(in   )                 :: starFormationRateSpecificQuiescentLogarithmic, starFormationRateSpecificLogarithmicError
-    double precision                                         , allocatable  , dimension(:  ) :: meanValueTarget                              , massesStellar
-    double precision                                         , allocatable  , dimension(:,:) :: meanCovarianceTarget
-    type            (varying_string                         )                                :: targetLabel
-    type            (hdf5Object                             )                                :: dataFile
+    type            (outputAnalysisQuiescentFraction          )                                :: self
+    character       (len=*                                    ), intent(in   )                 :: fileName
+    type            (varying_string                           ), intent(in   )                 :: label                                        , comment
+    class           (outputTimesClass                         ), intent(inout)                 :: outputTimes_
+    class           (galacticFilterClass                      ), intent(inout), target         :: galacticFilter_
+    class           (surveyGeometryClass                      ), intent(in   ), target         :: surveyGeometry_
+    class           (cosmologyFunctionsClass                  ), intent(in   ), target         :: cosmologyFunctions_                          , cosmologyFunctionsData
+    class           (starFormationRateDisksClass              ), intent(in   ), target         :: starFormationRateDisks_
+    class           (starFormationRateSpheroidsClass          ), intent(in   ), target         :: starFormationRateSpheroids_
+    class           (starFormationRateNuclearStarClustersClass), intent(in   ), target         :: starFormationRateNuclearStarClusters_
+    class           (outputAnalysisPropertyOperatorClass      ), intent(inout), target         :: outputAnalysisPropertyOperator_
+    class           (outputAnalysisPropertyOperatorClass      ), intent(inout), target         :: outputAnalysisWeightPropertyOperator_
+    class           (outputAnalysisDistributionOperatorClass  ), intent(inout), target         :: outputAnalysisDistributionOperator_
+    double precision                                           , intent(in   )                 :: starFormationRateSpecificQuiescentLogarithmic, starFormationRateSpecificLogarithmicError
+    double precision                                           , allocatable  , dimension(:  ) :: meanValueTarget                              , massesStellar
+    double precision                                           , allocatable  , dimension(:,:) :: meanCovarianceTarget
+    type            (varying_string                           )                                :: targetLabel
+    type            (hdf5Object                               )                                :: dataFile
 
     !$ call hdf5Access%set  ()
     call dataFile%openFile     (char(File_Name_Expand(fileName))     ,readOnly=.true.              )
@@ -278,14 +285,14 @@ contains
     call dataFile%close        (                                                                   )
     !$ call hdf5Access%unset()
     ! Build the object.
-    self=quiescentFractionConstructorInternal(label,comment,massesStellar,starFormationRateSpecificQuiescentLogarithmic,starFormationRateSpecificLogarithmicError,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_,targetLabel,meanValueTarget,meanCovarianceTarget)
+    self=quiescentFractionConstructorInternal(label,comment,massesStellar,starFormationRateSpecificQuiescentLogarithmic,starFormationRateSpecificLogarithmicError,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_,targetLabel,meanValueTarget,meanCovarianceTarget)
     !![
     <constructorAssign variables="fileName"/>
     !!]
     return
   end function quiescentFractionConstructorFile
 
-  function quiescentFractionConstructorInternal(label,comment,massesStellar,starFormationRateSpecificQuiescentLogarithmic,starFormationRateSpecificLogarithmicError,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_,targetLabel,meanValueTarget,meanCovarianceTarget) result(self)
+  function quiescentFractionConstructorInternal(label,comment,massesStellar,starFormationRateSpecificQuiescentLogarithmic,starFormationRateSpecificLogarithmicError,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_,targetLabel,meanValueTarget,meanCovarianceTarget) result(self)
     !!{
     Internal constructor for the ``quiescentFraction'' output analysis class.
     !!}
@@ -312,6 +319,7 @@ contains
     class           (outputAnalysisDistributionOperatorClass        ), intent(inout), target                        :: outputAnalysisDistributionOperator_
     class           (starFormationRateDisksClass                    ), intent(in   ), target                        :: starFormationRateDisks_
     class           (starFormationRateSpheroidsClass                ), intent(in   ), target                        :: starFormationRateSpheroids_
+    class           (starFormationRateNuclearStarClustersClass      ), intent(in   ), target                        :: starFormationRateNuclearStarClusters_
     type            (varying_string                                 ), optional                     , intent(in   ) :: targetLabel
     double precision                                                 , optional     , dimension(:  ), intent(in   ) :: meanValueTarget                                             , massesStellar
     double precision                                                 , optional     , dimension(:,:), intent(in   ) :: meanCovarianceTarget
@@ -334,7 +342,7 @@ contains
     integer         (c_size_t                                       )                                               :: iBin                                                        , bufferCount                                         , &
          &                                                                                                             countMasses
     !![
-    <constructorAssign variables="starFormationRateSpecificQuiescentLogarithmic, starFormationRateSpecificLogarithmicError, *surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData, *starFormationRateDisks_, *starFormationRateSpheroids_"/>
+    <constructorAssign variables="starFormationRateSpecificQuiescentLogarithmic, starFormationRateSpecificLogarithmicError, *surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData, *starFormationRateDisks_, *starFormationRateSpheroids_, *starFormationRateNuclearStarClusters_"/>
     !!]
 
     ! Set properties needed for descriptor.
@@ -431,9 +439,10 @@ contains
     !![
     <referenceConstruct object="nodePropertyExtractorStarFormationRate_">
       <constructor>
-	nodePropertyExtractorStarFormationRate(                                                         &amp;
-	&amp;                                  starFormationRateDisks_    =starFormationRateDisks_    , &amp;
-	&amp;                                  starFormationRateSpheroids_=starFormationRateSpheroids_  &amp;
+	nodePropertyExtractorStarFormationRate(                                                                             &amp;
+	&amp;                                  starFormationRateDisks_              =starFormationRateDisks_              , &amp;
+	&amp;                                  starFormationRateSpheroids_          =starFormationRateSpheroids_          , &amp;
+        &amp;                                  starFormationRateNuclearStarClusters_=starFormationRateNuclearStarClusters_  &amp;
         &amp;                                 )
       </constructor>
     </referenceConstruct>

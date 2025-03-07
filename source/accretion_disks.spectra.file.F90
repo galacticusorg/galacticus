@@ -173,13 +173,15 @@ contains
     type            (treeNode                ), intent(inout)  :: node
     double precision                          , intent(in   )  :: wavelength
     class           (nodeComponentBlackHole  ), pointer        :: blackHole
-    double precision                                           :: rateAccretionSpheroid, rateAccretionHotHalo, &
-         &                                                        rateAccretion        , efficiencyRadiative
+    double precision                                           :: rateAccretionSpheroid, rateAccretionHotHalo           , &
+         &                                                        rateAccretion        , rateAccretionNuclearStarCluster, &
+         &                                                        efficiencyRadiative
 
     blackHole => node%blackHole()
-    call self%blackHoleAccretionRate_%rateAccretion(blackHole,rateAccretionSpheroid,rateAccretionHotHalo)
+    call self%blackHoleAccretionRate_%rateAccretion(blackHole,rateAccretionSpheroid,rateAccretionHotHalo,rateAccretionNuclearStarCluster)
     rateAccretion      =+                    rateAccretionSpheroid                                                         &
-         &              +                    rateAccretionHotHalo
+         &              +                    rateAccretionHotHalo                                                          &
+         &              +                    rateAccretionNuclearStarCluster
     efficiencyRadiative=self%accretionDisks_%efficiencyRadiative  (blackHole,rateAccretion                               )
     fileSpectrumNode   =self                %spectrum             (          rateAccretion,efficiencyRadiative,wavelength)
     return

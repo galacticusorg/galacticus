@@ -30,6 +30,18 @@ module Black_Hole_Seeds
   private
 
   !![
+  <enumeration>
+    <name>blackHoleFormationChannel</name>
+    <description>Enumeration of black hole formation channels.</description>
+    <visibility>public</visibility>
+    <validator>yes</validator>
+    <decodeFunction>yes</decodeFunction>
+    <entry label="undetermined"       />
+    <entry label="starClusterCollapse"/>
+  </enumeration>
+  !!]
+  
+  !![
   <functionClass>
    <name>blackHoleSeeds</name>
    <descriptiveName>Black Hole Seeds</descriptiveName>
@@ -49,7 +61,17 @@ module Black_Hole_Seeds
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
+   <method name="formationChannel">
+    <description>Returns the formation channel of the seed in the given {\normalfont \ttfamily node}.</description>
+    <type>type(enumerationBlackHoleFormationChannelType)</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+    <code>
+      !$GLC attributes unused :: self, node
+      blackHoleSeedsFormationChannel=blackHoleFormationChannelUndetermined
+    </code>
+   </method>
   </functionClass>
   !!]
-
+  
 end module Black_Hole_Seeds

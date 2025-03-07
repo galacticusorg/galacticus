@@ -133,14 +133,16 @@ contains
     class           (nodeComponentBlackHole        ), intent(inout) :: blackHole
     double precision                                , parameter     :: radiusCoolingFractionalTransitionMinimum=0.9d0
     double precision                                , parameter     :: radiusCoolingFractionalTransitionMaximum=1.0d0
-    double precision                                                :: rateAccretionSpheroid                         , rateAccretionHotHalo   , &
-         &                                                             rateAccretion                                 , radiusCoolingFractional, &
-         &                                                             efficiencyCoupling                            , x
+    double precision                                                :: rateAccretionSpheroid                         , rateAccretionHotHalo           , &
+         &                                                             rateAccretion                                 , rateAccretionNuclearStarCluster, &
+         &                                                             efficiencyCoupling                            , x                              , &
+         &                                                             radiusCoolingFractional
 
     ! Compute accretion rate onto the black hole.
-    call self%blackHoleAccretionRate_%rateAccretion(blackHole,rateAccretionSpheroid,rateAccretionHotHalo)
-    rateAccretion=+rateAccretionSpheroid &
-         &        +rateAccretionHotHalo
+    call self%blackHoleAccretionRate_%rateAccretion(blackHole,rateAccretionSpheroid,rateAccretionHotHalo,rateAccretionNuclearStarCluster)
+    rateAccretion=+rateAccretionSpheroid           &
+         &        +rateAccretionHotHalo            &
+         &        +rateAccretionNuclearStarCluster
     ! No heating for non-positive accretion rates.
     if (rateAccretion > 0.0d0) then
        ! Compute coupling efficiency based on whether halo is cooling quasistatically.
