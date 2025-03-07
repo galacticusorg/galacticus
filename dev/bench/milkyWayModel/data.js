@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1741220665409,
+  "lastUpdate": 1741383269136,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "3702136add1ae90beaf0f5d9951bbe04ada4a893",
-          "message": "Merge pull request #620 from galacticusorg/featSFHAdaptiveOpt\n\nStore `starFormationHistoryAdaptive` timesteps and mappings to file",
-          "timestamp": "2024-06-06T20:34:55Z",
-          "tree_id": "aae75663842e6c7e3f7f8ca0d732677e76d73abd",
-          "url": "https://github.com/galacticusorg/galacticus/commit/3702136add1ae90beaf0f5d9951bbe04ada4a893"
-        },
-        "date": 1717724386350,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 430.815,
-            "unit": "seconds",
-            "range": 1.11163325786774
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10656,6 +10626,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": "12.935871779836143",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4ba13eb920d390b6518dce1e2a5b3c687c6d0747",
+          "message": "Merge pull request #779 from liempi/master\n\nAdd nuclear star cluster component",
+          "timestamp": "2025-03-07T15:04:31Z",
+          "tree_id": "7b1db710ee8b36ea7e726872ebec330af74f58ce",
+          "url": "https://github.com/galacticusorg/galacticus/commit/4ba13eb920d390b6518dce1e2a5b3c687c6d0747"
+        },
+        "date": 1741383268702,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 26.295,
+            "unit": "seconds",
+            "range": 0.0533151010503439
           }
         ]
       }
