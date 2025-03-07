@@ -2,7 +2,7 @@ name: Link-Check
 on:
   workflow_dispatch:
   schedule:
-    - cron: '08 08 * * *'
+    - cron: '32 13 * * *'
 jobs:
   Check-Links:
     runs-on: ubuntu-latest

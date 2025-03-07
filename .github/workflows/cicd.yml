@@ -1203,7 +1203,8 @@ jobs:
       fail-fast: false
       matrix:
         file: [ testSuite/parameters/mergerTreeEvolverThreaded.xml,
-                testSuite/parameters/constrainedMilkyWay.xml ]
+                testSuite/parameters/constrainedMilkyWay.xml,
+                testSuite/parameters/test-nuclear-star-cluster.xml ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}

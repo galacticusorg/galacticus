@@ -117,13 +117,14 @@ contains
     implicit none
     class           (blackHoleWindSimple   ), intent(inout) :: self
     class           (nodeComponentBlackHole), intent(inout) :: blackHole
-    double precision                                        :: rateAccretionSpheroid, rateAccretionHotHalo, &
-         &                                                     rateAccretion
+    double precision                                        :: rateAccretionSpheroid          , rateAccretionHotHalo, &
+         &                                                     rateAccretionNuclearStarCluster, rateAccretion
 
     ! Compute the wind power.
-    call self%blackHoleAccretionRate_%rateAccretion(blackHole,rateAccretionSpheroid,rateAccretionHotHalo)
-    rateAccretion=+rateAccretionSpheroid &
-         &        +rateAccretionHotHalo
+    call self%blackHoleAccretionRate_%rateAccretion(blackHole,rateAccretionSpheroid,rateAccretionHotHalo,rateAccretionNuclearStarCluster)
+    rateAccretion=+rateAccretionSpheroid           &
+         &        +rateAccretionHotHalo            &
+         &        +rateAccretionNuclearStarCluster
     if (rateAccretion > 0.0d0) then
        power  =+self%efficiencyWind &
             &  *rateAccretion       &

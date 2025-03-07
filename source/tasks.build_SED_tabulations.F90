@@ -140,19 +140,18 @@ contains
     !!{
     Builds the tabulation.
     !!}
-    use :: Display                   , only : displayIndent                    , displayUnindent
-    use :: Error                     , only : Error_Report                     , errorStatusSuccess
-    use :: Histories                 , only : history
-    use :: Galacticus_Nodes          , only : mergerTree                       , nodeComponentBasic                 , nodeComponentDisk, nodeComponentSpheroid, &
-          &                                   treeNode
-    use :: Poly_Ranks                , only : assignment(=)                    , polyRankDouble
-    use :: Multi_Counters            , only : multiCounter
-    use :: Node_Property_Extractors  , only : nodePropertyExtractorMulti       , nodePropertyExtractorSED
-    use :: Galactic_Structure_Options, only : componentTypeDisk                , componentTypeSpheroid
-    use :: Node_Components           , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
-    use :: Locks                     , only : ompLock
+    use :: Display                 , only : displayIndent                    , displayUnindent
+    use :: Error                   , only : Error_Report                     , errorStatusSuccess
+    use :: Histories               , only : history
+    use :: Galacticus_Nodes        , only : mergerTree                       , nodeComponentBasic                 , nodeComponentDisk, nodeComponentSpheroid, &
+          &                                 nodeComponentNSC                 , treeNode
+    use :: Poly_Ranks              , only : assignment(=)                    , polyRankDouble
+    use :: Multi_Counters          , only : multiCounter
+    use :: Node_Property_Extractors, only : nodePropertyExtractorMulti       , nodePropertyExtractorSED
+    use :: Node_Components         , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
+    use :: Locks                   , only : ompLock
 #ifdef USEMPI
-    use :: MPI_Utilities             , only : mpiBarrier                       , mpiSelf
+    use :: MPI_Utilities           , only : mpiBarrier                       , mpiSelf
 #endif
     implicit none
     class           (taskBuildSEDTabulations), intent(inout), target         :: self
@@ -164,9 +163,11 @@ contains
     class           (nodeComponentBasic     ), pointer                       :: basic
     class           (nodeComponentDisk      ), pointer                       :: disk
     class           (nodeComponentSpheroid  ), pointer                       :: spheroid
-    double precision                         , parameter                     :: mass                    =1.0d+12
-    double precision                         , parameter                     :: epsilon                 =1.0d-06
-    type            (history                )                                :: starFormationHistoryDisk        , starFormationHistorySpheroid
+    class           (nodeComponentNSC       ), pointer                       :: nuclearStarCluster
+    double precision                         , parameter                     :: mass                                  =1.0d+12
+    double precision                         , parameter                     :: epsilon                               =1.0d-06
+    type            (history                )                                :: starFormationHistoryDisk                      , starFormationHistorySpheroid, &
+         &                                                                      starFormationHistorynuclearStarCluster
     integer         (c_size_t               )                                :: i
     double precision                                                         :: time
     type            (multiCounter           )                                :: instance
@@ -177,12 +178,13 @@ contains
     ! Call routines to perform initialization which must occur for all threads if run in parallel.
     call Node_Components_Thread_Initialize(self%parameters)
     ! Build a node and components.
-    node     => treeNode         (                 )
-    tree    %nodeBase => node
-    node%hostTree => tree
-    disk     => node    %disk    (autoCreate=.true.)
-    spheroid => node    %spheroid(autoCreate=.true.)
-    basic    => node    %basic   (autoCreate=.true.)
+    node                        => treeNode         (                 )
+    tree              %nodeBase => node
+    node              %hostTree => tree
+    disk                        => node    %disk    (autoCreate=.true.)
+    spheroid                    => node    %spheroid(autoCreate=.true.)
+    nuclearStarCluster          => node    %NSC     (autoCreate=.true.)
+    basic                       => node    %basic   (autoCreate=.true.)
     call tree%properties%initialize()
     ! Initialize a single instance.
     instance=multiCounter([1_c_size_t])
@@ -200,12 +202,16 @@ contains
     call basic%timeLastIsolatedSet(time)
     call basic%massSet            (mass)
     ! Create the star formation histories.
-    call self    %starFormationHistory_  %create(node,starFormationHistoryDisk    ,time)
-    call self    %starFormationHistory_  %create(node,starFormationHistorySpheroid,time)
+    call self              %starFormationHistory_  %create(node,starFormationHistoryDisk              ,time)
+    call self              %starFormationHistory_  %create(node,starFormationHistorySpheroid          ,time)
+    call self              %starFormationHistory_  %create(node,starFormationHistorynuclearStarCluster,time)
+
     starFormationHistoryDisk    %data=1.0d0
     starFormationHistorySpheroid%data=1.0d0
-    call disk    %starFormationHistorySet       (     starFormationHistoryDisk         )
-    call spheroid%starFormationHistorySet       (     starFormationHistorySpheroid     )
+    call disk              %starFormationHistorySet       (     starFormationHistoryDisk                   )
+    call spheroid          %starFormationHistorySet       (     starFormationHistorySpheroid               )
+    call nuclearStarCluster%starFormationHistorySet       (     starFormationHistorynuclearStarCluster     )
+
     ! Iterate over output times.
     do i=1_c_size_t,self%outputTimes_%count()
        time=self%outputTimes_%time(i)
@@ -230,30 +236,44 @@ contains
        end if
 #endif
        ! Output star formation history, which also triggers update of the history.
-       call starFormationHistoryDisk    %destroy                (                                                   &
+       call starFormationHistoryDisk              %destroy      (                                                   &
             &                                                   )
-       call starFormationHistorySpheroid%destroy                (                                                   &
+       call starFormationHistorySpheroid          %destroy      (                                                   &
             &                                                   )
-       starFormationHistoryDisk    =disk    %starFormationHistory()
-       starFormationHistorySpheroid=spheroid%starFormationHistory()
-       call self%starFormationHistory_%update                   (                                                   &
-            &                                                    node                =node                        , &
-            &                                                    indexOutput         =i                           , &
-            &                                                    historyStarFormation=starFormationHistoryDisk      &
+       call starFormationHistorynuclearStarCluster%destroy      (                                                   &
             &                                                   )
-       call self%starFormationHistory_%update                   (                                                   &
-            &                                                    node                =node                        , &
-            &                                                    indexOutput         =i                           , &
-            &                                                    historyStarFormation=starFormationHistorySpheroid  &
+       starFormationHistoryDisk              =disk              %starFormationHistory()
+       starFormationHistorySpheroid          =spheroid          %starFormationHistory()
+       starFormationHistorynuclearStarCluster=nuclearStarCluster%starFormationHistory()
+
+       call self%starFormationHistory_%update                   (                                                             &
+            &                                                    node                =node                                  , &
+            &                                                    indexOutput         =i                                     , &
+            &                                                    historyStarFormation=starFormationHistoryDisk                &
+            &                                                   )
+       call self%starFormationHistory_%update                   (                                                             &
+            &                                                    node                =node                                  , &
+            &                                                    indexOutput         =i                                     , &
+            &                                                    historyStarFormation=starFormationHistorySpheroid            &
+            &                                                   )
+       call self%starFormationHistory_%update                   (                                                             &
+            &                                                    node                =node                                  , &
+            &                                                    indexOutput         =i                                     , &
+            &                                                    historyStarFormation=starFormationHistorynuclearStarCluster  &
             &                                                   )
        starFormationHistoryDisk    %data=1.0d0
        starFormationHistorySpheroid%data=1.0d0
-       call disk                        %starFormationHistorySet(                                                   &
-            &                                                    starFormationHistoryDisk                           &
-            &                                                   )
-       call spheroid                    %starFormationHistorySet(                                                   &
-            &                                                    starFormationHistorySpheroid                       &
-            &                                                   )
+       starFormationHistorynuclearStarCluster     %data=1.0d0
+
+       call disk                      %starFormationHistorySet(                                                               &
+            &                                                  starFormationHistoryDisk                                       &
+            &                                                 )
+       call spheroid                  %starFormationHistorySet(                                                               &
+            &                                                  starFormationHistorySpheroid                                   &
+            &                                                 )
+       call nuclearStarCluster        %starFormationHistorySet(                                                               &
+            &                                                  starFormationHistorynuclearStarCluster                         &
+            &                                                 )
     end do
     call node%destroy()
     deallocate(node)
