@@ -485,35 +485,43 @@ contains
     implicit none
     double precision          , allocatable  , dimension(:,:,:    ) :: slice
     double precision          , intent(in   ), dimension(:,:,:,:,:) :: array
-    integer         (c_size_t), intent(in   ), dimension(2        ) :: dimension_  , index_
-    integer         (c_size_t)               , dimension(5        ) :: permutation , shape_
-    double precision          , allocatable  , dimension(:,:,:,:,:) :: arrayOrdered
-    integer                                                         :: i           , j
+    integer         (c_size_t), intent(in   ), dimension(2        ) :: dimension_, index_
+    integer         (c_size_t)               , dimension(3        ) :: shape__   , dimension__
+    integer         (c_size_t)               , dimension(5        ) :: index__
+    integer         (c_size_t)                                      :: i1        , i2         , &
+         &                                                             i3
 
     ! Validate inputs.
     if (any(dimension_ < 1 .or. dimension_ > 5)) call Error_Report('dimension is out of range'//{introspection:location})
-    do i=1,1
-       if (any(dimension_(i) == dimension_(i+1:2))) call Error_Report('duplicated dimension'//{introspection:location})
+    do i1=1,1
+       if (any(dimension_(i1) == dimension_(i1+1:2))) call Error_Report('duplicated dimension'//{introspection:location})
     end do
-    ! Permute the array so the dimensions to remove are the final two.
-    j=0
-    do i=1,5
-       if (.not.any(dimension_ == i)) then
-          j             =j+1
-          permutation(j)=               i
-          shape_     (j)=size(array,dim=i)
+     ! Identify the dimensions that are *not* to be sliced away.
+    i2=0
+    do i1=1,5
+       if (.not.any(dimension_ == i1)) then
+          i2             =i2+1
+          dimension__(i2)=               i1
+          shape__    (i2)=size(array,dim=i1)
        end if
     end do
-    permutation(4)=               dimension_(1)
-    permutation(5)=               dimension_(2)
-    shape_     (4)=size(array,dim=dimension_(1))
-    shape_     (5)=size(array,dim=dimension_(2))
-    arrayOrdered=reshape(array,shape_,order=permutation)
-    ! Slice the final two dimensions of the re-ordered array to get out request slice.
-    !![
-    <allocate variable="slice" shape="shape_"/>
-    !!]
-    slice=arrayOrdered(:,:,:,index_(1),index_(2))
+    ! Allocate our result with dimensions matched to those that will be retained.
+    allocate(slice(shape__(1),shape__(2),shape__(3)))
+    ! Set the fixed indices for slicing.
+    index__(dimension_(1))=index_(1)
+    index__(dimension_(2))=index_(2)
+    ! Iterate over the dimensions to be retained.
+    do       i1=1,size(array,dim=dimension__(1))
+       do    i2=1,size(array,dim=dimension__(2))
+          do i3=1,size(array,dim=dimension__(3))
+             ! Select out elements of the slice.
+             index__(dimension__(1))=i1
+             index__(dimension__(2))=i2
+             index__(dimension__(3))=i3
+             slice(i1,i2,i3)=array(index__(1),index__(2),index__(3),index__(4),index__(5))
+          end do
+       end do
+    end do
     return
   end function slice5Dto3D
 
@@ -526,37 +534,40 @@ contains
     implicit none
     double precision          , allocatable  , dimension(:,:      ) :: slice
     double precision          , intent(in   ), dimension(:,:,:,:,:) :: array
-    integer         (c_size_t), intent(in   ), dimension(3        ) :: dimension_  , index_
-    integer         (c_size_t)               , dimension(5        ) :: permutation , shape_
-    double precision          , allocatable  , dimension(:,:,:,:,:) :: arrayOrdered
-    integer                                                         :: i           , j
-
+    integer         (c_size_t), intent(in   ), dimension(3        ) :: dimension_, index_
+    integer         (c_size_t)               , dimension(2        ) :: shape__   , dimension__
+    integer         (c_size_t)               , dimension(5        ) :: index__
+    integer         (c_size_t)                                      :: i1        , i2
+    
     ! Validate inputs.
     if (any(dimension_ < 1 .or. dimension_ > 5)) call Error_Report('dimension is out of range'//{introspection:location})
-    do i=1,2
-       if (any(dimension_(i) == dimension_(i+1:3))) call Error_Report('duplicated dimension'//{introspection:location})
+    do i1=1,2
+       if (any(dimension_(i1) == dimension_(i1+1:3))) call Error_Report('duplicated dimension'//{introspection:location})
     end do
-    ! Permute the array so the dimensions to remove are the final three.
-    j=0
-    do i=1,5
-       if (.not.any(dimension_ == i)) then
-          j             =j+1
-          permutation(j)=               i
-          shape_     (j)=size(array,dim=i)
+    ! Identify the dimensions that are *not* to be sliced away.
+    i2=0
+    do i1=1,5
+       if (.not.any(dimension_ == i1)) then
+          i2             =i2+1
+          dimension__(i2)=               i1
+          shape__    (i2)=size(array,dim=i1)
        end if
     end do
-    permutation(3)=               dimension_(1)
-    permutation(4)=               dimension_(2)
-    permutation(5)=               dimension_(3)
-    shape_     (3)=size(array,dim=dimension_(1))
-    shape_     (4)=size(array,dim=dimension_(2))
-    shape_     (5)=size(array,dim=dimension_(3))
-    arrayOrdered=reshape(array,shape_,order=permutation)
-    ! Slice the final three dimensions of the re-ordered array to get out request slice.
-    !![
-    <allocate variable="slice" shape="shape_"/>
-    !!]
-    slice=arrayOrdered(:,:,index_(1),index_(2),index_(3))
+    ! Allocate our result with dimensions matched to those that will be retained.
+    allocate(slice(shape__(1),shape__(2)))
+    ! Set the fixed indices for slicing.
+    index__(dimension_(1))=index_(1)
+    index__(dimension_(2))=index_(2)
+    index__(dimension_(3))=index_(3)
+    ! Iterate over the dimensions to be retained.
+    do    i1=1,size(array,dim=dimension__(1))
+       do i2=1,size(array,dim=dimension__(2))
+          ! Select out elements of the slice.
+          index__(dimension__(1))=i1
+          index__(dimension__(2))=i2
+          slice(i1,i2)=array(index__(1),index__(2),index__(3),index__(4),index__(5))
+       end do
+    end do
     return
   end function slice5Dto2D
   
