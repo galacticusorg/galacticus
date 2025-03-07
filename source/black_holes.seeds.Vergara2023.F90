@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Matías Liempi
+
   !!{
   Implements a black hole seed based on collapse of nuclear star clusters due to runaway stellar collisions.
   !!}

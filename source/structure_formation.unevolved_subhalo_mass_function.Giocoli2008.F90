@@ -13,12 +13,12 @@
 !!    but WITHOUT ANY WARRANTY; without even the implied warranty of
 !!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 !!    GNU General Public License for more details.
-!!
+!!k
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a \cite{giocoli_population_2008} unevolved dark matter subhalo mass function class.
+Implements a \cite{giocoli_population_2008} unevolved dark matter subhalo mass function class.
 !!}
 
   !![

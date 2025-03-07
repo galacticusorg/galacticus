@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Matías Liempi
+
 !!{
 Contains a module which provides a class that implements rates of gas inflows onto nuclear star clusters.
 !!}

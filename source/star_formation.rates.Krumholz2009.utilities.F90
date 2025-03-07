@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Matías Liempi
+
   !!{  
   Contains a module that implements various useful utility functions for calculations for the \cite{krumholz_star_2009}
   star formation surface density rate law.
