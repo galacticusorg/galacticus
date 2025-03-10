@@ -878,9 +878,9 @@ contains
              !! Extract the string being compared to.
              valueTest=trim(condition)
              ! Get the value of the parameter.
-             countNames=String_Count_Words(parameterName,":")
+             countNames=String_Count_Words(parameterName,"/")
              allocate(parameterNames(countNames))
-             call String_Split_Words(parameterNames,parameterName,":")
+             call String_Split_Words(parameterNames,parameterName,"/")
              parameterLeafName=parameterNames(countNames)
              parameterTest => currentParameter
              if (trim(parameterNames(1)) /= "." .and. trim(parameterNames(1)) /= "..") then
@@ -1786,9 +1786,9 @@ contains
     character(len=parameterLengthMaximum), dimension(:) , allocatable :: parameterNames
     integer                                                           :: countNames       , i
     
-    countNames=String_Count_Words(parameterPath,":")
+    countNames=String_Count_Words(parameterPath,"/")
     allocate(parameterNames(countNames))
-    call String_Split_Words(parameterNames,parameterPath,":")
+    call String_Split_Words(parameterNames,parameterPath,"/")
     parameterName  =  parameterNames(countNames)
     rootParameters => self
     subParameters  => null          (          )
