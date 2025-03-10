@@ -176,7 +176,7 @@ contains
     Internal constructor for the {\normalfont \ttfamily sed} property extractor class.
     !!}
     use :: Atomic_Data                     , only : Abundance_Pattern_Lookup
-    use :: Galactic_Structure_Options      , only : componentTypeDisk       , componentTypeSpheroid
+    use :: Galactic_Structure_Options      , only : componentTypeDisk       , componentTypeSpheroid, componentTypeNuclearStarCluster
     use :: Error                           , only : Error_Report
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
     implicit none
@@ -196,11 +196,13 @@ contains
     <constructorAssign variables="component, frame, wavelengthMinimum, wavelengthMaximum, resolution, toleranceRelative, *stellarPopulationSpectra_, *stellarPopulationSpectraPostprocessor_, *starFormationHistory_, *outputTimes_, *cosmologyFunctions_"/>
     !!]
     
-    if     (                                                                                                               &
-         &   component /= componentTypeDisk                                                                                &
-         &  .and.                                                                                                          &
-         &   component /= componentTypeSpheroid                                                                            &
-         & ) call Error_Report("only 'disk' and 'spheroid' components are supported"//{introspection:location})
+    if     (                                                                                                                          &
+         &   component /= componentTypeDisk                                                                                           &
+         &  .and.                                                                                                                     &
+         &   component /= componentTypeSpheroid                                                                                       &
+         &  .and.                                                                                                                     &
+         &   component /= componentTypeNuclearStarCluster                                                                             &
+         & ) call Error_Report("only 'disk', 'spheroid' and 'nuclearStarCluster' components are supported"//{introspection:location})
     call self%stellarPopulationSpectra_%wavelengths(self%countWavelengths                   ,self%wavelengths_              )
     call self%stellarPopulationSpectra_%tabulation (     agesCount       ,metallicitiesCount,     ages        ,metallicities)    
     self%metallicityBoundaries       =self%starFormationHistory_%metallicityBoundaries()
@@ -324,8 +326,8 @@ contains
     !!{
     Implement a {\normalfont \ttfamily sed} property extractor.
     !!}
-    use :: Galacticus_Nodes          , only : nodeComponentDisk, nodeComponentSpheroid
-    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid
+    use :: Galacticus_Nodes          , only : nodeComponentDisk, nodeComponentSpheroid, nodeComponentNSC
+    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNuclearStarCluster
     use :: Histories                 , only : history
     implicit none
     double precision                          , dimension(:,:  )          , allocatable :: sedExtract
@@ -335,6 +337,7 @@ contains
     type            (multiCounter            ), intent(inout)   , optional              :: instance
     class           (nodeComponentDisk       )                  , pointer               :: disk
     class           (nodeComponentSpheroid   )                  , pointer               :: spheroid
+    class           (nodeComponentNSC        )                  , pointer               :: nuclearStarCluster
     double precision                          , dimension(:,:,:), pointer               :: sedTemplate_
     double precision                          , dimension(:,:,:), target  , allocatable :: sedTemplate
     double precision                          , dimension(  :,:)          , allocatable :: masses
@@ -347,12 +350,15 @@ contains
     sedExtract=0.0d0
     ! Get the relevant star formation history.
     select case (self%component%ID)
-    case (componentTypeDisk    %ID)
-       disk                 => node    %disk                ()
-       starFormationHistory =  disk    %starFormationHistory()
-    case (componentTypeSpheroid%ID)
-       spheroid             => node    %spheroid            ()
-       starFormationHistory =  spheroid%starFormationHistory()
+    case (componentTypeDisk               %ID)
+       disk                 => node              %disk                ()
+       starFormationHistory =  disk              %starFormationHistory()
+    case (componentTypeSpheroid           %ID)
+       spheroid             => node              %spheroid            ()
+       starFormationHistory =  spheroid          %starFormationHistory()
+     case (componentTypeNuclearStarCluster%ID)
+       nuclearStarCluster   => node              %NSC                 ()
+       starFormationHistory =  nuclearStarCluster%starFormationHistory()
     end select
     if (.not.starFormationHistory%exists()) return
     ! Get the index of the template to use.

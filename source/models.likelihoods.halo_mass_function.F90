@@ -72,15 +72,16 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (posteriorSampleLikelihoodHaloMassFunction)                :: self
-    type            (inputParameters                          ), intent(inout) :: parameters
-    type            (varying_string                           )                :: fileName           , baseParametersFileName
-    double precision                                                           :: redshift           , massRangeMinimum                  , &
-         &                                                                        massRangeMaximum   , varianceFractionalModelDiscrepancy
-    integer                                                                    :: binCountMinimum
-    logical                                                                    :: likelihoodPoisson  , report
-    type            (inputParameters                          ), pointer       :: parametersModel
-    class           (cosmologyFunctionsClass                  ), pointer       :: cosmologyFunctions_
+    type            (posteriorSampleLikelihoodHaloMassFunction)                              :: self
+    type            (inputParameters                          ), intent(inout)               :: parameters
+    type            (inputParameters                          ), pointer                     :: parametersModel
+    class           (cosmologyFunctionsClass                  ), pointer                     :: cosmologyFunctions_
+    type            (varying_string                           ), allocatable  , dimension(:) :: changeParametersFileNames
+    type            (varying_string                           )                              :: fileName                 , baseParametersFileName
+    double precision                                                                         :: redshift                 , massRangeMinimum                  , &
+         &                                                                                      massRangeMaximum         , varianceFractionalModelDiscrepancy
+    integer                                                                                  :: binCountMinimum
+    logical                                                                                  :: likelihoodPoisson        , report
 
     !![
     <inputParameter>
@@ -133,12 +134,22 @@ contains
       <source>parameters</source>
     </inputParameter>
     !!]
+    allocate(changeParametersFileNames(parameters%count('changeParametersFileNames',zeroIfNotPresent=.true.)))
+    if (size(changeParametersFileNames) > 0) then
+       !![
+       <inputParameter>
+	 <name>changeParametersFileNames</name>
+	 <description>The names of files containing parameter changes to be applied.</description>
+	 <source>parameters</source>
+       </inputParameter>
+       !!]
+    end if
     allocate(parametersModel)
-    parametersModel=inputParameters(baseParametersFileName,noOutput=.true.)
+    parametersModel=inputParameters(baseParametersFileName,noOutput=.true.,changeFiles=changeParametersFileNames)
     !![
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parametersModel"/>
     !!]
-    self=posteriorSampleLikelihoodHaloMassFunction(char(fileName),redshift,massRangeMinimum,massRangeMaximum,binCountMinimum,likelihoodPoisson,varianceFractionalModelDiscrepancy,report,parametersModel,cosmologyFunctions_)
+    self=posteriorSampleLikelihoodHaloMassFunction(char(fileName),redshift,massRangeMinimum,massRangeMaximum,binCountMinimum,likelihoodPoisson,varianceFractionalModelDiscrepancy,report,parametersModel,changeParametersFileNames,cosmologyFunctions_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_" />
@@ -148,7 +159,7 @@ contains
     return
   end function haloMassFunctionConstructorParameters
 
-  function haloMassFunctionConstructorInternal(fileName,redshift,massRangeMinimum,massRangeMaximum,binCountMinimum,likelihoodPoisson,varianceFractionalModelDiscrepancy,report,parametersModel,cosmologyFunctions_) result(self)
+  function haloMassFunctionConstructorInternal(fileName,redshift,massRangeMinimum,massRangeMaximum,binCountMinimum,likelihoodPoisson,varianceFractionalModelDiscrepancy,report,parametersModel,changeParametersFileNames,cosmologyFunctions_) result(self)
     !!{
     Constructor for ``haloMassFunction'' posterior sampling likelihood class.
     !!}
@@ -169,6 +180,7 @@ contains
     logical                                                    , intent(in   )                 :: likelihoodPoisson             , report
     type            (inputParameters                          ), intent(inout), target         :: parametersModel
     class           (cosmologyFunctionsClass                  ), intent(inout), target         :: cosmologyFunctions_
+    type            (varying_string                           ), intent(in   ), dimension(:  ) :: changeParametersFileNames
     double precision                                           , allocatable  , dimension(:  ) :: eigenValueArray               , massOriginal                      , &
          &                                                                                        massFunctionOriginal
     integer         (c_size_t                                 ), allocatable  , dimension(:  ) :: massFunctionCountOriginal
@@ -182,7 +194,7 @@ contains
     type            (matrix                                   )                                :: eigenVectors
     type            (vector                                   )                                :: eigenValues
     !![
-    <constructorAssign variables="fileName, redshift, binCountMinimum, massRangeMinimum, massRangeMaximum, likelihoodPoisson, varianceFractionalModelDiscrepancy, report, *parametersModel, *cosmologyFunctions_"/>
+    <constructorAssign variables="fileName, redshift, binCountMinimum, massRangeMinimum, massRangeMaximum, likelihoodPoisson, varianceFractionalModelDiscrepancy, report, changeParametersFileNames, *parametersModel, *cosmologyFunctions_"/>
     !!]
 
     ! Convert redshift to time.

@@ -39,7 +39,8 @@
      !!}
      private
      integer:: stellarMassFormedDiskID    , timeStellarMassFormedDiskID    , &
-          &    stellarMassFormedSpheroidID, timeStellarMassFormedSpheroidID
+          &    stellarMassFormedSpheroidID, timeStellarMassFormedSpheroidID, &
+          &    stellarMassFormedNSCID     , timeStellarMassFormedNSCID     
    contains
      procedure :: elementCount => agesStellarMassWeightedElementCount
      procedure :: extract      => agesStellarMassWeightedExtract
@@ -82,10 +83,12 @@ contains
     type(nodePropertyExtractorAgesStellarMassWeighted) :: self
     
     !![
-    <addMetaProperty component="disk"     name="agesStellarMassFormed"     id="self%stellarMassFormedDiskID"         isEvolvable="yes" isCreator="no"/>
-    <addMetaProperty component="disk"     name="agesTimeStellarMassFormed" id="self%timeStellarMassFormedDiskID"     isEvolvable="yes" isCreator="no"/>
-    <addMetaProperty component="spheroid" name="agesStellarMassFormed"     id="self%stellarMassFormedSpheroidID"     isEvolvable="yes" isCreator="no"/>
-    <addMetaProperty component="spheroid" name="agesTimeStellarMassFormed" id="self%timeStellarMassFormedSpheroidID" isEvolvable="yes" isCreator="no"/>
+    <addMetaProperty component="disk"     name="agesStellarMassFormed"     id="self%stellarMassFormedDiskID"         isEvolvable="yes" isCreator="no" />
+    <addMetaProperty component="disk"     name="agesTimeStellarMassFormed" id="self%timeStellarMassFormedDiskID"     isEvolvable="yes" isCreator="no" />
+    <addMetaProperty component="spheroid" name="agesStellarMassFormed"     id="self%stellarMassFormedSpheroidID"     isEvolvable="yes" isCreator="no" />
+    <addMetaProperty component="spheroid" name="agesTimeStellarMassFormed" id="self%timeStellarMassFormedSpheroidID" isEvolvable="yes" isCreator="no" />
+    <addMetaProperty component="NSC"      name="agesStellarMassFormed"     id="self%stellarMassFormedNSCID"          isEvolvable="yes" isCreator="no" />
+    <addMetaProperty component="NSC"      name="agesTimeStellarMassFormed" id="self%timeStellarMassFormedNSCID"      isEvolvable="yes" isCreator="no" />
     !!]
     return
   end function agesStellarMassWeightedConstructorInternal
@@ -99,7 +102,7 @@ contains
     double precision                                              , intent(in   ) :: time
     !$GLC attributes unused :: self, time
 
-    agesStellarMassWeightedElementCount=2
+    agesStellarMassWeightedElementCount=3
     return
   end function agesStellarMassWeightedElementCount
 
@@ -107,7 +110,7 @@ contains
     !!{
     Implement a agesStellarMassWeighted output extractor.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid
+    use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, nodeComponentNSC
     implicit none
     double precision                                              , dimension(:) , allocatable :: agesStellarMassWeightedExtract
     class           (nodePropertyExtractorAgesStellarMassWeighted), intent(inout), target      :: self
@@ -116,52 +119,81 @@ contains
     type            (multiCounter                                ), intent(inout), optional    :: instance
     class           (nodeComponentDisk                           )               , pointer     :: disk
     class           (nodeComponentSpheroid                       )               , pointer     :: spheroid
-    double precision                                                                           :: massStellarDisk               , massTimeStellarDisk    , &
-         &                                                                                        massStellarSpheroid           , massTimeStellarSpheroid, &
-         &                                                                                        ageDisk                       , ageSpheroid
+    class           (nodeComponentNSC                            )               , pointer     :: nuclearStarCluster
+
+    double precision                                                                           :: massStellarDisk               , massTimeStellarDisk              , &
+         &                                                                                        massStellarSpheroid           , massTimeStellarSpheroid          , &
+         &                                                                                        massStellarNuclearStarCluster , massTimeStellarNuclearStarCluster, &
+         &                                                                                        ageDisk                       , ageSpheroid                      , &
+         &                                                                                        ageNuclearStarCluster              
     !$GLC attributes unused :: time, instance
 
     ! Extract required quantities.
-    disk     => node%disk    ()
-    spheroid => node%spheroid()
-    select type (disk    )
+    disk               => node%disk    ()
+    spheroid           => node%spheroid()
+    nuclearStarCluster => node%NSC     ()
+
+    select type (disk              )
     type is (nodeComponentDisk    )
        ! Disk does not yet exist.
-       massStellarDisk        =0.0d0
-       massTimeStellarDisk    =0.0d0
+       massStellarDisk                   =0.0d0
+       massTimeStellarDisk               =0.0d0
     class default
-       massStellarDisk        =disk    %floatRank0MetaPropertyGet(self%    stellarMassFormedDiskID    )
-       massTimeStellarDisk    =disk    %floatRank0MetaPropertyGet(self%timeStellarMassFormedDiskID    )
+       massStellarDisk                   =disk               %floatRank0MetaPropertyGet(self%    stellarMassFormedDiskID    )
+       massTimeStellarDisk               =disk               %floatRank0MetaPropertyGet(self%timeStellarMassFormedDiskID    )
     end select
-    select type (spheroid)
+
+    select type (spheroid          )
     type is (nodeComponentSpheroid)
        ! Spheroid does not yet exist.
-       massStellarSpheroid    =0.0d0
-       massTimeStellarSpheroid=0.0d0
+       massStellarSpheroid               =0.0d0
+       massTimeStellarSpheroid           =0.0d0
     class default
-       massStellarSpheroid    =spheroid%floatRank0MetaPropertyGet(self%    stellarMassFormedSpheroidID)
-       massTimeStellarSpheroid=spheroid%floatRank0MetaPropertyGet(self%timeStellarMassFormedSpheroidID)
+       massStellarSpheroid               =spheroid           %floatRank0MetaPropertyGet(self%    stellarMassFormedSpheroidID)
+       massTimeStellarSpheroid           =spheroid           %floatRank0MetaPropertyGet(self%timeStellarMassFormedSpheroidID)
     end select
+
+    select type (nuclearStarCluster)
+    type is (nodeComponentNSC     )
+        ! Nuclear star cluster does not yet exist.
+        massStellarNuclearStarCluster    =0.0d0
+        massTimeStellarNuclearStarCluster=0.0d0
+    class default
+        massStellarNuclearStarCluster    =nuclearStarCluster%floatRank0MetaPropertyGet(self%    stellarMassFormedNSCID      )
+        massTimeStellarNuclearStarCluster=nuclearStarCluster%floatRank0MetaPropertyGet(self%timeStellarMassFormedNSCID      ) 
+    end select     
     ! Compute ages.
+
     if (massStellarDisk > 0.0d0) then
-       ageDisk    =+time                    &
-            &      -massTimeStellarDisk     &
-            &      /massStellarDisk
+       ageDisk              =+time                              &
+            &                -massTimeStellarDisk               &
+            &                /massStellarDisk
     else
-       ageDisk    =-1.0d0
+       ageDisk              =-1.0d0
     end if
+
     if (massStellarSpheroid > 0.0d0) then
-       ageSpheroid=+time                    &
-            &      -massTimeStellarSpheroid &
-            &      /massStellarSpheroid
+       ageSpheroid          =+time                              &
+            &                -massTimeStellarSpheroid           &
+            &                /massStellarSpheroid
     else
-       ageSpheroid=-1.0d0
+       ageSpheroid          =-1.0d0
     end if
+
+    if (massStellarNuclearStarCluster > 0.0d0) then
+       ageNuclearStarCluster=+time                              &
+            &                -massTimeStellarNuclearStarCluster &
+            &                /massStellarNuclearStarCluster
+    else
+       ageNuclearStarCluster     =-1.0d0
+    end if 
+
     ! Set return results.
-    allocate(agesStellarMassWeightedExtract(2))
-    agesStellarMassWeightedExtract=[             &
-         &                          ageDisk    , &
-         &                          ageSpheroid  &
+    allocate(agesStellarMassWeightedExtract(3))
+    agesStellarMassWeightedExtract=[                       &
+         &                          ageDisk              , &
+         &                          ageSpheroid          , &
+         &                          ageNuclearStarCluster  &
          &                         ]
     return
   end function agesStellarMassWeightedExtract
@@ -176,9 +208,10 @@ contains
     type            (varying_string                              ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: self, time
 
-    allocate(names(2))
-    names(1)=var_str('diskAgeStellarMassWeighted'    )
-    names(2)=var_str('spheroidAgeStellarMassWeighted')
+    allocate(names(3))
+    names(1)=var_str('diskAgeStellarMassWeighted'              )
+    names(2)=var_str('spheroidAgeStellarMassWeighted'          )
+    names(3)=var_str('nuclearStarClusterAgeStellarMassWeighted')
     return
   end subroutine agesStellarMassWeightedNames
 
@@ -192,9 +225,10 @@ contains
     type            (varying_string                              ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: self, time
 
-    allocate(descriptions(2))
-    descriptions(1)=var_str('Stellar mass-weighted age of the disk [Gyr].'    )
-    descriptions(2)=var_str('Stellar mass-weighted age of the spehroid [Mpc].')
+    allocate(descriptions(3))
+    descriptions(1)=var_str('Stellar mass-weighted age of the disk [Gyr].'                )
+    descriptions(2)=var_str('Stellar mass-weighted age of the spheroid [Gyr].'            )
+    descriptions(3)=var_str('stellar mass-weighted age of the nuclear star cluster [Gyr].')
     return
   end subroutine agesStellarMassWeightedDescriptions
 
@@ -209,7 +243,7 @@ contains
     double precision                                              , intent(in   )              :: time
    !$GLC attributes unused :: self, time
 
-    allocate(agesStellarMassWeightedUnitsInSI(2))
+    allocate(agesStellarMassWeightedUnitsInSI(3))
     agesStellarMassWeightedUnitsInSI=gigaYear
     return
   end function agesStellarMassWeightedUnitsInSI

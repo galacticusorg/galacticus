@@ -13,10 +13,10 @@
   <outputFileName value="galacticus.hdf5"/>
 
   <posteriorSampleLikelihood value="galaxyPopulation">
-    <baseParametersFileName   value="parameters/tutorials/mcmcBase.xml"/>
-    <failedParametersFileName value="./failedParameters.xml"           />
-    <randomize                value="false"                            />
-    <evolveForestsVerbosity   value="silent"                           />
+    <baseParametersFileName    value="parameters/tutorials/mcmcBase.xml"/>
+    <failedParametersFileName  value="./failedParameters.xml"           />
+    <randomize                 value="false"                            />
+    <evolveForestsVerbosity    value="silent"                           />
   </posteriorSampleLikelihood>
 
   <!-- MCMC -->
@@ -67,7 +67,7 @@
 
      <!-- Feedback -->
      <modelParameter value="active">
-       <name value="nodeOperator::nodeOperator[8]::stellarFeedbackOutflows::stellarFeedbackOutflows::velocityCharacteristic"/>
+       <name value="nodeOperator/nodeOperator[@value='stellarFeedbackDisks']/stellarFeedbackOutflows/stellarFeedbackOutflows/velocityCharacteristic"/>
        <distributionFunction1DPrior value="uniform">
 	 <limitLower value="25.0"/>
 	 <limitUpper value="500.0"/>

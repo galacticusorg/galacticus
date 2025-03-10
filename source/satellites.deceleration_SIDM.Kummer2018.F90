@@ -238,8 +238,8 @@ contains
        kinematicsHost_             =>  massDistributionHost_                      %kinematicsDistribution(               )
        coordinates                 =  [radiusHalfMass,0.0d0,0.0d0]
        coordinatesHost             =  [radiusOrbital ,0.0d0,0.0d0]
-       velocityDispersionHost      =  +kinematicsHost_                            %velocityDispersion1D  (coordinatesHost,massDistributionHost_)
-       velocityDispersionSatellite =  +kinematics_                                %velocityDispersion1D  (coordinates    ,massDistribution_    )
+       velocityDispersionHost      =  +kinematicsHost_                            %velocityDispersion1D  (coordinatesHost,massDistributionHost_,massDistributionHost_)
+       velocityDispersionSatellite =  +kinematics_                                %velocityDispersion1D  (coordinates    ,massDistribution_    ,massDistribution_    )
        velocityDispersion          =  +sqrt(                                &
             &                               +velocityDispersionHost     **2 &
             &                               +velocityDispersionSatellite**2 &

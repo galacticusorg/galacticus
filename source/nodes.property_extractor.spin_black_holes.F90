@@ -95,7 +95,7 @@ contains
     end do
     return
   end function spinBlackHolesExtract
-  
+
   subroutine spinBlackHolesNames(self,names)
     !!{
     Return the names of the {\normalfont \ttfamily spinBlackHoles} properties.

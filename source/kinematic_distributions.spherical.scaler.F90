@@ -120,31 +120,33 @@ contains
     return
   end function kinematicsSphericalScalerIsCollisional
 
-  double precision function kinematicsSphericalScalerVelocityDispersion1D(self,coordinates,massDistributionEmbedding) result(velocityDispersion)
+  double precision function kinematicsSphericalScalerVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
     !!{
     Return the 1D velocity dispersion at the specified {\normalfont \ttfamily coordinates} in a spherical scaler kinematic distribution.
     !!}
     implicit none
-    class(kinematicsDistributionSphericalScaler), intent(inout), target :: self
-    class(coordinate                           ), intent(in   )         :: coordinates
-    class(massDistributionClass                ), intent(inout)         :: massDistributionEmbedding
+    class(kinematicsDistributionSphericalScaler), intent(inout)          :: self
+    class(coordinate                           ), intent(in   )          :: coordinates
+    class(massDistributionClass                ), intent(inout), target  :: massDistribution_  , massDistributionEmbedding
+    class(massDistributionClass                )               , pointer :: massDistribution__
 
-    if (associated(massDistributionEmbedding%kinematicsDistribution_,self)) then
+    massDistribution__ => massDistribution_
+    if (associated(massDistribution__,massDistributionEmbedding)) then
        ! For the case of a self-gravitating scaled distribution we have an analytic solution for the velocity dispersion.
        select type (massDistributionEmbedding)
        class is (massDistributionSphericalScaler)
-          velocityDispersion=+sqrt(                                                                                                      &
-               &                   +self%factorScalingMass                                                                               &
-               &                   /self%factorScalingLength                                                                             &
-               &                  )                                                                                                      &
-               &             *self%kinematicsDistribution_%velocityDispersion1D(coordinates,massDistributionEmbedding%massDistribution_)
+          velocityDispersion=+sqrt(                                                                                                                                                  &
+               &                   +self%factorScalingMass                                                                                                                           &
+               &                   /self%factorScalingLength                                                                                                                         &
+               &                  )                                                                                                                                                  &
+               &             *self%kinematicsDistribution_%velocityDispersion1D(coordinates,massDistributionEmbedding%massDistribution_,massDistributionEmbedding%massDistribution_)
        class default
           velocityDispersion=0.0d0
           call Error_Report('expecting a spherical scaler mass distribution, but received '//char(massDistributionEmbedding%objectType())//{introspection:location})
        end select
     else
        ! Our scaled distribution is embedded in another distribution. We must compute the velocity dispersion numerically.
-       velocityDispersion=self%velocityDispersion1DNumerical(coordinates,massDistributionEmbedding)
+       velocityDispersion=self%velocityDispersion1DNumerical(coordinates,massDistribution_,massDistributionEmbedding)
     end if
     return
   end function kinematicsSphericalScalerVelocityDispersion1D

@@ -65,34 +65,39 @@ my $hashHead;
 }
 ## Find last modified hash.
 my $hashLastModified;
-if ( exists($options{'lastModifiedRevision'}) ) {
-    $hashLastModified = $options{'lastModifiedRevision'};
-} elsif ( $isInGit ) {
-    # File is in git index, use git to determine the last revision at which it was modified.
-    ## Find the hash at which the file was last modified.
-    {
-	open(my $git,"git log -n 1 --pretty=format:\%H -- ".$inputFileName."|");
-	$hashLastModified = <$git>;
-	chomp($hashLastModified);
-    }
-} else {
-    # Look for a last modification hash.
-    my $elementLastModified = $root->findnodes('//lastModified')->[0];
-    if ( defined($elementLastModified) ) {
-	# A last modified element exists, extract the hash, and update.
-	$hashLastModified = $elementLastModified->getAttribute('revision');
-   }
-}
-## Update the last modified metadata.
-my $elementLastModified = $root->findnodes('lastModified')->[0];
+my $elementLastModified = $root->findnodes('//lastModified')->[0];
 unless ( defined($elementLastModified) ) {
-    $hashLastModified           = "6eab8997cd73cb0a474228ade542d133890ad138^";
     my $elementLastModifiedNode = $input->createElement("lastModified");
     my $newBreak                = $input->createTextNode("\n  "   );
     $root->insertBefore($elementLastModifiedNode,$root->firstChild());
-    $root->insertBefore($newBreak               ,$root->firstChild());    
+    $root->insertBefore($newBreak               ,$root->firstChild());
     $elementLastModified = $root->findnodes('lastModified')->[0];
 }
+if ( exists($options{'lastModifiedRevision'}) ) {
+    $hashLastModified = $options{'lastModifiedRevision'};
+} else {
+    # Look for a last modification hash.
+    if ( defined($elementLastModified) && grep {$_->name() eq 'revision'} $elementLastModified->attributes() ) {
+	# A last modified element exists, extract the hash, and update.
+	$hashLastModified = $elementLastModified->getAttribute('revision');
+    } elsif ( $isInGit ) {
+	# File is in git index, use git to determine the last revision at which it was modified.
+	## Find the hash at which the file was last modified.
+	{
+	    open(my $git,"git log -n 1 --pretty=format:\%H -- ".$inputFileName."|");
+	    $hashLastModified = <$git>;
+	    chomp($hashLastModified);
+	}
+    } else {
+	$hashLastModified           = "6eab8997cd73cb0a474228ade542d133890ad138^";
+	my $elementLastModifiedNode = $input->createElement("lastModified");
+	my $newBreak                = $input->createTextNode("\n  "   );
+	$root->insertBefore($elementLastModifiedNode,$root->firstChild());
+	$root->insertBefore($newBreak               ,$root->firstChild());
+	$elementLastModified = $root->findnodes('lastModified')->[0];
+    }
+}
+## Update the last modified metadata.
 $elementLastModified->setAttribute('revision',$hashHead);
 $elementLastModified->setAttribute('time'    ,DateTime->now());
 
@@ -353,8 +358,10 @@ sub blackHoleSeedMass {
     my $parameters = shift();
     # Look for "componentBlackHole" parameters.
     my $massSeed = 100.0; # This was the default value, to be used if no value was explicitly set.
+    my $componentBlackHole;
     foreach my $node ( $parameters->findnodes("//componentBlackHole[\@value='simple' or \@value='standard' or \@value='nonCentral']/massSeed[\@value]")->get_nodelist() ) {
 	print "   translate special '//componentBlackHole[\@value]/massSeed[\@value]'\n";
+	$componentBlackHole = $node->parentNode;
 	# Extract the seed mass.
 	$massSeed = $node->getAttribute('value');
 	# Delete this node.
@@ -376,11 +383,15 @@ sub blackHoleSeedMass {
     $massNode    ->setAttribute('value',$massSeed       );
     $spinNode    ->setAttribute('value',0.0             );
     # Assemble our new nodes.
-    $operatorNode->addChild($seedNode);
     $seedNode    ->addChild($massNode);
     $seedNode    ->addChild($spinNode);
     # Insert the new parameters.
     $nodeOperators[0]->insertAfter($operatorNode,$nodeOperators[0]->lastChild);
+    if ( defined($componentBlackHole) ) {
+	$componentBlackHole->parentNode->insertAfter($seedNode,$componentBlackHole);
+    } else {
+	$parameters->addChild($seedNode);
+    }
 }
 
 sub blackHolePhysics {
@@ -522,6 +533,23 @@ sub blackHolePhysics {
 	    $efficiencyNode            ->setAttribute('value'        ,$componentProperties->{'efficiencyRadioMode'});
 	    $heatingNode               ->addChild    ($efficiencyNode                                              );
 	    $componentNode ->parentNode->insertAfter ($heatingNode   ,$componentNode                               );
+	}
+    }
+}
+
+sub modelParameterXPath {
+    # Special handling to switch `modelParameter` names to use XPath syntax.
+    my $input      = shift();
+    my $parameters = shift();
+    # Look for "modelParameter" parameters.
+    foreach my $modelParameter ( $parameters->findnodes("//modelParameter[\@value='active' or \@value='inactive']")->get_nodelist() ) {
+	print "   translate special '//modelParameter[\@value]'\n";
+	# Process `name` nodes.
+	foreach my $nameNode ( $modelParameter->findnodes("name") ) {
+	    my $value = $nameNode->getAttribute('value');	    
+	    $value =~ s/::/\//g;                               # Translate the old `::` separator to XPath standard `/`.
+	    $value =~ s/([\[\{])(\d+)([\]\}])/$1.($2+1).$3/ge; # Increment indices to XPath standard 1-indexing.
+	    $nameNode->setAttribute('value',$value);	    
 	}
     }
 }

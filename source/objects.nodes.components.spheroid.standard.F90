@@ -169,10 +169,11 @@ module Node_Component_Spheroid_Standard
   ! Storage for the star formation and stellar properties histories time range, used when extending this range.
   double precision, allocatable, dimension(:) :: starFormationHistoryTemplate   , stellarPropertiesHistoryTemplate
   !$omp threadprivate(starFormationHistoryTemplate,stellarPropertiesHistoryTemplate)
+
   ! Parameters controlling the physical implementation.
   double precision                            :: efficiencyEnergeticOutflow     , toleranceAbsoluteMass           , &
        &                                         toleranceRelativeMetallicity
-  logical                                     :: inactiveLuminositiesStellar
+  logical                                     :: inactiveLuminositiesStellar    , postStepZeroNegativeMasses
 
   ! Spheroid structural parameters.
   double precision                            :: ratioAngularMomentumScaleRadius
@@ -244,6 +245,12 @@ contains
          <name>inactiveLuminositiesStellar</name>
          <defaultValue>.false.</defaultValue>
          <description>Specifies whether or not spheroid stellar luminosities are inactive properties (i.e. do not appear in any ODE being solved).</description>
+         <source>subParameters</source>
+       </inputParameter>
+       <inputParameter>
+         <name>postStepZeroNegativeMasses</name>
+         <defaultValue>.true.</defaultValue>
+         <description>If true, negative masses will be zeroed after each ODE step. Note that this can lead to non-conservation of mass.</description>
          <source>subParameters</source>
        </inputParameter>
        !!]
@@ -474,8 +481,8 @@ contains
     type            (history              ), save                   :: historyStellar
     !$omp threadprivate(historyStellar)
 
-    ! Return immediately if this class is not in use.
-    if (.not.defaultSpheroidComponent%standardIsActive()) return
+    ! Return immediately if this class is not in use or if masses are not to be zeroed.
+    if (.not.defaultSpheroidComponent%standardIsActive().or..not.postStepZeroNegativeMasses) return
     ! Get the spheroid component.
     spheroid => node%spheroid()
     ! Check if an standard spheroid component exists.

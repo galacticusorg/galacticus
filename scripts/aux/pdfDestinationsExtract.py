@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import sys
 from PyPDF2 import PdfFileReader
 def pdf_list_anchors(fh,ofh):

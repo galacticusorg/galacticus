@@ -34,7 +34,7 @@
 
   <!-- Cosmological parameters and options -->
   <cosmologyFunctions value="matterLambda"/>
-  <cosmologyParameters value="simple">
+  <cosmologyParameters value="simple" id="refCosmo">
     <HubbleConstant value="70.2"/>
     <OmegaMatter value="0.2725"/>
     <OmegaDarkEnergy value="0.7275"/>
@@ -46,6 +46,7 @@
   <transferFunction value="eisensteinHu1999">
     <neutrinoNumberEffective value="3.046"/>
     <neutrinoMassSummed value="0.000"/>
+    <cosmologyParameters idRef="refCosmo"/>
   </transferFunction>
   <powerSpectrumPrimordial value="powerLaw">
     <index value="0.961"/>
@@ -58,7 +59,6 @@
   </cosmologicalMassVariance>
 
   <!-- Structure formation options -->
-  <linearGrowth value="collisionlessMatter"/>
   <haloMassFunction value="tinker2008"/>
   <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
   <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>

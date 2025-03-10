@@ -34,7 +34,7 @@ module Output_HDF5
   logical               :: outputFileIsOpen      =.false.
 
   ! Galacticus output file object.
-  type   (hdf5Object  ) :: outputFile
+  type   (hdf5Object  ) :: outputFile                   , outputGroup
 
   ! Chunk size.
   integer(kind=HSIZE_T) :: hdf5ChunkSize         =+1
