@@ -370,7 +370,7 @@ contains
           logPriorProposed_=logPriorProposed
        end if
        ! Evaluate this likelihood
-       timeEvaluate_=-1.0
+       timeEvaluate_                                              =  -1.0
        independentLikelihoodsEvaluate                             =  +independentLikelihoodsEvaluate                                                        &
             &                                                        +modelLikelihood_%modelLikelihood_%evaluate(                                           &
             &                                                                                                    modelLikelihood_%simulationState         , &
