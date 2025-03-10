@@ -59,7 +59,7 @@ sub iterate {
 		# Handle any Hubble parameter scaling.
 		if ( $massParticle =~ m/^=/ ) {
 		    $massParticle =~ s/^=//;
-		    $massParticle =~ s/\[cosmologyParameters::HubbleConstant\]/$suite->{'cosmology'}->{'HubbleConstant'}/;
+		    $massParticle =~ s/\[cosmologyParameters\/HubbleConstant\]/$suite->{'cosmology'}->{'HubbleConstant'}/;
 		    $massParticle = eval($massParticle);
 		}
 		$group->{'massParticle'} = $massParticle;
