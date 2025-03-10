@@ -155,7 +155,7 @@ sub iterate {
     # Re-order to avoid spread models with the same power spectrum class. This optimizes load balancing when recalculation of σ(M)
     # is required, allowing different MPI processes to begin with models that have different power spectra and so will store these
     # to different files.
-    if ( $optionsExtra{'stopAfter'} eq "redshift" ) {
+    if ( exists( $options{'reOrder'}) && $options{'reOrder'} eq "yes" && $optionsExtra{'stopAfter'} eq "redshift" ) {
 	my %powerSpectrumClasses;
 	foreach my $entry ( @simulationList ) {
 	    push(@{$powerSpectrumClasses{$entry->{'simulation'}->{'powerSpectrumClass'}->{'value'}}},$entry);
