@@ -852,7 +852,7 @@ contains
              countNewUpper=0
              if (self%initialized) then
                 massMinimum     =min(mass/10.0d0,self%massMinimum)
-                massMaximum     =max(mass *10.0d0,self%massMaximum)
+                massMaximum     =max(mass*10.0d0,self%massMaximum)
              else
                 self%massMinimum=    mass
                 self%massMaximum=    mass
@@ -1429,8 +1429,6 @@ contains
     type            (hdf5Object                           )                              :: dataFile
     integer                                                                              :: i              , useCache
 
-    ! Return immediately if we are not using stored solutions.
-    if (.not.self%storeTabulations) return
     !$omp critical(cosmologicalMassVarianceFilteredPowerCache)
     useCache=0
     if (countCache > 0) then
@@ -1440,7 +1438,7 @@ contains
              exit
           end if
        end do
-    end if
+    end if    
     if (useCache /= 0) then
        timesTmp                        =cachedVariances(useCache)%timesTmp
        massTmp                         =cachedVariances(useCache)%massTmp
@@ -1456,52 +1454,54 @@ contains
        self%timeMaximum                =cachedVariances(useCache)%timeMaximum
        self%timeMinimumLogarithmic     =cachedVariances(useCache)%timeMinimumLogarithmic
        self%timeLogarithmicDeltaInverse=cachedVariances(useCache)%timeLogarithmicDeltaInverse
+       self%initialized                =.true.
     end if
     !$omp end critical(cosmologicalMassVarianceFilteredPowerCache)
-    ! Return immediately if the file does not exist.
+    if (useCache /= 0) return
+    ! Return immediately if we are not using stored solutions.
+    if (.not.self%storeTabulations) return
+     ! Return immediately if the file does not exist.
     if (.not.File_Exists(char(self%fileName))) return
-    if (useCache == 0) then
-       call displayMessage('reading σ(M) data from: '//self%fileName,verbosityLevelWorking)
-       !$ call hdf5Access%set()
-       call dataFile%openFile     (char(self%fileName)          ,overWrite                       =.false.,readOnly=.true.)
-       call dataFile%readDataset  ('times'                      ,     timesTmp                                           )
-       call dataFile%readDataset  ('mass'                       ,     massTmp                                            )
-       call dataFile%readDataset  ('rootVariance'               ,     rootVarianceTmp                                    )
-       call dataFile%readDataset  ('rootVarianceUnique'         ,     rootVarianceUniqueTmp                              )
-       call dataFile%readDataset  ('indexUnique'                ,     indexTmp                                           )
-       call dataFile%readDataset  ('uniqueSize'                 ,     uniqueSizeTmp                                      )
-       call dataFile%readAttribute('sigma8'                     ,self%sigma8Value                                        )
-       call dataFile%readAttribute('sigmaNormalization'         ,self%sigmaNormalization                                 )
-       call dataFile%readAttribute('massMinimum'                ,self%massMinimum                                        )
-       call dataFile%readAttribute('massMaximum'                ,self%massMaximum                                        )
-       call dataFile%readAttribute('timeMinimum'                ,self%timeMinimum                                        )
-       call dataFile%readAttribute('timeMaximum'                ,self%timeMaximum                                        )
-       call dataFile%readAttribute('timeMinimumLogarithmic'     ,self%timeMinimumLogarithmic                             )
-       call dataFile%readAttribute('timeLogarithmicDeltaInverse',self%timeLogarithmicDeltaInverse                        )
-       call dataFile%close        (                                                                                      )
-       !$ call hdf5Access%unset()
-       ! Cache this variance for possible later reuse.
-       !$omp critical(cosmologicalMassVarianceFilteredPowerCache)
-       lastCache=lastCache+1
-       if (lastCache > sizeCache) lastCache=1
-       countCache=max(countCache,lastCache)
-       cachedVariances(lastCache)%fileName                   =self%fileName
-       cachedVariances(lastCache)%timesTmp                   =     timesTmp
-       cachedVariances(lastCache)%massTmp                    =     massTmp
-       cachedVariances(lastCache)%rootVarianceTmp            =     rootVarianceTmp
-       cachedVariances(lastCache)%rootVarianceUniqueTmp      =     rootVarianceUniqueTmp
-       cachedVariances(lastCache)%indexTmp                   =     indexTmp
-       cachedVariances(lastCache)%uniqueSizeTmp              =     uniqueSizeTmp
-       cachedVariances(lastCache)%sigma8Value                =self%sigma8Value
-       cachedVariances(lastCache)%sigmaNormalization         =self%sigmaNormalization
-       cachedVariances(lastCache)%massMinimum                =self%massMinimum
-       cachedVariances(lastCache)%massMaximum                =self%massMaximum
-       cachedVariances(lastCache)%timeMinimum                =self%timeMinimum
-       cachedVariances(lastCache)%timeMaximum                =self%timeMaximum
-       cachedVariances(lastCache)%timeMinimumLogarithmic     =self%timeMinimumLogarithmic
-       cachedVariances(lastCache)%timeLogarithmicDeltaInverse=self%timeLogarithmicDeltaInverse
-       !$omp end critical(cosmologicalMassVarianceFilteredPowerCache)
-    end if
+    call displayMessage('reading σ(M) data from: '//self%fileName,verbosityLevelWorking)
+    !$ call hdf5Access%set()
+    call dataFile%openFile     (char(self%fileName)          ,overWrite                       =.false.,readOnly=.true.)
+    call dataFile%readDataset  ('times'                      ,     timesTmp                                           )
+    call dataFile%readDataset  ('mass'                       ,     massTmp                                            )
+    call dataFile%readDataset  ('rootVariance'               ,     rootVarianceTmp                                    )
+    call dataFile%readDataset  ('rootVarianceUnique'         ,     rootVarianceUniqueTmp                              )
+    call dataFile%readDataset  ('indexUnique'                ,     indexTmp                                           )
+    call dataFile%readDataset  ('uniqueSize'                 ,     uniqueSizeTmp                                      )
+    call dataFile%readAttribute('sigma8'                     ,self%sigma8Value                                        )
+    call dataFile%readAttribute('sigmaNormalization'         ,self%sigmaNormalization                                 )
+    call dataFile%readAttribute('massMinimum'                ,self%massMinimum                                        )
+    call dataFile%readAttribute('massMaximum'                ,self%massMaximum                                        )
+    call dataFile%readAttribute('timeMinimum'                ,self%timeMinimum                                        )
+    call dataFile%readAttribute('timeMaximum'                ,self%timeMaximum                                        )
+    call dataFile%readAttribute('timeMinimumLogarithmic'     ,self%timeMinimumLogarithmic                             )
+    call dataFile%readAttribute('timeLogarithmicDeltaInverse',self%timeLogarithmicDeltaInverse                        )
+    call dataFile%close        (                                                                                      )
+    !$ call hdf5Access%unset()
+    ! Cache this variance for possible later reuse.
+    !$omp critical(cosmologicalMassVarianceFilteredPowerCache)
+    lastCache=lastCache+1
+    if (lastCache > sizeCache) lastCache=1
+    countCache=max(countCache,lastCache)
+    cachedVariances(lastCache)%fileName                   =self%fileName
+    cachedVariances(lastCache)%timesTmp                   =     timesTmp
+    cachedVariances(lastCache)%massTmp                    =     massTmp
+    cachedVariances(lastCache)%rootVarianceTmp            =     rootVarianceTmp
+    cachedVariances(lastCache)%rootVarianceUniqueTmp      =     rootVarianceUniqueTmp
+    cachedVariances(lastCache)%indexTmp                   =     indexTmp
+    cachedVariances(lastCache)%uniqueSizeTmp              =     uniqueSizeTmp
+    cachedVariances(lastCache)%sigma8Value                =self%sigma8Value
+    cachedVariances(lastCache)%sigmaNormalization         =self%sigmaNormalization
+    cachedVariances(lastCache)%massMinimum                =self%massMinimum
+    cachedVariances(lastCache)%massMaximum                =self%massMaximum
+    cachedVariances(lastCache)%timeMinimum                =self%timeMinimum
+    cachedVariances(lastCache)%timeMaximum                =self%timeMaximum
+    cachedVariances(lastCache)%timeMinimumLogarithmic     =self%timeMinimumLogarithmic
+    cachedVariances(lastCache)%timeLogarithmicDeltaInverse=self%timeLogarithmicDeltaInverse
+    !$omp end critical(cosmologicalMassVarianceFilteredPowerCache)
     if (allocated(self%times                  )) deallocate(self%times                  )
     if (allocated(self%rootVarianceTable      )) deallocate(self%rootVarianceTable      )
     if (allocated(self%rootVarianceUniqueTable)) deallocate(self%rootVarianceUniqueTable)
@@ -1548,9 +1548,6 @@ contains
     type            (hdf5Object                           )                              :: dataFile
     integer                                                                              :: i              , useCache
 
-    ! Return immediately if we are not using stored solutions.
-    if (.not.self%storeTabulations) return
-    call displayMessage('writing σ(M) data to: '//self%fileName,verbosityLevelWorking)
     ! Prepare data.
     allocate(massTmp              (self%rootVarianceTable(1)%size()                 ))
     allocate(rootVarianceTmp      (self%rootVarianceTable(1)%size(),size(self%times)))
@@ -1566,29 +1563,8 @@ contains
        rootVarianceUniqueTmp(1:uniqueSizeTmp(i),i  )=     self%rootVarianceUniqueTable(i)%rootVariance
        indexTmp             (1:uniqueSizeTmp(i),i  )=     self%rootVarianceUniqueTable(i)%index
     end do
-    ! Open the data file.
-    !$ call hdf5Access%set()
-    call dataFile%openFile      (char(self%fileName)             ,overWrite                    =.true.,objectsOverwritable=.true.,chunkSize=100_hsize_t,compressionLevel=9)
-    call dataFile%writeDataset  (self%times                      ,'times'                                                                                                 )
-    call dataFile%writeDataset  (     massTmp                    ,'mass'                                                                                                  )
-    call dataFile%writeDataset  (     rootVarianceTmp            ,'rootVariance'                                                                                          )
-    call dataFile%writeDataset  (     rootVarianceUniqueTmp      ,'rootVarianceUnique'                                                                                    )
-    call dataFile%writeDataset  (     indexTmp                   ,'indexUnique'                                                                                           )
-    call dataFile%writeDataset  (     uniqueSizeTmp              ,'uniqueSize'                                                                                            )
-    call dataFile%writeAttribute(self%sigma8Value                ,'sigma8'                                                                                                )
-    call dataFile%writeAttribute(self%sigmaNormalization         ,'sigmaNormalization'                                                                                    )
-    call dataFile%writeAttribute(self%massMinimum                ,'massMinimum'                                                                                           )
-    call dataFile%writeAttribute(self%massMaximum                ,'massMaximum'                                                                                           )
-    call dataFile%writeAttribute(self%timeMinimum                ,'timeMinimum'                                                                                           )
-    call dataFile%writeAttribute(self%timeMaximum                ,'timeMaximum'                                                                                           )
-    call dataFile%writeAttribute(self%timeMinimumLogarithmic     ,'timeMinimumLogarithmic'                                                                                )
-    call dataFile%writeAttribute(self%timeLogarithmicDeltaInverse,'timeLogarithmicDeltaInverse'                                                                           )
-    call dataFile%close         (                                                                                                                                         )
-    !$ call hdf5Access%unset()
     ! Cache this variance for possible later reuse.
     !$omp critical(cosmologicalMassVarianceFilteredPowerCache)
-
-
     useCache=0
     if (countCache > 0) then
        do i=1,countCache
@@ -1627,6 +1603,29 @@ contains
     cachedVariances(useCache)%timeMinimumLogarithmic     =self%timeMinimumLogarithmic
     cachedVariances(useCache)%timeLogarithmicDeltaInverse=self%timeLogarithmicDeltaInverse
     !$omp end critical(cosmologicalMassVarianceFilteredPowerCache)
+    ! Store to file if requested.
+    if (self%storeTabulations) then
+       call displayMessage('writing σ(M) data to: '//self%fileName,verbosityLevelWorking)
+       ! Open the data file.
+       !$ call hdf5Access%set()
+       call dataFile%openFile      (char(self%fileName)             ,overWrite                    =.true.,objectsOverwritable=.true.,chunkSize=100_hsize_t,compressionLevel=9)
+       call dataFile%writeDataset  (self%times                      ,'times'                                                                                                 )
+       call dataFile%writeDataset  (     massTmp                    ,'mass'                                                                                                  )
+       call dataFile%writeDataset  (     rootVarianceTmp            ,'rootVariance'                                                                                          )
+       call dataFile%writeDataset  (     rootVarianceUniqueTmp      ,'rootVarianceUnique'                                                                                    )
+       call dataFile%writeDataset  (     indexTmp                   ,'indexUnique'                                                                                           )
+       call dataFile%writeDataset  (     uniqueSizeTmp              ,'uniqueSize'                                                                                            )
+       call dataFile%writeAttribute(self%sigma8Value                ,'sigma8'                                                                                                )
+       call dataFile%writeAttribute(self%sigmaNormalization         ,'sigmaNormalization'                                                                                    )
+       call dataFile%writeAttribute(self%massMinimum                ,'massMinimum'                                                                                           )
+       call dataFile%writeAttribute(self%massMaximum                ,'massMaximum'                                                                                           )
+       call dataFile%writeAttribute(self%timeMinimum                ,'timeMinimum'                                                                                           )
+       call dataFile%writeAttribute(self%timeMaximum                ,'timeMaximum'                                                                                           )
+       call dataFile%writeAttribute(self%timeMinimumLogarithmic     ,'timeMinimumLogarithmic'                                                                                )
+       call dataFile%writeAttribute(self%timeLogarithmicDeltaInverse,'timeLogarithmicDeltaInverse'                                                                           )
+       call dataFile%close         (                                                                                                                                         )
+       !$ call hdf5Access%unset()
+    end if
     deallocate(rootVarianceTmp      )
     deallocate(rootVarianceUniqueTmp)
     deallocate(indexTmp             )
