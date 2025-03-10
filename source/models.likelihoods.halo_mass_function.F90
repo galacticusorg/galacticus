@@ -44,7 +44,7 @@
           &                                                                          countConversionFactor                       , redshift                 , &
           &                                                                          varianceFractionalModelDiscrepancy
      logical                                                                      :: likelihoodPoisson                           , includeDiscrepancyChecked, &
-          &                                                                          report
+          &                                                                          report                                      , binAverage
      integer                                                                      :: binCountMinimum                             , indexDiscrepancy
      type            (vector                       )                              :: means
      type            (matrix                       )                              :: covariance
@@ -81,7 +81,8 @@ contains
     double precision                                                                         :: redshift                 , massRangeMinimum                  , &
          &                                                                                      massRangeMaximum         , varianceFractionalModelDiscrepancy
     integer                                                                                  :: binCountMinimum
-    logical                                                                                  :: likelihoodPoisson        , report
+    logical                                                                                  :: likelihoodPoisson        , report                            , &
+         &                         binAverage
 
     !![
     <inputParameter>
@@ -133,6 +134,12 @@ contains
       <description>If true, give detailed reporting on likelihood calculations.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>binAverage</name>
+      <defaultValue>.true.</defaultValue>
+      <description>If true, the mass function is averaged over each bin.</description>
+      <source>parameters</source>
+    </inputParameter>
     !!]
     allocate(changeParametersFileNames(parameters%count('changeParametersFileNames',zeroIfNotPresent=.true.)))
     if (size(changeParametersFileNames) > 0) then
@@ -149,7 +156,7 @@ contains
     !![
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parametersModel"/>
     !!]
-    self=posteriorSampleLikelihoodHaloMassFunction(char(fileName),redshift,massRangeMinimum,massRangeMaximum,binCountMinimum,likelihoodPoisson,varianceFractionalModelDiscrepancy,report,parametersModel,changeParametersFileNames,cosmologyFunctions_)
+    self=posteriorSampleLikelihoodHaloMassFunction(char(fileName),redshift,massRangeMinimum,massRangeMaximum,binCountMinimum,likelihoodPoisson,varianceFractionalModelDiscrepancy,binAverage,report,parametersModel,changeParametersFileNames,cosmologyFunctions_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_" />
@@ -159,7 +166,7 @@ contains
     return
   end function haloMassFunctionConstructorParameters
 
-  function haloMassFunctionConstructorInternal(fileName,redshift,massRangeMinimum,massRangeMaximum,binCountMinimum,likelihoodPoisson,varianceFractionalModelDiscrepancy,report,parametersModel,changeParametersFileNames,cosmologyFunctions_) result(self)
+  function haloMassFunctionConstructorInternal(fileName,redshift,massRangeMinimum,massRangeMaximum,binCountMinimum,likelihoodPoisson,varianceFractionalModelDiscrepancy,binAverage,report,parametersModel,changeParametersFileNames,cosmologyFunctions_) result(self)
     !!{
     Constructor for ``haloMassFunction'' posterior sampling likelihood class.
     !!}
@@ -177,7 +184,8 @@ contains
     double precision                                           , intent(in   )                 :: redshift                      , massRangeMinimum                  , &
          &                                                                                        massRangeMaximum              , varianceFractionalModelDiscrepancy
     integer                                                    , intent(in   )                 :: binCountMinimum
-    logical                                                    , intent(in   )                 :: likelihoodPoisson             , report
+    logical                                                    , intent(in   )                 :: likelihoodPoisson             , report                             , &
+         &                           binAverage
     type            (inputParameters                          ), intent(inout), target         :: parametersModel
     class           (cosmologyFunctionsClass                  ), intent(inout), target         :: cosmologyFunctions_
     type            (varying_string                           ), intent(in   ), dimension(:  ) :: changeParametersFileNames
@@ -194,7 +202,7 @@ contains
     type            (matrix                                   )                                :: eigenVectors
     type            (vector                                   )                                :: eigenValues
     !![
-    <constructorAssign variables="fileName, redshift, binCountMinimum, massRangeMinimum, massRangeMaximum, likelihoodPoisson, varianceFractionalModelDiscrepancy, report, changeParametersFileNames, *parametersModel, *cosmologyFunctions_"/>
+    <constructorAssign variables="fileName, redshift, binCountMinimum, massRangeMinimum, massRangeMaximum, likelihoodPoisson, varianceFractionalModelDiscrepancy, binAverage, report, changeParametersFileNames, *parametersModel, *cosmologyFunctions_"/>
     !!]
 
     ! Convert redshift to time.
@@ -383,7 +391,8 @@ contains
          &                                                                                      varianceFractionalModelDiscrepancy       , logLikelihood
     type            (varying_string                           )                              :: message
     character       (len=17                                   )                              :: label
-    !$GLC attributes unused :: simulationConvergence, temperature, timeEvaluate, logLikelihoodCurrent, logPriorCurrent, modelParametersInactive_, forceAcceptance
+    real                                                                                     :: timeBegin                                , timeEnd
+    !$GLC attributes unused :: simulationConvergence, temperature, logLikelihoodCurrent, logPriorCurrent, modelParametersInactive_, forceAcceptance
 
     ! There is no variance in our likelihood estimate.
     if (present(logLikelihoodVariance)) logLikelihoodVariance=0.0d0
@@ -394,6 +403,8 @@ contains
     end if
     ! Ensure pointers into the base parameters are initialized.
     call self%initialize(modelParametersActive_,modelParametersInactive_)
+    ! Record start time.
+    call CPU_Time(timeBegin)
     ! Get states for all chains.
     allocate(stateVector(simulationState%dimension()))
     stateVector=simulationState%get()
@@ -432,21 +443,30 @@ contains
     allocate(massFunction(size(self%mass)))
     evaluationFailed=.false.
     do i=1,size(self%mass)
-       massFunction(i)=+haloMassFunction_%integrated(                            &
-            &                                               self%time          , &
-            &                                               self%massMinimum(i), &
-            &                                               self%massMaximum(i), &
-            &                                        node  =     node          , &
-            &                                        status=     status          &
-            &                                       )                            &
-            &          /log(                                                     &
-            &                                       +self%massMaximum(i)         &
-            &                                       /self%massMinimum(i)         &
-            &              )
-       if (status /= errorStatusSuccess) then
-          haloMassFunctionEvaluate=logImprobable
-          evaluationFailed        =.true.
-          exit
+       if (self%binAverage) then
+          massFunction(i)=+haloMassFunction_%integrated  (                            &
+               &                                                 self%time          , &
+               &                                                 self%massMinimum(i), &
+               &                                                 self%massMaximum(i), &
+               &                                          node  =     node          , &
+               &                                          status=     status          &
+               &                                         )                            &
+               &          /log(                                                       &
+               &                                       +         self%massMaximum(i)  &
+               &                                       /         self%massMinimum(i)  &
+               &              )
+          if (status /= errorStatusSuccess) then
+             haloMassFunctionEvaluate=logImprobable
+             evaluationFailed        =.true.
+             exit
+          end if
+       else
+          massFunction(i)=+haloMassFunction_%differential(                            &
+               &                                                 self%time          , &
+               &                                                 self%mass       (i), &
+               &                                          node  =     node            &
+               &                                         )                            &
+               &          *                                      self%mass       (i)
        end if
     end do
     call node%destroy()
@@ -511,6 +531,9 @@ contains
                &                   *self%covariance%covarianceProduct(difference)
        end if
     end if
+    ! Record timing information.
+    call CPU_Time(timeEnd)
+    timeEvaluate=timeEnd-timeBegin
     if (self%report) then
        call displayIndent("Likelihood report for: "//char(self%fileName))
        write (label,'(e17.10)') haloMassFunctionEvaluate
