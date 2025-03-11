@@ -14,6 +14,7 @@ use Galacticus::Launch::Slurm;
 use Galacticus::Launch::Local;
 use Cloudy;
 use Clone 'clone';
+use DateTime;
 use Data::Dumper;
 
 # Get arguments.
@@ -344,6 +345,15 @@ my %lineList =
 my $grid;
 $grid->{'type'} = exists($options{'sspFileName'}) ? "SSP" : "AGN";
 &{$establishGrid}($grid,\%options);
+
+# Find the current hash.
+my $hashHead;
+{
+    open(my $git,"git rev-parse HEAD|");
+    $hashHead = <$git>;
+    chomp($hashHead);
+}
+$grid->{'gitRevision'} = $hashHead;
 
 # Initialize the line luminosity tables.
 my @dimensions = map {nelem($grid->{$_})} @{$grid->{'iterables'}};
@@ -1084,6 +1094,9 @@ sub outputSSP {
     my %options  = %{shift()};
     # Write the line data to file.
     my $tableFile = new PDL::IO::HDF5(">".$options{'workspace'}.$options{'outputFileName'});
+    # Add useful metadata.
+    $tableFile->setAttribute('time',DateTime->now());
+    $tableFile->setAttribute('gitRevision',$grid->{'gitRevision'});
     # Write parameter grid points and attributes.
     $tableFile->dataset('age'                                 )->    set(               $grid->{'ages'}                                                 );
     $tableFile->dataset('age'                                 )->attrSet(description => "Age of the stellar population."                                );
@@ -1133,6 +1146,9 @@ sub outputAGN {
     my %options  = %{shift()};
     # Write the line data to file.
     my $tableFile = new PDL::IO::HDF5(">".$options{'workspace'}.$options{'outputFileName'});
+    # Add useful metadata.
+    $tableFile->setAttribute('time',DateTime->now());
+    $tableFile->setAttribute('gitRevision',$grid->{'gitRevision'});
     # Write parameter grid points and attributes.
     $tableFile->dataset('spectralIndex'      )->    set(               $grid->{'spectralIndices'}                           );
     $tableFile->dataset('spectralIndex'      )->attrSet(description => "Spectral index at optical/UV wavelength population.");
