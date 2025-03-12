@@ -216,7 +216,7 @@ contains
     !!{
     Compute the size of the merger remnant for {\normalfont \ttfamily node} using the \cite{cole_hierarchical_2000} algorithm.
     !!}
-    use :: Display                         , only : displayMessage
+    use :: Display                         , only : displayMessage                , verbosityLevelSilent
     use :: Galactic_Structure_Options      , only : massTypeDark
     use :: Error                           , only : Error_Report
     use :: Mass_Distributions              , only : massDistributionClass
@@ -301,7 +301,7 @@ contains
                 joinString=", "
              end if
              message=message//' (radius:mass:massSpheroid='//trim(dataString)//')'
-             call displayMessage(message)
+             call displayMessage(message,verbosityLevelSilent)
              errorCondition=.true.
           end if
           if     (                                             &
@@ -331,12 +331,12 @@ contains
                 joinString=", "
              end if
              message=message//' (radius:mass:massSpheroid='//trim(dataString)//')'
-             call displayMessage(message)
+             call displayMessage(message,verbosityLevelSilent)
              errorCondition=.true.
           end if
           if (errorCondition) then
-             call node    %serializeASCII()
-             call nodeHost%serializeASCII()
+             call node    %serializeASCII(verbosityLevelSilent)
+             call nodeHost%serializeASCII(verbosityLevelSilent)
              call Error_Report('error condition detected'//{introspection:location})
           end if
           ! Check if host has finite mass.

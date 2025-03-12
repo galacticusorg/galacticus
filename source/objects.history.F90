@@ -295,17 +295,18 @@ contains
     return
   end subroutine History_Long_Integer_Builder
 
-  subroutine History_Dump(self)
+  subroutine History_Dump(self,verbosityLevel)
     !!{
     Dumps a history object.
     !!}
-    use :: Display           , only : displayMessage
-    use :: ISO_Varying_String, only : assignment(=) , operator(//), varying_string
+    use :: Display           , only : displayMessage, enumerationVerbosityLevelType
+    use :: ISO_Varying_String, only : assignment(=) , operator(//)                 , varying_string
     implicit none
-    class    (history       ), intent(in   ) :: self
-    integer                                  :: i      , j
-    type     (varying_string)                :: message
-    character(len=22        )                :: label
+    class    (history                      ), intent(in   ) :: self
+    type     (enumerationVerbosityLevelType), intent(in   ) :: verbosityLevel
+    integer                                                 :: i             , j
+    type     (varying_string               )                :: message
+    character(len=22                       )                :: label
 
     if (allocated(self%time)) then
        do i=1,size(self%time)
@@ -317,7 +318,7 @@ contains
              write (label,'(e22.16)') self%data(i,j)
              message=message//" "//label
           end do
-          call displayMessage(message)
+          call displayMessage(message,verbosityLevel)
        end do
     end if
     return
@@ -374,17 +375,18 @@ contains
     return
   end subroutine History_Reset
 
-  subroutine History_Long_Integer_Dump(self)
+  subroutine History_Long_Integer_Dump(self,verbosityLevel)
     !!{
     Dumps a history object.
     !!}
-    use :: Display           , only : displayMessage
-    use :: ISO_Varying_String, only : assignment(=) , operator(//), varying_string
+    use :: Display           , only : displayMessage, enumerationVerbosityLevelType
+    use :: ISO_Varying_String, only : assignment(=) , operator(//)                 , varying_string
     implicit none
-    class    (longIntegerHistory), intent(in   ) :: self
-    integer                                      :: i      , j
-    type     (varying_string    )                :: message
-    character(len=22            )                :: label
+    class    (longIntegerHistory           ), intent(in   ) :: self
+    type     (enumerationVerbosityLevelType), intent(in   ) :: verbosityLevel
+    integer                                                 :: i             , j
+    type     (varying_string               )                :: message
+    character(len=22                       )                :: label
 
     if (allocated(self%time)) then
        do i=1,size(self%time)
@@ -396,7 +398,7 @@ contains
              write (label,'(i16)') self%data(i,j)
              message=message//" "//label
           end do
-          call displayMessage(message)
+          call displayMessage(message,verbosityLevel)
        end do
     end if
     return
