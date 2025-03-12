@@ -50,7 +50,7 @@
      double precision                 :: acceptanceRateMinimum   , acceptanceRateMaximum
      integer                          :: updateCount             , lastUpdateCount
      logical                          :: outliersInAcceptanceRate, appendLog            , &
-          &                              restoreFromLog
+          &                              restoreFromLog          , flushLog
      type            (varying_string) :: logFileName
      integer                          :: logFileUnit
    contains
@@ -82,7 +82,7 @@ contains
          &                                                                               acceptanceRateMinimum   , acceptanceRateMaximum
     integer                                                                           :: updateCount
     logical                                                                           :: outliersInAcceptanceRate, appendLog            , &
-          &                                                                              restoreFromLog
+          &                                                                              restoreFromLog          , flushLog
     type            (varying_string                                 )                 :: logFileName
 
     !![
@@ -144,15 +144,21 @@ contains
       <description>If true, restore the value of $\gamma$ from the log file.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>flushLog</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, logs are flushed to file after every update.</description>
+      <source>parameters</source>
+    </inputParameter>
     !!]
-    self=posteriorSampleDffrntlEvltnProposalSizeAdaptive(logFileName,gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate,appendLog,restoreFromLog)
+    self=posteriorSampleDffrntlEvltnProposalSizeAdaptive(logFileName,gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate,appendLog,restoreFromLog,flushLog)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function adaptiveConstructorParameters
 
-  function adaptiveConstructorInternal(logFileName,gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate,appendLog,restoreFromLog) result(self)
+  function adaptiveConstructorInternal(logFileName,gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate,appendLog,restoreFromLog,flushLog) result(self)
     !!{
     Constructor for the ``adaptive'' differential evolution proposal size class.
     !!}
@@ -165,11 +171,11 @@ contains
          &                                                                              acceptanceRateMinimum   , acceptanceRateMaximum
     integer                                                          , intent(in   ) :: updateCount
     logical                                                          , intent(in   ) :: outliersInAcceptanceRate, appendLog            , &
-         &                                                                              restoreFromLog
+         &                                                                              restoreFromLog          , flushLog
     character       (len=32                                         )                :: line
     integer                                                                          :: ioStatus
     !![
-    <constructorAssign variables="logFileName,gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate, appendLog, restoreFromLog"/>
+    <constructorAssign variables="logFileName,gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate, appendLog, restoreFromLog, flushLog"/>
     !!]
 
     self%gammaCurrent   =gammaInitial
@@ -253,7 +259,10 @@ contains
           message='After '
           message=message//simulationState%count()//' steps, acceptance rate is '//trim(label)
           if (displayVerbosity() >= verbosityLevelStandard) call displayMessage(message)
-          if (self%logFileUnit /= -huge(0)) write (self%logFileUnit,*) char(message)
+          if (self%logFileUnit /= -huge(0)) then
+             write (self%logFileUnit,*) char(message)
+             if (self%flushLog) call flush(self%logFileUnit)
+          end if
        end if
        ! If the acceptance rate is out of range, adjust γ.
        if (acceptanceRate >= 0.0d0) then
@@ -262,14 +271,20 @@ contains
              if (mpiSelf%rank() == 0) then
                 write (label,'(f8.5)') self%gammaCurrent
                 if (displayVerbosity() >= verbosityLevelStandard) call displayMessage('Adjusting γ up to '//label)
-                if (self%logFileUnit /= -huge(0)) write (self%logFileUnit,*) 'Adjusting γ up to '//label
+                if (self%logFileUnit /= -huge(0)) then
+                   write (self%logFileUnit,*) 'Adjusting γ up to '//label
+                   if (self%flushLog) call flush(self%logFileUnit)
+                end if
              end if
           else if (acceptanceRate < self%acceptanceRateMinimum .and. self%gammaCurrent > self%gammaMinimum) then
              self%gammaCurrent=max(self%gammaCurrent/self%gammaAdjustFactor,self%gammaMinimum)
              if (mpiSelf%rank() == 0) then
                 write (label,'(f8.5)') self%gammaCurrent
                 if (displayVerbosity() >= verbosityLevelStandard) call displayMessage('Adjusting γ down to '//label)
-                if (self%logFileUnit /= -huge(0)) write (self%logFileUnit,*) 'Adjusting γ down to '//label
+                if (self%logFileUnit /= -huge(0)) then
+                   write (self%logFileUnit,*) 'Adjusting γ down to '//label
+                   if (self%flushLog) call flush(self%logFileUnit)
+                end if
              end if
           end if
        end if
