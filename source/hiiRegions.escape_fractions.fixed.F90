@@ -23,18 +23,20 @@
   !![
   <hiiRegionEscapeFraction name="hiiRegionEscapeFractionFixed">
    <description>
-    Escape fraction is the fraction of ionizing photons escaping into IGM. Here we assume fixed escape fraction for all galaxies.
+    Computes the escape fraction of hydrogen ionizing photons from HII regions. A fixed escape fraction of
+    $f_\mathrm{esc}${\normalfont \ttfamily [escapeFraction]} is assumed for HII regions with ages less than
+    $\tau_\mathrm{limit}=${\normalfont \ttfamily {ageLimit}}.
    </description>
   </hiiRegionEscapeFraction>
   !!]
   type, extends(hiiRegionEscapeFractionClass) :: hiiRegionEscapeFractionFixed
      !!{
-     Implementation of a fixed escape fraction
+     Implementation of a fixed escape fraction from HII regions.
      !!}
      private
      double precision :: escapeFraction, ageLimit     
    contains
-     procedure :: escapeFractionMethod => escapeFractionFixed
+     procedure :: escapeFraction => escapeFractionFixed
   end type hiiRegionEscapeFractionFixed
 
   interface hiiRegionEscapeFractionFixed
@@ -55,19 +57,19 @@ contains
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (hiiRegionEscapeFractionFixed)                :: self
-    type            (inputParameters                    ), intent(inout) :: parameters
-    double precision                                                     :: escapeFraction, ageLimit
+    type            (inputParameters             ), intent(inout) :: parameters
+    double precision                                              :: escapeFraction, ageLimit
     !![
     <inputParameter>
       <name>escapeFraction</name>
       <defaultValue>0.006d0</defaultValue>
-      <description> Escape fraction of ionizing photons from galaxies into IGM. </description>
+      <description> Escape fraction of ionizing photons from young HII regions.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>ageLimit</name>
       <defaultValue>0.03d0</defaultValue>
-      <description> Escape fraction of ionizing photons from galaxies into IGM. </description>
+      <description>The age beyond which all ionizing photons are assumed to escape from HII regions.</description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -84,30 +86,27 @@ contains
     !!}
     
     implicit none
-    type            (hiiRegionEscapeFractionFixed)               :: self
-    double precision                                     , intent(in   ) :: escapeFraction, ageLimit
+    type            (hiiRegionEscapeFractionFixed)                :: self
+    double precision                              , intent(in   ) :: escapeFraction, ageLimit
     !![
-    <constructorAssign variables="escapeFraction"/>
+    <constructorAssign variables="escapeFraction, ageLimit"/>
     !!]
-    self%escapeFraction=escapeFraction
-    self%ageLimit=ageLimit
+
     return
   end function escapeFractionFixedConstructorInternal
 
-  double precision function escapeFractionFixed(self,age_pop) result(escapeFrac)
+  double precision function escapeFractionFixed(self,ageHIIRegion) result(escapeFraction)
     !!{
-    Returns the escape fraction.
+    Computes the escape fraction.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    class  (hiiRegionEscapeFractionFixed), intent(inout) :: self
-    double precision                                       , intent(in   ) :: age_pop
-    !type            (treeNode                      ), intent(inout), optional :: node
-    !$GLC attributes unused :: node
-    if(age_pop .ge. self%ageLimit) then
-      escapeFrac=1.0d0
+    class           (hiiRegionEscapeFractionFixed), intent(inout) :: self
+    double precision                              , intent(in   ) :: ageHIIRegion
+
+    if (ageHIIRegion >= self%ageLimit) then
+      escapeFraction=1.0d0
     else
-      escapeFrac=self%escapeFraction
+      escapeFraction=self%escapeFraction
     end if
     return
   end function escapeFractionFixed

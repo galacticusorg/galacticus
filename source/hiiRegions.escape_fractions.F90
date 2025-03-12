@@ -18,30 +18,30 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which provides a class that implements the distribution of luminosity function.
+Contains a module which provides a class that implements calculations of escape fractions from HII regions.
 !!}
-module hii_Region_Escape_Fraction
-  use :: Galacticus_Nodes, only : treeNode
+  
+module HII_Region_Escape_Fraction
   !!{
-  Provides a class that implements calculations for luminosity function.
+  Provides a class that implements calculations of escape fractions from HII regions.
   !!}
   private
+  
   !![
   <functionClass>
    <name>hiiRegionEscapeFraction</name>
-   <descriptiveName>Escape fraction of HII </descriptiveName>
+   <descriptiveName>Escape fraction of HII regions</descriptiveName>
    <description>
-    Class providing models of luminosity function for emission line.
+     Class providing calculations of escape fractions from HII regions.
    </description>
    <default>fixed</default>
-   <method name="escapeFractionMethod" >
-    <description>Returns the escape fraction of hydrogen. </description>
+   <method name="escapeFraction" >
+    <description>Returns the escape fraction for hydrogen-ionizing photons.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    !age of stellar population
-    <argument>double precision, intent(in   ) :: age_pop </argument>
+    <argument>double precision, intent(in   ) :: ageHIIRegion </argument>
    </method>
   </functionClass>
   !!]
 
-end module hii_Region_Escape_Fraction
+end module HII_Region_Escape_Fraction
