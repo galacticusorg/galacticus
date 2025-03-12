@@ -16,10 +16,13 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!+ Contributions to this file made by Sachi Weerasooriya
+
+  !+ Contributions to this file made by Sachi Weerasooriya
+
   !!{
-  Implementation of a power law luminosity function which scales with a given exponent.
+  Implementation of a fixed escape fraction from HII regions.
   !!}
+
   !![
   <hiiRegionEscapeFraction name="hiiRegionEscapeFractionFixed">
    <description>
@@ -34,7 +37,7 @@
      Implementation of a fixed escape fraction from HII regions.
      !!}
      private
-     double precision :: escapeFraction, ageLimit     
+     double precision :: escapeFraction_, ageLimit
    contains
      procedure :: escapeFraction => escapeFractionFixed
   end type hiiRegionEscapeFractionFixed
@@ -80,16 +83,16 @@ contains
     return
   end function escapeFractionFixedConstructorParameters
 
-  function escapeFractionFixedConstructorInternal(escapeFraction,ageLimit) result(self)
+  function escapeFractionFixedConstructorInternal(escapeFraction_,ageLimit) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily fixed escape fraction} 
     !!}
     
     implicit none
     type            (hiiRegionEscapeFractionFixed)                :: self
-    double precision                              , intent(in   ) :: escapeFraction, ageLimit
+    double precision                              , intent(in   ) :: escapeFraction_, ageLimit
     !![
-    <constructorAssign variables="escapeFraction, ageLimit"/>
+    <constructorAssign variables="escapeFraction_, ageLimit"/>
     !!]
 
     return
@@ -106,7 +109,7 @@ contains
     if (ageHIIRegion >= self%ageLimit) then
       escapeFraction=1.0d0
     else
-      escapeFraction=self%escapeFraction
+      escapeFraction=self%escapeFraction_
     end if
     return
   end function escapeFractionFixed
