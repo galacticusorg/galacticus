@@ -312,7 +312,7 @@ sub parameterFind {
 	$valueIndex    = $2;
     }
     my $parameter = $parameters;
-    foreach ( split(/::/,$parameterName) ) {
+    foreach ( split(/\//,$parameterName) ) {
 	# Check if the parameter name contains an array reference.
 	if ( $_ =~ m/^(.*)\[(\d+)\]$/ ) {
 	    # Parameter name contains array reference. Step through to the relevant parameter in the list. If the parameter is
@@ -522,7 +522,6 @@ sub parameterFindInDOMs {
 	$index = $1;
 	$xPath =~ s/\{\d+\}//;
     }
-    $xPath =~ s/::/\//g;
     $xPath =~ s/\[(\d+)\]/"[".($1+1)."]"/ge;
     my $node;
     foreach my $fileName ( sort(keys(%doms)) ) {

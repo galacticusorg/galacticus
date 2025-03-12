@@ -20,12 +20,12 @@
     <running             value="0.000"/>
   </powerSpectrumPrimordial>
   <powerSpectrumWindowFunction value="ETHOSExtended">
-    <cW0                         value="=[haloMassFunctionParameters::cW0]"                        />
-    <cW1                         value="=[haloMassFunctionParameters::cW1]"                        />
-    <beta0                       value="=[haloMassFunctionParameters::beta0]"                      />
-    <beta1                       value="=[haloMassFunctionParameters::beta1]"                      />
-    <wavenumberScaledMinimum     value="=[haloMassFunctionParameters::wavenumberScaledMinimum]"    />
-    <powerSpectrumSmoothingWidth value="=[haloMassFunctionParameters::powerSpectrumSmoothingWidth]"/>
+    <cW0                         value="=[haloMassFunctionParameters/cW0]"                        />
+    <cW1                         value="=[haloMassFunctionParameters/cW1]"                        />
+    <beta0                       value="=[haloMassFunctionParameters/beta0]"                      />
+    <beta1                       value="=[haloMassFunctionParameters/beta1]"                      />
+    <wavenumberScaledMinimum     value="=[haloMassFunctionParameters/wavenumberScaledMinimum]"    />
+    <powerSpectrumSmoothingWidth value="=[haloMassFunctionParameters/powerSpectrumSmoothingWidth]"/>
   </powerSpectrumWindowFunction>
   <cosmologicalMassVariance value="peakBackgroundSplit">
     <cosmologicalMassVariance value="filteredPower">

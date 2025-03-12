@@ -6,8 +6,8 @@
   <!-- Simulation defintion -->
   <simulation value="" ignoreWarnings="true">
     <!-- MDPL2 simulation properties; https://www.cosmosim.org/cms/simulations/mdpl2 -->
-    <lengthCube          value="=1.00e3/([cosmologyParameters::HubbleConstant]/100.0)" />
-    <massParticle        value="=1.51e9/([cosmologyParameters::HubbleConstant]/100.0)" />
+    <lengthCube          value="=1.00e3/([cosmologyParameters/HubbleConstant]/100.0)" />
+    <massParticle        value="=1.51e9/([cosmologyParameters/HubbleConstant]/100.0)" />
     <subvolumes          value="10"                                                    />
     <simulationReference value="Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340"/>
     <simulationURL       value="https://www.cosmosim.org/cms/simulations/mdpl2/"       />
