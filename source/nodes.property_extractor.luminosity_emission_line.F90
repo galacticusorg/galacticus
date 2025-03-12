@@ -396,12 +396,12 @@ contains
        select case (i)
        case (1)
           if (self%component == componentTypeSpheroid) cycle
-             disk                 => node    %disk                ()
-             starFormationHistory =  disk    %starFormationHistory()
+          disk                 => node    %disk                ()
+          starFormationHistory =  disk    %starFormationHistory()
        case (2)
           if (self%component == componentTypeDisk) cycle
-             spheroid             => node    %spheroid            ()
-             starFormationHistory =  spheroid%starFormationHistory()
+          spheroid             => node    %spheroid            ()
+          starFormationHistory =  spheroid%starFormationHistory()
        end select
        if (.not.starFormationHistory%exists()) cycle
        ! Get the index of the template to use.
