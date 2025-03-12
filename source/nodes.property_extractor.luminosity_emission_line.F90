@@ -292,7 +292,7 @@ contains
           do iAge=1,size(self%ages)
              ! Accumulate the luminosity weighted by the cumulative fraction of HII regions in this luminosity interval.
              self%luminositiesReduced(iAge,:,:)=+        self%luminositiesReduced                                         (          iAge                    ,:,:                               ) &
-                  &                             +(+1.0d0-self%hiiRegionEscapeFraction_     %escapeFractionMethod          (self%ages(iAge))                                                     ) & 
+                  &                             +(+1.0d0-self%hiiRegionEscapeFraction_     %escapeFraction                (self%ages(iAge))                                                     ) & 
                   &                             *        self%hiiRegionLuminosityFunction_ %cumulativeDistributionFunction(rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum) &
                   &                             *        self%hiiRegionDensityDistribution_%cumulativeDensityDistribution (            densityHydrogenMinimum,            densityHydrogenMaximum) &
                   &                             *reshape(                                                                                                                                         &
