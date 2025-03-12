@@ -46,13 +46,14 @@
      A generalization of the ETHOS power spectrum window function class.
      !!}
      private
-     class           (powerSpectrumPrimordialTransferredClass), pointer     :: powerSpectrumPrimordialTransferred_ => null()
-     double precision                                                       :: cW0                                          , beta0                      , &
-          &                                                                    cW1                                          , beta1                      , &
-          &                                                                    wavenumberScaledMinimum_                     , powerSpectrumSmoothingWidth, &
-          &                                                                    wavenumberMinimum_                           , wavenumberMaximum_         , &
-          &                                                                    timePrevious
-     type            (interpolator                           ), allocatable :: powerSpectrumSmoothed
+     class           (powerSpectrumPrimordialTransferredClass), pointer                   :: powerSpectrumPrimordialTransferred_ => null()
+     double precision                                                                     :: cW0                                          , beta0                      , &
+          &                                                                                  cW1                                          , beta1                      , &
+          &                                                                                  wavenumberScaledMinimum_                     , powerSpectrumSmoothingWidth, &
+          &                                                                                  wavenumberMinimum_                           , wavenumberMaximum_         , &
+          &                                                                                  timePrevious
+     double precision                                         , allocatable, dimension(:) :: logPowerSpectra
+     type            (interpolator                           ), allocatable               :: powerSpectrumSmoothed
    contains
      !![
      <methods>
@@ -253,50 +254,83 @@ contains
     !!{
     Compute the logarithmic derivate of the power spectrum after smoothing.
     !!}
-    use :: Numerical_Ranges     , only : Make_Range  , rangeTypeLinear
+    use :: Numerical_Ranges     , only : Make_Range, rangeTypeLinear
     use :: Numerical_Integration, only : integrator
     implicit none
     class           (powerSpectrumWindowFunctionETHOSExtended), intent(inout), target      :: self
-    double precision                                          , intent(in   )              :: wavenumber                , time
-    double precision                                          , parameter                  :: countPerInterval       =10
-    double precision                                          , dimension(:) , allocatable :: logWavenumbers            , logPowerSpectra
-    integer                                                                                :: countPoints               , i
-    double precision                                                                       :: logWavenumberLimitLower   , logWavenumberLimitUpper
-    type            (integrator                              )                             :: integrator_
+    double precision                                          , intent(in   )              :: wavenumber                    , time
+    double precision                                          , parameter                  :: countPerInterval       =10.0d0
+    double precision                                          , dimension(:) , allocatable :: logWavenumbers                , logPowerSpectra
+    integer                                                                                :: countPoints                   , i
+    double precision                                                                       :: logWavenumberLimitLower       , logWavenumberLimitUpper
     logical                                                                                :: remakeTable
 
     if (.not.allocated(self%powerSpectrumSmoothed) .or. time /= self%timePrevious) then
        remakeTable=.true.
+       if (allocated(self%powerSpectrumSmoothed)) deallocate(self%powerSpectrumSmoothed)
     else
        remakeTable= wavenumber < self%wavenumberMinimum_ &
             &      .or.                                  &
             &       wavenumber > self%wavenumberMaximum_
     end if
     if (remakeTable) then
-       self%wavenumberMinimum_ =  min(self%wavenumberMinimum_,wavenumber/2.0d0)
-       self%wavenumberMaximum_ =  max(self%wavenumberMaximum_,wavenumber*2.0d0)
-       countPoints             =  int(log(self%wavenumberMaximum_/self%wavenumberMinimum_)/self%powerSpectrumSmoothingWidth*countPerInterval)+1
-       allocate(logWavenumbers (countPoints))
-       allocate(logPowerSpectra(countPoints))
-       logWavenumbers          =  Make_Range(log(self%wavenumberMinimum_),log(self%wavenumberMaximum_),countPoints,rangeTypeLinear)
-       integrator_             =  integrator(integrandSmoothing,toleranceRelative=1.0d-3)
-       self_                   => self
-       time_                   =  time
-       do i=1,countPoints
-          logWavenumbers_           =logWavenumbers(i)
-          logWavenumberLimitLower   =logWavenumbers(i)-10.0d0*self%powerSpectrumSmoothingWidth
-          logWavenumberLimitUpper   =logWavenumbers(i)+10.0d0*self%powerSpectrumSmoothingWidth
-          logPowerSpectra        (i)=integrator_%integrate(logWavenumberLimitLower,logWavenumberLimitUpper)
-          if (logPowerSpectra(i) > 0.0d0) then
-             logPowerSpectra(i)=log(logPowerSpectra(i  ))
-          else
-             logPowerSpectra(i)=    logPowerSpectra(i-1)
-          end if
-       end do
-       if (allocated(self%powerSpectrumSmoothed)) deallocate(self%powerSpectrumSmoothed)
-       allocate(self%powerSpectrumSmoothed)
-       self%powerSpectrumSmoothed=interpolator(logWavenumbers,logPowerSpectra)
-       self%timePrevious         =time
+       block
+         type            (integrator) :: integrator_
+         double precision             :: wavenumberMinimum_, wavenumberMaximum_
+         integer                      :: countNewLower     , countNewUpper
+
+         if (.not.allocated(self%powerSpectrumSmoothed)) then
+            self%wavenumberMinimum_=min(self%wavenumberMinimum_,wavenumber/2.0d0)
+            self%wavenumberMaximum_=max(self%wavenumberMaximum_,wavenumber*2.0d0)
+            ! Allocate storage.
+            countPoints  =int(log(self%wavenumberMaximum_/self%wavenumberMinimum_)/self%powerSpectrumSmoothingWidth*countPerInterval)+1
+            countNewLower=0
+            countNewUpper=0
+            allocate(logPowerSpectra(countPoints))
+            logPowerSpectra=-huge(0.0d0)
+         else
+            wavenumberMinimum_=min(self%wavenumberMinimum_,wavenumber/2.0d0)
+            wavenumberMaximum_=max(self%wavenumberMaximum_,wavenumber*2.0d0)
+            ! Determine how many points the table must be extended by in each direction to span the new required range.
+            countNewLower=0
+            countNewUpper=0
+            if (self%wavenumberMinimum_ > wavenumberMinimum_) countNewLower=int(+log(self%wavenumberMinimum_/wavenumberMinimum_)/self%powerSpectrumSmoothingWidth*countPerInterval+1.0d0)
+            if (self%wavenumberMaximum_ < wavenumberMaximum_) countNewUpper=int(-log(self%wavenumberMaximum_/wavenumberMaximum_)/self%powerSpectrumSmoothingWidth*countPerInterval+1.0d0)
+            ! Adjust the limits of the table by an integer number of steps.
+            self%wavenumberMinimum_=self%wavenumberMinimum_/exp(dble(countNewLower)/countPerInterval*self%powerSpectrumSmoothingWidth)
+            self%wavenumberMaximum_=self%wavenumberMaximum_*exp(dble(countNewUpper)/countPerInterval*self%powerSpectrumSmoothingWidth)
+            ! Allocate storage.
+            countPoints=size(self%logPowerSpectra)+countNewLower+countNewUpper
+            allocate(logPowerSpectra(countPoints))
+            logPowerSpectra=-huge(0.0d0)
+            ! Populate the table with pre-existing results.
+            logPowerSpectra(countNewLower+1:countNewLower+size(self%logPowerSpectra))=self%logPowerSpectra
+         end if
+         allocate(logWavenumbers(countPoints))
+         logWavenumbers =  Make_Range(log(self%wavenumberMinimum_),log(self%wavenumberMaximum_),countPoints,rangeTypeLinear)
+         integrator_    =  integrator(integrandSmoothing,toleranceRelative=1.0d-3)
+         self_          => self
+         time_          =  time
+         do i=1,countPoints
+            if (logPowerSpectra(i) >= 0.0d0) cycle
+            logWavenumbers_           =logWavenumbers(i)
+            logWavenumberLimitLower   =logWavenumbers(i)-10.0d0*self%powerSpectrumSmoothingWidth
+            logWavenumberLimitUpper   =logWavenumbers(i)+10.0d0*self%powerSpectrumSmoothingWidth
+            logPowerSpectra        (i)=integrator_%integrate(logWavenumberLimitLower,logWavenumberLimitUpper)
+            if (logPowerSpectra(i) > 0.0d0) then
+               logPowerSpectra(i)=log(logPowerSpectra(i  ))
+            else
+               logPowerSpectra(i)=    logPowerSpectra(i-1)
+            end if
+         end do
+         if (allocated(self%logPowerSpectra      )) deallocate(self%logPowerSpectra      )
+         if (allocated(self%powerSpectrumSmoothed)) deallocate(self%powerSpectrumSmoothed)
+         allocate(self%logPowerSpectra      (countPoints))
+         allocate(self%powerSpectrumSmoothed             )
+         self%logPowerSpectra      =                            logPowerSpectra
+         self%powerSpectrumSmoothed=interpolator(logWavenumbers,logPowerSpectra)
+         self%timePrevious         =time
+       end block
     end if
     slope=self%powerSpectrumSmoothed%derivative(log(wavenumber))
     return
