@@ -1406,16 +1406,12 @@ contains
              end if
              specificAngularMomentum=ratioAngularMomentumScaleRadius*specificAngularMomentumMean
           end if
-          ! Associate the pointers with the appropriate property routines.
-          Radius_Get   => Node_Component_Spheroid_Standard_Radius_Solve
-          Radius_Set   => Node_Component_Spheroid_Standard_Radius_Solve_Set
-          Velocity_Get => Node_Component_Spheroid_Standard_Velocity_Solve
-          Velocity_Set => Node_Component_Spheroid_Standard_Velocity_Solve_Set
-       else
-          call Node_Component_Spheroid_Standard_Radius_Solve_Set  (node,0.0d0)
-          call Node_Component_Spheroid_Standard_Velocity_Solve_Set(node,0.0d0)
-          componentActive=.false.
        end if
+       ! Associate the pointers with the appropriate property routines.
+       Radius_Get   => Node_Component_Spheroid_Standard_Radius_Solve
+       Radius_Set   => Node_Component_Spheroid_Standard_Radius_Solve_Set
+       Velocity_Get => Node_Component_Spheroid_Standard_Velocity_Solve
+       Velocity_Set => Node_Component_Spheroid_Standard_Velocity_Solve_Set
     end select
     return
   end subroutine Node_Component_Spheroid_Standard_Radius_Solver
