@@ -91,7 +91,7 @@ sub parameterCount {
     my $parameterCount;
     open(my $chainFile,$chainFileName);
     while ( my $line = <$chainFile> ) {
-	unless ( $line =~ m/^\"/ ) {
+	unless ( $line =~ m/^#/ ) {
 	    my @columns = split(" ",$line);
 	    $parameterCount = scalar(@columns)-6;
 	}
@@ -135,6 +135,8 @@ sub maximumPosteriorParameterVector {
 	my $step = 0;
 	open(iHndl,$chainFile);
 	while ( my $line = <iHndl> ) {
+	    next
+		if ( $line =~ m/^#/ );
 	    ++$step;
 	    $line =~ s/^\s*//;
 	    $line =~ s/\s*$//;
@@ -193,6 +195,8 @@ sub parameterVector {
     my @state;
     open(my $chainFile,$chainFileName);
     while ( my $line = <$chainFile> ) {
+	next
+	    if ( $line =~ m/^#/ );
 	++$stateCount;
 	$line =~ s/^\s*//;
 	$line =~ s/\s*$//;
@@ -283,6 +287,8 @@ sub parameterMatrix {
 	my $chainFileName = sprintf("%s_%4.4i.log",$logFileRoot,$chainIndex);
 	open(my $chainFile,$chainFileName);
 	while ( my $line = <$chainFile> ) {
+	    next
+		if ( $line =~ m/^#/ );
 	    my @columns = split(" ",$line);
 	    next
 		unless ( ( $useUnconverged || $columns[3] eq "T" ) && $columns[0] >= $stepFirst );

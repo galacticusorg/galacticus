@@ -481,6 +481,17 @@ contains
        open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted',position='append')
     else
        open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted'                  )
+       write (logFileUnit,'(a)') '# Simulation state chain file'
+       write (logFileUnit,'(a)') '# Columns:'
+       write (logFileUnit,'(a)') '#    1 = Simulation step'
+       write (logFileUnit,'(a)') '#    2 = Chain index'
+       write (logFileUnit,'(a)') '#    3 = Evaluation time (s)'
+       write (logFileUnit,'(a)') '#    4 = Chain is converged? [T/F]'
+       write (logFileUnit,'(a)') '#    5 = log posterior'
+       write (logFileUnit,'(a)') '#    6 = log likelihood'
+       do i=1,size(self%modelParametersActive_)
+          write (logFileUnit,'(a,i3,a,a,a)') '#  ',i+6,' = Parameter `',char(self%modelParametersActive_(i)%modelParameter_%name()),'`'
+       end do
     end if
     self%isConverged=.false.
     do while (                                                                                                   &
