@@ -333,6 +333,7 @@ jobs:
           tags: ghcr.io/galacticusorg/galacticus:latest
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
+            REPO=${{ github.repository }}
             BRANCH=${{ github.head_ref || github.ref_name }}          
   ### Documentation
   Build-Documentation-Linux:
