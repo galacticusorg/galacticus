@@ -127,7 +127,7 @@ contains
     !![
     <inputParameter>
       <name>cloudyTableFileName</name>
-      <defaultValue>var_str('%DATASTATICPATH%/hiiRegions/emissionLineLuminosities_BC2003_highResolution_imfChabrier.hdf5)</defaultValue>
+      <defaultValue>var_str('%DATASTATICPATH%/hiiRegions/emissionLineLuminosities_BC2003_highResolution_imfChabrier.hdf5')</defaultValue>
       <source>parameters</source>
       <description>The file of emission line luminosities to use.</description>
     </inputParameter>
