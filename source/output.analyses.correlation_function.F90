@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a generic two-point correlation function output analysis class.
+Implements a generic two-point correlation function output analysis class.
 !!}
 
   use               :: Cosmology_Functions                   , only : cosmologyFunctionsClass

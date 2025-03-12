@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a random error output analysis distribution operator class with an error magnitude that is
+  Implements a random error output analysis distribution operator class with an error magnitude that is
   a polynomial function of the property value.
   !!}
 

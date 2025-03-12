@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a cosmological luminosity distance corrector analysis property operator class.
+Implements a cosmological luminosity distance corrector analysis property operator class.
 !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass

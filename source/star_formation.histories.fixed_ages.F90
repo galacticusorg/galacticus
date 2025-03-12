@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a star formation histories class which records star formation in logarithmically-sized time
+  Implements a star formation histories class which records star formation in logarithmically-sized time
   bins of fixed age and split by metallicity.
   !!}
 

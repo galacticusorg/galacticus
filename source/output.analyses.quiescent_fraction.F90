@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a quiescent fraction output analysis class.
+  Implements a quiescent fraction output analysis class.
   !!}
 
   use :: Cosmology_Functions                       , only : cosmologyFunctionsClass

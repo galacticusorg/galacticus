@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an N-body data importer which imports using multiple other importers.
+Implements an N-body data importer which imports using multiple other importers.
 !!}
   
   !![

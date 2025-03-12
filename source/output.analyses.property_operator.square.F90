@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a square output analysis property operator class.
+Implements a square output analysis property operator class.
 !!}
 
   !![

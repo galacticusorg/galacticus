@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements an N-body data operator which determines an ID of the root halo found by following hosts.
+  Implements an N-body data operator which determines an ID of the root halo found by following hosts.
   !!}
 
   !![

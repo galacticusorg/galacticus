@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an analysis weight operator class which weights by a property value.
+Implements an analysis weight operator class which weights by a property value.
 !!}
   use :: Node_Property_Extractors          , only : nodePropertyExtractorClass
   use :: Output_Analysis_Property_Operators, only : outputAnalysisPropertyOperatorClass

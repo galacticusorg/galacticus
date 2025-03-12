@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements an output analysis class that computes mass-velocity dispersion relations for Local Group
+  Implements an output analysis class that computes mass-velocity dispersion relations for Local Group
   satellite galaxies.
   !!}
 

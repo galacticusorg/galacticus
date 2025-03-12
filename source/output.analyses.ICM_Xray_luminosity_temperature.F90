@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements an ICM X-ray luminosity-temperature relation output analysis class.
+  Implements an ICM X-ray luminosity-temperature relation output analysis class.
   !!}
 
   !![

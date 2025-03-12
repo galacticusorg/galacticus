@@ -20,7 +20,7 @@
   !+    Contributions to this file made by: Arya Farahi, Andrew Benson.
 
   !!{
-  Contains a module which implements a excursion set first crossing statistics class utilizing a higher order generalization of
+  Implements a excursion set first crossing statistics class utilizing a higher order generalization of
   the algorithm of \cite{zhang_random_2006}.
   !!}
 

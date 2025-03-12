@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a weight operator class in which the weight is multiplied by an integral over a normal distribution.
+Implements a weight operator class in which the weight is multiplied by an integral over a normal distribution.
 !!}
 
   use :: Node_Property_Extractors          , only : nodePropertyExtractorClass

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an N-body data operator which computes the total mass of particles.
+Implements an N-body data operator which computes the total mass of particles.
 !!}
 
   !![

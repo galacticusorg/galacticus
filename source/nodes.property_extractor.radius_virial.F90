@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a virial radius output analysis property extractor class.
+Implements a virial radius output analysis property extractor class.
 !!}
 
   use :: Cosmology_Parameters    , only : cosmologyParametersClass

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an N-body data operator which determines the subset of particles that are self-bound.
+Implements an N-body data operator which determines the subset of particles that are self-bound.
 !!}
 
   use, intrinsic :: ISO_C_Binding           , only : c_size_t

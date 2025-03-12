@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a depth-first merger tree walker over all all nodes.
+  Implements a depth-first merger tree walker over all all nodes.
   !!}
   use :: Galacticus_Nodes, only : mergerTree, treeNode
 

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements satellite orbital extrema property extractor class.
+Implements satellite orbital extrema property extractor class.
 !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass

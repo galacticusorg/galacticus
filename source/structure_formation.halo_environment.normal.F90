@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a normally-distributed halo environment.
+Implements a normally-distributed halo environment.
 !!}
 
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass

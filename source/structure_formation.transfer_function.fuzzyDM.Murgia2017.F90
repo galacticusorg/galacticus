@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a transfer function class for fuzzy dark matter using the fitting function of
+  Implements a transfer function class for fuzzy dark matter using the fitting function of
   \cite{murgia_non-cold_2017}.
   !!}
 

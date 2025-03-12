@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an N-body data operator which filters particles to select those within a sphere such that the
+Implements an N-body data operator which filters particles to select those within a sphere such that the
 contamination by particles of non-preferred type is below a specified level.
 !!}
   

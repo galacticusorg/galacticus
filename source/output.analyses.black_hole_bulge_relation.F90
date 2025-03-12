@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a black hole-bulge mass relation analysis class.
+  Implements a black hole-bulge mass relation analysis class.
   !!}
 
   !![

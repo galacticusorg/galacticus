@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a property extractor for basic node indices.
+Implements a property extractor for basic node indices.
 !!}
 
   !![

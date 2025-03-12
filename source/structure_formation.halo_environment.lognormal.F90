@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a log-normal halo environment.
+Implements a log-normal halo environment.
 !!}
 
   use :: Cosmology_Functions     , only : cosmologyFunctionsClass

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a excursion set first crossing statistics class for linear barriers.
+Implements a excursion set first crossing statistics class for linear barriers.
 !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a generic 1D scatter function (i.e. the scatter of some property weighted by number density of
+  Implements a generic 1D scatter function (i.e. the scatter of some property weighted by number density of
   objects binned by some property) output analysis class.
   !!}
 

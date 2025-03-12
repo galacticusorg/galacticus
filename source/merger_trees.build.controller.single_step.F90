@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a merger tree build controller class which limits tree building to a single step.
+Implements a merger tree build controller class which limits tree building to a single step.
 !!}
   
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass

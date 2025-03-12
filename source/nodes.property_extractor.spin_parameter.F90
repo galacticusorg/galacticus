@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a spin parameter output analysis property extractor class.
+Implements a spin parameter output analysis property extractor class.
 !!}
   
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass

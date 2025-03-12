@@ -20,8 +20,7 @@
   !+    Contributions to this file made by: Omid Sameie.
 
   !!{
-  Contains a module which provides a power spectrum window function class that implements the smooth-$k$ space filter of
-  \cite{leo_new_2018}.
+  Provides a power spectrum window function class that implements the smooth-$k$ space filter of \cite{leo_new_2018}.
   !!}
 
   use :: Cosmology_Parameters, only : cosmologyParametersClass

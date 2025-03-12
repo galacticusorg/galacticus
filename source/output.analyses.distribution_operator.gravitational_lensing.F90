@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a gravitational lensing output analysis distribution operator class.
+Implements a gravitational lensing output analysis distribution operator class.
 !!}
 
   use :: Gravitational_Lensing, only : gravitationalLensingClass

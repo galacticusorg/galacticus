@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements an HI vs halo mass relation analysis class.
+  Implements an HI vs halo mass relation analysis class.
   !!}
 
   use, intrinsic :: ISO_C_Binding           , only : c_size_t

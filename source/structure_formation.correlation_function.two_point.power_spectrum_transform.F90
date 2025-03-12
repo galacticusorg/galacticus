@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a two-point correlation function class in which the correlation function is found by Fourier
+Implements a two-point correlation function class in which the correlation function is found by Fourier
 transforming a power spectrum.
 !!}
   

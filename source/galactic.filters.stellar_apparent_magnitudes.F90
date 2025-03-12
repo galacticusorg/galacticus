@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a galactic low-pass (i.e. bright-pass) filter for stellar apparent magnitudes.
+Implements a galactic low-pass (i.e. bright-pass) filter for stellar apparent magnitudes.
 !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass

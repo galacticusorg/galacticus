@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a gas-phase mass-metallicity relation analysis class using the observational results of \cite{blanc_characteristic_2019}.
+  Implements a gas-phase mass-metallicity relation analysis class using the observational results of \cite{blanc_characteristic_2019}.
   !!}
 
   !![

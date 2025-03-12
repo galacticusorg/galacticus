@@ -18,8 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which provides a power spectrum window function class that implements the Lagrangian filter of
-  \cite{chan_effective_2017}.
+  Provides a power spectrum window function class that implements the Lagrangian filter of \cite{chan_effective_2017}.
   !!}
 
   use :: Cosmology_Parameters, only : cosmologyParametersClass

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a critical overdensity class which renormalizes another class based on the ratio of two mass
+Implements a critical overdensity class which renormalizes another class based on the ratio of two mass
 variance classes. This is intended to allow different window functions to be used for $\sigma(M)$ while retaining the same ratio
 $\delta_\mathrm{c}/\sigma(M)$ (and, therefore, the same halo mass function) on a mass scale $M_\mathrm{match}$.
 !!}

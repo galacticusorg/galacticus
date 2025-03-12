@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a merger tree operator which dumps tree data to a file suitable for 3D rendering.
+Implements a merger tree operator which dumps tree data to a file suitable for 3D rendering.
 !!}
 
   use :: Cosmology_Functions    , only : cosmologyFunctionsClass
