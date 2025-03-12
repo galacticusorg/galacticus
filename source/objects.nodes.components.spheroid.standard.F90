@@ -732,7 +732,7 @@ contains
     starFormationHistory=self%starFormationHistory()
     ! Check if the range of this history is sufficient.
     if (starFormationHistory_%rangeIsSufficient(starFormationHistory,rate)) then
-       ! Range is sufficient, call the intrinsinc rate function.
+       ! Range is sufficient, call the intrinsic rate function.
        select type (self)
        class is (nodeComponentSpheroidStandard)
           call self%starFormationHistoryRateIntrinsic(rate)
