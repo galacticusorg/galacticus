@@ -264,7 +264,7 @@ contains
     massHost     =Dark_Matter_Profile_Mass_Definition(                                                                                                                             &
          &                                                                   host                                                                                                , &
          &                                                                   self%virialDensityContrastDefinition_%densityContrast(basicHost%mass(),basicHost%timeLastIsolated()), &
-         &                                                                   radiusHost                                                                                          , &
+         &                                                                   radiusHostSelf                                                                                      , &
          &                                                                   velocityHost                                                                                        , &
          &                                            cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
          &                                            cosmologyFunctions_   =self%cosmologyFunctions_                                                                            , &
@@ -477,7 +477,7 @@ contains
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
-    use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical    , only : gravitationalConstant_internal
     implicit none
     class           (virialOrbitWetzel2010), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node        , host
@@ -504,7 +504,7 @@ contains
          &                    +basic    %mass()                              &
          &                    /basicHost%mass()                              &
          &                   )                                               &
-         &                  -gravitationalConstantGalacticus                 &
+         &                  -gravitationalConstant_internal                  &
          &                  *massHost                                        &
          &                  /radiusHost
     return

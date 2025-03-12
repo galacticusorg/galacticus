@@ -22,12 +22,13 @@
   !!{
   Contains a module which implements a property extractor class for the emission line luminosity of a component.
   !!}
-  use :: Galactic_Structure_Options     , only : enumerationComponentTypeType
-  use :: Output_Times                   , only : outputTimesClass
-  use :: Star_Formation_Histories       , only : starFormationHistoryClass
-  use :: HII_Region_Luminosity_Functions, only : hiiRegionLuminosityFunctionClass
-  use :: Star_Formation_Histories       , only : starFormationHistoryClass
-  use :: hii_Region_Density_Distributions,only : hiiRegionDensityDistributionClass  
+  use, intrinsic :: ISO_C_Binding                  , only : c_size_t
+  use            :: Galactic_Structure_Options     , only : enumerationComponentTypeType
+  use            :: Output_Times                   , only : outputTimesClass
+  use            :: Star_Formation_Histories       , only : starFormationHistoryClass
+  use            :: HII_Region_Luminosity_Functions, only : hiiRegionLuminosityFunctionClass
+  use            :: Star_Formation_Histories       , only : starFormationHistoryClass
+  use            :: hii_Region_Density_Distributions,only : hiiRegionDensityDistributionClass  
   type:: emissionLineLuminosityTemplate
      !!{
      Type used to store luminosity templates for emission lines.
@@ -57,6 +58,8 @@
      class           (hiiRegionDensityDistributionClass), pointer                       :: hiiRegionDensityDistribution_        => null()
      type            (enumerationComponentTypeType     )                                :: component
      integer                                                                            :: countWavelengths                             , countLines
+     integer         (c_size_t                         )                                :: indexAge                                     , indexMetallicity            , &
+          &                                                                                indexIonizingLuminosityHydrogen              , indexDensityHydrogen
      type            (varying_string                   ), allocatable, dimension(:    ) :: lineNames                                    , names_                      , &
           &                                                                                descriptions_
      double precision                                   , allocatable, dimension(:    ) :: metallicityBoundaries                        , metallicities               , &
@@ -161,6 +164,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily sed} property extractor class.
     !!}
+    use :: Array_Utilities                 , only : slice
     use :: Galactic_Structure_Options      , only : componentTypeDisk, componentTypeSpheroid
     use :: Galacticus_Nodes                , only : nodeComponentDisk, nodeComponentSpheroid
     use :: Error                           , only : Error_Report
@@ -184,9 +188,12 @@ contains
          &                                                                                                rateHydrogenIonizingPhotonsMaximum, densityHydrogenMinimum            , &
          &                                                                                                densityHydrogenMaximum            , deltaDensityHydrogen 
     double precision                                             , allocatable  , dimension(:        ) :: ionizingLuminosityHydrogen        , densityHydrogen
+    integer                                                                     , dimension(5        ) :: shapeLines
     double precision                                             , allocatable  , dimension(:,:,:,:,:) :: luminosities
-    type            (hdf5Object                                 )                                      :: emissionLinesFile                 , lines
-    integer                                                                                            :: i                                 , k
+    integer         (c_size_t                                   )               , dimension(3        ) :: permutation
+    type            (hdf5Object                                 )                                      :: emissionLinesFile                 , lines                             , &
+         &                                                                                                dataset
+    integer         (c_size_t                                   )                                      :: i                                 , k
     !![
     <constructorAssign variables="cloudyTableFileName, lineNames, component, toleranceRelative, *starFormationHistory_, *outputTimes_, *hiiRegionLuminosityFunction_, *hiiRegionDensityDistribution_"/>
     !!]
@@ -208,19 +215,36 @@ contains
     call emissionLinesFile%readDataset('ionizingLuminosityHydrogen'          ,     ionizingLuminosityHydrogen          )
     call emissionLinesFile%readDataset('ionizingLuminosityHydrogenNormalized',self%ionizingLuminosityHydrogenNormalized)
     call emissionLinesFile%readDataset('densityHydrogen'                     ,     densityHydrogen                     )
+    ! Extract indexing into the lines arrays.
+    dataset=emissionLinesFile%openDataset('metallicity'               )
+    call dataset%readAttribute('index',self%indexMetallicity               )
+    call dataset%close        (                     )
+    dataset=emissionLinesFile%openDataset('age'                       )
+    call dataset%readAttribute('index',self%indexAge                       )
+    call dataset%close        (                     )
+    dataset=emissionLinesFile%openDataset('ionizingLuminosityHydrogen')
+    call dataset%readAttribute('index',self%indexIonizingLuminosityHydrogen)
+    call dataset%close        (                     )
+    dataset=emissionLinesFile%openDataset('densityHydrogen'           )
+    call dataset%readAttribute('index',self%indexDensityHydrogen           )
+    call dataset%close        (                     )
+    ! Offset indexing to Fortran standard (i.e. starting from 1 instead of 0).
+    self%indexMetallicity               =self%indexMetallicity               +1
+    self%indexAge                       =self%indexAge                       +1
+    self%indexIonizingLuminosityHydrogen=self%indexIonizingLuminosityHydrogen+1
+    self%indexDensityHydrogen           =self%indexDensityHydrogen           +1
+    ! Establish arrays.
     self%metallicityPopulationMinimum=minval(self%metallicities)
     self%metallicityPopulationMaximum=maxval(self%metallicities)
     self%agePopulationMaximum        =maxval(self%ages         )
-    allocate(                                        &
-         &        luminosities                       &
-         &   (                                       &
-         &    size(self%ages                      ), &
-         &    size(self%metallicities             ), &
-         &    size(     ionizingLuminosityHydrogen), &
-         &    size(     densityHydrogen           ), &
-         &    size(     lineNames                 )  &
-         &   )                                       &
-         &  )
+    shapeLines(self%indexMetallicity               )=size(self%metallicities             )
+    shapeLines(self%indexAge                       )=size(self%ages                      )
+    shapeLines(self%indexIonizingLuminosityHydrogen)=size(     ionizingLuminosityHydrogen)
+    shapeLines(self%indexDensityHydrogen           )=size(     densityHydrogen           )
+    shapeLines(     5                              )=size(     lineNames                 )
+    !![
+    <allocate variable="luminosities" shape="shapeLines"/>
+    !!]
     allocate(                                        &
          &   self%luminositiesReduced                &
          &   (                                       &
@@ -235,11 +259,19 @@ contains
     end do
     !$ call hdf5Access%unset()
     ! Calculate emission line luminosities as a function of age and metallicity by averaging over the distribution of HII region
-    ! luminosities.
+    ! luminosities. Account for any needed permutation in the indexing needed to get our final array to be (age,metallicity,line)
+    ! ordered.
     deltaIonizingLuminosityHydrogen=+ionizingLuminosityHydrogen(2) &
          &                          /ionizingLuminosityHydrogen(1)
     deltaDensityHydrogen           =+densityHydrogen           (2) &
          &                          /densityHydrogen           (1)
+    permutation(1)=self%indexAge
+    permutation(2)=self%indexMetallicity
+    permutation(3)=     3
+    if (self%indexIonizingLuminosityHydrogen < self%indexAge        ) permutation(1)=permutation(1)-1_c_size_t
+    if (self%indexIonizingLuminosityHydrogen < self%indexMetallicity) permutation(2)=permutation(2)-1_c_size_t
+    if (self%indexDensityHydrogen            < self%indexAge        ) permutation(1)=permutation(1)-1_c_size_t
+    if (self%indexDensityHydrogen            < self%indexMetallicity) permutation(2)=permutation(2)-1_c_size_t
     do i=1,size(ionizingLuminosityHydrogen)
        rateHydrogenIonizingPhotonsMinimum=ionizingLuminosityHydrogen(i)/sqrt(deltaIonizingLuminosityHydrogen)
        rateHydrogenIonizingPhotonsMaximum=ionizingLuminosityHydrogen(i)*sqrt(deltaIonizingLuminosityHydrogen)
@@ -250,7 +282,15 @@ contains
           self%luminositiesReduced=+self%luminositiesReduced                                                                                                                 &
                &                   +self%hiiRegionLuminosityFunction_ %cumulativeDistributionFunction(rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum) &
                &                   *self%hiiRegionDensityDistribution_%cumulativeDensityDistribution (            densityHydrogenMinimum,            densityHydrogenMaximum) &
-               &                   *luminosities(:,:,i,k,:)
+               &                   *reshape(                                                                                                                                 &
+               &                                   slice(                                                                                                                    &
+               &                                         luminosities                                                                                                ,       &
+               &                                         [self%indexIonizingLuminosityHydrogen,self%indexDensityHydrogen                                            ],       &
+               &                                         [     i                              ,     k                                                               ]        &
+               &                                        )                                                                                                            ,       &
+               &                                         [size(luminosities,dim=self%indexAge),size(luminosities,dim=self%indexMetallicity),size(luminosities,dim=5)],       &
+               &                             order=permutation                                                                                                               &
+               &                            )
        end do
     end do
     ! Normalize reduced luminosities to the total fraction of HII regions in the luminosity interval spanned by the table. Also,

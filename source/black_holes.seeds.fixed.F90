@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implements the fixed mass and spin black hole seeds.
+  Implements fixed mass and spin black hole seeds.
   !!}
 
   !![
@@ -35,8 +35,9 @@
      private
      double precision :: mass_, spin_   
    contains
-     procedure :: mass => fixedMass
-     procedure :: spin => fixedSpin
+     procedure :: mass             => fixedMass
+     procedure :: spin             => fixedSpin
+     procedure :: formationChannel => fixedFormationChannel
   end type blackHoleSeedsFixed
   
   interface blackHoleSeedsFixed
@@ -119,3 +120,17 @@ contains
     spin=self%spin_
     return
   end function fixedSpin
+
+  function fixedFormationChannel(self,node) result(channel)
+    !!{
+    Compute the spin of the seed black hole.
+    !!}
+    implicit none
+    type (enumerationBlackHoleFormationChannelType)                :: channel
+    class(blackHoleSeedsFixed                     ), intent(inout) :: self
+    type (treeNode                                ), intent(inout) :: node
+    !$GLC attributes unused :: self, node
+
+    channel=blackHoleFormationChannelUndetermined
+    return
+  end function fixedFormationChannel

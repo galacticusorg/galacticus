@@ -196,8 +196,8 @@ contains
     !!{
     Compute the interpolated position and velocity of the node.
     !!}
-    use :: Galacticus_Nodes                , only : nodeComponentPosition  , nodeComponentBasic
-    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
+    use :: Galacticus_Nodes                , only : nodeComponentPosition, nodeComponentBasic
+    use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr
     implicit none
     class           (nodeOperatorPositionInterpolated), intent(inout)                  :: self
     type            (treeNode                        ), intent(inout)                  :: node
@@ -246,7 +246,7 @@ contains
          &    *self%cosmologyFunctions_%expansionFactor(time)
     velocity_=+velocity_                                      &
          &    *self%cosmologyFunctions_%expansionFactor(time) &
-         &    *Mpc_per_km_per_s_To_Gyr 
+         &    *MpcPerKmPerSToGyr 
     if (isSpiral) then
       ! Add on logarithmic spiral interpolation in physical position for satellite nodes.
       offset               =offset+countCoefficientsCubicPolynomial
@@ -741,8 +741,7 @@ contains
       !!}
       use :: Galacticus_Nodes                , only : nodeComponentPosition
       use :: Histories                       , only : history
-      use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
-      use :: Vectors                         , only : Vector_Product         , Vector_Magnitude
+      use :: Vectors                         , only : Vector_Product       , Vector_Magnitude
       implicit none
       double precision                       , dimension(20)             :: coefficientsLogarithmicSpiral
       type            (nodeTrace            ), intent(in   )   , target  :: trace
@@ -880,8 +879,8 @@ contains
       !!}
       use :: Galacticus_Nodes                , only : nodeComponentPosition
       use :: Histories                       , only : history
-      use :: Linear_Algebra                  , only : vector                 , matrix, assignment(=)
-      use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
+      use :: Linear_Algebra                  , only : vector               , matrix, assignment(=)
+      use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr
       use :: Numerical_Comparison            , only : Values_Agree
       implicit none
       double precision                                  , dimension(4,3)              :: coefficientsCubicPolynomial
@@ -921,7 +920,7 @@ contains
          end if
          ! Convert from physical to comoving coordinates, and, for velocities, from km/s to Mpc/Gyr.
          positionComoving(i,:)=positionPhysical(i,:)/self%cosmologyFunctions_%expansionFactor(times(i))
-         velocityComoving(i,:)=velocityPhysical(i,:)/self%cosmologyFunctions_%expansionFactor(times(i))/Mpc_per_km_per_s_To_Gyr
+         velocityComoving(i,:)=velocityPhysical(i,:)/self%cosmologyFunctions_%expansionFactor(times(i))/MpcPerKmPerSToGyr
       end do
       ! Handle periodic positions.
       if (self%isPeriodic) then

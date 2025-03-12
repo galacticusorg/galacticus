@@ -40,14 +40,16 @@ module Locks
    contains
      !![
      <methods>
-       <method description="Obtain a lock on the object."          method="set"       />
-       <method description="Release a lock on the object."         method="unset"     />
-       <method description="(Re)initialize an OpenMP lock object." method="initialize"/>
+       <method description="Obtain a lock on the object."                                                              method="set"           />
+       <method description="Attempt to obtain a lock on the object, returning false (without blocking) if this fails." method="setNonBlocking"/>
+       <method description="Release a lock on the object."                                                             method="unset"         />
+       <method description="(Re)initialize an OpenMP lock object."                                                     method="initialize"    />
      </methods>
      !!]
-     procedure :: initialize => ompLockClassInitialize
-     procedure :: set        => ompLockClassSet
-     procedure :: unset      => ompLockClassUnset
+     procedure :: initialize     => ompLockClassInitialize
+     procedure :: set            => ompLockClassSet
+     procedure :: setNonBlocking => ompLockClassSetNonBlocking
+     procedure :: unset          => ompLockClassUnset
   end type ompLockClass
 
   type, extends(ompLockClass) :: ompLock
@@ -64,13 +66,14 @@ module Locks
        <method description="Return true if the current thread already owns this lock." method="ownedByThread"/>
      </methods>
      !!]
-     final     ::                  ompLockDestructor
-     procedure :: initialize    => ompLockInitialize
-     procedure :: set           => ompLockSet
-     procedure :: unset         => ompLockUnset
-     procedure :: ownedByThread => ompLockOwnedByThread
-     procedure ::                  ompLockAssign
-     generic   :: assignment(=) => ompLockAssign
+     final     ::                   ompLockDestructor
+     procedure :: initialize     => ompLockInitialize
+     procedure :: set            => ompLockSet
+     procedure :: setNonBlocking => ompLockSetNonBlocking
+     procedure :: unset          => ompLockUnset
+     procedure :: ownedByThread  => ompLockOwnedByThread
+     procedure ::                   ompLockAssign
+     generic   :: assignment(=)  => ompLockAssign
   end type ompLock
 
   interface ompLock
@@ -166,6 +169,18 @@ contains
     return
   end subroutine ompLockClassSet
 
+  logical function ompLockClassSetNonBlocking(self) result(success)
+    !!{
+    Get a lock on an OpenMP null lock objects.
+    !!}
+    implicit none
+    class(ompLockClass), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    success=.true.
+    return
+  end function ompLockClassSetNonBlocking
+
   subroutine ompLockClassUnset(self)
     !!{
     Release a lock on an OpenMP null lock objects.
@@ -239,6 +254,22 @@ contains
     !$ self%ownerThread=OMP_Get_Thread_Num()
     return
   end subroutine ompLockSet
+
+  logical function ompLockSetNonBlocking(self) result(success)
+    !!{
+    Attempt to get a lock on an OpenMP lock object, returning false if this fails without blocking.
+    !!}
+    !$ use :: OMP_Lib, only : OMP_Get_Thread_Num, OMP_Test_Lock
+    implicit none
+    class(ompLock), intent(inout) :: self
+
+    success=.true.
+    !$ success=OMP_Test_Lock(self%lock)
+    if (.not.success) return
+    self%ownerThread=0
+    !$ self%ownerThread=OMP_Get_Thread_Num()
+    return
+  end function ompLockSetNonBlocking
 
   subroutine ompLockUnset(self)
     !!{

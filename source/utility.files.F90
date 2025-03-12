@@ -139,15 +139,17 @@ module File_Utilities
   end interface
 
   interface
-     subroutine flock_C(name,ld,lockIsShared) bind(c,name='flock_C')
+     function flock_C(name,ld,lockIsShared,timeSleep,countAttempts) bind(c,name='flock_C')
        !!{
        Template for a C function that calls {\normalfont \ttfamily flock()} to lock a file.
        !!}
        import
+       integer  (c_int )        :: flock_C
        character(c_char)        :: name
        type     (c_ptr )        :: ld
-       integer  (c_int ), value :: lockIsShared
-     end subroutine flock_C
+       integer  (c_int ), value :: lockIsShared , timeSleep, &
+            &                      countAttempts
+     end function flock_C
   end interface
 
   interface
@@ -302,17 +304,27 @@ contains
     return
   end function Count_Lines_in_File_Char
 
-  subroutine File_Lock(fileName,lock,lockIsShared)
+  subroutine File_Lock(fileName,lock,lockIsShared,timeSleep,countAttempts)
     !!{
     Place a lock on a file.
     !!}
-    use :: ISO_Varying_String, only : assignment(=), trim
+    use :: Display                     , only : displayMessage, displayReset, displayMagenta 
+    use :: Error                       , only : Error_Report  , Warn
+    use :: ISO_Varying_String          , only : assignment(=) , trim
+    use :: Numerical_Constants_Prefixes, only : siFormat
     implicit none
     character(len=*         ), intent(in   )           :: fileName
     type     (lockDescriptor), intent(inout)           :: lock
     logical                  , intent(in   ), optional :: lockIsShared
-    integer  (c_int         )                          :: lockIsShared_
-
+    integer  (c_int         ), intent(in   ), optional :: timeSleep                         , countAttempts
+    logical                  , save                    :: fileLockNotAvailableWarned=.false.
+    integer  (c_int         )                          :: lockIsShared_                     , status       , &
+         &                                                timeWait
+    !![
+    <optionalArgument name="timeSleep"     defaultsTo="1_c_int" />
+    <optionalArgument name="countAttempts" defaultsTo="60_c_int"/>
+    !!]
+    
     lockIsShared_=0
     if (present(lockIsShared).and.lockIsShared) lockIsShared_=1
     ! Even if using OFD locks we must lock per OpenMP thread since POSIX file locks, since we may have the file open multiple
@@ -329,7 +341,32 @@ contains
     if (posixOpenMPFileLockCount == 0) call posixOpenMPFileLock%set()
     posixOpenMPFileLockCount=posixOpenMPFileLockCount+1
     ! Now obtain the lock on the file.
-    call flock_C(trim(fileName)//".lock"//char(0),lock%lockDescriptorC,lockIsShared_)
+    timeWait     =      0_c_int
+    status       =-huge(0_c_int)
+    do while (status /= 0)
+       status=flock_C(trim(fileName)//".lock"//char(0),lock%lockDescriptorC,lockIsShared_,timeSleep_,countAttempts_)
+       select case (status)
+       case ( 0_c_int)
+          ! Success.
+       case (-1_c_int)
+          ! File locking is not supported.
+          !$omp critical(fileLockNotAvailableWarned)
+          if (.not.fileLockNotAvailableWarned) then
+             call Warn('file locking is not available - proceeding without locking files')
+             fileLockNotAvailableWarned=.true.
+          end if
+          !$omp end critical(fileLockNotAvailableWarned)
+       case (-2_c_int)
+          ! File lock was not obtained.
+          timeWait=+timeWait       &
+               &   +timeSleep_     &
+               &   *countAttempts_
+          call displayMessage(displayMagenta()//"WARNING:"//displayReset()//" failed to obtain lock on file '"//fileName//"' after "//trim(adjustl(siFormat(dble(timeWait),'f5.1,1x')))//"s - trying again")
+       case default
+          ! Unknown return code.
+          call Error_Report('unknown error code from flock()'//{introspection:location})
+       end select
+    end do
     lock%fileName=trim(fileName)
     return
   end subroutine File_Lock

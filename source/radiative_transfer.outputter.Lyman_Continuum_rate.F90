@@ -93,8 +93,8 @@ contains
     Compute and output the Lyman continuum photon emission rate.
     !!}
     use :: HDF5_Access               , only : hdf5Access
-    use :: ISO_Varying_String        , only : var_str                           , operator(//)
-    use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen
+    use :: ISO_Varying_String        , only : var_str                                  , operator(//)
+    use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen_atomic
     use :: Numerical_Integration     , only : integrator
     use :: MPI_Utilities             , only : mpiSelf
     use :: String_Handling           , only : String_Upper_Case_First
@@ -122,8 +122,8 @@ contains
             &                                   )
        do sourceIndex=0,size(self%lymanContinuumRateEscapingTagged)
           rateLymanContinuum=+integrator_%integrate(                                                             &
-               &                                                      1.0d-6*lymanSeriesLimitWavelengthHydrogen, &
-               &                                                             lymanSeriesLimitWavelengthHydrogen  &
+               &                                                      1.0d-6*lymanSeriesLimitWavelengthHydrogen_atomic, &
+               &                                                             lymanSeriesLimitWavelengthHydrogen_atomic  &
                &                                   )
           label=var_str('rateLymanContinuumEmitted')
           if (sourceIndex > 0) label=label//String_Upper_Case_First(char(radiativeTransferSource_%sourceTypeName(sourceIndex)))
@@ -141,7 +141,7 @@ contains
       Integrand over the source spectrum.
       !!}
       use :: Numerical_Constants_Physical    , only : plancksConstant  , speedLight
-      use :: Numerical_Constants_Units       , only : angstromsPerMeter
+      use :: Numerical_Constants_Units       , only : metersToAngstroms
       use :: Numerical_Constants_Astronomical, only : luminositySolar
       implicit none
       double precision, intent(in   ) :: wavelength
@@ -149,7 +149,7 @@ contains
       
       energyPhoton=+plancksConstant                                           &
            &       *speedLight                                                &
-           &       *angstromsPerMeter                                         &
+           &       *metersToAngstroms                                         &
            &       /wavelength
       integrand   =+radiativeTransferSource_%spectrum(wavelength,sourceIndex) &
            &       *luminositySolar                                           &
@@ -163,9 +163,9 @@ contains
     !!{
     Process an escaping photon packet.
     !!}
-    use :: Numerical_Constants_Atomic      , only : lymanSeriesLimitWavelengthHydrogen
+    use :: Numerical_Constants_Atomic      , only : lymanSeriesLimitWavelengthHydrogen_atomic
     use :: Numerical_Constants_Physical    , only : plancksConstant                   , speedLight
-    use :: Numerical_Constants_Units       , only : angstromsPerMeter
+    use :: Numerical_Constants_Units       , only : metersToAngstroms
     use :: Numerical_Constants_Astronomical, only : luminositySolar
     implicit none
     class           (radiativeTransferOutputterLymanContinuumRate), intent(inout) :: self
@@ -173,10 +173,10 @@ contains
     double precision                                                              :: energyPhoton, rateEscape
     integer                                                                       :: sourceIndex
     
-    if (photonPacket%wavelength() < lymanSeriesLimitWavelengthHydrogen) then
+    if (photonPacket%wavelength() < lymanSeriesLimitWavelengthHydrogen_atomic) then
        energyPhoton                                      =+plancksConstant                                            &
             &                                             *speedLight                                                 &
-            &                                             *angstromsPerMeter                                          &
+            &                                             *metersToAngstroms                                          &
             &                                             /photonPacket%wavelength                      (           )
        rateEscape                                        =+photonPacket%luminosity                      (           ) &
             &                                             *luminositySolar                                            &

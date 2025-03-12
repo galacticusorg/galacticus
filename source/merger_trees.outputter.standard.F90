@@ -1203,10 +1203,10 @@ contains
     !!{
     Create a group in which to store this output.
     !!}
-    use            :: Output_HDF5                     , only : outputFile
+    use            :: Output_HDF5                     , only : outputTo     => outputGroup
     use            :: HDF5_Access                     , only : hdf5Access
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use            :: Numerical_Constants_Astronomical, only : gigaYear
+    use            :: Numerical_Constants_Astronomical, only : gigaYear    , megaParsec
     use            :: String_Handling                 , only : operator(//)
     implicit none
     class           (mergerTreeOutputterStandard), intent(inout)               :: self
@@ -1214,7 +1214,8 @@ contains
     double precision                             , intent(in   )               :: time
     type            (outputGroup                ), allocatable  , dimension(:) :: outputGroupsTemporary
     type            (varying_string             )                              :: description          , groupName
-
+    double precision                                                           :: expansionFactor      , distanceComoving
+    
     !$ call hdf5Access%set()
     ! Ensure group ID space is large enough.
     if (indexOutput > self%outputGroupsCount) then
@@ -1237,7 +1238,7 @@ contains
     end if
     ! Make the enclosing group if it has not been created.
     if (.not.self%outputsGroupOpened) then
-       self%outputsGroup=outputFile%openGroup(char(self%outputsGroupName),'Contains all outputs from Galacticus.')
+       self%outputsGroup      =outputTo%openGroup(char(self%outputsGroupName),'Contains all outputs from Galacticus.')
        self%outputsGroupOpened=.true.
     end if
     !$ call hdf5Access%unset()
@@ -1257,9 +1258,19 @@ contains
        self%outputGroups(indexOutput)%integerAttributesWritten=.false.
        self%outputGroups(indexOutput)%doubleAttributesWritten =.false.
        ! Add the time to this group.
-       call self%outputGroups(indexOutput)%hdf5Group%writeAttribute(time                                          ,'outputTime'           )
-       call self%outputGroups(indexOutput)%hdf5Group%writeAttribute(gigaYear                                      ,'timeUnitInSI'         )
-       call self%outputGroups(indexOutput)%hdf5Group%writeAttribute(self%cosmologyFunctions_%expansionFactor(time),'outputExpansionFactor')
+       expansionFactor    =+self%cosmologyFunctions_%expansionFactor (time)
+       if (expansionFactor > 1.0d0) then
+          distanceComoving=-1.0d0
+       else if (expansionFactor == 1.0d0) then
+          distanceComoving=+0.0d0
+       else
+          distanceComoving=+self%cosmologyFunctions_%distanceComoving(time)
+       end if
+       call self%outputGroups(indexOutput)%hdf5Group%writeAttribute(time            ,'outputTime'            )
+       call self%outputGroups(indexOutput)%hdf5Group%writeAttribute(gigaYear        ,'timeUnitInSI'          )
+       call self%outputGroups(indexOutput)%hdf5Group%writeAttribute(megaParsec      ,'distanceUnitInSI'      )
+       call self%outputGroups(indexOutput)%hdf5Group%writeAttribute(expansionFactor ,'outputExpansionFactor' )
+       call self%outputGroups(indexOutput)%hdf5Group%writeAttribute(distanceComoving,'outputComovingDistance')
        !$ call hdf5Access%unset()
     end if
     return

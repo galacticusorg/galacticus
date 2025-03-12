@@ -221,7 +221,7 @@ contains
     use :: Error                           , only : Error_Report
     use :: Mass_Distributions              , only : massDistributionClass
     use :: Numerical_Comparison            , only : Values_Agree
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: String_Handling                 , only : operator(//)
     implicit none
     class           (mergerRemnantSizeCole2000), intent(inout) :: self
@@ -364,7 +364,7 @@ contains
                   &                                     *self%energyOrbital/formFactorEnergyBinding
              self%radius=(massSpheroidTotalSatellite+massSpheroidHostTotal)**2/energyProgenitors
              ! Also compute the specific angular momentum at the half-mass radius.
-             self%velocityCircular       =sqrt(gravitationalConstantGalacticus*(massSpheroidSatellite+massSpheroidHost)/self%radius)
+             self%velocityCircular       =sqrt(gravitationalConstant_internal*(massSpheroidSatellite+massSpheroidHost)/self%radius)
              self%angularMomentumSpecific=self%radius*self%velocityCircular*factorAngularMomentum
           else
              ! Remnant has zero mass - don't do anything.

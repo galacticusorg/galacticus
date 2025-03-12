@@ -21,7 +21,7 @@
 Contains a module which implements an N-body data operator which determines the acceleration of self-bound particles from unbound ones. The interaction between particles is computed using a tree method following \cite{barnes_hierarchical_1986}.
 !!}
 
-  use, intrinsic :: ISO_C_Binding           , only : c_size_t
+  use, intrinsic :: ISO_C_Binding, only : c_size_t
 
   !![
   <nbodyOperator name="nbodyOperatorSelfFrictionAcceleration">
@@ -112,11 +112,11 @@ contains
     !!{
     Determine the acceleration of bound particles from unbound ones.
     !!}
-    use :: Display                         , only : displayIndent                  , displayUnindent
+    use :: Display                         , only : displayIndent                 , displayUnindent
     use :: Error                           , only : Error_Report
     use :: ISO_Varying_String              , only : var_str
     use :: String_Handling                 , only : operator(//)
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus, gigaYear       , megaParsec
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal, gigaYear       , megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Octree_Data_Structure           , only : octreeData
     implicit none
@@ -188,7 +188,7 @@ contains
              !$omp end parallel
              accelerationSelfFriction(:,i)=+accelerationAccumulate          &
                   &                        /sum(dble(selfBoundStatus(:,i))) &
-                  &                        *gravitationalConstantGalacticus &
+                  &                        *gravitationalConstant_internal  &
                   &                        *massParticle                    &
                   &                        /sampleRate(1)                   &
                   &                        /lengthSoftening**2              &

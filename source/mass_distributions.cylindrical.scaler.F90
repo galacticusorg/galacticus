@@ -381,7 +381,7 @@ contains
     !!{
     Return the mid-plane rotation curve for a scaled cylindrical distribution.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (massDistributionCylindricalScaler), intent(inout)           :: self
     double precision                                   , intent(in   )           :: radius
@@ -394,9 +394,9 @@ contains
          &                               +self                  %factorScalingMass                             &
          &                               /self                  %factorScalingLength                           &
          &                              )
-    if (self%massDistribution_%isDimensionless())                                &
-         & cylindricalScalerRotationCurve=+cylindricalScalerRotationCurve        &
-         &                                *sqrt(gravitationalConstantGalacticus)
+    if (self%massDistribution_%isDimensionless())                               &
+         & cylindricalScalerRotationCurve=+cylindricalScalerRotationCurve       &
+         &                                *sqrt(gravitationalConstant_internal)
     return
   end function cylindricalScalerRotationCurve
 
@@ -404,7 +404,7 @@ contains
     !!{
     Return the mid-plane rotation curve gradient (specifically, $\mathrm{d}V^2_\mathrm{c}/\mathrm{d}r$) for a scaled cylindrical distribution.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (massDistributionCylindricalScaler), intent(inout) :: self
     double precision                                   , intent(in   ) :: radius
@@ -417,7 +417,7 @@ contains
          &                                 /self%factorScalingLength**2
     if (self%massDistribution_%isDimensionless())                                         &
          & cylindricalScalerRotationCurveGradient=+cylindricalScalerRotationCurveGradient &
-         &                                        *gravitationalConstantGalacticus
+         &                                        *gravitationalConstant_internal
     return
   end function cylindricalScalerRotationCurveGradient
 
@@ -437,7 +437,7 @@ contains
     Return the gravitational potential for a scaled cylindrical distribution.
     !!}
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class(massDistributionCylindricalScaler), intent(inout), target      :: self
     class(coordinate                       ), intent(in   )              :: coordinates
@@ -451,9 +451,9 @@ contains
          &                                                                )                   &
          &                     *self                  %factorScalingMass                      &
          &                     /self                  %factorScalingLength
-    if (self%massDistribution_%isDimensionless())                      &
-         & cylindricalScalerPotential=+cylindricalScalerPotential      &
-         &                            *gravitationalConstantGalacticus
+    if (self%massDistribution_%isDimensionless())                     &
+         & cylindricalScalerPotential=+cylindricalScalerPotential     &
+         &                            *gravitationalConstant_internal
     return
   end function cylindricalScalerPotential
 
@@ -485,7 +485,7 @@ contains
     !!{
     Computes the gravitational acceleration at {\normalfont \ttfamily coordinates} for a scaled cylindrical distribution.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gigaYear, gravitationalConstantGalacticus, megaParsec
+    use :: Numerical_Constants_Astronomical, only : gigaYear, gravitationalConstant_internal, megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     double precision                                   , dimension(3)  :: cylindricalScalerAcceleration
@@ -497,12 +497,12 @@ contains
     cylindricalScalerAcceleration=+self%massDistribution_%acceleration       (coordinatesScaled) &
          &                        *self                  %factorScalingMass                      &
          &                        /self                  %factorScalingLength**2
-    if (self%massDistribution_%isDimensionless())                         &
-         & cylindricalScalerAcceleration=+cylindricalScalerAcceleration   &
-         &                               *kilo                            &
-         &                               *gigaYear                        &
-         &                               /megaParsec                      &
-         &                               *gravitationalConstantGalacticus
+    if (self%massDistribution_%isDimensionless())                        &
+         & cylindricalScalerAcceleration=+cylindricalScalerAcceleration  &
+         &                               *kilo                           &
+         &                               *gigaYear                       &
+         &                               /megaParsec                     &
+         &                               *gravitationalConstant_internal
        return
   end function cylindricalScalerAcceleration
 
@@ -510,7 +510,7 @@ contains
     !!{
     Computes the gravitational tidal tensor at {\normalfont \ttfamily coordinates} for a scaled cylindrical distribution.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     type (tensorRank2Dimension3Symmetric   )                :: cylindricalScalerTidalTensor
     class(massDistributionCylindricalScaler), intent(inout) :: self
@@ -521,9 +521,9 @@ contains
     cylindricalScalerTidalTensor=+self%massDistribution_%tidalTensor           (coordinatesScaled) &
          &                       *self                  %factorScalingMass                         &
          &                       /self                  %factorScalingLength**3
-    if (self%massDistribution_%isDimensionless())                        &
-         & cylindricalScalerTidalTensor=+cylindricalScalerTidalTensor    &
-         &                              *gravitationalConstantGalacticus
+    if (self%massDistribution_%isDimensionless())                       &
+         & cylindricalScalerTidalTensor=+cylindricalScalerTidalTensor   &
+         &                              *gravitationalConstant_internal
      return
   end function cylindricalScalerTidalTensor
   

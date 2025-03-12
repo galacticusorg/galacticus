@@ -66,11 +66,19 @@
      logical                                                                                     :: finalized                                      , likelihoodNormalize                             , &
           &                                                                                         xAxisIsLog                                     , yAxisIsLog
    contains
-     final     ::                  scatterFunction1DDestructor
-     procedure :: analyze       => scatterFunction1DAnalyze
-     procedure :: finalize      => scatterFunction1DFinalize
-     procedure :: reduce        => scatterFunction1DReduce
-     procedure :: logLikelihood => scatterFunction1DLogLikelihood
+     !![
+     <methods>
+       <method description="Return the results of the scatter function operator." method="results"         />
+       <method description="Finalize analysis of the scatter function operator."  method="finalizeAnalysis"/>
+     </methods>
+     !!]
+     final     ::                     scatterFunction1DDestructor
+     procedure :: analyze          => scatterFunction1DAnalyze
+     procedure :: finalize         => scatterFunction1DFinalize
+     procedure :: finalizeAnalysis => scatterFunction1DFinalizeAnalysis
+     procedure :: reduce           => scatterFunction1DReduce
+     procedure :: results          => scatterFunction1DResults
+     procedure :: logLikelihood    => scatterFunction1DLogLikelihood
   end type outputAnalysisScatterFunction1D
 
   interface outputAnalysisScatterFunction1D
@@ -609,7 +617,7 @@ contains
     type (hdf5Object                     )                          :: analysisGroup, dataset
 
     ! Finalize the analysis.
-    call scatterFunction1DFinalizeAnalysis(self)
+    call self%finalizeAnalysis()
     ! Output the resulting scatter function.
     !$ call hdf5Access%set()
     analysesGroup =  outputFile   %openGroup('analyses'     )
@@ -656,6 +664,36 @@ contains
     return
   end subroutine scatterFunction1DFinalize
 
+  subroutine scatterFunction1DResults(self,binCenter,scatterValue,scatterCovariance)
+    !!{
+    Implement a scatterFunction1D output analysis finalization.
+    !!}
+    implicit none
+    class           (outputAnalysisScatterFunction1D)                             , intent(inout)           :: self
+    double precision                                 , allocatable, dimension(:  ), intent(inout), optional :: binCenter     , scatterValue
+    double precision                                 , allocatable, dimension(:,:), intent(inout), optional :: scatterCovariance
+
+    ! Finalize analysis.
+    call self%finalizeAnalysis()
+    ! Return results.
+    if (present(binCenter        )) then
+       if (allocated(binCenter        )) deallocate(binCenter        )
+       allocate(binCenter(size(self%binCenter)))
+       binCenter         =self%binCenter
+    end if
+    if (present(scatterValue     )) then
+       if (allocated(scatterValue     )) deallocate(scatterValue     )
+       allocate(scatterValue(size(self%scatterValue)))
+       scatterValue     =self%scatterValue
+    end if
+    if (present(scatterCovariance)) then
+       if (allocated(scatterCovariance)) deallocate(scatterCovariance)
+       allocate(scatterCovariance(size(self%scatterCovariance,dim=1),size(self%scatterCovariance,dim=2)))
+       scatterCovariance=self%scatterCovariance
+    end if
+    return
+  end subroutine scatterFunction1DResults
+
   double precision function scatterFunction1DLogLikelihood(self)
     !!{
     Return the log-likelihood of a scatterFunction1D output analysis.
@@ -676,7 +714,7 @@ contains
     ! Check for existence of a target distribution.
     if (allocated(self%scatterValueTarget)) then
        ! Finalize analysis.
-       call scatterFunction1DFinalizeAnalysis(self)
+       call self%finalizeAnalysis()
        ! Allocate workspaces.
        allocate(scatterCovarianceCombined(size(self%binCenter),size(self%binCenter)))
        allocate(scatterValueDifference   (size(self%binCenter)                     ))
@@ -692,7 +730,7 @@ contains
        if (status == GSL_Success) then
           if (self%likelihoodNormalize)                                                         &
                & scatterFunction1DLogLikelihood=+scatterFunction1DLogLikelihood                 &
-               &                                -0.5d0*covariance%determinant()                 &
+               &                                -0.5d0*covariance%logarithmicDeterminant()      &
                &                                -0.5d0*dble(size(self%binCenter))*log(2.0d0*Pi)
        else
           scatterFunction1DLogLikelihood       =+logImprobable

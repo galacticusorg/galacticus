@@ -1155,13 +1155,13 @@ contains
     The integrand used to find the gravitational potential in the smoothed density profile defined by
     \cite{barnes_gravitational_2012} to account for gravitational softening.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     double precision, intent(in   ) :: radius
 
     ! Evaluate the integrand for gravitational potential. No minus sign here as we actually want the relative potential which will
     ! be positive.
-    particulatePotentialIntegrand=+gravitationalConstantGalacticus                                          &
+    particulatePotentialIntegrand=+gravitationalConstant_internal                                           &
          &                        *energyDistribution%interpolate(radius,table=energyDistributionTableMass) &
          &                        /radius**2
     return

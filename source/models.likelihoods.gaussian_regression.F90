@@ -336,7 +336,7 @@ contains
     use :: Posterior_Sampling_State      , only : posteriorSampleStateClass      , posteriorSampleStateCorrelation
     use :: String_Handling               , only : operator(//)
     implicit none
-    class           (posteriorSampleLikelihoodGaussianRegression), intent(inout)                   :: self
+    class           (posteriorSampleLikelihoodGaussianRegression), intent(inout), target           :: self
     class           (posteriorSampleStateClass                  ), intent(inout)                   :: simulationState
     type            (modelParameterList                         ), intent(inout), dimension(:)     :: modelParametersActive_                    , modelParametersInactive_
     class           (posteriorSampleConvergenceClass            ), intent(inout)                   :: simulationConvergence

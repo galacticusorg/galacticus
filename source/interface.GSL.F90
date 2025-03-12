@@ -154,27 +154,27 @@ module Interface_GSL
   
   ! Error codes.
   !![
-  <gslConstant variable="GSL_Success"  gslSymbol="GSL_SUCCESS"  gslHeader="gsl_errno" type="integer"/>
-  <gslConstant variable="GSL_Failure"  gslSymbol="GSL_FAILURE"  gslHeader="gsl_errno" type="integer"/>
-  <gslConstant variable="GSL_ESing"    gslSymbol="GSL_ESING"    gslHeader="gsl_errno" type="integer"/>
-  <gslConstant variable="GSL_EDom"     gslSymbol="GSL_EDOM"     gslHeader="gsl_errno" type="integer"/>
-  <gslConstant variable="GSL_ERange"   gslSymbol="GSL_ERANGE"   gslHeader="gsl_errno" type="integer"/>
-  <gslConstant variable="GSL_EZeroDiv" gslSymbol="GSL_EZERODIV" gslHeader="gsl_errno" type="integer"/>
-  <gslConstant variable="GSL_EUndrFlw" gslSymbol="GSL_EUNDRFLW" gslHeader="gsl_errno" type="integer"/>
-  <gslConstant variable="GSL_ENoProg"  gslSymbol="GSL_ENOPROG"  gslHeader="gsl_errno" type="integer"/>
-  <gslConstant variable="GSL_Continue" gslSymbol="GSL_CONTINUE" gslHeader="gsl_errno" type="integer"/>
-  <gslConstant variable="GSL_EBadFunc" gslSymbol="GSL_EBADFUNC" gslHeader="gsl_errno" type="integer"/>
-  <gslConstant variable="GSL_EBadTol"  gslSymbol="GSL_EBADTOL"  gslHeader="gsl_errno" type="integer"/>
-  <gslConstant variable="GSL_ETol"     gslSymbol="GSL_ETOL"     gslHeader="gsl_errno" type="integer"/>
-  <gslConstant variable="GSL_ERound"   gslSymbol="GSL_EROUND"   gslHeader="gsl_errno" type="integer"/>
-  <gslConstant variable="GSL_EMaxIter" gslSymbol="GSL_EMAXITER" gslHeader="gsl_errno" type="integer"/>
+  <constant variable="GSL_Success"  gslSymbol="GSL_SUCCESS"  gslHeader="gsl_errno" type="integer" reference="Gnu Scientific Library" referenceURL="https://www.gnu.org/software/gsl/doc/html/err.html#error-codes" description="Error code for success." group="GSL"/>
+  <constant variable="GSL_Failure"  gslSymbol="GSL_FAILURE"  gslHeader="gsl_errno" type="integer" reference="Gnu Scientific Library" referenceURL="https://www.gnu.org/software/gsl/doc/html/err.html#error-codes" description="Error code for generic failure." group="GSL"/>
+  <constant variable="GSL_ESing"    gslSymbol="GSL_ESING"    gslHeader="gsl_errno" type="integer" reference="Gnu Scientific Library" referenceURL="https://www.gnu.org/software/gsl/doc/html/err.html#error-codes" description="Error code for apparent singularity detected." group="GSL"/>
+  <constant variable="GSL_EDom"     gslSymbol="GSL_EDOM"     gslHeader="gsl_errno" type="integer" reference="Gnu Scientific Library" referenceURL="https://www.gnu.org/software/gsl/doc/html/err.html#error-codes" description="Error code for input domain error, e.g sqrt(-1)." group="GSL"/>
+  <constant variable="GSL_ERange"   gslSymbol="GSL_ERANGE"   gslHeader="gsl_errno" type="integer" reference="Gnu Scientific Library" referenceURL="https://www.gnu.org/software/gsl/doc/html/err.html#error-codes" description="Error code for output range error, e.g. exp(1e100)." group="GSL"/>
+  <constant variable="GSL_EZeroDiv" gslSymbol="GSL_EZERODIV" gslHeader="gsl_errno" type="integer" reference="Gnu Scientific Library" referenceURL="https://www.gnu.org/software/gsl/doc/html/err.html#error-codes" description="Error code for attempt to divide by zero." group="GSL"/>
+  <constant variable="GSL_EUndrFlw" gslSymbol="GSL_EUNDRFLW" gslHeader="gsl_errno" type="integer" reference="Gnu Scientific Library" referenceURL="https://www.gnu.org/software/gsl/doc/html/err.html#error-codes" description="Error code for underflow." group="GSL"/>
+  <constant variable="GSL_ENoProg"  gslSymbol="GSL_ENOPROG"  gslHeader="gsl_errno" type="integer" reference="Gnu Scientific Library" referenceURL="https://www.gnu.org/software/gsl/doc/html/err.html#error-codes" description="Error code for iteration not making progress towards solution." group="GSL"/>
+  <constant variable="GSL_Continue" gslSymbol="GSL_CONTINUE" gslHeader="gsl_errno" type="integer" reference="Gnu Scientific Library" referenceURL="https://www.gnu.org/software/gsl/doc/html/err.html#error-codes" description="Error code for iteration has not converged." group="GSL"/>
+  <constant variable="GSL_EBadFunc" gslSymbol="GSL_EBADFUNC" gslHeader="gsl_errno" type="integer" reference="Gnu Scientific Library" referenceURL="https://www.gnu.org/software/gsl/doc/html/err.html#error-codes" description="Error code for problem with user-supplied function." group="GSL"/>
+  <constant variable="GSL_EBadTol"  gslSymbol="GSL_EBADTOL"  gslHeader="gsl_errno" type="integer" reference="Gnu Scientific Library" referenceURL="https://www.gnu.org/software/gsl/doc/html/err.html#error-codes" description="Error code for user-specified invalid tolerance." group="GSL"/>
+  <constant variable="GSL_ETol"     gslSymbol="GSL_ETOL"     gslHeader="gsl_errno" type="integer" reference="Gnu Scientific Library" referenceURL="https://www.gnu.org/software/gsl/doc/html/err.html#error-codes" description="Error code for failure to reach the specified tolerance." group="GSL"/>
+  <constant variable="GSL_ERound"   gslSymbol="GSL_EROUND"   gslHeader="gsl_errno" type="integer" reference="Gnu Scientific Library" referenceURL="https://www.gnu.org/software/gsl/doc/html/err.html#error-codes" description="Error code for failure because of roundoff error." group="GSL"/>
+  <constant variable="GSL_EMaxIter" gslSymbol="GSL_EMAXITER" gslHeader="gsl_errno" type="integer" reference="Gnu Scientific Library" referenceURL="https://www.gnu.org/software/gsl/doc/html/err.html#error-codes" description="Error code for exceeding the maximum number of iterations." group="GSL"/>
   !!]
 
   ! Precision modes.
   !![
-  <gslConstant variable="GSL_Prec_Double"  gslSymbol="GSL_PREC_DOUBLE"  gslHeader="gsl_mode" type="integer"/>
-  <gslConstant variable="GSL_Prec_Single"  gslSymbol="GSL_PREC_SINGLE"  gslHeader="gsl_mode" type="integer"/>
-  <gslConstant variable="GSL_Prec_Approx"  gslSymbol="GSL_PREC_APPROX"  gslHeader="gsl_mode" type="integer"/>
+  <constant variable="GSL_Prec_Double"  gslSymbol="GSL_PREC_DOUBLE"  gslHeader="gsl_mode" type="integer" description="Specifies GSL double-precision mode." reference="Gnu Scientific Library" group="GSL"/>
+  <constant variable="GSL_Prec_Single"  gslSymbol="GSL_PREC_SINGLE"  gslHeader="gsl_mode" type="integer" description="Specifies GSL single-precision mode." reference="Gnu Scientific Library" group="GSL"/>
+  <constant variable="GSL_Prec_Approx"  gslSymbol="GSL_PREC_APPROX"  gslHeader="gsl_mode" type="integer" description="Specifies GSL approximate-precision mode." reference="Gnu Scientific Library" group="GSL"/>
   !!]
   
 contains

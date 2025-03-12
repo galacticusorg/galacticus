@@ -146,11 +146,11 @@ contains
     is the gravitational restoring force at the half-mass radius, $r_\mathrm{1/2}$.
     !!}
     use :: Coordinates                     , only : coordinateCylindrical, assignment(=)
-    use :: Display                         , only : displayGreen         , displayBlue                    , displayMagenta, displayReset
-    use :: Galactic_Structure_Options      , only : componentTypeDisk    , enumerationComponentTypeType   , massTypeAll   , massTypeGaseous
+    use :: Display                         , only : displayGreen         , displayBlue                   , displayMagenta, displayReset
+    use :: Galactic_Structure_Options      , only : componentTypeDisk    , enumerationComponentTypeType  , massTypeAll   , massTypeGaseous
     use :: Galacticus_Nodes                , only : nodeComponentDisk    , treeNode
     use :: Mass_Distributions              , only : massDistributionClass
-    use :: Numerical_Constants_Astronomical, only : gigaYear             , gravitationalConstantGalacticus, megaParsec
+    use :: Numerical_Constants_Astronomical, only : gigaYear             , gravitationalConstant_internal, megaParsec
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
@@ -204,10 +204,10 @@ contains
     <objectDestructor name="massDistributionTotal"  />
     !!]
     ! Compute the gravitational restoring force in the midplane.
-    forceGravitational  =  +2.0d0                           &
-         &                 *Pi                              &
-         &                 *gravitationalConstantGalacticus &
-         &                 *surfaceDensityGas               &
+    forceGravitational  =  +2.0d0                          &
+         &                 *Pi                             &
+         &                 *gravitationalConstant_internal &
+         &                 *surfaceDensityGas              &
          &                 *surfaceDensityTotal
     ! Return zero rate if the gravitational force is zero.
     if (forceGravitational <= 0.0d0) return

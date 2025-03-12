@@ -155,7 +155,7 @@ contains
     use :: ISO_Varying_String              , only : char                   , operator(//)   , trim               , var_str  , &
           &                                         varying_string
     use :: Numerical_Constants_Astronomical, only : gigaYear               , luminositySolar, massSolar
-    use :: Numerical_Constants_Units       , only : angstromsPerMeter
+    use :: Numerical_Constants_Units       , only : metersToAngstroms
     use :: String_Handling                 , only : operator(//)
     use :: System_Command                  , only : System_Command_Do
     use :: Tables                          , only : table1D
@@ -259,7 +259,7 @@ contains
     ! Write datasets.
     call spectraFile%writeDataset  (wavelength ,'wavelengths'        ,datasetReturned=dataset)
     call dataset    %writeAttribute('Å'                  ,'units'                            )
-    call dataset    %writeAttribute(1.0d0/angstromsPerMeter             ,'unitsInSI'         )
+    call dataset    %writeAttribute(1.0d0/metersToAngstroms             ,'unitsInSI'         )
     call spectraFile%writeDataset  (age        ,'ages'         ,      datasetReturned=dataset)
     call dataset    %writeAttribute('Gyr'                ,'units'                            )
     call dataset    %writeAttribute(gigaYear             ,'unitsInSI'                        )

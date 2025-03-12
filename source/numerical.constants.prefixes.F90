@@ -27,32 +27,35 @@ module Numerical_Constants_Prefixes
   !!}
   implicit none
   public
-
-  double precision       , parameter                    :: quetta  =1.0d+30
-  double precision       , parameter                    :: ronna   =1.0d+27
-  double precision       , parameter                    :: yotta   =1.0d+24
-  double precision       , parameter                    :: zetta   =1.0d+21
-  double precision       , parameter                    :: exa     =1.0d+18
-  double precision       , parameter                    :: peta    =1.0d+15
-  double precision       , parameter                    :: tera    =1.0d+12
-  double precision       , parameter                    :: giga    =1.0d+09
-  double precision       , parameter                    :: mega    =1.0d+06
-  double precision       , parameter                    :: kilo    =1.0d+03
-  double precision       , parameter                    :: hecto   =1.0d+02
-  double precision       , parameter                    :: deca    =1.0d+01
-  double precision       , parameter                    :: deci    =1.0d-01
-  double precision       , parameter                    :: centi   =1.0d-02
-  double precision       , parameter                    :: milli   =1.0d-03
-  double precision       , parameter                    :: micro   =1.0d-06
-  double precision       , parameter                    :: nano    =1.0d-09
-  double precision       , parameter                    :: pico    =1.0d-12
-  double precision       , parameter                    :: femto   =1.0d-15
-  double precision       , parameter                    :: atto    =1.0d-18
-  double precision       , parameter                    :: zepto   =1.0d-21
-  double precision       , parameter                    :: yocto   =1.0d-24
-  double precision       , parameter                    :: ronto   =1.0d-27
-  double precision       , parameter                    :: quecto  =1.0d-30
-  character       (len=2), parameter, dimension(-10:10) :: siPrefix=['q ','r ','y ','z ','a ','f ','p ','n ','μ','m ',' ','k ','M ','G ','T ','P ','E ','Z ','Y ','R ','Q ']
+  
+  !![
+  <constant variable="quetta" value="1.0d+30" symbol="\mathrm{Q}"  description="SI prefix." units="dimensionless" unitsInSI="1.0" reference="NIST" referenceURL="https://www.nist.gov/pml/owm/metric-si-prefixes" group="prefixes"/>
+  <constant variable="ronna"  value="1.0d+27" symbol="\mathrm{R}"  description="SI prefix." units="dimensionless" unitsInSI="1.0" reference="NIST" referenceURL="https://www.nist.gov/pml/owm/metric-si-prefixes" group="prefixes"/>
+  <constant variable="yotta"  value="1.0d+24" symbol="\mathrm{Y}"  description="SI prefix." units="dimensionless" unitsInSI="1.0" reference="NIST" referenceURL="https://www.nist.gov/pml/owm/metric-si-prefixes" group="prefixes"/>
+  <constant variable="zetta"  value="1.0d+21" symbol="\mathrm{Z}"  description="SI prefix." units="dimensionless" unitsInSI="1.0" reference="NIST" referenceURL="https://www.nist.gov/pml/owm/metric-si-prefixes" group="prefixes"/>
+  <constant variable="exa"    value="1.0d+18" symbol="\mathrm{E}"  description="SI prefix." units="dimensionless" unitsInSI="1.0" reference="NIST" referenceURL="https://www.nist.gov/pml/owm/metric-si-prefixes" group="prefixes"/>
+  <constant variable="peta"   value="1.0d+15" symbol="\mathrm{P}"  description="SI prefix." units="dimensionless" unitsInSI="1.0" reference="NIST" referenceURL="https://www.nist.gov/pml/owm/metric-si-prefixes" group="prefixes"/>
+  <constant variable="tera"   value="1.0d+12" symbol="\mathrm{T}"  description="SI prefix." units="dimensionless" unitsInSI="1.0" reference="NIST" referenceURL="https://www.nist.gov/pml/owm/metric-si-prefixes" group="prefixes"/>
+  <constant variable="giga"   value="1.0d+09" symbol="\mathrm{G}"  description="SI prefix." units="dimensionless" unitsInSI="1.0" reference="NIST" referenceURL="https://www.nist.gov/pml/owm/metric-si-prefixes" group="prefixes"/>
+  <constant variable="mega"   value="1.0d+06" symbol="\mathrm{M}"  description="SI prefix." units="dimensionless" unitsInSI="1.0" reference="NIST" referenceURL="https://www.nist.gov/pml/owm/metric-si-prefixes" group="prefixes"/>
+  <constant variable="kilo"   value="1.0d+03" symbol="\mathrm{k}"  description="SI prefix." units="dimensionless" unitsInSI="1.0" reference="NIST" referenceURL="https://www.nist.gov/pml/owm/metric-si-prefixes" group="prefixes"/>
+  <constant variable="hecto"  value="1.0d+02" symbol="\mathrm{h}"  description="SI prefix." units="dimensionless" unitsInSI="1.0" reference="NIST" referenceURL="https://www.nist.gov/pml/owm/metric-si-prefixes" group="prefixes"/>
+  <constant variable="deca"   value="1.0d+01" symbol="\mathrm{da}" description="SI prefix." units="dimensionless" unitsInSI="1.0" reference="NIST" referenceURL="https://www.nist.gov/pml/owm/metric-si-prefixes" group="prefixes"/>
+  <constant variable="deci"   value="1.0d-01" symbol="\mathrm{d}"  description="SI prefix." units="dimensionless" unitsInSI="1.0" reference="NIST" referenceURL="https://www.nist.gov/pml/owm/metric-si-prefixes" group="prefixes"/>
+  <constant variable="centi"  value="1.0d-02" symbol="\mathrm{c}"  description="SI prefix." units="dimensionless" unitsInSI="1.0" reference="NIST" referenceURL="https://www.nist.gov/pml/owm/metric-si-prefixes" group="prefixes"/>
+  <constant variable="milli"  value="1.0d-03" symbol="\mathrm{m}"  description="SI prefix." units="dimensionless" unitsInSI="1.0" reference="NIST" referenceURL="https://www.nist.gov/pml/owm/metric-si-prefixes" group="prefixes"/>
+  <constant variable="micro"  value="1.0d-06" symbol="\mu"         description="SI prefix." units="dimensionless" unitsInSI="1.0" reference="NIST" referenceURL="https://www.nist.gov/pml/owm/metric-si-prefixes" group="prefixes"/>
+  <constant variable="nano"   value="1.0d-09" symbol="\mathrm{n}"  description="SI prefix." units="dimensionless" unitsInSI="1.0" reference="NIST" referenceURL="https://www.nist.gov/pml/owm/metric-si-prefixes" group="prefixes"/>
+  <constant variable="pico"   value="1.0d-12" symbol="\mathrm{p}"  description="SI prefix." units="dimensionless" unitsInSI="1.0" reference="NIST" referenceURL="https://www.nist.gov/pml/owm/metric-si-prefixes" group="prefixes"/>
+  <constant variable="femto"  value="1.0d-15" symbol="\mathrm{f}"  description="SI prefix." units="dimensionless" unitsInSI="1.0" reference="NIST" referenceURL="https://www.nist.gov/pml/owm/metric-si-prefixes" group="prefixes"/>
+  <constant variable="atto"   value="1.0d-18" symbol="\mathrm{a}"  description="SI prefix." units="dimensionless" unitsInSI="1.0" reference="NIST" referenceURL="https://www.nist.gov/pml/owm/metric-si-prefixes" group="prefixes"/>
+  <constant variable="zepto"  value="1.0d-21" symbol="\mathrm{z}"  description="SI prefix." units="dimensionless" unitsInSI="1.0" reference="NIST" referenceURL="https://www.nist.gov/pml/owm/metric-si-prefixes" group="prefixes"/>
+  <constant variable="yocto"  value="1.0d-24" symbol="\mathrm{y}"  description="SI prefix." units="dimensionless" unitsInSI="1.0" reference="NIST" referenceURL="https://www.nist.gov/pml/owm/metric-si-prefixes" group="prefixes"/>
+  <constant variable="ronto"  value="1.0d-27" symbol="\mathrm{r}"  description="SI prefix." units="dimensionless" unitsInSI="1.0" reference="NIST" referenceURL="https://www.nist.gov/pml/owm/metric-si-prefixes" group="prefixes"/>
+  <constant variable="quecto" value="1.0d-30" symbol="\mathrm{q}"  description="SI prefix." units="dimensionless" unitsInSI="1.0" reference="NIST" referenceURL="https://www.nist.gov/pml/owm/metric-si-prefixes" group="prefixes"/>
+  !!]
+  
+  character(len=2), parameter, dimension(-10:10) :: siPrefix=['q ','r ','y ','z ','a ','f ','p ','n ','μ','m ',' ','k ','M ','G ','T ','P ','E ','Z ','Y ','R ','Q ']
 
 contains
 

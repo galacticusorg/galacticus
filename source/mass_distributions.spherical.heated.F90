@@ -236,9 +236,9 @@ contains
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a scaled spherical mass distribution.
     !!}
-    use :: Coordinates                     , only : coordinateSpherical            , assignment(=)
+    use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (massDistributionSphericalHeated), intent(inout) :: self
     class           (coordinate                     ), intent(in   ) :: coordinates
@@ -276,7 +276,7 @@ contains
                &           )                                                                                           **2 &
                &          +2.0d0                                                                                           &
                &          *radius                                                                                      **2 &
-               &          /gravitationalConstantGalacticus                                                                 &
+               &          /gravitationalConstant_internal                                                                  &
                &          /massEnclosed                                                                                    &
                &          *(                                                                                               &
                &            +self%massDistributionHeating_%specificEnergyGradient(radiusInitial,self%massDistribution_)    &
@@ -392,7 +392,7 @@ contains
     !!{
     Root function used in finding initial radii in heated mass distributions.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     double precision, intent(in   ) :: radiusInitial
     double precision                :: massEnclosed
@@ -410,7 +410,7 @@ contains
     massEnclosed     =+self_%massDistribution_                         %massEnclosedBySphere(radiusInitial                        )
     radiusInitialRoot=+self_                  %massDistributionHeating_%specificEnergy      (radiusInitial,self_%massDistribution_) &
          &            +0.5d0                                                                                                        &
-         &            *gravitationalConstantGalacticus                                                                              &
+         &            *gravitationalConstant_internal                                                                               &
          &            *massEnclosed                                                                                                 &
          &            *(                                                                                                            &
          &              +1.0d0/radiusFinal_                                                                                         &
@@ -424,8 +424,8 @@ contains
     Determines if the no shell crossing assumption is valid.
     !!}
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-    use :: Coordinates                     , only : coordinateSpherical            , assignment(=)
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
+    use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
     implicit none
     class           (massDistributionSphericalHeated), intent(inout) :: self
     double precision                                 , intent(in   ) :: radiusInitial     , radiusFinal
@@ -437,7 +437,7 @@ contains
     isValid           = +  self                  %massDistributionHeating_%specificEnergyGradient(     radiusInitial,self%massDistribution_) &
          &             >                                                                                                                     &
          &              +0.5d0                                                                                                               &
-         &              *gravitationalConstantGalacticus                                                                                     &
+         &              *gravitationalConstant_internal                                                                                      &
          &              *(                                                                                                                   &
          &                +4.0d0                                                                                                             &
          &                *Pi                                                                                                                &
@@ -458,7 +458,7 @@ contains
     Computes the radius enclosing a given mass or mass fraction for heated spherical mass distributions.
     !!}
     use :: Galactic_Structure_Options      , only : radiusLarge
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (massDistributionSphericalHeated), intent(inout), target   :: self
     double precision                                 , intent(in   ), optional :: mass          , massFractional
@@ -470,10 +470,10 @@ contains
     if (radiusInitial <= 0.0d0) then
        radius=+radiusLarge
     else       
-       radius=+1.0d0                                                       &
-            & /(                                                           &
-            &   +1.0d0/radiusInitial                                       &
-            &   -2.0d0/gravitationalConstantGalacticus/mass*energySpecific &
+       radius=+1.0d0                                                      &
+            & /(                                                          &
+            &   +1.0d0/radiusInitial                                      &
+            &   -2.0d0/gravitationalConstant_internal/mass*energySpecific &
             &  )
        ! If the radius found is negative, which means the initial shell has expanded to infinity, return the largest radius.
        if (radius < 0.0d0) radius=radiusLarge
@@ -498,8 +498,8 @@ contains
      \frac{\mathrm{d}r}{\mathrm{d}r_i} = \left(\frac{r}{r_\mathrm{i}}\right)^2 + \frac{2 r^2}{\mathrm{G} M(r_\mathrm{i})} \left( \epsilon^\prime(r_\mathrm{i}) - \frac{4 \pi r_\mathrm{i}^2 \rho_\mathrm{i}(r_\mathrm{i}) \epsilon(r_\mathrm{i})}{M(r_\mathrm{i})} \right).
     \end{equation}
     !!}
-    use :: Coordinates                     , only : coordinateSpherical            , assignment(=)
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (massDistributionSphericalHeated), intent(inout) :: self
     double precision                                 , intent(in   ) :: radius
@@ -511,34 +511,34 @@ contains
     massEnclosed          =+self%massDistribution_       %massEnclosedBySphere  (radius                       )
     energySpecific        =+self%massDistributionHeating_%specificEnergy        (radius,self%massDistribution_)
     energySpecificGradient=+self%massDistributionHeating_%specificEnergyGradient(radius,self%massDistribution_)
-    radiusFinal           =+1.0d0                                                               &
-         &                 /(                                                                   &
-         &                   +1.0d0/radius                                                      &
-         &                   -2.0d0*energySpecific/gravitationalConstantGalacticus/massEnclosed &
+    radiusFinal           =+1.0d0                                                              &
+         &                 /(                                                                  &
+         &                   +1.0d0/radius                                                     &
+         &                   -2.0d0*energySpecific/gravitationalConstant_internal/massEnclosed &
          &                  )
     if (radiusFinal > 0.0d0) then
        coordinates        =[radius,0.0d0,0.0d0]
        density            =+self%massDistribution_%density(coordinates)
-       jacobian           =+(                                  &
-               &             +radiusFinal                      &
-               &             /radius                           &
-               &            )                              **2 &
-               &           +2.0d0                              &
-               &           *radiusFinal                    **2 &
-               &           /gravitationalConstantGalacticus    &
-               &           /massEnclosed                       &
-               &           *(                                  &
-               &             +energySpecificGradient           &
-               &             -4.0d0                            &
-               &             *Pi                               &
-               &             *radius                       **2 &
-               &             *density                          &
-               &             *energySpecific                   &
-               &             /massEnclosed                     &
+       jacobian           =+(                                 &
+               &             +radiusFinal                     &
+               &             /radius                          &
+               &            )                             **2 &
+               &           +2.0d0                             &
+               &           *radiusFinal                   **2 &
+               &           /gravitationalConstant_internal    &
+               &           /massEnclosed                      &
+               &           *(                                 &
+               &             +energySpecificGradient          &
+               &             -4.0d0                           &
+               &             *Pi                              &
+               &             *radius                      **2 &
+               &             *density                         &
+               &             *energySpecific                  &
+               &             /massEnclosed                    &
                &            )
-       integrand          =-massEnclosed                       &
-            &              / radius             **2            &
-            &              *(radius/radiusFinal)**2            &
+       integrand          =-massEnclosed                      &
+            &              / radius             **2           &
+            &              *(radius/radiusFinal)**2           &
             &              *jacobian
     else
        integrand          =+0.0d0

@@ -36,7 +36,8 @@
      private
      type   (varying_string               )          :: failedParametersFileName
      logical                                         :: randomize                         , collaborativeMPI, &
-          &                                             outputAnalyses
+          &                                             outputAnalyses                    , setOutputGroup  , &
+          &                                             reportEvaluationTimes
      type   (enumerationVerbosityLevelType)          :: evolveForestsVerbosity
      class  (*                            ), pointer :: task_                    => null()
      class  (outputAnalysisClass          ), pointer :: outputAnalysis_          => null()
@@ -55,6 +56,11 @@
      module procedure galaxyPopulationConstructorInternal
   end interface posteriorSampleLikelihoodGalaxyPopulation
 
+  ! Sub-module-scope pointer to self, used to allow writing of current parameters in case of failures.
+  class  (posteriorSampleLikelihoodGalaxyPopulation), pointer :: self_
+  integer                                                     :: iRank_
+  !$omp threadprivate(self_,iRank_)
+  
 contains
 
   function galaxyPopulationConstructorParameters(parameters) result(self)
@@ -65,14 +71,16 @@ contains
     use :: Display         , only : displayVerbosity, enumerationVerbosityLevelDecode, enumerationVerbosityLevelEncode
     use :: Input_Parameters, only : inputParameter  , inputParameters
     implicit none
-    type   (posteriorSampleLikelihoodGalaxyPopulation)                :: self
-    type   (inputParameters                          ), intent(inout) :: parameters
-    type   (varying_string)                                           :: baseParametersFileName, failedParametersFileName
-    logical                                                           :: randomize             , collaborativeMPI        , &
-         &                                                               outputAnalyses        , reportFileName          , &
-         &                                                               reportState
-    type   (varying_string)                                           :: evolveForestsVerbosity
-    type   (inputParameters                          ), pointer       :: parametersModel
+    type   (posteriorSampleLikelihoodGalaxyPopulation)                              :: self
+    type   (inputParameters                          ), intent(inout)               :: parameters
+    type   (varying_string)                                                         :: baseParametersFileName, failedParametersFileName
+    type   (varying_string)                           , allocatable  , dimension(:) :: changeParametersFileNames
+    logical                                                                         :: randomize             , collaborativeMPI        , &
+         &                                                                             outputAnalyses        , reportFileName          , &
+         &                                                                             reportState           , setOutputGroup          , &
+         &                                                                             reportEvaluationTimes
+    type   (varying_string)                                                         :: evolveForestsVerbosity
+    type   (inputParameters                          ), pointer                     :: parametersModel
 
     !![
     <inputParameter>
@@ -83,6 +91,18 @@ contains
     <inputParameter>
       <name>outputAnalyses</name>
       <description>If true, results of the analyses on each step will be stored to the output file.</description>
+      <defaultValue>.false.</defaultValue>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>setOutputGroup</name>
+      <description>If true, set the primary output group for each step.</description>
+      <defaultValue>.false.</defaultValue>
+      <source>parameters</source>
+    </inputParameter>
+     <inputParameter>
+     <name>reportEvaluationTimes</name>
+      <description>If true, report the time taken to evaluate each model.</description>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
     </inputParameter>
@@ -123,9 +143,19 @@ contains
       <source>parameters</source>
     </inputParameter>
     !!]
+    allocate(changeParametersFileNames(parameters%count('changeParametersFileNames',zeroIfNotPresent=.true.)))
+    if (size(changeParametersFileNames) > 0) then
+       !![
+       <inputParameter>
+	 <name>changeParametersFileNames</name>
+	 <description>The names of files containing parameter changes to be applied.</description>
+	 <source>parameters</source>
+       </inputParameter>
+       !!]
+    end if
     allocate(parametersModel)
-    parametersModel=inputParameters                          (baseParametersFileName,noOutput=.true.)
-    self           =posteriorSampleLikelihoodGalaxyPopulation(parametersModel,baseParametersFileName,randomize,outputAnalyses,collaborativeMPI,reportFileName,reportState,enumerationVerbosityLevelEncode(evolveForestsVerbosity,includesPrefix=.false.),failedParametersFileName)
+    parametersModel=inputParameters                          (baseParametersFileName,noOutput=.true.,changeFiles=changeParametersFileNames)
+    self           =posteriorSampleLikelihoodGalaxyPopulation(parametersModel,baseParametersFileName,randomize,outputAnalyses,setOutputGroup,reportEvaluationTimes,collaborativeMPI,reportFileName,reportState,enumerationVerbosityLevelEncode(evolveForestsVerbosity,includesPrefix=.false.),failedParametersFileName,changeParametersFileNames)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
@@ -133,22 +163,27 @@ contains
     return
   end function galaxyPopulationConstructorParameters
 
-  function galaxyPopulationConstructorInternal(parametersModel,baseParametersFileName,randomize,outputAnalyses,collaborativeMPI,reportFileName,reportState,evolveForestsVerbosity,failedParametersFileName) result(self)
+  function galaxyPopulationConstructorInternal(parametersModel,baseParametersFileName,randomize,outputAnalyses,setOutputGroup,reportEvaluationTimes,collaborativeMPI,reportFileName,reportState,evolveForestsVerbosity,failedParametersFileName,changeParametersFileNames) result(self)
     !!{
     Constructor for ``galaxyPopulation'' posterior sampling likelihood class.
     !!}
+    use :: Error  , only : Error_Report
+    use :: Display, only : displayGreen, displayReset
     implicit none
-    type   (posteriorSampleLikelihoodGalaxyPopulation)                        :: self
-    type   (inputParameters                          ), intent(inout), target :: parametersModel
-    logical                                           , intent(in   )         :: randomize               , collaborativeMPI, &
-         &                                                                       outputAnalyses          , reportFileName  , &
-         &                                                                       reportState
-    type   (enumerationVerbosityLevelType            ), intent(in   )         :: evolveForestsVerbosity
-    type   (varying_string                           ), intent(in   )         :: failedParametersFileName, baseParametersFileName
+    type   (posteriorSampleLikelihoodGalaxyPopulation)                              :: self
+    type   (inputParameters                          ), intent(inout), target       :: parametersModel
+    logical                                           , intent(in   )               :: randomize               , collaborativeMPI, &
+         &                                                                             outputAnalyses          , reportFileName  , &
+         &                                                                             reportState             , setOutputGroup  , &
+         &                                                                             reportEvaluationTimes
+    type   (enumerationVerbosityLevelType            ), intent(in   )               :: evolveForestsVerbosity
+    type   (varying_string                           ), intent(in   )               :: failedParametersFileName, baseParametersFileName
+    type   (varying_string                           ), intent(in   ), dimension(:) :: changeParametersFileNames
     !![
-    <constructorAssign variables="*parametersModel, baseParametersFileName, randomize, outputAnalyses, collaborativeMPI, reportFileName, reportState, evolveForestsVerbosity, failedParametersFileName"/>
+    <constructorAssign variables="*parametersModel, baseParametersFileName, randomize, outputAnalyses, setOutputGroup, reportEvaluationTimes, collaborativeMPI, reportFileName, reportState, evolveForestsVerbosity, failedParametersFileName, changeParametersFileNames"/>
     !!]
 
+    if (setOutputGroup.and.collaborativeMPI) call Error_Report('[setOutputGroup]=true and [collaborativeMPI]=true is not recommended'//char(10)//displayGreen()//'  HELP: '//displayReset()//'[setOutputGroup]=true suggests that you want results of each model evaluation written to its own group, but [collaborativeMPI]=true results in each MPI process evolving a subset of trees from each model evaluation, and writing them to its own output file - this will result in a random mix of trees in each output group - it is recommended that you set [collaborativeMPI]=false to avoid this problem'//{introspection:location})
     return
   end function galaxyPopulationConstructorInternal
 
@@ -173,17 +208,19 @@ contains
     use :: Display                       , only : displayIndent                  , displayMessage               , displayUnindent             , displayVerbosity, &
           &                                       displayVerbositySet            , verbosityLevelSilent         , verbosityLevelStandard
     use :: Functions_Global              , only : Tasks_Evolve_Forest_Construct_ , Tasks_Evolve_Forest_Destruct_, Tasks_Evolve_Forest_Perform_
-    use :: Error                         , only : errorStatusSuccess
+    use :: Error                         , only : errorStatusSuccess             , signalHandlerRegister        , signalHandlerDeregister     , signalHandlerInterface
     use :: ISO_Varying_String            , only : char                           , operator(//)                 , var_str
     use :: Kind_Numbers                  , only : kind_int8
     use :: MPI_Utilities                 , only : mpiBarrier                     , mpiSelf
     use :: Model_Parameters              , only : modelParameterDerived
     use :: Models_Likelihoods_Constants  , only : logImpossible                  , logImprobable
+    use :: Output_HDF5_Open              , only : Output_HDF5_Set_Group
+    use :: Numerical_Constants_Prefixes  , only : siFormat
     use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
     use :: Posterior_Sampling_State      , only : posteriorSampleStateClass
     use :: String_Handling               , only : String_Count_Words             , String_Join                  , String_Split_Words          , operator(//)
     implicit none
-    class           (posteriorSampleLikelihoodGalaxyPopulation), intent(inout)                 :: self
+    class           (posteriorSampleLikelihoodGalaxyPopulation), intent(inout), target         :: self
     class           (posteriorSampleStateClass                ), intent(inout)                 :: simulationState
     type            (modelParameterList                       ), intent(inout), dimension(:  ) :: modelParametersActive_, modelParametersInactive_
     class           (posteriorSampleConvergenceClass          ), intent(inout)                 :: simulationConvergence
@@ -194,6 +231,7 @@ contains
     logical                                                    , intent(inout), optional       :: forceAcceptance
     double precision                                           , allocatable  , dimension(:  ) :: logPriorsProposed
     double precision                                           , allocatable  , dimension(:,:) :: stateVector
+    procedure       (signalHandlerInterface                   ), pointer                       :: handler
     integer                                                                                    :: iRank                 , status                  , &
          &                                                                                        rankStart             , rankStop
     type            (enumerationVerbosityLevelType            )                                :: verbosityLevel
@@ -204,6 +242,15 @@ contains
     logical                                                                                    :: isActive
     !$GLC attributes unused :: logPriorCurrent, logLikelihoodCurrent, forceAcceptance, temperature, simulationConvergence
 
+    ! Register an error handler.
+    self_   => self
+    handler => posteriorSampleLikelihoodGalaxyPopulationSignalHandler
+    call signalHandlerRegister(handler)
+    ! Set the output group if required.
+    if (self%setOutputGroup) then
+       groupName=var_str("step")//simulationState%count()//":chain"//simulationState%chainIndex()
+       call Output_HDF5_Set_Group(groupName)
+    end if
     ! Switch verbosity level.
     verbosityLevel=displayVerbosity()
     call displayVerbositySet(self%evolveForestsVerbosity)
@@ -229,6 +276,7 @@ contains
     end if
     ! Iterate over all chains.
     do iRank=rankStart,rankStop
+       iRank_=iRank
        ! Determine if this is the active rank.
        isActive=iRank == mpiSelf%rank() .or. .not.self%collaborativeMPI
        ! If prior probability is impossible, then no need to waste time evaluating the likelihood.
@@ -289,6 +337,7 @@ contains
           if (verbosityLevel >= verbosityLevelStandard) then
              write (valueText,'(e12.4)') logLikelihoodProposed
              message=var_str("Chain ")//simulationState%chainIndex()//" has logℒ="//trim(valueText)
+             if (self%reportEvaluationTimes) message=message//" (evaluation in "//trim(siFormat(dble(timeEvaluate),'f5.1,1x'))//"s)"
              call displayMessage(message,verbosityLevelSilent)
           end if
        end if
@@ -306,6 +355,8 @@ contains
     end if
     ! Restore verbosity level.
     call displayVerbositySet(verbosityLevel)
+    ! Deregister our error handler.
+    call signalHandlerDeregister(handler)
     return
   end function galaxyPopulationEvaluate
 
@@ -340,3 +391,24 @@ contains
     galaxyPopulationWillEvaluate=(logPriorProposed > logImpossible)
     return
   end function galaxyPopulationWillEvaluate
+
+  subroutine posteriorSampleLikelihoodGalaxyPopulationSignalHandler(signal)
+    !!{
+    Write out current parameters if a signal was caught during model evaluation.
+    !!}
+    use :: Display           , only : displayMessage         , displayBold   , displayRed, displayReset, &
+         &                            verbosityLevelSilent
+    use :: ISO_Varying_String, only : operator(//)           , varying_string
+    use :: String_Handling   , only : operator(//)
+    use :: Error_Utilities   , only : enumerationSignalDecode
+    implicit none
+    integer                , intent(in   ) :: signal
+    type   (varying_string)                :: fileName
+    
+    ! Dump the failed parameter set to file.
+    fileName=self_%failedParametersFileName//"."//iRank_//"."//enumerationSignalDecode(signal,includePrefix=.false.)
+    call displayMessage(displayRed()//displayBold()//"Error condition:"//displayReset()//" `posteriorSampleLikelihoodGalaxyPopulation` parameter state will be written to '"//fileName//"'",verbosityLevelSilent)
+    call self_%parametersModel%serializeToXML(fileName)
+    return
+  end subroutine posteriorSampleLikelihoodGalaxyPopulationSignalHandler
+  

@@ -832,7 +832,7 @@ contains
        if (status == GSL_Success) then
           if (self%likelihoodNormalize)                                                      &
                & meanFunction1DLogLikelihood=+meanFunction1DLogLikelihood                    &
-               &                             -0.5d0*covariance%determinant()                 &
+               &                             -0.5d0*covariance%logarithmicDeterminant()      &
                &                             -0.5d0*dble(size(self%binCenter))*log(2.0d0*Pi)
        else
           meanFunction1DLogLikelihood       =+logImprobable

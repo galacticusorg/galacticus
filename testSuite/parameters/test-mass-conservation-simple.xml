@@ -15,7 +15,7 @@
 
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
+    <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
     <accretionHalo value="bertschinger">
       <redshiftReionization value="10.5"/>
       <velocitySuppressionReionization value="47.370163695687651"/>
@@ -245,12 +245,6 @@
 	    <exponentVelocity value="-5.2559103933618596"/>
 	  </stellarFeedbackOutflows>
 	</stellarFeedbackOutflows>
-      </nodeOperator>
-      <nodeOperator value="blackHolesSeed" iterable="no">
-	<blackHoleSeeds value="fixed">
-	  <mass value="0"/>
-	  <spin value="0"/>
-	</blackHoleSeeds>
       </nodeOperator>
     </nodeOperator>
 

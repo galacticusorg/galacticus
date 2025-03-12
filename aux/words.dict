@@ -98,6 +98,7 @@ Dekel
 Diemer
 Dobbs
 Dodds
+Dopita
 Dorta
 Dopita
 Drlica
@@ -225,6 +226,7 @@ Sheth
 Shi
 Shrader
 Shull
+Springer
 Sridhar
 Storey
 Struve
@@ -309,6 +311,7 @@ brightnesses
 burkardt
 bzip2
 calorimeter
+canonicalize
 cardinality
 cartesian
 ccompiler
@@ -360,6 +363,7 @@ declinations
 decrement
 dereference
 dereferenced
+deregister
 descendantless
 deserialization
 deserialize
@@ -430,6 +434,7 @@ gridded
 gsl
 gv
 gyr
+gzip
 h5ls
 h5py
 haider
@@ -662,6 +667,7 @@ resize
 resized
 resizing
 retabulate
+retabulated
 retabulation
 rockstar
 rockstar2galacticus
@@ -737,7 +743,9 @@ timestepping
 timesteps
 triaxial
 ttfamily
+tuple
 unaccreted
+unallocated
 unapply
 unary
 unbootstrapped
@@ -745,6 +753,7 @@ unbuffered
 unclustered
 uncommented
 uncontracted
+undecorated
 undersampling
 unevaluated
 unevolved

@@ -130,7 +130,7 @@ contains
     Filter based on whether a subhalo can impact a stream in the timestep.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentSatellite
-    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr, gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Vectors                         , only : Vector_Magnitude
     implicit none
     class           (galacticFilterStreamKick), intent(inout)          :: self
@@ -161,10 +161,10 @@ contains
        speed                 =    Vector_Magnitude(         velocity                                        )
        impactParameterMinimum=    Vector_Magnitude(position-velocity*Dot_Product(velocity,position)/speed**2)-self%radiusOrbitalStream
        speedRelativeMinimum  =abs(                          speed                                            -self%speedOrbitalStream )
-       velocityKick          =+2.0d0                                &
-            &                 *    gravitationalConstantGalacticus  &
-            &                 *    massBound                        &
-            &                 /abs(speedRelativeMinimum           ) &
+       velocityKick          =+2.0d0                               &
+            &                 *    gravitationalConstant_internal  &
+            &                 *    massBound                       &
+            &                 /abs(speedRelativeMinimum          ) &
             &                 /    impactParameterMinimum
        ! Determine if the node passes.
        passes= velocityKick           >  self%cutoffVelocityKick &

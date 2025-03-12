@@ -76,7 +76,7 @@ contains
   
   logical function zhao1996IsCollisional(self)
     !!{
-    Return true indicating that the zhao1996 kinematic distribution represents collisional particles.
+    Return false indicating that the zhao1996 kinematic distribution represents collisionless particles.
     !!}
     implicit none
     class(kinematicsDistributionZhao1996), intent(inout) :: self
@@ -85,20 +85,22 @@ contains
     return
   end function zhao1996IsCollisional
 
-  double precision function zhao1996VelocityDispersion1D(self,coordinates,massDistributionEmbedding) result(velocityDispersion)
+  double precision function zhao1996VelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
     !!{
     Return the 1D velocity dispersion at the specified {\normalfont \ttfamily coordinates} in an Zhao1996 kinematic distribution.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Dilogarithms                    , only : Dilogarithm
     implicit none
-    class           (kinematicsDistributionZhao1996), intent(inout), target :: self
-    class           (coordinate                    ), intent(in   )         :: coordinates
-    class           (massDistributionClass         ), intent(inout)         :: massDistributionEmbedding
-    double precision                                , parameter             :: radiusTiny               =1.0d-3, radiusLarge=1.0d2
-    double precision                                                        :: radius
+    class           (kinematicsDistributionZhao1996), intent(inout)          :: self
+    class           (coordinate                    ), intent(in   )          :: coordinates
+    class           (massDistributionClass         ), intent(inout), target  :: massDistribution_        , massDistributionEmbedding
+    class           (massDistributionClass         )               , pointer :: massDistribution__
+    double precision                                , parameter              :: radiusTiny        =1.0d-3, radiusLarge              =1.0d2
+    double precision                                                         :: radius
 
-    if (associated(massDistributionEmbedding%kinematicsDistribution_,self)) then
+    massDistribution__ => massDistribution_
+    if (associated(massDistribution__,massDistributionEmbedding)) then
        ! For the case of a self-gravitating Zhao1996 distribution we have an analytic solution for the velocity dispersion.
        select type (massDistributionEmbedding)
        class is (massDistributionZhao1996)
@@ -107,7 +109,7 @@ contains
           select case (massDistributionEmbedding%specialCase%ID)
           case (specialCaseGeneral    %ID)
              ! No analytic solution is available - fall back to the numerical solution.
-             velocityDispersion=self%velocityDispersion1DNumerical(coordinates,massDistributionEmbedding)
+             velocityDispersion=self%velocityDispersion1DNumerical(coordinates,massDistribution_,massDistributionEmbedding)
              return
           case (specialCaseNFW        %ID)
              if      (radius < radiusTiny ) then
@@ -246,17 +248,17 @@ contains
           end select
           velocityDispersion=+sqrt(                                                &
                &                   +velocityDispersion                             &
-               &                   *gravitationalConstantGalacticus                &
+               &                   *gravitationalConstant_internal                 &
                &                   *massDistributionEmbedding%densityNormalization &
                &                  )                                                &
                &                   *      massDistributionEmbedding%scaleLength
-          class default
+       class default
           velocityDispersion=0.0d0
           call Error_Report('expecting a Zhao1996 mass distribution, but received '//char(massDistributionEmbedding%objectType())//{introspection:location})
        end select
     else
        ! Our Zhao1996 distribution is embedded in another distribution. We must compute the velocity dispersion numerically.
-       velocityDispersion=self%velocityDispersion1DNumerical(coordinates,massDistributionEmbedding)
+       velocityDispersion=self%velocityDispersion1DNumerical(coordinates,massDistribution_,massDistributionEmbedding)
     end if
     return
   end function zhao1996VelocityDispersion1D

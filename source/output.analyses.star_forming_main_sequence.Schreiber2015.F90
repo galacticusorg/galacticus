@@ -65,6 +65,7 @@ contains
     class           (outputTimesClass                                  ), pointer                     :: outputTimes_
     class           (starFormationRateDisksClass                       ), pointer                     :: starFormationRateDisks_
     class           (starFormationRateSpheroidsClass                   ), pointer                     :: starFormationRateSpheroids_
+    class           (starFormationRateNuclearStarClustersClass         ), pointer                     :: starFormationRateNuclearStarClusters_
     double precision                                                    , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient          , systematicErrorPolynomialCoefficient, &
          &                                                                                               weightSystematicErrorPolynomialCoefficient
     double precision                                                                                  :: randomErrorMinimum                        , randomErrorMaximum
@@ -126,25 +127,27 @@ contains
       <source>parameters</source>
       <description>The redshift index (1-6) for this analysis.</description>
     </inputParameter>
-    <objectBuilder class="cosmologyParameters"        name="cosmologyParameters_"        source="parameters"/>
-    <objectBuilder class="cosmologyFunctions"         name="cosmologyFunctions_"         source="parameters"/>
-    <objectBuilder class="outputTimes"                name="outputTimes_"                source="parameters"/>
-    <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters"/>
-    <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
+    <objectBuilder class="cosmologyParameters"                  name="cosmologyParameters_"                  source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"                   name="cosmologyFunctions_"                   source="parameters"/>
+    <objectBuilder class="outputTimes"                          name="outputTimes_"                          source="parameters"/>
+    <objectBuilder class="starFormationRateDisks"               name="starFormationRateDisks_"               source="parameters"/>
+    <objectBuilder class="starFormationRateSpheroids"           name="starFormationRateSpheroids_"           source="parameters"/>
+    <objectBuilder class="starFormationRateNuclearStarClusters" name="starFormationRateNuclearStarClusters_" source="parameters"/>
     !!]
-    self=outputAnalysisStarFormingMainSequenceSchreiber2015(redshiftIndex,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_)
+    self=outputAnalysisStarFormingMainSequenceSchreiber2015(redshiftIndex,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_)
     !![
     <inputParametersValidate source="parameters" />
-    <objectDestructor name="cosmologyParameters_"       />
-    <objectDestructor name="cosmologyFunctions_"        />
-    <objectDestructor name="outputTimes_"               />
-    <objectDestructor name="starFormationRateDisks_"    />
-    <objectDestructor name="starFormationRateSpheroids_"/>
+    <objectDestructor name="cosmologyParameters_"                 />
+    <objectDestructor name="cosmologyFunctions_"                  />
+    <objectDestructor name="outputTimes_"                         />
+    <objectDestructor name="starFormationRateDisks_"              />
+    <objectDestructor name="starFormationRateSpheroids_"          />
+    <objectDestructor name="starFormationRateNuclearStarClusters_"/>
     !!]
     return
   end function starFormingMainSequenceSchreiber2015ConstructorParameters
 
-  function starFormingMainSequenceSchreiber2015ConstructorInternal(redshiftIndex,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_) result(self)
+  function starFormingMainSequenceSchreiber2015ConstructorInternal(redshiftIndex,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_) result(self)
     !!{
     Internal constructor for the ``starFormingMainSequenceSchreiber2015'' output analysis class.
     !!}
@@ -170,6 +173,7 @@ contains
     class           (outputTimesClass                                   ), intent(inout), target       :: outputTimes_
     class           (starFormationRateDisksClass                        ), intent(in   ), target       :: starFormationRateDisks_
     class           (starFormationRateSpheroidsClass                    ), intent(in   ), target       :: starFormationRateSpheroids_
+    class           (starFormationRateNuclearStarClustersClass          ), intent(in   ), target       :: starFormationRateNuclearStarClusters_
     type            (galacticFilterStellarMass                          )               , pointer      :: galacticFilterStellarMass_
     type            (galacticFilterStarFormationRate                    )               , pointer      :: galacticFilterStarFormationRate_
     type            (galacticFilterAll                                  )               , pointer      :: galacticFilter_
@@ -246,11 +250,11 @@ contains
     ! Build a filter which selects galaxies above a stellar mass threshold, and star-forming.
     allocate(galacticFilterStellarMass_)
     !![
-    <referenceConstruct object="galacticFilterStellarMass_"              constructor="galacticFilterStellarMass      (massThreshold=1.0d8                                                                                                                                                                 )"/>
+    <referenceConstruct object="galacticFilterStellarMass_"              constructor="galacticFilterStellarMass      (massThreshold=1.0d8                                                                                                                                                                                                         )"/>
     !!]
     allocate(galacticFilterStarFormationRate_)
     !![
-    <referenceConstruct object="galacticFilterStarFormationRate_"        constructor="galacticFilterStarFormationRate(logSFR0=-1.0d0,logSFR1=1.0d0,logM0=0.0d0,starFormationRateDisks_=starFormationRateDisks_,starFormationRateSpheroids_=starFormationRateSpheroids_                                     )"/>
+    <referenceConstruct object="galacticFilterStarFormationRate_"        constructor="galacticFilterStarFormationRate(logSFR0=-1.0d0,logSFR1=1.0d0,logM0=0.0d0,starFormationRateDisks_=starFormationRateDisks_,starFormationRateSpheroids_=starFormationRateSpheroids_,starFormationRateNuclearStarClusters_=starFormationRateNuclearStarClusters_)"/>
     !!]
     allocate(galacticFilter_                    )
     allocate(filters_                           )
@@ -258,7 +262,7 @@ contains
     filters_               %filter_ => galacticFilterStellarMass_
     filters_%next          %filter_ => galacticFilterStarFormationRate_
     !![
-    <referenceConstruct object="galacticFilter_"                  constructor="galacticFilterAll              (filters_                                                                                                                                                                       )"/>
+    <referenceConstruct object="galacticFilter_"                  constructor="galacticFilterAll              (filters_                                                                                                                                                                                                                           )"/>
     !!]
     ! Create cosmological model in which data were analyzed.
     allocate(cosmologyParametersData)
@@ -327,7 +331,8 @@ contains
          &                                       outputAnalysisDistributionOperator_  , &
          &                                       outputAnalysisWeightPropertyOperator_, &
          &                                       starFormationRateDisks_              , &
-         &                                       starFormationRateSpheroids_            &
+         &                                       starFormationRateSpheroids_          , &
+         &                                       starFormationRateNuclearStarClusters_  &
          &                                      )
     !![
     <objectDestructor name="galacticFilterStellarMass_"           />

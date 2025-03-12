@@ -535,8 +535,8 @@ contains
     !!{
     Computes the radius corresponding to a given specific angular momentum for burkert mass distributions.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-    use :: Numerical_Ranges                , only : Make_Range                     , rangeTypeLogarithmic
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
+    use :: Numerical_Ranges                , only : Make_Range                    , rangeTypeLogarithmic
     implicit none
     class           (massDistributionBurkert), intent(inout), target       :: self
     double precision                         , intent(in   )               :: angularMomentumSpecific
@@ -546,12 +546,12 @@ contains
     integer                                                                :: countRadii
 
     if (angularMomentumSpecific > 0.0d0) then
-       angularMomentumSpecificScaleFree=+angularMomentumSpecific                  &
-            &                           /sqrt(                                    &
-            &                                 +gravitationalConstantGalacticus    &
-            &                                 *self%densityNormalization          &
-            &                                )                                    &
-            &                           /      self%scaleLength               **2
+       angularMomentumSpecificScaleFree=+angularMomentumSpecific                 &
+            &                           /sqrt(                                   &
+            &                                 +gravitationalConstant_internal    &
+            &                                 *self%densityNormalization         &
+            &                                )                                   &
+            &                           /      self%scaleLength              **2
        if     (                                                                                  &
             &   angularMomentumSpecificScaleFree <= self%angularMomentumSpecificScaleFreeMinimum &
             &  .or.                                                                              &
@@ -600,21 +600,21 @@ contains
     !!{
     Return the peak velocity in the rotation curve for an burkert mass distribution.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Numerical_Constants_Math        , only : Pi
     implicit none
     class           (massDistributionBurkert ), intent(inout) :: self
     double precision                          , parameter     :: circularVelocityMaximumScaleFree=1.644297750532498d0 ! The circular velocity (in scale-free units) at the peak of the Burkert rotation curve.
     !                                                                                                                   Numerical value found using Mathematica.
 
-    velocity=+circularVelocityMaximumScaleFree             &
-         &   *sqrt(                                        &
-         &         +self%densityNormalization              &
-         &        )                                        &
+    velocity=+circularVelocityMaximumScaleFree            &
+         &   *sqrt(                                       &
+         &         +self%densityNormalization             &
+         &        )                                       &
          &   *      self%scaleLength
-    if (.not.self%isDimensionless())                       &
-         & velocity=+velocity                              &
-         &          *sqrt(gravitationalConstantGalacticus)
+    if (.not.self%isDimensionless())                      &
+         & velocity=+velocity                             &
+         &          *sqrt(gravitationalConstant_internal)
     return
   end function burkertVelocityRotationCurveMaximum
 
@@ -648,8 +648,8 @@ contains
     Return the potential at the specified {\normalfont \ttfamily coordinates} in an burkert mass distribution.
     !!}
     use :: Coordinates                     , only : assignment(=)
-    use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess      , structureErrorCodeInfinite
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess     , structureErrorCodeInfinite
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Error                           , only : Error_Report
     implicit none
     class           (massDistributionBurkert          ), intent(inout), target   :: self
@@ -663,7 +663,7 @@ contains
     potential=+potentialScaleFree       (radiusScaleFree)    &
          &    *self%densityNormalization                     &
          &    *self%scaleLength                          **2
-    if (.not.self%isDimensionless()) potential=+gravitationalConstantGalacticus &
+    if (.not.self%isDimensionless()) potential=+gravitationalConstant_internal &
          &                                     *potential
     return
   end function burkertPotential
@@ -772,18 +772,18 @@ contains
     !!{
     Compute the freefall radius at the given {\normalfont \ttfamily time} in an Burkert mass distribution.
     !!}
-    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr, gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr, gravitationalConstant_internal
     implicit none
     class           (massDistributionBurkert), intent(inout) :: self
     double precision                         , intent(in   ) :: time
     double precision                                         :: timeScaleFree, timeScale
     
-    timeScale    =+1.0d0/sqrt(                                 &
-         &                    +gravitationalConstantGalacticus &
-         &                    *self%densityNormalization       &
-         &                   )                                 &
-         &        *Mpc_per_km_per_s_To_Gyr
-    timeScaleFree=+time                                        &
+    timeScale    =+1.0d0/sqrt(                                &
+         &                    +gravitationalConstant_internal &
+         &                    *self%densityNormalization      &
+         &                   )                                &
+         &        *MpcPerKmPerSToGyr
+    timeScaleFree=+time                                       &
          &        /timeScale
     if (timeScaleFree <= timeFreefallScaleFreeMinimum) then
        radius=0.0d0
@@ -800,18 +800,18 @@ contains
     Compute the rate of increase of the freefall radius at the given {\normalfont \ttfamily time} in an burkert mass
     distribution.
     !!}
-    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr, gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr, gravitationalConstant_internal
     implicit none
     class           (massDistributionBurkert), intent(inout) :: self
     double precision                         , intent(in   ) :: time
     double precision                                         :: timeScaleFree, timeScale
 
-    timeScale    =+1.0d0/sqrt(                                 &
-         &                    +gravitationalConstantGalacticus &
-         &                    *self%densityNormalization       &
-         &                   )                                 &
-         &        *Mpc_per_km_per_s_To_Gyr
-    timeScaleFree=+time                                        &
+    timeScale    =+1.0d0/sqrt(                                &
+         &                    +gravitationalConstant_internal &
+         &                    *self%densityNormalization      &
+         &                   )                                &
+         &        *MpcPerKmPerSToGyr
+    timeScaleFree=+time                                       &
          &        /timeScale
     if (timeScaleFree <= timeFreefallScaleFreeMinimum) then
        radiusIncreaseRate=0.0d0
@@ -915,8 +915,8 @@ contains
     \end{eqnarray}
     where $x=r/r_\mathrm{s}$ and $\mathrm{G}$ is Catalan's constant.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-    use :: Numerical_Constants_Math        , only : Pi                             , catalan
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
+    use :: Numerical_Constants_Math        , only : Pi                            , catalan
     use :: Dilogarithms                    , only : Dilogarithm
     implicit none
     class           (massDistributionBurkert), intent(inout) :: self
@@ -926,7 +926,7 @@ contains
     radiusOuterScaleFree=+     radiusOuter                                                                                                                                                                                         &
          &               /self%scaleLength
     energy              =real(                                                                                                                                                                                                     &
-         &                    -gravitationalConstantGalacticus                                                                                                                                                                     &
+         &                    -gravitationalConstant_internal                                                                                                                                                                      &
          &                    *self%scaleLength               **5                                                                                                                                                                  &
          &                    *self%densityNormalization      **2                                                                                                                                                                  &
          &                    *(                                                                                                                                                                                                   &

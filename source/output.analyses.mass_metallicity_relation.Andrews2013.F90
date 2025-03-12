@@ -31,13 +31,14 @@
      A mass-metallicity relation output analysis class.
      !!}
      private
-     double precision                                 , allocatable, dimension(:) :: systematicErrorPolynomialCoefficient                     , randomErrorPolynomialCoefficient, &
-          &                                                                          metallicitySystematicErrorPolynomialCoefficient
-     class           (cosmologyFunctionsClass        ), pointer                   :: cosmologyFunctions_                             => null()
-     class           (starFormationRateDisksClass    ), pointer                   :: starFormationRateDisks_                         => null()
-     class           (starFormationRateSpheroidsClass), pointer                   :: starFormationRateSpheroids_                     => null()
-     double precision                                                             :: randomErrorMinimum                                       , randomErrorMaximum              , &
-          &                                                                          fractionGasThreshold
+     double precision                                           , allocatable, dimension(:) :: systematicErrorPolynomialCoefficient                     , randomErrorPolynomialCoefficient, &
+          &                                                                                    metallicitySystematicErrorPolynomialCoefficient
+     class           (cosmologyFunctionsClass                  ), pointer                   :: cosmologyFunctions_                             => null()
+     class           (starFormationRateDisksClass              ), pointer                   :: starFormationRateDisks_                         => null()
+     class           (starFormationRateSpheroidsClass          ), pointer                   :: starFormationRateSpheroids_                     => null()
+     class           (starFormationRateNuclearStarClustersClass), pointer                   :: starFormationRateNuclearStarClusters_           => null()
+     double precision                                                                       :: randomErrorMinimum                                       , randomErrorMaximum              , &
+          &                                                                                    fractionGasThreshold
    contains
      final :: massMetallicityAndrews2013Destructor
   end type outputAnalysisMassMetallicityAndrews2013
@@ -56,21 +57,23 @@ contains
     !!{
     Constructor for the ``massMetallicityAndrews2013'' output analysis class which takes a parameter set as input.
     !!}
-    use :: Cosmology_Functions           , only : cosmologyFunctions             , cosmologyFunctionsClass
-    use :: Input_Parameters              , only : inputParameter                 , inputParameters
-    use :: Star_Formation_Rates_Disks    , only : starFormationRateDisksClass
-    use :: Star_Formation_Rates_Spheroids, only : starFormationRateSpheroidsClass
+    use :: Cosmology_Functions                       , only : cosmologyFunctions             , cosmologyFunctionsClass
+    use :: Input_Parameters                          , only : inputParameter                 , inputParameters
+    use :: Star_Formation_Rates_Disks                , only : starFormationRateDisksClass
+    use :: Star_Formation_Rates_Spheroids            , only : starFormationRateSpheroidsClass
+    use :: Star_Formation_Rates_Nuclear_Star_Clusters, only : starFormationRateNuclearStarClustersClass
     implicit none
-    type            (outputAnalysisMassMetallicityAndrews2013)                              :: self
-    type            (inputParameters                         ), intent(inout)               :: parameters
-    double precision                                          , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient           , randomErrorPolynomialCoefficient, &
-         &                                                                                     metallicitySystematicErrorPolynomialCoefficient
-    class           (cosmologyFunctionsClass                 ), pointer                     :: cosmologyFunctions_
-    class           (outputTimesClass                        ), pointer                     :: outputTimes_
-    class           (starFormationRateDisksClass             ), pointer                     :: starFormationRateDisks_
-    class           (starFormationRateSpheroidsClass         ), pointer                     :: starFormationRateSpheroids_
-    double precision                                                                        :: randomErrorMinimum                             , randomErrorMaximum              , &
-         &                                                                                     fractionGasThreshold
+    type            (outputAnalysisMassMetallicityAndrews2013 )                              :: self
+    type            (inputParameters                          ), intent(inout)               :: parameters
+    double precision                                           , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient           , randomErrorPolynomialCoefficient, &
+         &                                                                                      metallicitySystematicErrorPolynomialCoefficient
+    class           (cosmologyFunctionsClass                  ), pointer                     :: cosmologyFunctions_
+    class           (outputTimesClass                         ), pointer                     :: outputTimes_
+    class           (starFormationRateDisksClass              ), pointer                     :: starFormationRateDisks_
+    class           (starFormationRateSpheroidsClass          ), pointer                     :: starFormationRateSpheroids_
+    class           (starFormationRateNuclearStarClustersClass), pointer                     :: starFormationRateNuclearStarClusters_
+    double precision                                                                         :: randomErrorMinimum                             , randomErrorMaximum              , &
+         &                                                                                      fractionGasThreshold
 
     ! Check and read parameters.
     allocate(metallicitySystematicErrorPolynomialCoefficient(max(1,parameters%count('metallicitySystematicErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
@@ -118,50 +121,53 @@ contains
       <defaultValue>0.05d0</defaultValue>
       <description>The minimum gas fraction to include in the sample.</description>
     </inputParameter>
-    <objectBuilder class="cosmologyFunctions"         name="cosmologyFunctions_"         source="parameters"/>
-    <objectBuilder class="outputTimes"                name="outputTimes_"                source="parameters"/>
-    <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters"/>
-    <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"                   name="cosmologyFunctions_"                   source="parameters"/>
+    <objectBuilder class="outputTimes"                          name="outputTimes_"                          source="parameters"/>
+    <objectBuilder class="starFormationRateDisks"               name="starFormationRateDisks_"               source="parameters"/>
+    <objectBuilder class="starFormationRateSpheroids"           name="starFormationRateSpheroids_"           source="parameters"/>
+    <objectBuilder class="starFormationRateNuclearStarClusters" name="starFormationRateNuclearStarClusters_" source="parameters"/>
     !!]
     ! Build the object.
-    self=outputAnalysisMassMetallicityAndrews2013(metallicitySystematicErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,fractionGasThreshold,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_)
+    self=outputAnalysisMassMetallicityAndrews2013(metallicitySystematicErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,fractionGasThreshold,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="cosmologyFunctions_"        />
-    <objectDestructor name="outputTimes_"               />
-    <objectDestructor name="starFormationRateDisks_"    />
-    <objectDestructor name="starFormationRateSpheroids_"/>
+    <objectDestructor name="cosmologyFunctions_"                  />
+    <objectDestructor name="outputTimes_"                         />
+    <objectDestructor name="starFormationRateDisks_"              />
+    <objectDestructor name="starFormationRateSpheroids_"          />
+    <objectDestructor name="starFormationRateNuclearStarClusters_"/>
     !!]
     return
   end function massMetallicityAndrews2013ConstructorParameters
 
-  function massMetallicityAndrews2013ConstructorInternal(metallicitySystematicErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,fractionGasThreshold,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_) result (self)
+  function massMetallicityAndrews2013ConstructorInternal(metallicitySystematicErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,fractionGasThreshold,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_) result (self)
     !!{
     Constructor for the ``massMetallicityAndrews2013'' output analysis class for internal use.
     !!}
-    use :: Abundances_Structure                  , only : Abundances_Index_From_Name                         , abundances
-    use :: Atomic_Data                           , only : Atomic_Mass
-    use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                            , cosmologyFunctionsMatterLambda
-    use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
-    use :: Display                               , only : displayGreen                                       , displayReset
-    use :: Galactic_Filters                      , only : filterList                                         , galacticFilterAll                              , galacticFilterGasFractionISM                   , galacticFilterStarFormationRate    , &
-          &                                               galacticFilterStellarMass
-    use :: Error                                 , only : Error_Report
-    use :: Input_Paths                           , only : inputPath                                          , pathTypeDataStatic
-    use :: Geometry_Surveys                      , only : surveyGeometryLiWhite2009SDSS
-    use :: HDF5_Access                           , only : hdf5Access
-    use :: IO_HDF5                               , only : hdf5Object
-    use :: Node_Property_Extractors              , only : nodePropertyExtractorMassStellar                   , nodePropertyExtractorMetallicityISM
-    use :: Numerical_Constants_Astronomical      , only : massSolar
-    use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelBinomial
-    use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorRandomErrorPlynml
-    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10            , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorFilterHighPass   , outputAnalysisPropertyOperatorLog10, &
-          &                                               outputAnalysisPropertyOperatorMetallicity12LogNH   , outputAnalysisPropertyOperatorSequence         , outputAnalysisPropertyOperatorSystmtcPolynomial, propertyOperatorList
-    use :: Output_Analysis_Utilities             , only : Output_Analysis_Output_Weight_Survey_Volume
-    use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorIdentity
-    use :: Output_Times                          , only : outputTimesClass
-    use :: Star_Formation_Rates_Disks            , only : starFormationRateDisksClass
-    use :: Star_Formation_Rates_Spheroids        , only : starFormationRateSpheroidsClass
+    use :: Abundances_Structure                      , only : Abundances_Index_From_Name                         , abundances
+    use :: Atomic_Data                               , only : Atomic_Mass
+    use :: Cosmology_Functions                       , only : cosmologyFunctionsClass                            , cosmologyFunctionsMatterLambda
+    use :: Cosmology_Parameters                      , only : cosmologyParametersSimple
+    use :: Display                                   , only : displayGreen                                       , displayReset
+    use :: Galactic_Filters                          , only : filterList                                         , galacticFilterAll                              , galacticFilterGasFractionISM                   , galacticFilterStarFormationRate    , &
+          &                                                   galacticFilterStellarMass
+    use :: Error                                     , only : Error_Report
+    use :: Input_Paths                               , only : inputPath                                          , pathTypeDataStatic
+    use :: Geometry_Surveys                          , only : surveyGeometryLiWhite2009SDSS
+    use :: HDF5_Access                               , only : hdf5Access
+    use :: IO_HDF5                                   , only : hdf5Object
+    use :: Node_Property_Extractors                  , only : nodePropertyExtractorMassStellar                   , nodePropertyExtractorMetallicityISM
+    use :: Numerical_Constants_Astronomical          , only : massSolar
+    use :: Output_Analyses_Options                   , only : outputAnalysisCovarianceModelBinomial
+    use :: Output_Analysis_Distribution_Operators    , only : outputAnalysisDistributionOperatorRandomErrorPlynml
+    use :: Output_Analysis_Property_Operators        , only : outputAnalysisPropertyOperatorAntiLog10            , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorFilterHighPass   , outputAnalysisPropertyOperatorLog10, &
+          &                                                   outputAnalysisPropertyOperatorMetallicity12LogNH   , outputAnalysisPropertyOperatorSequence         , outputAnalysisPropertyOperatorSystmtcPolynomial, propertyOperatorList
+    use :: Output_Analysis_Utilities                 , only : Output_Analysis_Output_Weight_Survey_Volume
+    use :: Output_Analysis_Weight_Operators          , only : outputAnalysisWeightOperatorIdentity
+    use :: Output_Times                              , only : outputTimesClass
+    use :: Star_Formation_Rates_Disks                , only : starFormationRateDisksClass
+    use :: Star_Formation_Rates_Spheroids            , only : starFormationRateSpheroidsClass
+    use :: Star_Formation_Rates_Nuclear_Star_Clusters, only : starFormationRateNuclearStarClustersClass
     implicit none
     type            (outputAnalysisMassMetallicityAndrews2013           )                                :: self
     double precision                                                     , intent(in   )                 :: randomErrorMinimum                                      , randomErrorMaximum                                            , &
@@ -172,6 +178,7 @@ contains
     class           (outputTimesClass                                   ), intent(inout), target         :: outputTimes_
     class           (starFormationRateDisksClass                        ), intent(in   ), target         :: starFormationRateDisks_
     class           (starFormationRateSpheroidsClass                    ), intent(in   ), target         :: starFormationRateSpheroids_
+    class           (starFormationRateNuclearStarClustersClass          ), intent(in   ), target         :: starFormationRateNuclearStarClusters_
     integer                                                              , parameter                     :: covarianceBinomialBinsPerDecade                 =10
     double precision                                                     , parameter                     :: covarianceBinomialMassHaloMinimum               = 1.0d08, covarianceBinomialMassHaloMaximum                      =1.0d16
     double precision                                                     , allocatable  , dimension(:  ) :: masses                                                  , functionValueTarget
@@ -204,7 +211,7 @@ contains
     type            (hdf5Object                                         )                                :: dataFile
     integer                                                                                              :: indexOxygen
     !![
-    <constructorAssign variables="metallicitySystematicErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, fractionGasThreshold, *cosmologyFunctions_, *starFormationRateDisks_, *starFormationRateSpheroids_"/>
+    <constructorAssign variables="metallicitySystematicErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, fractionGasThreshold, *cosmologyFunctions_, *starFormationRateDisks_, *starFormationRateSpheroids_, *starFormationRateNuclearStarClusters_"/>
     !!]
     
     ! Read masses at which fraction was measured.
@@ -262,12 +269,13 @@ contains
     !![
     <referenceConstruct object="galacticFilterStarFormationRate_">
      <constructor>
-      galacticFilterStarFormationRate(                                                         &amp;
-        &amp;                         logM0                      =0.00d0                     , &amp;
-        &amp;                         logSFR0                    =0.76d0                     , &amp;
-        &amp;                         logSFR1                    =0.76d0                     , &amp;
-        &amp;                         starFormationRateDisks_    =starFormationRateDisks_    , &amp;
-        &amp;                         starFormationRateSpheroids_=starFormationRateSpheroids_  &amp;
+      galacticFilterStarFormationRate(                                                                             &amp;
+        &amp;                         logM0                                =0.00d0                               , &amp;
+        &amp;                         logSFR0                              =0.76d0                               , &amp;
+        &amp;                         logSFR1                              =0.76d0                               , &amp;
+        &amp;                         starFormationRateDisks_              =starFormationRateDisks_              , &amp;
+        &amp;                         starFormationRateSpheroids_          =starFormationRateSpheroids_          , &amp;
+        &amp;                         starFormationRateNuclearStarClusters_=starFormationRateNuclearStarClusters_  &amp;        
         &amp;                        )
      </constructor>
     </referenceConstruct>
@@ -461,10 +469,11 @@ contains
     type(outputAnalysisMassMetallicityAndrews2013), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%cosmologyFunctions_"        />
-    <objectDestructor name="self%outputTimes_"               />
-    <objectDestructor name="self%starFormationRateDisks_"    />
-    <objectDestructor name="self%starFormationRateSpheroids_"/>
+    <objectDestructor name="self%cosmologyFunctions_"                  />
+    <objectDestructor name="self%outputTimes_"                         />
+    <objectDestructor name="self%starFormationRateDisks_"              />
+    <objectDestructor name="self%starFormationRateSpheroids_"          />
+    <objectDestructor name="self%starFormationRateNuclearStarClusters_"/>
     !!]
     return
   end subroutine massMetallicityAndrews2013Destructor

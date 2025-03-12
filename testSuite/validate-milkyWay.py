@@ -9,7 +9,7 @@ import validate
 
 # Create output path.
 try:
-    os.mkdir("outputs/idealizedSubhaloSimulations")
+    os.mkdir("outputs")
 except FileExistsError:
     pass
 

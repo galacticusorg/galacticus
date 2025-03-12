@@ -116,7 +116,7 @@ contains
     !!}
     use :: Mass_Distributions              , only : massDistributionClass
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus, Mpc_per_km_per_s_To_Gyr
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal, MpcPerKmPerSToGyr
     implicit none
     class           (nodePropertyExtractorSatelliteDynamicalTime), intent(inout), target   :: self
     type            (treeNode                                   ), intent(inout), target   :: node
@@ -134,13 +134,13 @@ contains
     <objectDestructor name="massDistribution_"/>
     !!]
     if (massTidal <= 0.0d0) return
-    dynamicalTimeExtract  =+sqrt(                                    &  
-         &                       +Pi                             **2 &
-         &                       /4.0d0                              &
-         &                       *radiusTidal**3                     &
-         &                       /gravitationalConstantGalacticus    &
-         &                       /massTidal                          &
-         &                       *Mpc_per_km_per_s_To_Gyr        **2 &
+    dynamicalTimeExtract  =+sqrt(                                   &  
+         &                       +Pi                            **2 &
+         &                       /4.0d0                             &
+         &                       *radiusTidal**3                    &
+         &                       /gravitationalConstant_internal    &
+         &                       /massTidal                         &
+         &                       *MpcPerKmPerSToGyr             **2 &
          &                      )
     return
   end function dynamicalTimeExtract

@@ -138,16 +138,15 @@ contains
     !!{
     Return the tidal heating rate for satellite halos assuming the model of \cite{gnedin_tidal_1999}.
     !!}
-    use :: Galactic_Structure_Options      , only : componentTypeAll               , coordinateSystemCartesian, massTypeDark
-    use :: Galacticus_Nodes                , only : nodeComponentBasic             , nodeComponentSatellite   , treeNode
-    use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
+    use :: Galactic_Structure_Options      , only : componentTypeAll     , coordinateSystemCartesian, massTypeDark
+    use :: Galacticus_Nodes                , only : nodeComponentBasic   , nodeComponentSatellite   , treeNode
+    use :: Numerical_Constants_Astronomical, only : gigaYear             , megaParsec
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Mass_Distributions              , only : massDistributionClass
-    use :: Tensors                         , only : assignment(=)                  , max                      , operator(*) , tensorRank2Dimension3Symmetric
+    use :: Tensors                         , only : assignment(=)        , max                      , operator(*) , tensorRank2Dimension3Symmetric
     use :: Vectors                         , only : Vector_Magnitude
-    use :: Coordinates                     , only : coordinateCartesian            , assignment(=)
+    use :: Coordinates                     , only : coordinateCartesian  , assignment(=)
     implicit none
     class           (satelliteTidalHeatingRateGnedin1999), intent(inout) :: self
     type            (treeNode                           ), intent(inout) :: node
@@ -200,7 +199,6 @@ contains
     if (useFrequencyOrbital) then
        radiusHalfMassSatellite  =     massDistribution_%radiusEnclosingMass (mass  =                                massHalfSatellite      )
        velocityCircularSatellite=     massDistribution_%rotationCurve       (radius=                          radiusHalfMassSatellite      )
-       useFrequencyOrbital      =radiusHalfMassSatellite > radiusHalfMassSatelliteTiny
        ! Compute the orbital frequency.
        orbitalFrequencySatellite =  +velocityCircularSatellite &
             &                       /radiusHalfMassSatellite   &

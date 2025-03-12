@@ -541,7 +541,8 @@ contains
     class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
     double precision                                            , dimension(4)  :: coefficients
     double precision                                            , intent(in   ) :: time
-    double precision                                                            :: omegaMatter , expansionFactor, &
+    logical                                                     , save          :: warnedOmega =.false., warnedRedshift =.false.
+    double precision                                                            :: omegaMatter         , expansionFactor        , &
          &                                                                         redshift
 
     ! Extract matter density and redshift.
@@ -549,8 +550,26 @@ contains
     expansionFactor=self%cosmologyFunctions_ %expansionFactor            (time           )
     redshift       =self%cosmologyFunctions_ %redshiftFromExpansionFactor(expansionFactor)
     ! Validate input.
-    if (omegaMatter < 0.25d0 .or. omegaMatter >   0.40d0) call Warn('gnedin2000CoefficientsEarlyEpoch: matter density outside validated range of fitting function; 0.25 ≤ Ωₘ ≤ 0.40')
-    if (redshift    < 7.00d0 .or. redshift    > 150.00d0) call Warn('gnedin2000CoefficientsEarlyEpoch: redshift outside validated range of fitting function; 7 ≤ z ≤ 150'           )
+    if (omegaMatter < 0.25d0 .or. omegaMatter >   0.40d0) then
+       if (.not.warnedOmega) then
+          !$omp critical (intergalacticMediumFilteringMassGnedin2000WarnedOmega)
+          if (.not.warnedOmega) then
+             call Warn('gnedin2000CoefficientsEarlyEpoch: matter density outside validated range of fitting function; 0.25 ≤ Ωₘ ≤ 0.40')
+             warnedOmega=.true.
+          end if
+          !$omp end critical (intergalacticMediumFilteringMassGnedin2000WarnedOmega)
+       end if
+    end if
+    if (redshift    < 7.00d0 .or. redshift    > 150.00d0) then
+       if (.not.warnedRedshift) then
+          !$omp critical (intergalacticMediumFilteringMassGnedin2000WarnedRedshift)
+          if (.not.warnedRedshift) then
+             call Warn('gnedin2000CoefficientsEarlyEpoch: redshift outside validated range of fitting function; 7 ≤ z ≤ 150'           )
+             warnedRedshift=.true.
+          end if
+          !$omp end critical (intergalacticMediumFilteringMassGnedin2000WarnedRedshift)
+       end if
+    end if
     ! Evaluate fitting function.
     coefficients(1)=-0.38d0*(omegaMatter**2)+ 0.41d0*omegaMatter- 0.16d0
     coefficients(2)=+3.30d0*(omegaMatter**2)- 3.38d0*omegaMatter+ 1.15d0

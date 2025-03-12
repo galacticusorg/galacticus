@@ -38,12 +38,12 @@ module Numerical_Integration
 
   ! Integrator types.
   !![
-  <gslConstant variable="GSL_Integ_Gauss15" gslSymbol="GSL_INTEG_GAUSS15" gslHeader="gsl_integration" type="integer"/>
-  <gslConstant variable="GSL_Integ_Gauss21" gslSymbol="GSL_INTEG_GAUSS21" gslHeader="gsl_integration" type="integer"/>
-  <gslConstant variable="GSL_Integ_Gauss31" gslSymbol="GSL_INTEG_GAUSS31" gslHeader="gsl_integration" type="integer"/>
-  <gslConstant variable="GSL_Integ_Gauss41" gslSymbol="GSL_INTEG_GAUSS41" gslHeader="gsl_integration" type="integer"/>
-  <gslConstant variable="GSL_Integ_Gauss51" gslSymbol="GSL_INTEG_GAUSS51" gslHeader="gsl_integration" type="integer"/>
-  <gslConstant variable="GSL_Integ_Gauss61" gslSymbol="GSL_INTEG_GAUSS61" gslHeader="gsl_integration" type="integer"/>
+  <constant variable="GSL_Integ_Gauss15" gslSymbol="GSL_INTEG_GAUSS15" gslHeader="gsl_integration" type="integer" description="Indicator for 15-point Gauss-Kronrod integration rule." reference="GSL" referenceURL="https://www.gnu.org/software/gsl/doc/html/integration.html#c.gsl_integration_qag" group="GSL"/>
+  <constant variable="GSL_Integ_Gauss21" gslSymbol="GSL_INTEG_GAUSS21" gslHeader="gsl_integration" type="integer" description="Indicator for 21-point Gauss-Kronrod integration rule." reference="GSL" referenceURL="https://www.gnu.org/software/gsl/doc/html/integration.html#c.gsl_integration_qag" group="GSL"/>
+  <constant variable="GSL_Integ_Gauss31" gslSymbol="GSL_INTEG_GAUSS31" gslHeader="gsl_integration" type="integer" description="Indicator for 31-point Gauss-Kronrod integration rule." reference="GSL" referenceURL="https://www.gnu.org/software/gsl/doc/html/integration.html#c.gsl_integration_qag" group="GSL"/>
+  <constant variable="GSL_Integ_Gauss41" gslSymbol="GSL_INTEG_GAUSS41" gslHeader="gsl_integration" type="integer" description="Indicator for 41-point Gauss-Kronrod integration rule." reference="GSL" referenceURL="https://www.gnu.org/software/gsl/doc/html/integration.html#c.gsl_integration_qag" group="GSL"/>
+  <constant variable="GSL_Integ_Gauss51" gslSymbol="GSL_INTEG_GAUSS51" gslHeader="gsl_integration" type="integer" description="Indicator for 51-point Gauss-Kronrod integration rule." reference="GSL" referenceURL="https://www.gnu.org/software/gsl/doc/html/integration.html#c.gsl_integration_qag" group="GSL"/>
+  <constant variable="GSL_Integ_Gauss61" gslSymbol="GSL_INTEG_GAUSS61" gslHeader="gsl_integration" type="integer" description="Indicator for 61-point Gauss-Kronrod integration rule." reference="GSL" referenceURL="https://www.gnu.org/software/gsl/doc/html/integration.html#c.gsl_integration_qag" group="GSL"/>
   !!]
 
   !![

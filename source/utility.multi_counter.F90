@@ -41,12 +41,13 @@ module Multi_Counters
    contains
      !![
      <methods>
-       <method description="Reset the multi-counter back to its initial count state, such that the next increment will return the first count." method="reset" />
-       <method description="Return the number of counters configured in this multi-counter." method="count" />
-       <method description="Append a new counter to the multi-counter, with the specified {\normalfont \ttfamily range}." method="append" />
-       <method description="Increment the state of the multi-counter. Return {\normalfont \ttfamily .false.} if incrementing was not possible (i.e. counter was in the final state), {\normalfont \ttfamily .true.} otherwise." method="increment" />
-       <method description="Return {\normalfont \ttfamily .true.} if the counter is in its final state, {\normalfont \ttfamily .false.} otherwise." method="isFinal" />
-       <method description="Return the state of the {\normalfont \ttfamily i}$^\mathrm{th}$ counter." method="state" />
+       <method method="reset"     description="Reset the multi-counter back to its initial count state, such that the next increment will return the first count."                                                                                />
+       <method method="count"     description="Return the number of counters configured in this multi-counter."                                                                                                                                   />
+       <method method="append"    description="Append a new counter to the multi-counter, with the specified {\normalfont \ttfamily range}."                                                                                                      />
+       <method method="increment" description="Increment the state of the multi-counter. Return {\normalfont \ttfamily .false.} if incrementing was not possible (i.e. counter was in the final state), {\normalfont \ttfamily .true.} otherwise."/>
+       <method method="isFinal"   description="Return {\normalfont \ttfamily .true.} if the counter is in its final state, {\normalfont \ttfamily .false.} otherwise."                                                                            />
+       <method method="state"     description="Return the state of the {\normalfont \ttfamily i}$^\mathrm{th}$ counter."                                                                                                                          />
+       <method method="states"    description="Return the states of all counters."                                                                                                                                                                />
      </methods>
      !!]
      final     ::              multiCounterDestructor
@@ -54,6 +55,7 @@ module Multi_Counters
      procedure :: reset     => multiCounterReset
      procedure :: count     => multiCounterCount
      procedure :: state     => multiCounterState
+     procedure :: states    => multiCounterStates
      procedure :: increment => multiCounterIncrement
      procedure :: isFinal   => multiCounterIsFinal
   end type multiCounter
@@ -154,6 +156,18 @@ contains
     multiCounterState=self%values(i)
     return
   end function multiCounterState
+
+  function multiCounterStates(self) result(states)
+    !!{
+    Return the states of the multi-counter.
+    !!}
+    implicit none
+    class  (multiCounter), intent(inout)                :: self
+    integer(c_size_t    ), dimension(size(self%values)) :: states
+
+    states=self%values
+    return
+  end function multiCounterStates
 
   subroutine multiCounterAppend(self,range)
     !!{

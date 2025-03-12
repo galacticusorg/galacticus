@@ -17,6 +17,7 @@ doc/autoEnumerationSpecifiers.tex
 doc/autoInputParameters.tex
 doc/autoMethods.tex
 doc/autoPhysics.tex
+doc/constants.tex
 doc/dataEnumerationSpecifiers.tex
 doc/dataEnumerations.tex
 doc/dataMethods.tex
@@ -51,3 +52,4 @@ doc/GalacticusAccented.bib
 source/FFTlog
 source/texfrag
 __pycache__
+.DS_Store

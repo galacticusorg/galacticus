@@ -1359,8 +1359,8 @@ contains
        residual                  =vector(functionValueDifference   )
        covariance                =matrix(functionCovarianceCombined)
        ! Compute the log-likelihood.
-       correlationFunctionLogLikelihood=-0.5d0*covariance%covarianceProduct(residual,status) &
-            &                           -0.5d0*covariance%determinant()                      &
+       correlationFunctionLogLikelihood=-0.5d0*covariance%covarianceProduct     (residual,status) &
+            &                           -0.5d0*covariance%logarithmicDeterminant(               ) &
             &                           -0.5d0*dble(self%binCount)*log(2.0d0*Pi)
        if (status /= GSL_Success) correlationFunctionLogLikelihood=logImprobable
     else

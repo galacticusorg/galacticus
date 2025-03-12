@@ -295,9 +295,9 @@ contains
     !!{
     Root function used in finding the ram pressure stripping radius.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Mass_Distributions              , only : massDistributionClass
-    use :: Coordinates                     , only : coordinateSpherical            , assignment(=)
+    use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
     implicit none
     double precision                     , intent(in   ) :: radius
     type            (coordinateSpherical)                :: coordinates
@@ -309,10 +309,10 @@ contains
     densityHotHalo           =  massDistributionGas__%density(coordinates)
     if (densityHotHalo > 0.0d0) then
        massEnclosed             =+massDistribution__%massEnclosedBySphere(radius)
-       forceBindingGravitational=+self_%formFactor                &
-            &                    *gravitationalConstantGalacticus &
-            &                    *massEnclosed                    &
-            &                    *densityHotHalo                  &
+       forceBindingGravitational=+self_%formFactor               &
+            &                    *gravitationalConstant_internal &
+            &                    *massEnclosed                   &
+            &                    *densityHotHalo                 &
             &                    /radius
     else
        forceBindingGravitational=0.0d0

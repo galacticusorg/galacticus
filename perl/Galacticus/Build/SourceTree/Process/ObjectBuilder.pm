@@ -127,7 +127,7 @@ sub Process_ObjectBuilder {
 		    $builderCode               .= "   do while (.not.parametersCurrent%isPresent('".$parameterName."').and.associated(parametersCurrent%parent))\n";
 		    $builderCode               .= "      parametersCurrent => parametersCurrent%parent\n";
 		    $builderCode               .= "   end do\n";
-		    $builderCode               .=  "   if (.not.parametersCurrent%isPresent('".$parameterName."')) call Error_Report('[".$parameterName."] object is undefined'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
+		    $builderCode               .= "   if (.not.parametersCurrent%isPresent('".$parameterName."')) call Error_Report('[".$parameterName."] object is undefined'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 		}
 	    } else {	    
 		$builderCode .= "   do while (.not.parametersCurrent%isPresent('".$parameterName."').and.associated(parametersCurrent%parent))\n";

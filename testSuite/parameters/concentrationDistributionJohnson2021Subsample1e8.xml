@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="3f3d9a2af2b05c0a279e4aa3602f89fd682665cc"/>
+  <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
 
   <!-- Component selection -->
   <componentBasic value="standard"/>

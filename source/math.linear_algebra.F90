@@ -495,9 +495,9 @@ module Linear_Algebra
   
   ! Extract enums needed for BLAS functions.
   !![
-  <gslConstant variable="CBLAS_Transpose" gslSymbol="CBLAS_TRANSPOSE" gslHeader="gsl_cblas" type="enum" members="CblasNoTrans, CblasTrans, CblasConjTrans"/>
-  <gslConstant variable="CBLAS_UpLo"      gslSymbol="CBLAS_UPLO"      gslHeader="gsl_cblas" type="enum" members="CblasUpper  , CblasLower"                />
-  <gslConstant variable="CBLAS_Diag"      gslSymbol="CBLAS_DIAG"      gslHeader="gsl_cblas" type="enum" members="CblasNonUnit, CblasUnit"                 />
+  <constant variable="CBLAS_Transpose" gslSymbol="CBLAS_TRANSPOSE" gslHeader="gsl_cblas" type="enum" members="CblasNoTrans, CblasTrans, CblasConjTrans" description="Enumeration of CBLAS transpose options." reference="Gnu Scientific Library" group="GSL"/>
+  <constant variable="CBLAS_UpLo"      gslSymbol="CBLAS_UPLO"      gslHeader="gsl_cblas" type="enum" members="CblasUpper  , CblasLower"                 description="Enumeration of CBLAS matrix upper/lower options." reference="Gnu Scientific Library" group="GSL"/>
+  <constant variable="CBLAS_Diag"      gslSymbol="CBLAS_DIAG"      gslHeader="gsl_cblas" type="enum" members="CblasNonUnit, CblasUnit"                  description="Enumeration of whether a CBLAS triangular matrix has unit diagonal or not." reference="Gnu Scientific Library" group="GSL"/>
   !!]
   
 contains

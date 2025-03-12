@@ -25,45 +25,52 @@ program Test_Array_Monotonicity
   !!{
   Tests that array functions.
   !!}
-  use :: Array_Utilities   , only : Array_Cumulate     , Array_Is_Monotonic      , Array_Reverse       , directionDecreasing, &
-          &                         directionIncreasing, operator(.intersection.)
-  use :: Display           , only : displayVerbositySet, verbosityLevelStandard
-  use :: ISO_Varying_String, only : assignment(=)      , char                    , varying_string
-  use :: Kind_Numbers      , only : kind_int8
-  use :: Unit_Tests        , only : Assert             , Unit_Tests_Begin_Group  , Unit_Tests_End_Group, Unit_Tests_Finish
+  use, intrinsic :: ISO_C_Binding     , only : c_size_t
+  use            :: Array_Utilities   , only : Array_Cumulate     , Array_Is_Monotonic      , Array_Reverse       , directionDecreasing, &
+          &                                    directionIncreasing, operator(.intersection.), slice
+  use            :: Display           , only : displayVerbositySet, verbosityLevelStandard
+  use            :: ISO_Varying_String, only : assignment(=)      , char                    , varying_string
+  use            :: Kind_Numbers      , only : kind_int8
+  use            :: Unit_Tests        , only : Assert             , Unit_Tests_Begin_Group  , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
-  double precision                , dimension( 1,2), target     :: singleElementArrays       =reshape([1.23d0,-2.31d0],shape(singleElementArrays))
-  integer         (kind=kind_int8), dimension( 1,2), target     :: singleElementArraysInteger=reshape([123,-231],shape(singleElementArraysInteger))
-  logical                         , dimension( 9,2), target     :: singleElementExpectations =reshape([.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.],shape(singleElementExpectations))
-  character(len=128),      target , dimension(   2)             :: singleElementNames=    [                                                                              &
-       &                                                                                    'Single element array (positive value)'                                      &
-       &                                                                                   ,'Single element array (negative value)'                                      &
-       &                                                                                  ]
-  double precision                , dimension(10,6), target     :: tenElementArrays       =reshape([1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0,10.0d0,3.0d0,2.0d0,1.0d0,0.0d0,-1.0d0,-2.0d0,-3.0d0,-4.0d0,-5.0d0,-6.0d0,1.0d0,0.0d0,3.0d0,4.0d0,-3.0d0,5.0d0,1.0d0,8.0d0,2.0d0,3.0d0,1.0d0,1.0d0,1.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0,10.0d0,3.0d0,2.0d0,1.0d0,1.0d0,-1.0d0,-2.0d0,-3.0d0,-4.0d0,-5.0d0,-6.0d0,1.0d0,0.0d0,3.0d0,3.0d0,-3.0d0,5.0d0,1.0d0,8.0d0,2.0d0,3.0d0],shape(tenElementArrays))
-  integer         (kind=kind_int8), dimension(10,6), target     :: tenElementArraysInteger=reshape([10,20,30,40,50,60,70,80,90,100,30,20,10,00,-10,-20,-30,-40,-50,-60,10,00,30,40,-30,50,10,80,20,30,10,10,10,40,50,60,70,80,90,100,30,20,10,10,-10,-20,-30,-40,-50,-60,10,00,30,30,-30,50,10,80,20,30],shape(tenElementArrays))
-  logical                         , dimension( 9,6), target     :: tenElementExpectations =reshape([.true.,.true.,.false.,.true.,.true.,.false.,.true.,.true.,.false.,.true.,.false.,.true.,.true.,.false.,.true.,.true.,.false.,.true.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.true.,.true.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.true.,.false.,.true.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.],shape(tenElementExpectations))
-  character(len=128),      target , dimension(   6)             :: tenElementNames=       [                                                                              &
-       &                                                                                    'Increasing array (no equalities)     '                                      &
-       &                                                                                   ,'Decreasing array (no equalities)     '                                      &
-       &                                                                                   ,'Non-monotinic array (no equalities)  '                                      &
-       &                                                                                   ,'Increasing array (with equalities)   '                                      &
-       &                                                                                   ,'Decreasing array (with equalities)   '                                      &
-       &                                                                                   ,'Non-monotinic array (with equalities)'                                      &
-       &                                                                                  ]
-  double precision                , dimension(  10)              :: doubleArray         =[0.0d0,1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0]
-  double precision                , dimension(  10)              :: doubleArrayReversed =[9.0d0,8.0d0,7.0d0,6.0d0,5.0d0,4.0d0,3.0d0,2.0d0,1.0d0,0.0d0]
-  double precision                , dimension(  10)              :: doubleArrayCumulated=[0.0d0,1.0d0,3.0d0,6.0d0,10.0d0,15.0d0,21.0d0,28.0d0,36.0d0,45.0d0]
-  real                            , dimension(  10)              :: realArray           =[0.0e0,1.0e0,2.0e0,3.0e0,4.0e0,5.0e0,6.0e0,7.0e0,8.0e0,9.0e0]
-  real                            , dimension(  10)              :: realArrayReversed   =[9.0e0,8.0e0,7.0e0,6.0e0,5.0e0,4.0e0,3.0e0,2.0e0,1.0e0,0.0e0]
-  double precision                , dimension( :,:), pointer     :: arraySet
-  integer         (kind=kind_int8), dimension( :,:), pointer     :: arraySetInteger
-  logical                         , dimension( :,:), pointer     :: expectations
-  character       (len=128       ), dimension(   :), pointer     :: names
-  type            (varying_string), dimension(   :), allocatable :: set1                                                                                    , set2     , &
-       &                                                            set3
-  logical                                                        :: isMonotonic
-  integer                                                        :: iArray                                                                                  , iArraySet
-  type            (varying_string)                               :: test
+  double precision                , dimension( 1,2      ), target     :: singleElementArrays       =reshape([1.23d0,-2.31d0],shape(singleElementArrays))
+  integer         (kind=kind_int8), dimension( 1,2      ), target     :: singleElementArraysInteger=reshape([123,-231],shape(singleElementArraysInteger))
+  logical                         , dimension( 9,2      ), target     :: singleElementExpectations =reshape([.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.],shape(singleElementExpectations))
+  character(len=128),      target , dimension(   2      )             :: singleElementNames=    [                                                                              &
+       &                                                                                          'Single element array (positive value)'                                      &
+       &                                                                                         ,'Single element array (negative value)'                                      &
+       &                                                                                        ]
+  double precision                , dimension(10,6      ), target     :: tenElementArrays       =reshape([1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0,10.0d0,3.0d0,2.0d0,1.0d0,0.0d0,-1.0d0,-2.0d0,-3.0d0,-4.0d0,-5.0d0,-6.0d0,1.0d0,0.0d0,3.0d0,4.0d0,-3.0d0,5.0d0,1.0d0,8.0d0,2.0d0,3.0d0,1.0d0,1.0d0,1.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0,10.0d0,3.0d0,2.0d0,1.0d0,1.0d0,-1.0d0,-2.0d0,-3.0d0,-4.0d0,-5.0d0,-6.0d0,1.0d0,0.0d0,3.0d0,3.0d0,-3.0d0,5.0d0,1.0d0,8.0d0,2.0d0,3.0d0],shape(tenElementArrays))
+  integer         (kind=kind_int8), dimension(10,6      ), target     :: tenElementArraysInteger=reshape([10,20,30,40,50,60,70,80,90,100,30,20,10,00,-10,-20,-30,-40,-50,-60,10,00,30,40,-30,50,10,80,20,30,10,10,10,40,50,60,70,80,90,100,30,20,10,10,-10,-20,-30,-40,-50,-60,10,00,30,30,-30,50,10,80,20,30],shape(tenElementArrays))
+  logical                         , dimension( 9,6      ), target     :: tenElementExpectations =reshape([.true.,.true.,.false.,.true.,.true.,.false.,.true.,.true.,.false.,.true.,.false.,.true.,.true.,.false.,.true.,.true.,.false.,.true.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.true.,.true.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.true.,.false.,.true.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.],shape(tenElementExpectations))
+  character(len=128),      target , dimension(   6      )             :: tenElementNames=       [                                                                              &
+       &                                                                                          'Increasing array (no equalities)     '                                      &
+       &                                                                                         ,'Decreasing array (no equalities)     '                                      &
+       &                                                                                         ,'Non-monotinic array (no equalities)  '                                      &
+       &                                                                                         ,'Increasing array (with equalities)   '                                      &
+       &                                                                                         ,'Decreasing array (with equalities)   '                                      &
+       &                                                                                         ,'Non-monotinic array (with equalities)'                                      &
+       &                                                                                        ]
+  double precision                , dimension(10        )              :: doubleArray         =[0.0d0,1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0]
+  double precision                , dimension(10        )              :: doubleArrayReversed =[9.0d0,8.0d0,7.0d0,6.0d0,5.0d0,4.0d0,3.0d0,2.0d0,1.0d0,0.0d0]
+  double precision                , dimension(10        )              :: doubleArrayCumulated=[0.0d0,1.0d0,3.0d0,6.0d0,10.0d0,15.0d0,21.0d0,28.0d0,36.0d0,45.0d0]
+  real                            , dimension(10        )              :: realArray           =[0.0e0,1.0e0,2.0e0,3.0e0,4.0e0,5.0e0,6.0e0,7.0e0,8.0e0,9.0e0]
+  real                            , dimension(10        )              :: realArrayReversed   =[9.0e0,8.0e0,7.0e0,6.0e0,5.0e0,4.0e0,3.0e0,2.0e0,1.0e0,0.0e0]
+  double precision                , dimension( :,:,:    ), allocatable :: array3D                                                                                 , array3DTarget
+  double precision                , dimension( :,:,:,:,:), allocatable :: array5D
+  integer         (c_size_t      ), dimension( 2        )              :: sliceDimension                                                                          , sliceIndex
+  double precision                , dimension( :,:      ), pointer     :: arraySet
+  integer         (kind=kind_int8), dimension( :,:      ), pointer     :: arraySetInteger
+  logical                         , dimension( :,:      ), pointer     :: expectations
+  character       (len=128       ), dimension(   :      ), pointer     :: names
+  type            (varying_string), dimension(   :      ), allocatable :: set1                                                                                    , set2     , &
+       &                                                                  set3
+  logical                                                              :: isMonotonic
+  integer                                                              :: iArray                                                                                  , iArraySet, &
+       &                                                                  index1                                                                                  , index2   , &
+       &                                                                  index3                                                                                  , index4   , &
+       &                                                                  index5
+  type            (varying_string)                                     :: test
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -206,6 +213,27 @@ program Test_Array_Monotonicity
   call Assert('Array intersection',set1.intersection.set2,set3)
   deallocate(set1,set2,set3)
 
+  ! Test array slicing.
+  allocate(array5D      (3,3,3,3,3))
+  allocate(array3DTarget(3,  3,  3))
+  do index1=1,3
+     do index2=1,3
+        do index3=1,3
+           do index4=1,3
+              do index5=1,3
+                 array5D(index1,index2,index3,index4,index5)=dble(index1)+dble(index2)+dble(index3)+dble(index4)+dble(index5)
+                 if (index4 == 2 .and. index2 == 1) &
+                      & array3DTarget(index1,index3,index5)=array5D(index1,index2,index3,index4,index5)
+              end do
+           end do
+        end do
+     end do
+  end do
+  sliceDimension=[4,2]
+  sliceIndex    =[2,1]
+  array3D       =slice(array5D,sliceDimension,sliceIndex)
+  call Assert("Array slicing",array3D,array3DTarget,absTol=1.0d-30)
+  
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish()

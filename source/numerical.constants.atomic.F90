@@ -26,32 +26,23 @@ module Numerical_Constants_Atomic
   Contains various useful atomic constants.
   !!}
   use :: Numerical_Constants_Physical, only : electronMass     , plancksConstant, speedLight
-  use :: Numerical_Constants_Units   , only : angstromsPerMeter, rydbergs
+  use :: Numerical_Constants_Units   , only : metersToAngstroms, rydberg
   implicit none
   public
 
-  ! Atomic mass unit (in kg).
+  ! Atomic masses.
   !![
-  <gslConstant variable="atomicMassUnit" gslSymbol="GSL_CONST_MKSA_UNIFIED_ATOMIC_MASS" gslHeader="gsl_const_mksa"/>
+  <constant variable="atomicMassUnit" gslSymbol="GSL_CONST_MKSA_UNIFIED_ATOMIC_MASS" gslHeader="gsl_const_mksa" symbol="\mathrm{u}" units="kg" unitsInSI="1.0" description="The unified atomic mass unit."  reference="Gnu Scientific Library" referenceURL="https://www.gnu.org/software/gsl/doc/html/const.html#c.GSL_CONST_MKSA_UNIFIED_ATOMIC_MASS" group="units:atomic"/>
+  <constant variable="atomicMassHydrogen" value="1.0078250322d0" symbol="A_{^1\mathrm{H}}" units="amu" unitsInSI="1.66053906892e-27" description="Atomic mass of the $^1$H isotope of hydrogen." reference="Commission on Isotopic Abundances and Atomic Weights" referenceURL="https://www.ciaaw.org/hydrogen.htm" group="atomic"/>
+  <constant variable="atomicMassHelium" value="4.0026032545d0" symbol="A_{^4\mathrm{He}}" units="amu" unitsInSI="1.66053906892e-27" description="Atomic mass of the $^4$He isotope of helium." reference="Commission on Isotopic Abundances and Atomic Weights" referenceURL="https://www.ciaaw.org/helium.htm" group="atomic"/>
+  <constant variable="atomicMassLithium7" value="7.01600344d0" symbol="A_{^7\mathrm{Li}}" units="amu" unitsInSI="1.66053906892e-27" description="Atomic mass of the $^7$Li isotope of lithium." reference="Commission on Isotopic Abundances and Atomic Weights" referenceURL="https://www.ciaaw.org/lithium.htm" group="atomic"/>
+  <constant variable="massHydrogenAtom" value="atomicMassHydrogen*atomicMassUnit" symbol="m_\mathrm{H}" units="kg" unitsInSI="1.0" description="Mass of the $^1$H isotope of hydrogen." reference="Derived" group="atomic"/>
+  <constant variable="massHeliumAtom" value="atomicMassHelium*atomicMassUnit" symbol="m_\mathrm{He}" units="kg" unitsInSI="1.0" description="Mass of the $^4$He isotope of helium." reference="Derived" group="atomic"/>
   !!]
 
-  ! Atomic masses.
-  double precision, parameter :: atomicMassHydrogen                =1.007825d0
-  double precision, parameter :: atomicMassHelium                  =4.002602d0
-  double precision, parameter :: atomicMassLithium7                =7.016004d0
-
-  ! Mass of hydrogen and helium atom (in kg).
-  double precision, parameter :: massHydrogenAtom                  =atomicMassHydrogen*atomicMassUnit
-  double precision, parameter :: massHeliumAtom                    =atomicMassHelium  *atomicMassUnit
-
   ! Hydrogen Lyman series limit wavelength including correction for finite mass of the atom.
-  double precision, parameter :: lymanSeriesLimitWavelengthHydrogen=+plancksConstant    &
-       &                                                            *speedLight         &
-       &                                                            /rydbergs           &
-       &                                                            *angstromsPerMeter  &
-       &                                                            /(                  &
-       &                                                              +1.0d0            &
-       &                                                              -electronMass     &
-       &                                                              /massHydrogenAtom &
-       &                                                             )
+  !![
+  <constant variable="lymanSeriesLimitWavelengthHydrogen_atomic" value="+plancksConstant*speedLight/rydberg*metersToAngstroms/(+1.0d0-electronMass/massHydrogenAtom)" symbol="R_\mathrm{H}" units="$\AA$" unitsInSI="1.0e-10" description="Hydrogen Lyman series limit wavelength including correction for finite mass of the atom." externalDescription="https://en.wikipedia.org/wiki/Rydberg_constant#Rydberg_constant" reference="Derived." group="atomic"/>
+  !!]
+  
 end module Numerical_Constants_Atomic

@@ -204,7 +204,7 @@
       <name new="fractionAngularMomentumRetainedDisk"/>
     </translation>
   </migration>
-  <migration commit="165490f4968c699f7e5bb73ef60bcb7e626f51e6">
+  <migration commit="e9236b11f17f9c96b0cdac005d7945ac0febe7d5">
     <translation xpath="//starFormationHistory[@value='adaptive']/countOutputBuffer[@value]">
       <remove/>
     </translation>
@@ -227,6 +227,12 @@
   </migration>
   <migration commit="085033d9d7d8f1956eb0b5b7918ce731229d57e2">
     <translation function="blackHoleSeedMass"/>
+  </migration>
+  <migration commit="e87039e32d4d86a381ce015abf11e08a20c7e68e">
+    <translation function="blackHolePhysics"/>
+  </migration>
+  <migration commit="c71d2291b119918574bc006255028c62430b554b">
+    <translation function="modelParameterXPath"/>
   </migration>
 
   <!-- Known default values for parameters -->

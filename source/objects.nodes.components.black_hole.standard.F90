@@ -25,20 +25,18 @@ module Node_Component_Black_Hole_Standard
   !!{
   Implement black hole tree node methods.
   !!}
-  use :: Accretion_Disks                     , only : accretionDisksClass
   use :: Black_Hole_Binary_Initial_Separation, only : blackHoleBinaryInitialSeparationClass
   use :: Black_Hole_Binary_Mergers           , only : blackHoleBinaryMergerClass
   use :: Black_Hole_Binary_Recoil_Velocities , only : blackHoleBinaryRecoilClass
-  use :: Black_Hole_Accretion_Rates          , only : blackHoleAccretionRateClass
   use :: Black_Hole_Seeds                    , only : blackHoleSeedsClass
   use :: Cosmology_Parameters                , only : cosmologyParametersClass
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScaleClass
   implicit none
   private
-  public :: Node_Component_Black_Hole_Standard_Rate_Compute       , Node_Component_Black_Hole_Standard_Scale_Set    , &
-       &    Node_Component_Black_Hole_Standard_Thread_Uninitialize, Node_Component_Black_Hole_Standard_Post_Evolve  , &
+  public :: Node_Component_Black_Hole_Standard_Thread_Uninitialize, Node_Component_Black_Hole_Standard_Post_Evolve  , &
        &    Node_Component_Black_Hole_Standard_Thread_Initialize  , Node_Component_Black_Hole_Standard_Initialize   , &
-       &    Node_Component_Black_Hole_Standard_State_Store        , Node_Component_Black_Hole_Standard_State_Restore
+       &    Node_Component_Black_Hole_Standard_State_Store        , Node_Component_Black_Hole_Standard_State_Restore, &
+       &    Node_Component_Black_Hole_Standard_Scale_Set  
 
   !![
   <component>
@@ -74,18 +72,6 @@ module Node_Component_Black_Hole_Standard
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
     </property>
-    <property>
-      <name>accretionRate</name>
-      <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" isVirtual="true" />
-      <type>double</type>
-      <rank>0</rank>
-    </property>
-    <property>
-      <name>radiativeEfficiency</name>
-      <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" isVirtual="true" />
-      <type>double</type>
-      <rank>0</rank>
-    </property>
    </properties>
    <bindings>
     <binding method="massDistribution" function="Node_Component_Black_Hole_Standard_Mass_Distribution" bindsTo="component"/>
@@ -96,39 +82,23 @@ module Node_Component_Black_Hole_Standard
   !!]
 
   ! Objects used by this component.
-  class(accretionDisksClass                  ), pointer :: accretionDisks_
   class(blackHoleBinaryRecoilClass           ), pointer :: blackHoleBinaryRecoil_
-  class(blackHoleAccretionRateClass          ), pointer :: blackHoleAccretionRate_
   class(blackHoleBinaryInitialSeparationClass), pointer :: blackHoleBinaryInitialSeparation_
   class(blackHoleBinaryMergerClass           ), pointer :: blackHoleBinaryMerger_
   class(blackHoleSeedsClass                  ), pointer :: blackHoleSeeds_
   class(darkMatterHaloScaleClass             ), pointer :: darkMatterHaloScale_
-  !$omp threadprivate(accretionDisks_,blackHoleAccretionRate_,blackHoleBinaryRecoil_,blackHoleBinaryInitialSeparation_,blackHoleBinaryMerger_,blackHoleSeeds_,darkMatterHaloScale_)
-
-  ! Accretion model parameters.
-  ! Enhancement factors for the accretion rate.
-  double precision :: bondiHoyleAccretionEnhancementHotHalo , bondiHoyleAccretionEnhancementSpheroid
-  ! Temperature of accreting gas.
-  double precision :: bondiHoyleAccretionTemperatureSpheroid
-  ! Control for hot mode only accretion.
-  logical          :: bondiHoyleAccretionHotModeOnly
-
-  ! Feedback parameters.
-  double precision :: efficiencyWind                        , efficiencyRadioMode
-  logical          :: heatsHotHalo                          , efficiencyWindScalesWithEfficiencyRadiative
+  !$omp threadprivate(blackHoleBinaryRecoil_,blackHoleBinaryInitialSeparation_,blackHoleBinaryMerger_,blackHoleSeeds_,darkMatterHaloScale_)
 
   ! Output options.
   logical          :: outputMergers
 
   ! Record of whether cold mode is explicitly tracked.
   logical          :: coldModeTracked
-
   ! A threadprivate object used to track to which thread events are attached.
   integer :: thread
   !$omp threadprivate(thread)
 
 contains
-
   !![
   <nodeComponentInitializationTask>
    <unitName>Node_Component_Black_Hole_Standard_Initialize</unitName>
@@ -142,74 +112,10 @@ contains
     use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
     type(inputParameters               ), intent(inout) :: parameters
-    type(nodeComponentBlackHoleStandard)                :: blackHoleStandardComponent
     type(inputParameters               )                :: subParameters
 
     ! Find our parameters.
     subParameters=parameters%subParameters('componentBlackHole')
-    ! Get accretion rate enhancement factors.
-    !![
-    <inputParameter>
-      <name>bondiHoyleAccretionEnhancementSpheroid</name>
-      <defaultValue>5.0d0</defaultValue>
-      <description>The factor by which the Bondi-Hoyle accretion rate of spheroid gas onto black holes in enhanced.</description>
-      <source>subParameters</source>
-    </inputParameter>
-    <inputParameter>
-      <name>bondiHoyleAccretionEnhancementHotHalo</name>
-      <defaultValue>6.0d0</defaultValue>
-      <description>The factor by which the Bondi-Hoyle accretion rate of hot halo gas onto black holes in enhanced.</description>
-      <source>subParameters</source>
-    </inputParameter>
-    <inputParameter>
-      <name>bondiHoyleAccretionHotModeOnly</name>
-      <defaultValue>.true.</defaultValue>
-      <description>Determines whether accretion from the hot halo should only occur if the halo is in the hot accretion mode.</description>
-      <source>subParameters</source>
-    </inputParameter>
-    !!]
-
-    ! Get temperature of accreting gas.
-    !![
-    <inputParameter>
-      <name>bondiHoyleAccretionTemperatureSpheroid</name>
-      <defaultValue>1.0d2</defaultValue>
-      <description>The assumed temperature (in Kelvin) of gas in the spheroid when computing Bondi-Hoyle accretion rates onto black holes.</description>
-      <source>subParameters</source>
-    </inputParameter>
-    !!]
-
-    ! Get wind efficiency and scaling.
-    !![
-    <inputParameter>
-      <name>efficiencyWind</name>
-      <defaultValue>2.4d-3</defaultValue>
-      <description>The efficiency of the black hole-driven wind: $L_\mathrm{wind} = \epsilon_\mathrm{wind} \dot{M}_\bullet \clight^2$.</description>
-      <source>subParameters</source>
-    </inputParameter>
-    <inputParameter>
-      <name>efficiencyWindScalesWithEfficiencyRadiative</name>
-      <defaultValue>.false.</defaultValue>
-      <description>Specifies whether the black hole wind efficiency should scale with the radiative efficiency of the accretion disk.</description>
-      <source>subParameters</source>
-    </inputParameter>
-    !!]
-
-    ! Options controlling AGN feedback.
-    !![
-    <inputParameter>
-      <name>heatsHotHalo</name>
-      <defaultValue>.true.</defaultValue>
-      <description>Specifies whether or not the black hole launched jets should heat the hot halo.</description>
-      <source>subParameters</source>
-    </inputParameter>
-    <inputParameter>
-      <name>efficiencyRadioMode</name>
-      <defaultValue>1.0d0</defaultValue>
-      <description>Efficiency with which radio-mode feedback is coupled to the hot halo.</description>
-      <source>subParameters</source>
-    </inputParameter>
-    !!]
 
     ! Get options controlling output.
     !![
@@ -223,12 +129,8 @@ contains
 
     ! Check if cold mode is explicitly tracked.
     coldModeTracked=defaultHotHaloComponent%massColdIsGettable()
-    ! Bind deferred functions.
-    call blackHoleStandardComponent%      accretionRateFunction(Node_Component_Black_Hole_Standard_Accretion_Rate      )
-    call blackHoleStandardComponent%radiativeEfficiencyFunction(Node_Component_Black_Hole_Standard_Radiative_Efficiency)
     return
   end subroutine Node_Component_Black_Hole_Standard_Initialize
-
   !![
   <nodeComponentThreadInitializationTask>
    <unitName>Node_Component_Black_Hole_Standard_Thread_Initialize</unitName>
@@ -245,15 +147,12 @@ contains
     type(inputParameters), intent(inout) :: parameters
     type(dependencyRegEx), dimension(1)  :: dependencies
     type(inputParameters)                :: subParameters
-
     if (defaultBlackHoleComponent%standardIsActive()) then
        dependencies(1)=dependencyRegEx(dependencyDirectionBefore,'^remnantStructure:')
        call satelliteMergerEvent%attach(thread,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentBlackHoleStandard',dependencies=dependencies)
        ! Find our parameters.
        subParameters=parameters%subParameters('componentBlackHole')
        !![
-       <objectBuilder class="accretionDisks"                   name="accretionDisks_"                   source="subParameters"/>
-       <objectBuilder class="blackHoleAccretionRate"           name="blackHoleAccretionRate_"           source="subParameters"/>
        <objectBuilder class="blackHoleSeeds"                   name="blackHoleSeeds_"                   source="subParameters"/>
        <objectBuilder class="blackHoleBinaryRecoil"            name="blackHoleBinaryRecoil_"            source="subParameters"/>
        <objectBuilder class="blackHoleBinaryInitialSeparation" name="blackHoleBinaryInitialSeparation_" source="subParameters"/>
@@ -263,7 +162,6 @@ contains
     end if
     return
   end subroutine Node_Component_Black_Hole_Standard_Thread_Initialize
-
   !![
   <nodeComponentThreadUninitializationTask>
    <unitName>Node_Component_Black_Hole_Standard_Thread_Uninitialize</unitName>
@@ -276,12 +174,9 @@ contains
     use :: Events_Hooks    , only : satelliteMergerEvent
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent
     implicit none
-
     if (defaultBlackHoleComponent%standardIsActive()) then
        if (satelliteMergerEvent%isAttached(thread,satelliteMerger)) call satelliteMergerEvent%detach(thread,satelliteMerger)
        !![
-       <objectDestructor name="accretionDisks_"                  />
-       <objectDestructor name="blackHoleAccretionRate_"          />
        <objectDestructor name="blackHoleSeeds_"                  />
        <objectDestructor name="blackHoleBinaryRecoil_"           />
        <objectDestructor name="blackHoleBinaryInitialSeparation_"/>
@@ -291,133 +186,8 @@ contains
     end if
     return
   end subroutine Node_Component_Black_Hole_Standard_Thread_Uninitialize
-
   !![
-  <rateComputeTask>
-   <unitName>Node_Component_Black_Hole_Standard_Rate_Compute</unitName>
-  </rateComputeTask>
-  !!]
-  subroutine Node_Component_Black_Hole_Standard_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
-    !!{
-    Compute the black hole node mass rate of change.
-    !!}
-    use :: Error                           , only : Error_Report
-    use :: Galacticus_Nodes                , only : defaultBlackHoleComponent, interruptTask        , nodeComponentBasic, nodeComponentBlackHole, &
-          &                                         nodeComponentHotHalo     , nodeComponentSpheroid, propertyInactive  , treeNode
-    use :: Numerical_Constants_Astronomical, only : gigaYear                 , megaParsec
-    use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
-    use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Physical    , only : boltzmannsConstant       , speedLight
-    use :: Numerical_Constants_Prefixes    , only : kilo
-    implicit none
-    type            (treeNode              ), intent(inout)            :: node
-    logical                                 , intent(inout)            :: interrupt
-    procedure       (interruptTask         ), intent(inout), pointer   :: interruptProcedure
-    integer                                 , intent(in   )            :: propertyType
-    class           (nodeComponentBlackHole)               , pointer   :: blackHoleCentral                                                                                                                                   , blackHole
-    class           (nodeComponentSpheroid )               , pointer   :: spheroid
-    class           (nodeComponentHotHalo  )               , pointer   :: hotHalo
-    class           (nodeComponentBasic    )               , pointer   :: basic
-    double precision                                       , parameter :: windVelocity                =1.0d4                                                                                                                                                     !    Velocity of disk wind.
-    double precision                                       , parameter :: ismTemperature              =1.0d4                                                                                                                                                     !    Temperature of the ISM.
-    double precision                                       , parameter :: criticalDensityNormalization=2.0d0*massHydrogenAtom*speedLight**2*megaParsec/3.0d0/Pi/boltzmannsConstant/gigaYear/ismTemperature/kilo/windVelocity
-    integer                                                            :: iInstance                                                                                                                                          , instanceCount
-    double precision                                                   :: accretionRateHotHalo                                                                                                                               , accretionRateSpheroid                                          , &
-         &                                                                criticalDensityRadius2                                                                                                                            , energyInputRate                                                , &
-         &                                                                heatingRate                                                                                                                                       , jetEfficiency                                                  , &
-         &                                                                massAccretionRate                                                                                                                                 , radiativeEfficiency                                            , &
-         &                                                                restMassAccretionRate                                                                                                                             , spheroidDensityOverCriticalDensity                             , &
-         &                                                                spheroidDensityRadius2                                                                                                                            , massGasSpheroid                                                , &
-         &                                                                radiusSpheroid                                                                                                                                    , windEfficiencyNet                                              , &
-         &                                                                windFraction
 
-    ! Return immediately if inactive variables are requested.
-    if (propertyInactive(propertyType)) return
-    if (defaultBlackHoleComponent%standardIsActive()) then
-       ! Get a count of the number of black holes associated with this node.
-       instanceCount=node%blackHoleCount()
-       ! Get the central black hole.
-       blackHoleCentral => node%blackHole(instance=1)
-       ! Get the basic, spheroid, and hot halo components.
-       basic    => node%basic   ()
-       spheroid => node%spheroid()
-       hotHalo  => node%hotHalo ()
-       ! Iterate over instances.
-       do iInstance=1,max(instanceCount,1)
-          ! Get the black hole.
-          blackHole => node%blackHole(instance=iInstance)
-          ! Find the rate of rest mass accretion onto the black hole.
-          call blackHoleAccretionRate_%rateAccretion(blackHole,accretionRateSpheroid,accretionRateHotHalo)
-          restMassAccretionRate=accretionRateSpheroid+accretionRateHotHalo
-          ! Finish if there is no accretion.
-          if (restMassAccretionRate <= 0.0d0) cycle
-          ! Find the radiative efficiency of the accretion.
-          radiativeEfficiency=accretionDisks_%efficiencyRadiative(blackHole,restMassAccretionRate)
-          ! Find the jet efficiency.
-          if (restMassAccretionRate > 0.0d0) then
-             jetEfficiency=accretionDisks_%powerJet(blackHole,restMassAccretionRate)/restMassAccretionRate/(speedLight&
-                  &/kilo)**2
-          else
-             jetEfficiency=0.0d0
-          end if
-          ! Find the rate of increase in mass of the black hole.
-          massAccretionRate=restMassAccretionRate*(1.0d0-radiativeEfficiency-jetEfficiency)
-          ! If no black hole component currently exists and we have some accretion then this is an error - we can not have
-          ! accretion onto a non-existent black hole.
-          if (instanceCount == 0 .and. massAccretionRate /= 0.0d0) call Error_Report('accretion onto non-existent black hole'//{introspection:location})
-          ! Skip to the next black hole if this one has non-positive mass and a negative accretion rate.
-          if (blackHole%mass() <= 0.0d0 .and. massAccretionRate < 0.0d0) cycle
-          ! Add the accretion to the black hole.
-          call blackHole%massRate       ( massAccretionRate                                 )
-          ! Remove the accreted mass from the spheroid component.
-          call spheroid %massGasSinkRate(-accretionRateSpheroid                             )
-          ! Remove the accreted mass from the hot halo component.
-          call hotHalo  %   massSinkRate(-accretionRateHotHalo ,interrupt,interruptProcedure)
-          ! Set spin-up rate due to accretion.
-          if (restMassAccretionRate > 0.0d0) call blackHole%spinRate(accretionDisks_%rateSpinUp(blackHole,restMassAccretionRate))
-          ! Add heating to the hot halo component.
-          if (heatsHotHalo) then
-             ! Get jet power.
-             heatingRate=efficiencyRadioMode*jetEfficiency*restMassAccretionRate*(speedLight/kilo)**2
-             ! Pipe this power to the hot halo.
-             call hotHalo%heatSourceRate(heatingRate,interrupt,interruptProcedure)
-          end if
-          ! Add energy to the spheroid component.
-          if (efficiencyWind > 0.0d0) then
-             massGasSpheroid=spheroid%massGas()
-             if (massGasSpheroid > 0.0d0) then
-                radiusSpheroid=spheroid%radius()
-                if (radiusSpheroid > 0.0d0) then
-                   spheroidDensityRadius2=3.0d0*massGasSpheroid/4.0d0/Pi/radiusSpheroid
-                   criticalDensityRadius2=criticalDensityNormalization*efficiencyWind*restMassAccretionRate
-                   ! Construct an interpolating factor such that the energy input from the wind drops to zero below half of the
-                   ! critical density.
-                   spheroidDensityOverCriticalDensity=spheroidDensityRadius2/criticalDensityRadius2-0.5d0
-                   if (spheroidDensityOverCriticalDensity <= 0.0d0) then
-                      ! No energy input below half of critical density.
-                      windFraction=0.0d0
-                   else if (spheroidDensityOverCriticalDensity >= 1.0d0) then
-                      ! Full energy input above 1.5 times critical density.
-                      windFraction=1.0d0
-                   else
-                      ! Smooth polynomial interpolating function between these limits.
-                      windFraction=3.0d0*spheroidDensityOverCriticalDensity**2-2.0d0*spheroidDensityOverCriticalDensity**3
-                   end if
-                   ! Include scaling with radiative efficiency if requested,
-                   windEfficiencyNet=windFraction*efficiencyWind
-                   if (efficiencyWindScalesWithEfficiencyRadiative) windEfficiencyNet=windEfficiencyNet*radiativeEfficiency
-                   ! Compute the energy input and send it down the spheroid gas energy input pipe.
-                   energyInputRate=windEfficiencyNet*restMassAccretionRate*(speedLight/kilo)**2
-                   call spheroid%energyGasInputRate(energyInputRate)
-                end if
-             end if
-          end if
-       end do
-    end if
-    return
-  end subroutine Node_Component_Black_Hole_Standard_Rate_Compute
-
-  !![
   <scaleSetTask>
    <unitName>Node_Component_Black_Hole_Standard_Scale_Set</unitName>
   </scaleSetTask>
@@ -426,48 +196,60 @@ contains
     !!{
     Set scales for properties of {\normalfont \ttfamily node}.
     !!}
-    use :: Galacticus_Nodes, only : defaultBlackHoleComponent, nodeComponentBlackHole, nodeComponentSpheroid, treeNode
+    use :: Galacticus_Nodes, only : defaultBlackHoleComponent, nodeComponentBlackHole, nodeComponentSpheroid, nodeComponentNSC, &
+      &                             treeNode
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
     double precision                        , parameter              :: scaleMassRelative=1.0d-4
     double precision                        , parameter              :: scaleSizeRelative=1.0d-4
     double precision                        , parameter              :: scaleSizeAbsolute=1.0d-6
     double precision                        , parameter              :: scaleMassAbsolute=1.0d+0
+    class           (nodeComponentNSC      )               , pointer :: nuclearStarCluster
     class           (nodeComponentSpheroid )               , pointer :: spheroid
     class           (nodeComponentBlackHole)               , pointer :: blackHole
     integer                                                          :: instance
+    double precision                                                 :: massStellar
 
     ! Determine if the standard implementation is active and at least one black hole exists.
     if (defaultBlackHoleComponent%standardIsActive().and.node%blackHoleCount() > 0) then
        ! Get the spheroid component.
        spheroid => node%spheroid()
+       ! Get the nuclear star cluster component.
+       nuclearStarCluster => node%NSC()
        ! Loop over instances.
        do instance=1,node%blackHoleCount()
           ! Get the black hole.
           blackHole => node%blackHole(instance=instance)
-          ! Set scale for mass.
-          call blackHole%massScale(                                                   &
-               &                   max(                                               &
-               &                           scaleMassRelative*spheroid %massStellar(), &
-               &                       max(                                           &
-               &                           scaleMassAbsolute                        , &
-               &                                             blackHole%mass       ()  &
-               &                          )                                           &
-               &                      )                                               &
+          ! Set scale for mass. We set an absolute mass scale that depends on the stellar masses of spheroid and nuclear star
+          ! cluster components, if present. We use the smaller of the two masses (if both are present) to ensure accurate tracking
+          ! of the black hole as it couples to each of these components.
+          if      (spheroid%massStellar() > 0.0d0 .and. nuclearStarCluster%massStellar() > 0.0d0) then
+             massStellar=min(spheroid%massStellar(),nuclearStarCluster%massStellar())
+          else if (spheroid%massStellar() > 0.0d0                                               ) then
+             massStellar=    spheroid%massStellar()
+          else
+             massStellar=                           nuclearStarCluster%massStellar()
+          end if
+          call blackHole%massScale(                                            &
+               &                   maxval(                                     &
+               &                          [                                    &
+               &                           scaleMassAbsolute                 , &
+               &                           scaleMassRelative*massStellar     , &
+               &                                             blackHole%mass()  &
+               &                           ]                                   &
+               &                      )                                        &
                &                  )
-
           ! Set scale for spin.
           call blackHole%spinScale(1.0d0)
-
           ! Set scale for radius.
-          call blackHole%radialPositionScale(                                                    &
-               &                             maxval(                                             &
-               &                                  [                                              &
-               &                                   scaleSizeAbsolute,                            &
-               &                                   scaleSizeRelative*spheroid %halfMassRadius(), &
-               &                                                     blackHole%radialPosition()  &
-               &                                  ]                                              &
-               &                                   )                                             &
+          call blackHole%radialPositionScale(                                                      &
+               &                             maxval(                                               &
+               &                                    [                                              &
+               &                                     scaleSizeAbsolute,                            &
+               &                                     scaleSizeRelative*spheroid %halfMassRadius(), &
+               &                                                       blackHole%radialPosition()  &
+               &                                    ]                                              &
+               &                                   )                                               &
                &                            )
        end do
     end if
@@ -478,7 +260,8 @@ contains
     !!{
     Merge any black hole associated with {\normalfont \ttfamily node} before it merges with its host halo.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBlackHole, treeNode
+    use :: Galacticus_Nodes        , only : nodeComponentBlackHole , treeNode
+    use :: Events_Black_Hole_Merger, only : Event_Black_Hole_Merger
     implicit none
     class           (*                     ), intent(inout) :: self
     type            (treeNode              ), intent(inout) :: node
@@ -526,16 +309,18 @@ contains
           massBlackHole2=blackHoleSecondary%mass()
           spinBlackHole1=blackHolePrimary  %spin()
           spinBlackHole2=blackHoleSecondary%spin()
+          ! Process the black hole merger.
+          call Event_Black_Hole_Merger(blackHolePrimary,blackHoleSecondary,blackHoleHostCentral)
           ! Now calculate the recoil velocity of the binary black hole and check whether it escapes the galaxy.
           velocityRecoil=blackHoleBinaryRecoil_%velocity(blackHolePrimary,blackHoleSecondary)
           if (Node_Component_Black_Hole_Standard_Recoil_Escapes(node,velocityRecoil,radius=0.0d0,ignoreCentralBlackHole=.true.)) then
              massBlackHoleNew=0.0d0
              spinBlackHoleNew=0.0d0
           end if
-          ! Move the black hole to the host.
+          ! Set the new black hole mass in the host.
           call Node_Component_Black_Hole_Standard_Output_Merger(node,massBlackHole1,massBlackHole2)
-          call blackHoleHostCentral%massSet(blackHoleSeeds_%mass(node))
-          call blackHoleHostCentral%spinSet(blackHoleSeeds_%spin(node))
+          call blackHoleHostCentral%massSet(massBlackHoleNew)
+          call blackHoleHostCentral%spinSet(spinBlackHoleNew)
        end do
     else
        ! Adjust the radii of the black holes in the satellite galaxy.
@@ -552,7 +337,7 @@ contains
     end if
     return
   end subroutine satelliteMerger
-
+  
   logical function Node_Component_Black_Hole_Standard_Recoil_Escapes(node,velocityRecoil,radius,ignoreCentralBlackHole)
     !!{
     Return true if the given recoil velocity is sufficient to eject a black hole from the halo.
@@ -615,16 +400,12 @@ contains
     double precision                    , intent(in   ) :: massBlackHole1    , massBlackHole2
     class           (nodeComponentBasic), pointer       :: basic
     type            (hdf5Object        )                :: mergersGroup
-
     ! Exit if merger data is not to be output.
     if (.not.outputMergers) return
-
     ! Ignore mergers with zero mass black holes.
     if (massBlackHole2 <= 0.0d0    ) return
-
     ! Get the basic component.
     basic => node%basic()
-
     ! Open the group to which black hole mergers should be written.
     !$ call hdf5Access%set()
     mergersGroup=outputFile%openGroup("blackHoleMergers","Black hole mergers data.")
@@ -636,32 +417,6 @@ contains
     !$ call hdf5Access  %unset       (                                                                                                      )
     return
   end subroutine Node_Component_Black_Hole_Standard_Output_Merger
-
-  double precision function Node_Component_Black_Hole_Standard_Accretion_Rate(self)
-    !!{
-    Return the rest mass accretion rate onto a standard black hole.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponentBlackHoleStandard
-    implicit none
-    class           (nodeComponentBlackHoleStandard), intent(inout) :: self
-    double precision                                                :: accretionRateSpheroid, accretionRateHotHalo
-    
-    call blackHoleAccretionRate_%rateAccretion(self,accretionRateSpheroid,accretionRateHotHalo)
-    Node_Component_Black_Hole_Standard_Accretion_Rate=accretionRateSpheroid+accretionRateHotHalo
-    return
-  end function Node_Component_Black_Hole_Standard_Accretion_Rate
-
-  double precision function Node_Component_Black_Hole_Standard_Radiative_Efficiency(self)
-    !!{
-    Return the radiative efficiency of a standard black hole.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponentBlackHoleStandard
-    implicit none
-    class(nodeComponentBlackHoleStandard), intent(inout) :: self
-
-    Node_Component_Black_Hole_Standard_Radiative_Efficiency=accretionDisks_%efficiencyRadiative(self,self%accretionRate())
-    return
-  end function Node_Component_Black_Hole_Standard_Radiative_Efficiency
 
   !![
   <postStepTask>
@@ -681,7 +436,6 @@ contains
     double precision                        , parameter              :: spinMaximum=0.9999d0
     integer                                                          :: i                   , instanceCount
     double precision                                                 :: spin
-
     ! Check if the standard component is active.
     if (defaultBlackHoleComponent%standardIsActive()) then
        ! Get a count of the number of black holes associated with this node.
@@ -717,6 +471,7 @@ contains
    <unitName>Node_Component_Black_Hole_Standard_State_Store</unitName>
   </stateStoreTask>
   !!]
+
   subroutine Node_Component_Black_Hole_Standard_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
     Store object state,
@@ -730,11 +485,10 @@ contains
 
     call displayMessage('Storing state for: componentBlackHole -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateStore variables="accretionDisks_ blackHoleBinaryRecoil_ blackHoleBinaryInitialSeparation_ blackHoleBinaryMerger_ blackHoleSeeds_ blackHoleAccretionRate_ darkMatterHaloScale_"/>
+    <stateStore variables="blackHoleBinaryRecoil_ blackHoleBinaryInitialSeparation_ blackHoleBinaryMerger_ blackHoleSeeds_ darkMatterHaloScale_"/>
     !!]
     return
   end subroutine Node_Component_Black_Hole_Standard_State_Store
-
   !![
   <stateRetrieveTask>
    <unitName>Node_Component_Black_Hole_Standard_State_Restore</unitName>
@@ -753,7 +507,7 @@ contains
 
     call displayMessage('Retrieving state for: componentBlackHole -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateRestore variables="accretionDisks_ blackHoleBinaryRecoil_ blackHoleBinaryInitialSeparation_ blackHoleBinaryMerger_ blackHoleSeeds_ blackHoleAccretionRate_ darkMatterHaloScale_"/>
+    <stateRestore variables="blackHoleBinaryRecoil_ blackHoleBinaryInitialSeparation_ blackHoleBinaryMerger_ blackHoleSeeds_ darkMatterHaloScale_"/>
     !!]
     return
   end subroutine Node_Component_Black_Hole_Standard_State_Restore

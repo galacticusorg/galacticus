@@ -469,9 +469,9 @@ contains
     !!{
     Compute a solution for the isothermal core of an SIDM halo.
     !!}
-    use :: Coordinates                     , only : coordinateSpherical            , assignment(=)
+    use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (massDistributionSphericalSIDMIsothermal), intent(inout) :: self
     integer                                                  , parameter     :: countTable                   =1000
@@ -489,7 +489,7 @@ contains
     densityInteraction           =self%massDistribution_%density             (coordinatesInteraction)
     massInteraction              =self%massDistribution_%massEnclosedBySphere(radiusInteraction     )
     ! Find the velocity dispersion scale to be applied to the dimensionless solutions.
-    velocityDispersionInteraction=sqrt(gravitationalConstantGalacticus*massInteraction/radiusInteraction)
+    velocityDispersionInteraction=sqrt(gravitationalConstant_internal*massInteraction/radiusInteraction)
     ! Compute the ξ parameter.
     xi                           =+massInteraction       &
          &                        *3.0d0                 &

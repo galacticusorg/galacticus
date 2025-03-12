@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
+  <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
   <mergerTreeBuildMasses value="sampledDistributionUniform">
     <treesPerDecade value="5"/>
     <massTreeMaximum value="1e+12"/>
@@ -52,6 +52,16 @@
         </stellarFeedbackOutflows>
       </stellarFeedbackOutflows>
     </nodeOperator>
+    <!-- Black hole physics -->
+    <nodeOperator value="blackHolesSeed">
+      <blackHoleSeeds value="fixed">
+        <mass value="100.0"/>
+        <spin value="  0.0"/>
+      </blackHoleSeeds>
+    </nodeOperator>
+    <nodeOperator value="blackHolesAccretion" />
+    <nodeOperator value="blackHolesWinds"     />
+    <nodeOperator value="blackHolesCGMHeating"/>
   </nodeOperator>
 
 </parameters>

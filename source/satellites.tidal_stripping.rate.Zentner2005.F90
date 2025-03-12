@@ -154,7 +154,7 @@ contains
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentSatellite, treeNode
     use :: Mass_Distributions              , only : massDistributionClass
-    use :: Numerical_Constants_Astronomical, only : gigaYear              , megaParsec    , gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gigaYear              , megaParsec    , gravitationalConstant_internal
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Vectors                         , only : Vector_Magnitude      , Vector_Product
@@ -215,16 +215,16 @@ contains
     !!]
     ! Check whether to use the dynamical time scale or the orbital time scale for mass loss rate.
     if (self%useDynamicalTimeScale .and. massEnclosedTidalRadius > 0.0d0) then
-       timeScaleMassLoss=+2.0d0                                 &
-            &            *Pi                                    &
-            &            *sqrt(                                 &
-            &                  +radiusTidal**3                  &
-            &                  /16.0d0                          &
-            &                  /gravitationalConstantGalacticus &
-            &                  /massEnclosedTidalRadius         &
-            &                 )                                 &
-            &            *megaParsec                            &
-            &            /kilo                                  &
+       timeScaleMassLoss=+2.0d0                                &
+            &            *Pi                                   &
+            &            *sqrt(                                &
+            &                  +radiusTidal**3                 &
+            &                  /16.0d0                         &
+            &                  /gravitationalConstant_internal &
+            &                  /massEnclosedTidalRadius        &
+            &                 )                                &
+            &            *megaParsec                           &
+            &            /kilo                                 &
             &            /gigaYear
     else
        timeScaleMassLoss= periodOrbital

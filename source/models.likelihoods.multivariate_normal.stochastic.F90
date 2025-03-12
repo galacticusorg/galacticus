@@ -154,7 +154,7 @@ contains
     use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
     use :: Posterior_Sampling_State      , only : posteriorSampleStateClass
     implicit none
-    class           (posteriorSampleLikelihoodMltiVrtNormalStochastic), intent(inout)                 :: self
+    class           (posteriorSampleLikelihoodMltiVrtNormalStochastic), intent(inout), target         :: self
     class           (posteriorSampleStateClass                       ), intent(inout)                 :: simulationState
     type            (modelParameterList                              ), intent(inout), dimension(:)   :: modelParametersActive_, modelParametersInactive_
     class           (posteriorSampleConvergenceClass                 ), intent(inout)                 :: simulationConvergence

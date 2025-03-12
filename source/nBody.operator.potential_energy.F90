@@ -136,7 +136,7 @@ contains
     !!}
     use :: Error                           , only : Error_Report
     use :: Octree_Data_Structure           , only : octreeData
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (nbodyOperatorPotentialEnergy), intent(inout)                 :: self
     type            (nBodyData                   ), intent(inout), dimension(:  ) :: simulations
@@ -198,7 +198,7 @@ contains
                 if (selfBoundStatus(j,i) > 0 ) then
                    call octreePosition%traverseCompute(positionRescaled(:,j),dble(selfBoundStatus(j,i)),self%thetaTolerance,potentialEnergy(j,i),potentialEnergyPotential)
                    potentialEnergy(j,i)=+potentialEnergy(j,i)                                      &
-                        &               *gravitationalConstantGalacticus                           &
+                        &               *gravitationalConstant_internal                            &
                         &               *massParticle                                              &
                         &               /sampleRate(1)                                             &
                         &               /lengthSoftening                                           &

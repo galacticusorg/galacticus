@@ -4,7 +4,7 @@
        are not allowed to evolve until their host no longer has a child node this can result in a deadlock. This version has the
        deadlock occur in a non-primary progenitor. -->
   <formatVersion>2</formatVersion>
-  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
+  <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
   <cosmologyParameters value="simple">
     <HubbleConstant value="67.77"/>
     <OmegaDarkEnergy value="0.692885"/>
@@ -75,6 +75,21 @@
     <darkMatterProfileScaleRadius value="concentration"/>
   </darkMatterProfileScaleRadius>
 
+  <!-- Black hole physics -->
+  <blackHoleAccretionRate value="standard">
+    <bondiHoyleAccretionEnhancementSpheroid value="  5.0"/>
+    <bondiHoyleAccretionEnhancementHotHalo  value="  6.0"/>
+    <bondiHoyleAccretionTemperatureSpheroid value="100.0"/>
+    <bondiHoyleAccretionHotModeOnly         value="true"/>
+  </blackHoleAccretionRate>
+  <blackHoleWind value="ciotti2009">
+    <efficiencyWind                              value="0.0024"/>
+    <efficiencyWindScalesWithEfficiencyRadiative value="true"  />
+  </blackHoleWind>
+  <blackHoleCGMHeating value="jetPower">
+    <efficiencyRadioMode value="1.0"/>
+  </blackHoleCGMHeating>
+
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
     <!-- Cosmological epoch -->
@@ -117,12 +132,16 @@
     </nodeOperator>
     <!-- Halo positions -->
     <nodeOperator value="positionDiscrete"/>
+    <!-- Black hole physics -->
     <nodeOperator value="blackHolesSeed">
       <blackHoleSeeds value="fixed">
         <mass value="100"/>
         <spin value="0"/>
       </blackHoleSeeds>
     </nodeOperator>
+    <nodeOperator value="blackHolesAccretion"/>
+    <nodeOperator value="blackHolesWinds"/>
+    <nodeOperator value="blackHolesCGMHeating"/>
   </nodeOperator>
 
 </parameters>
