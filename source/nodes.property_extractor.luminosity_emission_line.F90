@@ -218,16 +218,12 @@ contains
     ! Extract indexing into the lines arrays.
     dataset=emissionLinesFile%openDataset('metallicity'               )
     call dataset%readAttribute('index',self%indexMetallicity               )
-    call dataset%close        (                     )
     dataset=emissionLinesFile%openDataset('age'                       )
     call dataset%readAttribute('index',self%indexAge                       )
-    call dataset%close        (                     )
     dataset=emissionLinesFile%openDataset('ionizingLuminosityHydrogen')
     call dataset%readAttribute('index',self%indexIonizingLuminosityHydrogen)
-    call dataset%close        (                     )
     dataset=emissionLinesFile%openDataset('densityHydrogen'           )
     call dataset%readAttribute('index',self%indexDensityHydrogen           )
-    call dataset%close        (                     )
     ! Offset indexing to Fortran standard (i.e. starting from 1 instead of 0).
     self%indexMetallicity               =self%indexMetallicity               +1
     self%indexAge                       =self%indexAge                       +1

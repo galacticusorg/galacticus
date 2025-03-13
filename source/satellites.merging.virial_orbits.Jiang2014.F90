@@ -278,7 +278,7 @@ contains
        call File_Lock(char(fileName),fileLock,lockIsShared=attempt == 0)
        if (File_Exists(fileName)) then
           !$ call hdf5Access%set()
-          file=hdf5Object            (char(fileName)                ,readOnly=.true,                   )
+          file=hdf5Object            (char(fileName)                ,readOnly=.true.                   )
           call file%readAttribute    ('limitLower'                  ,     limitLower                   ) 
           call file%readAttribute    ('limitUpper'                  ,     limitUpper                   ) 
           call file%readDatasetStatic('velocityTangentialMean'      ,self%velocityTangentialMean_      )

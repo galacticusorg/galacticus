@@ -793,7 +793,7 @@ contains
        if (.not.allocated(tabulation%parametersInverseStep)) allocate(tabulation%parametersInverseStep(container%countParameters(tabulation)))
        call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
-       call    file%openFile     (char(fileName)                                                                                         ,readOnly=.true.                    )
+       file=hdf5Object(char(fileName),readOnly=.true.)
        call    file%readAttribute(char(quantityName)//'RadiusMinimum'                                                                    ,tabulation%radiusMinimum           )
        call    file%readAttribute(char(quantityName)//'RadiusMaximum'                                                                    ,tabulation%radiusMaximum           )
        call    file%readAttribute(char(quantityName)//'RadiusInverseStep'                                                                ,tabulation%radiusInverseStep       )
@@ -803,7 +803,6 @@ contains
           call file%readAttribute(char(quantityName)//String_Upper_Case_First(char(container%nameParameter(i,tabulation)))//'InverseStep',tabulation%parametersInverseStep(i))
        end do
        call    file%readDataset  (char(quantityName)                                                                                     ,tabulation%table                   )
-       call    file%close        (                                                                                                                                           )
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
     end if
@@ -837,7 +836,7 @@ contains
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock(char(fileName),fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
-    call    file%openFile      (char(fileName)                     ,overWrite=.true.                                                                                                                                     )
+   file=hdf5Object(char(fileName),overWrite=.true.)
     call    file%writeAttribute(tabulation%radiusMinimum           ,char(quantityName)//'RadiusMinimum'                                                                                                                  )
     call    file%writeAttribute(tabulation%radiusMaximum           ,char(quantityName)//'RadiusMaximum'                                                                                                                  )
     call    file%writeAttribute(tabulation%radiusInverseStep       ,char(quantityName)//'RadiusInverseStep'                                                                                                              )
@@ -847,7 +846,6 @@ contains
        call file%writeAttribute(tabulation%parametersInverseStep(i),char(quantityName)//String_Upper_Case_First(char(container%nameParameter(i,tabulation)))//'InverseStep'                                              )
     end do
     call    file%writeDataset  (tabulation%table                   ,char(quantityName)                                                                                     ,'Tabulated '//char(quantityName)//' profile.')
-    call    file%close         (                                                                                                                                                                                         )
     !$ call hdf5Access%unset()
     call File_Unlock(fileLock)
     return

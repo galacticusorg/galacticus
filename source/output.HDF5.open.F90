@@ -242,7 +242,6 @@ contains
 
     if (.not.outputFileIsOpen) call Error_Report('can not set the output group - file is not open'//{introspection:location})
     !$ call hdf5Access%set()
-    call outputGroup%close()
     outputGroup=outputFile%openGroup(char(nameGroup))
     !$ call hdf5Access%unset()
     return
