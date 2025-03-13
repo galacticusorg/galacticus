@@ -36,7 +36,7 @@ Implements an emission line luminosity for AGN node property extractor class.
     </description>
   </nodePropertyExtractor>
   !!]
-  type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorLmnstyEmssnLineAGN
+  type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorLmnstyEmssnLineAGN
      !!{
      A stellar luminosity output analysis property extractor class.
      !!}
@@ -44,8 +44,8 @@ Implements an emission line luminosity for AGN node property extractor class.
      class(accretionDisksClass        ), pointer :: accretionDisks_         => null()
      class(blackHoleAccretionRateClass), pointer :: blackHoleAccretionRate_ => null()
      class(outputTimesClass           ), pointer :: outputTimes_            => null()
-     type            (varying_string                    )                                      :: name_                                   , description_
-     type            (varying_string                    ), allocatable, dimension(:          ) :: lineNames
+     type            (varying_string                    ), allocatable, dimension(:          ) :: lineNames, names_, descriptions_
+     integer                                                                                   :: countLines
      integer         (c_size_t                         )                                       :: indexDensityHydrogen, indexIonizationParameter, indexMetallicity,indexSpectralIndex
      double precision                                    , allocatable, dimension(:          ) :: metallicity                             , densityHydrogen             , &
           &                                                                                       spectralIndex                    , ionizationParameter, &
@@ -57,11 +57,11 @@ Implements an emission line luminosity for AGN node property extractor class.
      !$ integer      (omp_lock_kind                     )                                      :: interpolateLock
    contains
      final     ::                lmnstyEmssnLineAGNDestructor
-     procedure :: extract     => lmnstyEmssnLineAGNExtract
-     procedure :: quantity    => lmnstyEmssnLineAGNQuantity
-     procedure :: name        => lmnstyEmssnLineAGNName
-     procedure :: description => lmnstyEmssnLineAGNDescription
-     procedure :: unitsInSI   => lmnstyEmssnLineAGNUnitsInSI
+     procedure :: elementCount => lmnstyEmssnLineAGNElementCount
+     procedure :: extract      => lmnstyEmssnLineAGNExtract
+     procedure :: names        => lmnstyEmssnLineAGNNames
+     procedure :: descriptions => lmnstyEmssnLineAGNDescriptions
+     procedure :: unitsInSI    => lmnstyEmssnLineAGNUnitsInSI
   end type nodePropertyExtractorLmnstyEmssnLineAGN
 
   interface nodePropertyExtractorLmnstyEmssnLineAGN
@@ -154,7 +154,6 @@ contains
     class           (accretionDisksClass                            ), intent(in   ), target                 :: accretionDisks_
     class           (blackHoleAccretionRateClass                    ), intent(in   ), target                 :: blackHoleAccretionRate_
     class           (outputTimesClass                               ), intent(in   ), target                 :: outputTimes_
-    double precision                                                                                         :: wavelength_
     type            (hdf5Object                                 )                                            :: emissionLinesFile, lines, lineDataset, dataset
     integer                                                                                                  :: i,k, countBlackHoles
     integer         (c_size_t)                                               , dimension(5    )                        :: shapeLines, permutation
@@ -208,8 +207,11 @@ contains
          &    size(self%lineNames                   )  &
          &   )                                         &
          &  )
-    do i=1,size(lineNames)
-       call lines%readDatasetStatic(char(lineNames(i)),luminosity(:,:,:,:,i))      
+    do i=1,size(self%lineNames)
+       call lines%readDatasetStatic(char(self%lineNames(i)),luminosity(:,:,:,:,i))
+       lineDataset=lines%openDataset(char(self%lineNames(i)))
+       call lineDataset%readAttribute('wavelength',self%wavelengths(i))
+       call lineDataset%close        (                               )
     end do
     call lines            %close      (                                                                 )
     call emissionLinesFile%close      (                                                                 )
@@ -241,6 +243,7 @@ contains
     ! Convert parameters and luminosities to log form.
     self%densityHydrogen             =log10(self%densityHydrogen             )
     self%ionizationParameter         =log10(self%ionizationParameter         )
+    ! Cloudy table gives metallicity Z (not in log)
     self%metallicity                 =log10(self%metallicity                 )
     
     ! Initialize interpolators.
@@ -253,11 +256,15 @@ contains
 
     
     !$ call OMP_Init_Lock(self%interpolateLock)
-    ! Construct name and description.
-    self%name_       ="luminosityEmissionLineAGN:"//String_Join(lineNames,"+")
-    self%description_="Luminosity of the "     //String_Join(lineNames,"+")//" emission line"
-    if (size(lineNames) > 1) self%description_=self%description_//"s"
-    self%description_=self%description_//" [ergs/s]"
+    ! Construct names and descriptions.
+    allocate(self%names_       (size(lineNames)))
+    allocate(self%descriptions_(size(lineNames)))
+
+    do i=1,size(lineNames)
+       self%  names_(i)="luminosityEmissionLineAGN:"//lineNames(i)
+       self   %descriptions_(i)="Luminosity of the "             //lineNames(i)//" AGN emission line [ergs/s]"
+    end do
+    self%countLines=size(lineNames)
     return
   end function lmnstyEmssnLineAGNConstructorInternal
 
@@ -277,7 +284,7 @@ contains
     return
   end subroutine lmnstyEmssnLineAGNDestructor
 
-  double precision function lmnstyEmssnLineAGNExtract(self,node,instance)
+  function lmnstyEmssnLineAGNExtract(self,node,time,instance)
     !!{
     Implement an emission line output analysis property extractor.
     !!}
@@ -295,8 +302,10 @@ contains
     use :: Galactic_Structure_Options, only : massTypeStellar
     use :: Mass_Distributions            , only : massDistributionClass
     implicit none
+    double precision                                              , dimension(:) , allocatable :: lmnstyEmssnLineAGNExtract
     class           (nodePropertyExtractorLmnstyEmssnLineAGN        ), intent(inout), target   :: self
     type            (treeNode                                       ), intent(inout), target   :: node
+    double precision                                                 , intent(in   )           :: time
     type            (multiCounter                                   ), intent(inout), optional :: instance
     class           (nodeComponentBasic                             ), pointer                 :: basic
     class           (nodeComponentDisk                              ), pointer                 :: disk
@@ -315,7 +324,7 @@ contains
     logical                                                          ,                         :: isPhysical
     integer         (c_size_t                                       ), dimension(0:1,4)        :: interpolateIndex
     double precision                                                 , dimension(0:1,4)        :: interpolateFactor
-    double precision                                                                           :: weight                                                  , luminosityLineAGN
+    double precision                                                                           :: weight                                                 
     double precision                                                                           :: integral, recombinationCoefficient, rateMassAccretionSpheroid, rateMassAccretionHotHalo, wavelength_,nu_001,nu_091,nu_25,nu_10,L_agn,&
                     &                                                                             hydrogenDensity,spectralIndex ,normalizationConstant,radiativeEfficiency,blackHoleAccretionRate,rateIonizingPhotonsNormalized, rateIonizingPhotons, ionizationParam,&
                     &                                                                             massGas, radius, rateStarFormation, metallicityGas, stromgren_radius, denom , halfMassRadius, hydrogen_mass                  
@@ -353,6 +362,7 @@ contains
     
     
     call abundancesGas%massToMassFraction(massGas)
+    ! Galacticus galaxies gives the metallicity in logrithmic scale
     metallicityGas=abundancesGas%metallicity(metallicityTypeLogarithmicByMassSolar)
     if (isnan(metallicityGas)) then
         metallicityGas=0.0d0
@@ -434,32 +444,31 @@ contains
        ionizationParam=self%ionizationParameter(size(self%ionizationParameter))
     end if
     
-    ! Iterate over components.
-    lmnstyEmssnLineAGNExtract=0.0d0
 
     ! Find interpolating factors in all four interpolants, preventing extrapolation beyond the tabulated ranges.
     !$ call OMP_Set_Lock  (self%interpolateLock)
     call self%interpolator_(interpolantsDensity    %ID)%linearFactors(hydrogenDensity  ,interpolateIndex(0,interpolantsDensity    %ID),interpolateFactor(:,interpolantsDensity    %ID))
     call self%interpolator_(interpolantsIonizationParameter%ID)%linearFactors(ionizationParam ,interpolateIndex(0,interpolantsIonizationParameter%ID),interpolateFactor(:,interpolantsIonizationParameter     %ID))
     call self%interpolator_(interpolantsMetallicity%ID)%linearFactors(metallicityGas ,interpolateIndex(0,interpolantsMetallicity%ID),interpolateFactor(:,interpolantsMetallicity%ID))
-    call self%interpolator_(interpolantsSpectralIndex%ID)%linearFactors(-1.7d0,interpolateIndex(0,interpolantsSpectralIndex%ID),interpolateFactor(:,interpolantsSpectralIndex   %ID))
+    call self%interpolator_(interpolantsSpectralIndex%ID)%linearFactors(self%alpha,interpolateIndex(0,interpolantsSpectralIndex%ID),interpolateFactor(:,interpolantsSpectralIndex   %ID))
   
     !$ call OMP_Unset_Lock(self%interpolateLock)
     interpolateIndex (1,:                     )=interpolateIndex(0,:)+1
     interpolateFactor=max(min(interpolateFactor,1.0d0),0.0d0)
     ! Iterate over lines.
+    allocate(lmnstyEmssnLineAGNExtract(self%countLines))
+    lmnstyEmssnLineAGNExtract=0.0
     do line=1,size(self%luminosity,dim=5)
         ! Interpolate in all four interpolants.
-        luminosityLineAGN=0.0d0
         do i=0,1
           do j=0,1
               do k=0,1
                 do l=0,1
-                    weight                    =+                interpolateFactor(i,1)  &
+                    weight                    =+                interpolateFactor(i,1)   &
                           &                     *                interpolateFactor(j,2)  &
                           &                     *                interpolateFactor(k,3)  &
                           &                     *                interpolateFactor(l,4)  
-                    luminosityLineAGN=+luminosityLineAGN                                      &
+                    lmnstyEmssnLineAGNExtract(line)=+lmnstyEmssnLineAGNExtract(line)     &
                           &                     +weight                                  &
                           ! intensity given by emission line models of Cloudy (intensity*4pi) is multiplied by stromgren radius**2 (cm^2)
                           &                     *stromgren_radius*stromgren_radius*1.0d4 &
@@ -473,61 +482,69 @@ contains
                 end do
               end do
           end do
-        end do
-        lmnstyEmssnLineAGNExtract=+lmnstyEmssnLineAGNExtract                           &
-        &                        + luminosityLineAGN                                                            
+        end do                                                       
     end do
    return
   end function lmnstyEmssnLineAGNExtract
 
 
-  function lmnstyEmssnLineAGNQuantity(self)
+  integer function lmnstyEmssnLineAGNElementCount(self,time)
     !!{
-    Return the class of the emission line luminosity property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityLuminosity
-    implicit none
-    type (enumerationOutputAnalysisPropertyQuantityType  )                :: lmnstyEmssnLineAGNQuantity
-    class(nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    lmnstyEmssnLineAGNQuantity=outputAnalysisPropertyQuantityLuminosity
-    return
-  end function lmnstyEmssnLineAGNQuantity
-
-  function lmnstyEmssnLineAGNName(self)
-    !!{
-    Return the name of the lmnstyEmssnLineAGN property.
+    Return the number of elements in the {\normalfont \ttfamily lmnstyEmssnLineAGN} property extractors.
     !!}
     implicit none
-    type (varying_string                                 )                :: lmnstyEmssnLineAGNName
-    class(nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout) :: self
+    class     (nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout) :: self
+    double precision                                       , intent(in   ) :: time
+    !$GLC attributes unused :: self, time
 
-    lmnstyEmssnLineAGNName=self%name_
+    lmnstyEmssnLineAGNElementCount=self%countLines
     return
-  end function lmnstyEmssnLineAGNName
+  end function lmnstyEmssnLineAGNElementCount
 
-  function lmnstyEmssnLineAGNDescription(self)
+  subroutine lmnstyEmssnLineAGNNames(self,time,names)
     !!{
-    Return a description of the lmnstyEmssnLineAGN property.
+    Return the names of the {\normalfont \ttfamily emissionLines}.
+    !!}
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
+    implicit none
+    class           (nodePropertyExtractorLmnstyEmssnLineAGN    ), intent(inout)                            :: self
+    double precision                                             , intent(in   )                            :: time
+    type            (varying_string                             ), intent(inout), dimension(:), allocatable :: names
+    !$GLC attributes unused :: self, time
+
+    allocate(names(self%countLines))
+    names=self%names_
+    return
+  end subroutine lmnstyEmssnLineAGNNames
+
+  subroutine lmnstyEmssnLineAGNDescriptions(self,time,descriptions)
+    !!{
+    Return descriptions of the {\normalfont \ttfamily emission line luminosity} property.
     !!}
     implicit none
-    type (varying_string                                 )                :: lmnstyEmssnLineAGNDescription
-    class(nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout) :: self
+    class           (nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout)                            :: self
+    double precision                            , intent(in   )                             :: time
+    type            (varying_string            ), intent(inout), dimension(:) , allocatable :: descriptions
+    !$GLC attributes unused :: self, time
 
-    lmnstyEmssnLineAGNDescription=self%description_
+    allocate(descriptions(self%countLines))
+    descriptions=self%descriptions_
     return
-  end function lmnstyEmssnLineAGNDescription
+  end subroutine lmnstyEmssnLineAGNDescriptions
 
-  double precision function lmnstyEmssnLineAGNUnitsInSI(self)
-    !!{
-    Return the units of the lmnstyEmssnLineAGN property in the SI system.
+  function lmnstyEmssnLineAGNUnitsInSI(self,time) result(unitsInSI)
+  !!{
+    Return the units of the {\normalfont \ttfamily lmnstyEmssnLineAGN} properties in the SI system.
     !!}
     use :: Numerical_Constants_Units, only : ergs
     implicit none
-    class(nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout) :: self
-    !$GLC attributes unused :: self
+    double precision                                             , allocatable  , dimension(:) :: unitsInSI
+    class           (nodePropertyExtractorLmnstyEmssnLineAGN    ), intent(inout)               :: self
+    double precision                                             , intent(in   )               :: time
+    !$GLC attributes unused :: time
 
-    lmnstyEmssnLineAGNUnitsInSI=ergs
+    allocate(unitsInSI(self%countLines))
+    unitsInSI=ergs
     return
   end function lmnstyEmssnLineAGNUnitsInSI
+ 
