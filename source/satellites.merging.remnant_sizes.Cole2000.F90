@@ -75,8 +75,8 @@
      class           (mergerProgenitorPropertiesClass), pointer :: mergerProgenitorProperties_ => null()
      double precision                                           :: energyOrbital
      integer         (kind=kind_int8                 )          :: lastUniqueID
-     logical                                                    :: propertiesCalculated
-     double precision                                           :: radius                               ,velocityCircular, &
+     logical                                                    :: propertiesCalculated                 , ignoreUnphysicalConditions
+     double precision                                           :: radius                               , velocityCircular, &
           &                                                        angularMomentumSpecific
    contains
      final     ::             cole2000Destructor
@@ -104,7 +104,8 @@ contains
     type            (inputParameters                ), intent(inout) :: parameters
     class           (mergerProgenitorPropertiesClass), pointer       :: mergerProgenitorProperties_
     double precision                                                 :: energyOrbital
-
+    logical                                                          :: ignoreUnphysicalConditions
+    
     !![
     <inputParameter>
       <name>energyOrbital</name>
@@ -112,9 +113,15 @@ contains
       <description>The orbital energy used in the ``cole2000'' merger remnant sizes calculation in units of the characteristic orbital energy.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>ignoreUnphysicalConditions</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, ignore unphysical conditions (e.g. negative masses) and leave the size unchanged.</description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="mergerProgenitorProperties" name="mergerProgenitorProperties_" source="parameters"/>
     !!]
-    self=mergerRemnantSizeCole2000(energyOrbital,mergerProgenitorProperties_)
+    self=mergerRemnantSizeCole2000(energyOrbital,ignoreUnphysicalConditions,mergerProgenitorProperties_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="mergerProgenitorProperties_"/>
@@ -122,16 +129,17 @@ contains
     return
   end function cole2000ConstructorParameters
 
-  function cole2000ConstructorInternal(energyOrbital,mergerProgenitorProperties_) result(self)
+  function cole2000ConstructorInternal(energyOrbital,ignoreUnphysicalConditions,mergerProgenitorProperties_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily cole2000} merger remnant size class.
     !!}
     implicit none
     type            (mergerRemnantSizeCole2000      )                        :: self
     double precision                                 , intent(in   )         :: energyOrbital
+    logical                                          , intent(in   )         :: ignoreUnphysicalConditions
     class           (mergerProgenitorPropertiesClass), intent(in   ), target :: mergerProgenitorProperties_
     !![
-    <constructorAssign variables="energyOrbital, *mergerProgenitorProperties_"/>
+    <constructorAssign variables="energyOrbital, ignoreUnphysicalConditions, *mergerProgenitorProperties_"/>
     !!]
 
     self%propertiesCalculated   =.false.
@@ -273,71 +281,73 @@ contains
           self%angularMomentumSpecific=remnantNoChange
        else
           ! Check that the properties of the galaxies are physically reasonable.
-          errorCondition=.false.
-          if     (                                                  &
-               &   (                                                &
-               &     radiusSatellite       <= +0.0d0                &
-               &    .and.                                           &
-               &     massSpheroidSatellite >  +0.0d0                &
-               &   )                                                &
-               &  .or.                                              &
-               &     massSatellite         < -toleranceMassAbsolute &
-               &  .or.                                              &
-               &     massSpheroidSatellite < -toleranceMassAbsolute &
-               & ) then
-             write (dataString,'(3(e12.6,":",e12.6,":",e12.6))') radiusSatellite,massSatellite,massSpheroidSatellite
-             message=var_str('Satellite galaxy [')//node%index()//'] has '
-             joinString=""
-             if (radiusSatellite       <= +0.0d0        ) then
-                message=message//trim(joinString)//'non-positive radius'
-                joinString=", "
+          if (.not.self%ignoreUnphysicalConditions) then
+             errorCondition=.false.
+             if     (                                                  &
+                  &   (                                                &
+                  &     radiusSatellite       <= +0.0d0                &
+                  &    .and.                                           &
+                  &     massSpheroidSatellite >  +0.0d0                &
+                  &   )                                                &
+                  &  .or.                                              &
+                  &     massSatellite         < -toleranceMassAbsolute &
+                  &  .or.                                              &
+                  &     massSpheroidSatellite < -toleranceMassAbsolute &
+                  & ) then
+                write (dataString,'(3(e12.6,":",e12.6,":",e12.6))') radiusSatellite,massSatellite,massSpheroidSatellite
+                message=var_str('Satellite galaxy [')//node%index()//'] has '
+                joinString=""
+                if (radiusSatellite       <= +0.0d0        ) then
+                   message=message//trim(joinString)//'non-positive radius'
+                   joinString=", "
+                end if
+                if (massSatellite         <  -toleranceMassAbsolute) then
+                   message=message//trim(joinString)//'negative mass'
+                   joinString=", "
+                end if
+                if (massSpheroidSatellite <  -toleranceMassAbsolute) then
+                   message=message//trim(joinString)//'negative spheroid mass'
+                   joinString=", "
+                end if
+                message=message//' (radius:mass:massSpheroid='//trim(dataString)//')'
+                call displayMessage(message,verbosityLevelSilent)
+                errorCondition=.true.
              end if
-             if (massSatellite         <  -toleranceMassAbsolute) then
-                message=message//trim(joinString)//'negative mass'
-                joinString=", "
+             if     (                                             &
+                  &   (                                           &
+                  &     radiusHost       <= +0.0d0                &
+                  &    .and.                                      &
+                  &     massSpheroidHost >  +0.0d0                &
+                  &   )                                           &
+                  &  .or.                                         &
+                  &     massHost         < -toleranceMassAbsolute &
+                  &  .or.                                         &
+                  &     massSpheroidHost < -toleranceMassAbsolute &
+                  & ) then
+                write (dataString,'(3(e12.6,":",e12.6,":",e12.6))') radiusHost,massHost,massSpheroidHost
+                message=var_str('Host galaxy [')//nodeHost%index()//'] has '
+                joinString=""
+                if (radiusHost       <= +0.0d0        ) then
+                   message=message//trim(joinString)//'non-positive radius'
+                   joinString=", "
+                end if
+                if (massHost         <  -toleranceMassAbsolute) then
+                   message=message//trim(joinString)//'negative mass'
+                   joinString=", "
+                end if
+                if (massSpheroidHost <  -toleranceMassAbsolute) then
+                   message=message//trim(joinString)//'negative spheroid mass'
+                   joinString=", "
+                end if
+                message=message//' (radius:mass:massSpheroid='//trim(dataString)//')'
+                call displayMessage(message,verbosityLevelSilent)
+                errorCondition=.true.
              end if
-             if (massSpheroidSatellite <  -toleranceMassAbsolute) then
-                message=message//trim(joinString)//'negative spheroid mass'
-                joinString=", "
+             if (errorCondition) then
+                call node    %serializeASCII(verbosityLevelSilent)
+                call nodeHost%serializeASCII(verbosityLevelSilent)
+                call Error_Report('error condition detected'//{introspection:location})
              end if
-             message=message//' (radius:mass:massSpheroid='//trim(dataString)//')'
-             call displayMessage(message,verbosityLevelSilent)
-             errorCondition=.true.
-          end if
-          if     (                                             &
-               &   (                                           &
-               &     radiusHost       <= +0.0d0                &
-               &    .and.                                      &
-               &     massSpheroidHost >  +0.0d0                &
-               &   )                                           &
-               &  .or.                                         &
-               &     massHost         < -toleranceMassAbsolute &
-               &  .or.                                         &
-               &     massSpheroidHost < -toleranceMassAbsolute &
-               & ) then
-             write (dataString,'(3(e12.6,":",e12.6,":",e12.6))') radiusHost,massHost,massSpheroidHost
-             message=var_str('Host galaxy [')//nodeHost%index()//'] has '
-             joinString=""
-             if (radiusHost       <= +0.0d0        ) then
-                message=message//trim(joinString)//'non-positive radius'
-                joinString=", "
-             end if
-             if (massHost         <  -toleranceMassAbsolute) then
-                message=message//trim(joinString)//'negative mass'
-                joinString=", "
-             end if
-             if (massSpheroidHost <  -toleranceMassAbsolute) then
-                message=message//trim(joinString)//'negative spheroid mass'
-                joinString=", "
-             end if
-             message=message//' (radius:mass:massSpheroid='//trim(dataString)//')'
-             call displayMessage(message,verbosityLevelSilent)
-             errorCondition=.true.
-          end if
-          if (errorCondition) then
-             call node    %serializeASCII(verbosityLevelSilent)
-             call nodeHost%serializeASCII(verbosityLevelSilent)
-             call Error_Report('error condition detected'//{introspection:location})
           end if
           ! Check if host has finite mass.
           if (massSpheroidSatellite+massSpheroidHost > 0.0d0) then
