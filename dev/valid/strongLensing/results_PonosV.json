@@ -4,12 +4,12 @@ window.PONOSV_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@obs.carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "3614c5eb24c2fabd29a383df8181c32d53cd50a1",
-        "message": "fix: Add author credits\n",
-        "timestamp": "2025-03-07 13:51:00-08:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/3614c5eb24c2fabd29a383df8181c32d53cd50a1"
+        "id": "2cd27d289e6dbee95ceff5440aed568fdd73641a",
+        "message": "Merge pull request #814 from galacticusorg/fixSerializeASCIIVerbosity\n\nAllow the `serializeASCII` method of the `treeNode` class to take a verbosity argument\n",
+        "timestamp": "2025-03-14 07:51:51+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/2cd27d289e6dbee95ceff5440aed568fdd73641a"
     },
     "surfaceDensity": {
         "percentageBelow": 42.857142857142854,
@@ -17,8 +17,8 @@ window.PONOSV_DATA = {
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 69.23076923076923,
-        "percentageAbove": 30.76923076923077,
+        "percentageBelow": 60.0,
+        "percentageAbove": 40.0,
         "target": 0.85
     }
 }
