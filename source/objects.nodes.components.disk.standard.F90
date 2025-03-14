@@ -1172,16 +1172,12 @@ contains
                   &                                  )                                                 &
                   )
           end if
-          ! Associate the pointers with the appropriate property routines.
-          Radius_Get   => Node_Component_Disk_Standard_Radius_Solve
-          Radius_Set   => Node_Component_Disk_Standard_Radius_Solve_Set
-          Velocity_Get => Node_Component_Disk_Standard_Velocity
-          Velocity_Set => Node_Component_Disk_Standard_Velocity_Set
-       else
-          call Node_Component_Disk_Standard_Radius_Solve_Set(node,0.0d0)
-          call Node_Component_Disk_Standard_Velocity_Set    (node,0.0d0)
-          componentActive=.false.
        end if
+       ! Associate the pointers with the appropriate property routines.
+       Radius_Get   => Node_Component_Disk_Standard_Radius_Solve
+       Radius_Set   => Node_Component_Disk_Standard_Radius_Solve_Set
+       Velocity_Get => Node_Component_Disk_Standard_Velocity
+       Velocity_Set => Node_Component_Disk_Standard_Velocity_Set
     end select
     return
   end subroutine Node_Component_Disk_Standard_Radius_Solver
