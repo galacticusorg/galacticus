@@ -22,13 +22,14 @@
   !!{
   Contains a module which implements a property extractor class for the emission line luminosity of a component.
   !!}
-  use, intrinsic :: ISO_C_Binding                  , only : c_size_t
-  use            :: Galactic_Structure_Options     , only : enumerationComponentTypeType
-  use            :: Output_Times                   , only : outputTimesClass
-  use            :: Star_Formation_Histories       , only : starFormationHistoryClass
-  use            :: HII_Region_Luminosity_Functions, only : hiiRegionLuminosityFunctionClass
-  use            :: Star_Formation_Histories       , only : starFormationHistoryClass
-  use            :: hii_Region_Density_Distributions,only : hiiRegionDensityDistributionClass  
+  use, intrinsic :: ISO_C_Binding                   , only : c_size_t
+  use            :: Galactic_Structure_Options      , only : enumerationComponentTypeType
+  use            :: Output_Times                    , only : outputTimesClass
+  use            :: Star_Formation_Histories        , only : starFormationHistoryClass
+  use            :: HII_Region_Luminosity_Functions , only : hiiRegionLuminosityFunctionClass
+  use            :: Star_Formation_Histories        , only : starFormationHistoryClass
+  use            :: HII_Region_Density_Distributions, only : hiiRegionDensityDistributionClass  
+  use            :: HII_Region_Escape_Fraction      , only : hiiRegionEscapeFractionClass
   type:: emissionLineLuminosityTemplate
      !!{
      Type used to store luminosity templates for emission lines.
@@ -56,6 +57,7 @@
      class           (outputTimesClass                 ), pointer                       :: outputTimes_                         => null()
      class           (hiiRegionLuminosityFunctionClass ), pointer                       :: hiiRegionLuminosityFunction_         => null()
      class           (hiiRegionDensityDistributionClass), pointer                       :: hiiRegionDensityDistribution_        => null()
+     class           (hiiRegionEscapeFractionClass     ), pointer                       :: hiiRegionEscapeFraction_             => null()
      type            (enumerationComponentTypeType     )                                :: component
      integer                                                                            :: countWavelengths                             , countLines
      integer         (c_size_t                         )                                :: indexAge                                     , indexMetallicity            , &
@@ -116,6 +118,7 @@ contains
     class           (outputTimesClass                           ), pointer                     :: outputTimes_
     class           (hiiRegionLuminosityFunctionClass           ), pointer                     :: hiiRegionLuminosityFunction_
     class           (hiiRegionDensityDistributionClass          ), pointer                     :: hiiRegionDensityDistribution_
+    class           (hiiRegionEscapeFractionClass               ), pointer                     :: hiiRegionEscapeFraction_
     type            (varying_string                             ), allocatable  , dimension(:) :: lineNames
     type            (varying_string                             )                              :: component                   , cloudyTableFileName
     double precision                                                                           :: toleranceRelative
@@ -124,7 +127,7 @@ contains
     !![
     <inputParameter>
       <name>cloudyTableFileName</name>
-      <defaultValue>var_str('%DATASTATICPATH%/hiiRegions/emissionLineLuminosities_BC2003_highResolution_imfChabrier_nH.hdf5')</defaultValue>
+      <defaultValue>var_str('%DATASTATICPATH%/hiiRegions/emissionLineLuminosities_BC2003_highResolution_imfChabrier.hdf5')</defaultValue>
       <source>parameters</source>
       <description>The file of emission line luminosities to use.</description>
     </inputParameter>
@@ -148,24 +151,26 @@ contains
     <objectBuilder class="outputTimes"                  name="outputTimes_"                  source="parameters"/>
     <objectBuilder class="hiiRegionLuminosityFunction"  name="hiiRegionLuminosityFunction_"  source="parameters"/>
     <objectBuilder class="hiiRegionDensityDistribution" name="hiiRegionDensityDistribution_" source="parameters"/>
+    <objectBuilder class="hiiRegionEscapeFraction"      name="hiiRegionEscapeFraction_"      source="parameters"/>
     !!]
-    self=nodePropertyExtractorLuminosityEmissionLine(cloudyTableFileName,enumerationComponentTypeEncode(char(component),includesPrefix=.false.),lineNames,toleranceRelative,starFormationHistory_,outputTimes_,hiiRegionLuminosityFunction_,hiiRegionDensityDistribution_)
+    self=nodePropertyExtractorLuminosityEmissionLine(cloudyTableFileName,enumerationComponentTypeEncode(char(component),includesPrefix=.false.),lineNames,toleranceRelative,starFormationHistory_,outputTimes_,hiiRegionLuminosityFunction_,hiiRegionDensityDistribution_,hiiRegionEscapeFraction_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="starFormationHistory_"       />
-    <objectDestructor name="outputTimes_"                />
-    <objectDestructor name="hiiRegionLuminosityFunction_"/>
+    <objectDestructor name="starFormationHistory_"        />
+    <objectDestructor name="outputTimes_"                 />
+    <objectDestructor name="hiiRegionLuminosityFunction_" />
     <objectDestructor name="hiiRegionDensityDistribution_"/>
+    <objectDestructor name="hiiRegionEscapeFraction_"     />
     !!]
     return
   end function emissionLineLuminosityConstructorParameters
 
-  function emissionLineLuminosityConstructorInternal(cloudyTableFileName,component,lineNames,toleranceRelative,starFormationHistory_,outputTimes_,hiiRegionLuminosityFunction_,hiiRegionDensityDistribution_) result(self)
+  function emissionLineLuminosityConstructorInternal(cloudyTableFileName,component,lineNames,toleranceRelative,starFormationHistory_,outputTimes_,hiiRegionLuminosityFunction_,hiiRegionDensityDistribution_,hiiRegionEscapeFraction_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily sed} property extractor class.
     !!}
-    use :: Array_Utilities                 , only : slice
-    use :: Galactic_Structure_Options      , only : componentTypeDisk, componentTypeSpheroid
+    use :: Array_Utilities                 , only : slice5Dto2D
+    use :: Galactic_Structure_Options      , only : componentTypeDisk, componentTypeSpheroid, componentTypeAll
     use :: Galacticus_Nodes                , only : nodeComponentDisk, nodeComponentSpheroid
     use :: Error                           , only : Error_Report
     use :: File_Utilities                  , only : File_Name_Expand
@@ -183,6 +188,7 @@ contains
     class           (outputTimesClass                           ), intent(in   ), target               :: outputTimes_
     class           (hiiRegionLuminosityFunctionClass           ), intent(in   ), target               :: hiiRegionLuminosityFunction_
     class           (hiiRegionDensityDistributionClass          ), intent(in   ), target               :: hiiRegionDensityDistribution_
+    class           (hiiRegionEscapeFractionClass               ), intent(in   ), target               :: hiiRegionEscapeFraction_
     double precision                                             , intent(in   )                       :: toleranceRelative    
     double precision                                             ,                                     :: deltaIonizingLuminosityHydrogen   , rateHydrogenIonizingPhotonsMinimum, &
          &                                                                                                rateHydrogenIonizingPhotonsMaximum, densityHydrogenMinimum            , &
@@ -190,17 +196,20 @@ contains
     double precision                                             , allocatable  , dimension(:        ) :: ionizingLuminosityHydrogen        , densityHydrogen
     integer                                                                     , dimension(5        ) :: shapeLines
     double precision                                             , allocatable  , dimension(:,:,:,:,:) :: luminosities
-    integer         (c_size_t                                   )               , dimension(3        ) :: permutation
+    integer         (c_size_t                                   )               , dimension(2        ) :: permutation
     type            (hdf5Object                                 )                                      :: emissionLinesFile                 , lines                             , &
          &                                                                                                dataset
-    integer         (c_size_t                                   )                                      :: i                                 , k
+    integer         (c_size_t                                   )                                      :: i                                 , k                                 , &
+         &                                                                                                iAge
     !![
-    <constructorAssign variables="cloudyTableFileName, lineNames, component, toleranceRelative, *starFormationHistory_, *outputTimes_, *hiiRegionLuminosityFunction_, *hiiRegionDensityDistribution_"/>
+    <constructorAssign variables="cloudyTableFileName, lineNames, component, toleranceRelative, *starFormationHistory_, *outputTimes_, *hiiRegionLuminosityFunction_, *hiiRegionDensityDistribution_, *hiiRegionEscapeFraction_"/>
     !!]
     if     (                                                                                                    &
          &   component /= componentTypeDisk                                                                     &
          &  .and.                                                                                               &
          &   component /= componentTypeSpheroid                                                                 &
+         &  .and.                                                                                               &
+         &   component /= componentTypeAll                                                                      &
          & ) call Error_Report("only 'disk' and 'spheroid' components are supported"//{introspection:location})
     ! Get details of the star formation rate tabulation.
     self%metallicityBoundaries=self%starFormationHistory_%metallicityBoundaries      ()
@@ -259,40 +268,43 @@ contains
     end do
     call lines            %close()
     call emissionLinesFile%close()
-    !$ call hdf5Access%unset()    
+    !$ call hdf5Access%unset()
     ! Calculate emission line luminosities as a function of age and metallicity by averaging over the distribution of HII region
     ! luminosities. Account for any needed permutation in the indexing needed to get our final array to be (age,metallicity,line)
     ! ordered.
+    !! Find the width of Qₕ and nₕ bins.
     deltaIonizingLuminosityHydrogen=+ionizingLuminosityHydrogen(2) &
          &                          /ionizingLuminosityHydrogen(1)
     deltaDensityHydrogen           =+densityHydrogen           (2) &
          &                          /densityHydrogen           (1)
-    permutation(1)=self%indexAge
-    permutation(2)=self%indexMetallicity
-    permutation(3)=     3
-    if (self%indexIonizingLuminosityHydrogen < self%indexAge        ) permutation(1)=permutation(1)-1_c_size_t
-    if (self%indexIonizingLuminosityHydrogen < self%indexMetallicity) permutation(2)=permutation(2)-1_c_size_t
-    if (self%indexDensityHydrogen            < self%indexAge        ) permutation(1)=permutation(1)-1_c_size_t
-    if (self%indexDensityHydrogen            < self%indexMetallicity) permutation(2)=permutation(2)-1_c_size_t
+    !! Construct the permutation needed to convert the table read from file into the ordering needed internally.
+    permutation(1)=self%indexMetallicity
+    permutation(2)=     2
+    if (self%indexIonizingLuminosityHydrogen < self%indexMetallicity) permutation(1)=permutation(1)-1_c_size_t
+    if (self%indexDensityHydrogen            < self%indexMetallicity) permutation(1)=permutation(1)-1_c_size_t
+    if (self%indexAge                        < self%indexMetallicity) permutation(1)=permutation(1)-1_c_size_t
     do i=1,size(ionizingLuminosityHydrogen)
        rateHydrogenIonizingPhotonsMinimum=ionizingLuminosityHydrogen(i)/sqrt(deltaIonizingLuminosityHydrogen)
        rateHydrogenIonizingPhotonsMaximum=ionizingLuminosityHydrogen(i)*sqrt(deltaIonizingLuminosityHydrogen)
        do k=1,size(densityHydrogen)
           densityHydrogenMinimum         =densityHydrogen           (k)/sqrt(deltaDensityHydrogen           )
           densityHydrogenMaximum         =densityHydrogen           (k)*sqrt(deltaDensityHydrogen           )
-          ! Accumulate the luminosity weighted by the cumulative fraction of HII regions in this luminosity interval.
-          self%luminositiesReduced=+self%luminositiesReduced                                                                                                                 &
-               &                   +self%hiiRegionLuminosityFunction_ %cumulativeDistributionFunction(rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum) &
-               &                   *self%hiiRegionDensityDistribution_%cumulativeDensityDistribution (            densityHydrogenMinimum,            densityHydrogenMaximum) &
-               &                   *reshape(                                                                                                                                 &
-               &                                   slice(                                                                                                                    &
-               &                                         luminosities                                                                                                ,       &
-               &                                         [self%indexIonizingLuminosityHydrogen,self%indexDensityHydrogen                                            ],       &
-               &                                         [     i                              ,     k                                                               ]        &
-               &                                        )                                                                                                            ,       &
-               &                                         [size(luminosities,dim=self%indexAge),size(luminosities,dim=self%indexMetallicity),size(luminosities,dim=5)],       &
-               &                             order=permutation                                                                                                               &
-               &                            )
+          do iAge=1,size(self%ages)
+             ! Accumulate the luminosity weighted by the cumulative fraction of HII regions in this luminosity interval.
+             self%luminositiesReduced(iAge,:,:)=+        self%luminositiesReduced                                         (          iAge                    ,:,:                               ) &
+                  &                             +(+1.0d0-self%hiiRegionEscapeFraction_     %escapeFraction                (self%ages(iAge))                                                     ) & 
+                  &                             *        self%hiiRegionLuminosityFunction_ %cumulativeDistributionFunction(rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum) &
+                  &                             *        self%hiiRegionDensityDistribution_%cumulativeDensityDistribution (            densityHydrogenMinimum,            densityHydrogenMaximum) &
+                  &                             *reshape(                                                                                                                                         &
+                  &                                             slice5Dto2D(                                                                                                                      &
+                  &                                                   luminosities                                                                  ,                                             &
+                  &                                                   [self%indexIonizingLuminosityHydrogen,self%indexDensityHydrogen,self%indexAge],                                             &
+                  &                                                   [     i                              ,     k                   ,     iAge    ]                                              &
+                  &                                                  )                                                                              ,                                             &
+                  &                                                   [size(luminosities,dim=self%indexMetallicity),size(luminosities,dim=5)]       ,                                             &
+                  &                                       order=permutation                                                                                                                       &
+                  &                                      )
+          end do
        end do
     end do
     ! Normalize reduced luminosities to the total fraction of HII regions in the luminosity interval spanned by the table. Also,
@@ -314,6 +326,8 @@ contains
           self%names_       (i)="luminosityEmissionLineDisk:"    //lineNames(i)
        case (componentTypeSpheroid%ID)
           self%names_       (i)="luminosityEmissionLineSpheroid:"//lineNames(i)
+       case (componentTypeAll%ID)
+          self%names_       (i)="luminosityEmissionLineTotal:"   //lineNames(i)
        end select
        self   %descriptions_(i)="Luminosity of the "             //lineNames(i)//" emission line [ergs/s]"
     end do
@@ -333,6 +347,7 @@ contains
     <objectDestructor name="self%outputTimes_"                 />
     <objectDestructor name="self%hiiRegionLuminosityFunction_" />
     <objectDestructor name="self%hiiRegionDensityDistribution_"/>
+    <objectDestructor name="self%hiiRegionEscapeFraction_"     />
     !!]
     return
   end subroutine emissionLineLuminosityDestructor
@@ -355,7 +370,7 @@ contains
     Implement a {\normalfont \ttfamily luminosityEmissionLine} property extractor.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentDisk, nodeComponentSpheroid
-    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid
+    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeAll
     use :: Histories                 , only : history
     implicit none
     double precision                                             , dimension(:  )            , allocatable :: luminosity
@@ -369,34 +384,40 @@ contains
     double precision                                             , dimension(:,:,:), target  , allocatable :: luminosityTemplate
     double precision                                             , dimension(  :,:)          , allocatable :: masses
     type            (history                                    )                                          :: starFormationHistory
-    integer                                                                                                :: indexTemplate       , iLines
+    integer(c_size_t)                                                                                      :: indexTemplate      
+    logical                                                                                                :: parallelize                                                                                     
+    integer                                                                                                :: iLines              , i
     !$GLC attributes unused :: instance
 
     allocate(luminosity(self%countLines))
     luminosity=0.0d0
-    ! Get the relevant star formation history.
-    select case (self%component%ID)
-    case (componentTypeDisk    %ID)
-       disk                 => node    %disk                ()
-       starFormationHistory =  disk    %starFormationHistory()
-    case (componentTypeSpheroid%ID)
-       spheroid             => node    %spheroid            ()
-       starFormationHistory =  spheroid%starFormationHistory()
-    end select
-    if (.not.starFormationHistory%exists()) return
-    ! Get the index of the template to use.
-    indexTemplate=self%indexTemplateNode(node,starFormationHistory)
-    if (indexTemplate > 0) then
-       ! Stored templates can be used, so point to the relevant set.
-       luminosityTemplate_ => self%templates(indexTemplate)%emissionLineLuminosity
-    else
-       ! Stored templates can not be used, get the templates for this specific case, and point to them.
-       luminosityTemplate  =  self%luminosityMean(time,node,starFormationHistory)
-       luminosityTemplate_ => luminosityTemplate
-    end if
-    masses=self%starFormationHistory_%masses(node,starFormationHistory,allowTruncation=.false.)
-    do iLines=1,size(luminosity,dim=1)
-       luminosity(iLines)=sum(luminosityTemplate_(iLines,:,:)*masses(:,:))
+    do i=1,2
+       ! Get the relevant star formation history.
+       select case (i)
+       case (1)
+          if (self%component == componentTypeSpheroid) cycle
+          disk                 => node    %disk                ()
+          starFormationHistory =  disk    %starFormationHistory()
+       case (2)
+          if (self%component == componentTypeDisk) cycle
+          spheroid             => node    %spheroid            ()
+          starFormationHistory =  spheroid%starFormationHistory()
+       end select
+       if (.not.starFormationHistory%exists()) cycle
+       ! Get the index of the template to use.
+       indexTemplate=self%indexTemplateNode(node,starFormationHistory)
+       if (indexTemplate > 0) then
+          ! Stored templates can be used, so point to the relevant set.
+          luminosityTemplate_ => self%templates(indexTemplate)%emissionLineLuminosity
+       else
+          ! Stored templates can not be used, get the templates for this specific case, and point to them.
+          luminosityTemplate  =  self%luminosityMean(time,node,indexTemplate,starFormationHistory,parallelize)
+          luminosityTemplate_ => luminosityTemplate
+       end if
+       masses=self%starFormationHistory_%masses(node,starFormationHistory,allowTruncation=.false.)
+       do iLines=1,size(luminosity,dim=1)
+          luminosity(iLines)=luminosity(iLines)+sum(luminosityTemplate_(iLines,:,:)*masses(:,:))
+       end do
     end do
     return
   end function emissionLineLuminosityExtract
@@ -479,7 +500,7 @@ contains
     return
   end function emissionLineLuminosityIndexTemplateTime
 
-  integer function emissionLineLuminosityIndexTemplateNode(self,node,starFormationHistory) result(indexTemplate)
+  function emissionLineLuminosityIndexTemplateNode(self,node,starFormationHistory) result(indexTemplate)
     !!{
     Find the index of the template emission line luminosity to use, and also compute the template.
     !!}
@@ -495,6 +516,7 @@ contains
     use :: Input_Paths             , only : inputPath                    , pathTypeDataDynamic
     use :: Star_Formation_Histories, only : starFormationHistoryAgesFixed, starFormationHistoryAgesFixedPerOutput
     implicit none
+    integer  (c_size_t                                   )                :: indexTemplate
     class    (nodePropertyExtractorLuminosityEmissionLine), intent(inout) :: self
     type     (treeNode                                   ), intent(inout) :: node
     type     (history                                    ), intent(in   ) :: starFormationHistory
@@ -532,13 +554,13 @@ contains
     if (.not.allocated(self%templates                                      )) allocate(self%templates(countTemplates))
     if (.not.allocated(self%templates(indexTemplate)%emissionLineLuminosity)) then
        ! Construct the file name.
-       fileName=inputPath(pathTypeDataDynamic)                              // &
-            &        'stellarPopulations/'                                  // &
-            &        self%objectType             (                         )// &
-            &        '_'                                                    // &
-            &        self%historyHashedDescriptor(node,starFormationHistory)// &
-            &        '_'                                                    // &
-            &        indexTemplate                                          // &
+       fileName=inputPath(pathTypeDataDynamic)                                          // &
+            &        'stellarPopulations/'                                              // &
+            &        self%objectType             (                                     )// &
+            &        '_'                                                                // &
+            &        self%historyHashedDescriptor(node,indexOutput,starFormationHistory)// &
+            &        '_'                                                                // &
+            &        indexTemplate                                                      // &
             &        '.hdf5'
        ! Check if the templates can be retrieved from file.
        !! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
@@ -561,8 +583,8 @@ contains
           !$ call hdf5Access%unset()
        end if
        if (.not.allocated(self%templates(indexTemplate)%emissionLineLuminosity)) then
-          basic                                                => node%basic         (                                                         )
-          self%templates(indexTemplate)%emissionLineLuminosity =  self%luminosityMean(basic%time(),node,starFormationHistory,parallelize=.true.)
+          basic                                                => node%basic         (                                                                       )
+          self%templates(indexTemplate)%emissionLineLuminosity =  self%luminosityMean(basic%time(),node,indexTemplate,starFormationHistory,parallelize=.true.)
           if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixed) then
              call displayMessage("storing emission line luminosity tabulation to file '"                                        //fileName//"'",verbosityLevelWorking)
           else
@@ -582,7 +604,7 @@ contains
     return
   end function emissionLineLuminosityIndexTemplateNode
 
-  function emissionLineLuminosityMean(self,time,node,starFormationHistory,parallelize) result(luminosityMean)
+  function emissionLineLuminosityMean(self,time,node,indexOutput,starFormationHistory,parallelize) result(luminosityMean)
     !!{
     Compute the mean luminosity of the stellar population in each bin of the star formation history.
     !!}
@@ -600,6 +622,7 @@ contains
     class           (nodePropertyExtractorLuminosityEmissionLine), intent(inout)                 :: self
     double precision                                             , intent(in   )                 :: time
     type            (treeNode                                   ), intent(inout)                 :: node
+    integer         (c_size_t                                   ), intent(in   )                 :: indexOutput
     type            (history                                    ), intent(in   )                 :: starFormationHistory
     logical                                                      , intent(in   )   , optional    :: parallelize
     double precision                                             , dimension(:    ), allocatable :: times
@@ -623,8 +646,8 @@ contains
     <optionalArgument name="parallelize" defaultsTo=".false." />
     !!]
     
-    times =self%starFormationHistory_%times (node=node,starFormationHistory=starFormationHistory,allowTruncation=.false.,timeStart=timeStart)
-    masses=self%starFormationHistory_%masses(node=node,starFormationHistory=starFormationHistory,allowTruncation=.false.                    )
+    times =self%starFormationHistory_%times (node=node,indexOutput=indexOutput,starFormationHistory=starFormationHistory,allowTruncation=.false.,timeStart=timeStart)
+    masses=self%starFormationHistory_%masses(node=node                        ,starFormationHistory=starFormationHistory,allowTruncation=.false.                    )
     allocate(luminosityMean(self%countLines,size(masses,dim=1),size(masses,dim=2)))
     counter       =-1
     counterMaximum=product     ([size(luminosityMean,dim=1              ),size(masses,dim=1              ),size(masses,dim=2              )])
@@ -758,7 +781,7 @@ contains
 
   end function emissionLineLuminosityMean
 
-  function emissionLineLuminosityHistoryHashedDescriptor(self,node,starFormationHistory) result(hashedDescriptor)
+  function emissionLineLuminosityHistoryHashedDescriptor(self,node,indexOutput,starFormationHistory) result(hashedDescriptor)
     !!{
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
@@ -774,6 +797,7 @@ contains
     type            (varying_string                             )                              :: hashedDescriptor
     class           (nodePropertyExtractorLuminosityEmissionLine), intent(in   )               :: self
     type            (treeNode                                   ), intent(inout)               :: node
+    integer         (c_size_t                                   ), intent(in   )               :: indexOutput
     type            (history                                    ), intent(in   )               :: starFormationHistory
     double precision                                             , allocatable  , dimension(:) :: times
     character       (len=18                                     )                              :: parameterLabel
@@ -794,9 +818,11 @@ contains
     descriptor=inputParameters()
     call setLiveNodeLists(descriptor%document,.false.)
     ! Add composited object descriptors.
-    call self%starFormationHistory_       %descriptor(descriptor)
-    call self%outputTimes_                %descriptor(descriptor)
-    call self%hiiRegionLuminosityFunction_%descriptor(descriptor)
+    call self%starFormationHistory_        %descriptor(descriptor)
+    call self%outputTimes_                 %descriptor(descriptor)
+    call self%hiiRegionLuminosityFunction_ %descriptor(descriptor)
+    call self%hiiRegionDensityDistribution_%descriptor(descriptor)
+    call self%hiiRegionEscapeFraction_     %descriptor(descriptor)
     ! Add descriptors for star formation history tabulation.
     values=""
     do i=1,size(self%metallicityBoundaries)
@@ -810,7 +836,7 @@ contains
     ! Times are only added if ages are not fixed. For fixed ages, the history is the same (for our purposes) always.
     if (self%starFormationHistory_%ageDistribution() /= starFormationHistoryAgesFixed) then
        values=""
-       times =self %starFormationHistory_%times(node=node,starFormationHistory=starFormationHistory)
+       times =self %starFormationHistory_%times(node=node,indexOutput=indexOutput,starFormationHistory=starFormationHistory)
        do i=1,size(times)
           !$omp critical(gfortranInternalIO)
           write (parameterLabel,'(e17.10)') times(i)
