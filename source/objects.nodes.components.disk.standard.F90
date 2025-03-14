@@ -237,7 +237,7 @@ contains
        <inputParameter>
          <name>structureSolverUseCole2000Method</name>
          <defaultValue>.false.</defaultValue>
-         <description></description>
+         <description>If true, use the method described in \cite{cole_hierarchical_2000} to correct for difference between thin disk and spherical mass distributions when solving for disk radii.</description>
          <source>subParameters</source>
        </inputParameter>
        <inputParameter>

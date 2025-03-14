@@ -813,7 +813,7 @@ contains
     integer                                                           :: jTime                          , jVariance
 
     ! If the minimum mass used in computing non-crossing rates changes, retabulate non-crossing rates. This should only happen if
-    ! the growth rate of <CF><83>(M) is mass dependent. We must also retabulate if non-crossing rates have no yet been tabulated.
+    ! the growth rate of σ(M) is mass dependent. We must also retabulate if non-crossing rates have no yet been tabulated.
     if (Values_Differ(self%massMinimumRateNonCrossing,massMinimum,relTol=toleranceRelativeMass)) then
        self%retabulateRateNonCrossing =.true.
        self%massMinimumRateNonCrossing=massMinimum
