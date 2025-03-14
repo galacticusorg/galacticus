@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1741407692319,
+  "lastUpdate": 1741961919165,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=40 Gyr; vₖ=20 km/s)": [
@@ -779,6 +779,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=40.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
             "value": "40.37649687880737",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2cd27d289e6dbee95ceff5440aed568fdd73641a",
+          "message": "Merge pull request #814 from galacticusorg/fixSerializeASCIIVerbosity\n\nAllow the `serializeASCII` method of the `treeNode` class to take a verbosity argument",
+          "timestamp": "2025-03-14T07:51:51Z",
+          "tree_id": "84a776f28f63345668bc56b3ece8c9126637a07c",
+          "url": "https://github.com/galacticusorg/galacticus/commit/2cd27d289e6dbee95ceff5440aed568fdd73641a"
+        },
+        "date": 1741961917923,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=40.0 Gyr; vₖ=20.0 km/s) - Likelihood - mass function",
+            "value": "3.871937582199247",
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=40.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
+            "value": "32.63803435284775",
             "unit": "-logℒ"
           }
         ]
