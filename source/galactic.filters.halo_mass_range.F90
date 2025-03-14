@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a galactic filter for halo mass under a given definition.
+Implements a galactic filter for halo mass under a given definition.
 !!}
 
   use :: Cosmology_Parameters   , only : cosmologyParametersClass

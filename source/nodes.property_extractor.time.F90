@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a cosmic time output analysis property extractor class.
+Implements a cosmic time output analysis property extractor class.
 !!}
 
   !![

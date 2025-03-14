@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a concentration distribution output analysis class for dark matter halo progenitor mass functions.
+  Implements a concentration distribution output analysis class for dark matter halo progenitor mass functions.
   !!}
   
   use :: Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMOClass

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a polynomial systematic shift output analysis property operator class.
+Implements a polynomial systematic shift output analysis property operator class.
 !!}
 
   !![

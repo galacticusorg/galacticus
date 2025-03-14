@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a unitarity output analysis distribution normalizer class.
+  Implements a unitarity output analysis distribution normalizer class.
   !!}
 
   !![

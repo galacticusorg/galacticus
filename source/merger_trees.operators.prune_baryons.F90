@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a pruning operator on merger trees that removes all branches that can not contain any baryons.
+Implements a pruning operator on merger trees that removes all branches that can not contain any baryons.
 !!}
 
   use :: Accretion_Halos        , only : accretionHalo        , accretionHaloClass

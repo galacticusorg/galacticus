@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a merger tree filter which passes if any node in the tree passes the given galactic filter.
+Implements a merger tree filter which passes if any node in the tree passes the given galactic filter.
 !!}
 
   use :: Galactic_Filters, only : galacticFilterClass

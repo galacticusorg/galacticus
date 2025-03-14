@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an log10 output analysis property operator class.
+Implements an log10 output analysis property operator class.
 !!}
 
   !![

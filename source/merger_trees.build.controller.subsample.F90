@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a merger tree build controller class which performs subsampling of branches.
+Implements a merger tree build controller class which performs subsampling of branches.
 !!}
 
   ! Options controlling when to destroy stub branches.

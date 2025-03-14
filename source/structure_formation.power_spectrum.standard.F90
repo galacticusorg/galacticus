@@ -18,8 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a linear theory power spectrum class in which the power spectrum is just the transferred
-primordial power spectrum correctly normalized to $z=0$.
+Implements a linear theory power spectrum class in which the power spectrum is just the transferred primordial power spectrum
+correctly normalized to $z=0$.
 !!}
 
   use :: Cosmological_Density_Field          , only : cosmologicalMassVarianceClass

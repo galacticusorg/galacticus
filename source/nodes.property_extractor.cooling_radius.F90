@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a radiusCooling property extractor class.
+Implements a radiusCooling property extractor class.
 !!}
 
   use :: Cooling_Radii, only : coolingRadius, coolingRadiusClass

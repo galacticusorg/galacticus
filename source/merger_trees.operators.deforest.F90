@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a deforestation operator on merger trees (i.e. removes all but the most massive tree in a forest).
+Implements a deforestation operator on merger trees (i.e. removes all but the most massive tree in a forest).
 !!}
 
   !![

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an fixed critical overdensity class.
+Implements an fixed critical overdensity class.
 !!}
 
   !![

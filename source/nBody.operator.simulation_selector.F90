@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an N-body data operator which applies some other operator to a selected simulation.
+Implements an N-body data operator which applies some other operator to a selected simulation.
 !!}
   
   !![

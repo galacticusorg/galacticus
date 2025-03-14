@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a merger tree operator which perturbs halo masses by some error model.
+  Implements a merger tree operator which perturbs halo masses by some error model.
   !!}
 
   use :: Statistics_Distributions         , only : distributionFunction1DNormal

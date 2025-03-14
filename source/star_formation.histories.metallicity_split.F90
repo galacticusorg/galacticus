@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a star formation histories class which records star formation split by metallicity.
+Implements a star formation histories class which records star formation split by metallicity.
 !!}
 
   use :: Output_Times, only : outputTimes, outputTimesClass

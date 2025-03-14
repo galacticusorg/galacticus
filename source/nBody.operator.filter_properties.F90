@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an N-body data operator which filters out particles based on a property range.
+Implements an N-body data operator which filters out particles based on a property range.
 !!}
 
   use :: NBody_Simulation_Data, only : enumerationPropertyTypeType

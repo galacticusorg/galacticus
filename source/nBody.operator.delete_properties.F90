@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an N-body data operator which deletes named properties from the simulation.
+Implements an N-body data operator which deletes named properties from the simulation.
 !!}
 
   !![

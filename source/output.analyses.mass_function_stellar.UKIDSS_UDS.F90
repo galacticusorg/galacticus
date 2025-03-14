@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a stellar mass function output analysis class for the UKIDSS UDS survey of \cite{caputi_stellar_2011}.
+Implements a stellar mass function output analysis class for the UKIDSS UDS survey of \cite{caputi_stellar_2011}.
 !!}
 
 

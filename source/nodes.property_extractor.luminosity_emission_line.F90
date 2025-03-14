@@ -20,7 +20,7 @@
   !+    Contributions to this file made by: Sachi Weerasooriya
 
   !!{
-  Contains a module which implements a property extractor class for the emission line luminosity of a component.
+  Implements a property extractor class for the emission line luminosity of a component.
   !!}
   use, intrinsic :: ISO_C_Binding                   , only : c_size_t
   use            :: Galactic_Structure_Options      , only : enumerationComponentTypeType

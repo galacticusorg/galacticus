@@ -17,8 +17,10 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an intracluster medium cooling power in band property extractor class.
-
+  !!{
+  Implements an intracluster medium cooling power in band property extractor class.
+  !!}
+  
   use :: Cosmology_Functions    , only : cosmologyFunctions , cosmologyFunctionsClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
   

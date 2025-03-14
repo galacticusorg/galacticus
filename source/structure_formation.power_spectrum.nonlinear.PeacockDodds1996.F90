@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a nonlinear power spectrum class in which the nonlinear power spectrum is computed using the
+Implements a nonlinear power spectrum class in which the nonlinear power spectrum is computed using the
 algorithm of \cite{peacock_non-linear_1996}.
 !!}
 

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a merger tree operator which prunes branches below a
+  Implements a merger tree operator which prunes branches below a
   given level in the substructure hierarchy.
   !!}
 

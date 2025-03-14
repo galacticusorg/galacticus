@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements an output analysis class for the star forming main sequence measurements of \cite{schreiber_herschel_2015}.
+  Implements an output analysis class for the star forming main sequence measurements of \cite{schreiber_herschel_2015}.
   !!}
 
   !![

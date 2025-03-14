@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a multi node property extractor class.
+  Implements a multi node property extractor class.
   !!}
 
   use :: Hashes, only : doubleHash, rank1DoubleHash

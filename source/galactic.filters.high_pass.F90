@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a high-pass filter on any node property.
+Implements a high-pass filter on any node property.
 !!}
 
   use :: Node_Property_Extractors, only : nodePropertyExtractorScalar

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an N-body dark matter halo mass error class using the model of \cite{trenti_how_2010}.
+Implements an N-body dark matter halo mass error class using the model of \cite{trenti_how_2010}.
 !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass

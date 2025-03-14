@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a galactic filter class which is the ``any'' combination of a set of other filters.
+Implements a galactic filter class which is the ``any'' combination of a set of other filters.
 !!}
 
   !![

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements an output analysis class that computes the stellar mass-halo mass relation in the Local
+  Implements an output analysis class that computes the stellar mass-halo mass relation in the Local
   Group.
   !!}
 

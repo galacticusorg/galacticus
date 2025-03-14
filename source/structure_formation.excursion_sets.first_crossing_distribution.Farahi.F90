@@ -20,7 +20,7 @@
 !+    Contributions to this file made by: Arya Farahi, Andrew Benson, Christoph Behrens, Xiaolong Du.
 
 !!{
-Contains a module which implements a excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}.
+Implements a excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}.
 !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass

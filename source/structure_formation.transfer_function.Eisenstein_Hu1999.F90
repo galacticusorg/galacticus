@@ -20,8 +20,7 @@
 !+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
 
   !!{
-  Contains a module which implements a transfer function class using the fitting function of
-  \cite{eisenstein_power_1999}.
+  Implements a transfer function class using the fitting function of \cite{eisenstein_power_1999}.
   !!}
 
   use :: Cosmology_Functions  , only : cosmologyFunctionsClass

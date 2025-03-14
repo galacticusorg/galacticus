@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements the effects of incompleteness as a function of mass on the distribution.
+  Implements the effects of incompleteness as a function of mass on the distribution.
   !!}
 
   use :: Mass_Function_Incompletenesses, only : massFunctionIncompletenessClass

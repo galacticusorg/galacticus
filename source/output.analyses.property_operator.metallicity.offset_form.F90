@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a property operator class which converts a metallicity, assumed to be a mass ratio of a
+  Implements a property operator class which converts a metallicity, assumed to be a mass ratio of a
   given element to hydrogen, to $12+\log_{10}(\mathrm{N}/\mathrm{H})$ form.
   !!}
 

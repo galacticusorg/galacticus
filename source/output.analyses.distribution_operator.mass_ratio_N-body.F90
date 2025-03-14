@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements an N-body halo mass ratio output analysis distribution operator class.
+  Implements an N-body halo mass ratio output analysis distribution operator class.
   !!}
   
   use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements an output analysis class that computes subhalo radial distributions.
+  Implements an output analysis class that computes subhalo radial distributions.
   !!}
   
   use :: Cosmology_Functions     , only : cosmologyFunctionsClass

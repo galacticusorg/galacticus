@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a random error output analysis distribution operator class providing errors in $\log_{10}$
+  Implements a random error output analysis distribution operator class providing errors in $\log_{10}$
   of N-body halo concentration.
   !!}
 

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a fuzzy dark matter particle class.
+Implements a fuzzy dark matter particle class.
 !!}
 
   !![
