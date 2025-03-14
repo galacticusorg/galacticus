@@ -1123,13 +1123,15 @@ module Galacticus_Nodes
     return
   end subroutine Node_Component_ODE_Step_Initialize_Null
 
-  subroutine Node_Component_Dump_Null(self)
+  subroutine Node_Component_Dump_Null(self,verbosityLevel)
     !!{
     Dump a generic tree node component.
     !!}
+    use :: Display, only : enumerationVerbosityLevelType
     implicit none
-    class(nodeComponent), intent(in   ) :: self
-    !$GLC attributes unused :: self
+    class(nodeComponent                ), intent(in   ) :: self
+    type (enumerationVerbosityLevelType), intent(in   ) :: verbosityLevel 
+    !$GLC attributes unused :: self, verbosityLevel
 
     return
   end subroutine Node_Component_Dump_Null
