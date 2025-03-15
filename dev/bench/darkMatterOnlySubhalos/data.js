@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1742041023810,
+  "lastUpdate": 1742041034421,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "ae9ddd16decd3d03a25d12d10e5dd825de933cd8",
-          "message": "fix: Correct storage/retrieval of reduced emission line luminosity data to/from file\n\nThe reduced emission line luminosity tables are stored to file, but this wasn't being done correctly. This could have resulted in:\n   1. The wrong lines being used if the order (or number) of lines in the lineNames parameter was changed;\n   2. These files failing to update if the Cloudy table was updated.\nThis is now corrected for both of these issues.\n\nAdditionally, the name of the Cloudy table file is now specified in the parameter file. This allows using different Cloudy tables (e.g. for different SSPs).",
-          "timestamp": "2024-06-10T08:49:48-07:00",
-          "tree_id": "fafdcffa3b5e6dca84fe0618ebda603ca4c57fb3",
-          "url": "https://github.com/galacticusorg/galacticus/commit/ae9ddd16decd3d03a25d12d10e5dd825de933cd8"
-        },
-        "date": 1718052803088,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 16.7265081843387,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 9.59627237081164,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 20391.9532745315,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8736,6 +8697,45 @@ window.BENCHMARK_DATA = {
             "value": 54.754,
             "unit": "seconds",
             "range": 0.155519773662558
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b6d0f9785f667e2dd2bdd50699482db27aa2269b",
+          "message": "Merge pull request #815 from galacticusorg/fixUnphysicalMergerHost\n\nAdd option to ignore unphysical merger host galaxy when computing merger remnant size",
+          "timestamp": "2025-03-15T05:49:24Z",
+          "tree_id": "235fb1052e47647ed31908987052f0af1398ec94",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b6d0f9785f667e2dd2bdd50699482db27aa2269b"
+        },
+        "date": 1742041033154,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": "17.137970966619967",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": "9.802330157284823",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": "22384.574612536675",
+            "unit": "-logℒ"
           }
         ]
       }
