@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1741961908673,
+  "lastUpdate": 1742041089064,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=20 km/s)": [
@@ -813,6 +813,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
             "value": "106.81156088123639",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b6d0f9785f667e2dd2bdd50699482db27aa2269b",
+          "message": "Merge pull request #815 from galacticusorg/fixUnphysicalMergerHost\n\nAdd option to ignore unphysical merger host galaxy when computing merger remnant size",
+          "timestamp": "2025-03-15T05:49:24Z",
+          "tree_id": "235fb1052e47647ed31908987052f0af1398ec94",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b6d0f9785f667e2dd2bdd50699482db27aa2269b"
+        },
+        "date": 1742041088286,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - mass function",
+            "value": "8.688288279729854",
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
+            "value": "5.0623613097380895",
             "unit": "-logℒ"
           }
         ]
