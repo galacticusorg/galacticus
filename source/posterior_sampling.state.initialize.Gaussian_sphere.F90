@@ -132,8 +132,8 @@ contains
     double precision                                                                                                 :: distributionMinimum  , distributionMaximum, &
          &                                                                                                              distributionMedian   , radius
     integer                                                                                                          :: j
-    logical :: first
-    !$GLC attributes unused ::  self, modelLikelihood
+    logical                                                                                                          :: first
+    !$GLC attributes unused :: modelLikelihood
 
     ! No knowledge of evaluation time.
     timeEvaluatePrevious=-1.0d0
