@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an N-body data operator which computes the inertia tensor eigenvalues and eigenvectors, along with axis ratios.
+Implements an N-body data operator which computes the inertia tensor eigenvalues and eigenvectors, along with axis ratios.
 !!}
 
   use, intrinsic :: ISO_C_Binding           , only : c_size_t

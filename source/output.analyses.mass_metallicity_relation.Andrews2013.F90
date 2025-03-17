@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a mass-metallicity relation analysis class.
+  Implements a mass-metallicity relation analysis class.
   !!}
 
   !![

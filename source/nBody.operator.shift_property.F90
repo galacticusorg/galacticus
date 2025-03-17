@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements an N-body data operator which shifts values of a property by an integer amount.
+  Implements an N-body data operator which shifts values of a property by an integer amount.
   !!}
   
   !![

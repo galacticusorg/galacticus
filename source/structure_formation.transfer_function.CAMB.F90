@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a transfer function class using the CAMB code.
+Implements a transfer function class using the CAMB code.
 !!}
 
   use :: Dark_Matter_Particles, only : darkMatterParticleClass

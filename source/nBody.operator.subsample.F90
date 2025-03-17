@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an N-body data operator which subsamples points at a given rate.
+Implements an N-body data operator which subsamples points at a given rate.
 !!}
 
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass

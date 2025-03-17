@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a merger tree operator which prunes all branches which do not contain an ``essential''
+  Implements a merger tree operator which prunes all branches which do not contain an ``essential''
   node.
   !!}
 

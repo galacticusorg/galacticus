@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a dark matter halo mass function class which modifies another mass function by convolving
+Implements a dark matter halo mass function class which modifies another mass function by convolving
 with a mass-dependent error.
 !!}
 

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements an output analysis class for the star forming main sequence measurements of \cite{wagner_evolution_2016}.
+  Implements an output analysis class for the star forming main sequence measurements of \cite{wagner_evolution_2016}.
   !!}
 
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass

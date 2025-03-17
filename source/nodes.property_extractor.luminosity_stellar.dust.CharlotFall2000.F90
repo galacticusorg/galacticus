@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a stellar luminosity output analysis property extractor class which applies the dust model of \cite{charlot_simple_2000}.
+Implements a stellar luminosity output analysis property extractor class which applies the dust model of \cite{charlot_simple_2000}.
 !!}
 
   use :: ISO_Varying_String, only : varying_string

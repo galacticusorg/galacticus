@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a filtered node operator class.
+  Implements a filtered node operator class.
   !!}
 
   use :: Galactic_Filters, only : galacticFilterClass

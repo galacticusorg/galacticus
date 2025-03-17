@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a critical overdensity for collapse using the \gls{fdm} modifier of \cite{marsh_warmAndFuzzy_2016}.
+  Implements a critical overdensity for collapse using the \gls{fdm} modifier of \cite{marsh_warmAndFuzzy_2016}.
   !!}
   use :: Cosmology_Parameters   , only : cosmologyParametersClass
   use :: Dark_Matter_Particles  , only : darkMatterParticleClass

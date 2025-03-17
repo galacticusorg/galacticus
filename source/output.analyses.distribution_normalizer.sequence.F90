@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a sequence of normalizers on on-the-fly outputs.
+  Implements a sequence of normalizers on on-the-fly outputs.
   !!}
 
   !![

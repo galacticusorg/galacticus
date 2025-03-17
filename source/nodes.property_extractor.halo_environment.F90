@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a node property extractor class for halo environment.
+Implements a node property extractor class for halo environment.
 !!}
 
   use :: Cosmological_Density_Field, only : haloEnvironment, haloEnvironmentClass

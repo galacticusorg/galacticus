@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a transfer function class based on the non-cold dark matter fitting function of
+  Implements a transfer function class based on the non-cold dark matter fitting function of
   \cite{murgia_non-cold_2017}.
   !!}
 

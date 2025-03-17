@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a sharp $k$-space power spectrum window function class.
+Implements a sharp $k$-space power spectrum window function class.
 !!}
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 

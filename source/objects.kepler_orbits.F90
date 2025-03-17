@@ -290,69 +290,70 @@ contains
     return
   end subroutine Kepler_Orbits_Builder
 
-  subroutine Kepler_Orbits_Dump(self)
+  subroutine Kepler_Orbits_Dump(self,verbosityLevel)
     !!{
     Reset an orbit to a null state.
     !!}
-    use :: Display           , only : displayMessage
+    use :: Display           , only : displayMessage, enumerationVerbosityLevelType
     use :: ISO_Varying_String, only : assignment(=) , varying_string
     implicit none
-    class    (keplerOrbit   ), intent(in   ) :: self
-    character(len=22        )                :: label
-    type     (varying_string)                :: message
+    class    (keplerOrbit                  ), intent(in   ) :: self
+    type     (enumerationVerbosityLevelType), intent(in   ) :: verbosityLevel
+    character(len=22                       )                :: label
+    type     (varying_string               )                :: message
 
     if (self%massesIsSet             ) then
        write (label,'(e22.16)') self%massHostValue
        message='host mass:             '//label
-       call displayMessage(message)
+       call displayMessage(message,verbosityLevel)
        write (label,'(e22.16)') self%specificReducedMassValue
        message='specific reduced mass: '//label
-       call displayMessage(message)
+       call displayMessage(message,verbosityLevel)
     end if
     if (self%radiusIsSet             ) then
        write (label,'(e22.16)') self%radiusValue
        message='radius:                '//label
-       call displayMessage(message)
+       call displayMessage(message,verbosityLevel)
     end if
     if (self%radiusPericenterIsSet   ) then
        write (label,'(e22.16)') self%radiusPericenterValue
        message='radius pericenter:     '//label
-       call displayMessage(message)
+       call displayMessage(message,verbosityLevel)
     end if
     if (self%radiusApocenterIsSet   ) then
        write (label,'(e22.16)') self%radiusApocenterValue
        message='radius apocenter:      '//label
-       call displayMessage(message)
+       call displayMessage(message,verbosityLevel)
     end if
     if (self%velocityRadialIsSet    ) then
        write (label,'(e22.16)') self%velocityRadialValue
        message='velocity radial:       '//label
-       call displayMessage(message)
+       call displayMessage(message,verbosityLevel)
     end if
     if (self%velocityTangentialIsSet) then
        write (label,'(e22.16)') self%velocityTangentialValue
        message='velocity tangential:   '//label
-       call displayMessage(message)
+       call displayMessage(message,verbosityLevel)
     end if
     if (self%angularMomentumIsSet   ) then
        write (label,'(e22.16)') self%angularMomentumValue
        message='angular momentum:      '//label
-       call displayMessage(message)
+       call displayMessage(message,verbosityLevel)
     end if
     if (self%energyIsSet            ) then
        write (label,'(e22.16)') self%energyValue
        message='energy:                '//label
-       call displayMessage(message)
+       call displayMessage(message,verbosityLevel)
     end if
     if (self%eccentricityIsSet      ) then
        write (label,'(e22.16)') self%eccentricityValue
        message='eccentricity:          '//label
-       call displayMessage(message)
+       call displayMessage(message,verbosityLevel)
     end if
     if (self%semimajorAxisIsSet     ) then
        write (label,'(e22.16)') self%semimajorAxisValue
        message='semi-major axis:       '//label
-       call displayMessage(message)
+       call displayMessage(message,verbosityLevel)
     end if
     return
   end subroutine Kepler_Orbits_Dump

@@ -18,8 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements the transfer function fitting function of
-  \cite{bardeen_statistics_1986}.
+  Implements the transfer function fitting function of \cite{bardeen_statistics_1986}.
   !!}
 
   use :: Cosmology_Functions  , only : cosmologyFunctionsClass

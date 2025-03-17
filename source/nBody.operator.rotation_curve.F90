@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an N-body data operator which computes the rotation curve at a set of given radii.
+Implements an N-body data operator which computes the rotation curve at a set of given radii.
 !!}
 
   use, intrinsic :: ISO_C_Binding           , only : c_size_t

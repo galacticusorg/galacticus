@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a merger tree operator which restructures the tree onto a fixed grid of timesteps.
+  Implements a merger tree operator which restructures the tree onto a fixed grid of timesteps.
   !!}
 
   use :: Output_Times, only : outputTimesClass

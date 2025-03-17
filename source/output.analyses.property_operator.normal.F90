@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a property operator class in which the property value is replaced with an integral over a
+  Implements a property operator class in which the property value is replaced with an integral over a
   normal distribution between given limits, using the property value at the mean of the distribution.
   !!}
 

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a multiplication analysis property operator class.
+Implements a multiplication analysis property operator class.
 !!}
 
   !![

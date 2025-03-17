@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a merger tree filter which always passes.
+Implements a merger tree filter which always passes.
 !!}
 
   !![

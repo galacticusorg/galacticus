@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a stellar feedback mass outflow rate property extractor class.
+  Implements a stellar feedback mass outflow rate property extractor class.
   !!}
 
   use :: Stellar_Feedback_Outflows     , only : stellarFeedbackOutflowsClass

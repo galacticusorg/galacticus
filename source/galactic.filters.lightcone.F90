@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a galactic filter on lightcone geometry.
+Implements a galactic filter on lightcone geometry.
 !!}
 
   use :: Geometry_Lightcones, only : geometryLightconeClass

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements an augmenting operator on merger trees.
+  Implements an augmenting operator on merger trees.
   !!}
   use            :: Cosmology_Functions  , only : cosmologyFunctionsClass
   use, intrinsic :: ISO_C_Binding        , only : c_size_t

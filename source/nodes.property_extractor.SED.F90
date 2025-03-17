@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a property extractor class for the SED of a component.
+  Implements a property extractor class for the SED of a component.
   !!}
   use :: Cosmology_Functions                   , only : cosmologyFunctionsClass
   use :: Galactic_Structure_Options            , only : enumerationComponentTypeType

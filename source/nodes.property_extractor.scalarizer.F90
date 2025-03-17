@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an output analysis property extractor class that scalarizes one element from an array node property extractor.
+Implements an output analysis property extractor class that scalarizes one element from an array node property extractor.
 !!}
 
   !![

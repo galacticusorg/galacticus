@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a dark matter halo mass function class which handles the transition through the environment
+Implements a dark matter halo mass function class which handles the transition through the environment
 mass scale.
 !!}
 

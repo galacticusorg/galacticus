@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a transfer function class based on the thermal \gls{wdm} modifier of \cite{bode_halo_2001}.
+Implements a transfer function class based on the thermal \gls{wdm} modifier of \cite{bode_halo_2001}.
 !!}
 
   use :: Cosmology_Functions  , only : cosmologyFunctionsClass

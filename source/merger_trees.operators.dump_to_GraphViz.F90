@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a dump to \gls{graphviz} operator on merger trees.
+Implements a dump to \gls{graphviz} operator on merger trees.
 !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass

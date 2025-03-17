@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a galactic high-pass filter for total star formation rate.
+Implements a galactic high-pass filter for total star formation rate.
 !!}
 
   use :: Star_Formation_Rates_Disks                , only : starFormationRateDisksClass

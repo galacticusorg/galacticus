@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a nonlinear power spectrum class in which the nonlinear power spectrum is just the linear
+Implements a nonlinear power spectrum class in which the nonlinear power spectrum is just the linear
 power spectrum. Intended primarily for testing purposes.
 !!}
 

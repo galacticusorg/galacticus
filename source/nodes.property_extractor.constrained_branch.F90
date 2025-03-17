@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a node property extractor which reports if a node is drawn from the constrained branching rate solution.
+  Implements a node property extractor which reports if a node is drawn from the constrained branching rate solution.
   !!}
 
   !![

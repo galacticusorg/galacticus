@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements an output analysis distribution operator class to account for errors on N-body measurements of halo spin.
+  Implements an output analysis distribution operator class to account for errors on N-body measurements of halo spin.
   !!}
 
   use :: Halo_Spin_Distributions, only : haloSpinDistributionClass

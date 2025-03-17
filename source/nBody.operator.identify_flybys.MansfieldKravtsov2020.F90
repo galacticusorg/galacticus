@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an N-body data operator which identifies flyby halos following the algorithm of \cite{mansfield_three_2020}.
+Implements an N-body data operator which identifies flyby halos following the algorithm of \cite{mansfield_three_2020}.
 !!}
 
   !![

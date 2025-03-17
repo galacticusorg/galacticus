@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a halo mass output analysis property extractor class.
+Implements a halo mass output analysis property extractor class.
 !!}
 
   use :: Cosmology_Parameters    , only : cosmologyParametersClass

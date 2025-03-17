@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an output analysis property operator class which converts luminosity to absolute magnitude.
+Implements an output analysis property operator class which converts luminosity to absolute magnitude.
 !!}
 
   !![

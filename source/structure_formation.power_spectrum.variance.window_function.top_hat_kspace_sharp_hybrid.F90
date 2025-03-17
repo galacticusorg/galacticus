@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a hybrid top-hat/sharp $k$-space power spectrum window function class.
+  Implements a hybrid top-hat/sharp $k$-space power spectrum window function class.
   !!}
   
   use :: Cosmology_Parameters, only : cosmologyParametersClass

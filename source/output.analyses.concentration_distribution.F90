@@ -20,7 +20,7 @@
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !!{
-  Contains a module which implements a concentration distribution output analysis class.
+  Implements a concentration distribution output analysis class.
   !!}
 
   !![

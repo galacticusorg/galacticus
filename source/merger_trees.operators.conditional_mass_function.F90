@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a merger tree operator which accumulates conditional mass functions for trees.
+  Implements a merger tree operator which accumulates conditional mass functions for trees.
   !!}
 
   use    :: Cosmology_Functions              , only : cosmologyFunctionsClass

@@ -18,8 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a dark matter halo mass function class which averages another (presumably
-environment-dependent) mass function over environment.
+Implements a dark matter halo mass function class which averages another (presumably environment-dependent) mass function over
+environment.
 !!}
 
   use :: Cosmological_Density_Field, only : haloEnvironmentClass

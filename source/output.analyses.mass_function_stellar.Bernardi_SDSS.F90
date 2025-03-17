@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an output analysis class for the \cite{bernardi_massive_2013} stellar mass function.
+Implements an output analysis class for the \cite{bernardi_massive_2013} stellar mass function.
 !!}
 
 

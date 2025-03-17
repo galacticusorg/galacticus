@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an output analysis property extractor class that extracts a property from the host node of the given node.
+Implements an output analysis property extractor class that extracts a property from the host node of the given node.
 !!}
   
   !![

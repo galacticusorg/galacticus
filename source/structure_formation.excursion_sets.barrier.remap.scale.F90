@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an excursion set barrier class which remaps another class by multiplying by a constant.
+Implements an excursion set barrier class which remaps another class by multiplying by a constant.
 !!}
 
   !![

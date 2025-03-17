@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a transfer function class based on the \gls{wdm} modifier of \cite{bardeen_statistics_1986}.
+Implements a transfer function class based on the \gls{wdm} modifier of \cite{bardeen_statistics_1986}.
 !!}
 
   use :: Cosmology_Parameters , only : cosmologyParametersClass

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an orbital speed output analysis property extractor class.
+Implements an orbital speed output analysis property extractor class.
 !!}
 
   !![

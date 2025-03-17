@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a transfer function class based on the fuzzy dark matter modifier of \cite{hu_fuzzy_2000}.
+  Implements a transfer function class based on the fuzzy dark matter modifier of \cite{hu_fuzzy_2000}.
   !!}
 
   use :: Cosmology_Functions  , only : cosmologyFunctionsClass

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a filter which passes only nodes that lie within a survey geometry.
+Implements a filter which passes only nodes that lie within a survey geometry.
 !!}
 
   use :: Geometry_Surveys        , only : surveyGeometryClass
