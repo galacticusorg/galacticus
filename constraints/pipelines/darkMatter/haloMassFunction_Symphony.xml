@@ -33,21 +33,9 @@
   <haloMassFunction value="accelerator">
     <haloMassFunction value="detectionEfficiency">
       <massMinimum             value="=[detectionMassMinimumParticleCount]*[simulation/massParticle]" />
-      <efficiencyAtMassMinimum value="=[detectionEfficiencyAtMassMinimum]"                             />
-      <exponentMass            value="=[detectionExponentMass]"                                        />
-      <exponentRedshift        value="=[detectionExponentRedshift]"                                    />
-      <!-- Pseudo-halo mass function -->
-      <haloMassFunction value="pseudoHalos">
-	<massZeroPointReference value="1.00000e07"                                                     /> <!-- Arbitrary, but convenient mass scale                               -->
-	<massParticleReference  value="5.03538e04"                                                     /> <!-- Chosen to equal the particle mass for hi-res Milky Way simulations -->
-	<massParticle           value="=[simulation/massParticle]"                                    />
-	<countParticleMinimum   value="=100"/>
-	<normalization          value="=[haloMassFunctionParameters/normalizationPseudoHalos]"        />
-	<exponentMassParticle   value="=[haloMassFunctionParameters/exponentMassParticlePseudoHalos]" />
-	<exponentNormalization  value="=[haloMassFunctionParameters/exponentNormalizationPseudoHalos]"/>
-	<exponentMass           value="=[haloMassFunctionParameters/exponentMassPseudoHalos]"         />
-	<exponentRedshift       value="=[haloMassFunctionParameters/exponentRedshiftPseudoHalos]"     />
-	<exponentOverdensity    value="=[haloMassFunctionParameters/exponentOverdensityPseudoHalos]"  />
+      <efficiencyAtMassMinimum value="=[detectionEfficiencyAtMassMinimum]"                            />
+      <exponentMass            value="=[detectionExponentMass]"                                       />
+      <exponentRedshift        value="=[detectionExponentRedshift]"                                   />
 	<haloMassFunction value="multiplier">
 	  <multiplier       value="=[isolationBias]"        />
 	  <exponentRedshift value="=[isolationBiasExponent]"/>
@@ -64,7 +52,7 @@
 	    </haloMassFunction>
 	  </haloMassFunction>
 	</haloMassFunction>
-      </haloMassFunction>
+      
     </haloMassFunction>
   </haloMassFunction>
   

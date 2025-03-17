@@ -27,6 +27,10 @@
     <wavenumberScaledMinimum     value="=[haloMassFunctionParameters/wavenumberScaledMinimum]"    />
     <powerSpectrumSmoothingWidth value="=[haloMassFunctionParameters/powerSpectrumSmoothingWidth]"/>
   </powerSpectrumWindowFunction>
+  <cosmologicalMassVariance value="artificialHalos">
+    <normalization value="=[haloMassFunctionParameters/artificialNormalization]"                            />
+    <exponent      value="=[haloMassFunctionParameters/artificialExponent]"                                 />
+    <massZeroPoint value="=[haloMassFunctionParameters/artificialCountParticles]*[simulation/massParticle]"/>
   <cosmologicalMassVariance value="peakBackgroundSplit">
     <cosmologicalMassVariance value="filteredPower">
       <sigma_8                   value="0.820" />
@@ -35,7 +39,9 @@
       <nonMonotonicIsFatal       value="false" />
       <monotonicInterpolation    value="true"  />
       <integrationFailureIsFatal value="false" />
+      <storeTabulations          value="false" />
     </cosmologicalMassVariance>
+  </cosmologicalMassVariance>
   </cosmologicalMassVariance>
   <powerSpectrumPrimordialTransferred value="simple"/>
 
@@ -48,6 +54,7 @@
       <nonMonotonicIsFatal       value="false" />
       <monotonicInterpolation    value="true"  />
       <integrationFailureIsFatal value="false" />
+      <storeTabulations          value="false" />
     </cosmologicalMassVariance>
   </powerSpectrumSimulation>
 

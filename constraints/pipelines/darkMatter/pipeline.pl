@@ -23,10 +23,13 @@ use Galacticus::Constraints::Parameters;
 
 # Get command line options.
 my %options;
-$options{'outputDirectory'} = getcwd()."/pipeline";
-$options{'updateResults'  } = "yes";
-$options{'callgrind'      } = "no";
-$options{'generateContent'} = "yes";
+$options{'outputDirectory'       } = getcwd()."/pipeline";
+$options{'updateResults'         } = "yes";
+$options{'writeParameters'       } = "yes";
+$options{'callgrind'             } = "no";
+$options{'generateContent'       } = "yes";
+$options{'haloMassFunction:nodes'} = 16;
+$options{'haloMassFunction:ppn'  } = 32;
 &Galacticus::Options::Parse_Options(\@ARGV,\%options);
 
 # Specify the pipeline path.
@@ -47,10 +50,10 @@ my $xml = new XML::Simple();
 my @tasks =
     (
      {
-	 label       => "haloMassFunction",
-	 ppn         => 16                ,
-	 nodes       =>  6                ,
-	 postprocess =>  1
+	 label       => "haloMassFunction"                ,
+	 ppn         => $options{'haloMassFunction:ppn'  },
+	 nodes       => $options{'haloMassFunction:nodes'},
+	 postprocess => 1
      },
      # {
      # 	 label        => "progenitorMassFunction"                            ,
@@ -107,7 +110,7 @@ foreach my $task ( @tasks ) {
 	system($pipelinePath.$task->{'label'}."GenerateContent.pl --pipelinePath ".$pipelinePath.&Galacticus::Options::Serialize_Options(\%options));
 	print "  ...done\n";
     }
-    
+
     # Construct the post-processing command and write to file.
     my $postProcessCommand = $pipelinePath.$task->{'label'}."PostProcess.pl --pipelinePath ".$pipelinePath.&Galacticus::Options::Serialize_Options(\%options);
     open(my $postProcessCommandFile,">",$options{'outputDirectory'}."/postProcessCommand.txt");
@@ -120,20 +123,27 @@ foreach my $task ( @tasks ) {
     my $config = $xml->XMLin($configFileName);
     my $parser = XML::LibXML->new();
     foreach my $likelihoodModel ( &List::ExtraUtils::as_array($config->{'posteriorSampleLikelihood'}->{'posteriorSampleLikelihood'}) ) {
-	my $baseFileName = $likelihoodModel->{'baseParametersFileName'}->{'value'};
+	my $likelihoodModel_ = $likelihoodModel;
+	while ( exists($likelihoodModel_->{'posteriorSampleLikelihood'}) ) {
+	    $likelihoodModel_ = $likelihoodModel_->{'posteriorSampleLikelihood'};
+	}
+	my $baseFileName = $likelihoodModel_->{'baseParametersFileName'}->{'value'};
 	my $dom          = $parser->load_xml(location => $baseFileName);
 	$parser->process_xincludes($dom);
-	$likelihoodModel->{'baseParameters'} = $xml->XMLin($dom->serialize());
+	$likelihoodModel->{'baseParametersFileName'}->{'value'} = $baseFileName;
+	$likelihoodModel->{'baseParameters'        }            = $xml->XMLin($dom->serialize());
     }
    
     # Copy in current best parameters.
     &applyParameters($config,\%parametersDetermined);
     print "  ...done\n";
     
-    # Write out modified config and base parameter files.\
-    print "  Writing updated parameter files...\n";
-    &writeParameters($config);
-    print "  ...done\n";
+    # Write out modified config and base parameter files.
+    if ( $options{'writeParameters'} eq "yes" ) {
+	print "  Writing updated parameter files...\n";
+	&writeParameters($config);
+	print "  ...done\n";
+    }
 
     # Create the MCMC job.
     my $job;
@@ -196,10 +206,12 @@ foreach my $task ( @tasks ) {
     }
 
     # Copy in new best parameters.
-    print "  Updating parameter files...\n";
-    &applyParameters($config,\%parametersDetermined);
-    &writeParameters($config                       );
-    print "  ...done\n";
+    if ( $options{'writeParameters'} eq "yes" ) {
+	print "  Updating parameter files...\n";
+	&applyParameters($config,\%parametersDetermined);
+	&writeParameters($config                       );
+	print "  ...done\n";
+    }
     
     # Postprocess the results.
     if ( $task->{'postprocess'} ) {
