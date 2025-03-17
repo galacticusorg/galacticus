@@ -802,7 +802,7 @@ contains
     type            (varying_string                       ), save                        :: message
     character       (len=12                               )                              :: label                     , labelLow               , &
          &                                                                                  labelHigh                 , labelTarget
-    ! The variable "message" is saved (and made threadprivate) as its destructor is expensive, and this functions gets called a
+    ! The variable "message" is saved (and made threadprivate) as its destructor is expensive, and this function gets called a
     ! lot.
     !$omp threadprivate(message)
 
@@ -1457,51 +1457,52 @@ contains
        self%initialized                =.true.
     end if
     !$omp end critical(cosmologicalMassVarianceFilteredPowerCache)
-    if (useCache /= 0) return
-    ! Return immediately if we are not using stored solutions.
-    if (.not.self%storeTabulations) return
-     ! Return immediately if the file does not exist.
-    if (.not.File_Exists(char(self%fileName))) return
-    call displayMessage('reading σ(M) data from: '//self%fileName,verbosityLevelWorking)
-    !$ call hdf5Access%set()
-    call dataFile%openFile     (char(self%fileName)          ,overWrite                       =.false.,readOnly=.true.)
-    call dataFile%readDataset  ('times'                      ,     timesTmp                                           )
-    call dataFile%readDataset  ('mass'                       ,     massTmp                                            )
-    call dataFile%readDataset  ('rootVariance'               ,     rootVarianceTmp                                    )
-    call dataFile%readDataset  ('rootVarianceUnique'         ,     rootVarianceUniqueTmp                              )
-    call dataFile%readDataset  ('indexUnique'                ,     indexTmp                                           )
-    call dataFile%readDataset  ('uniqueSize'                 ,     uniqueSizeTmp                                      )
-    call dataFile%readAttribute('sigma8'                     ,self%sigma8Value                                        )
-    call dataFile%readAttribute('sigmaNormalization'         ,self%sigmaNormalization                                 )
-    call dataFile%readAttribute('massMinimum'                ,self%massMinimum                                        )
-    call dataFile%readAttribute('massMaximum'                ,self%massMaximum                                        )
-    call dataFile%readAttribute('timeMinimum'                ,self%timeMinimum                                        )
-    call dataFile%readAttribute('timeMaximum'                ,self%timeMaximum                                        )
-    call dataFile%readAttribute('timeMinimumLogarithmic'     ,self%timeMinimumLogarithmic                             )
-    call dataFile%readAttribute('timeLogarithmicDeltaInverse',self%timeLogarithmicDeltaInverse                        )
-    call dataFile%close        (                                                                                      )
-    !$ call hdf5Access%unset()
-    ! Cache this variance for possible later reuse.
-    !$omp critical(cosmologicalMassVarianceFilteredPowerCache)
-    lastCache=lastCache+1
-    if (lastCache > sizeCache) lastCache=1
-    countCache=max(countCache,lastCache)
-    cachedVariances(lastCache)%fileName                   =self%fileName
-    cachedVariances(lastCache)%timesTmp                   =     timesTmp
-    cachedVariances(lastCache)%massTmp                    =     massTmp
-    cachedVariances(lastCache)%rootVarianceTmp            =     rootVarianceTmp
-    cachedVariances(lastCache)%rootVarianceUniqueTmp      =     rootVarianceUniqueTmp
-    cachedVariances(lastCache)%indexTmp                   =     indexTmp
-    cachedVariances(lastCache)%uniqueSizeTmp              =     uniqueSizeTmp
-    cachedVariances(lastCache)%sigma8Value                =self%sigma8Value
-    cachedVariances(lastCache)%sigmaNormalization         =self%sigmaNormalization
-    cachedVariances(lastCache)%massMinimum                =self%massMinimum
-    cachedVariances(lastCache)%massMaximum                =self%massMaximum
-    cachedVariances(lastCache)%timeMinimum                =self%timeMinimum
-    cachedVariances(lastCache)%timeMaximum                =self%timeMaximum
-    cachedVariances(lastCache)%timeMinimumLogarithmic     =self%timeMinimumLogarithmic
-    cachedVariances(lastCache)%timeLogarithmicDeltaInverse=self%timeLogarithmicDeltaInverse
-    !$omp end critical(cosmologicalMassVarianceFilteredPowerCache)
+    if (useCache == 0) then
+       ! Return if we are not using stored solutions.
+       if (.not.self%storeTabulations) return
+       ! Return if the file does not exist.
+       if (.not.File_Exists(char(self%fileName))) return
+       call displayMessage('reading σ(M) data from: '//self%fileName,verbosityLevelWorking)
+       !$ call hdf5Access%set()
+       call dataFile%openFile     (char(self%fileName)          ,overWrite                       =.false.,readOnly=.true.)
+       call dataFile%readDataset  ('times'                      ,     timesTmp                                           )
+       call dataFile%readDataset  ('mass'                       ,     massTmp                                            )
+       call dataFile%readDataset  ('rootVariance'               ,     rootVarianceTmp                                    )
+       call dataFile%readDataset  ('rootVarianceUnique'         ,     rootVarianceUniqueTmp                              )
+       call dataFile%readDataset  ('indexUnique'                ,     indexTmp                                           )
+       call dataFile%readDataset  ('uniqueSize'                 ,     uniqueSizeTmp                                      )
+       call dataFile%readAttribute('sigma8'                     ,self%sigma8Value                                        )
+       call dataFile%readAttribute('sigmaNormalization'         ,self%sigmaNormalization                                 )
+       call dataFile%readAttribute('massMinimum'                ,self%massMinimum                                        )
+       call dataFile%readAttribute('massMaximum'                ,self%massMaximum                                        )
+       call dataFile%readAttribute('timeMinimum'                ,self%timeMinimum                                        )
+       call dataFile%readAttribute('timeMaximum'                ,self%timeMaximum                                        )
+       call dataFile%readAttribute('timeMinimumLogarithmic'     ,self%timeMinimumLogarithmic                             )
+       call dataFile%readAttribute('timeLogarithmicDeltaInverse',self%timeLogarithmicDeltaInverse                        )
+       call dataFile%close        (                                                                                      )
+       !$ call hdf5Access%unset()
+       ! Cache this variance for possible later reuse.
+       !$omp critical(cosmologicalMassVarianceFilteredPowerCache)
+       lastCache=lastCache+1
+       if (lastCache > sizeCache) lastCache=1
+       countCache=max(countCache,lastCache)
+       cachedVariances(lastCache)%fileName                   =self%fileName
+       cachedVariances(lastCache)%timesTmp                   =     timesTmp
+       cachedVariances(lastCache)%massTmp                    =     massTmp
+       cachedVariances(lastCache)%rootVarianceTmp            =     rootVarianceTmp
+       cachedVariances(lastCache)%rootVarianceUniqueTmp      =     rootVarianceUniqueTmp
+       cachedVariances(lastCache)%indexTmp                   =     indexTmp
+       cachedVariances(lastCache)%uniqueSizeTmp              =     uniqueSizeTmp
+       cachedVariances(lastCache)%sigma8Value                =self%sigma8Value
+       cachedVariances(lastCache)%sigmaNormalization         =self%sigmaNormalization
+       cachedVariances(lastCache)%massMinimum                =self%massMinimum
+       cachedVariances(lastCache)%massMaximum                =self%massMaximum
+       cachedVariances(lastCache)%timeMinimum                =self%timeMinimum
+       cachedVariances(lastCache)%timeMaximum                =self%timeMaximum
+       cachedVariances(lastCache)%timeMinimumLogarithmic     =self%timeMinimumLogarithmic
+       cachedVariances(lastCache)%timeLogarithmicDeltaInverse=self%timeLogarithmicDeltaInverse
+       !$omp end critical(cosmologicalMassVarianceFilteredPowerCache)
+    end if
     if (allocated(self%times                  )) deallocate(self%times                  )
     if (allocated(self%rootVarianceTable      )) deallocate(self%rootVarianceTable      )
     if (allocated(self%rootVarianceUniqueTable)) deallocate(self%rootVarianceUniqueTable)
