@@ -158,7 +158,7 @@ contains
     logLikelihood        =logImpossible
     logPosterior         =logImpossible
     timeEvaluatePrevious_=0.0d0
-     ! Allocate the state vector.
+    ! Allocate the state vector.
     allocate(stateVector_              (simulationState%dimension()))
     allocate(stateVector               (simulationState%dimension()))
     allocate(stateVectorMapped         (simulationState%dimension()))
@@ -223,6 +223,10 @@ contains
        end do
     end do
     ! Set the simulation state.
-    call simulationState%update(stateVectorMapped,.false.,.false.)
+    call simulationState%update(stateVectorMappedPerturbed,.false.,.false.)
+    ! Reset likelihoods - we do not want to assume that these will be the same as in the prior model.
+    logLikelihood       =logImpossible
+    logPosterior        =logImpossible
+    timeEvaluatePrevious=-1.0d0
     return
   end subroutine posteriorMaximumGaussianSphereInitialize
