@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a galactic filter which applies another filter to all descendant nodes of the given node and
+  Implements a galactic filter which applies another filter to all descendant nodes of the given node and
   passes if any primary descendant passes.  
   !!}
   

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an N-body data operator which determines the kinetic and Chandrasekhar potential energy tensors.
+Implements an N-body data operator which determines the kinetic and Chandrasekhar potential energy tensors.
 !!}
 
   use, intrinsic :: ISO_C_Binding           , only : c_size_t

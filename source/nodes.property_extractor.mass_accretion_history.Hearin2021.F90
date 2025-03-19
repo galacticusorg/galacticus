@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a node property extractor class for parameters of the \cite{hearin_differentiable_2021} mass accretion history model.
+Implements a node property extractor class for parameters of the \cite{hearin_differentiable_2021} mass accretion history model.
 !!}!
 
   !![

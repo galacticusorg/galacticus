@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements an N-body data operator which sets the box size of the data set.
+  Implements an N-body data operator which sets the box size of the data set.
   !!}
   
   !![

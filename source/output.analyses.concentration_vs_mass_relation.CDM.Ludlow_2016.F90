@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a concentration vs. halo mass analysis class matched to the
+  Implements a concentration vs. halo mass analysis class matched to the
   \cite{ludlow_mass-concentration-redshift_2016} CDM sample.
   !!}
 

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a subsampling weight operator class.
+Implements a subsampling weight operator class.
 !!}
 
   !![

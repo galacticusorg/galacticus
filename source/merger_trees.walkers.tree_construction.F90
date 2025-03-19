@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a tree walker for trees under construction.
+  Implements a tree walker for trees under construction.
   !!}
   use :: Galacticus_Nodes, only : mergerTree, treeNode
 

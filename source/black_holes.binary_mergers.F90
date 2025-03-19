@@ -37,7 +37,7 @@ module Black_Hole_Binary_Mergers
    </description>
    <default>rezzolla2008</default>
    <method name="merge" >
-    <description>The the properties of the black hole resulting from a binary merger.</description>
+    <description>The properties of the black hole resulting from a binary merger.</description>
     <type>void</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: massBlackHoleA    , massBlackHoleB, spinBlackHoleA    , spinBlackHoleB</argument>

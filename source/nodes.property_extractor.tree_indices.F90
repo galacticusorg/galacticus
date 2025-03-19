@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements merger tree index property extractor class.
+Implements merger tree index property extractor class.
 !!}
 
   !![

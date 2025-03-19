@@ -20,7 +20,7 @@
   !+ Contributions to this file made by: Ivan Esteban
 
   !!{
-  Contains a module which implements a top-hat power spectrum window function class, convoluted with a Gaussian.
+  Implements a top-hat power spectrum window function class, convoluted with a Gaussian.
   !!}
 
   use :: Cosmology_Parameters, only : cosmologyParametersClass

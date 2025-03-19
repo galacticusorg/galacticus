@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a galactic high-pass filter for ISM gas fraction (i.e. ISM gas mass to stellar mass ratio).
+Implements a galactic high-pass filter for ISM gas fraction (i.e. ISM gas mass to stellar mass ratio).
 !!}
 
   !![

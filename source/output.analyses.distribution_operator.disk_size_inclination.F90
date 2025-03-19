@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements the effects of inclination on disk size in an output analysis distribution operator class.
+  Implements the effects of inclination on disk size in an output analysis distribution operator class.
   !!}
 
   use :: Tables, only : table1D, table1DLinearLinear

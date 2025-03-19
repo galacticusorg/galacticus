@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a galaxy size output analysis class for SDSS data.
+Implements a galaxy size output analysis class for SDSS data.
 !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass

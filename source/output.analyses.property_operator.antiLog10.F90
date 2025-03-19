@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an anti-$\log_{10}()$ output analysis property operator class.
+Implements an anti-$\log_{10}()$ output analysis property operator class.
 !!}
 
   !![

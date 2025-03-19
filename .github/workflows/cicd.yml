@@ -333,6 +333,7 @@ jobs:
           tags: ghcr.io/galacticusorg/galacticus:latest
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
+            REPO=${{ github.repository }}
             BRANCH=${{ github.head_ref || github.ref_name }}          
   ### Documentation
   Build-Documentation-Linux:
@@ -1121,6 +1122,7 @@ jobs:
                 test-splitForests.pl,
                 test-parameters-diff.py,
                 test-parameters-extract.py,
+                test-parameters-changes.py,
                 test-output-datasets-suffixes.py,
                 test-star-formation-histories.py,
                 test-star-formation-histories-adaptive.py,
@@ -1202,7 +1204,8 @@ jobs:
       fail-fast: false
       matrix:
         file: [ testSuite/parameters/mergerTreeEvolverThreaded.xml,
-                testSuite/parameters/constrainedMilkyWay.xml ]
+                testSuite/parameters/constrainedMilkyWay.xml,
+                testSuite/parameters/test-nuclear-star-cluster.xml ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
@@ -1320,7 +1323,7 @@ jobs:
     needs: Build-Executables-MPI-Linux
     uses: ./.github/workflows/testModel.yml
     with:
-      file: parameters/tutorials/mcmcConfig.xml
+      file: testSuite/parameters/mcmcConfig.xml
       artifact: galacticus-exec-MPI
       mpi: 1
       processesPerNode: 4

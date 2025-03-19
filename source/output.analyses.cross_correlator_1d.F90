@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a generic 1D volume function (i.e. number density of objects binned by some property, e.g. a
+Implements a generic 1D volume function (i.e. number density of objects binned by some property, e.g. a
 mass function) output analysis class.
 !!}
 

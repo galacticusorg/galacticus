@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a $\log_{10}\rightarrow \log$ output analysis distribution normalizer class.
+  Implements a $\log_{10}\rightarrow \log$ output analysis distribution normalizer class.
   !!}
 
   !![

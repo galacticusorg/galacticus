@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a concentration output analysis property extractor class.
+Implements a concentration output analysis property extractor class.
 !!}
 
   use :: Cosmology_Functions     , only : cosmologyFunctionsClass

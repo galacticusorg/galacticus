@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a galactic low-pass filter for time since the last major node merger.
+Implements a galactic low-pass filter for time since the last major node merger.
 !!}
 
   !![

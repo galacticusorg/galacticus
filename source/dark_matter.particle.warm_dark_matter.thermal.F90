@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a thermal warm dark matter particle class.
+Implements a thermal warm dark matter particle class.
 !!}
 
   use :: Cosmology_Parameters, only : cosmologyParametersClass

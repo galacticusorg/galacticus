@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements an N-body data operator which selects particles matching a list of integer properties.
+  Implements an N-body data operator which selects particles matching a list of integer properties.
   !!}
   
   !![

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a dark matter profile scale radius output analysis property extractor class.
+Implements a dark matter profile scale radius output analysis property extractor class.
 !!}
 
   !![

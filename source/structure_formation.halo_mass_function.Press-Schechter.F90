@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a \cite{press_formation_1974} dark matter halo mass function class.
+Implements a \cite{press_formation_1974} dark matter halo mass function class.
 !!}
   use :: Cosmological_Density_Field    , only : cosmologicalMassVarianceClass
   use :: Excursion_Sets_First_Crossings, only : excursionSetFirstCrossingClass

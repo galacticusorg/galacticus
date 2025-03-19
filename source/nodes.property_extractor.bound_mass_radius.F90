@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a property extractor class that extracts the radius enclosing the current bound mass.
+Implements a property extractor class that extracts the radius enclosing the current bound mass.
 !!}
 
   !![

@@ -18,13 +18,13 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a galactic high-pass filter for total stellar mass.
+Implements a galactic high-pass filter for total stellar mass.
 !!}
 
   !![
   <galacticFilter name="galacticFilterStellarMass">
    <description>
-   A galactic high-pass filter for stellar mass. Galaxies with a combined disk plus spheroid stellar mass greater than or equal
+   A galactic high-pass filter for stellar mass. Galaxies with a combined disk, spheroid, plus \gls{nsc} stellar mass greater than or equal
    to a fixed threshold, $M_{\star,0}=${\normalfont \ttfamily [massThreshold]}.
    </description>
   </galacticFilter>

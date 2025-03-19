@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a dark matter halo mass function class which modifies another mass function using a simple model for systematics.
+Implements a dark matter halo mass function class which modifies another mass function using a simple model for systematics.
 !!}
 
   !![

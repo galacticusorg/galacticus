@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a stellar mass function output analysis class for the PRIMUS survey of \cite{moustakas_primus:_2013}.
+Implements a stellar mass function output analysis class for the PRIMUS survey of \cite{moustakas_primus:_2013}.
 !!}
 
 

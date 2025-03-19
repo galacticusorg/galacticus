@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a galactic high-pass filter for spheroid stellar mass.
+Implements a galactic high-pass filter for spheroid stellar mass.
 !!}
 
   !![

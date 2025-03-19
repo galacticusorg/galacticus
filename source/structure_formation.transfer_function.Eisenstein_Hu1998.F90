@@ -18,8 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a transfer function class using the fitting function of
-  \cite{eisenstein_baryonic_1998}.
+  Implements a transfer function class using the fitting function of \cite{eisenstein_baryonic_1998}.
   !!}
 
   use :: Cosmology_Functions  , only : cosmologyFunctionsClass

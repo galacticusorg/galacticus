@@ -169,10 +169,11 @@ module Node_Component_Spheroid_Standard
   ! Storage for the star formation and stellar properties histories time range, used when extending this range.
   double precision, allocatable, dimension(:) :: starFormationHistoryTemplate   , stellarPropertiesHistoryTemplate
   !$omp threadprivate(starFormationHistoryTemplate,stellarPropertiesHistoryTemplate)
+
   ! Parameters controlling the physical implementation.
   double precision                            :: efficiencyEnergeticOutflow     , toleranceAbsoluteMass           , &
        &                                         toleranceRelativeMetallicity
-  logical                                     :: inactiveLuminositiesStellar
+  logical                                     :: inactiveLuminositiesStellar    , postStepZeroNegativeMasses
 
   ! Spheroid structural parameters.
   double precision                            :: ratioAngularMomentumScaleRadius
@@ -244,6 +245,12 @@ contains
          <name>inactiveLuminositiesStellar</name>
          <defaultValue>.false.</defaultValue>
          <description>Specifies whether or not spheroid stellar luminosities are inactive properties (i.e. do not appear in any ODE being solved).</description>
+         <source>subParameters</source>
+       </inputParameter>
+       <inputParameter>
+         <name>postStepZeroNegativeMasses</name>
+         <defaultValue>.true.</defaultValue>
+         <description>If true, negative masses will be zeroed after each ODE step. Note that this can lead to non-conservation of mass.</description>
          <source>subParameters</source>
        </inputParameter>
        !!]
@@ -474,8 +481,8 @@ contains
     type            (history              ), save                   :: historyStellar
     !$omp threadprivate(historyStellar)
 
-    ! Return immediately if this class is not in use.
-    if (.not.defaultSpheroidComponent%standardIsActive()) return
+    ! Return immediately if this class is not in use or if masses are not to be zeroed.
+    if (.not.defaultSpheroidComponent%standardIsActive().or..not.postStepZeroNegativeMasses) return
     ! Get the spheroid component.
     spheroid => node%spheroid()
     ! Check if an standard spheroid component exists.
@@ -725,7 +732,7 @@ contains
     starFormationHistory=self%starFormationHistory()
     ! Check if the range of this history is sufficient.
     if (starFormationHistory_%rangeIsSufficient(starFormationHistory,rate)) then
-       ! Range is sufficient, call the intrinsinc rate function.
+       ! Range is sufficient, call the intrinsic rate function.
        select type (self)
        class is (nodeComponentSpheroidStandard)
           call self%starFormationHistoryRateIntrinsic(rate)
@@ -1399,16 +1406,12 @@ contains
              end if
              specificAngularMomentum=ratioAngularMomentumScaleRadius*specificAngularMomentumMean
           end if
-          ! Associate the pointers with the appropriate property routines.
-          Radius_Get   => Node_Component_Spheroid_Standard_Radius_Solve
-          Radius_Set   => Node_Component_Spheroid_Standard_Radius_Solve_Set
-          Velocity_Get => Node_Component_Spheroid_Standard_Velocity_Solve
-          Velocity_Set => Node_Component_Spheroid_Standard_Velocity_Solve_Set
-       else
-          call Node_Component_Spheroid_Standard_Radius_Solve_Set  (node,0.0d0)
-          call Node_Component_Spheroid_Standard_Velocity_Solve_Set(node,0.0d0)
-          componentActive=.false.
        end if
+       ! Associate the pointers with the appropriate property routines.
+       Radius_Get   => Node_Component_Spheroid_Standard_Radius_Solve
+       Radius_Set   => Node_Component_Spheroid_Standard_Radius_Solve_Set
+       Velocity_Get => Node_Component_Spheroid_Standard_Velocity_Solve
+       Velocity_Set => Node_Component_Spheroid_Standard_Velocity_Solve_Set
     end select
     return
   end subroutine Node_Component_Spheroid_Standard_Radius_Solver

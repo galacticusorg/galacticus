@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a hot mode accretion fraction rate property extractor class.
+Implements a hot mode accretion fraction rate property extractor class.
 !!}
 
   use :: Accretion_Halos, only : accretionHalo, accretionHaloClass

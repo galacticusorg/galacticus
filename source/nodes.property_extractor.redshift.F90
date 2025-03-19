@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a redshift property extractor class.
+Implements a redshift property extractor class.
 !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass

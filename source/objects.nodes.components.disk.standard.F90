@@ -161,13 +161,15 @@ module Node_Component_Disk_Standard
   double precision                            :: toleranceAbsoluteMass                              , radiusStructureSolver               , &
        &                                         toleranceRelativeMetallicity
   logical                                     :: diskNegativeAngularMomentumAllowed                 , structureSolverUseCole2000Method    , &
-       &                                         inactiveLuminositiesStellar
+       &                                         inactiveLuminositiesStellar                        , postStepZeroNegativeMasses
 
   ! History of trial radii used to check for oscillations in the solution when solving for the structure of the disk.
   integer                                     :: radiusSolverIteration
   double precision, dimension(2)              :: radiusHistory
   !$omp threadprivate(radiusHistory,radiusSolverIteration)
-  ! The largest and smallest angular momentum, in units of that of a circular orbit at the virial radius, considered to be physically plausible for a disk.
+
+  ! The largest and smallest angular momentum, in units of that of a circular orbit at the virial radius, considered to be
+  ! physically plausible for a disk.
   double precision, parameter                 :: angularMomentumMaximum                    =1.0d+1
   double precision, parameter                 :: angularMomentumMinimum                    =1.0d-6
 
@@ -235,7 +237,7 @@ contains
        <inputParameter>
          <name>structureSolverUseCole2000Method</name>
          <defaultValue>.false.</defaultValue>
-         <description></description>
+         <description>If true, use the method described in \cite{cole_hierarchical_2000} to correct for difference between thin disk and spherical mass distributions when solving for disk radii.</description>
          <source>subParameters</source>
        </inputParameter>
        <inputParameter>
@@ -248,6 +250,12 @@ contains
          <name>inactiveLuminositiesStellar</name>
          <defaultValue>.false.</defaultValue>
          <description>Specifies whether or not disk stellar luminosities are inactive properties (i.e. do not appear in any ODE being solved).</description>
+         <source>subParameters</source>
+       </inputParameter>
+       <inputParameter>
+         <name>postStepZeroNegativeMasses</name>
+         <defaultValue>.true.</defaultValue>
+         <description>If true, negative masses will be zeroed after each ODE step. Note that this can lead to non-conservation of mass.</description>
          <source>subParameters</source>
        </inputParameter>
        !!]
@@ -489,8 +497,8 @@ contains
     type            (history            ), save                   :: historyStellar
     !$omp threadprivate(historyStellar)
     
-    ! Return immediately if this class is not in use.
-    if (.not.defaultDiskComponent%standardIsActive()) return
+    ! Return immediately if this class is not in use or if masses are not to be zeroed.
+    if (.not.defaultDiskComponent%standardIsActive().or..not.postStepZeroNegativeMasses) return
     ! Get the disk component.
     disk => node%disk()
     ! Check if an standard disk component exists.
@@ -1164,16 +1172,12 @@ contains
                   &                                  )                                                 &
                   )
           end if
-          ! Associate the pointers with the appropriate property routines.
-          Radius_Get   => Node_Component_Disk_Standard_Radius_Solve
-          Radius_Set   => Node_Component_Disk_Standard_Radius_Solve_Set
-          Velocity_Get => Node_Component_Disk_Standard_Velocity
-          Velocity_Set => Node_Component_Disk_Standard_Velocity_Set
-       else
-          call Node_Component_Disk_Standard_Radius_Solve_Set(node,0.0d0)
-          call Node_Component_Disk_Standard_Velocity_Set    (node,0.0d0)
-          componentActive=.false.
        end if
+       ! Associate the pointers with the appropriate property routines.
+       Radius_Get   => Node_Component_Disk_Standard_Radius_Solve
+       Radius_Set   => Node_Component_Disk_Standard_Radius_Solve_Set
+       Velocity_Get => Node_Component_Disk_Standard_Velocity
+       Velocity_Set => Node_Component_Disk_Standard_Velocity_Set
     end select
     return
   end subroutine Node_Component_Disk_Standard_Radius_Solver

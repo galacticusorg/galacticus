@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an intracluster medium Sunyaev-Zeldovich Compton-y parameter property extractor class.
+Implements an intracluster medium Sunyaev-Zeldovich Compton-y parameter property extractor class.
 !!}
   use :: Chemical_States        , only : chemicalState      , chemicalStateClass
   use :: Cosmology_Functions    , only : cosmologyFunctions , cosmologyFunctionsClass , enumerationDensityCosmologicalType

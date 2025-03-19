@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements the dark matter halo mass function class of \cite{ondaro-mallea_non-universality_2022} for non-universal
+Implements the dark matter halo mass function class of \cite{ondaro-mallea_non-universality_2022} for non-universal
 primordial power spectra and structure growth rates.
 !!}
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an interval pass filter on halo merger ratio.
+Implements an interval pass filter on halo merger ratio.
 !!}
 
   !![

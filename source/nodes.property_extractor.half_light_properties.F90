@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a half-light radii property extractor class.
+Implements a half-light radii property extractor class.
 !!}
 
   !![

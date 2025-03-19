@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a \cite{despali_universality_2015} dark matter halo mass function class.
+Implements a \cite{despali_universality_2015} dark matter halo mass function class.
 !!}
 
   use :: Cosmology_Functions    , only : cosmologyFunctionsClass

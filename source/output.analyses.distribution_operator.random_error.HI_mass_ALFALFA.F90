@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a random error output analysis distribution operator class providing errors in HI mass for
+  Implements a random error output analysis distribution operator class providing errors in HI mass for
   the ALFALFA survey.
   !!}
 

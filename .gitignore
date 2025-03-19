@@ -52,3 +52,4 @@ doc/GalacticusAccented.bib
 source/FFTlog
 source/texfrag
 __pycache__
+.DS_Store

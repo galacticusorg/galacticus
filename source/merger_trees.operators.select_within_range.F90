@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a select-within-range operator on the base nodes of merger trees.
+Implements a select-within-range operator on the base nodes of merger trees.
 !!}
 
   !![

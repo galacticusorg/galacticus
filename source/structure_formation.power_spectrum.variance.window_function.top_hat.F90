@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a top-hat power spectrum window function class.
+  Implements a top-hat power spectrum window function class.
   !!}
 
   use :: Cosmology_Parameters, only : cosmologyParametersClass

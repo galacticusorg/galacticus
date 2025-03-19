@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an N-body data operator which determines the acceleration of self-bound particles from unbound ones. The interaction between particles is computed using a tree method following \cite{barnes_hierarchical_1986}.
+Implements an N-body data operator which determines the acceleration of self-bound particles from unbound ones. The interaction between particles is computed using a tree method following \cite{barnes_hierarchical_1986}.
 !!}
 
   use, intrinsic :: ISO_C_Binding, only : c_size_t

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a concentration distribution output analysis class for COCO CDM data.
+  Implements a concentration distribution output analysis class for COCO CDM data.
   !!}
 
   !![
