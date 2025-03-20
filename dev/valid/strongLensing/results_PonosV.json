@@ -6,10 +6,10 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "b6d0f9785f667e2dd2bdd50699482db27aa2269b",
-        "message": "Merge pull request #815 from galacticusorg/fixUnphysicalMergerHost\n\nAdd option to ignore unphysical merger host galaxy when computing merger remnant size\n",
-        "timestamp": "2025-03-15 05:49:24+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/b6d0f9785f667e2dd2bdd50699482db27aa2269b"
+        "id": "0c7fa25891ebe3bc0918ed8cb149f8fb6e4b6766",
+        "message": "Merge pull request #817 from galacticusorg/fixBensonBower2010CoolingTimeAvailable\n\nCatch unphysical states in the hot halo when using the `coolingTimeAvailableBensonBower2010` class\n",
+        "timestamp": "2025-03-20 04:21:25+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/0c7fa25891ebe3bc0918ed8cb149f8fb6e4b6766"
     },
     "surfaceDensity": {
         "percentageBelow": 42.857142857142854,
@@ -17,8 +17,8 @@ window.PONOSV_DATA = {
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 69.23076923076923,
-        "percentageAbove": 30.76923076923077,
+        "percentageBelow": 60.0,
+        "percentageAbove": 40.0,
         "target": 0.85
     }
 }
