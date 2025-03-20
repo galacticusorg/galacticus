@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1742041089064,
+  "lastUpdate": 1742467839325,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=20 km/s)": [
@@ -847,6 +847,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
             "value": "5.0623613097380895",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0c7fa25891ebe3bc0918ed8cb149f8fb6e4b6766",
+          "message": "Merge pull request #817 from galacticusorg/fixBensonBower2010CoolingTimeAvailable\n\nCatch unphysical states in the hot halo when using the `coolingTimeAvailableBensonBower2010` class",
+          "timestamp": "2025-03-20T04:21:25Z",
+          "tree_id": "5193460f1274bd7b6921fa985c63428299078cf2",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0c7fa25891ebe3bc0918ed8cb149f8fb6e4b6766"
+        },
+        "date": 1742467838383,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - mass function",
+            "value": "6.094442443776525",
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
+            "value": "3.9558992433301796",
             "unit": "-logℒ"
           }
         ]
