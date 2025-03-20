@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1742467773333,
+  "lastUpdate": 1742467783368,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "4ad361755c0d321c89156b0980bb54b295e88eeb",
-          "message": "feat: Include time of merging in data recorded for merged subhalos",
-          "timestamp": "2024-06-10T14:35:05-07:00",
-          "tree_id": "9a19ec4a657d7f202f5e8f5a5f66542a9db21f2b",
-          "url": "https://github.com/galacticusorg/galacticus/commit/4ad361755c0d321c89156b0980bb54b295e88eeb"
-        },
-        "date": 1718073600443,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 16.8135837361898,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 10.4264846092388,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 20517.0572583585,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8736,6 +8697,45 @@ window.BENCHMARK_DATA = {
             "value": 53.948,
             "unit": "seconds",
             "range": 0.0526269892732338
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0c7fa25891ebe3bc0918ed8cb149f8fb6e4b6766",
+          "message": "Merge pull request #817 from galacticusorg/fixBensonBower2010CoolingTimeAvailable\n\nCatch unphysical states in the hot halo when using the `coolingTimeAvailableBensonBower2010` class",
+          "timestamp": "2025-03-20T04:21:25Z",
+          "tree_id": "5193460f1274bd7b6921fa985c63428299078cf2",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0c7fa25891ebe3bc0918ed8cb149f8fb6e4b6766"
+        },
+        "date": 1742467782074,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": "17.22558790183692",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": "9.838883776530592",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": "20801.511059353645",
+            "unit": "-logℒ"
           }
         ]
       }
