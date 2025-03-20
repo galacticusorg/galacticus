@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1742041069123,
+  "lastUpdate": 1742467819282,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.5)": [
@@ -5905,6 +5905,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/b6d0f9785f667e2dd2bdd50699482db27aa2269b"
         },
         "date": 1742041068319,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteBoundMass",
+            "value": "40.86017639977341",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "22.39620473545655",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteVelocityMaximum",
+            "value": "20.390673708923003",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0c7fa25891ebe3bc0918ed8cb149f8fb6e4b6766",
+          "message": "Merge pull request #817 from galacticusorg/fixBensonBower2010CoolingTimeAvailable\n\nCatch unphysical states in the hot halo when using the `coolingTimeAvailableBensonBower2010` class",
+          "timestamp": "2025-03-20T04:21:25Z",
+          "tree_id": "5193460f1274bd7b6921fa985c63428299078cf2",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0c7fa25891ebe3bc0918ed8cb149f8fb6e4b6766"
+        },
+        "date": 1742467817958,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
