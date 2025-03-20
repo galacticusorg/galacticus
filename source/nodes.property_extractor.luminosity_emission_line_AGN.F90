@@ -325,7 +325,7 @@ contains
     integer         (c_size_t                                       ), dimension(0:1,4)        :: interpolateIndex
     double precision                                                 , dimension(0:1,4)        :: interpolateFactor
     double precision                                                                           :: weight                                                 
-    double precision                                                                           :: integral, recombinationCoefficient, rateMassAccretionSpheroid, rateMassAccretionHotHalo, wavelength_,nu_001,nu_091,nu_25,nu_10,L_agn,&
+    double precision                                                                           :: integral, recombinationCoefficient, rateMassAccretionSpheroid, rateMassAccretionHotHalo, rateAccretionNuclearStarCluster, wavelength_,nu_001,nu_091,nu_25,nu_10,L_agn,&
                     &                                                                             hydrogenDensity,spectralIndex ,normalizationConstant,radiativeEfficiency,blackHoleAccretionRate,rateIonizingPhotonsNormalized, rateIonizingPhotons, ionizationParam,&
                     &                                                                             massGas, radius, rateStarFormation, metallicityGas, stromgren_radius, denom , halfMassRadius, hydrogen_mass                  
     !$GLC attributes unused :: instance
@@ -391,8 +391,8 @@ contains
 
 
     !calculate black hole accretion rate
-    ! change to call  self%blackHoleAccretionRate_%rateAccretion(blackHole,rateMassAccretionSpheroid,rateMassAccretionHotHalo)
-    call  self%blackHoleAccretionRate_%rateAccretion(blackHole,rateMassAccretionSpheroid,rateMassAccretionHotHalo)
+    ! change to call  self%blackHoleAccretionRate_%rateAccretion(blackHole,rateMassAccretionSpheroid,rateMassAccretionHotHalo,rateAccretionNuclearStarCluster)
+    call  self%blackHoleAccretionRate_%rateAccretion(blackHole,rateMassAccretionSpheroid,rateMassAccretionHotHalo,rateAccretionNuclearStarCluster)
 
     !Black hole accretion rate in kg/s
     blackHoleAccretionRate =(massSolar/gigaYear)* (rateMassAccretionHotHalo + rateMassAccretionSpheroid)
