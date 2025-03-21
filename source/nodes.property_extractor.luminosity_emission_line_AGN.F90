@@ -16,23 +16,26 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!+    Contributions to this file made by: Sachi Weerasooriya, Andrew Benson
-!!{
-Implements an emission line luminosity for AGN node property extractor class.
-!!}
-  use    :: Numerical_Interpolation          , only : interpolator
-  use    :: ISO_Varying_String               , only : varying_string
-  !$ use :: OMP_Lib                          , only : omp_lock_kind
-  use    :: Output_Times                     , only : outputTimesClass
-  use    :: Stellar_Spectra_Dust_Attenuations, only : stellarSpectraDustAttenuationClass
-  use    :: Black_Hole_Accretion_Rates       , only : blackHoleAccretionRateClass
-  use    :: Accretion_Disks                  , only : accretionDisksClass
+
+  !+    Contributions to this file made by: Sachi Weerasooriya, Andrew Benson
+
+  !!{
+  Implements an emission line luminosity for AGN node property extractor class.
+  !!}
+
+  use    :: Numerical_Interpolation             , only : interpolator
+  use    :: ISO_Varying_String                  , only : varying_string
+  !$ use :: OMP_Lib                             , only : omp_lock_kind
+  use    :: Output_Times                        , only : outputTimesClass
+  use    :: Black_Hole_Accretion_Rates          , only : blackHoleAccretionRateClass
+  use    :: Accretion_Disks                     , only : accretionDisksClass
+  use    :: Atomic_Rates_Recombination_Radiative, only : atomicRecombinationRateRadiativeClass
   !![
   <nodePropertyExtractor name="nodePropertyExtractorLmnstyEmssnLineAGN">
     <description>
-      An emission line luminosity property extractor class. The luminosity of the named emission line (given by the {\normalfont
-      \ttfamily lineNames} parameter: if multiple lines are named, the sum of their luminosities) is computed. }
-      parameter.
+      An emission line luminosity property extractor class for AGN narrow line regions. The luminosity of the named emission lines
+      (given by the {\normalfont \ttfamily lineNames} parameter are computed, largely following the model of
+      \cite{feltre_nuclear_2016}.
     </description>
   </nodePropertyExtractor>
   !!]
@@ -41,22 +44,24 @@ Implements an emission line luminosity for AGN node property extractor class.
      A stellar luminosity output analysis property extractor class.
      !!}
      private
-     class(accretionDisksClass        ), pointer :: accretionDisks_         => null()
-     class(blackHoleAccretionRateClass), pointer :: blackHoleAccretionRate_ => null()
-     class(outputTimesClass           ), pointer :: outputTimes_            => null()
-     type            (varying_string                    ), allocatable, dimension(:          ) :: lineNames, names_, descriptions_
-     integer                                                                                   :: countLines
-     integer         (c_size_t                         )                                       :: indexDensityHydrogen, indexIonizationParameter, indexMetallicity,indexSpectralIndex
-     double precision                                    , allocatable, dimension(:          ) :: metallicity                             , densityHydrogen             , &
-          &                                                                                       spectralIndex                    , ionizationParameter, &
-          &                                                                                       wavelengths
-     double precision                                    , allocatable, dimension(:,:,:,:,:) :: luminosity
-     double precision                                                 , dimension(2,3        ) :: filterExtent
-     type            (interpolator                      ), allocatable, dimension(:          ) :: interpolator_
-     double precision                                                                          :: alpha, volume_filling_factor
-     !$ integer      (omp_lock_kind                     )                                      :: interpolateLock
+     class           (accretionDisksClass                  ), pointer                           :: accretionDisks_                   => null()
+     class           (blackHoleAccretionRateClass          ), pointer                           :: blackHoleAccretionRate_           => null()
+     class           (outputTimesClass                     ), pointer                           :: outputTimes_                      => null()
+     class           (atomicRecombinationRateRadiativeClass), pointer                           :: atomicRecombinationRateRadiative_ => null()
+     type            (varying_string                       ), allocatable, dimension(:        ) :: lineNames                                  , names_                  , &
+          &                                                                                        descriptions_
+     integer                                                                                    :: countLines
+     integer         (c_size_t                             )                                    :: indexDensityHydrogen                       , indexIonizationParameter, &
+          &                                                                                        indexMetallicity                           , indexSpectralIndex
+     double precision                                       , allocatable, dimension(:        ) :: metallicity                                , densityHydrogen         , &
+          &                                                                                        spectralIndex                              , ionizationParameter     , &
+          &                                                                                        wavelengths
+     double precision                                       , allocatable, dimension(:,:,:,:,:) :: luminosity
+     type            (interpolator                         ), allocatable, dimension(:        ) :: interpolator_
+     double precision                                                                           :: indexSpectralShortWavelength               , factorFillingVolume
+     !$ integer      (omp_lock_kind                        )                                    :: interpolateLock
    contains
-     final     ::                lmnstyEmssnLineAGNDestructor
+     final     ::                 lmnstyEmssnLineAGNDestructor
      procedure :: elementCount => lmnstyEmssnLineAGNElementCount
      procedure :: extract      => lmnstyEmssnLineAGNExtract
      procedure :: names        => lmnstyEmssnLineAGNNames
@@ -72,16 +77,16 @@ Implements an emission line luminosity for AGN node property extractor class.
      module procedure lmnstyEmssnLineAGNConstructorInternal
   end interface nodePropertyExtractorLmnstyEmssnLineAGN
 
-  ! Enumerations for galactic components and spectral index.
+  ! Enumeration for interpolants in the AGN emission line table.
   !![
   <enumeration>
    <name>interpolants</name>
    <description>Specifies the different interpolants for AGN emission line calculations.</description>
    <indexing>1</indexing>
-   <entry label="density"/>
+   <entry label="density"            />
    <entry label="ionizationParameter"/>
-   <entry label="metallicity"/>
-   <entry label="spectralIndex"/>
+   <entry label="metallicity"        />
+   <entry label="spectralIndex"      />
   </enumeration>
   !!]
 contains
@@ -91,76 +96,82 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (nodePropertyExtractorLmnstyEmssnLineAGN        )                              :: self
-    type            (inputParameters                                ), intent(inout)               :: parameters
-    type            (varying_string                                 ), allocatable  , dimension(:) :: lineNames
-    class           (outputTimesClass                               ), pointer                     :: outputTimes_
-    class           (accretionDisksClass                            ), pointer                     :: accretionDisks_
-    class(blackHoleAccretionRateClass                               ), pointer       :: blackHoleAccretionRate_
-    double precision                                                                               :: alpha, volume_filling_factor
+    type            (nodePropertyExtractorLmnstyEmssnLineAGN)                              :: self
+    type            (inputParameters                        ), intent(inout)               :: parameters
+    type            (varying_string                         ), allocatable  , dimension(:) :: lineNames
+    class           (outputTimesClass                       ), pointer                     :: outputTimes_
+    class           (accretionDisksClass                    ), pointer                     :: accretionDisks_
+    class           (blackHoleAccretionRateClass            ), pointer                     :: blackHoleAccretionRate_
+    class           (atomicRecombinationRateRadiativeClass  ), pointer                     :: atomicRecombinationRateRadiative_
+    double precision                                                                       :: indexSpectralShortWavelength     , factorFillingVolume
+
     allocate(lineNames(parameters%count('lineNames')))
     !![
     <inputParameter>
       <name>lineNames</name>
       <source>parameters</source>
-      <description>The emission lines to extract.</description>
+      <description>The names of the emission lines to extract.</description>
     </inputParameter>
     <inputParameter>
-      <name>alpha</name>
+      <name>indexSpectralShortWavelength</name>
       <defaultValue>-1.7d0</defaultValue>
       <source>parameters</source>
-      <description>Multiplicative coefficient for optical depth in the ISM.</description>
+      <description>The index, $\alpha$, of the power-law spectrum at wavelengths shortward of 0.25$\mu$m: $S_\nu \propto \nu^\alpha$ \citep{feltre_nuclear_2016}.</description>
     </inputParameter>
     <inputParameter>
-      <name>volume_filling_factor</name>
+      <name>factorFillingVolume</name>
       <defaultValue>0.01d0</defaultValue>
       <source>parameters</source>
-      <description> Ratio of the volume-averaged hydrogen density to hydrogen density </description>
+      <description>The volume-filling factor, i.e. the ratio of the volume-averaged hydrogen density to the hydrogen density.</description>
     </inputParameter>
-    <objectBuilder class="accretionDisks"        name="accretionDisks_"         source="parameters"/>
-   <objectBuilder class="blackHoleAccretionRate" name="blackHoleAccretionRate_" source="parameters"/>
-    <objectBuilder class="outputTimes"           name="outputTimes_"            source="parameters"/>
+    <objectBuilder class="accretionDisks"                   name="accretionDisks_"                   source="parameters"/>
+    <objectBuilder class="blackHoleAccretionRate"           name="blackHoleAccretionRate_"           source="parameters"/>
+    <objectBuilder class="outputTimes"                      name="outputTimes_"                      source="parameters"/>
+    <objectBuilder class="atomicRecombinationRateRadiative" name="atomicRecombinationRateRadiative_" source="parameters"/>
     !!]
-    self=nodePropertyExtractorLmnstyEmssnLineAGN(accretionDisks_,blackHoleAccretionRate_,outputTimes_,lineNames,alpha,volume_filling_factor)
+    self=nodePropertyExtractorLmnstyEmssnLineAGN(accretionDisks_,blackHoleAccretionRate_,outputTimes_,atomicRecombinationRateRadiative_,lineNames,indexSpectralShortWavelength,factorFillingVolume)
     !![
-    <inputParametersValidate source="parameters"    />
-    <objectDestructor name="accretionDisks_"        />
-    <objectDestructor name="blackHoleAccretionRate_"/>
-    <objectDestructor name="outputTimes_"           />
+    <inputParametersValidate source="parameters"              />
+    <objectDestructor name="accretionDisks_"                  />
+    <objectDestructor name="blackHoleAccretionRate_"          />
+    <objectDestructor name="outputTimes_"                     />
+    <objectDestructor name="atomicRecombinationRateRadiative_"/>
     !!]
     return
   end function lmnstyEmssnLineAGNConstructorParameters
 
-  function lmnstyEmssnLineAGNConstructorInternal(accretionDisks_,blackHoleAccretionRate_,outputTimes_,lineNames,alpha,volume_filling_factor,outputMask) result(self)
+  function lmnstyEmssnLineAGNConstructorInternal(accretionDisks_,blackHoleAccretionRate_,outputTimes_,atomicRecombinationRateRadiative_,lineNames,indexSpectralShortWavelength,factorFillingVolume,outputMask) result(self)
     !!{
     Internal constructor for the ``lmnstyEmssnLineAGN'' output analysis property extractor class.
     !!}
     use            :: Error                         , only : Error_Report
-    use            :: Input_Paths                   , only : inputPath              , pathTypeDataStatic
+    use            :: Input_Paths                   , only : inputPath             , pathTypeDataStatic
     use            :: HDF5_Access                   , only : hdf5Access
     use            :: IO_HDF5                       , only : hdf5Object
     use, intrinsic :: ISO_C_Binding                 , only : c_size_t
-    use            :: Instruments_Filters           , only : Filter_Extent          , Filter_Get_Index
+    use            :: Instruments_Filters           , only : Filter_Extent         , Filter_Get_Index
     use            :: Output_Times                  , only : outputTimesClass
-    use            :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
-    use            :: String_Handling               , only : String_Join            , char
+    use            :: String_Handling               , only : String_Join           , char
     use            :: Galacticus_Nodes              , only : nodeComponentBlackHole
      use           :: Table_Labels                  , only : extrapolationTypeFix
     implicit none
     type            (nodePropertyExtractorLmnstyEmssnLineAGN)                                                :: self
-    double precision                                                 , intent(in   )                         :: alpha, volume_filling_factor
-    type            (varying_string                                 ), intent(in   ), dimension(:)           :: lineNames
-    logical                                                          , intent(in   ), dimension(:), optional :: outputMask
-    class           (accretionDisksClass                            ), intent(in   ), target                 :: accretionDisks_
-    class           (blackHoleAccretionRateClass                    ), intent(in   ), target                 :: blackHoleAccretionRate_
-    class           (outputTimesClass                               ), intent(in   ), target                 :: outputTimes_
-    type            (hdf5Object                                 )                                            :: emissionLinesFile, lines, lineDataset, dataset
-    integer                                                                                                  :: i,k, countBlackHoles
-    integer         (c_size_t)                                               , dimension(5    )                        :: shapeLines, permutation
-    double precision                                               , allocatable  , dimension(:,:,:,:,:)     :: luminosity
+    double precision                                         , intent(in   )                                 :: indexSpectralShortWavelength,     factorFillingVolume
+    type            (varying_string                         ), intent(in   ), dimension(:        )           :: lineNames
+    logical                                                  , intent(in   ), dimension(:        ), optional :: outputMask
+    class           (accretionDisksClass                    ), intent(in   ), target                         :: accretionDisks_
+    class           (blackHoleAccretionRateClass            ), intent(in   ), target                         :: blackHoleAccretionRate_
+    class           (outputTimesClass                       ), intent(in   ), target                         :: outputTimes_
+    class           (atomicRecombinationRateRadiativeClass  ), intent(in   ), target                         :: atomicRecombinationRateRadiative_
+    type            (hdf5Object                             )                                                :: emissionLinesFile                , lines             , &
+         &                                                                                                      lineDataset                      , dataset
+    integer                                                                                                  :: i
+    integer         (c_size_t)                                              , dimension(5        )           :: shapeLines                       , permutation
+    double precision                                         , allocatable  , dimension(:,:,:,:,:)           :: luminosity
     !![
-    <constructorAssign variables="lineNames, alpha, volume_filling_factor, *accretionDisks_, *blackHoleAccretionRate_, *outputTimes_"/>
+    <constructorAssign variables="lineNames, indexSpectralShortWavelength, factorFillingVolume, *accretionDisks_, *blackHoleAccretionRate_, *outputTimes_, *atomicRecombinationRateRadiative_"/>
     !!]
+    
     ! Read the table of emission line luminosities.
     !$ call hdf5Access%set()
     call emissionLinesFile%openFile(char(inputPath(pathTypeDataStatic))//"hiiRegions/emissionLineLuminosities_AGN.hdf5",readOnly=.true.)
@@ -168,66 +179,60 @@ contains
     do i=1,size(lineNames)
        if (.not.lines%hasDataset(char(self%lineNames(i)))) call Error_Report('line "'//char(self%lineNames(i))//'" not found'//{introspection:location})
     end do
-    call emissionLinesFile%readDataset('densityHydrogen'              ,self%densityHydrogen             )
-    call emissionLinesFile%readDataset('ionizationParameter'          ,self%ionizationParameter         )
-    call emissionLinesFile%readDataset('metallicity'                  ,self%metallicity                 )
-    call emissionLinesFile%readDataset('spectralIndex'                ,self%spectralIndex               )
+    call emissionLinesFile%readDataset('densityHydrogen'    ,self%densityHydrogen    )
+    call emissionLinesFile%readDataset('ionizationParameter',self%ionizationParameter)
+    call emissionLinesFile%readDataset('metallicity'        ,self%metallicity        )
+    call emissionLinesFile%readDataset('spectralIndex'      ,self%spectralIndex      )
     ! Extract indexing into the lines arrays.
-    dataset=emissionLinesFile%openDataset('densityHydrogen'               )
-    call dataset%readAttribute('index',self%indexDensityHydrogen                                        )
-    call dataset%close        (                     )
-    dataset=emissionLinesFile%openDataset('ionizationParameter'                                         )
-    call dataset%readAttribute('index',self%indexIonizationParameter                                    )
-    call dataset%close        (                     )
-    dataset=emissionLinesFile%openDataset('metallicity'                                                 )
-    call dataset%readAttribute('index',self%indexMetallicity                                            )
-    call dataset%close        (                     )
-    dataset=emissionLinesFile%openDataset('spectralIndex'                                               )
-    call dataset%readAttribute('index',self%indexSpectralIndex                                          )
-    call dataset%close        (                     )
+    dataset=emissionLinesFile%openDataset('densityHydrogen'    )
+    call dataset%readAttribute('index',self%indexDensityHydrogen    )
+    call dataset%close        (                                     )
+    dataset=emissionLinesFile%openDataset('ionizationParameter')
+    call dataset%readAttribute('index',self%indexIonizationParameter)
+    call dataset%close        (                                     )
+    dataset=emissionLinesFile%openDataset('metallicity'        )
+    call dataset%readAttribute('index',self%indexMetallicity        )
+    call dataset%close        (                                     )
+    dataset=emissionLinesFile%openDataset('spectralIndex'      )
+    call dataset%readAttribute('index',self%indexSpectralIndex      )
+    call dataset%close        (                                     )
     ! Offset indexing to Fortran standard (i.e. starting from 1 instead of 0).
-    self%indexDensityHydrogen           =self%indexDensityHydrogen               +1
-    self%indexIonizationParameter       =self%indexIonizationParameter           +1
-    self%indexMetallicity               =self%indexMetallicity                   +1
-    self%indexSpectralIndex             =self%indexSpectralIndex                 +1
-     ! Establish arrays.
-    shapeLines(self%indexDensityHydrogen           )=size(self%densityHydrogen           )
-    shapeLines(self%indexIonizationParameter       )=size(self%ionizationParameter       )
-    shapeLines(self%indexMetallicity               )=size(self%metallicity               )
-    shapeLines(self%indexSpectralIndex             )=size(self%spectralIndex             )
-    shapeLines(     5                              )=size(     lineNames                 )
+    self%indexDensityHydrogen    =self%indexDensityHydrogen    +1
+    self%indexIonizationParameter=self%indexIonizationParameter+1
+    self%indexMetallicity        =self%indexMetallicity        +1
+    self%indexSpectralIndex      =self%indexSpectralIndex      +1
+    ! Establish arrays.
+    shapeLines(self%indexDensityHydrogen    )=size(self%densityHydrogen    )
+    shapeLines(self%indexIonizationParameter)=size(self%ionizationParameter)
+    shapeLines(self%indexMetallicity        )=size(self%metallicity        )
+    shapeLines(self%indexSpectralIndex      )=size(self%spectralIndex      )
+    shapeLines(     5                       )=size(     lineNames          )
     ! Allocate a temporary luminosities array into which we will read data from the table. The dimension ordering here is whatever
     ! ordering was used in the table file. This will be reordered into our preferred, internal order later.
     !![
     <allocate variable="luminosity" shape="shapeLines"/>
     !!]
-    allocate(                                          &
-         &   self%wavelengths                          &
-         &   (                                         &
-         &    size(self%lineNames                   )  &
-         &   )                                         &
-         &  )
+    allocate(self%wavelengths(size(self%lineNames)))
     do i=1,size(self%lineNames)
        call lines%readDatasetStatic(char(self%lineNames(i)),luminosity(:,:,:,:,i))
        lineDataset=lines%openDataset(char(self%lineNames(i)))
        call lineDataset%readAttribute('wavelength',self%wavelengths(i))
-       call lineDataset%close        (                               )
+       call lineDataset%close        (                                )
     end do
-    call lines            %close      (                                                                 )
-    call emissionLinesFile%close      (                                                                 )
+    call lines            %close()
+    call emissionLinesFile%close()
     !$ call hdf5Access%unset()
-
     ! Re-order the luminosities table into our preferred order.
     !! First, allocate our final table array with our preferred ordering of dimensions.
-    allocate(                                          &
-         &   self%luminosity                           &
-         &   (                                         &
-         &    size(self%spectralIndex               ), &
-         &    size(self%metallicity                 ), &
-         &    size(self%ionizationParameter         ), &
-         &    size(self%densityHydrogen             ), &
-         &    size(self%lineNames                   )  &
-         &   )                                         &
+    allocate(                                 &
+         &   self%luminosity                  &
+         &   (                                &
+         &    size(self%spectralIndex      ), &
+         &    size(self%metallicity        ), &
+         &    size(self%ionizationParameter), &
+         &    size(self%densityHydrogen    ), &
+         &    size(self%lineNames          )  &
+         &   )                                &
          &  )
     !! Construct a permutation - mapping the indices of dimensions in the file into the order we want internally.
     permutation=[                               &
@@ -239,30 +244,23 @@ contains
          &      ]
     !! Reorder the table read from file into our internal table.
     self%luminosity=reshape(luminosity,shape(self%luminosity),order=permutation)
-    
-    ! Convert parameters and luminosities to log form.
-    self%densityHydrogen             =log10(self%densityHydrogen             )
-    self%ionizationParameter         =log10(self%ionizationParameter         )
-    ! Cloudy table gives metallicity Z (not in log)
-    self%metallicity                 =log10(self%metallicity                 )
-    
+    ! Convert parameters and luminosities to logarithmic form.
+    self%densityHydrogen    =log10(self%densityHydrogen    )
+    self%ionizationParameter=log10(self%ionizationParameter)
+    self%metallicity        =log10(self%metallicity        )
     ! Initialize interpolators.
     allocate(self%interpolator_(4))
-    
     self%interpolator_(interpolantsDensity            %ID)=interpolator(self%densityHydrogen,extrapolationType=extrapolationTypeFix)
     self%interpolator_(interpolantsIonizationParameter%ID)=interpolator(self%ionizationParameter,extrapolationType=extrapolationTypeFix)
     self%interpolator_(interpolantsMetallicity        %ID)=interpolator(self%metallicity,extrapolationType=extrapolationTypeFix)
     self%interpolator_(interpolantsSpectralIndex      %ID)=interpolator(self%spectralIndex,extrapolationType=extrapolationTypeFix)
-
-    
     !$ call OMP_Init_Lock(self%interpolateLock)
     ! Construct names and descriptions.
     allocate(self%names_       (size(lineNames)))
     allocate(self%descriptions_(size(lineNames)))
-
     do i=1,size(lineNames)
-       self%  names_(i)="luminosityEmissionLineAGN:"//lineNames(i)
-       self   %descriptions_(i)="Luminosity of the "             //lineNames(i)//" AGN emission line [ergs/s]"
+       self%names_       (i)="luminosityEmissionLineAGN:"//lineNames(i)
+       self%descriptions_(i)="Luminosity of the "        //lineNames(i)//" AGN emission line [ergs/s]"
     end do
     self%countLines=size(lineNames)
     return
@@ -277,9 +275,10 @@ contains
 
     !$ call OMP_Destroy_Lock(self%interpolateLock)
     !![
-    <objectDestructor name="self%accretionDisks_"       />
-    <objectDestructor name="self%blackHoleAccretionRate_"   />
-    <objectDestructor name="self%outputTimes_"                  />
+    <objectDestructor name="self%accretionDisks_"                  />
+    <objectDestructor name="self%blackHoleAccretionRate_"          />
+    <objectDestructor name="self%outputTimes_"                     />
+    <objectDestructor name="self%atomicRecombinationRateRadiative_"/>
     !!]
     return
   end subroutine lmnstyEmssnLineAGNDestructor
@@ -288,214 +287,222 @@ contains
     !!{
     Implement an emission line output analysis property extractor.
     !!}
-    use            :: Abundances_Structure            , only : abundances         , max                  , metallicityTypeLogarithmicByMassSolar
-    use            :: Galacticus_Nodes                , only : nodeComponentBasic , nodeComponentDisk    , nodeComponentSpheroid, treeNode, nodeComponentBlackHole
-    use, intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use            :: Numerical_Constants_Astronomical, only : hydrogenByMassSolar, luminosityZeroPointAB, massSolar                            , megaParsec, &
-          &                                                    metallicitySolar   , parsec
-    use            :: Numerical_Constants_Atomic      , only : atomicMassHydrogen , atomicMassUnit
-    use            :: Numerical_Constants_Math        , only : Pi
-    use            :: Numerical_Constants_Physical    , only : plancksConstant, speedLight
-    use            :: Numerical_Constants_Prefixes    , only : centi              , hecto                , mega, micro
-    use            :: Numerical_Constants_Astronomical, only : massSolar, gigaYear, parsec
-    use            :: Stellar_Luminosities_Structure  , only : max                , stellarLuminosities
-    use :: Galactic_Structure_Options, only : massTypeStellar
-    use :: Mass_Distributions            , only : massDistributionClass
+    use            :: Atomic_Rates_Recombination_Radiative, only : recombinationCaseB
+    use            :: Abundances_Structure                , only : abundances           , max                  , metallicityTypeLogarithmicByMassSolar
+    use            :: Galacticus_Nodes                    , only : nodeComponentBasic   , nodeComponentDisk    , nodeComponentSpheroid                    , nodeComponentBlackHole, &
+         &                                                         treeNode
+    use, intrinsic :: ISO_C_Binding                       , only : c_size_t
+    use            :: Numerical_Constants_Astronomical    , only : hydrogenByMassSolar  , luminosityZeroPointAB, massSolar                                , megaParsec            , &
+         &                                                         metallicitySolar     , parsec               , massSolar                                , gigaYear
+    use            :: Numerical_Constants_Atomic          , only : atomicMassHydrogen   , atomicMassUnit       , lymanSeriesLimitWavelengthHydrogen_atomic
+    use            :: Numerical_Constants_Math            , only : Pi
+    use            :: Numerical_Constants_Physical        , only : plancksConstant      , speedLight
+    use            :: Numerical_Constants_Prefixes        , only : centi                , hecto                , mega                                     , micro
+    use            :: Numerical_Constants_Units           , only : metersToAngstroms
+    use            :: Galactic_Structure_Options          , only : massTypeStellar
     implicit none
-    double precision                                              , dimension(:) , allocatable :: lmnstyEmssnLineAGNExtract
-    class           (nodePropertyExtractorLmnstyEmssnLineAGN        ), intent(inout), target   :: self
-    type            (treeNode                                       ), intent(inout), target   :: node
-    double precision                                                 , intent(in   )           :: time
-    type            (multiCounter                                   ), intent(inout), optional :: instance
-    class           (nodeComponentBasic                             ), pointer                 :: basic
-    class           (nodeComponentDisk                              ), pointer                 :: disk
-    class           (nodeComponentSpheroid                          ), pointer                 :: spheroid
-    class           (nodeComponentBlackHole                         ), pointer                 :: blackHole
-    class           (massDistributionClass                          ), pointer                 :: massDistribution_              
-    double precision                                                 , parameter               :: massMinimum                   =1.0d-06
-    double precision                                                 , parameter               :: radiusMinimum                 =1.0d-06
-    double precision                                                 , parameter               :: rateStarFormationMinimum      =1.0d-06
-    double precision                                                 , parameter               :: luminosityIonizingMinimum     =1.0d-20
-    double precision                                                 , parameter               :: metallicityISMLocal           =+2.00d-02  ! Metallicity in the local ISM.
-    double precision                                                 , parameter               :: wavelengthZeroPoint           =+5.50d+03  ! Angstroms
-    type            (stellarLuminosities                            ), dimension(  2  )        :: luminositiesStellar
-    type            (abundances                                     ),                         :: abundancesGas
-    double precision                                                 , dimension(3,2  )        :: luminosityIonizing                                                                                                                                      
-    logical                                                          ,                         :: isPhysical
-    integer         (c_size_t                                       ), dimension(0:1,4)        :: interpolateIndex
-    double precision                                                 , dimension(0:1,4)        :: interpolateFactor
-    double precision                                                                           :: weight                                                 
-    double precision                                                                           :: integral, recombinationCoefficient, rateMassAccretionSpheroid, rateMassAccretionHotHalo, rateAccretionNuclearStarCluster, wavelength_,nu_001,nu_091,nu_25,nu_10,L_agn,&
-                    &                                                                             hydrogenDensity,spectralIndex ,normalizationConstant,radiativeEfficiency,blackHoleAccretionRate,rateIonizingPhotonsNormalized, rateIonizingPhotons, ionizationParam,&
-                    &                                                                             massGas, radius, rateStarFormation, metallicityGas, stromgren_radius, denom , halfMassRadius, hydrogen_mass                  
-    !$GLC attributes unused :: instance
-    integer         (c_size_t                                       )                          :: output
-    integer                                                                                    :: component                                               , continuum                    , &
-         &                                                                                        i                                                       , j                            , &
-         &                                                                                        k                                                       , l                            , &
-         &                                                                                        m                                                       , line
+    double precision                                                 , dimension(:) , allocatable :: lmnstyEmssnLineAGNExtract
+    class           (nodePropertyExtractorLmnstyEmssnLineAGN        ), intent(inout), target      :: self
+    type            (treeNode                                       ), intent(inout), target      :: node
+    double precision                                                 , intent(in   )              :: time
+    type            (multiCounter                                   ), intent(inout), optional    :: instance
+    class           (nodeComponentBasic                             ), pointer                    :: basic
+    class           (nodeComponentDisk                              ), pointer                    :: disk
+    class           (nodeComponentSpheroid                          ), pointer                    :: spheroid
+    class           (nodeComponentBlackHole                         ), pointer                    :: blackHole
+    double precision                                                 , parameter                  :: massMinimum              =+1.00d-06
+    double precision                                                 , parameter                  :: radiusMinimum            =+1.00d-06
+    double precision                                                 , parameter                  :: metallicityISMLocal      =+2.00d-02 ! Metallicity in the local ISM.
+    double precision                                                 , parameter                  :: wavelengthZeroPoint      =+5.50d+03 ! Angstroms.
+    double precision                                                 , parameter                  :: densityHydrogen          =+1.00d+04 ! cm⁻³.
+    double precision                                                 , parameter                  :: temperature              =+1.00d+04 ! K.
+    double precision                                                 , parameter                  :: frequency0p001Microns    =speedLight/( 0.001d0*micro) ! Frequency at  0.001μm in Hz.
+    double precision                                                 , parameter                  :: frequency0p250Microns    =speedLight/( 0.250d0*micro) ! Frequency at  0.250μm in Hz.
+    double precision                                                 , parameter                  :: frequency10p00Microns    =speedLight/(10.000d0*micro) ! Frequency at 10.000μm in Hz.
+    double precision                                                 , parameter                  :: frequencyLymanLimit      =speedLight/(lymanSeriesLimitWavelengthHydrogen_atomic/metersToAngstroms) ! Frequency at the Lyman limit in Hz.
+    type            (abundances                                     ),                            :: abundancesGas
+    logical                                                          ,                            :: isPhysical
+    integer         (c_size_t                                       ), dimension(0:1,4)           :: interpolateIndex
+    double precision                                                 , dimension(0:1,4)           :: interpolateFactor
+    double precision                                                                              :: weight                                                 
+    double precision                                                                              :: luminosityBolometricUnnormalized, recombinationCoefficient, &
+         &                                                                                           rateMassAccretionSpheroid       , rateMassAccretionHotHalo, &
+         &                                                                                           rateAccretionNuclearStarCluster , luminosityBolometricAGN , &
+         &                                                                                           densityHydrogen                 , normalization           , &
+         &                                                                                           radiativeEfficiency             , rateAccretionBlackHole  , &
+         &                                                                                           densityHydrogenLogarithmic      , rateIonizingPhotons     , &
+         &                                                                                           ionizationParameterLogarithmic  , massGas                 , &
+         &                                                                                           radiusGalaxy                    , metallicityGas          , &
+         &                                                                                           radiusStromgren                 , massHydrogen
+    integer         (c_size_t                                       )                             :: output
+    integer                                                                                       :: i                               , j                       , &
+         &                                                                                           k                               , l                       , &
+         &                                                                                           line
     !$GLC attributes unused :: instance
 
     ! Retrieve components.
-    basic    => node%basic   ()
-    disk     => node%disk    ()
-    spheroid => node%spheroid()
+    basic     => node%basic    ()
+    disk      => node%disk     ()
+    spheroid  => node%spheroid ()
+    blackHole => node%blackHole()
     ! Determine output index.
     output   =  self%outputTimes_%index(basic%time(),findClosest=.true.)
     ! Extract all required properties.
-    abundancesGas      =disk    %abundancesGas                   (    ) + spheroid%abundancesGas                   (    )
-    massGas            =disk    %massGas                         (    ) + spheroid%massGas                         (    )
-    radius             =disk    %radius                          (    ) + spheroid%radius                          (    )
-    massDistribution_            => node             %massDistribution   (massType      =massTypeStellar)
-    halfMassRadius                              =  mega*parsec*massDistribution_%radiusEnclosingMass(massFractional=0.5d0          )
-    radius=mega*parsec*radius
-    hydrogen_mass = massGas*massSolar
-    hydrogenDensity=1000.d0
-    !![
-    <objectDestructor name="massDistribution_"/>
-    !!]
+    abundancesGas  =(disk%abundancesGas()+spheroid%abundancesGas())
+    massGas        =(disk%massGas      ()+spheroid%massGas      ())
+    radiusGalaxy   =(disk%radius       ()+spheroid%radius       ())*megaParsec ! SI units.
     ! Determine if component is physically reasonable.
-    isPhysical= massGas                                            > massMinimum               &
-         &     .and.                                                                           &
-         &      radius                                             > radiusMinimum             
-    !  Compute the logarithmic metallicity of the gas in each component in Solar units.
-    
-    
+    isPhysical= massGas      > massMinimum   &
+         &     .and.                         &
+         &      radiusGalaxy > radiusMinimum             
+    ! Compute the logarithmic metallicity of the gas in each component in Solar units.
     call abundancesGas%massToMassFraction(massGas)
-    ! Galacticus galaxies gives the metallicity in logrithmic scale
-    metallicityGas=abundancesGas%metallicity(metallicityTypeLogarithmicByMassSolar)
-    if (isnan(metallicityGas)) then
-        metallicityGas=0.0d0
-    end if            
-
-    blackHole                => node     %blackHole()
-    !limit frequencies in SI units (per seconds)
-    nu_001=speedLight/(0.001d0*micro)
-    nu_091=speedLight/(0.0912d0*micro)
-    nu_25=speedLight/(0.25d0*micro)
-    nu_10=speedLight/(10.0d0*micro)
-
-    ! Calculate integral for AGN luminosity from 0 to infinity
-    integral=(                                                        &
-             &     (nu_25**(self%alpha+0.5d0)) * (nu_10**-2.5d0)      &
-             &    *((nu_10**3.0d0)/3.0d0)                             &
-             &     )                                                  &
-             &    +(                                                  &
-             &        (nu_25**(self%alpha+0.25d0)                     &
-             &     )                                                  &
-             &    *(2*(SQRT(nu_25)   -  SQRT(nu_10)) ) )             &
-             &    + ((1.0d0/(self%alpha+1.0d0))* ( (nu_001**(self%alpha+1.0d0)) - (nu_25**(self%alpha+1.0d0)) ) ) 
-    
-    ! recombination coefficient
-    recombinationCoefficient=micro*2.6d-13
-
-
-    !calculate black hole accretion rate
-    ! change to call  self%blackHoleAccretionRate_%rateAccretion(blackHole,rateMassAccretionSpheroid,rateMassAccretionHotHalo,rateAccretionNuclearStarCluster)
-    call  self%blackHoleAccretionRate_%rateAccretion(blackHole,rateMassAccretionSpheroid,rateMassAccretionHotHalo,rateAccretionNuclearStarCluster)
-
-    !Black hole accretion rate in kg/s
-    blackHoleAccretionRate =(massSolar/gigaYear)* (rateMassAccretionHotHalo + rateMassAccretionSpheroid)
-
-    !Radiative effciency of black hole
-    radiativeEfficiency =  self%accretionDisks_%efficiencyRadiative(blackHole,rateMassAccretionSpheroid+rateMassAccretionHotHalo)
-
-
-    !Luminosity of AGN in J/s
-    L_agn=blackHoleAccretionRate*speedLight*speedLight*radiativeEfficiency
-    
-    !normalization constant for the integral over ionizing spectrum
-    normalizationConstant=1/integral
-    
-    ! Rate of ionizing photons Q_H
-    rateIonizingPhotons=L_agn*((nu_001**self%alpha) - (nu_091**self%alpha)) &
-            &                     /(plancksConstant*self%alpha)
-    
-    ! Normalized rate of ionizing photons
-    rateIonizingPhotonsNormalized=rateIonizingPhotons*normalizationConstant
-    
-    ! Calculate stromgren radius
-    stromgren_radius = (3*rateIonizingPhotonsNormalized/(4*Pi*((hydrogenDensity*mega)**2.0d0)*self%volume_filling_factor*recombinationCoefficient))**(1.0d0/3.0d0)
-
-    if(L_agn>0.0d0) then
-      ionizationParam = rateIonizingPhotonsNormalized/(4*Pi*stromgren_radius*stromgren_radius*hydrogenDensity*mega*speedLight)
-      ionizationParam=log10(ionizationParam)
-    else
-      rateIonizingPhotonsNormalized=0.0d0
-      ionizationParam=0.0d0
-    end if
-
     if (isPhysical) then
-      hydrogenDensity=log10(1000.0000000000000d0)
-    else 
-      hydrogenDensity=0.0d0   
-      ionizationParam=0.0d0        
-    end if                                                        
+       metallicityGas=abundancesGas%metallicity(metallicityTypeLogarithmicByMassSolar)
+    else
+       metallicityGas=0.0d0
+    end if
+    ! Find the hydrogen mass in SI units.
+    massHydrogen=+              massGas                &
+         &       *              massSolar              &
+         &       *abundancesGas%hydrogenMassFraction()
+    ! Compute the integral over all frequencies of the unnormalized AGN spectrum. The spectrum is taken from Feltre, Gutkin &
+    ! Charlot (2016; MNRAS; 456; 3354; https://ui.adsabs.harvard.edu/abs/2016MNRAS.456.3354F), their equation 5.
+    luminosityBolometricUnnormalized=+  frequency0p250Microns**(self%indexSpectralShortWavelength+0.50d0) & ! ⎫ Match normalization of piecewise-power-law at 10.0μm.
+         &                           *  frequency10p00Microns**                                  -2.50d0  & ! ⎭ 
+         &                           *  frequency10p00Microns**                                  +3.00d0  & ! ⎫ Integral of ν²...
+         &                           /                                                            3.00d0  & ! ⎭ ...from 0μm to 10.0μm.
+         &                           +  frequency0p250Microns**(self%indexSpectralShortWavelength+0.25d0) & ! } Match normalization of piecewise-power-law at 0.25μm.
+         &                           *(                                                                   & ! ⎫ Integral of ν^{-0.5}...
+         &                             +frequency0p250Microns**                                   +0.5d0  & ! ⎪ ...from 0.250μm...
+         &                             -frequency10p00Microns**                                   +0.5d0  & ! ⎬ ...to 10.0μm.
+         &                            )                                                                   & ! ⎪
+         &                           /                                                             0.5d0  & ! ⎭
+         &                           +(                                                                   & ! ⎫ Integral of ν^α...
+         &                             +frequency0p001Microns**(self%indexSpectralShortWavelength+1.00d0) & ! ⎪ ...from 0.001μm...
+         &                             -frequency0p250Microns**(self%indexSpectralShortWavelength+1.00d0) & ! ⎬ ...to 0.250μm.
+         &                            )                                                                   & ! ⎪
+         &                           /                         (self%indexSpectralShortWavelength+1.00d0)   ! ⎭
+    ! Find the corresponding normalization constant to unit bolometric luminosity
+    normalization=+1.0d0                            &
+         &        /luminosityBolometricUnnormalized
+    ! Get the hydrogen recombination coefficient (in m³ s⁻¹).
+    recombinationCoefficient=+self%atomicRecombinationRateRadiative_%rate(1,1,temperature,recombinationCaseB) &
+         &                   *micro
+    ! Get black hole accretion rates.
+    call self%blackHoleAccretionRate_%rateAccretion(blackHole,rateMassAccretionSpheroid,rateMassAccretionHotHalo,rateAccretionNuclearStarCluster)
+    ! Find the total black hole accretion rate in kg s⁻¹.
+    rateAccretionBlackHole=+massSolar                         &
+         &                 /gigaYear                          &
+         &                 *(                                 &
+         &                   +rateMassAccretionHotHalo        &
+         &                   +rateMassAccretionSpheroid       &
+         &                   +rateAccretionNuclearStarCluster &
+         &                 )
+    ! Get the radiative efficiency of black hole.
+    radiativeEfficiency=self%accretionDisks_%efficiencyRadiative(blackHole,rateMassAccretionSpheroid+rateMassAccretionHotHalo+rateAccretionNuclearStarCluster)
+    ! Compute the bolometric luminosity of AGN in W.
+    luminosityBolometricAGN=+rateAccretionBlackHole    &
+         &                  *speedLight            **2 &
+         &                  *radiativeEfficiency
+    ! Find the emission rate of ionizing photons, Q_H, in s⁻¹. This is done by integrating over the AGN spectrum: 
+    ! ∫_vLy^ν(0.001μm) S_ν/hν dν, where νLy is the frequency at the Lyman limit.
+    rateIonizingPhotons=+normalization                                              &
+         &              *luminosityBolometricAGN                                    &
+         &              /plancksConstant                                            &
+         &              *(                                                          &
+         &                +frequency0p001Microns**self%indexSpectralShortWavelength &
+         &                -frequencyLymanLimit  **self%indexSpectralShortWavelength &
+         &               )                                                          &
+         &              /                         self%indexSpectralShortWavelength
+    ! Calculate the Strömgren radius (equation 3 of Feltre, Gutkin & Charlot (2016; MNRAS; 456; 3354;
+    ! https://ui.adsabs.harvard.edu/abs/2016MNRAS.456.3354F).
+    radiusStromgren=+(                             &
+         &            +3.0d0                       &
+         &            *rateIonizingPhotons         &
+         &            /(                           &
+         &              +4.0d0                     &
+         &              *Pi                        &
+         &              *(densityHydrogen*mega)**2 &
+         &              *self%factorFillingVolume  &
+         &              *recombinationCoefficient  &
+         &             )                           &
+         &           )**(1.0d0/3.0d0)
+    ! Compute the ionization parameter.
+    if (luminosityBolometricAGN > 0.0d0) then
+       ionizationParameterLogarithmic=log10(                     &
+            &                               +rateIonizingPhotons &
+            &                               /4.0d0               &
+            &                               /Pi                  &
+            &                               /radiusStromgren**2  &
+            &                               /densityHydrogen     &
+            &                               /mega                &
+            &                               /speedLight          &
+            &                              )
+    else
+      ionizationParameterLogarithmic=0.0d0
+    end if
+    ! Find the logarithmic density.
+    densityHydrogenLogarithmic=log10(densityHydrogen)
     ! Truncate properties to table bounds where necessary to avoid unphysical extrapolations.
-    if (metallicityGas                  < self%metallicity (1)) then
-      metallicityGas = self%metallicity(1)
-    else if     (metallicityGas                  > self%metallicity                 (size(self%metallicity                 ))) then
-       metallicityGas                 =self%metallicity                 (size(self%metallicity                 ))
+    if      (metallicityGas                  < self%metallicity       (1                             )) then
+      metallicityGas                 =self%metallicity        (1                             )
+    else if (metallicityGas                  > self%metallicity       (size(self%metallicity        ))) then
+       metallicityGas                =self%metallicity        (size(self%metallicity        ))
     end if
-
-    if    (ionizationParam < self%ionizationParameter(1)) then
-       ionizationParam=self%ionizationParameter(1)
-    else if     (ionizationParam > self%ionizationParameter(size(self%ionizationParameter))) then
-       ionizationParam=self%ionizationParameter(size(self%ionizationParameter))
+    if      (ionizationParameterLogarithmic < self%ionizationParameter(1                             )) then
+       ionizationParameterLogarithmic=self%ionizationParameter(1                             )
+    else if (ionizationParameterLogarithmic > self%ionizationParameter(size(self%ionizationParameter))) then
+       ionizationParameterLogarithmic=self%ionizationParameter(size(self%ionizationParameter))
     end if
-    
-
     ! Find interpolating factors in all four interpolants, preventing extrapolation beyond the tabulated ranges.
     !$ call OMP_Set_Lock  (self%interpolateLock)
-    call self%interpolator_(interpolantsDensity    %ID)%linearFactors(hydrogenDensity  ,interpolateIndex(0,interpolantsDensity    %ID),interpolateFactor(:,interpolantsDensity    %ID))
-    call self%interpolator_(interpolantsIonizationParameter%ID)%linearFactors(ionizationParam ,interpolateIndex(0,interpolantsIonizationParameter%ID),interpolateFactor(:,interpolantsIonizationParameter     %ID))
-    call self%interpolator_(interpolantsMetallicity%ID)%linearFactors(metallicityGas ,interpolateIndex(0,interpolantsMetallicity%ID),interpolateFactor(:,interpolantsMetallicity%ID))
-    call self%interpolator_(interpolantsSpectralIndex%ID)%linearFactors(self%alpha,interpolateIndex(0,interpolantsSpectralIndex%ID),interpolateFactor(:,interpolantsSpectralIndex   %ID))
-  
+    call self%interpolator_(interpolantsDensity            %ID)%linearFactors(densityHydrogenLogarithmic       ,interpolateIndex(0,interpolantsDensity            %ID),interpolateFactor(:,interpolantsDensity            %ID))
+    call self%interpolator_(interpolantsIonizationParameter%ID)%linearFactors(ionizationParameterLogarithmic   ,interpolateIndex(0,interpolantsIonizationParameter%ID),interpolateFactor(:,interpolantsIonizationParameter%ID))
+    call self%interpolator_(interpolantsMetallicity        %ID)%linearFactors(metallicityGas                   ,interpolateIndex(0,interpolantsMetallicity        %ID),interpolateFactor(:,interpolantsMetallicity        %ID))
+    call self%interpolator_(interpolantsSpectralIndex      %ID)%linearFactors(self%indexSpectralShortWavelength,interpolateIndex(0,interpolantsSpectralIndex      %ID),interpolateFactor(:,interpolantsSpectralIndex      %ID))
     !$ call OMP_Unset_Lock(self%interpolateLock)
-    interpolateIndex (1,:                     )=interpolateIndex(0,:)+1
+    interpolateIndex(1,:)=interpolateIndex(0,:)+1
     interpolateFactor=max(min(interpolateFactor,1.0d0),0.0d0)
     ! Iterate over lines.
     allocate(lmnstyEmssnLineAGNExtract(self%countLines))
-    lmnstyEmssnLineAGNExtract=0.0
+    lmnstyEmssnLineAGNExtract=0.0d0
     do line=1,size(self%luminosity,dim=5)
-        ! Interpolate in all four interpolants.
-        do i=0,1
+       ! Interpolate in all four interpolants.
+       do i=0,1
           do j=0,1
-              do k=0,1
+             do k=0,1
                 do l=0,1
-                    weight                    =+                interpolateFactor(i,1)   &
-                          &                     *                interpolateFactor(j,2)  &
-                          &                     *                interpolateFactor(k,3)  &
-                          &                     *                interpolateFactor(l,4)  
-                    lmnstyEmssnLineAGNExtract(line)=+lmnstyEmssnLineAGNExtract(line)     &
-                          &                     +weight                                  &
-                          ! intensity given by emission line models of Cloudy (intensity*4pi) is multiplied by stromgren radius**2 (cm^2)
-                          &                     *stromgren_radius*stromgren_radius*1.0d4 &
-                          &                     *self%luminosity(                        &
-                          &                                      interpolateIndex (l,4), &
-                          &                                      interpolateIndex (k,3), &
-                          &                                      interpolateIndex (j,2), &
-                          &                                      interpolateIndex (i,1), &
-                          &                                      line                    &
-                          &                                     )
+                   weight                         =+                interpolateFactor(i   ,1)  &
+                        &                          *                interpolateFactor(j   ,2)  &
+                        &                          *                interpolateFactor(k   ,3)  &
+                        &                          *                interpolateFactor(l   ,4)  
+                   lmnstyEmssnLineAGNExtract(line)=+lmnstyEmssnLineAGNExtract        (line  )  &
+                        &                          +weight                                     &
+                        &                          *(radiusStromgren*hecto)**2                 & ! The quantity given by Cloudy is (4π*intensity in cm⁻²). Multiply by the Strömgren radius squared to convert to luminosity.
+                        &                          *self%luminosity(                           &
+                        &                                           interpolateIndex (l   ,4), &
+                        &                                           interpolateIndex (k   ,3), &
+                        &                                           interpolateIndex (j   ,2), &
+                        &                                           interpolateIndex (i   ,1), &
+                        &                                           line                       &
+                        &                                          )
                 end do
-              end do
+             end do
           end do
-        end do                                                       
+       end do
     end do
-   return
+    return
   end function lmnstyEmssnLineAGNExtract
-
 
   integer function lmnstyEmssnLineAGNElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily lmnstyEmssnLineAGN} property extractors.
+    Return the number of elements in the {\normalfont \ttfamily lmnstyEmssnLineAGN} property extractor.
     !!}
     implicit none
-    class     (nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout) :: self
-    double precision                                       , intent(in   ) :: time
-    !$GLC attributes unused :: self, time
+    class           (nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout) :: self
+    double precision                                         , intent(in   ) :: time
+    !$GLC attributes unused :: time
 
     lmnstyEmssnLineAGNElementCount=self%countLines
     return
@@ -507,10 +514,10 @@ contains
     !!}
     use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
     implicit none
-    class           (nodePropertyExtractorLmnstyEmssnLineAGN    ), intent(inout)                            :: self
-    double precision                                             , intent(in   )                            :: time
-    type            (varying_string                             ), intent(inout), dimension(:), allocatable :: names
-    !$GLC attributes unused :: self, time
+    class           (nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout)                            :: self
+    double precision                                         , intent(in   )                            :: time
+    type            (varying_string                         ), intent(inout), dimension(:), allocatable :: names
+    !$GLC attributes unused :: time
 
     allocate(names(self%countLines))
     names=self%names_
@@ -522,9 +529,9 @@ contains
     Return descriptions of the {\normalfont \ttfamily emission line luminosity} property.
     !!}
     implicit none
-    class           (nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout)                            :: self
-    double precision                            , intent(in   )                             :: time
-    type            (varying_string            ), intent(inout), dimension(:) , allocatable :: descriptions
+    class           (nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout)                             :: self
+    double precision                                         , intent(in   )                             :: time
+    type            (varying_string                         ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: self, time
 
     allocate(descriptions(self%countLines))
@@ -538,9 +545,9 @@ contains
     !!}
     use :: Numerical_Constants_Units, only : ergs
     implicit none
-    double precision                                             , allocatable  , dimension(:) :: unitsInSI
-    class           (nodePropertyExtractorLmnstyEmssnLineAGN    ), intent(inout)               :: self
-    double precision                                             , intent(in   )               :: time
+    double precision                                         , allocatable  , dimension(:) :: unitsInSI
+    class           (nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout)               :: self
+    double precision                                         , intent(in   )               :: time
     !$GLC attributes unused :: time
 
     allocate(unitsInSI(self%countLines))
