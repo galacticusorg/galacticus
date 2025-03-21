@@ -42,7 +42,7 @@ module Numerical_Constants_Atomic
 
   ! Hydrogen Lyman series limit wavelength including correction for finite mass of the atom.
   !![
-  <constant variable="lymanSeriesLimitWavelengthHydrogen_atomic" value="+plancksConstant*speedLight/rydberg*metersToAngstroms/(+1.0d0-electronMass/massHydrogenAtom)" symbol="R_\mathrm{H}" units="$\AA$" unitsInSI="1.0e-10" description="Hydrogen Lyman series limit wavelength including correction for finite mass of the atom." externalDescription="https://en.wikipedia.org/wiki/Rydberg_constant#Rydberg_constant" reference="Derived." group="atomic"/>
+  <constant variable="lymanSeriesLimitWavelengthHydrogen_atomic" value="+plancksConstant*speedLight/rydberg*metersToAngstroms/(+1.0d0-electronMass/massHydrogenAtom)" symbol="R^{-1}_\mathrm{H}" units="$\AA$" unitsInSI="1.0e-10" description="Hydrogen Lyman series limit wavelength including correction for finite mass of the atom." externalDescription="https://en.wikipedia.org/wiki/Rydberg_constant#Rydberg_constant" reference="Derived." group="atomic"/>
   !!]
   
 end module Numerical_Constants_Atomic
