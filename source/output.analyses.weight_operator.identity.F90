@@ -37,7 +37,7 @@ Implements an identity analysis weight operator class.
 
   interface outputAnalysisWeightOperatorIdentity
      !!{
-     Constructors for the ``identity'' output analysis class.
+     Constructors for the {\normalfont \ttfamily identity} output analysis class.
      !!}
      module procedure identityConstructorParameters
   end interface outputAnalysisWeightOperatorIdentity
@@ -46,7 +46,7 @@ contains
 
   function identityConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``identity'' output analysis weight operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily identity} output analysis weight operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

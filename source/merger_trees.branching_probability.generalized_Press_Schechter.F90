@@ -138,7 +138,7 @@ contains
 
   function generalizedPressSchechterConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``generalizedPressSchechter'' merger tree branching probability class which reads parameters from a
+    Constructor for the {\normalfont \ttfamily generalizedPressSchechter} merger tree branching probability class which reads parameters from a
     provided parameter list.
     !!}
     implicit none

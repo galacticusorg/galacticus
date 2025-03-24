@@ -73,7 +73,7 @@ Implements an intracluster medium Sunyaev-Zeldovich Compton-y parameter property
 
   interface nodePropertyExtractorICMSZ
      !!{
-     Constructors for the ``icmSZ'' output analysis class.
+     Constructors for the {\normalfont \ttfamily icmSZ} output analysis class.
      !!}
      module procedure icmSZConstructorParameters
      module procedure icmSZConstructorInternal

@@ -43,7 +43,7 @@ satellite node passes.
 
   interface galacticFilterAnySatelliteNode
      !!{
-     Constructors for the ``anySatelliteNode'' galactic filter class.
+     Constructors for the {\normalfont \ttfamily anySatelliteNode} galactic filter class.
      !!}
      module procedure anySatelliteNodeConstructorParameters
      module procedure anySatelliteNodeConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function anySatelliteNodeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``anySatelliteNode'' galactic filter class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily anySatelliteNode} galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -74,7 +74,7 @@ contains
   
   function anySatelliteNodeConstructorInternal(galacticFilter_) result(self)
     !!{
-    Internal constructor for the ``anySatelliteNode'' galactic filter class.
+    Internal constructor for the {\normalfont \ttfamily anySatelliteNode} galactic filter class.
     !!}
     implicit none
     type (galacticFilterAnySatelliteNode)                        :: self
@@ -88,7 +88,7 @@ contains
   
   subroutine anySatelliteNodeDestructor(self)
     !!{
-    Destructor for  the ``anySatelliteNode'' galactic filter class.
+    Destructor for  the {\normalfont \ttfamily anySatelliteNode} galactic filter class.
     !!}
     implicit none
     type(galacticFilterAnySatelliteNode), intent(inout) :: self

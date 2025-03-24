@@ -144,7 +144,7 @@ contains
   
   function sphericalHeatedMonotonicConstructorInternal(radiusVirial,nonAnalyticSolver,massDistribution_,massDistributionHeating_,componentType,massType) result(self)
     !!{
-    Constructor for ``sphericalHeatedMonotonic'' mass distribution class.
+    Constructor for {\normalfont \ttfamily sphericalHeatedMonotonic} mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalHeatedMonotonic)                          :: self
@@ -170,7 +170,7 @@ contains
 
   subroutine sphericalHeatedMonotonicDestructor(self)
     !!{
-    Destructor for the ``sphericalHeatedMonotonic'' mass distribution class.
+    Destructor for the {\normalfont \ttfamily sphericalHeatedMonotonic} mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalHeatedMonotonic), intent(inout) :: self

@@ -97,7 +97,7 @@
   
   interface nodePropertyExtractorLuminosityEmissionLine
      !!{
-     Constructors for the ``emissionLineLuminosity'' output analysis class.
+     Constructors for the {\normalfont \ttfamily emissionLineLuminosity} output analysis class.
      !!}
      module procedure emissionLineLuminosityConstructorParameters
      module procedure emissionLineLuminosityConstructorInternal

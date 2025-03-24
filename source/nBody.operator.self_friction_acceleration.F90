@@ -42,7 +42,7 @@ Implements an N-body data operator which determines the acceleration of self-bou
 
   interface nbodyOperatorSelfFrictionAcceleration
      !!{
-     Constructors for the ``selfFrictionAcceleration'' N-body operator class.
+     Constructors for the {\normalfont \ttfamily selfFrictionAcceleration} N-body operator class.
      !!}
      module procedure selfFrictionAccelerationConstructorParameters
      module procedure selfFrictionAccelerationConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function selfFrictionAccelerationConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``selfFrictionAcceleration'' N-body operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily selfFrictionAcceleration} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -84,7 +84,7 @@ contains
 
   function selfFrictionAccelerationConstructorInternal(bootstrapSampleCount,thetaTolerance) result (self)
     !!{
-    Internal constructor for the ``selfFrictionAcceleration'' N-body operator class
+    Internal constructor for the {\normalfont \ttfamily selfFrictionAcceleration} N-body operator class
     !!}
     implicit none
     type            (nbodyOperatorSelfFrictionAcceleration)                :: self
@@ -99,7 +99,7 @@ contains
 
   subroutine selfFrictionAccelerationDestructor(self)
     !!{
-    Destructor for the ``selfFrictionAcceleration'' N-body operator class.
+    Destructor for the {\normalfont \ttfamily selfFrictionAcceleration} N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorSelfFrictionAcceleration), intent(inout) :: self

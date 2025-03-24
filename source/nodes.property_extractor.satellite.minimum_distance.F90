@@ -41,7 +41,7 @@
 
   interface nodePropertyExtractorSatelliteMinimumDistance
      !!{
-     Constructors for the ``satelliteMinimumDistance'' output extractor class.
+     Constructors for the {\normalfont \ttfamily satelliteMinimumDistance} output extractor class.
      !!}
      module procedure satelliteMinimumDistanceConstructorParameters
      module procedure satelliteMinimumDistanceConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function satelliteMinimumDistanceConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``satelliteMinimumDistance'' property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily satelliteMinimumDistance} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -67,7 +67,7 @@ contains
 
   function satelliteMinimumDistanceConstructorInternal() result(self)
     !!{
-    Internal constructor for the ``satelliteMinimumDistance'' output extractor property extractor class.
+    Internal constructor for the {\normalfont \ttfamily satelliteMinimumDistance} output extractor property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSatelliteMinimumDistance) :: self

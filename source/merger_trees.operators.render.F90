@@ -61,7 +61,7 @@ Implements a merger tree operator which dumps tree data to a file suitable for 3
 
   interface mergerTreeOperatorRender
      !!{
-     Constructors for the ``{\normalfont \ttfamily render}'' merger tree operator class.
+     Constructors for the \normalfont \ttfamily render} merger tree operator class.
      !!}
      module procedure renderConstructorParameters
      module procedure renderConstructorInternal
@@ -71,7 +71,7 @@ contains
 
   function renderConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``{\normalfont \ttfamily render}'' merger tree operator class which takes a parameter set as input.
+    Constructor for the \normalfont \ttfamily render} merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -95,7 +95,7 @@ contains
 
   function renderConstructorInternal(cosmologyFunctions_,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the ``{\normalfont \ttfamily render}'' merger tree operator class.
+    Internal constructor for the \normalfont \ttfamily render} merger tree operator class.
     !!}
     implicit none
     type (mergerTreeOperatorRender)                        :: self

@@ -180,7 +180,7 @@ contains
 
   function sedFitConstructorInternal(magnitude,error,filter,system,burstCount,dustType,startTimeType,cosmologyFunctions_,stellarPopulationSelector_,stellarPopulationSpectraPostprocessorBuilder_,stellarPopulationBroadBandLuminosities_) result(self)
     !!{
-    Constructor for ``sedFit'' posterior sampling likelihood class.
+    Constructor for {\normalfont \ttfamily sedFit} posterior sampling likelihood class.
     !!}
     use :: ISO_Varying_String , only : var_str         , varying_string
     use :: Instruments_Filters, only : Filter_Get_Index, Filter_Vega_Offset, Filter_Wavelength_Effective
@@ -234,7 +234,7 @@ contains
 
   subroutine sedFitDestructor(self)
     !!{
-    Destructor for ``sedFit'' posterior sampling likelihood class.
+    Destructor for {\normalfont \ttfamily sedFit} posterior sampling likelihood class.
     !!}
     implicit none
     type(posteriorSampleLikelihoodSEDFit), intent(inout) :: self

@@ -43,7 +43,7 @@
 
   interface nodePropertyExtractorMassAccretionRateBlackHoles
      !!{
-     Constructors for the ``massAccretionRateBlackHoles'' output extractor class.
+     Constructors for the {\normalfont \ttfamily massAccretionRateBlackHoles} output extractor class.
      !!}
      module procedure massAccretionRateBlackHolesConstructorParameters
      module procedure massAccretionRateBlackHolesConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function massAccretionRateBlackHolesConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``massAccretionRateBlackHoles'' property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily massAccretionRateBlackHoles} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

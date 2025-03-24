@@ -45,7 +45,7 @@ Implements an N-body data operator which computes the velocity dispersion in a s
 
   interface nbodyOperatorVelocityDispersion
      !!{
-     Constructors for the ``velocityDispersion'' N-body operator class.
+     Constructors for the {\normalfont \ttfamily velocityDispersion} N-body operator class.
      !!}
      module procedure velocityDispersionConstructorParameters
      module procedure velocityDispersionConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function velocityDispersionConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``velocityDispersion'' N-body operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily velocityDispersion} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -102,7 +102,7 @@ contains
 
   function velocityDispersionConstructorInternal(selfBoundParticlesOnly,bootstrapSampleCount,radiusInner,radiusOuter,randomNumberGenerator_) result (self)
     !!{
-    Internal constructor for the ``velocityDispersion'' N-body operator class.
+    Internal constructor for the {\normalfont \ttfamily velocityDispersion} N-body operator class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -121,7 +121,7 @@ contains
 
   subroutine velocityDispersionDestructor(self)
     !!{
-    Destructor for the ``meanPosition'' N-body operator class.
+    Destructor for the {\normalfont \ttfamily velocityDispersion} N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorVelocityDispersion), intent(inout) :: self

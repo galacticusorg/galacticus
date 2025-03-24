@@ -42,7 +42,7 @@ Implements a low-pass filter on any node property.
 
   interface galacticFilterLowPass
      !!{
-     Constructors for the ``lowPass'' galactic filter class.
+     Constructors for the {\normalfont \ttfamily lowPass} galactic filter class.
      !!}
      module procedure lowPassConstructorParameters
      module procedure lowPassConstructorInternal
@@ -52,7 +52,7 @@ contains
   
   function lowPassConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``lowPass'' galactic filter class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily lowPass} galactic filter class which takes a parameter set as input.
     !!}
     use :: Error                   , only : Error_Report
     use :: Input_Parameters        , only : inputParameter            , inputParameters
@@ -86,7 +86,7 @@ contains
 
   function lowPassConstructorInternal(threshold,nodePropertyExtractor_) result(self)
     !!{
-    Internal constructor for the ``lowPass'' galactic filter class.
+    Internal constructor for the {\normalfont \ttfamily lowPass} galactic filter class.
     !!}
     implicit none
     type            (galacticFilterLowPass      )                        :: self
@@ -101,7 +101,7 @@ contains
 
   subroutine lowPassDestructor(self)
     !!{
-    Destructor for the ``lowPass'' galactic filter class.
+    Destructor for the {\normalfont \ttfamily lowPass} galactic filter class.
     !!}
     implicit none
     type(galacticFilterLowPass), intent(inout) :: self

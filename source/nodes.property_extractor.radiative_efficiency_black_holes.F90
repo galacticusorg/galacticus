@@ -45,7 +45,7 @@
 
   interface nodePropertyExtractorRadiativeEfficiencyBlackHoles
      !!{
-     Constructors for the ``radiativeEfficiencyBlackHoles'' output extractor class.
+     Constructors for the {\normalfont \ttfamily radiativeEfficiencyBlackHoles} output extractor class.
      !!}
      module procedure radiativeEfficiencyBlackHolesConstructorParameters
      module procedure radiativeEfficiencyBlackHolesConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function radiativeEfficiencyBlackHolesConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``radiativeEfficiencyBlackHoles'' property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily radiativeEfficiencyBlackHoles} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

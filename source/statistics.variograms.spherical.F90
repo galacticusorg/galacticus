@@ -100,7 +100,7 @@ contains
 
   function sphericalConstructorInternal(variogramFitOption,assumeZeroVarianceAtZeroLag) result(self)
     !!{
-    Constructor for ``spherical'' variogram class.
+    Constructor for {\normalfont \ttfamily spherical} variogram class.
     !!}
     implicit none
     type   (variogramSpherical               )                :: self

@@ -18,14 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Implements a redshiftLastIsolated property extractor class.
+Implements a property extractor class that extracts the redshift at which a \gls{node] was last isolated..
 !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRedshiftLastIsolated">
-   <description>A node property extractor class which extracts the redshift at which a \gls{node} was last isolated---named ``{\normalfont \ttfamily redshiftLastIsolated}.</description>
+   <description>A node property extractor class which extracts the redshift at which a \gls{node} was last isolated---named ``{\normalfont \ttfamily redshiftLastIsolated}''.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRedshiftLastIsolated
@@ -44,7 +44,7 @@ Implements a redshiftLastIsolated property extractor class.
 
   interface nodePropertyExtractorRedshiftLastIsolated
      !!{
-     Constructors for the ``redshiftLastIsolated'' output analysis class.
+     Constructors for the {\normalfont \ttfamily redshiftLastIsolated} output analysis class.
      !!}
      module procedure redshiftLastIsolatedConstructorParameters
      module procedure redshiftLastIsolatedConstructorInternal

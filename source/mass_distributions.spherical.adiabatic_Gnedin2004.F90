@@ -271,7 +271,7 @@ contains
   
   function sphericalAdiabaticGnedin2004ConstructorInternal(A,omega,radiusVirial,radiusFractionalPivot,darkMatterFraction,darkMatterDistributedFraction,massFractionInitial,toleranceRelative,nonAnalyticSolver,massDistribution_,massDistributionBaryonic,initializationFunction,initializationSelf,initializationArgument,componentType,massType) result(self)
     !!{
-    Constructor for ``sphericalAdiabaticGnedin2004'' mass distribution class.
+    Constructor for {\normalfont \ttfamily sphericalAdiabaticGnedin2004} mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalAdiabaticGnedin2004)                          :: self

@@ -104,7 +104,7 @@ contains
 
   function multivariateNormalConstructorInternal(means,covariance) result(self)
     !!{
-    Constructor for ``multivariateNormal'' convergence class.
+    Constructor for {\normalfont \ttfamily multivariateNormal} convergence class.
     !!}
     use :: Linear_Algebra, only : assignment(=)
     implicit none

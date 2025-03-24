@@ -23,13 +23,13 @@ Implements a merger tree filter class which is the ``any'' combination of a set 
 
   !![
   <mergerTreeFilter name="mergerTreeFilterAny">
-   <description>A merger tree filter class which is the ``any'' combination of a set of other filters.</description>
+   <description>A merger tree filter class which is the {\normalfont \ttfamily any} combination of a set of other filters.</description>
    <linkedList type="filterList" variable="filters" next="next" object="filter_" objectType="mergerTreeFilterClass"/>
   </mergerTreeFilter>
   !!]
   type, extends(mergerTreeFilterClass) :: mergerTreeFilterAny
      !!{
-     A merger tree filter class which is the ``any'' combination of a set of other filters.
+     A merger tree filter class which is the {\normalfont \ttfamily any} combination of a set of other filters.
      !!}
      private
      type(filterList), pointer :: filters => null()
@@ -50,7 +50,7 @@ contains
 
   function anyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``any'' merger tree filter class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily any} merger tree filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -81,7 +81,7 @@ contains
 
   function anyConstructorInternal(filters) result(self)
     !!{
-    Internal constructor for the ``any'' filter class.
+    Internal constructor for the {\normalfont \ttfamily any} filter class.
     !!}
     implicit none
     type(mergerTreeFilterAny)                        :: self
@@ -101,7 +101,7 @@ contains
 
   subroutine anyDestructor(self)
     !!{
-    Destructor for the ``any'' merger tree filter class.
+    Destructor for the {\normalfont \ttfamily any} merger tree filter class.
     !!}
     implicit none
     type(mergerTreeFilterAny), intent(inout) :: self
@@ -123,7 +123,7 @@ contains
 
   logical function anyPasses(self,tree)
     !!{
-    Apply a set of filters to a {\normalfont \ttfamily tree} combined with ``any'' operations.
+    Apply a set of filters to a {\normalfont \ttfamily tree} combined with {\normalfont \ttfamily any} operations.
     !!}
     implicit none
     class(mergerTreeFilterAny), intent(inout) :: self

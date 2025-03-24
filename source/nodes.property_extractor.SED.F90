@@ -90,7 +90,7 @@
   
   interface nodePropertyExtractorSED
      !!{
-     Constructors for the ``sed'' output analysis class.
+     Constructors for the {\normalfont \ttfamily sed} output analysis class.
      !!}
      module procedure sedConstructorParameters
      module procedure sedConstructorInternal

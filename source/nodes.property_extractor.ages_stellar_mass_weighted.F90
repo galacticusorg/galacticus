@@ -51,7 +51,7 @@
 
   interface nodePropertyExtractorAgesStellarMassWeighted
      !!{
-     Constructors for the ``agesStellarMassWeighted'' output extractor class.
+     Constructors for the {\normalfont \ttfamily agesStellarMassWeighted} output extractor class.
      !!}
      module procedure agesStellarMassWeightedConstructorParameters
      module procedure agesStellarMassWeightedConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function agesStellarMassWeightedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``agesStellarMassWeighted'' property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily agesStellarMassWeighted} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function agesStellarMassWeightedConstructorInternal() result(self)
     !!{
-    Internal constructor for the ``agesStellarMassWeighted'' output extractor property extractor class.
+    Internal constructor for the {\normalfont \ttfamily agesStellarMassWeighted} output extractor property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorAgesStellarMassWeighted) :: self

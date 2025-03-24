@@ -46,7 +46,7 @@
 
   interface nodePropertyExtractorNodeMajorMergerRecentCount
      !!{
-     Constructors for the ``nodeMajorMergerRecentCount'' output analysis class.
+     Constructors for the {\normalfont \ttfamily nodeMajorMergerRecentCount} output analysis class.
      !!}
      module procedure nodeMajorMergerRecentCountConstructorParameters
      module procedure nodeMajorMergerRecentCountConstructorInternal

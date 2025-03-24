@@ -129,7 +129,7 @@ contains
   
   function sphericalTruncatedExponentialConstructorInternal(radiusTruncateMinimum,radiusTruncateDecay,nonAnalyticSolver,massDistribution_,componentType,massType) result(self)
     !!{
-    Constructor for ``sphericalTruncatedExponential'' mass distribution class.
+    Constructor for {\normalfont \ttfamily sphericalTruncatedExponential} mass distribution class.
     !!}
     use :: Coordinates    , only : coordinateSpherical                   , assignment(=)
     use :: Gamma_Functions, only : Gamma_Function_Incomplete_Unnormalized

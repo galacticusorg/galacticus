@@ -38,7 +38,7 @@ Implements a filter which passes only the most massive branch halo.
 
   interface galacticFilterBranchMostMassive
      !!{
-     Constructors for the ``branchMostMassive'' galactic filter class.
+     Constructors for the {\normalfont \ttfamily branchMostMassive} galactic filter class.
      !!}
      module procedure branchMostMassiveConstructorParameters
      module procedure branchMostMassiveConstructorInternal
@@ -48,7 +48,7 @@ contains
 
   function branchMostMassiveConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``branchMostMassive'' galactic filter class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily branchMostMassive} galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -64,7 +64,7 @@ contains
 
   function branchMostMassiveConstructorInternal() result(self)
     !!{
-    Internal constructor for the ``branchMostMassive'' galactic filter class.
+    Internal constructor for the {\normalfont \ttfamily branchMostMassive} galactic filter class.
     !!}
     implicit none
     type(galacticFilterBranchMostMassive) :: self

@@ -163,7 +163,7 @@ contains
 
   function massFunctionConstructorInternal(haloMassMinimum,haloMassMaximum,redshiftMinimum,redshiftMaximum,useSurveyLimits,massFunctionFileName,modelSurfaceBrightness,surfaceBrightnessLimit,cosmologyFunctions_,haloMassFunction_,surveyGeometry_) result(self)
     !!{
-    Constructor for ``massFunction'' posterior sampling likelihood class.
+    Constructor for {\normalfont \ttfamily massFunction} posterior sampling likelihood class.
     !!}
     use :: Display          , only : displayMessage, displayMagenta    , displayReset
     use :: Input_Paths      , only : inputPath     , pathTypeDataStatic
@@ -254,7 +254,7 @@ contains
 
   subroutine massFunctionDestructor(self)
     !!{
-    Destructor for ``massFunction'' posterior sampling likelihood class.
+    Destructor for {\normalfont \ttfamily massFunction} posterior sampling likelihood class.
     !!}
     implicit none
     type(posteriorSampleLikelihoodMassFunction), intent(inout) :: self

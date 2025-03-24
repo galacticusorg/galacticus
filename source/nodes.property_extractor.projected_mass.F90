@@ -60,7 +60,7 @@
 
   interface nodePropertyExtractorProjectedMass
      !!{
-     Constructors for the ``projectedMass'' output analysis class.
+     Constructors for the {\normalfont \ttfamily projectedMass} output analysis class.
      !!}
      module procedure projectedMassConstructorParameters
      module procedure projectedMassConstructorInternal

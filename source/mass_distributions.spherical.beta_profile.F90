@@ -143,7 +143,7 @@ contains
 
   function betaProfileConstructorInternal(beta,densityNormalization,mass,outerRadius,coreRadius,dimensionless,truncateAtOuterRadius,componentType,massType) result(self)
     !!{
-    Constructor for ``betaProfile'' convergence class.
+    Constructor for {\normalfont \ttfamily betaProfile} convergence class.
     !!}
     use :: Display                 , only : displayIndent      , displayMessage, displayUnindent, displayVerbosity, &
           &                                 verbosityLevelDebug

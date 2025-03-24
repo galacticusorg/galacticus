@@ -158,7 +158,7 @@ contains
 
   function gelmanRubinConstructorInternal(thresholdHatR,burnCount,testCount,outlierCountMaximum,outlierSignificance,outlierLogLikelihoodOffset,reportCount,logFileName) result(self)
     !!{
-    Constructor for ``GelmanRubin'' convergence class.
+    Constructor for {\normalfont \ttfamily GelmanRubin} convergence class.
     !!}
     use :: Error            , only : Error_Report
     use :: MPI_Utilities    , only : mpiSelf

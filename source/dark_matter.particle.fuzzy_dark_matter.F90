@@ -44,7 +44,7 @@ Implements a fuzzy dark matter particle class.
 
   interface darkMatterParticleFuzzyDarkMatter
      !!{
-     Constructors for the ``{\normalfont \ttfamily fuzzyDarkMatter}'' dark matter particle class.
+     Constructors for the \normalfont \ttfamily fuzzyDarkMatter} dark matter particle class.
      !!}
      module procedure fuzzyDMConstructorParameters
      module procedure fuzzyDMConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function fuzzyDMConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``{\normalfont \ttfamily fuzzyDarkMatter}'' dark matter particle class which takes a parameter set as input.
+    Constructor for the \normalfont \ttfamily fuzzyDarkMatter} dark matter particle class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -87,7 +87,7 @@ contains
 
   function fuzzyDMConstructorInternal(mass,densityFraction) result(self)
     !!{
-    Internal constructor for the ``{\normalfont \ttfamily fuzzyDarkMatter}'' dark matter particle class.
+    Internal constructor for the \normalfont \ttfamily fuzzyDarkMatter} dark matter particle class.
     !!}
     use :: Numerical_Constants_Prefixes, only : kilo
     implicit none

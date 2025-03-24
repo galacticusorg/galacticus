@@ -46,7 +46,7 @@
 
   interface nodePropertyExtractorBranchMostMassive
      !!{
-     Constructors for the ``branchMostMassive'' output analysis class.
+     Constructors for the {\normalfont \ttfamily branchMostMassive} output analysis class.
      !!}
      module procedure branchMostMassiveConstructorParameters
      module procedure branchMostMassiveConstructorInternal

@@ -121,7 +121,7 @@ contains
 
   function parkinsonColeHellyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``parkinsonColeHelly'' merger tree branching probability class which reads parameters from a provided
+    Constructor for the {\normalfont \ttfamily parkinsonColeHelly} merger tree branching probability class which reads parameters from a provided
     parameter list.
     !!}
     implicit none
@@ -200,7 +200,7 @@ contains
 
   function parkinsonColeHellyConstructorInternal(G0,gamma1,gamma2,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,tolerateRoundOffErrors,cosmologicalMassVariance_,criticalOverdensity_) result(self)
     !!{
-    Internal constructor for the ``parkinsonColeHelly'' merger tree branching probability class.
+    Internal constructor for the {\normalfont \ttfamily parkinsonColeHelly} merger tree branching probability class.
     !!}
     use :: Error                , only : Error_Report
     use :: Numerical_Integration, only : GSL_Integ_Gauss15

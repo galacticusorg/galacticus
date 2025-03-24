@@ -37,7 +37,7 @@
 
   interface outputAnalysisDistributionNormalizerBinWidth
      !!{
-     Constructors for the ``binWidth'' output analysis distribution normalizer class.
+     Constructors for the {\normalfont \ttfamily binWidth} output analysis distribution normalizer class.
      !!}
      module procedure binWidthConstructorParameters
   end interface outputAnalysisDistributionNormalizerBinWidth
@@ -46,7 +46,7 @@ contains
 
   function binWidthConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``binWidth'' output analysis distribution normalizer class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily binWidth} output analysis distribution normalizer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

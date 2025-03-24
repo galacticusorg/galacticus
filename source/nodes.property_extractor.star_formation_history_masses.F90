@@ -50,7 +50,7 @@
   
   interface nodePropertyExtractorStarFormationHistoryMass
      !!{
-     Constructors for the ``starFormationHistoryMass'' output analysis class.
+     Constructors for the {\normalfont \ttfamily starFormationHistoryMass} output analysis class.
      !!}
      module procedure starFormationHistoryMassConstructorParameters
      module procedure starFormationHistoryMassConstructorInternal

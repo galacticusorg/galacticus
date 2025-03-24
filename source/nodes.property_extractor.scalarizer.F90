@@ -43,7 +43,7 @@ Implements an output analysis property extractor class that scalarizes one eleme
 
   interface nodePropertyExtractorScalarizer
      !!{
-     Constructors for the ``scalarizer'' output analysis class.
+     Constructors for the {\normalfont \ttfamily scalarizer} output analysis class.
      !!}
      module procedure scalarizerConstructorParameters
      module procedure scalarizerConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function scalarizerConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``scalarizer'' output analysis property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily scalarizer} output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

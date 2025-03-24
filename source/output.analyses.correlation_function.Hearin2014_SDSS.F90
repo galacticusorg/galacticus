@@ -37,7 +37,7 @@ Implements a correlation function output analysis class for the \cite{hearin_dar
 
   interface outputAnalysisCorrelationFunctionHearin2013SDSS
      !!{
-     Constructors for the ``correlationFunctionHearin2013SDSS'' output analysis class.
+     Constructors for the {\normalfont \ttfamily correlationFunctionHearin2013SDSS} output analysis class.
      !!}
      module procedure correlationFunctionHearin2013SDSSConstructorParameters
      module procedure correlationFunctionHearin2013SDSSConstructorInternal
@@ -47,7 +47,7 @@ contains
 
   function correlationFunctionHearin2013SDSSConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``correlationFunctionHearin2013SDSS'' output analysis class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily correlationFunctionHearin2013SDSS} output analysis class which takes a parameter set as input.
     !!}
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
     use            :: Input_Parameters  , only : inputParameter, inputParameters
@@ -148,7 +148,7 @@ contains
 
   function correlationFunctionHearin2013SDSSConstructorInternal(massHaloBinsPerDecade,massHaloMinimum,massHaloMaximum,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,cosmologyFunctions_,outputTimes_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterHaloScale_,haloModelPowerSpectrumModifier_,powerSpectrum_) result (self)
     !!{
-    Constructor for the ``correlationFunctionHearin2013SDSS'' output analysis class for internal use.
+    Constructor for the {\normalfont \ttfamily correlationFunctionHearin2013SDSS} output analysis class for internal use.
     !!}
     use            :: Cosmology_Functions                   , only : cosmologyFunctionsClass                            , cosmologyFunctionsMatterLambda
     use            :: Cosmology_Parameters                  , only : cosmologyParametersSimple

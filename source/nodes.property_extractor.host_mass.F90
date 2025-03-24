@@ -40,7 +40,7 @@ Implements a massHost property extractor class.
 
   interface nodePropertyExtractorMassHost
      !!{
-     Constructors for the ``massHost'' output analysis class.
+     Constructors for the {\normalfont \ttfamily massHost} output analysis class.
      !!}
      module procedure massHostConstructorParameters
   end interface nodePropertyExtractorMassHost

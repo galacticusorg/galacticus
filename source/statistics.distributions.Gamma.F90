@@ -97,7 +97,7 @@ contains
 
   function gammaConstructorInternal(shape,rate,randomNumberGenerator_,limitLower,limitUpper) result(self)
     !!{
-    Constructor for ``gamma'' 1D distribution function class.
+    Constructor for {\normalfont \ttfamily gamma} 1D distribution function class.
     !!}
     use :: Error, only : Error_Report
     implicit none

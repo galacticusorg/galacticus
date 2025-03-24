@@ -45,7 +45,7 @@
 
   interface outputAnalysisMorphologicalFractionGAMAMoffett2016
      !!{
-     Constructors for the ``morphologicalFractionGAMAMoffett2016'' output analysis class.
+     Constructors for the {\normalfont \ttfamily morphologicalFractionGAMAMoffett2016} output analysis class.
      !!}
      module procedure morphologicalFractionGAMAMoffett2016ConstructorParameters
      module procedure morphologicalFractionGAMAMoffett2016ConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function morphologicalFractionGAMAMoffett2016ConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``morphologicalFractionGAMAMoffett2016'' output analysis class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily morphologicalFractionGAMAMoffett2016} output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
     use :: Input_Parameters   , only : inputParameter    , inputParameters
@@ -128,7 +128,7 @@ contains
 
   function morphologicalFractionGAMAMoffett2016ConstructorInternal(ratioEarlyType,ratioEarlyTypeError,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_) result (self)
     !!{
-    Constructor for the ``morphologicalFractionGAMAMoffett2016'' output analysis class for internal use.
+    Constructor for the {\normalfont \ttfamily morphologicalFractionGAMAMoffett2016} output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                            , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple

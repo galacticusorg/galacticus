@@ -150,7 +150,7 @@ contains
   
   function sphericalShellOverdensitiesConstructorInternal(halfWidth,densityContrast,volumeFillingFactor,radiusBoundary,massDistribution_,randomNumberGenerator_,dimensionless,componentType,massType) result(self)
     !!{
-    Constructor for ``sphericalShellOverdensities'' mass distribution class.
+    Constructor for {\normalfont \ttfamily sphericalShellOverdensities} mass distribution class.
     !!}
     use :: Sorting      , only : sort
 #ifdef USEMPI

@@ -51,7 +51,7 @@ Implements a stellar mass output analysis property extractor class.
 
   interface nodePropertyExtractorLuminosityStellar
      !!{
-     Constructors for the ``luminosityStellar'' output analysis class.
+     Constructors for the {\normalfont \ttfamily luminosityStellar} output analysis class.
      !!}
      module procedure luminosityStellarConstructorParameters
      module procedure luminosityStellarConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function luminosityStellarConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``luminosityStellar'' output analysis property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily luminosityStellar} output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -130,7 +130,7 @@ contains
 
   function luminosityStellarConstructorInternal(filterName,filterType,outputTimes_,redshiftBand,postprocessChain,outputMask) result(self)
     !!{
-    Internal constructor for the ``luminosityStellar'' output analysis property extractor class.
+    Internal constructor for the {\normalfont \ttfamily luminosityStellar} output analysis property extractor class.
     !!}
     use, intrinsic :: ISO_C_Binding                 , only : c_size_t
     use            :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
@@ -171,7 +171,7 @@ contains
 
   subroutine luminosityStellarDestructor(self)
     !!{
-    Destructor for the ``luminosityStellar'' output analysis property extractor class.
+    Destructor for the {\normalfont \ttfamily luminosityStellar} output analysis property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorLuminosityStellar), intent(inout) :: self
