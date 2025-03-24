@@ -48,7 +48,7 @@ Implements a selfInteracting dark matter particle class.
 
   interface darkMatterParticleSelfInteractingDarkMatter
      !!{
-     Constructors for the \normalfont \ttfamily selfInteractingDarkMatter} dark matter particle class.
+     Constructors for the {\normalfont \ttfamily selfInteractingDarkMatter} dark matter particle class.
      !!}
      module procedure selfInteractingDMConstructorParameters
      module procedure selfInteractingDMConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function selfInteractingDMConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \normalfont \ttfamily selfInteractingDarkMatter} dark matter particle class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily selfInteractingDarkMatter} dark matter particle class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -85,7 +85,7 @@ contains
 
   function selfInteractingDMConstructorInternal(crossSectionSelfInteraction,darkMatterParticle_) result(self)
     !!{
-    Internal constructor for the \Normalfont \ttfamily selfInteractingDarkMatter} dark matter particle class.
+    Internal constructor for the {\Normalfont \ttfamily selfInteractingDarkMatter} dark matter particle class.
     !!}
     implicit none
     type            (darkMatterParticleSelfInteractingDarkMatter)                        :: self

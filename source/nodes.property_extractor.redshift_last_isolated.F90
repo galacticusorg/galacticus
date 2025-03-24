@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Implements a property extractor class that extracts the redshift at which a \gls{node] was last isolated..
+Implements a property extractor class that extracts the redshift at which a \gls{node} was last isolated.
 !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
