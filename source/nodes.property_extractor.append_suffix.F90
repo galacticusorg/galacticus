@@ -86,7 +86,7 @@ contains
 
   subroutine appendSuffixNames(self,elementType,time,names)
     !!{
-    Return the names of the appendSuffixple properties.
+    Return the names of the suffixed properties.
     !!}
     implicit none
     class           (nodePropertyExtractorAppendSuffix), intent(inout)                             :: self

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implements a projected orbital radus property extractor class.
+  Implements a projected orbital radius property extractor class.
   !!}
 
   !![

@@ -18,17 +18,17 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implements a node property extractor class that combines physical and index proeprties of galaxy mergers.
+  Implements a node property extractor class that combines physical and index properties of galaxy mergers.
   !!}
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorGalaxyMergers">
-   <description>An output extractor property extractor class that combines physical and index proeprties of galaxy mergers.</description>
+   <description>An output extractor property extractor class that combines physical and index properties of galaxy mergers.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorMulti) :: nodePropertyExtractorGalaxyMergers
      !!{
-     An output extractor property extractor class that combines physical and index proeprties of galaxy mergers.
+     An output extractor property extractor class that combines physical and index properties of galaxy mergers.
      !!}
      private
    contains
