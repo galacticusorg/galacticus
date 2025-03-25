@@ -85,7 +85,7 @@ contains
 
   function selfInteractingDMConstructorInternal(crossSectionSelfInteraction,darkMatterParticle_) result(self)
     !!{
-    Internal constructor for the {\Normalfont \ttfamily selfInteractingDarkMatter} dark matter particle class.
+    Internal constructor for the {\normalfont \ttfamily selfInteractingDarkMatter} dark matter particle class.
     !!}
     implicit none
     type            (darkMatterParticleSelfInteractingDarkMatter)                        :: self
