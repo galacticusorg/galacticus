@@ -314,7 +314,7 @@ contains
     double precision                                                 , parameter                  :: radiusMinimum            =+1.00d-06
     double precision                                                 , parameter                  :: metallicityISMLocal      =+2.00d-02 ! Metallicity in the local ISM.
     double precision                                                 , parameter                  :: wavelengthZeroPoint      =+5.50d+03 ! Angstroms.
-    double precision                                                 , parameter                  :: densityHydrogen          =+1.00d+04 ! cm⁻³.
+    double precision                                                 , parameter                  :: densityHydrogen          =+1.00d+03 ! cm⁻³.
     double precision                                                 , parameter                  :: temperature              =+1.00d+04 ! K.
     double precision                                                 , parameter                  :: frequency0p001Microns    =speedLight/( 0.001d0*micro) ! Frequency at  0.001μm in Hz.
     double precision                                                 , parameter                  :: frequency0p250Microns    =speedLight/( 0.250d0*micro) ! Frequency at  0.250μm in Hz.
