@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1742624803467,
+  "lastUpdate": 1743113008496,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "1549918dad1ef0fa23d15cb49e152059c518559d",
-          "message": "Merge pull request #626 from galacticusorg/featJHLFAnalysis\n\nAdd an `outputAnalysis` class to compute high-z H and J-band luminosity functions",
-          "timestamp": "2024-06-13T15:36:26Z",
-          "tree_id": "98180f3e3a40e91a2134b1221370e6f76995f38f",
-          "url": "https://github.com/galacticusorg/galacticus/commit/1549918dad1ef0fa23d15cb49e152059c518559d"
-        },
-        "date": 1718318120340,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 511.806,
-            "unit": "seconds",
-            "range": 0.830164080164718
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10656,6 +10626,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": "9.446904763761403",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8d6b92022c484addc399c4018ea48101ecc0e3dc",
+          "message": "Merge pull request #819 from galacticusorg/fixSourceDocConsistency\n\nMake source documentation more consistent around formatting of class names",
+          "timestamp": "2025-03-27T15:35:29Z",
+          "tree_id": "8fa971c98e169eba35dd3c6e7dc1b8a63affbc20",
+          "url": "https://github.com/galacticusorg/galacticus/commit/8d6b92022c484addc399c4018ea48101ecc0e3dc"
+        },
+        "date": 1743113007199,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 34.97,
+            "unit": "seconds",
+            "range": 0.0614166101309803
           }
         ]
       }
