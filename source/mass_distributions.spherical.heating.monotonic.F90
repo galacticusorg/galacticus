@@ -102,7 +102,7 @@ contains
   
   function monotonicConstructorInternal(massDistributionHeating_) result(self)
     !!{
-    Constructor for ``monotonic'' mass distribution heating class.
+    Constructor for {\normalfont \ttfamily monotonic} mass distribution heating class.
     !!}
     implicit none
     type            (massDistributionHeatingMonotonic)                        :: self
@@ -126,7 +126,7 @@ contains
 
   subroutine monotonicDestructor(self)
     !!{
-    Destructor for the ``monotonic'' mass distribution heating class.
+    Destructor for the {\normalfont \ttfamily monotonic} mass distribution heating class.
     !!}
     implicit none
     type(massDistributionHeatingMonotonic), intent(inout) :: self

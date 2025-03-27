@@ -56,7 +56,7 @@ Implements a galactic high-pass filter for total star formation rate.
 
   interface galacticFilterStarFormationRate
      !!{
-     Constructors for the ``starFormationRate'' galactic filter class.
+     Constructors for the {\normalfont \ttfamily starFormationRate} galactic filter class.
      !!}
      module procedure starFormationRateConstructorParameters
      module procedure starFormationRateConstructorInternal
@@ -66,7 +66,7 @@ contains
 
   function starFormationRateConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``starFormationRate'' galactic filter class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily starFormationRate} galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -114,7 +114,7 @@ contains
 
   function starFormationRateConstructorInternal(logM0,logSFR0,logSFR1,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_) result(self)
     !!{
-    Internal constructor for the ``starFormationRate'' galactic filter class.
+    Internal constructor for the {\normalfont \ttfamily starFormationRate} galactic filter class.
     !!}
     implicit none
     type            (galacticFilterStarFormationRate          )                        :: self
@@ -133,7 +133,7 @@ contains
 
   subroutine starFormationRateDestructor(self)
     !!{
-    Destructor for the ``starFormationRate'' galactic filter class.
+    Destructor for the {\normalfont \ttfamily starFormationRate} galactic filter class.
     !!}
     implicit none
     type(galacticFilterStarFormationRate), intent(inout) :: self

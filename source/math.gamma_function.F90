@@ -63,7 +63,9 @@ module Gamma_Functions
      end function gsl_sf_gamma_inc_P
 
      function gsl_sf_gamma(x) bind(c,name='gsl_sf_gamma')
-       !% Template for the GSL Gamma function.
+       !!{
+       Template for the GSL Gamma function.
+       !!}
        import
        real(c_double)        :: gsl_sf_gamma
        real(c_double), value :: x

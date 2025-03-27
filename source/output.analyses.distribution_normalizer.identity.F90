@@ -37,7 +37,7 @@
 
   interface outputAnalysisDistributionNormalizerIdentity
      !!{
-     Constructors for the ``identity'' output analysis distribution normalizer class.
+     Constructors for the {\normalfont \ttfamily identity} output analysis distribution normalizer class.
      !!}
      module procedure identityConstructorParameters
   end interface outputAnalysisDistributionNormalizerIdentity
@@ -46,7 +46,7 @@ contains
 
   function identityConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``identity'' output analysis distribution normalizer class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily identity} output analysis distribution normalizer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

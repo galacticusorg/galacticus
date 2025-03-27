@@ -49,7 +49,7 @@ Implements a node property extractor class for apparent magnitudes.
 
   interface nodePropertyExtractorMagnitudesApparent
      !!{
-     Constructors for the ``magnitudesApparent'' output analysis class.
+     Constructors for the {\normalfont \ttfamily magnitudesApparent} output analysis class.
      !!}
      module procedure magnitudesApparentConstructorParameters
      module procedure magnitudesApparentConstructorInternal

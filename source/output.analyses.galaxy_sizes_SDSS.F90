@@ -52,7 +52,7 @@ Implements a galaxy size output analysis class for SDSS data.
 
   interface outputAnalysisGalaxySizesSDSS
      !!{
-     Constructors for the ``galaxySizesSDSS'' output analysis class.
+     Constructors for the {\normalfont \ttfamily galaxySizesSDSS} output analysis class.
      !!}
      module procedure galaxySizesSDSSConstructorParameters
      module procedure galaxySizesSDSSConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function galaxySizesSDSSConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``galaxySizesSDSS'' output analysis class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily galaxySizesSDSS} output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -109,7 +109,7 @@ contains
 
   function galaxySizesSDSSConstructorInternal(distributionNumber,massStellarRatio,sizeSourceLensing,cosmologyFunctions_,outputTimes_,gravitationalLensing_) result(self)
     !!{
-    Internal constructor for the ``galaxySizesSDSS'' output analysis class.
+    Internal constructor for the {\normalfont \ttfamily galaxySizesSDSS} output analysis class.
     !!}
     use :: Cosmology_Functions                     , only : cosmologyFunctionsClass                      , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                    , only : cosmologyParametersSimple
@@ -492,7 +492,7 @@ contains
 
   subroutine galaxySizesSDSSDestructor(self)
     !!{
-    Destructor for the ``galaxySizesSDSS'' output analysis class.
+    Destructor for the {\normalfont \ttfamily galaxySizesSDSS} output analysis class.
     !!}
     implicit none
     type(outputAnalysisGalaxySizesSDSS), intent(inout) :: self

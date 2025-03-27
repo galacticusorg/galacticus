@@ -40,7 +40,7 @@ Implements an orbital radius output analysis property extractor class.
 
   interface nodePropertyExtractorRadiusOrbital
      !!{
-     Constructors for the ``radiusOrbital'' output analysis class.
+     Constructors for the {\normalfont \ttfamily radiusOrbital} output analysis class.
      !!}
      module procedure radiusOrbitalConstructorParameters
   end interface nodePropertyExtractorRadiusOrbital
@@ -49,7 +49,7 @@ contains
 
   function radiusOrbitalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``radiusOrbital'' output analysis property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily radiusOrbital} output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

@@ -121,7 +121,7 @@ contains
   
   function sphericalScalerConstructorInternal(factorScalingLength,factorScalingMass,massDistribution_,chandrasekharIntegralComputeVelocityDispersion) result(self)
     !!{
-    Constructor for ``sphericalScaler'' convergence class.
+    Constructor for {\normalfont \ttfamily sphericalScaler} convergence class.
     !!}
     implicit none
     type            (massDistributionSphericalScaler)                          :: self
@@ -141,7 +141,7 @@ contains
 
   subroutine sphericalScalerDestructor(self)
     !!{
-    Destructor for the ``sphericalScaler'' mass distribution class.
+    Destructor for the {\normalfont \ttfamily sphericalScaler} mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalScaler), intent(inout) :: self

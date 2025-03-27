@@ -45,7 +45,7 @@
 
   interface nodePropertyExtractorJetPowerBlackHoles
      !!{
-     Constructors for the ``jetPowerBlackHoles'' output extractor class.
+     Constructors for the {\normalfont \ttfamily jetPowerBlackHoles} output extractor class.
      !!}
      module procedure jetPowerBlackHolesConstructorParameters
      module procedure jetPowerBlackHolesConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function jetPowerBlackHolesConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``jetPowerBlackHoles'' property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily jetPowerBlackHoles} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

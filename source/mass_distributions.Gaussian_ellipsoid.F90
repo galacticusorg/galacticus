@@ -158,7 +158,7 @@ contains
   
   function gaussianEllipsoidConstructorInternal(scaleLength,axes,rotation,mass,dimensionless,componentType,massType) result(self)
     !!{
-    Constructor for ``gaussianEllipsoid'' convergence class.
+    Constructor for {\normalfont \ttfamily gaussianEllipsoid} convergence class.
     !!}
     use :: Error               , only : Error_Report
     use :: Linear_Algebra      , only : vector       , assignment(=)

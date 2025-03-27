@@ -48,7 +48,7 @@
 
   interface nodePropertyExtractorRadiusVelocityMaximum
      !!{
-     Constructors for the ``radiusVelocityMaximum'' output analysis class.
+     Constructors for the {\normalfont \ttfamily radiusVelocityMaximum} output analysis class.
      !!}
      module procedure radiusVelocityMaximumConstructorParameters
      module procedure radiusVelocityMaximumConstructorInternal

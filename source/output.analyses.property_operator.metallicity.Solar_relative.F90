@@ -41,7 +41,7 @@
 
   interface outputAnalysisPropertyOperatorMetallicitySolarRelative
      !!{
-     Constructors for the ``metallicity'' output analysis class.
+     Constructors for the {\normalfont \ttfamily metallicitySolarRelative} output analysis class.
      !!}
      module procedure metallicitySolarRelativeConstructorParameters
      module procedure metallicitySolarRelativeConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function metallicitySolarRelativeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``metallicitySolarRelative'' output analysis property operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily metallicitySolarRelative} output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -76,7 +76,7 @@ contains
 
   function metallicitySolarRelativeConstructorInternal(atomicNumberElement) result (self)
     !!{
-    Internal constructor for the ``metallicitySolarRelative'' output analysis distribution operator class.
+    Internal constructor for the {\normalfont \ttfamily metallicitySolarRelative} output analysis distribution operator class.
     !!}
     use :: Atomic_Data, only : Abundance_Pattern_Lookup
     implicit none

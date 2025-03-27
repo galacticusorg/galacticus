@@ -38,7 +38,7 @@ Implements a filter which passes only constrained branch halos.
 
   interface galacticFilterConstrainedBranch
      !!{
-     Constructors for the ``constrainedBranch'' galactic filter class.
+     Constructors for the {\normalfont \ttfamily constrainedBranch} galactic filter class.
      !!}
      module procedure constrainedBranchConstructorParameters
      module procedure constrainedBranchConstructorInternal
@@ -48,7 +48,7 @@ contains
 
   function constrainedBranchConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``constrainedBranch'' galactic filter class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily constrainedBranch} galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -64,7 +64,7 @@ contains
 
   function constrainedBranchConstructorInternal() result(self)
     !!{
-    Internal constructor for the ``constrainedBranch'' galactic filter class.
+    Internal constructor for the {\normalfont \ttfamily constrainedBranch} galactic filter class.
     !!}
     implicit none
     type(galacticFilterConstrainedBranch) :: self

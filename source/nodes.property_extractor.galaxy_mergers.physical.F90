@@ -42,7 +42,7 @@
 
   interface nodePropertyExtractorGalaxyMergersPhysical
      !!{
-     Constructors for the ``galaxyMergersPhysical'' output extractor class.
+     Constructors for the {\normalfont \ttfamily galaxyMergersPhysical} output extractor class.
      !!}
      module procedure galaxyMergersPhysicalConstructorParameters
      module procedure galaxyMergersPhysicalConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function galaxyMergersPhysicalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``galaxyMergersPhysical'' property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily galaxyMergersPhysical} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -68,7 +68,7 @@ contains
 
   function galaxyMergersPhysicalConstructorInternal() result(self)
     !!{
-    Internal constructor for the ``galaxyMergersPhysical'' output extractor property extractor class.
+    Internal constructor for the {\normalfont \ttfamily galaxyMergersPhysical} output extractor property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorGalaxyMergersPhysical) :: self

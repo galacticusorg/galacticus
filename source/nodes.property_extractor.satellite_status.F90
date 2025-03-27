@@ -51,7 +51,7 @@ Implements an ISM mass output analysis property extractor class.
 
   interface nodePropertyExtractorSatelliteStatus
      !!{
-     Constructors for the ``satelliteStatus'' output analysis class.
+     Constructors for the {\normalfont \ttfamily satelliteStatus} output analysis class.
      !!}
      module procedure satelliteStatusConstructorParameters
      module procedure satelliteStatusConstructorInternal

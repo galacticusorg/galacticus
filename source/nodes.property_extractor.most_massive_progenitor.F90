@@ -44,7 +44,7 @@ Implements a node property extractor for the most massive progenitor.
 
   interface nodePropertyExtractorMostMassiveProgenitor
      !!{
-     Constructors for the ``mostMassiveProgenitor'' output analysis class.
+     Constructors for the {\normalfont \ttfamily mostMassiveProgenitor} output analysis class.
      !!}
      module procedure mostMassiveProgenitorConstructorParameters
      module procedure mostMassiveProgenitorConstructorInternal

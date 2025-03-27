@@ -38,7 +38,7 @@
   !!]
   type, extends(transferFunctionClass) :: transferFunctionEisensteinHu1999
      !!{
-     The ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class.
+     The {\normalfont \ttfamily eisensteinHu1999} transfer function class.
      !!}
      private
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
@@ -68,7 +68,7 @@
 
   interface transferFunctionEisensteinHu1999
      !!{
-     Constructors for the ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class.
+     Constructors for the {\normalfont \ttfamily eisensteinHu1999} transfer function class.
      !!}
      module procedure eisensteinHu1999ConstructorParameters
      module procedure eisensteinHu1999ConstructorInternal
@@ -78,7 +78,7 @@ contains
 
   function eisensteinHu1999ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class
+    Constructor for the {\normalfont \ttfamily eisensteinHu1999} transfer function class
     which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -122,7 +122,7 @@ contains
 
   function eisensteinHu1999ConstructorInternal(neutrinoNumberEffective,neutrinoMassSummed,darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class.
+    Internal constructor for the {\normalfont \ttfamily eisensteinHu1999} transfer function class.
     !!}
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleCDM
@@ -323,7 +323,7 @@ contains
 
   subroutine eisensteinHu1999ComputeFactors(self,wavenumber)
     !!{
-    Compute common factors required by ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class.
+    Compute common factors required by {\normalfont \ttfamily eisensteinHu1999} transfer function class.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
     implicit none

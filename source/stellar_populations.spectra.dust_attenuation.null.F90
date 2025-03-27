@@ -37,7 +37,7 @@
 
   interface stellarSpectraDustAttenuationZero
      !!{
-     Constructors for the ``zero'' stellar spectra dust attenuation class.
+     Constructors for the {\normalfont \ttfamily zero} stellar spectra dust attenuation class.
      !!}
      module procedure zeroConstructorParameters
   end interface stellarSpectraDustAttenuationZero
@@ -46,7 +46,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the ``zero'' stellar spectra dust attenuation class.
+    Default constructor for the {\normalfont \ttfamily zero} stellar spectra dust attenuation class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

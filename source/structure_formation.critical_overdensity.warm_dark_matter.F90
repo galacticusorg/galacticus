@@ -75,7 +75,7 @@ Implements a critical overdensity for collapse the \gls{wdm} modifier of \cite{b
 
   interface criticalOverdensityBarkana2001WDM
      !!{
-     Constructors for the ``{\normalfont \ttfamily barkana2001WDM}'' critical overdensity for collapse class.
+     Constructors for the {\normalfont \ttfamily barkana2001WDM} critical overdensity for collapse class.
      !!}
      module procedure barkana2001WDMConstructorParameters
      module procedure barkana2001WDMConstructorInternal
@@ -94,7 +94,7 @@ contains
 
   function barkana2001WDMConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``{\normalfont \ttfamily barkana2001WDM}'' critical overdensity for collapse class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily barkana2001WDM} critical overdensity for collapse class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -138,7 +138,7 @@ contains
 
   function barkana2001WDMConstructorInternal(criticalOverdensityCDM,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,linearGrowth_,useFittingFunction) result(self)
     !!{
-    Internal constructor for the ``{\normalfont \ttfamily barkana2001WDM}'' critical overdensity for collapse class.
+    Internal constructor for the {\normalfont \ttfamily barkana2001WDM} critical overdensity for collapse class.
     !!}
     use :: Cosmology_Parameters   , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles  , only : darkMatterParticleWDMThermal

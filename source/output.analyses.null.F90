@@ -40,7 +40,7 @@ Implements a null output analysis class.
 
   interface outputAnalysisNull
      !!{
-     Constructors for the ``null'' output analysis class.
+     Constructors for the {\normalfont \ttfamily null} output analysis class.
      !!}
      module procedure nullConstructorParameters
   end interface outputAnalysisNull
@@ -49,7 +49,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``null'' output analysis class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily null} output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

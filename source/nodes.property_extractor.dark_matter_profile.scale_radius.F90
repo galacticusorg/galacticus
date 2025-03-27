@@ -40,7 +40,7 @@ Implements a dark matter profile scale radius output analysis property extractor
 
   interface nodePropertyExtractorDarkMatterProfileScaleRadius
      !!{
-     Constructors for the ``darkMatterProfileScaleRadius'' output analysis class.
+     Constructors for the {\normalfont \ttfamily darkMatterProfileScaleRadius} output analysis class.
      !!}
      module procedure darkMatterProfileScaleRadiusConstructorParameters
   end interface nodePropertyExtractorDarkMatterProfileScaleRadius

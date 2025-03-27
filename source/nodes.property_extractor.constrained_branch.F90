@@ -46,7 +46,7 @@
 
   interface nodePropertyExtractorConstrainedStatus
      !!{
-     Constructors for the ``constrainedStatus'' output analysis class.
+     Constructors for the {\normalfont \ttfamily constrainedStatus} output analysis class.
      !!}
      module procedure constrainedStatusConstructorParameters
      module procedure constrainedStatusConstructorInternal

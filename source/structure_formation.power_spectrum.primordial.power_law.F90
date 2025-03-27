@@ -54,7 +54,7 @@
 
   interface powerSpectrumPrimordialPowerLaw
      !!{
-     Constructors for the ``power-law'' primordial power spectrum class.
+     Constructors for the {\normalfont \ttfamily powerLaw} primordial power spectrum class.
      !!}
      module procedure powerLawConstructorParameters
      module procedure powerLawConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function powerLawConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``power-law'' primordial power spectrum class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily powerLaw} primordial power spectrum class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -117,7 +117,7 @@ contains
 
   function powerLawConstructorInternal(index_,running,runningRunning,wavenumberReference,runningSmallScalesOnly) result(self)
     !!{
-    Internal constructor for the ``power-law'' primordial power spectrum class.
+    Internal constructor for the {\normalfont \ttfamily powerLaw} primordial power spectrum class.
     !!}
     use :: Error  , only : Warn
     use :: Display, only : displayBlue, displayYellow, displayGreen, displayReset

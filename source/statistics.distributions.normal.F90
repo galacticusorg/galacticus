@@ -123,7 +123,7 @@ contains
 
   function normalConstructorInternal(mean,variance,limitLower,limitUpper,randomNumberGenerator_) result(self)
     !!{
-    Constructor for ``normal'' 1D distribution function class.
+    Constructor for {\normalfont \ttfamily normal} 1D distribution function class.
     !!}
     use :: Error_Functions, only : Error_Function
     implicit none

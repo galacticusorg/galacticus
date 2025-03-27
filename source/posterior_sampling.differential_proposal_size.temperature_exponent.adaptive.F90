@@ -124,7 +124,7 @@ contains
 
   function adaptiveConstructorInternal(exponentInitial,exponentMinimum,exponentMaximum,exponentAdjustFactor,gradientMinimum,gradientMaximum,updateCount) result(self)
     !!{
-    Constructor for the ``adaptive'' differential evolution proposal size class.
+    Constructor for the {\normalfont \ttfamily adaptive} differential evolution proposal size class.
     !!}
     implicit none
     type            (posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive)                :: self

@@ -46,7 +46,7 @@ Implements a cooling rate property extractor class.
 
   interface nodePropertyExtractorVelocityMaximum
      !!{
-     Constructors for the ``velocityMaximum'' output analysis class.
+     Constructors for the {\normalfont \ttfamily velocityMaximum} output analysis class.
      !!}
      module procedure velocityMaximumConstructorParameters
      module procedure velocityMaximumConstructorInternal

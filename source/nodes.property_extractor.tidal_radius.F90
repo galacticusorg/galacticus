@@ -46,7 +46,7 @@ Implements a tidal radius property extractor class.
 
   interface nodePropertyExtractorRadiusTidal
      !!{
-     Constructors for the ``radiusTidal'' output analysis class.
+     Constructors for the {\normalfont \ttfamily radiusTidal} output analysis class.
      !!}
      module procedure radiusTidalConstructorParameters
      module procedure radiusTidalConstructorInternal

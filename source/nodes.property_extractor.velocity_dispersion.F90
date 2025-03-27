@@ -72,7 +72,7 @@
 
   interface nodePropertyExtractorVelocityDispersion
      !!{
-     Constructors for the ``velocityDispersion'' output analysis class.
+     Constructors for the {\normalfont \ttfamily velocityDispersion} output analysis class.
      !!}
      module procedure velocityDispersionConstructorParameters
      module procedure velocityDispersionConstructorInternal

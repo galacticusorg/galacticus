@@ -55,7 +55,7 @@ Implements a merger tree build controller class which limits tree building to a 
 
   interface mergerTreeBuildControllerSingleStep
      !!{
-     Constructors for the ``singleStep'' merger tree build controller class.
+     Constructors for the {\normalfont \ttfamily singleStep} merger tree build controller class.
      !!}
      module procedure singleStepConstructorParameters
      module procedure singleStepConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function singleStepConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``singleStep'' merger tree build controller class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily singleStep} merger tree build controller class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -112,7 +112,7 @@ contains
 
   function singleStepConstructorInternal(criticalOverdensityStep,haltAfterStep,cosmologyFunctions_,criticalOverdensity_,linearGrowth_,mergerTreeBuildController_) result(self)
     !!{
-    Internal constructor for the ``singleStep'' merger tree build controller class .
+    Internal constructor for the {\normalfont \ttfamily singleStep} merger tree build controller class .
     !!}
     use :: Nodes_Labels, only : nodeLabelRegister
     implicit none

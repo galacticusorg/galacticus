@@ -44,7 +44,7 @@ Implements a galactic filter which applies another filter to a descendant node o
 
   interface galacticFilterDescendantNode
      !!{
-     Constructors for the ``descendantNode'' galactic filter class.
+     Constructors for the {\normalfont \ttfamily descendantNode} galactic filter class.
      !!}
      module procedure descendantNodeConstructorParameters
      module procedure descendantNodeConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function descendantNodeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``descendantNode'' galactic filter class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily descendantNode} galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters   , only : inputParameter         , inputParameters
     implicit none
@@ -90,7 +90,7 @@ contains
   
   function descendantNodeConstructorInternal(timeDescendant,allowSelf,cosmologyFunctions_,galacticFilter_) result(self)
     !!{
-    Internal constructor for the ``descendantNode'' galactic filter class.
+    Internal constructor for the {\normalfont \ttfamily descendantNode} galactic filter class.
     !!}
     implicit none
     type            (galacticFilterDescendantNode)                        :: self
@@ -108,7 +108,7 @@ contains
   
   subroutine descendantNodeDestructor(self)
     !!{
-    Destructor for  the ``descendantNode'' galactic filter class.
+    Destructor for  the {\normalfont \ttfamily descendantNode} galactic filter class.
     !!}
     implicit none
     type(galacticFilterDescendantNode), intent(inout) :: self

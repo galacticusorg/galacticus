@@ -44,7 +44,7 @@ Implements a property extractor class for bar instability timescales.
 
   interface nodePropertyExtractorTimescaleBarInstability
      !!{
-     Constructors for the ``timescaleBarInstability'' output analysis class.
+     Constructors for the {\normalfont \ttfamily timescaleBarInstability} output analysis class.
      !!}
      module procedure timescaleBarInstabilityConstructorParameters
      module procedure timescaleBarInstabilityConstructorInternal

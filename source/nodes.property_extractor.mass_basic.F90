@@ -40,7 +40,7 @@ Implements an output analysis property extractor class that extracts the basic m
 
   interface nodePropertyExtractorMassBasic
      !!{
-     Constructors for the ``massBasic'' output analysis class.
+     Constructors for the {\normalfont \ttfamily massBasic} output analysis class.
      !!}
      module procedure massBasicConstructorParameters
   end interface nodePropertyExtractorMassBasic
@@ -49,7 +49,7 @@ contains
 
   function massBasicConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``massBasic'' output analysis property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily massBasic} output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

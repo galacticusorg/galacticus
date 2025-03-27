@@ -68,7 +68,7 @@
 
   interface nodePropertyExtractorCGMCoolingFunction
      !!{
-     Constructors for the ``cgmCoolingFunction'' output analysis class.
+     Constructors for the {\normalfont \ttfamily cgmCoolingFunction} output analysis class.
      !!}
      module procedure cgmCoolingFunctionConstructorParameters
      module procedure cgmCoolingFunctionConstructorInternal

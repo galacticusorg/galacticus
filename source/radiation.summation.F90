@@ -54,7 +54,7 @@ Implements a radiation field class which sums over other radiation fields.
 
   interface radiationFieldSummation
      !!{
-     Constructors for the ``summation'' radiation field class.
+     Constructors for the {\normalfont \ttfamily summation} radiation field class.
      !!}
      module procedure summationConstructorParameters
      module procedure summationConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function summationConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``summation'' radiation field class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily summation} radiation field class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
