@@ -186,6 +186,9 @@ An example change file can be found \href{https://raw.githubusercontent.com/gala
     </stellarFeedbackOutflows>
   </change>
 
+  <!-- Replace a parameter with a different parameter-->
+  <change type="replace" path="nodeOperator/nodeOperator[@value='stellarFeedbackSpheroids']/stellarFeedbackOutflows/stellarFeedbackOutflows" target="nodeOperator/nodeOperator[@value='stellarFeedbackDisks']/stellarFeedbackOutflows/stellarFeedbackOutflows"/>
+
   <!-- Replace or append a parameter -->
   <change type="replaceOrAppend" path="starFormationRateSpheroids/starFormationTimescale/efficiency">
     <efficiency value="0.06"/>
@@ -197,17 +200,18 @@ An example change file can be found \href{https://raw.githubusercontent.com/gala
 
 </changes>
 \end{verbatim}
-A parameter change file should contain one or more change elements. Each change element must have a path attribute which gives an \href{http://www.w3schools.com/Xml/xpath_syntax.asp}{XPath} expression that identifies a parameter in the parameter file that will be acted upon by the change. (Note that currently only a limited set of XPath functionality is supported - matching of element names and single attributes only.) An empty path indicates the top-level section of the parameter file.
+A parameter change file should contain one or more change elements. Each change element must have a {\normalfont \ttfamily path} attribute which gives an \href{http://www.w3schools.com/Xml/xpath_syntax.asp}{XPath} expression that identifies a parameter in the parameter file that will be acted upon by the change. (Note that currently only a limited set of XPath functionality is supported - matching of element names and single attributes only.) An empty path indicates the top-level section of the parameter file.
 
-Each change element must also have a type attribute which specifies the type of change to be made. Supported types are:
+Each change element must also have a {\normalfont \ttfamily type} attribute which specifies the type of change to be made. Supported types are:
 \begin{description}
-\item[{\normalfont \ttfamily append}:] This will append all parameters enclosed within the change element to the children of the parameter specified by the path attribute.
-\item[{\normalfont \ttfamily insertBefore}:] This will insert all parameters enclosed within the change element before the parameter specified by the path attribute.
-\item[{\normalfont \ttfamily insertAfter}:] This will insert all parameters enclosed within the change element after the parameter specified by the path attribute.
-\item[{\normalfont \ttfamily replace}:] This will replace the parameter specified by the path attribute with all parameters enclosed within the change element.
-\item[{\normalfont \ttfamily replaceOrAppend}:] This will replace the parameter specified by the path attribute, if it exists, with all parameters enclosed within the change element. If the parameter does not exist, instead all parameters enclosed within the change element will be appended to the children of the parent element.
-\item[{\normalfont \ttfamily remove}:] This will remove the parameter specified by the path attribute.
-\item[{\normalfont \ttfamily update}:] This will update the value of the parameter specified by the path attribute with that given by the value attribute of the change element.
+\item[{\normalfont \ttfamily append}:] This will append all parameters enclosed within the change element to the children of the parameter specified by the {\normalfont \ttfamily path} attribute.
+\item[{\normalfont \ttfamily insertBefore}:] This will insert all parameters enclosed within the change element before the parameter specified by the {\normalfont \ttfamily path} attribute.
+\item[{\normalfont \ttfamily insertAfter}:] This will insert all parameters enclosed within the change element after the parameter specified by the {\normalfont \ttfamily path} attribute.
+\item[{\normalfont \ttfamily replace}:] This will replace the parameter specified by the {\normalfont \ttfamily path} attribute with all parameters enclosed within the change element.
+\item[{\normalfont \ttfamily replaceWith}:] This will replace the parameter specified by the {\normalfont \ttfamily path} attribute with the parameter (and all children) from the parameter file at the path specified by the {\normalfont \ttfamily target} attribute (note that the parameter identified by the {\normalfont \ttfamily target} attribute is not removed)
+\item[{\normalfont \ttfamily replaceOrAppend}:] This will replace the parameter specified by the {\normalfont \ttfamily path} attribute, if it exists, with all parameters enclosed within the change element. If the parameter does not exist, instead all parameters enclosed within the change element will be appended to the children of the parent element.
+\item[{\normalfont \ttfamily remove}:] This will remove the parameter specified by the {\normalfont \ttfamily path} attribute.
+\item[{\normalfont \ttfamily update}:] This will update the value of the parameter specified by the {\normalfont \ttfamily path} attribute with that given by the {\normalfont \ttfamily value} attribute of the change element.
 \end{description}
 
 \section{General Structure of Output File}\label{sec:outputFile}
