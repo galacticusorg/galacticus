@@ -93,10 +93,13 @@ foreach my $entry ( @entries ) {
 }
 
 # Generate jobs to create the models.
-my @jobs =
+my @jobs;
+## Jobs using our model.
+push(
+    @jobs,
     map
     {
-	-e $_->{'filePrefix'} && $options{'force'} eq "no"
+	-e $_->{'filePrefix'}.":MPI0000.hdf5" && $options{'force'} eq "no"
 	?
         ()
 	:
@@ -110,7 +113,71 @@ my @jobs =
 	    mpi        => "no"
 	}
     }
-    @entries;
+    @entries
+    );
+## Jobs with no numerical effects.
+push(
+    @jobs,
+    map
+    {
+	-e $_->{'filePrefix'}.".hdf5_true:MPI0000" && $options{'force'} eq "no"
+	?
+        ()
+	:
+	{
+	    command    => $ENV{'GALACTICUS_EXEC_PATH'}."/Galacticus.exe ".$_->{'fileParameters'}." ".$ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/changesTrue.xml",
+	    launchFile => $_->{'filePrefix'}."_true.sh" ,
+	    logFile    => $_->{'filePrefix'}."_true.log",
+	    label      => "haloMassFunction_".$_->{'suite'}->{'name'}."_".$_->{'group'}->{'name'}."_".$_->{'simulation'}->{'name'}."_".$_->{'realization'}."_z".$_->{'redshift'}."_true",
+	    ppn        => 1,
+	    nodes      => 1,
+	    mpi        => "no"
+	}
+    }
+    @entries
+    );
+## Jobs using the Despali et al. (2015) halo mass function.
+push(
+    @jobs,
+    map
+    {
+	-e $_->{'filePrefix'}.".hdf5_Despali2015:MPI0000" && $options{'force'} eq "no"
+	?
+        ()
+	:
+	{
+	    command    => $ENV{'GALACTICUS_EXEC_PATH'}."/Galacticus.exe ".$_->{'fileParameters'}." ".$ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/changesDespali2015.xml",
+	    launchFile => $_->{'filePrefix'}."_despali2015.sh" ,
+	    logFile    => $_->{'filePrefix'}."_despali2015.log",
+	    label      => "haloMassFunction_".$_->{'suite'}->{'name'}."_".$_->{'group'}->{'name'}."_".$_->{'simulation'}->{'name'}."_".$_->{'realization'}."_z".$_->{'redshift'}."_despali2015",
+	    ppn        => 1,
+	    nodes      => 1,
+	    mpi        => "no"
+	}
+    }
+    @entries
+    );
+## Jobs using the Bohr et al. (2021) halo mass function.
+push(
+    @jobs,
+    map
+    {
+	-e $_->{'filePrefix'}.".hdf5_Bohr2021:MPI0000" && $options{'force'} eq "no"
+	?
+        ()
+	:
+	{
+	    command    => $ENV{'GALACTICUS_EXEC_PATH'}."/Galacticus.exe ".$_->{'fileParameters'}." ".$ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/changesBohr2021.xml",
+	    launchFile => $_->{'filePrefix'}."_bohr2021.sh" ,
+	    logFile    => $_->{'filePrefix'}."_bohr2021.log",
+	    label      => "haloMassFunction_".$_->{'suite'}->{'name'}."_".$_->{'group'}->{'name'}."_".$_->{'simulation'}->{'name'}."_".$_->{'realization'}."_z".$_->{'redshift'}."_bohr2021",
+	    ppn        => 1,
+	    nodes      => 1,
+	    mpi        => "no"
+	}
+    }
+    @entries
+    );
 &{$Galacticus::Launch::Hooks::moduleHooks{$queueManager->{'manager'}}->{'jobArrayLaunch'}}(\%options,@jobs)
     if ( scalar(@jobs) > 0 );
 
@@ -138,6 +205,27 @@ foreach my $entry ( @entries ) {
     $dataTarget->{'nonZero'          } = which(($dataTarget->{'count'} > 0) & ($dataTarget->{'mass'} >= $massHaloMinimum));
     $dataTarget->{'nonFit'           } = which(($dataTarget->{'count'} > 0) & ($dataTarget->{'mass'} <  $massHaloMinimum));
     $dataTarget->{'massFunctionError'}->($dataTarget->{'nonZero'}) /= $dataTarget->{'count'}->double()->($dataTarget->{'nonZero'})->sqrt();
+    # Read the true model halo mass function.
+    my $dataTrue;
+    my $fileTrue   = new PDL::IO::HDF5($entry->{'filePrefix'}.".hdf5_true:MPI0000");
+    my $outputTrue = $fileTrue->group('Outputs/Output1');
+    $dataTrue->{$_} = $outputTrue->dataset($_)->get()
+	foreach ( 'haloMass', 'haloMassFunctionLnMBinAveraged' );
+    $dataTrue->{'nonZero'} = which($dataTrue->{'haloMassFunctionLnMBinAveraged'} > 0);
+    # Read the Despali et al. (2015) halo mass function.
+    my $dataDespali2015;
+    my $fileDespali2015   = new PDL::IO::HDF5($entry->{'filePrefix'}.".hdf5_Despali2015:MPI0000");
+    my $outputDespali2015 = $fileDespali2015->group('Outputs/Output1');
+    $dataDespali2015->{$_} = $outputDespali2015->dataset($_)->get()
+	foreach ( 'haloMass', 'haloMassFunctionLnMBinAveraged' );
+    $dataDespali2015->{'nonZero'} = which($dataDespali2015->{'haloMassFunctionLnMBinAveraged'} > 0);
+    # Read the Bohr et al. (2021) halo mass function.
+    my $dataBohr2021;
+    my $fileBohr2021   = new PDL::IO::HDF5($entry->{'filePrefix'}.".hdf5_Bohr2021:MPI0000");
+    my $outputBohr2021 = $fileBohr2021->group('Outputs/Output1');
+    $dataBohr2021->{$_} = $outputBohr2021->dataset($_)->get()
+	foreach ( 'haloMass', 'haloMassFunctionLnMBinAveraged' );
+    $dataBohr2021->{'nonZero'} = which($dataBohr2021->{'haloMassFunctionLnMBinAveraged'} > 0);
     # Create the plot.
     my $plot;
     my $gnuPlot;
@@ -177,14 +265,6 @@ foreach my $entry ( @entries ) {
 	color        => $GnuPlot::PrettyPlots::colorPairs{'blackGray'}
 	);   
     &GnuPlot::PrettyPlots::Prepare_Dataset(
-	\$plot                                                                   ,
-	$dataModel->{'haloMass'                      }->($dataModel->{'nonZero'}),
-	$dataModel->{'haloMassFunctionLnMBinAveraged'}->($dataModel->{'nonZero'}),
-	style        => "line"                                                   ,
-	weight       => [2,1]                                                    ,
-	color        => $GnuPlot::PrettyPlots::colorPairs{'redYellow'}
-	);   
-    &GnuPlot::PrettyPlots::Prepare_Dataset(
 	\$plot                                                        ,
 	$dataTarget->{'mass'        }->($dataTarget->{'nonFit'}),
 	$dataTarget->{'massFunction'}->($dataTarget->{'nonFit'}),
@@ -203,17 +283,50 @@ foreach my $entry ( @entries ) {
 	$dataTarget->{'massFunction'}->($dataTarget->{'nonZero'}),
 	errorDown    => $dataTarget->{'massFunctionError'}->($dataTarget->{'nonZero'}),
 	errorUp      => $dataTarget->{'massFunctionError'}->($dataTarget->{'nonZero'}),
-	style        => "point"                                        ,
-	symbol       => [6,7]                                         ,
-	weight       => [2,1]                                         ,
+	style        => "point"                                          ,
+	symbol       => [6,7]                                            ,
+	weight       => [2,1]                                            ,
 	pointSize    => 0.25                                             ,
 	color        => $GnuPlot::PrettyPlots::colorPairs{'mediumSeaGreen'}
+	);   
+    &GnuPlot::PrettyPlots::Prepare_Dataset(
+	\$plot                                                                               ,
+	$dataDespali2015->{'haloMass'                      }->($dataDespali2015->{'nonZero'}),
+	$dataDespali2015->{'haloMassFunctionLnMBinAveraged'}->($dataDespali2015->{'nonZero'}),
+	style        => "line"                                                               ,
+	weight       => [2,1]                                                                ,
+	linePattern  => 3,
+	color        => $GnuPlot::PrettyPlots::colorPairs{'cornflowerBlue'}
+	);   
+    &GnuPlot::PrettyPlots::Prepare_Dataset(
+	\$plot                                                                         ,
+	$dataBohr2021->{'haloMass'                      }->($dataBohr2021->{'nonZero'}),
+	$dataBohr2021->{'haloMassFunctionLnMBinAveraged'}->($dataBohr2021->{'nonZero'}),
+	style        => "line"                                                         ,
+	weight       => [2,1]                                                          ,
+	linePattern  => 3,
+	color        => $GnuPlot::PrettyPlots::colorPairs{'lightGray'}
+	);   
+    &GnuPlot::PrettyPlots::Prepare_Dataset(
+	\$plot                                                                 ,
+	$dataTrue->{'haloMass'                      }->($dataTrue->{'nonZero'}),
+	$dataTrue->{'haloMassFunctionLnMBinAveraged'}->($dataTrue->{'nonZero'}),
+	style        => "line"                                                 ,
+	weight       => [2,1]                                                  ,
+	linePattern  => 2,
+	color        => $GnuPlot::PrettyPlots::colorPairs{'redYellow'}
+	);   
+    &GnuPlot::PrettyPlots::Prepare_Dataset(
+	\$plot                                                                   ,
+	$dataModel->{'haloMass'                      }->($dataModel->{'nonZero'}),
+	$dataModel->{'haloMassFunctionLnMBinAveraged'}->($dataModel->{'nonZero'}),
+	style        => "line"                                                   ,
+	weight       => [2,1]                                                    ,
+	color        => $GnuPlot::PrettyPlots::colorPairs{'redYellow'}
 	);   
     &GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
     close($gnuPlot);
     &GnuPlot::LaTeX::GnuPlot2PDF($plotFileTeX);
 }
-
-exit;
 
 exit 0;
