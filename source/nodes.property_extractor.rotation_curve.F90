@@ -60,7 +60,7 @@
 
   interface nodePropertyExtractorRotationCurve
      !!{
-     Constructors for the ``rotationCurve'' output analysis class.
+     Constructors for the {\normalfont \ttfamily rotationCurve} output analysis class.
      !!}
      module procedure rotationCurveConstructorParameters
      module procedure rotationCurveConstructorInternal

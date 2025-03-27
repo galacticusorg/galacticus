@@ -46,7 +46,7 @@ Implements a node property extractor class for absolute magnitudes.
 
   interface nodePropertyExtractorMagnitudesAbsolute
      !!{
-     Constructors for the ``magnitudesAbsolute'' output analysis class.
+     Constructors for the {\normalfont \ttfamily magnitudesAbsolute} output analysis class.
      !!}
      module procedure magnitudesAbsoluteConstructorParameters
      module procedure magnitudesAbsoluteConstructorInternal

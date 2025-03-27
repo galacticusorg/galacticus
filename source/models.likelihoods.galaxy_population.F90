@@ -165,7 +165,7 @@ contains
 
   function galaxyPopulationConstructorInternal(parametersModel,baseParametersFileName,randomize,outputAnalyses,setOutputGroup,reportEvaluationTimes,collaborativeMPI,reportFileName,reportState,evolveForestsVerbosity,failedParametersFileName,changeParametersFileNames) result(self)
     !!{
-    Constructor for ``galaxyPopulation'' posterior sampling likelihood class.
+    Constructor for {\normalfont \ttfamily galaxyPopulation} posterior sampling likelihood class.
     !!}
     use :: Error  , only : Error_Report
     use :: Display, only : displayGreen, displayReset

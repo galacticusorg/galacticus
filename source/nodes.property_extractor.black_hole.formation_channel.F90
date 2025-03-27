@@ -42,7 +42,7 @@
 
   interface nodePropertyExtractorBlackHoleFormationChannel
      !!{
-     Constructors for the ``blackHoleFormationChannel'' node property extractor class.
+     Constructors for the {\normalfont \ttfamily blackHoleFormationChannel} node property extractor class.
      !!}
      module procedure blackHoleFormationChannelConstructorParameters
      module procedure blackHoleFormationChannelConstructorInternal

@@ -50,7 +50,7 @@ Implements an orbital position output analysis property extractor class.
 
   interface nodePropertyExtractorPositionOrbital
      !!{
-     Constructors for the ``positionOrbital'' output analysis class.
+     Constructors for the {\normalfont \ttfamily positionOrbital} output analysis class.
      !!}
      module procedure positionOrbitalConstructorParameters
   end interface nodePropertyExtractorPositionOrbital
@@ -59,7 +59,7 @@ contains
 
   function positionOrbitalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``positionOrbital'' output analysis property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily positionOrbital} output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

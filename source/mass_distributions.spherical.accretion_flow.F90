@@ -130,7 +130,7 @@ contains
   
   function sphericalAccretionFlowConstructorInternal(radiusTransition,nonAnalyticSolver,massDistribution_,massDistributionAccretionFlow_,componentType,massType) result(self)
     !!{
-    Constructor for ``sphericalAccretionFlow'' mass distribution class.
+    Constructor for {\normalfont \ttfamily sphericalAccretionFlow} mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalAccretionFlow)                          :: self

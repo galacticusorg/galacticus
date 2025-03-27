@@ -72,7 +72,7 @@
 
   interface outputAnalysisSubhaloMassFunction
      !!{
-     Constructors for the ``subhaloMassFunction'' output analysis class.
+     Constructors for the {\normalfont \ttfamily subhaloMassFunction} output analysis class.
      !!}
      module procedure subhaloMassFunctionConstructorParameters
      module procedure subhaloMassFunctionConstructorFile
@@ -83,7 +83,7 @@ contains
 
   function subhaloMassFunctionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``subhaloMassFunction'' output analysis class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily subhaloMassFunction} output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters       , only : inputParameter            , inputParameters
     use :: Output_Times           , only : outputTimesClass
@@ -177,7 +177,7 @@ contains
   
   function subhaloMassFunctionConstructorFile(darkMatterProfileDMO_,outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,fileName,negativeBinomialScatterFractional,redshift) result (self)
     !!{
-    Constructor for the ``subhaloMassFunction'' output analysis class for internal use.
+    Constructor for the {\normalfont \ttfamily subhaloMassFunction} output analysis class for internal use.
     !!}
     use :: HDF5_Access            , only : hdf5Access
     use :: IO_HDF5                , only : hdf5Object
@@ -237,7 +237,7 @@ contains
 
   function subhaloMassFunctionConstructorInternal(darkMatterProfileDMO_,outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,time,massRatioMinimum,massRatioMaximum,countMassRatios,negativeBinomialScatterFractional,massFunctionTarget,massFunctionCovarianceTarget,labelTarget) result (self)
     !!{
-    Constructor for the ``subhaloMassFunction'' output analysis class for internal use.
+    Constructor for the {\normalfont \ttfamily subhaloMassFunction} output analysis class for internal use.
     !!}
     use :: Galactic_Filters                        , only : filterList                                  , galacticFilterAll                  , galacticFilterHaloIsolated   , galacticFilterHaloNotIsolated     , &
           &                                                 galacticFilterLowPass

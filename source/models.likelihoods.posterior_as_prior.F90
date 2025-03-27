@@ -136,7 +136,7 @@ contains
 
   function posteriorAsPriorConstructorInternal(chainBaseName,neighborCount,tolerance,exclusions,posteriorSampleLikelihood_) result(self)
     !!{
-    Constructor for ``posteriorAsPrior'' posterior sampling likelihood class.
+    Constructor for {\normalfont \ttfamily posteriorAsPrior} posterior sampling likelihood class.
     !!}
     use :: File_Utilities    , only : File_Exists
     use :: ISO_Varying_String, only : varying_string

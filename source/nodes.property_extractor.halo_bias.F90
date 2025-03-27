@@ -47,7 +47,7 @@ Implements an ISM mass output analysis property extractor class.
 
   interface nodePropertyExtractorHaloBias
      !!{
-     Constructors for the ``haloBias'' output analysis class.
+     Constructors for the {\normalfont \ttfamily haloBias} output analysis class.
      !!}
      module procedure haloBiasConstructorParameters
      module procedure haloBiasConstructorInternal

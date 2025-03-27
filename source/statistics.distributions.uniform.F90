@@ -95,7 +95,7 @@ contains
 
   function uniformConstructorInternal(limitLower,limitUpper,randomNumberGenerator_) result(self)
     !!{
-    Constructor for ``uniform'' 1D distribution function class.
+    Constructor for {\normalfont \ttfamily uniform} 1D distribution function class.
     !!}
     type            (distributionFunction1DUniform)                                  :: self
     double precision                               , intent(in   )                   :: limitLower            , limitUpper

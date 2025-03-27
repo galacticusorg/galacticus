@@ -65,7 +65,7 @@ Implements a stellar mass function output analysis class for the ZFOURGE survey 
 
   interface outputAnalysisMassFunctionStellarZFOURGE
      !!{
-     Constructors for the ``massFunctionStellarZFOURGE'' output analysis class.
+     Constructors for the {\normalfont \ttfamily massFunctionStellarZFOURGE} output analysis class.
      !!}
      module procedure massFunctionStellarZFOURGEConstructorParameters
      module procedure massFunctionStellarZFOURGEConstructorInternal
@@ -75,7 +75,7 @@ contains
 
   function massFunctionStellarZFOURGEConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``massFunctionStellarZFOURGE'' output analysis class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily massFunctionStellarZFOURGE} output analysis class which takes a parameter set as input.
     !!}
     use :: Gravitational_Lensing, only : gravitationalLensingClass
     use :: Input_Parameters     , only : inputParameter           , inputParameters
@@ -182,7 +182,7 @@ contains
 
   function massFunctionStellarZFOURGEConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !!{
-    Constructor for the ``massFunctionStellarZFOURGE'' output analysis class for internal use.
+    Constructor for the {\normalfont \ttfamily massFunctionStellarZFOURGE} output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple

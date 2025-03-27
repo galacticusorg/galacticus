@@ -272,21 +272,21 @@ contains
        ! Return the computed value.
        if (self%useInteriorMean) then
           ! Find the specific angular momentum interior to the specified radius.
-          massDistribution_                       =>  node             %massDistribution               (componentType=componentTypeHotHalo,massType=massTypeGaseous)
-          constantRotationAngularMomentumSpecific =  +self             %angularMomentumSpecificPrevious               &
-               &                                     *massDistribution_%densityRadialMoment            (3.0d0,radius) &
-               &                                     /massDistribution_%densityRadialMoment            (2.0d0,radius)
+          massDistribution_                       =>  node             %massDistribution               (componentType=componentTypeHotHalo,massType     =massTypeGaseous)
+          constantRotationAngularMomentumSpecific =  +self             %angularMomentumSpecificPrevious                                                                   &
+               &                                     *massDistribution_%densityRadialMoment            (moment       =3.0d0               ,radiusMaximum=radius         ) &
+               &                                     /massDistribution_%densityRadialMoment            (moment       =2.0d0               ,radiusMaximum=radius         )
           !![
 	  <objectDestructor name="massDistribution_"/>
           !!]          
        else
           ! Find the specific angular momentum at the specified radius.
-          constantRotationAngularMomentumSpecific =  +self             %angularMomentumSpecificPrevious               &
-               &                                     *                                                        radius
+          constantRotationAngularMomentumSpecific =  +self             %angularMomentumSpecificPrevious                                                                   &
+               &                                     *                                                                                                   radius
        end if
     else
        ! Radius is non-positive - return zero.
-       constantRotationAngularMomentumSpecific=0.0d0
+       constantRotationAngularMomentumSpecific    =  +0.0d0
     end if
     return
   end function constantRotationAngularMomentumSpecific

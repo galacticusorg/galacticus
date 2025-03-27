@@ -40,7 +40,7 @@
 
   interface nodePropertyExtractorGalaxyMajorMergerTime
      !!{
-     Constructors for the ``galaxyMajorMergerTime'' output extractor class.
+     Constructors for the {\normalfont \ttfamily galaxyMajorMergerTime} output extractor class.
      !!}
      module procedure galaxyMajorMergerTimeConstructorParameters
      module procedure galaxyMajorMergerTimeConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function galaxyMajorMergerTimeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``galaxyMajorMergerTime'' property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily galaxyMajorMergerTime} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,7 +66,7 @@ contains
 
   function galaxyMajorMergerTimeConstructorInternal() result(self)
     !!{
-    Internal constructor for the ``galaxyMajorMergerTime'' output extractor property extractor class.
+    Internal constructor for the {\normalfont \ttfamily galaxyMajorMergerTime} output extractor property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorGalaxyMajorMergerTime) :: self

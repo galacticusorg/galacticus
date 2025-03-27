@@ -40,7 +40,7 @@ Implements a merger tree weight property extractor class.
 
   interface nodePropertyExtractorTreeWeight
      !!{
-     Constructors for the ``treeWeight'' output analysis class.
+     Constructors for the {\normalfont \ttfamily treeWeight} output analysis class.
      !!}
      module procedure treeWeightConstructorParameters
   end interface nodePropertyExtractorTreeWeight

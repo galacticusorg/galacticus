@@ -37,7 +37,7 @@ Implements a galactic filter which always passes.
 
   interface galacticFilterAlways
      !!{
-     Constructors for the ``always'' galactic filter class.
+     Constructors for the {\normalfont \ttfamily always} galactic filter class.
      !!}
      module procedure alwaysConstructorParameters
   end interface galacticFilterAlways
@@ -46,7 +46,7 @@ contains
 
   function alwaysConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``always'' galactic filter class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily always} galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

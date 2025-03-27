@@ -54,7 +54,7 @@
 
   interface outputAnalysisSatelliteBoundMass
      !!{
-     Constructors for the ``satelliteBoundMass'' output analysis class.
+     Constructors for the {\normalfont \ttfamily satelliteBoundMass} output analysis class.
      !!}
      module procedure satelliteBoundMassConstructorParameters
      module procedure satelliteBoundMassConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function satelliteBoundMassConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``satelliteBoundMass'' output analysis class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily satelliteBoundMass} output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     use :: Output_Times    , only : outputTimesClass
@@ -99,7 +99,7 @@ contains
   
   function satelliteBoundMassConstructorInternal(fileName,relativeModelUncertainty,outputTimes_) result (self)
     !!{
-    Constructor for the ``satelliteBoundMass'' output analysis class for internal use.
+    Constructor for the {\normalfont \ttfamily satelliteBoundMass} output analysis class for internal use.
     !!}
     use :: HDF5_Access            , only : hdf5Access
     use :: IO_HDF5                , only : hdf5Object

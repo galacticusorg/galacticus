@@ -74,7 +74,7 @@ Implements a property extractor for basic node indices.
 
   interface nodePropertyExtractorNodeIndices
      !!{
-     Constructors for the ``nodeIndices'' output analysis class.
+     Constructors for the {\normalfont \ttfamily nodeIndices} output analysis class.
      !!}
      module procedure nodeIndicesConstructorParameters
   end interface nodePropertyExtractorNodeIndices

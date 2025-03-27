@@ -224,7 +224,7 @@ contains
 
   function independentLikelihoodsConstructorInternal(modelLikelihoods,logLikelihoodAccept,report,orderRotation) result(self)
     !!{
-    Constructor for ``independentLikelihoods'' posterior sampling likelihood class.
+    Constructor for {\normalfont \ttfamily independentLikelihoods} posterior sampling likelihood class.
     !!}
     implicit none
     type            (posteriorSampleLikelihoodIndependentLikelihoods)                        :: self
@@ -241,7 +241,7 @@ contains
 
   subroutine independentLikelihoodsDestructor(self)
     !!{
-    Destructor for ``independentLikelihoods'' posterior sampling likelihood class.
+    Destructor for {\normalfont \ttfamily independentLikelihoods} posterior sampling likelihood class.
     !!}
     implicit none
     type   (posteriorSampleLikelihoodIndependentLikelihoods), intent(inout) :: self

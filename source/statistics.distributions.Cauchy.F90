@@ -94,7 +94,7 @@ contains
 
   function cauchyConstructorInternal(median,scale,randomNumberGenerator_) result(self)
     !!{
-    Constructor for ``cauchy'' 1D distribution function class.
+    Constructor for {\normalfont \ttfamily cauchy} 1D distribution function class.
     !!}
     type            (distributionFunction1DCauchy)                                  :: self
     double precision                              , intent(in   )                   :: median                , scale
@@ -108,7 +108,7 @@ contains
 
   function cauchyConstructorProbability(median,limit,probability,randomNumberGenerator_) result(self)
     !!{
-    Constructor for ``cauchy'' 1D distribution function class.
+    Constructor for {\normalfont \ttfamily cauchy} 1D distribution function class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     type            (distributionFunction1DCauchy)                :: self

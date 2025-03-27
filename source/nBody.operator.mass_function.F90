@@ -46,7 +46,7 @@ Implements an N-body data operator which computes mass functions.
 
   interface nbodyOperatorMassFunction
      !!{
-     Constructors for the ``massFunction'' N-body operator class.
+     Constructors for the {\normalfont \ttfamily massFunction} N-body operator class.
      !!}
      module procedure massFunctionConstructorParameters
      module procedure massFunctionConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function massFunctionConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``massFunction'' N-body operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily massFunction} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -111,7 +111,7 @@ contains
 
   function massFunctionConstructorInternal(massMinimum,massMaximum,massCountPerDecade,description,simulationReference,simulationURL,cosmologyParameters_) result (self)
     !!{
-    Internal constructor for the ``massFunction'' N-body operator class.
+    Internal constructor for the {\normalfont \ttfamily massFunction} N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorMassFunction)                        :: self
@@ -129,7 +129,7 @@ contains
   
   subroutine massFunctionDestructor(self)
     !!{
-    Destructor for the ``massFunction'' N-body operator class.
+    Destructor for the {\normalfont \ttfamily massFunction} N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorMassFunction), intent(inout) :: self

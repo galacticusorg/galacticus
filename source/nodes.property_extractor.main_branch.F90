@@ -55,7 +55,7 @@
 
   interface nodePropertyExtractorMainBranchStatus
      !!{
-     Constructors for the ``mainBranchStatus'' output analysis class.
+     Constructors for the {\normalfont \ttfamily mainBranchStatus} output analysis class.
      !!}
      module procedure mainBranchStatusConstructorParameters
      module procedure mainBranchStatusConstructorInternal

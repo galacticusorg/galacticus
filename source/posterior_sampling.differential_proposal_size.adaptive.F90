@@ -160,7 +160,7 @@ contains
 
   function adaptiveConstructorInternal(logFileName,gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate,appendLog,restoreFromLog,flushLog) result(self)
     !!{
-    Constructor for the ``adaptive'' differential evolution proposal size class.
+    Constructor for the {\normalfont \ttfamily adaptive} differential evolution proposal size class.
     !!}
     use :: MPI_Utilities, only : mpiSelf, mpiBarrier
     implicit none

@@ -38,7 +38,7 @@ Implements a boolean analysis property operator class.
 
   interface outputAnalysisPropertyOperatorBoolean
      !!{
-     Constructors for the ``boolean'' output analysis class.
+     Constructors for the {\normalfont \ttfamily boolean} output analysis class.
      !!}
      module procedure booleanConstructorParameters
      module procedure booleanConstructorInternal
@@ -48,7 +48,7 @@ contains
 
   function booleanConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``boolean'' output analysis property operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily boolean} output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -73,7 +73,7 @@ contains
 
   function booleanConstructorInternal(preciseZero) result(self)
     !!{
-    Internal constructor for the ``boolean'' output analysis property operator class.
+    Internal constructor for the {\normalfont \ttfamily boolean} output analysis property operator class.
     !!}
     implicit none
     type   (outputAnalysisPropertyOperatorBoolean)                :: self

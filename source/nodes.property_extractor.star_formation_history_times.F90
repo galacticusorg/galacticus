@@ -47,7 +47,7 @@
   
   interface nodePropertyExtractorStarFormationHistoryTimes
      !!{
-     Constructors for the ``starFormationHistoryTimes'' output analysis class.
+     Constructors for the {\normalfont \ttfamily starFormationHistoryTimes} output analysis class.
      !!}
      module procedure starFormationHistoryTimesConstructorParameters
      module procedure starFormationHistoryTimesConstructorInternal

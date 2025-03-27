@@ -190,9 +190,9 @@ contains
     use :: Abundances_Structure             , only : abundances
     use :: Chemical_Abundances_Structure    , only : chemicalAbundances                  , Chemicals_Property_Count
     use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Density_Conversion
-    use :: Mass_Distributions               , only : massDistributionClass               , kinematicsDistributionClass
+    use :: Mass_Distributions               , only : massDistributionClass               , kinematicsDistributionClass, massDistributionZero
     use :: Coordinates                      , only : coordinateSpherical                 , assignment(=)
-    use :: Galactic_Structure_Options       , only : componentTypeHotHalo                , massTypeGaseous            , radiusLarge, massTypeGalactic
+    use :: Galactic_Structure_Options       , only : componentTypeHotHalo                , massTypeGaseous            , radiusLarge         , massTypeGalactic
     use :: Numerical_Constants_Astronomical , only : gigaYear                            , massSolar                  , megaParsec
     use :: Numerical_Constants_Atomic       , only : massHydrogenAtom
     use :: Numerical_Constants_Physical     , only : boltzmannsConstant
@@ -236,6 +236,15 @@ contains
        ! Compute the mean density and temperature of the hot halo.
        massDistribution_       => node             %massDistribution      (componentType=componentTypeHotHalo,massType=massTypeGaseous)
        kinematicsDistribution_ => massDistribution_%kinematicsDistribution(                                                           )
+       select type (massDistribution_)
+       type is (massDistributionZero)
+          ! No mass distribution exists for the hot halo (most likely it is in an unphysical state).
+          !![
+	  <objectDestructor name="massDistribution_"      />
+	  <objectDestructor name="kinematicsDistribution_"/>
+          !!]
+          return
+       end select
        density    =+massNotional             &
             &      *3.0d0                    &
             &      /4.0d0                    &
@@ -255,7 +264,7 @@ contains
           chemicalMasses_=hotHalo%chemicals()
           ! Scale all chemical masses by their mass in atomic mass units to get a number density.
           call chemicalMasses_%massToNumber(chemicalDensities_)
-          ! Compute factor converting mass of chemicals in (M_Solar/M_Atomic) to number density in cm⁻³.
+          ! Compute factor converting mass of chemicals in (M☉/mₐ) to number density in cm⁻³.
           if (hotHalo%outerRadius() > 0.0d0) then
              massToDensityConversion=Chemicals_Mass_To_Density_Conversion(hotHalo%outerRadius())
           else
@@ -377,8 +386,8 @@ contains
        !![
        <objectDestructor name="massDistribution_"/>
        !!]
-    if (massNotional > 0.0d0) &
-         & call hotHalo%floatRank0MetaPropertyRate(self%energyRadiatedID,-hotHalo%floatRank0MetaPropertyGet(self%energyRadiatedID)*massRate/massNotional)
+       if (massNotional > 0.0d0) &
+            & call hotHalo%floatRank0MetaPropertyRate(self%energyRadiatedID,-hotHalo%floatRank0MetaPropertyGet(self%energyRadiatedID)*massRate/massNotional)
     class default
        call Error_Report('incorrect class'//{introspection:location})
     end select

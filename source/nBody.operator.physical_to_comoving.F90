@@ -37,7 +37,7 @@ Implements an N-body data operator which converts physical to comoving coordinat
 
   interface nbodyOperatorPhysicalToComoving
      !!{
-     Constructors for the ``physicalToComoving'' N-body operator class.
+     Constructors for the {\normalfont \ttfamily physicalToComoving} N-body operator class.
      !!}
      module procedure physicalToComovingConstructorParameters
   end interface nbodyOperatorPhysicalToComoving
@@ -46,7 +46,7 @@ contains
 
   function physicalToComovingConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``physicalToComoving'' N-body operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily physicalToComoving} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

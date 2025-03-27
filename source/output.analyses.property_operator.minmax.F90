@@ -38,7 +38,7 @@ Implements a min-max analysis property operator class.
 
   interface outputAnalysisPropertyOperatorMinMax
      !!{
-     Constructors for the ``minMax'' output analysis class.
+     Constructors for the {\normalfont \ttfamily minMax} output analysis class.
      !!}
      module procedure minMaxConstructorParameters
      module procedure minMaxConstructorInternal
@@ -48,7 +48,7 @@ contains
 
   function minMaxConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``minMax'' output analysis property operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily minMax} output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function minMaxConstructorInternal(thresholdMinimum,thresholdMaximum) result (self)
     !!{
-    Internal constructor for the ``minMax'' output analysis distribution operator class.
+    Internal constructor for the {\normalfont \ttfamily minMax} output analysis distribution operator class.
     !!}
     implicit none
     type            (outputAnalysisPropertyOperatorMinMax)                :: self

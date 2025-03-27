@@ -43,7 +43,7 @@ Implements a stellar mass function output analysis class.
 
   interface outputAnalysisLuminosityFunctionSobral2013HiZELS
      !!{
-     Constructors for the ``luminosityFunctionSobral2013HiZELS'' output analysis class.
+     Constructors for the {\normalfont \ttfamily luminosityFunctionSobral2013HiZELS} output analysis class.
      !!}
      module procedure luminosityFunctionSobral2013HiZELSConstructorParameters
      module procedure luminosityFunctionSobral2013HiZELSConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function luminosityFunctionSobral2013HiZELSConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``luminosityFunctionSobral2013HiZELS'' output analysis class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily luminosityFunctionSobral2013HiZELS} output analysis class which takes a parameter set as input.
     !!}
     use :: Gravitational_Lensing         , only : gravitationalLensing           , gravitationalLensingClass
     use :: Input_Parameters              , only : inputParameter                 , inputParameters
@@ -177,7 +177,7 @@ contains
 
   function luminosityFunctionSobral2013HiZELSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,stellarSpectraDustAttenuation_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,depthOpticalISMCoefficient) result (self)
     !!{
-    Constructor for the ``luminosityFunctionSobral2013HiZELS'' output analysis class for internal use.
+    Constructor for the {\normalfont \ttfamily luminosityFunctionSobral2013HiZELS} output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -361,7 +361,7 @@ contains
 
   subroutine luminosityFunctionSobral2013HiZELSDestructor(self)
     !!{
-    Destructor for the ``luminosityFunctionSobral2013HiZELS'' output analysis class.
+    Destructor for the {\normalfont \ttfamily luminosityFunctionSobral2013HiZELS} output analysis class.
     !!}
     implicit none
     type(outputAnalysisLuminosityFunctionSobral2013HiZELS), intent(inout) :: self

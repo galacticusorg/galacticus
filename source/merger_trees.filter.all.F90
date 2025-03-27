@@ -23,13 +23,13 @@ Implements a merger tree filter class which is the ``all'' combination of a set 
 
   !![
   <mergerTreeFilter name="mergerTreeFilterAll">
-   <description>A merger tree filter class which is the ``all'' combination of a set of other filters.</description>
+   <description>A merger tree filter class which is the {\normalfont \ttfamily all} combination of a set of other filters.</description>
    <linkedList type="filterList" variable="filters" next="next" object="filter_" objectType="mergerTreeFilterClass"/>
   </mergerTreeFilter>
   !!]
   type, extends(mergerTreeFilterClass) :: mergerTreeFilterAll
      !!{
-     A merger tree filter class which is the ``all'' combination of a set of other filters.
+     A merger tree filter class which is the {\normalfont \ttfamily all} combination of a set of other filters.
      !!}
      private
      type(filterList), pointer :: filters => null()
@@ -50,7 +50,7 @@ contains
 
   function allConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``all'' merger tree filter class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily all} merger tree filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -81,7 +81,7 @@ contains
 
   function allConstructorInternal(filters) result(self)
     !!{
-    Internal constructor for the ``all'' filter class.
+    Internal constructor for the {\normalfont \ttfamily all} filter class.
     !!}
     implicit none
     type(mergerTreeFilterAll)                        :: self

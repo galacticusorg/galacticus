@@ -58,7 +58,7 @@
 
   interface outputAnalysisSpinDistribution
      !!{
-     Constructors for the ``spinDistribution'' output analysis class.
+     Constructors for the {\normalfont \ttfamily spinDistribution} output analysis class.
      !!}
      module procedure spinDistributionConstructorParameters
        module procedure spinDistributionConstructorFile
@@ -69,7 +69,7 @@ contains
 
   function spinDistributionConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``spinDistribution'' output analysis class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily spinDistribution} output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -296,7 +296,7 @@ contains
 
   function spinDistributionConstructorFile(fileName,label,comment,logNormalRange,errorTolerant,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileScaleRadius_,outputTimes_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
     !!{
-    Constructor for the ``progenitorMassFunction'' output analysis class which reads all required properties from file.
+    Constructor for the {\normalfont \ttfamily spinDistribution} output analysis class which reads all required properties from file.
     !!}
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass
     use :: IO_HDF5                          , only : hdf5Object
@@ -365,7 +365,7 @@ contains
 
   function spinDistributionConstructorInternal(label,comment,time,massMinimum,massMaximum,spinMinimum,spinMaximum,countSpins,timeRecent,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,logNormalRange,errorTolerant,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileScaleRadius_,outputTimes_,virialDensityContrast_,virialDensityContrastDefinition_,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
     !!{
-    Internal constructor for the ``spinDistribution'' output analysis class.
+    Internal constructor for the {\normalfont \ttfamily spinDistribution} output analysis class.
     !!}
     use :: Dark_Matter_Halo_Scales                 , only : darkMatterHaloScaleClass
     use :: Galactic_Filters                        , only : filterList                                       , galacticFilterAll                           , galacticFilterHaloIsolated                    , galacticFilterHaloMassRange                 , &

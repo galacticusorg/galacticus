@@ -174,7 +174,7 @@ contains
 
   function projectedCorrelationFunctionConstructorInternal(haloMassMinimum,haloMassMaximum,lineOfSightDepth,halfIntegral,fileName,powerSpectrum_,cosmologyFunctions_,surveyGeometry_,darkMatterHaloScale_,haloMassFunction_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterProfileScaleRadius_) result(self)
     !!{
-    Constructor for ``projectedCorrelationFunction'' posterior sampling likelihood class.
+    Constructor for {\normalfont \ttfamily projectedCorrelationFunction} posterior sampling likelihood class.
     !!}
     use :: Input_Paths      , only : inputPath    , pathTypeDataStatic
     use :: HDF5_Access      , only : hdf5Access

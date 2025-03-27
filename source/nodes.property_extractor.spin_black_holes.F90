@@ -39,7 +39,7 @@
 
   interface nodePropertyExtractorSpinBlackHoles
      !!{
-     Constructors for the ``spinBlackHoles'' output extractor class.
+     Constructors for the {\normalfont \ttfamily spinBlackHoles} output extractor class.
      !!}
      module procedure spinBlackHolesConstructorParameters
   end interface nodePropertyExtractorSpinBlackHoles
@@ -48,7 +48,7 @@ contains
 
   function spinBlackHolesConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``spinBlackHoles'' property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily spinBlackHoles} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

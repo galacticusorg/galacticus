@@ -60,7 +60,7 @@
 
   interface outputAnalysisQuiescentFractionWagner2016
      !!{
-     Constructors for the ``quiescentFractionWagner2016'' output analysis class.
+     Constructors for the {\normalfont \ttfamily quiescentFractionWagner2016} output analysis class.
      !!}
      module procedure quiescentFractionWagner2016ConstructorParameters
      module procedure quiescentFractionWagner2016ConstructorInternal
@@ -70,7 +70,7 @@ contains
 
   function quiescentFractionWagner2016ConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``quiescentFractionWagner2016'' output analysis class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily quiescentFractionWagner2016} output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Parameters   , only : cosmologyParameters       , cosmologyParametersClass
     use :: Cosmology_Functions    , only : cosmologyFunctions        , cosmologyFunctionsClass
@@ -174,7 +174,7 @@ contains
 
   function quiescentFractionWagner2016ConstructorInternal(redshiftRange,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_, starFormationRateNuclearStarClusters_) result(self)
     !!{
-    Internal constructor for the ``quiescentFractionWagner2016'' output analysis class.
+    Internal constructor for the {\normalfont \ttfamily quiescentFractionWagner2016} output analysis class.
     !!}
     use :: Error                                 , only : Error_Report
     use :: Cosmology_Functions                   , only : cosmologyFunctionsMatterLambda
@@ -391,7 +391,7 @@ contains
 
   subroutine quiescentFractionWagner2016Destructor(self)
     !!{
-    Destructor for the ``quiescentFractionWagner2016'' output analysis class.
+    Destructor for the {\normalfont \ttfamily quiescentFractionWagner2016} output analysis class.
     !!}
     implicit none
     type(outputAnalysisQuiescentFractionWagner2016), intent(inout) :: self

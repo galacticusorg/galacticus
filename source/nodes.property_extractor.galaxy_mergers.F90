@@ -18,17 +18,17 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implements a node property extractor class that combines physical and index proeprties of galaxy mergers.
+  Implements a node property extractor class that combines physical and index properties of galaxy mergers.
   !!}
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorGalaxyMergers">
-   <description>An output extractor property extractor class that combines physical and index proeprties of galaxy mergers.</description>
+   <description>An output extractor property extractor class that combines physical and index properties of galaxy mergers.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorMulti) :: nodePropertyExtractorGalaxyMergers
      !!{
-     An output extractor property extractor class that combines physical and index proeprties of galaxy mergers.
+     An output extractor property extractor class that combines physical and index properties of galaxy mergers.
      !!}
      private
    contains
@@ -36,7 +36,7 @@
 
   interface nodePropertyExtractorGalaxyMergers
      !!{
-     Constructors for the ``galaxyMergers'' output extractor class.
+     Constructors for the {\normalfont \ttfamily galaxyMergers} output extractor class.
      !!}
      module procedure galaxyMergersConstructorParameters
      module procedure galaxyMergersConstructorInternal
@@ -46,7 +46,7 @@ contains
 
   function galaxyMergersConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``galaxyMergers'' output extractor property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily galaxyMergers} output extractor property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -62,7 +62,7 @@ contains
 
   function galaxyMergersConstructorInternal() result(self)
     !!{
-    Internal constructor for the ``galaxyMergers'' output extractor property extractor class.
+    Internal constructor for the {\normalfont \ttfamily galaxyMergers} output extractor property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorGalaxyMergers) :: self

@@ -37,7 +37,7 @@ Implements a square output analysis property operator class.
 
   interface outputAnalysisPropertyOperatorSquare
      !!{
-     Constructors for the ``square'' output analysis class.
+     Constructors for the {\normalfont \ttfamily square} output analysis class.
      !!}
      module procedure squareConstructorParameters
   end interface outputAnalysisPropertyOperatorSquare
@@ -46,7 +46,7 @@ contains
 
   function squareConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``square'' output analysis property operateor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily square} output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

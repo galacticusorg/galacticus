@@ -40,7 +40,7 @@ Implements a node branch tip index property extractor.
 
   interface nodePropertyExtractorUniqueIDBranchTip
      !!{
-     Constructors for the ``uniqueIDBranchTip'' output analysis class.
+     Constructors for the {\normalfont \ttfamily uniqueIDBranchTip} output analysis class.
      !!}
      module procedure uniqueIDBranchTipConstructorParameters
      module procedure uniqueIDBranchTipConstructorInternal

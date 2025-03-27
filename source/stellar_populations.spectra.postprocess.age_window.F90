@@ -17,8 +17,10 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of a spectrum postprocessor that keeps only populations in a specified age window.
-
+  !!{
+  An implementation of a spectrum postprocessor that keeps only populations in a specified age window.
+  !!}
+  
   !![
   <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorAgeWindow">
    <description>
@@ -27,7 +29,9 @@
   </stellarPopulationSpectraPostprocessor>
   !!]
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorAgeWindow
-     !% An ageWindow spectrum postprocessor.
+     !!{
+     An age window spectrum postprocessor.
+     !!}
      private
      double precision :: ageMinimum, ageMaximum
    contains
@@ -36,7 +40,9 @@
   end type stellarPopulationSpectraPostprocessorAgeWindow
 
   interface stellarPopulationSpectraPostprocessorAgeWindow
-     !% Constructors for the ageWindow spectrum postprocessor class.
+     !!{
+     Constructors for the ageWindow spectrum postprocessor class.
+     !!}
      module procedure ageWindowConstructorParameters
      module procedure ageWindowConstructorInternal
   end interface stellarPopulationSpectraPostprocessorAgeWindow
@@ -44,7 +50,9 @@
 contains
 
   function ageWindowConstructorParameters(parameters) result(self)
-    !% Default constructor for the ageWindow spectrum postprocessor class.
+    !!{
+    Default constructor for the ageWindow spectrum postprocessor class.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (stellarPopulationSpectraPostprocessorAgeWindow)                :: self
@@ -70,7 +78,9 @@ contains
   end function ageWindowConstructorParameters
 
   function ageWindowConstructorInternal(ageMinimum,ageMaximum) result(self)
-    !% Generic constructor for the {\normalfont \ttfamily ageWindow} spectrum postprocessor class.
+    !!{
+    Generic constructor for the {\normalfont \ttfamily ageWindow} spectrum postprocessor class.
+    !!}
     implicit none
     type            (stellarPopulationSpectraPostprocessorAgeWindow)                :: self
     double precision                                                , intent(in   ) :: ageMinimum, ageMaximum
@@ -82,7 +92,9 @@ contains
   end function ageWindowConstructorInternal
 
   double precision function ageWindowMultiplier(self,wavelength,age,redshift)
-    !% Perform a ageWindow postprocessing on a spectrum.
+    !!{
+    Perform a ageWindow postprocessing on a spectrum.
+    !!}
     implicit none
     class           (stellarPopulationSpectraPostprocessorAgeWindow), intent(inout) :: self
     double precision                                                , intent(in   ) :: age       , redshift, &

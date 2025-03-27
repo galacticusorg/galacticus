@@ -43,7 +43,7 @@ Implements a galactic filter on lightcone geometry.
 
   interface galacticFilterLightcone
      !!{
-     Constructors for the ``lightcone'' galactic filter class.
+     Constructors for the {\normalfont \ttfamily lightcone} galactic filter class.
      !!}
      module procedure lightconeConstructorParameters
      module procedure lightconeConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function lightconeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``lightcone'' galactic filter class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily lightcone} galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -74,7 +74,7 @@ contains
 
   function lightconeConstructorInternal(geometryLightcone_) result(self)
     !!{
-    Internal constructor for the ``lightcone'' galactic filter class.
+    Internal constructor for the {\normalfont \ttfamily lightcone} galactic filter class.
     !!}
     implicit none
     type (galacticFilterLightcone)                        :: self

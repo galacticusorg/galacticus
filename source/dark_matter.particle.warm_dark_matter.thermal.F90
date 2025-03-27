@@ -50,7 +50,7 @@ Implements a thermal warm dark matter particle class.
 
   interface darkMatterParticleWDMThermal
      !!{
-     Constructors for the ``{\normalfont \ttfamily WDMThermal}'' dark matter particle class.
+     Constructors for the {\normalfont \ttfamily WDMThermal} dark matter particle class.
      !!}
      module procedure wdmThermalConstructorParameters
      module procedure wdmThermalConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function wdmThermalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``{\normalfont \ttfamily WDMThermal}'' dark matter particle class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily WDMThermal} dark matter particle class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -96,7 +96,7 @@ contains
 
   function wdmThermalConstructorInternal(mass,degreesOfFreedomEffective,cosmologyParameters_) result(self)
     !!{
-    Internal constructor for the ``{\normalfont \ttfamily WDMThermal}'' dark matter particle class.
+    Internal constructor for the {\normalfont \ttfamily WDMThermal} dark matter particle class.
     !!}
     implicit none
     type            (darkMatterParticleWDMThermal)                        :: self

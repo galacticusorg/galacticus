@@ -41,7 +41,7 @@ Implements a galactic high-pass filter for spheroid stellar mass.
 
   interface galacticFilterSpheroidStellarMass
      !!{
-     Constructors for the ``spheroidStellarMass'' galactic filter class.
+     Constructors for the {\normalfont \ttfamily spheroidStellarMass} galactic filter class.
      !!}
      module procedure spheroidStellarMassConstructorParameters
      module procedure spheroidStellarMassConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function spheroidStellarMassConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``spheroidStellarMass'' galactic filter class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily spheroidStellarMass} galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -76,7 +76,7 @@ contains
 
   function spheroidStellarMassConstructorInternal(massThreshold) result(self)
     !!{
-    Internal constructor for the ``spheroidStellarMass'' galactic filter class.
+    Internal constructor for the {\normalfont \ttfamily spheroidStellarMass} galactic filter class.
     !!}
     implicit none
     type            (galacticFilterSpheroidStellarMass)                :: self

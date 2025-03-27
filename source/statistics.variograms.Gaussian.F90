@@ -100,7 +100,7 @@ contains
 
   function gaussianConstructorInternal(variogramFitOption,assumeZeroVarianceAtZeroLag) result(self)
     !!{
-    Constructor for ``gaussian'' variogram class.
+    Constructor for {\normalfont \ttfamily gaussian} variogram class.
     !!}
     implicit none
     type   (variogramGaussian                )                :: self

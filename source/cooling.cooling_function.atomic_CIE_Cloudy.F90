@@ -27,7 +27,7 @@
    <description>
     A cooling function class that computes the cooling function using the {\normalfont \scshape Cloudy} code and under the
     assumption of collisional ionization equilibrium with no molecular contribution. Abundances are Solar, except for zero
-    metallicity calculations which use {\normalfont \scshape Cloudy}'s ``primordial'' metallicity. The helium abundance for
+    metallicity calculations which use {\normalfont \scshape Cloudy}'s {\normalfont \ttfamily primordial} metallicity. The helium abundance for
     non-zero metallicity is scaled between primordial and Solar values linearly with metallicity. The {\normalfont \scshape
     Cloudy} code will be downloaded and run to compute the cooling function as needed, which will then be stored for future
     use. As this process is slow, a precomputed table is provided with \glc. If metallicities outside the range tabulated in

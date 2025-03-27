@@ -40,7 +40,7 @@ Implements a merger tree processing time estimator that provides no estimates.
 
   interface metaTreeProcessingTimeNull
      !!{
-     Constructors for the ``null'' merger tree processing time estimator.
+     Constructors for the {\normalfont \ttfamily null} merger tree processing time estimator.
      !!}
      module procedure nullConstructorParameters
   end interface metaTreeProcessingTimeNull
@@ -49,7 +49,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``null'' merger tree processing time estimator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily null} merger tree processing time estimator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

@@ -95,7 +95,7 @@ contains
 
   function logUniformConstructorInternal(limitLower,limitUpper,randomNumberGenerator_) result(self)
     !!{
-    Constructor for ``logUniform'' 1D distribution function class.
+    Constructor for {\normalfont \ttfamily logUniform} 1D distribution function class.
     !!}
     type            (distributionFunction1DLogUniform)                                  :: self
     double precision                                  , intent(in   )                   :: limitLower            , limitUpper

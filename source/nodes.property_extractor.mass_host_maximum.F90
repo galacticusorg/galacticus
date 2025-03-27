@@ -40,7 +40,7 @@
 
   interface nodePropertyExtractorMassHostMaximum
      !!{
-     Constructors for the ``massHostMaximum'' output extractor class.
+     Constructors for the {\normalfont \ttfamily massHostMaximum} output extractor class.
      !!}
      module procedure massHostMaximumConstructorParameters
      module procedure massHostMaximumConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function massHostMaximumConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``massHostMaximum'' property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily massHostMaximum} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,7 +66,7 @@ contains
 
   function massHostMaximumConstructorInternal() result(self)
     !!{
-    Internal constructor for the ``massHostMaximum'' output extractor property extractor class.
+    Internal constructor for the {\normalfont \ttfamily massHostMaximum} output extractor property extractor class.
     !!}
     use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none

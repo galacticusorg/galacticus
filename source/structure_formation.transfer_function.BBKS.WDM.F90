@@ -53,7 +53,7 @@ Implements a transfer function class based on the \gls{wdm} modifier of \cite{ba
 
   interface transferFunctionBBKSWDM
      !!{
-     Constructors for the ``{\normalfont \ttfamily bbksWDM}'' transfer function class.
+     Constructors for the {\normalfont \ttfamily bbksWDM} transfer function class.
      !!}
      module procedure bbksWDMConstructorParameters
      module procedure bbksWDMConstructorInternal
@@ -63,7 +63,7 @@ contains
 
   function bbksWDMConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``{\normalfont \ttfamily bbksWDM}'' transfer function class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily bbksWDM} transfer function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -93,7 +93,7 @@ contains
 
   function bbksWDMConstructorInternal(transferFunctionCDM,cosmologyParameters_,darkMatterParticle_,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the ``{\normalfont \ttfamily bbksWDM}'' transfer function class.
+    Internal constructor for the {\normalfont \ttfamily bbksWDM} transfer function class.
     !!}
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleWDMThermal

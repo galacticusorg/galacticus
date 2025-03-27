@@ -43,7 +43,7 @@ Implements a host index output analysis property extractor class.
 
   interface nodePropertyExtractorIndicesHost
      !!{
-     Constructors for the ``indicesHost'' output analysis class.
+     Constructors for the {\normalfont \ttfamily indicesHost} output analysis class.
      !!}
      module procedure indicesHostConstructorParameters
      module procedure indicesHostConstructorInternal

@@ -98,7 +98,7 @@ contains
   
   function constantDensityCloudConstructorInternal(mass,radius,componentType,massType) result(self)
     !!{
-    Constructor for ``constantDensityCloud'' convergence class.
+    Constructor for {\normalfont \ttfamily constantDensityCloud} convergence class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
