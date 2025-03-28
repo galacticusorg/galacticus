@@ -46,7 +46,7 @@ Implements a stellar population spectra postprocessor class which applies a sequ
 
   interface stellarPopulationSpectraPostprocessorSequence
      !!{
-     Constructors for the ``sequence'' stellar population spectra postprocessor class.
+     Constructors for the {\normalfont \ttfamily sequence} stellar population spectra postprocessor class.
      !!}
      module procedure sequenceConstructorParameters
      module procedure sequenceConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function sequenceConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``sequence'' stellar population spectra postprocessor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily sequence} stellar population spectra postprocessor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

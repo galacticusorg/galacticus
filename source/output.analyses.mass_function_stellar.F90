@@ -43,7 +43,7 @@ Implements a stellar mass function output analysis class.
 
   interface outputAnalysisMassFunctionStellar
      !!{
-     Constructors for the ``massFunctionStellar'' output analysis class.
+     Constructors for the {\normalfont \ttfamily massFunctionStellar} output analysis class.
      !!}
      module procedure massFunctionStellarConstructorParameters
      module procedure massFunctionStellarConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function massFunctionStellarConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``massFunctionStellar'' output analysis class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily massFunctionStellar} output analysis class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -181,7 +181,7 @@ contains
 
   function massFunctionStellarConstructorFile(label,comment,fileName,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
     !!{
-    Constructor for the ``massFunctionStellar'' output analysis class which reads bin information from a standard format file.
+    Constructor for the {\normalfont \ttfamily massFunctionStellar} output analysis class which reads bin information from a standard format file.
     !!}
     use :: HDF5_Access, only : hdf5Access
     use :: IO_HDF5    , only : hdf5Object
@@ -228,7 +228,7 @@ contains
 
   function massFunctionStellarConstructorInternal(label,comment,masses,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
     !!{
-    Constructor for the ``massFunctionStellar'' output analysis class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily massFunctionStellar} output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions                     , only : cosmologyFunctionsClass
     use :: Galactic_Filters                        , only : galacticFilterClass
@@ -399,7 +399,7 @@ contains
 
   subroutine massFunctionStellarDestructor(self)
     !!{
-    Destructor for  the ``massFunctionStellar'' output analysis class.
+    Destructor for  the {\normalfont \ttfamily massFunctionStellar} output analysis class.
     !!}
     type(outputAnalysisMassFunctionStellar), intent(inout) :: self
 

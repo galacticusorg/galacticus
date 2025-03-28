@@ -124,7 +124,7 @@ contains
   
   function tidalConstructorInternal(heatSpecificNormalized,coefficientSecondOrder0,coefficientSecondOrder1,coefficientSecondOrder2,correlationVelocityRadius) result(self)
     !!{
-    Constructor for ``tidal'' convergence class.
+    Constructor for {\normalfont \ttfamily tidal} mass distribution heating class.
     !!}
     implicit none
     type             (massDistributionHeatingTidal)                :: self

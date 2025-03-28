@@ -40,7 +40,7 @@ Implements a null star formation histories class.
 
   interface starFormationHistoryNull
      !!{
-     Constructors for the ``null'' star formation history class.
+     Constructors for the {\normalfont \ttfamily null} star formation history class.
      !!}
      module procedure nullConstructorParameters
   end interface starFormationHistoryNull
@@ -49,7 +49,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``null'' star formation history class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily null} star formation history class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

@@ -37,7 +37,7 @@
 
   interface outputAnalysisConcentrationDistributionCDMCOCO
      !!{
-     Constructors for the ``concentrationDistributionCDMCOCO'' output analysis class.
+     Constructors for the {\normalfont \ttfamily concentrationDistributionCDMCOCO} output analysis class.
      !!}
      module procedure concentrationDistributionCDMCOCOConstructorParameters
      module procedure concentrationDistributionCDMCOCOConstructorInternal
@@ -47,7 +47,7 @@ contains
 
   function concentrationDistributionCDMCOCOConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``concentrationDistributionCDMCOCO'' output analysis class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily concentrationDistributionCDMCOCO} output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions              , only : cosmologyFunctions , cosmologyFunctionsClass
     use :: Cosmology_Parameters             , only : cosmologyParameters, cosmologyParametersClass
@@ -99,7 +99,7 @@ contains
 
   function concentrationDistributionCDMCOCOConstructorInternal(distributionNumber,rootVarianceFractionalMinimum,darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_,virialDensityContrast_) result(self)
     !!{
-    Internal constructor for the ``concentrationDistributionCDMCOCO'' output analysis class.
+    Internal constructor for the {\normalfont \ttfamily concentrationDistributionCDMCOCO} output analysis class.
     !!}
     use :: Error                            , only : Error_Report
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass

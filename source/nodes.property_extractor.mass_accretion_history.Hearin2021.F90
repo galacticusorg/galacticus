@@ -41,7 +41,7 @@ Implements a node property extractor class for parameters of the \cite{hearin_di
 
   interface nodePropertyExtractorMassAccretionHistoryHearin2021
      !!{
-     Constructors for the ``massAccretionHistoryHearin2021'' output analysis class.
+     Constructors for the {\normalfont \ttfamily massAccretionHistoryHearin2021} output analysis class.
      !!}
      module procedure massAccretionHistoryHearin2021ConstructorParameters
   end interface nodePropertyExtractorMassAccretionHistoryHearin2021

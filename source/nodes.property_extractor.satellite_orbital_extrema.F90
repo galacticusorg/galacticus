@@ -51,7 +51,7 @@ Implements satellite orbital extrema property extractor class.
 
   interface nodePropertyExtractorSatelliteOrbitalExtrema
      !!{
-     Constructors for the ``satelliteOrbitalExtrema'' output analysis class.
+     Constructors for the {\normalfont \ttfamily satelliteOrbitalExtrema} output analysis class.
      !!}
      module procedure satelliteOrbitalExtremaConstructorParameters
      module procedure satelliteOrbitalExtremaConstructorInternal

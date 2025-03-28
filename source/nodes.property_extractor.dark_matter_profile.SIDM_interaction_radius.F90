@@ -44,7 +44,7 @@ Implements a dark matter profile SIDM interaction radius property extractor clas
 
   interface nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM
      !!{
-     Constructors for the ``darkMatterProfileRadiusInteractionSIDM'' output analysis class.
+     Constructors for the {\normalfont \ttfamily darkMatterProfileRadiusInteractionSIDM} output analysis class.
      !!}
      module procedure darkMatterProfileRadiusInteractionSIDMConstructorParameters
      module procedure darkMatterProfileRadiusInteractionSIDMConstructorInternal

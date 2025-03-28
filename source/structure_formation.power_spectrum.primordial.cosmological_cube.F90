@@ -58,7 +58,7 @@
 
   interface powerSpectrumPrimordialCosmologicalCube
      !!{
-     Constructors for the ``cosmological cube'' primordial power spectrum class.
+     Constructors for the {\normalfont \ttfamily cosmologicalCube} primordial power spectrum class.
      !!}
      module procedure cosmologicalCubeConstructorParameters
      module procedure cosmologicalCubeConstructorInternal
@@ -68,7 +68,7 @@ contains
 
   function cosmologicalCubeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``cosmological cube'' primordial power spectrum class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily cosmologicalCube} primordial power spectrum class which takes a parameter set as input.
     !!}
     implicit none
     type            (powerSpectrumPrimordialCosmologicalCube)                :: self
@@ -101,7 +101,7 @@ contains
 
   function cosmologicalCubeConstructorInternal(lengthCube,wavenumberMinimumFactor,powerSpectrumPrimordial_) result(self)
     !!{
-    Internal constructor for the ``cosmological cube'' primordial power spectrum class.
+    Internal constructor for the {\normalfont \ttfamily cosmologicalCube} primordial power spectrum class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -121,7 +121,7 @@ contains
 
   subroutine cosmologicalCubeDestructor(self)
     !!{
-    Destructor for the ``cosmological cube'' primordial power spectrum class. 
+    Destructor for the {\normalfont \ttfamily cosmologicalCube} primordial power spectrum class. 
     !!}
     implicit none
     type(powerSpectrumPrimordialCosmologicalCube), intent(inout) :: self

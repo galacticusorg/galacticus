@@ -207,7 +207,7 @@ contains
   
   function sphericalFiniteResolutionNFWConstructorInternal(lengthResolution,radiusScale,radiusVirial,mass,componentType,massType) result(self)
     !!{
-    Constructor for ``sphericalFiniteResolutionNFW'' mass distribution class.
+    Constructor for {\normalfont \ttfamily sphericalFiniteResolutionNFW} mass distribution class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

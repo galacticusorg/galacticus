@@ -76,7 +76,7 @@
 
   interface nodePropertyExtractorLightcone
      !!{
-     Constructors for the ``lightcone'' output extractor class.
+     Constructors for the {\normalfont \ttfamily lightcone} output extractor class.
      !!}
      module procedure lightconeConstructorParameters
      module procedure lightconeConstructorInternal
@@ -86,7 +86,7 @@ contains
 
   function lightconeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``lightcone'' output extractor property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily lightcone} output extractor property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -136,7 +136,7 @@ contains
 
   function lightconeConstructorInternal(includeObservedRedshift,includeAngularCoordinates,atCrossing,failIfNotInLightcone,cosmologyFunctions_,geometryLightcone_) result(self)
     !!{
-    Internal constructor for the ``lightcone'' output extractor property extractor class.
+    Internal constructor for the {\normalfont \ttfamily lightcone} output extractor property extractor class.
     !!}
     use :: Numerical_Constants_Astronomical, only : degreesToRadians, megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo

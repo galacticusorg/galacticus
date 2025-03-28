@@ -38,7 +38,7 @@ Implements a multiplication analysis property operator class.
 
   interface outputAnalysisPropertyOperatorMultiply
      !!{
-     Constructors for the ``multiply'' output analysis class.
+     Constructors for the {\normalfont \ttfamily multiply} output analysis class.
      !!}
      module procedure multiplyConstructorParameters
      module procedure multiplyConstructorInternal
@@ -48,7 +48,7 @@ contains
 
   function multiplyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``multiply'' output analysis property operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily multiply} output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -74,7 +74,7 @@ contains
 
   function multiplyConstructorInternal(multiplier) result (self)
     !!{
-    Internal constructor for the ``multiply'' output analysis distribution operator class.
+    Internal constructor for the {\normalfont \ttfamily multiply} output analysis distribution operator class.
     !!}
     implicit none
     type            (outputAnalysisPropertyOperatorMultiply)                :: self

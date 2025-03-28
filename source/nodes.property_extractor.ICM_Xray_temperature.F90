@@ -48,7 +48,7 @@ Implements an intracluster medium X-ray luminosity-weighted temperature property
 
   interface nodePropertyExtractorICMXRayTemperature
      !!{
-     Constructors for the ``icmXRayTemperature'' output analysis class.
+     Constructors for the {\normalfont \ttfamily icmXRayTemperature} output analysis class.
      !!}
      module procedure icmXRayTemperatureConstructorParameters
      module procedure icmXRayTemperatureConstructorInternal

@@ -147,7 +147,7 @@ contains
 
   function studentTConstructorInternal(degreesOfFreedom,randomNumberGenerator_) result(self)
     !!{
-    Constructor for ``studentT'' 1D distribution function class.
+    Constructor for {\normalfont \ttfamily studentT} 1D distribution function class.
     !!}
     type            (distributionFunction1DStudentT)                                  :: self
     double precision                                , intent(in   )                   :: degreesOfFreedom

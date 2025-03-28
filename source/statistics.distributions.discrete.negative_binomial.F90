@@ -86,7 +86,7 @@ contains
 
   function negativeBinomialConstructorInternal(probabilitySuccess,countFailures,randomNumberGenerator_) result(self)
     !!{
-    Constructor for ``negativeBinomial'' 1D distribution function class.
+    Constructor for {\normalfont \ttfamily negativeBinomial} 1D distribution function class.
     !!}
     use :: Error, only : Error_Report
     implicit none

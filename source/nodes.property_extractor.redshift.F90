@@ -25,7 +25,7 @@ Implements a redshift property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRedshift">
-   <description>A node property extractor class which extracts the current redshift at which a \gls{node} exists---named ``{\normalfont \ttfamily redshift}.</description>
+   <description>A node property extractor class which extracts the current redshift at which a \gls{node} exists---named ``{\normalfont \ttfamily redshift}''.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRedshift
@@ -44,7 +44,7 @@ Implements a redshift property extractor class.
 
   interface nodePropertyExtractorRedshift
      !!{
-     Constructors for the ``redshift'' output analysis class.
+     Constructors for the {\normalfont \ttfamily redshift} output analysis class.
      !!}
      module procedure redshiftConstructorParameters
      module procedure redshiftConstructorInternal

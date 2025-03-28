@@ -42,7 +42,7 @@ Implements an output analysis property extractor class that extracts a property 
 
   interface nodePropertyExtractorHostNode
      !!{
-     Constructors for the ``hostNode'' node property extractor class.
+     Constructors for the {\normalfont \ttfamily hostNode} node property extractor class.
      !!}
      module procedure hostNodeConstructorParameters
      module procedure hostNodeConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function hostNodeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``hostNode'' node property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily hostNode} node property extractor class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameters
@@ -79,7 +79,7 @@ contains
 
   function hostNodeConstructorInternal(nodePropertyExtractor_) result(self)
     !!{
-    Internal constructor for the ``hostNode'' node property extractor class.
+    Internal constructor for the {\normalfont \ttfamily hostNode} node property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorHostNode)                        :: self
@@ -93,7 +93,7 @@ contains
   
   subroutine hostNodeDestructor(self)
     !!{
-    Destructor for  the ``hostNode'' node property extractor class.
+    Destructor for  the {\normalfont \ttfamily hostNode} node property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorHostNode), intent(inout) :: self

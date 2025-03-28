@@ -37,7 +37,7 @@ Implements a filter which passes only main branch halos.
 
   interface galacticFilterMainBranch
      !!{
-     Constructors for the ``mainBranch'' galactic filter class.
+     Constructors for the {\normalfont \ttfamily mainBranch} galactic filter class.
      !!}
      module procedure mainBranchConstructorParameters
   end interface galacticFilterMainBranch
@@ -46,7 +46,7 @@ contains
 
   function mainBranchConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``mainBranch'' galactic filter class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily mainBranch} galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

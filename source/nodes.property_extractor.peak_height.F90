@@ -44,7 +44,7 @@
 
   interface nodePropertyExtractorPeakHeight
      !!{
-     Constructors for the ``peakHeight'' output extractor class.
+     Constructors for the {\normalfont \ttfamily peakHeight} output extractor class.
      !!}
      module procedure peakHeightConstructorParameters
      module procedure peakHeightConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function peakHeightConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``peakHeight'' property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily peakHeight} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -81,7 +81,7 @@ contains
 
   function peakHeightConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_) result(self)
     !!{
-    Internal constructor for the ``peakHeight'' output extractor property extractor class.
+    Internal constructor for the {\normalfont \ttfamily peakHeight} output extractor property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorPeakHeight)                        :: self

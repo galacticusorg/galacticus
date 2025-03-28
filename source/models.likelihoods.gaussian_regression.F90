@@ -276,7 +276,7 @@ contains
 
   function gaussianRegressionConstructorInternal(emulatorRebuildCount,polynomialOrder,sigmaBuffer,logLikelihoodBuffer,logLikelihoodErrorTolerance,reportCount,emulateOutliers,assumeZeroVarianceAtZeroLag,dumpEmulatorFileRoot,dummyEmulator,posteriorSampleLikelihood_,variogram_) result(self)
     !!{
-    Constructor for ``gaussianRegression'' posterior sampling likelihood class.
+    Constructor for {\normalfont \ttfamily gaussianRegression} posterior sampling likelihood class.
     !!}
     implicit none
     type            (posteriorSampleLikelihoodGaussianRegression)                        :: self

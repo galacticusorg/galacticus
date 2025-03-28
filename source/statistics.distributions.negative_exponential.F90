@@ -78,7 +78,7 @@ contains
 
   function negativeExponentialConstructorInternal(rate,randomNumberGenerator_) result(self)
     !!{
-    Constructor for ``negativeExponential'' 1D distribution function class.
+    Constructor for {\normalfont \ttfamily negativeExponential} 1D distribution function class.
     !!}
     type            (distributionFunction1DNegativeExponential)                                  :: self
     double precision                                           , intent(in   )                   :: rate

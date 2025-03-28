@@ -52,7 +52,7 @@ Implements a property extractor class for the orbital adiabatic ratio of disks.
 
   interface nodePropertyExtractorAdiabaticRatioOrbitalDisk
      !!{
-     Constructors for the ``adiabaticRatioOrbitalDisk'' output analysis class.
+     Constructors for the {\normalfont \ttfamily adiabaticRatioOrbitalDisk} output analysis class.
      !!}
      module procedure adiabaticRatioOrbitalDiskConstructorParameters
      module procedure adiabaticRatioOrbitalDiskConstructorInternal

@@ -52,7 +52,7 @@ Implements a star formation histories class which records \emph{in situ} star fo
 
   interface starFormationHistoryInSitu
      !!{
-     Constructors for the ``inSitu'' star formation history class.
+     Constructors for the {\normalfont \ttfamily inSitu} star formation history class.
      !!}
      module procedure inSituConstructorParameters
      module procedure inSituConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function inSituConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``inSitu'' star formation history class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily inSitu} star formation history class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -83,7 +83,7 @@ contains
 
   function inSituConstructorInternal(starFormationHistory_) result(self)
     !!{
-    Internal constructor for the ``inSitu'' star formation history class.
+    Internal constructor for the {\normalfont \ttfamily inSitu} star formation history class.
     !!}
     implicit none
     type (starFormationHistoryInSitu)                        :: self

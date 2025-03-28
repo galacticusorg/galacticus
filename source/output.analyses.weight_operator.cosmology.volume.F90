@@ -51,7 +51,7 @@ Implements a cosmological volume corrector analysis weight operator class.
 
   interface outputAnalysisWeightOperatorCsmlgyVolume
      !!{
-     Constructors for the ``csmlgyVolume'' output analysis class.
+     Constructors for the {\normalfont \ttfamily csmlgyVolume} output analysis class.
      !!}
      module procedure csmlgyVolumeConstructorParameters
      module procedure csmlgyVolumeConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function csmlgyVolumeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``csmlgyVolume'' output analysis weight operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily csmlgyVolume} output analysis weight operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -91,7 +91,7 @@ contains
 
   function csmlgyVolumeConstructorInternal(cosmologyFunctionsModel,cosmologyFunctionsData,surveyGeometry_) result(self)
     !!{
-    Internal constructor for the ``csmlgyVolume'' output analysis weight operator class.
+    Internal constructor for the {\normalfont \ttfamily csmlgyVolume} output analysis weight operator class.
     !!}
     implicit none
     type   (outputAnalysisWeightOperatorCsmlgyVolume)                        :: self
@@ -106,7 +106,7 @@ contains
 
   subroutine csmlgyVolumeDestructor(self)
     !!{
-    Destructor for the ``csmlgyVolume'' output analysis weight operator class.
+    Destructor for the {\normalfont \ttfamily csmlgyVolume} output analysis weight operator class.
     !!}
     implicit none
     type(outputAnalysisWeightOperatorCsmlgyVolume), intent(inout) :: self

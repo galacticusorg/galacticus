@@ -58,7 +58,7 @@
 
   interface nodePropertyExtractorMassProfile
      !!{
-     Constructors for the ``massProfile'' output analysis class.
+     Constructors for the {\normalfont \ttfamily massProfile} output analysis class.
      !!}
      module procedure massProfileConstructorParameters
      module procedure massProfileConstructorInternal

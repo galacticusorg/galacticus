@@ -93,7 +93,7 @@ contains
 
   function betaConstructorInternal(alpha,beta,randomNumberGenerator_) result(self)
     !!{
-    Constructor for ``beta'' 1D distribution function class.
+    Constructor for {\normalfont \ttfamily beta} 1D distribution function class.
     !!}
     type            (distributionFunction1DBeta)                                  :: self
     double precision                            , intent(in   )                   :: alpha                        , beta

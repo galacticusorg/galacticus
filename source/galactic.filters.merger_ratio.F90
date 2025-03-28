@@ -38,7 +38,7 @@ Implements an interval pass filter on halo merger ratio.
 
   interface galacticFilterMergerRatio
      !!{
-     Constructors for the ``mergerRatio'' galactic filter class.
+     Constructors for the {\normalfont \ttfamily mergerRatio} galactic filter class.
      !!}
      module procedure mergerRatioConstructorParameters
      module procedure mergerRatioConstructorInternal
@@ -48,7 +48,7 @@ contains
   
   function mergerRatioConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``mergerRatio'' galactic filter class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily mergerRatio} galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function mergerRatioConstructorInternal(ratioLow,ratioHigh) result(self)
     !!{
-    Internal constructor for the ``mergerRatio'' galactic filter class.
+    Internal constructor for the {\normalfont \ttfamily mergerRatio} galactic filter class.
     !!}
     implicit none
     type            (galacticFilterMergerRatio)                :: self

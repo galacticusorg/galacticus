@@ -327,34 +327,44 @@ module IO_HDF5
   end type hdf5Object
 
   type :: hdf5VarDouble
-     !% Type used for internal storage of variable-length double datasets.
+     !!{
+     Type used for internal storage of variable-length double datasets.
+     !!}
      double precision, dimension(:), pointer :: row => null()
    contains
      final :: hdf5VarDoubleDestructor
   end type hdf5VarDouble
 
   type :: hdf5VarDouble2D
-     !% Type used for internal storage of variable-length 2D double datasets.
+     !!{
+     Type used for internal storage of variable-length 2D double datasets.
+     !!}
      double precision, dimension(:,:), pointer :: row => null()
    contains
      final :: hdf5VarDouble2DDestructor
   end type hdf5VarDouble2D
 
   type :: hdf5VarInteger8
-     !% Type used for internal storage of variable-length integer-8 datasets.
+     !!{
+     Type used for internal storage of variable-length integer-8 datasets.
+     !!}
      integer(kind_int8), dimension(:), pointer :: row => null()
    contains
      final :: hdf5VarInteger8Destructor
   end type hdf5VarInteger8
   
   type, bind(C) :: hdf5VlenC
-     !% Type used for C-compatible internal storage of variable-length datasets.
+     !!{
+     Type used for C-compatible internal storage of variable-length datasets.
+     !!}
      integer(c_size_t) :: length
      type   (c_ptr   ) :: p
   end type hdf5VlenC
   
   type :: hdf5VlenVlenC
-     !% Type used for C-compatible internal storage of fractal variable-length datasets.
+     !!{
+     Type used for C-compatible internal storage of fractal variable-length datasets.
+     !!}
      type(hdf5VlenC), allocatable, dimension(:) :: row
   end type hdf5VlenVlenC
   

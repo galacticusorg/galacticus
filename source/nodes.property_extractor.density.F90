@@ -54,7 +54,7 @@
 
   interface nodePropertyExtractorDensityProfile
      !!{
-     Constructors for the ``densityProfile'' output analysis class.
+     Constructors for the {\normalfont \ttfamily densityProfile} output analysis class.
      !!}
      module procedure densityProfileConstructorParameters
      module procedure densityProfileConstructorInternal

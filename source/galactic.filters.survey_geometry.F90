@@ -55,7 +55,7 @@ Implements a filter which passes only nodes that lie within a survey geometry.
 
   interface galacticFilterSurveyGeometry
      !!{
-     Constructors for the ``surveyGeometry'' galactic filter class.
+     Constructors for the {\normalfont \ttfamily surveyGeometry} galactic filter class.
      !!}
      module procedure surveyGeometryConstructorParameters
      module procedure surveyGeometryConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function surveyGeometryConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``surveyGeometry'' galactic filter class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily surveyGeometry} galactic filter class which takes a parameter set as input.
     !!}
     use :: Geometry_Surveys, only : surveyGeometry, surveyGeometryClass
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -94,7 +94,7 @@ contains
 
   function surveyGeometryConstructorInternal(positionType,surveyGeometry_) result(self)
     !!{
-    Internal constructor for the ``surveyGeometry'' galactic filter class.
+    Internal constructor for the {\normalfont \ttfamily surveyGeometry} galactic filter class.
     !!}
     implicit none
     type (galacticFilterSurveyGeometry)                        :: self
@@ -110,7 +110,7 @@ contains
 
   subroutine surveyGeometryDestructor(self)
     !!{
-    Destructor for the ``surveyGeometry'' galactic filter class.
+    Destructor for the {\normalfont \ttfamily surveyGeometry} galactic filter class.
     !!}
     implicit none
     type(galacticFilterSurveyGeometry), intent(inout) :: self

@@ -91,7 +91,7 @@ contains
 
   function peakBackgroundConstructorInternal(varianceBackground,thresholdCollapse,randomNumberGenerator_) result(self)
     !!{
-    Constructor for ``peakBackground'' 1D distribution function class.
+    Constructor for {\normalfont \ttfamily peakBackground} 1D distribution function class.
     !!}
     use :: Error_Functions, only : Error_Function
     implicit none
@@ -146,7 +146,7 @@ contains
 
   subroutine peakBackgroundDestructor(self)
     !!{
-    Destructor for ``peakBackground'' 1D distribution function class.
+    Destructor for {\normalfont \ttfamily peakBackground} 1D distribution function class.
     !!}
     implicit none
     type(distributionFunction1DPeakBackground), intent(inout) :: self

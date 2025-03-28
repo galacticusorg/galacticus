@@ -43,7 +43,7 @@
   
   interface outputAnalysisSunyaevZeldovichPlanck2013
      !!{
-     Constructors for the ``sunyaevZeldovichPlanck2013'' output analysis class.
+     Constructors for the {\normalfont \ttfamily sunyaevZeldovichPlanck2013} output analysis class.
      !!}
      module procedure sunyaevZeldovichPlanck2013ConstructorParameters
      module procedure sunyaevZeldovichPlanck2013ConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function sunyaevZeldovichPlanck2013ConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``sunyaevZeldovichPlanck2013'' output analysis class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily sunyaevZeldovichPlanck2013} output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -119,7 +119,7 @@ contains
 
   function sunyaevZeldovichPlanck2013ConstructorInternal(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,chemicalState_,outputTimes_) result (self)
     !!{
-    Constructor for the ``sunyaevZeldovichPlanck2013'' output analysis class for internal use.
+    Constructor for the {\normalfont \ttfamily sunyaevZeldovichPlanck2013} output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                            , cosmologyFunctionsMatterLambda                 , densityCosmologicalCritical
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -377,7 +377,7 @@ contains
 
   subroutine sunyaevZeldovichPlanck2013Destructor(self)
     !!{
-    Destructor for the ``sunyaevZeldovichPlanck2013'' output analysis class.
+    Destructor for the {\normalfont \ttfamily sunyaevZeldovichPlanck2013} output analysis class.
     !!}
     implicit none
     type(outputAnalysisSunyaevZeldovichPlanck2013), intent(inout) :: self

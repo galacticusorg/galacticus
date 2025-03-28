@@ -38,7 +38,7 @@ Implements a cold dark matter particle class.
 
   interface darkMatterParticleCDM
      !!{
-     Constructors for the ``{\normalfont \ttfamily CDM}'' dark matter particle class.
+     Constructors for the {\normalfont \ttfamily CDM} dark matter particle class.
      !!}
      module procedure CDMConstructorParameters
   end interface darkMatterParticleCDM
@@ -47,7 +47,7 @@ contains
 
   function CDMConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``{\normalfont \ttfamily CDM}'' dark matter particle class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily CDM} dark matter particle class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

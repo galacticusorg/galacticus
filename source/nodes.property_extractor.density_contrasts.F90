@@ -69,7 +69,7 @@ Implements a property extractor class for the mass and radii of spheres are spec
 
   interface nodePropertyExtractorDensityContrasts
      !!{
-     Constructors for the ``densityContrasts'' output analysis class.
+     Constructors for the {\normalfont \ttfamily densityContrasts} output analysis class.
      !!}
      module procedure densityContrastsConstructorParameters
      module procedure densityContrastsConstructorInternal

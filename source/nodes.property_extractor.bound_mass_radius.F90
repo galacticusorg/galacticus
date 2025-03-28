@@ -42,7 +42,7 @@ Implements a property extractor class that extracts the radius enclosing the cur
 
   interface nodePropertyExtractorRadiusBoundMass
      !!{
-     Constructors for the ``radiusBoundMass'' output analysis class.
+     Constructors for the {\normalfont \ttfamily radiusBoundMass} output analysis class.
      !!}
      module procedure radiusBoundMassConstructorParameters
   end interface nodePropertyExtractorRadiusBoundMass

@@ -149,7 +149,7 @@ contains
   
   function sphericalDecayingConstructorInternal(toleranceRelativePotential,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,tolerateEnclosedMassIntegrationFailure,radiusEscape,time,darkMatterParticle_,massDistribution_,componentType,massType) result(self)
     !!{
-    Constructor for ``sphericalDecaying'' mass distribution class.
+    Constructor for {\normalfont \ttfamily sphericalDecaying} mass distribution class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleDecayingDarkMatter
     implicit none
@@ -185,7 +185,7 @@ contains
 
   subroutine sphericalDecayingDestructor(self)
     !!{
-    Destructor for the ``sphericalDecaying'' mass distribution class.
+    Destructor for the {\normalfont \ttfamily sphericalDecaying} mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalDecaying), intent(inout) :: self

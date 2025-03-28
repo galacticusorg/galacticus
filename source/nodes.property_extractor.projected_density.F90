@@ -61,7 +61,7 @@
 
   interface nodePropertyExtractorProjectedDensity
      !!{
-     Constructors for the ``projectedDensity'' output analysis class.
+     Constructors for the {\normalfont \ttfamily projectedDensity} output analysis class.
      !!}
      module procedure projectedDensityConstructorParameters
      module procedure projectedDensityConstructorInternal

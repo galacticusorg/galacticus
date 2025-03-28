@@ -41,7 +41,7 @@
 
   interface galacticFilterPrimaryDescendantNode
      !!{
-     Constructors for the ``primaryDescendantNode'' galactic filter class.
+     Constructors for the {\normalfont \ttfamily primaryDescendantNode} galactic filter class.
      !!}
      module procedure primaryDescendantNodeConstructorParameters
      module procedure primaryDescendantNodeConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function primaryDescendantNodeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``primaryDescendantNode'' galactic filter class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily primaryDescendantNode} galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
   
   function primaryDescendantNodeConstructorInternal(allowSelf,galacticFilter_) result(self)
     !!{
-    Internal constructor for the ``primaryDescendantNode'' galactic filter class.
+    Internal constructor for the {\normalfont \ttfamily primaryDescendantNode} galactic filter class.
     !!}
     implicit none
     type   (galacticFilterPrimaryDescendantNode)                        :: self
@@ -93,7 +93,7 @@ contains
   
   subroutine primaryDescendantNodeDestructor(self)
     !!{
-    Destructor for  the ``primaryDescendantNode'' galactic filter class.
+    Destructor for  the {\normalfont \ttfamily primaryDescendantNode} galactic filter class.
     !!}
     implicit none
     type(galacticFilterPrimaryDescendantNode), intent(inout) :: self
