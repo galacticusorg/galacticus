@@ -58,7 +58,8 @@
           &                                                                                        wavelengths
      double precision                                       , allocatable, dimension(:,:,:,:,:) :: luminosity
      type            (interpolator                         ), allocatable, dimension(:        ) :: interpolator_
-     double precision                                                                           :: indexSpectralShortWavelength               , factorFillingVolume, densityHydrogenFixed, temperature
+     double precision                                                                           :: indexSpectralShortWavelength               , factorFillingVolume     , &
+          &                                                                                        densityHydrogen_                           , temperature
      !$ integer      (omp_lock_kind                        )                                    :: interpolateLock
    contains
      final     ::                 lmnstyEmssnLineAGNDestructor
@@ -103,7 +104,8 @@ contains
     class           (accretionDisksClass                    ), pointer                     :: accretionDisks_
     class           (blackHoleAccretionRateClass            ), pointer                     :: blackHoleAccretionRate_
     class           (atomicRecombinationRateRadiativeClass  ), pointer                     :: atomicRecombinationRateRadiative_
-    double precision                                                                       :: indexSpectralShortWavelength     , factorFillingVolume, densityHydrogenFixed, temperature
+    double precision                                                                       :: indexSpectralShortWavelength     , factorFillingVolume, &
+         &                                                                                    densityHydrogen                  , temperature
 
     allocate(lineNames(parameters%count('lineNames')))
     !![
@@ -125,23 +127,23 @@ contains
       <description>The volume-filling factor, i.e. the ratio of the volume-averaged hydrogen density to the hydrogen density.</description>
     </inputParameter>
     <inputParameter>
-      <name>densityHydrogenFixed</name>
-      <defaultValue>1.0d+3</defaultValue>
+      <name>densityHydrogen</name>
+      <defaultValue>1.0d3</defaultValue>
       <source>parameters</source>
-      <description>Density of hydrogen in cm⁻³ </description>
+      <description>Density of hydrogen in narrow line region clouds in units of cm$^{-3}$.</description>
     </inputParameter>
     <inputParameter>
       <name>temperature</name>
-      <defaultValue>+1.00d+4</defaultValue>
+      <defaultValue>1.0d4</defaultValue>
       <source>parameters</source>
-      <description> emperature in K </description>
+      <description>Temperature of narrow line region clouds in units of K.</description>
     </inputParameter>
     <objectBuilder class="accretionDisks"                   name="accretionDisks_"                   source="parameters"/>
     <objectBuilder class="blackHoleAccretionRate"           name="blackHoleAccretionRate_"           source="parameters"/>
     <objectBuilder class="outputTimes"                      name="outputTimes_"                      source="parameters"/>
     <objectBuilder class="atomicRecombinationRateRadiative" name="atomicRecombinationRateRadiative_" source="parameters"/>
     !!]
-    self=nodePropertyExtractorLmnstyEmssnLineAGN(accretionDisks_,blackHoleAccretionRate_,outputTimes_,atomicRecombinationRateRadiative_,lineNames,indexSpectralShortWavelength,factorFillingVolume,densityHydrogenFixed, temperature)
+    self=nodePropertyExtractorLmnstyEmssnLineAGN(accretionDisks_,blackHoleAccretionRate_,outputTimes_,atomicRecombinationRateRadiative_,lineNames,indexSpectralShortWavelength,factorFillingVolume,densityHydrogen,temperature)
     !![
     <inputParametersValidate source="parameters"              />
     <objectDestructor name="accretionDisks_"                  />
@@ -152,7 +154,7 @@ contains
     return
   end function lmnstyEmssnLineAGNConstructorParameters
 
-  function lmnstyEmssnLineAGNConstructorInternal(accretionDisks_,blackHoleAccretionRate_,outputTimes_,atomicRecombinationRateRadiative_,lineNames,indexSpectralShortWavelength,factorFillingVolume,densityHydrogenFixed,temperature,outputMask) result(self)
+  function lmnstyEmssnLineAGNConstructorInternal(accretionDisks_,blackHoleAccretionRate_,outputTimes_,atomicRecombinationRateRadiative_,lineNames,indexSpectralShortWavelength,factorFillingVolume,densityHydrogen_,temperature,outputMask) result(self)
     !!{
     Internal constructor for the ``lmnstyEmssnLineAGN'' output analysis property extractor class.
     !!}
@@ -168,20 +170,21 @@ contains
      use           :: Table_Labels                  , only : extrapolationTypeFix
     implicit none
     type            (nodePropertyExtractorLmnstyEmssnLineAGN)                                                :: self
-    double precision                                         , intent(in   )                                 :: indexSpectralShortWavelength,     factorFillingVolume, densityHydrogenFixed, temperature
+    double precision                                         , intent(in   )                                 :: indexSpectralShortWavelength     , factorFillingVolume, &
+         &                                                                                                      densityHydrogen_                 , temperature
     type            (varying_string                         ), intent(in   ), dimension(:        )           :: lineNames
     logical                                                  , intent(in   ), dimension(:        ), optional :: outputMask
     class           (accretionDisksClass                    ), intent(in   ), target                         :: accretionDisks_
     class           (blackHoleAccretionRateClass            ), intent(in   ), target                         :: blackHoleAccretionRate_
     class           (outputTimesClass                       ), intent(in   ), target                         :: outputTimes_
     class           (atomicRecombinationRateRadiativeClass  ), intent(in   ), target                         :: atomicRecombinationRateRadiative_
-    type            (hdf5Object                             )                                                :: emissionLinesFile                , lines             , &
+    type            (hdf5Object                             )                                                :: emissionLinesFile                , lines              , &
          &                                                                                                      lineDataset                      , dataset
     integer                                                                                                  :: i
     integer         (c_size_t)                                              , dimension(5        )           :: shapeLines                       , permutation
     double precision                                         , allocatable  , dimension(:,:,:,:,:)           :: luminosity
     !![
-    <constructorAssign variables="lineNames, indexSpectralShortWavelength, factorFillingVolume, densityHydrogenFixed, temperature, *accretionDisks_, *blackHoleAccretionRate_, *outputTimes_, *atomicRecombinationRateRadiative_"/>
+    <constructorAssign variables="lineNames, indexSpectralShortWavelength, factorFillingVolume, densityHydrogen_, temperature, *accretionDisks_, *blackHoleAccretionRate_, *outputTimes_, *atomicRecombinationRateRadiative_"/>
     !!]
     
     ! Read the table of emission line luminosities.
@@ -262,10 +265,10 @@ contains
     self%metallicity        =log10(self%metallicity        )
     ! Initialize interpolators.
     allocate(self%interpolator_(4))
-    self%interpolator_(interpolantsDensity            %ID)=interpolator(self%densityHydrogen,extrapolationType=extrapolationTypeFix)
+    self%interpolator_(interpolantsDensity            %ID)=interpolator(self%densityHydrogen    ,extrapolationType=extrapolationTypeFix)
     self%interpolator_(interpolantsIonizationParameter%ID)=interpolator(self%ionizationParameter,extrapolationType=extrapolationTypeFix)
-    self%interpolator_(interpolantsMetallicity        %ID)=interpolator(self%metallicity,extrapolationType=extrapolationTypeFix)
-    self%interpolator_(interpolantsSpectralIndex      %ID)=interpolator(self%spectralIndex,extrapolationType=extrapolationTypeFix)
+    self%interpolator_(interpolantsMetallicity        %ID)=interpolator(self%metallicity        ,extrapolationType=extrapolationTypeFix)
+    self%interpolator_(interpolantsSpectralIndex      %ID)=interpolator(self%spectralIndex      ,extrapolationType=extrapolationTypeFix)
     !$ call OMP_Init_Lock(self%interpolateLock)
     ! Construct names and descriptions.
     allocate(self%names_       (size(lineNames)))
@@ -399,7 +402,6 @@ contains
     ! Get the hydrogen recombination coefficient (in m³ s⁻¹).
     recombinationCoefficient=+self%atomicRecombinationRateRadiative_%rate(1,1,self%temperature,recombinationCaseB) &
          &                   *micro
-
     ! Get black hole accretion rates.
     call self%blackHoleAccretionRate_%rateAccretion(blackHole,rateMassAccretionSpheroid,rateMassAccretionHotHalo,rateAccretionNuclearStarCluster)
     ! Find the total black hole accretion rate in kg s⁻¹.
@@ -428,33 +430,33 @@ contains
          &              /                         self%indexSpectralShortWavelength
     ! Calculate the Strömgren radius (equation 3 of Feltre, Gutkin & Charlot (2016; MNRAS; 456; 3354;
     ! https://ui.adsabs.harvard.edu/abs/2016MNRAS.456.3354F).
-    radiusStromgren=+(                             &
-         &            +3.0d0                       &
-         &            *rateIonizingPhotons         &
-         &            /(                           &
-         &              +4.0d0                     &
-         &              *Pi                        &
-         &              *(self%densityHydrogenFixed*mega)**2 &
-         &              *self%factorFillingVolume  &
-         &              *recombinationCoefficient  &
-         &             )                           &
+    radiusStromgren=+(                                   &
+         &            +3.0d0                             &
+         &            *rateIonizingPhotons               &
+         &            /(                                 &
+         &              +4.0d0                           &
+         &              *Pi                              &
+         &              *(self%densityHydrogen_*mega)**2 &
+         &              *self%factorFillingVolume        &
+         &              *recombinationCoefficient        &
+         &             )                                 &
          &           )**(1.0d0/3.0d0)
     ! Compute the ionization parameter.
     if (luminosityBolometricAGN > 0.0d0) then
-       ionizationParameterLogarithmic=log10(                      &
-            &                               +rateIonizingPhotons  &
-            &                               /4.0d0                &
-            &                               /Pi                   &
-            &                               /radiusStromgren**2   &
-            &                               /self%densityHydrogenFixed &
-            &                               /mega                 &
-            &                               /speedLight           &
+       ionizationParameterLogarithmic=log10(                       &
+            &                               +rateIonizingPhotons   &
+            &                               /4.0d0                 &
+            &                               /Pi                    &
+            &                               /radiusStromgren**2    &
+            &                               /self%densityHydrogen_ &
+            &                               /mega                  &
+            &                               /speedLight            &
             &                              )
     else
       ionizationParameterLogarithmic=0.0d0
     end if
     ! Find the logarithmic density.
-    densityHydrogenLogarithmic=log10(self%densityHydrogenFixed)
+    densityHydrogenLogarithmic=log10(self%densityHydrogen_)
     ! Truncate properties to table bounds where necessary to avoid unphysical extrapolations.
     if      (metallicityGas                  < self%metallicity       (1                             )) then
       metallicityGas                 =self%metallicity        (1                             )
