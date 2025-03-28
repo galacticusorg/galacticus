@@ -4,6 +4,7 @@
 	"LC_ALL": "C",
 	"GALACTICUS_EXEC_PATH": "/workspaces/galacticus",
 	"GALACTICUS_DATA_PATH": "/workspaces/datasets",
+	"DEBIAN_FRONTEND": "noninteractive",
     },
     "features": {
         "ghcr.io/devcontainers/features/github-cli:1": {}
