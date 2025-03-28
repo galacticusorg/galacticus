@@ -58,7 +58,7 @@
           &                                                                                        wavelengths
      double precision                                       , allocatable, dimension(:,:,:,:,:) :: luminosity
      type            (interpolator                         ), allocatable, dimension(:        ) :: interpolator_
-     double precision                                                                           :: indexSpectralShortWavelength               , factorFillingVolume, densityHydrogenFixed
+     double precision                                                                           :: indexSpectralShortWavelength               , factorFillingVolume, densityHydrogenFixed, temperature
      !$ integer      (omp_lock_kind                        )                                    :: interpolateLock
    contains
      final     ::                 lmnstyEmssnLineAGNDestructor
@@ -103,7 +103,7 @@ contains
     class           (accretionDisksClass                    ), pointer                     :: accretionDisks_
     class           (blackHoleAccretionRateClass            ), pointer                     :: blackHoleAccretionRate_
     class           (atomicRecombinationRateRadiativeClass  ), pointer                     :: atomicRecombinationRateRadiative_
-    double precision                                                                       :: indexSpectralShortWavelength     , factorFillingVolume, densityHydrogenFixed
+    double precision                                                                       :: indexSpectralShortWavelength     , factorFillingVolume, densityHydrogenFixed, temperature
 
     allocate(lineNames(parameters%count('lineNames')))
     !![
@@ -130,12 +130,18 @@ contains
       <source>parameters</source>
       <description>Density of hydrogen in cm⁻³ </description>
     </inputParameter>
+    <inputParameter>
+      <name>temperature</name>
+      <defaultValue>+1.00d+4</defaultValue>
+      <source>parameters</source>
+      <description> emperature in K </description>
+    </inputParameter>
     <objectBuilder class="accretionDisks"                   name="accretionDisks_"                   source="parameters"/>
     <objectBuilder class="blackHoleAccretionRate"           name="blackHoleAccretionRate_"           source="parameters"/>
     <objectBuilder class="outputTimes"                      name="outputTimes_"                      source="parameters"/>
     <objectBuilder class="atomicRecombinationRateRadiative" name="atomicRecombinationRateRadiative_" source="parameters"/>
     !!]
-    self=nodePropertyExtractorLmnstyEmssnLineAGN(accretionDisks_,blackHoleAccretionRate_,outputTimes_,atomicRecombinationRateRadiative_,lineNames,indexSpectralShortWavelength,factorFillingVolume,densityHydrogenFixed)
+    self=nodePropertyExtractorLmnstyEmssnLineAGN(accretionDisks_,blackHoleAccretionRate_,outputTimes_,atomicRecombinationRateRadiative_,lineNames,indexSpectralShortWavelength,factorFillingVolume,densityHydrogenFixed, temperature)
     !![
     <inputParametersValidate source="parameters"              />
     <objectDestructor name="accretionDisks_"                  />
@@ -146,7 +152,7 @@ contains
     return
   end function lmnstyEmssnLineAGNConstructorParameters
 
-  function lmnstyEmssnLineAGNConstructorInternal(accretionDisks_,blackHoleAccretionRate_,outputTimes_,atomicRecombinationRateRadiative_,lineNames,indexSpectralShortWavelength,factorFillingVolume,densityHydrogenFixed,outputMask) result(self)
+  function lmnstyEmssnLineAGNConstructorInternal(accretionDisks_,blackHoleAccretionRate_,outputTimes_,atomicRecombinationRateRadiative_,lineNames,indexSpectralShortWavelength,factorFillingVolume,densityHydrogenFixed,temperature,outputMask) result(self)
     !!{
     Internal constructor for the ``lmnstyEmssnLineAGN'' output analysis property extractor class.
     !!}
@@ -162,7 +168,7 @@ contains
      use           :: Table_Labels                  , only : extrapolationTypeFix
     implicit none
     type            (nodePropertyExtractorLmnstyEmssnLineAGN)                                                :: self
-    double precision                                         , intent(in   )                                 :: indexSpectralShortWavelength,     factorFillingVolume, densityHydrogenFixed
+    double precision                                         , intent(in   )                                 :: indexSpectralShortWavelength,     factorFillingVolume, densityHydrogenFixed, temperature
     type            (varying_string                         ), intent(in   ), dimension(:        )           :: lineNames
     logical                                                  , intent(in   ), dimension(:        ), optional :: outputMask
     class           (accretionDisksClass                    ), intent(in   ), target                         :: accretionDisks_
@@ -175,7 +181,7 @@ contains
     integer         (c_size_t)                                              , dimension(5        )           :: shapeLines                       , permutation
     double precision                                         , allocatable  , dimension(:,:,:,:,:)           :: luminosity
     !![
-    <constructorAssign variables="lineNames, indexSpectralShortWavelength, factorFillingVolume, densityHydrogenFixed, *accretionDisks_, *blackHoleAccretionRate_, *outputTimes_, *atomicRecombinationRateRadiative_"/>
+    <constructorAssign variables="lineNames, indexSpectralShortWavelength, factorFillingVolume, densityHydrogenFixed, temperature, *accretionDisks_, *blackHoleAccretionRate_, *outputTimes_, *atomicRecombinationRateRadiative_"/>
     !!]
     
     ! Read the table of emission line luminosities.
@@ -320,7 +326,6 @@ contains
     double precision                                                 , parameter                  :: radiusMinimum            =+1.00d-06
     double precision                                                 , parameter                  :: metallicityISMLocal      =+2.00d-02 ! Metallicity in the local ISM.
     double precision                                                 , parameter                  :: wavelengthZeroPoint      =+5.50d+03 ! Angstroms.
-    double precision                                                 , parameter                  :: temperature              =+1.00d+04 ! K.
     double precision                                                 , parameter                  :: frequency0p001Microns    =speedLight/( 0.001d0*micro) ! Frequency at  0.001μm in Hz.
     double precision                                                 , parameter                  :: frequency0p250Microns    =speedLight/( 0.250d0*micro) ! Frequency at  0.250μm in Hz.
     double precision                                                 , parameter                  :: frequency10p00Microns    =speedLight/(10.000d0*micro) ! Frequency at 10.000μm in Hz.
@@ -392,7 +397,7 @@ contains
     normalization=+1.0d0                            &
          &        /luminosityBolometricUnnormalized
     ! Get the hydrogen recombination coefficient (in m³ s⁻¹).
-    recombinationCoefficient=+self%atomicRecombinationRateRadiative_%rate(1,1,temperature,recombinationCaseB) &
+    recombinationCoefficient=+self%atomicRecombinationRateRadiative_%rate(1,1,self%temperature,recombinationCaseB) &
          &                   *micro
 
     ! Get black hole accretion rates.
