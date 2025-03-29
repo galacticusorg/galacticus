@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1743113018116,
+  "lastUpdate": 1743291115497,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "f5121c76074bc6d3a3dd7e9a8116d97be82b2dde",
-          "message": "Merge pull request #627 from sachiwee/Galacticus_nHrange\n\nAdd summation over HII region n_H densities",
-          "timestamp": "2024-06-14T00:49:15Z",
-          "tree_id": "4bbec27f43958266fc12d4f04858d65126567ff0",
-          "url": "https://github.com/galacticusorg/galacticus/commit/f5121c76074bc6d3a3dd7e9a8116d97be82b2dde"
-        },
-        "date": 1718344158399,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 497.165,
-            "unit": "seconds",
-            "range": 0.648321293806326
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10656,6 +10626,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": "12.968313929439983",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b746d2d7f2b9819423a1a950de5fa514bebe0621",
+          "message": "Merge pull request #818 from sachiwee/AGN_EL\n\nExtractor for emission line luminosities from narrow line regions of galaxies",
+          "timestamp": "2025-03-29T17:03:42Z",
+          "tree_id": "93a2d667f5a302edab7608099c203f3c3a6917e2",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b746d2d7f2b9819423a1a950de5fa514bebe0621"
+        },
+        "date": 1743291114602,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 38.672,
+            "unit": "seconds",
+            "range": 0.0510058820142164
           }
         ]
       }
