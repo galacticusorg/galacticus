@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1743113054398,
+  "lastUpdate": 1743291151462,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=1.0)": [
@@ -6022,6 +6022,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/8d6b92022c484addc399c4018ea48101ecc0e3dc"
         },
         "date": 1743113053477,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteBoundMass",
+            "value": "30.59213776993807",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "16.75775964296036",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteVelocityMaximum",
+            "value": "17.516318647612433",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b746d2d7f2b9819423a1a950de5fa514bebe0621",
+          "message": "Merge pull request #818 from sachiwee/AGN_EL\n\nExtractor for emission line luminosities from narrow line regions of galaxies",
+          "timestamp": "2025-03-29T17:03:42Z",
+          "tree_id": "93a2d667f5a302edab7608099c203f3c3a6917e2",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b746d2d7f2b9819423a1a950de5fa514bebe0621"
+        },
+        "date": 1743291150860,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
