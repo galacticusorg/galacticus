@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1743291123338,
+  "lastUpdate": 1743498651295,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "5e7969c8452986182203920741d8474b769d5ebe",
-          "message": "Merge pull request #629 from galacticusorg/fixDestructors\n\nAdd missing destructors",
-          "timestamp": "2024-06-15T21:19:06Z",
-          "tree_id": "864b28e54b2cec8efecfdef90f6577bbca788554",
-          "url": "https://github.com/galacticusorg/galacticus/commit/5e7969c8452986182203920741d8474b769d5ebe"
-        },
-        "date": 1718504168700,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 386.949,
-            "unit": "seconds",
-            "range": 0.23181220847245
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10656,6 +10626,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": "12.891798440262654",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "24c26b9cc018c6af608fa4294f2ace3e89b1482b",
+          "message": "Merge pull request #821 from galacticusorg/fixRemoveObsoleteMassDistribution\n\nRemove obselete `massDistribution__` objects and initialization functions",
+          "timestamp": "2025-04-01T02:31:36Z",
+          "tree_id": "f99e0995a4ed28f5841618acfea6d5219fbf8f94",
+          "url": "https://github.com/galacticusorg/galacticus/commit/24c26b9cc018c6af608fa4294f2ace3e89b1482b"
+        },
+        "date": 1743498650358,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 26.515,
+            "unit": "seconds",
+            "range": 0.0509950978035546
           }
         ]
       }
