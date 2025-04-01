@@ -312,6 +312,10 @@ if ( exists($options{'initializeToPosteriorMaximum'}) ) {
      <logFileRoot      value="{$priorLogFileRoot}"/>
      <radiusSphere     value="1.0e-6"/>
      <radiusIsRelative value="true"  />
+     <posteriorSampleStateInitialize value="gaussianSphere">
+        <radiusSphere     value="1.0e-6"/>
+        <radiusIsRelative value="true"  />
+     </posteriorSampleStateInitialize>
   </posteriorSampleStateInitialize>   
 
 CODE

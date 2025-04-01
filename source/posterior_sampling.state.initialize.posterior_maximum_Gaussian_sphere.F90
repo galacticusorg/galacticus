@@ -38,10 +38,11 @@
      a set of chain files, with a Gaussian sphere scatter around that point.
      !!}
      private
-     type            (varying_string            )          :: logFileRoot
-     class           (randomNumberGeneratorClass), pointer :: randomNumberGenerator_ => null()
-     double precision                                      :: radiusSphere
-     logical                                               :: radiusIsRelative
+     type            (varying_string                     )          :: logFileRoot
+     class           (randomNumberGeneratorClass         ), pointer :: randomNumberGenerator_          => null()
+     class           (posteriorSampleStateInitializeClass), pointer :: posteriorSampleStateInitialize_ => null()
+     double precision                                               :: radiusSphere
+     logical                                                        :: radiusIsRelative
    contains
      final     ::                posteriorMaximumGaussianSphereDestructor
      procedure :: initialize  => posteriorMaximumGaussianSphereInitialize
@@ -66,6 +67,7 @@ contains
     type            (posteriorSampleStateInitializePosteriorMaximumGaussianSphere)                :: self
     type            (inputParameters                                             ), intent(inout) :: parameters
     class           (randomNumberGeneratorClass                                  ), pointer       :: randomNumberGenerator_
+    class           (posteriorSampleStateInitializeClass                         ), pointer       :: posteriorSampleStateInitialize_
     double precision                                                                              :: radiusSphere
     logical                                                                                       :: radiusIsRelative
     type            (varying_string                                              )                :: logFileRoot
@@ -86,16 +88,17 @@ contains
       <description>If true, the radius of the sphere is assumed to be relative to the extent of the prior, otherwise it is assumed to be an absolute radius.</description>
       <source>parameters</source>
     </inputParameter>
-    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    <objectBuilder class="randomNumberGenerator"          name="randomNumberGenerator_"          source="parameters"/>
+    <objectBuilder class="posteriorSampleStateInitialize" name="posteriorSampleStateInitialize_" source="parameters"/>
     !!]
-    self=posteriorSampleStateInitializePosteriorMaximumGaussianSphere(logFileRoot,radiusSphere,radiusIsRelative,randomNumberGenerator_)
+    self=posteriorSampleStateInitializePosteriorMaximumGaussianSphere(logFileRoot,radiusSphere,radiusIsRelative,posteriorSampleStateInitialize_,randomNumberGenerator_)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function posteriorMaximumGaussianSphereConstructorParameters
 
-  function posteriorMaximumGaussianSphereConstructorInternal(logFileRoot,radiusSphere,radiusIsRelative,randomNumberGenerator_) result(self)
+  function posteriorMaximumGaussianSphereConstructorInternal(logFileRoot,radiusSphere,radiusIsRelative,posteriorSampleStateInitialize_,randomNumberGenerator_) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily posteriorMaximumGaussianSphere} posterior sampling state initialization class.
     !!}
@@ -104,9 +107,10 @@ contains
     type            (varying_string                                              ), intent(in   )         :: logFileRoot
     double precision                                                              , intent(in   )         :: radiusSphere
     logical                                                                       , intent(in   )         :: radiusIsRelative
+    class           (posteriorSampleStateInitializeClass                         ), intent(in   ), target :: posteriorSampleStateInitialize_
     class           (randomNumberGeneratorClass                                  ), intent(in   ), target :: randomNumberGenerator_
     !![
-    <constructorAssign variables="logFileRoot, radiusSphere, radiusIsRelative, *randomNumberGenerator_"/>
+    <constructorAssign variables="logFileRoot, radiusSphere, radiusIsRelative, *posteriorSampleStateInitialize_, *randomNumberGenerator_"/>
     !!]
 
     return
@@ -120,7 +124,8 @@ contains
     type(posteriorSampleStateInitializePosteriorMaximumGaussianSphere), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%randomNumberGenerator_"/>
+    <objectDestructor name="self%randomNumberGenerator_"         />
+    <objectDestructor name="self%posteriorSampleStateInitialize_"/>
     !!]
     return
   end subroutine posteriorMaximumGaussianSphereDestructor
@@ -130,76 +135,123 @@ contains
     Initialize simulation state by reading parameter values from a parameter file.
     !!}
     use :: Models_Likelihoods_Constants, only : logImpossible
-    use :: Posterior_Sampling_State    , only : posteriorSampleStateClass
+    use :: Posterior_Sampling_State    , only : posteriorSampleStateClass, posteriorSampleStateSimple
     use :: File_Utilities              , only : File_Exists
     implicit none
     class           (posteriorSampleStateInitializePosteriorMaximumGaussianSphere), intent(inout)               :: self
     class           (posteriorSampleStateClass                                   ), intent(inout)               :: simulationState
     class           (posteriorSampleLikelihoodClass                              ), intent(inout)               :: modelLikelihood
     type            (modelParameterList                                          ), intent(inout), dimension(:) :: modelParameters_
-    double precision                                                              , intent(  out)               :: timeEvaluatePrevious      , logLikelihood      , &
+    double precision                                                              , intent(  out)               :: timeEvaluatePrevious , logLikelihood       , &
          &                                                                                                         logPosterior
-    double precision                                                              , allocatable  , dimension(:) :: stateVector               , stateVectorMapped  , &
-         &                                                                                                         stateVectorMappedPerturbed, stateVector_
+    double precision                                                              , allocatable  , dimension(:) :: stateVector          , stateVectorPriorBest, &
+         &                                                                                                         stateVectorPerturbed , stateVectorPrior
+    integer                                                                       , allocatable  , dimension(:) :: stateMap
+    type            (posteriorSampleStateSimple                                  ), allocatable                 :: simulationState__
     type            (varying_string                                              )                              :: logFileName
-    integer                                                                                                     :: stateCount                , mpiRank            , &
-         &                                                                                                         logFileUnit               , ioStatus           , &
-         &                                                                                                         i                         , iChain
-    double precision                                                                                            :: logPosterior_             , logLikelihood_     , &
-         &                                                                                                         distributionMinimum       , distributionMaximum, &
-         &                                                                                                         timeEvaluatePrevious_     , radius
+    integer                                                                                                     :: stateCount           , mpiRank             , &
+         &                                                                                                         logFileUnit          , ioStatus            , &
+         &                                                                                                         i                    , iChain              , &
+         &                                                                                                         indexPrior           , iPass               , &
+         &                                                                                                         countPrior
+    double precision                                                                                            :: logPosterior_        , logLikelihood_      , &
+         &                                                                                                         distributionMinimum  , distributionMaximum , &
+         &                                                                                                         timeEvaluatePrevious_, radius
     logical                                                                                                     :: converged
     character       (len=   4                                                    )                              :: label
-    character       (len=4096                                                    )                              :: line
+    character       (len=4096                                                    )                              :: line                 , namePrior
     logical                                                                                                     :: first
     !$GLC attributes unused :: modelLikelihood
 
+    ! Get the state from our fallback initializor.
+    allocate(simulationState__)
+    simulationState__=posteriorSampleStateSimple(1)
+    call simulationState__                                %parameterCountSet(simulationState  %dimension()                                                                                 )
+    call self             %posteriorSampleStateInitialize_%initialize       (simulationState__            ,modelParameters_,modelLikelihood,timeEvaluatePrevious,logLikelihood,logPosterior)
+    stateVector=simulationState__%get()
+    deallocate(simulationState__)
     ! Assume we have no information about the likelihood of the state by default.
     logLikelihood        =logImpossible
     logPosterior         =logImpossible
     timeEvaluatePrevious_=0.0d0
-    ! Allocate the state vector.
-    allocate(stateVector_              (simulationState%dimension()))
-    allocate(stateVector               (simulationState%dimension()))
-    allocate(stateVectorMapped         (simulationState%dimension()))
-    allocate(stateVectorMappedPerturbed(simulationState%dimension()))
-    ! Read state from the log files.
-    iChain=0
-    do while (iChain >= 0)
-       write (label,'(i4.4)') iChain
-       logFileName=self%logFileRoot//'_'//trim(label)//'.log'
-       if (.not.File_Exists(logFileName)) then
-          iChain=-1
-          exit
-       end if
-       open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted')
-       ioStatus=0
-       do while (ioStatus == 0)
-          read (logFileUnit,'(a)',iostat=ioStatus) line
-          if (ioStatus  /=  0 ) cycle
-          if (line(1:1) == "#") cycle
-          read (line,*) stateCount           , &
-               &        mpiRank              , &
-               &        timeEvaluatePrevious_, &
-               &        converged            , &
-               &        logPosterior_        , &
-               &        logLikelihood_       , &
-               &        stateVector_
-          if (logPosterior_ <= logPosterior) cycle
-          logPosterior        =logPosterior_
-          logLikelihood       =logLikelihood_
-          timeEvaluatePrevious=timeEvaluatePrevious_
-          stateVector         =stateVector_
+    ! First read the chain file to establish the number and names of parameters in the prior simulation.
+    logFileName=self%logFileRoot//'_0000.log'
+    if (File_Exists(logFileName)) then
+       countPrior=0
+       do iPass=1,2
+          open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted',ioStat=ioStatus)
+          do while (ioStatus == 0)
+             read (logFileUnit,'(a)',iostat=ioStatus) line
+             if (      ioStatus           /=  0 ) cycle
+             if (index(line         ,"=") ==  0 ) cycle
+             if (      line    (1:1)      /= "#") exit
+             if (      iPass              ==  1 ) countPrior=countPrior+1
+             if (      iPass              ==  1 ) cycle
+             ! On the second pass, determine which, if any, parameter in the current simulation this parameter corresponds to.
+             !! Remove the leading "#".
+             line=line(2:)
+             !! Read the parameter index.
+             read (line,*) indexPrior
+             !! Read the parameter name.
+             read (line(index(line,"`")+1:len_trim(line)-1),'(a)') namePrior
+             indexPrior=indexPrior-6
+             if (indexPrior > 0) then
+                stateMap(indexPrior)=-1
+                do i=1,size(stateVector)
+                   if (trim(namePrior) == modelParameters_(i)%modelParameter_%name()) stateMap(indexPrior)=i
+                end do
+             end if
+          end do
+          close(logFileUnit)
+          if (iPass == 1) then
+             ! The first six lines of the chain file are for fixed output properties (not model parameters). Correct the count for
+             ! that here.
+             countPrior=countPrior-6
+             allocate(stateMap(countPrior))
+          end if
        end do
-       close(logFileUnit)
-       iChain=iChain+1
-    end do
-    ! Map the state.
-    do i=1,size(stateVector)
-       stateVectorMapped(i)=modelParameters_(i)%modelParameter_%map(stateVector(i))
-    end do
+       ! Allocate the state vectors.
+       allocate(stateVectorPrior    (                countPrior  ))
+       allocate(stateVectorPriorBest(                countPrior  ))
+       allocate(stateVectorPerturbed(simulationState%dimension ()))
+       ! Read state from the log files.
+       iChain=0
+       do while (iChain >= 0)
+          write (label,'(i4.4)') iChain
+          logFileName=self%logFileRoot//'_'//trim(label)//'.log'
+          if (.not.File_Exists(logFileName)) then
+             iChain=-1
+             exit
+          end if
+          open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted')
+          ioStatus=0
+          do while (ioStatus == 0)
+             read (logFileUnit,'(a)',iostat=ioStatus) line
+             if (ioStatus  /=  0 ) cycle
+             if (line(1:1) == "#") cycle
+             read (line,*) stateCount           , &
+                  &        mpiRank              , &
+                  &        timeEvaluatePrevious_, &
+                  &        converged            , &
+                  &        logPosterior_        , &
+                  &        logLikelihood_       , &
+                  &        stateVectorPrior
+             if (logPosterior_ <= logPosterior) cycle
+             logPosterior        =logPosterior_
+             logLikelihood       =logLikelihood_
+             timeEvaluatePrevious=timeEvaluatePrevious_
+             stateVectorPriorBest=stateVectorPrior
+          end do
+          close(logFileUnit)
+          iChain=iChain+1
+       end do
+       ! Copy state from the prior model into the new model, mapping as we go.
+       do i=1,size(stateMap)
+          if (stateMap(i) /= -1) stateVector(stateMap(i))=modelParameters_(stateMap(i))%modelParameter_%map(stateVectorPriorBest(i))
+       end do
+    end if
     ! Apply Gaussian random perturbations around the state.
-    stateVectorMappedPerturbed=stateVectorMapped
+    stateVectorPerturbed=stateVector
     do i=1,simulationState%dimension()
        ! Get the median, minimum, and maximum of the prior.
        distributionMinimum=modelParameters_(i)%modelParameter_%map(modelParameters_(i)%modelParameter_%priorMinimum())
@@ -209,21 +261,21 @@ contains
        if (self%radiusIsRelative) radius=radius*(distributionMaximum-distributionMinimum)
        ! Sample values until a value within the allowed prior range is found.
        first=.true.
-       do while (                                                     &
-            &     first                                               &
-            &    .or.                                                 &
-            &     stateVectorMappedPerturbed(i) < distributionMinimum &
-            &    .or.                                                 &
-            &     stateVectorMappedPerturbed(i) > distributionMaximum &
+       do while (                                               &
+            &     first                                         &
+            &    .or.                                           &
+            &     stateVectorPerturbed(i) < distributionMinimum &
+            &    .or.                                           &
+            &     stateVectorPerturbed(i) > distributionMaximum &
             &   )
           first   =.false.
-          stateVectorMappedPerturbed(i)=+self%randomNumberGenerator_%standardNormalSample( ) &
-               &                        *                            radius                  &
-               &                        +                            stateVectorMapped   (i)
+          stateVectorPerturbed(i)=+self%randomNumberGenerator_%standardNormalSample( ) &
+               &                  *                            radius                  &
+               &                  +                            stateVector         (i)
        end do
     end do
     ! Set the simulation state.
-    call simulationState%update(stateVectorMappedPerturbed,.false.,.false.)
+    call simulationState%update(stateVectorPerturbed,.false.,.false.)
     ! Reset likelihoods - we do not want to assume that these will be the same as in the prior model.
     logLikelihood       =logImpossible
     logPosterior        =logImpossible
