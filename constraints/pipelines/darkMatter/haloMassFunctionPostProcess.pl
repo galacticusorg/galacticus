@@ -22,8 +22,11 @@ use Galacticus::Constraints::HaloMassFunctions qw(iterate);
 # Andrew Benson (22-September-2020)
 
 # Get arguments.
-my %options;
-$options{'force'} = "no";
+my %options =
+    (
+     force                 => "no", # If yes, force models to be re-run even if they already exist.
+     countParticlesMinimum => 300   # The minimum number of particles per halo to include in constraints.
+    );
 &Galacticus::Options::Parse_Options(\@ARGV,\%options);
 die("no `--pipelinePath` option given")
     unless ( exists($options{'pipelinePath'}) );
@@ -47,9 +50,6 @@ my $simulations = $xml->XMLin(
     ForceArray => [ "suite"         , "group"         , "simulation"          ],
     KeyAttr    => {  suite => "name",  group => "name",  simulation => "name" }
     );
-
-# Specify the minimum number of particles used in fitting halo mass functions.
-my $countParticlesMinimum = 100;
 
 # Determine if models/plots should be forcibly remade.
 $options{'force'} = "yes"
@@ -193,7 +193,7 @@ foreach my $entry ( @entries ) {
 	foreach ( 'haloMass', 'haloMassFunctionLnMBinAveraged' );
     $dataModel->{'nonZero'} = which($dataModel->{'haloMassFunctionLnMBinAveraged'} > 0);
     # Determine the minimum halo mass that was used in the fit.
-    my $massHaloMinimum = $countParticlesMinimum*$entry->{'group'}->{'massParticle'};
+    my $massHaloMinimum = $options{'countParticlesMinimum'}*$entry->{'group'}->{'massParticle'};
     # Read the target data.
     my $dataTarget;
     my $fileTarget       = new PDL::IO::HDF5($entry->{'fileTargetData'});

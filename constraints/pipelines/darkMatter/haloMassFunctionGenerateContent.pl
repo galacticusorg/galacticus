@@ -23,12 +23,13 @@ use Data::Dumper;
 my %options =
     (
      binAverage                   => "true" , # If true halo mass functions will be averaged over each bin.
-     initializeToPosteriorMaximum => "false", # f true, initialize state to the posterior maximumSpecify the state initializor to use.
+     initializeToPosteriorMaximum => "false", # If true, initialize state to the posterior maximumSpecify the state initializor to use.
      removeAccelerator            => "false", # If true any `<haloMassFunction value="accelerator"/>` will be removed.
      removeDetectionEfficiency    => "false", # If true any `<haloMassFunction value="detectionEfficiency"/>` will be removed.
      removeErrorConvolved         => "false", # If true any `<haloMassFunction value="errorConvolved"/>` will be removed.
      removeSimulationVariance     => "false", # If true any `<haloMassFunction value="simulationVariance"/>` will be removed.
-     removeMultiplier             => "false"  # If true any `<haloMassFunction value="multiplier"/>` (used for isolation bias models) will be removed.
+     removeMultiplier             => "false", # If true any `<haloMassFunction value="multiplier"/>` (used for isolation bias models) will be removed.
+     countParticlesMinimum        => 300      # The minimum number of particles per halo to include in constraints.
     );
 &Galacticus::Options::Parse_Options(\@ARGV,\%options);
 die("no `--pipelinePath` option given")
@@ -46,10 +47,10 @@ foreach my $path ( 'pipelinePath', 'outputDirectory' ) {
 }
 
 # Set global parameters.
-$content::countParticlesMinimum = 100  ;
-$content::fractionMassPrimary   =   0.1;
-$content::pipelinePath          = $options{'pipelinePath'   };
-$content::outputDirectory       = $options{'outputDirectory'};
+$content::countParticlesMinimum = $options{'countParticlesMinimum'};
+$content::fractionMassPrimary   = 0.1                              ;
+$content::pipelinePath          = $options{'pipelinePath'         };
+$content::outputDirectory       = $options{'outputDirectory'      };
 
 # Parse the simulations definition file.
 my $xml = new XML::Simple();
