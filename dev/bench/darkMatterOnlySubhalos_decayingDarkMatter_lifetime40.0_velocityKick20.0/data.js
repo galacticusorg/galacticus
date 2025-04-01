@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1743291170767,
+  "lastUpdate": 1743498708213,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=40 Gyr; vₖ=20 km/s)": [
@@ -983,6 +983,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=40.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
             "value": "39.67554202694577",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "24c26b9cc018c6af608fa4294f2ace3e89b1482b",
+          "message": "Merge pull request #821 from galacticusorg/fixRemoveObsoleteMassDistribution\n\nRemove obselete `massDistribution__` objects and initialization functions",
+          "timestamp": "2025-04-01T02:31:36Z",
+          "tree_id": "f99e0995a4ed28f5841618acfea6d5219fbf8f94",
+          "url": "https://github.com/galacticusorg/galacticus/commit/24c26b9cc018c6af608fa4294f2ace3e89b1482b"
+        },
+        "date": 1743498707731,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=40.0 Gyr; vₖ=20.0 km/s) - Likelihood - mass function",
+            "value": "3.4351706764259418",
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=40.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
+            "value": "36.41578576554623",
             "unit": "-logℒ"
           }
         ]
