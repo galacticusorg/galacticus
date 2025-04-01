@@ -55,9 +55,9 @@ $content::outputDirectory       = $options{'outputDirectory'      };
 # Parse the simulations definition file.
 my $xml = new XML::Simple();
 my $simulations = $xml->XMLin(
-    $options{'pipelinePath'}."haloMassFunctionSimulations.xml",
-    ForceArray => [ "suite"         , "group"         , "simulation"          ],
-    KeyAttr    => {  suite => "name",  group => "name",  simulation => "name" }
+    $options{'pipelinePath'}."simulations.xml",
+    ForceArray => [ "suite"         , "group"         , "simulation"         , "resolution"           ],
+    KeyAttr    => {  suite => "name",  group => "name",  simulation => "name",  resolution  => "name" }
     );
 
 # Initialize hashes of isolationBias and perturbation parameters needed.
@@ -130,12 +130,13 @@ foreach $content::entry ( &iterate($simulations,\%options) ) {
 	"  ".
 	     $content::entry->{'suite'      }->{'name'}."\t".
      	     $content::entry->{'group'      }->{'name'}."\t".
+	     $content::entry->{'resolution' }->{'name'}."\t".
 	     $content::entry->{'simulation' }->{'name'}."\t".
 	     $content::entry->{'realization'}          ."\t".
 	"z=".$content::entry->{'redshift'   }          ."\n";
     # Determine the minimum and maximum halo masses.
-    $content::massHaloMinimum = sprintf("%11.5e",$content::countParticlesMinimum*$content::entry->{'group'}->{'massParticle'});
-    $content::massHaloMaximum = sprintf("%11.5e",$content::fractionMassPrimary  *$content::entry           ->{'massPrimary' })
+    $content::massHaloMinimum = sprintf("%11.5e",$content::countParticlesMinimum*$content::entry->{'resolution'}->{'massParticle'});
+    $content::massHaloMaximum = sprintf("%11.5e",$content::fractionMassPrimary  *$content::entry                ->{'massPrimary' })
 	if ( $content::entry->{'suite'}->{'limitMassMaximum'}->{'value'} eq "primaryFraction" );
     # Generate file names.
     $content::fileNameBase   = $options{'outputDirectory'}  ."haloMassFunctionBase_".$content::entry->{'suite'}->{'name'}."_".$content::entry->{'group'}->{'name'}."_".$content::entry->{'simulation'}->{'name'}."_".$content::entry->{'realization'}."_z".$content::entry->{'redshift'}.".xml" ;

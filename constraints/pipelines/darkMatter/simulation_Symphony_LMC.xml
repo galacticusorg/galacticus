@@ -6,10 +6,12 @@
   <!-- Simulation defintion -->
   <simulation value="" ignoreWarnings="true">
     <!-- LMC zoom-in simulation properties -->
-    <massParticle        value="5.03538e04"   />
-    <subvolumes          value="1"            />
-    <simulationReference value="Nadler et al."/>
-    <simulationURL       value="https://www"  />
+    <massParticle>
+      <resolutionX1 value="5.03538e04"/>
+    </massParticle>
+    <subvolumes          value="1"                                                                          />
+    <simulationReference value="Nadler et al. (2023; https://ui.adsabs.harvard.edu/abs/2023ApJ...945..159N)"/>
+    <simulationURL       value="https://web.stanford.edu/group/gfc/symphony/build/html/simulations.html"    />
   </simulation>
 
 </parameters>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
+
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctions  value="matterLambda"/>
+  <cosmologyParameters value="simple"       >
+    <HubbleConstant  value="70.000000"/>
+    <OmegaMatter     value=" 0.286000"/>
+    <OmegaDarkEnergy value=" 0.714000"/>
+    <OmegaBaryon     value=" 0.047000"/>
+    <temperatureCMB  value=" 2.725480"/>
+  </cosmologyParameters>
+
+  <!-- Power spectrum options -->
+  <powerSpectrumPrimordial value="powerLaw">
+    <index               value="0.960"/>
+    <wavenumberReference value="1.000"/>
+    <running             value="0.000"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumWindowFunction value="ETHOSExtended">
+    <cW0                         value="=[haloMassFunctionParameters/cW0]"                        />
+    <cW1                         value="=[haloMassFunctionParameters/cW1]"                        />
+    <beta0                       value="=[haloMassFunctionParameters/beta0]"                      />
+    <beta1                       value="=[haloMassFunctionParameters/beta1]"                      />
+    <wavenumberScaledMinimum     value="=[haloMassFunctionParameters/wavenumberScaledMinimum]"    />
+    <powerSpectrumSmoothingWidth value="=[haloMassFunctionParameters/powerSpectrumSmoothingWidth]"/>
+  </powerSpectrumWindowFunction>
+  <cosmologicalMassVariance value="artificialHalos">
+    <normalization value="=[haloMassFunctionParameters/artificialNormalization]"                            />
+    <exponent      value="=[haloMassFunctionParameters/artificialExponent]"                                 />
+    <massZeroPoint value="=[haloMassFunctionParameters/artificialCountParticles]*[simulation/massParticle]"/>
+  <cosmologicalMassVariance value="peakBackgroundSplit">
+    <cosmologicalMassVariance value="filteredPower">
+      <sigma_8                   value="0.820" />
+      <tolerance                 value="4.0e-4"/>
+      <toleranceTopHat           value="2.0e-4"/>
+      <nonMonotonicIsFatal       value="false" />
+      <monotonicInterpolation    value="true"  />
+      <integrationFailureIsFatal value="false" />
+      <storeTabulations          value="false" />
+    </cosmologicalMassVariance>
+  </cosmologicalMassVariance>
+  </cosmologicalMassVariance>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+
+  <!-- Power spectrum used for variance calculations -->
+  <powerSpectrumSimulation value="standard" ignoreWarnings="true">
+    <cosmologicalMassVariance value="filteredPower">
+      <sigma_8                   value="0.820" />
+      <tolerance                 value="4.0e-4"/>
+      <toleranceTopHat           value="2.0e-4"/>
+      <nonMonotonicIsFatal       value="false" />
+      <monotonicInterpolation    value="true"  />
+      <integrationFailureIsFatal value="false" />
+      <storeTabulations          value="false" />
+    </cosmologicalMassVariance>
+  </powerSpectrumSimulation>
+
+  <!-- Structure formation options -->
+  <linearGrowth          value="collisionlessMatter"                      />
+  <criticalOverdensity   value="peakBackgroundSplit"                       >
+    <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  </criticalOverdensity>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+
+</parameters>

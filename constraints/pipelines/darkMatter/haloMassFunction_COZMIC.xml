@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
+  
+  <!-- Task and output -->
+  <task value="haloMassFunction">
+   <haloMassMinimum                     value=" 1.122018454e06"/>
+   <haloMassMaximum                     value=" 1.122018454e16"/>
+   <pointsPerDecade                     value="10.0"           />
+   <includeMassAccretionRate            value="false"          />
+   <includeUnevolvedSubhaloMassFunction value="false"          />
+   <errorsAreFatal                      value="false"          />
+  </task>
+
+  <!-- Switch of irrelevant components -->
+  <componentBasic             value="standard"/>
+  <componentDarkMatterProfile value="scale"   />
+  <componentBlackHole         value="null"    />
+  <componentDisk              value="null"    />
+  <componentHotHalo           value="null"    />
+  <componentSatellite         value="null"    />
+  <componentSpheroid          value="null"    />
+  <componentSpin              value="null"    />
+  <hotHaloMassDistribution    value="null"    />
+
+  <!-- N-body error model -->
+  <nbodyHaloMassError value="trenti2010">
+    <massParticle value="=[simulation/massParticle]"/>
+  </nbodyHaloMassError>
+
+  <!-- Halo mass function -->
+  <haloMassFunction value="accelerator">
+    <haloMassFunction value="detectionEfficiency">
+      <massMinimum             value="=[detectionMassMinimumParticleCount]*[simulation/massParticle]" />
+      <efficiencyAtMassMinimum value="=[detectionEfficiencyAtMassMinimum]"                            />
+      <exponentMass            value="=[detectionExponentMass]"                                       />
+      <exponentRedshift        value="=[detectionExponentRedshift]"                                   />
+	<haloMassFunction value="multiplier">
+	  <multiplier       value="=[isolationBias]"        />
+	  <exponentRedshift value="=[isolationBiasExponent]"/>
+	  <haloMassFunction value="errorConvolved">
+	    <tolerateIntegrationFailure value="true"/>
+	    <errorFractionalMaximum value="1.0e+0"/>
+	    <toleranceRelative      value="1.0e-4"/>
+	    <haloMassFunction value="bhattacharya2011">
+	      <a             value="=[haloMassFunctionParameters/a]"            />
+	      <b             value="=[haloMassFunctionParameters/b]"            />
+	      <p             value="=[haloMassFunctionParameters/p]"            />
+	      <q             value="=[haloMassFunctionParameters/q]"            />
+	      <normalization value="=[haloMassFunctionParameters/normalization]"/>
+	    </haloMassFunction>
+	  </haloMassFunction>
+	</haloMassFunction>
+      
+    </haloMassFunction>
+  </haloMassFunction>
+  
+</parameters>

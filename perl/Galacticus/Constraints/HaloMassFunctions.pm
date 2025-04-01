@@ -22,7 +22,7 @@ sub iterate {
     # Validate the 'stopAfter' option.
     $optionsExtra{'stopAfter'} = "redshift"
 	unless ( exists($optionsExtra{'stopAfter'}) );
-    my @allowedStopAfter = ( 'suite', 'group', 'simulation', 'realization', 'redshift' );
+    my @allowedStopAfter = ( 'suite', 'group', 'resolution', 'simulation', 'realization', 'redshift' );
     die('unrecognized "stopAfter" option - allowed choices are: '.join(", ",map {'"'.$_.'"'} @allowedStopAfter))
 	unless ( grep {$_ eq $optionsExtra{'stopAfter'}} @allowedStopAfter );
     # Build the list of selections if we do not yet have it.
@@ -51,19 +51,6 @@ sub iterate {
 	foreach my $group ( &List::ExtraUtils::hashList($suite->{'group'}, keyAs => "name") ) {
 	    next
 		unless ( &matchSelection($simulations->{'selections'},$suite->{'name'},$group->{'name'}) );
-	    # Find the particle mass for this group.
-	    unless ( exists($group->{'massParticle'}) ) {
-		my $xml = new XML::Simple();
-		my $simulationParameters = $xml->XMLin($options{'pipelinePath'}."simulation_".$suite->{'name'}."_".$group->{'name'}.".xml");
-		my $massParticle         = $simulationParameters->{'simulation'}->{'massParticle'}->{'value'};
-		# Handle any Hubble parameter scaling.
-		if ( $massParticle =~ m/^=/ ) {
-		    $massParticle =~ s/^=//;
-		    $massParticle =~ s/\[cosmologyParameters\/HubbleConstant\]/$suite->{'cosmology'}->{'HubbleConstant'}/;
-		    $massParticle = eval($massParticle);
-		}
-		$group->{'massParticle'} = $massParticle;
-	    }
 	    # Find the number of subvolumes for this group.
 	    unless ( exists($group->{'subvolumes'}) ) {
 		my $xml = new XML::Simple();
@@ -74,87 +61,133 @@ sub iterate {
 	    unless ( exists($group->{'metaData'}) ) {
 		my $xml = new XML::Simple();
 		my $simulationParameters = $xml->XMLin($options{'pipelinePath'}."simulation_".$suite->{'name'}."_".$group->{'name'}.".xml");
-		$group->{'reference'} = $simulationParameters->{'simulation'}->{'simulationReference'}->{'value'};
-		$group->{'url'      } = $simulationParameters->{'simulation'}->{'simulationURL'      }->{'value'};
+		$group->{'metaData'}->{'reference'} = $simulationParameters->{'simulation'}->{'simulationReference'}->{'value'};
+		$group->{'metaData'}->{'url'      } = $simulationParameters->{'simulation'}->{'simulationURL'      }->{'value'};
 	    }
-	    # Extract lists of redshifts.
-	    my $expansionFactors = pdl split(" ",$group->{'haloMassFunction'}->{'expansionFactors'}->{'value'});
-	    @{$group->{'expansionFactors'}} = list(    $expansionFactors    );
-	    @{$group->{'redshifts'       }} = list(1.0/$expansionFactors-1.0);
-	    # Extract lists of snapshots.
-	    @{$group->{'snapshots'       }} = split(" ",$group->{'haloMassFunction'}->{'snapshots'}->{'value'})
-		if ( exists($group->{'haloMassFunction'}->{'snapshots'}) );
+	    # Find best available resolution.
+	    my @resolutions = sort map {(my $resolution = $_->{'name'}) =~ s/^resolutionX//; $resolution*1.0} &List::ExtraUtils::hashList($group->{'resolution'}, keyAs => "name");
+	    $group->{'resolutionBest'} = "resolutionX".$resolutions[-1];
 	    # Push to the list and move on if we are to stop after the "group" stage.  	    
 	    if ( $optionsExtra{'stopAfter'} eq "group" ) {
 		push(@simulationList,{suite => $suite, group => $group});
 		next;
-	    }	    
-	    # Iterate over simulations in the group.
-	    foreach my $simulation ( &List::ExtraUtils::hashList($group->{'simulation'}, keyAs => "name") ) {
+	    }
+	    # Iterate over resolutions in the group.
+	    foreach my $resolution ( &List::ExtraUtils::hashList($group->{'resolution'}, keyAs => "name") ) {
 		next
-		    unless ( &matchSelection($simulations->{'selections'},$suite->{'name'},$group->{'name'},$simulation->{'name'}) );
-		# Extract lists of realizations.
-		@{$simulation->{'realizationsList'}} = exists($simulation->{'realizations'}) ? split(" ",$simulation->{'realizations'}->{'value'}) : ( "only" );
-		# Push to the list and move on if we are to stop after the "simulation" stage.  	    
-		if ( $optionsExtra{'stopAfter'} eq "simulation" ) {
-		    push(@simulationList,{suite => $suite, group => $group, simulation => $simulation});
-		    next;
-		}		
-		# Iterate over realizations in the simulation.
-		foreach my $realization ( @{$simulation->{'realizationsList'}} ) {
-		    next
-			unless ( &matchSelection($simulations->{'selections'},$suite->{'name'},$group->{'name'},$simulation->{'name'},$realization) );
-		    # Push to the list and move on if we are to stop after the "realization" stage.  	    
-		    if ( $optionsExtra{'stopAfter'} eq "realization" ) {
-			push(@simulationList,{suite => $suite, group => $group, simulation => $simulation, realization => $realization});
-			next;
+		    unless ( &matchSelection($simulations->{'selections'},$suite->{'name'},$group->{'name'},$resolution->{'name'}) );
+		# Find the particle mass for this resolution.
+		unless ( exists($resolution->{'massParticle'}) ) {
+		    my $xml = new XML::Simple();
+		    my $simulationParameters = $xml->XMLin($options{'pipelinePath'}."simulation_".$suite->{'name'}."_".$group->{'name'}.".xml");
+		    my $massParticle         = $simulationParameters->{'simulation'}->{'massParticle'}->{$resolution->{'name'}}->{'value'};
+		    # Handle any Hubble parameter scaling.
+		    if ( $massParticle =~ m/^=/ ) {
+			$massParticle =~ s/^=//;
+			$massParticle =~ s/\[cosmologyParameters\/HubbleConstant\]/$suite->{'cosmology'}->{'HubbleConstant'}/;
+			$massParticle = eval($massParticle);
 		    }
-		# Iterate over redshifts in the simulation.
-		foreach my $redshift ( @{$group->{'redshifts'}} ) {
-		    my $redshiftShort = sprintf("%5.3f",$redshift);
+		    $resolution->{'massParticle'} = $massParticle;
+		}
+		# Extract lists of redshifts.
+		my $expansionFactors = pdl split(" ",$resolution->{'haloMassFunction'}->{'expansionFactors'}->{'value'});
+		@{$resolution->{'expansionFactors'}} = list(    $expansionFactors    );
+		@{$resolution->{'redshifts'       }} = list(1.0/$expansionFactors-1.0);
+		# Extract lists of snapshots.
+		@{$resolution->{'snapshots'       }} = split(" ",$resolution->{'haloMassFunction'}->{'snapshots'}->{'value'})
+		if ( exists($resolution->{'haloMassFunction'}->{'snapshots'}) );
+		# Push to the list and move on if we are to stop after the "resolution" stage.  	    
+		if ( $optionsExtra{'stopAfter'} eq "resolution" ) {
+		    push(@simulationList,{suite => $suite, group => $group, resolution => $resolution});
+		    next;
+		}
+		# Iterate over simulations in the group.
+		foreach my $simulation ( &List::ExtraUtils::hashList($resolution->{'simulation'}, keyAs => "name") ) {
 		    next
-			unless ( &matchSelection($simulations->{'selections'},$suite->{'name'},$group->{'name'},$simulation->{'name'},$realization,$redshiftShort) );
-		    # Begin constructing the complete entry that will be pushed to the list.
-			my $entry = {suite => $suite, group => $group, simulation => $simulation, redshift => $redshiftShort, realization => $realization};
-			# Set the target data file.
-			$entry->{'fileTargetData'} = 
-			    $ENV{'GALACTICUS_DATA_PATH'}             .
-			    "/static/darkMatter/haloMassFunction_"   .
-			        $entry->{'suite'      }->{'name'}."_".
-			        $entry->{'group'      }->{'name'}."_".
-			        $entry->{'simulation' }->{'name'}."_".
-			        $entry->{'realization'}          ."_".
-			    "z".$entry->{'redshift'   }              .
-			    ".hdf5";
-			# Extract data from the target data file.
-			die("target data file '".$entry->{'fileTargetData'}."' does not exist")
-			    unless ( -e $entry->{'fileTargetData'} );
-			my $dataTarget       = new PDL::IO::HDF5($entry->{'fileTargetData'});
-			my $simulationTarget = $dataTarget->group('simulation0001');
-			# Extract properties of the primary halo from the target data file.
-			($entry->{'massPrimary'}) = $simulationTarget->attrGet('massPrimary')
-			    if ( $entry->{'suite'}->{'limitMassMaximum'}->{'value'} eq "primaryFraction" );
-			# Extract properties of the environment, if needed.
-			if ( $entry->{'suite'}->{'includeEnvironment'}->{'value'} eq "true" ) {
-			    foreach my $attributeName ( 'massEnvironment', 'overdensityEnvironment' ) {
-				die("Attribute '".$attributeName."' is missing in file ".$entry->{'fileTargetData'})
-				    unless ( grep {$_ eq $attributeName} $simulationTarget->attrs() );
-				($entry->{'environment'}->{$attributeName}) = $simulationTarget->attrGet($attributeName);
+			unless ( &matchSelection($simulations->{'selections'},$suite->{'name'},$group->{'name'},$resolution->{'name'},$simulation->{'name'}) );
+		    # Extract lists of realizations.
+		    @{$simulation->{'realizationsList'}} = exists($simulation->{'realizations'}) ? split(" ",$simulation->{'realizations'}->{'value'}) : ( "only" );
+		    # Push to the list and move on if we are to stop after the "simulation" stage.  	    
+		    if ( $optionsExtra{'stopAfter'} eq "simulation" ) {
+			push(@simulationList,{suite => $suite, group => $group, resolution => $resolution, simulation => $simulation});
+			next;
+		    }		
+		    # Iterate over realizations in the simulation.
+		    foreach my $realization ( @{$simulation->{'realizationsList'}} ) {
+			# Find best available resolution for this realization.
+			my $isBestResolution = 1;
+			(my $resolutionNumerical = $resolution->{'name'}) =~ s/^resolutionX//;
+			$resolutionNumerical *= 1.0;
+			foreach my $resolutionOther ( &List::ExtraUtils::hashList($group->{'resolution'}, keyAs => "name") ) {
+			    (my $resolutionOtherNumerical = $resolutionOther->{'name'}) =~ s/^resolutionX//;
+			    $resolutionOtherNumerical *= 1.0;
+			    foreach my $simulationOther ( &List::ExtraUtils::hashList($resolutionOther->{'simulation'}, keyAs => "name") ) {
+				next
+				    unless ( $simulationOther->{'name'} eq $simulation->{'name'} );
+				# Extract lists of realizations.
+				my @realizationsListOther = exists($simulationOther->{'realizations'}) ? split(" ",$simulationOther->{'realizations'}->{'value'}) : ( "only" );
+				my $realizationIsPresent = grep {$_ eq $realization} @realizationsListOther;
+				next
+				    unless ( $realizationIsPresent );
+				$isBestResolution = 0
+				    if ( $resolutionOtherNumerical > $resolutionNumerical );
 			    }
 			}
-			# Push to the list and move on if we are to stop after the "redshift" stage.  	    
-			if ( $optionsExtra{'stopAfter'} eq "redshift" ) {
-			    push(@simulationList,$entry);
+			next
+			    unless ( &matchSelection($simulations->{'selections'},$suite->{'name'},$group->{'name'},$resolution->{'name'},$simulation->{'name'},$realization,$isBestResolution) );
+			# Push to the list and move on if we are to stop after the "realization" stage.  	    
+			if ( $optionsExtra{'stopAfter'} eq "realization" ) {
+			    push(@simulationList,{suite => $suite, group => $group, resolution => $resolution, simulation => $simulation, realization => $realization});
 			    next;
+			}
+			# Iterate over redshifts in the simulation.
+			foreach my $redshift ( @{$resolution->{'redshifts'}} ) {
+			    my $redshiftShort = sprintf("%5.3f",$redshift);
+			    next
+				unless ( &matchSelection($simulations->{'selections'},$suite->{'name'},$group->{'name'},$resolution->{'name'},$simulation->{'name'},$realization,$isBestResolution,$redshiftShort) );
+			    # Begin constructing the complete entry that will be pushed to the list.
+			    my $entry = {suite => $suite, group => $group, resolution => $resolution, simulation => $simulation, redshift => $redshiftShort, realization => $realization};
+			    # Set the target data file.
+			    $entry->{'fileTargetData'} = 
+				$ENV{'GALACTICUS_DATA_PATH'}             .
+				"/static/darkMatter/haloMassFunction_"   .
+			            $entry->{'suite'      }->{'name'}."_".
+			            $entry->{'group'      }->{'name'}."_".
+			            $entry->{'resolution' }->{'name'}."_".
+			            $entry->{'simulation' }->{'name'}."_".
+			            $entry->{'realization'}          ."_".
+				"z".$entry->{'redshift'   }              .
+				".hdf5";
+			    # Extract data from the target data file.
+			    die("target data file '".$entry->{'fileTargetData'}."' does not exist")
+				unless ( -e $entry->{'fileTargetData'} );
+			    my $dataTarget       = new PDL::IO::HDF5($entry->{'fileTargetData'});
+			    my $simulationTarget = $dataTarget->group('simulation0001');
+			    # Extract properties of the primary halo from the target data file.
+			    ($entry->{'massPrimary'}) = $simulationTarget->attrGet('massPrimary')
+				if ( $entry->{'suite'}->{'limitMassMaximum'}->{'value'} eq "primaryFraction" );
+			    # Extract properties of the environment, if needed.
+			    if ( $entry->{'suite'}->{'includeEnvironment'}->{'value'} eq "true" ) {
+				foreach my $attributeName ( 'massEnvironment', 'overdensityEnvironment' ) {
+				    die("Attribute '".$attributeName."' is missing in file ".$entry->{'fileTargetData'})
+					unless ( grep {$_ eq $attributeName} $simulationTarget->attrs() );
+				    ($entry->{'environment'}->{$attributeName}) = $simulationTarget->attrGet($attributeName);
+				}
+			    }
+			    # Push to the list and move on if we are to stop after the "redshift" stage.  	    
+			    if ( $optionsExtra{'stopAfter'} eq "redshift" ) {
+				push(@simulationList,$entry);
+				next;
+			    }
 			}
 		    }
 		}
 	    }
 	}
     }
-    # Re-order to avoid spread models with the same power spectrum class. This optimizes load balancing when recalculation of σ(M)
-    # is required, allowing different MPI processes to begin with models that have different power spectra and so will store these
-    # to different files.
+    # Re-order to spread models with the same power spectrum class. This optimizes load balancing when recalculation of σ(M) is
+    # required, allowing different MPI processes to begin with models that have different power spectra and so will store these to
+    # different files.
     if ( exists( $options{'reOrder'}) && $options{'reOrder'} eq "yes" && $optionsExtra{'stopAfter'} eq "redshift" ) {
 	my %powerSpectrumClasses;
 	foreach my $entry ( @simulationList ) {
@@ -193,9 +226,10 @@ sub selectSimulations {
 	    {
 		suite       => $subselections[0],
 		group       => $subselections[1],
-		simulation  => $subselections[2],
-		realization => $subselections[3],
-		redshift    => $subselections[4]
+		resolution  => $subselections[2],
+		simulation  => $subselections[3],
+		realization => $subselections[4],
+		redshift    => $subselections[5]
 	    }
 	    );
     }
@@ -206,21 +240,36 @@ sub selectSimulations {
 
 sub matchSelection {
     # Test if the current simulation matches a selection.
-    my @selections  = @{shift()};
-    my $suite       =   shift() ;
-    my $group       =   shift() ;
-    my $simulation  =   shift() ;
-    my $realization =   shift() ;
-    my $redshift    =   shift() ;
+    my @selections       = @{shift()};
+    my $suite            =   shift() ;
+    my $group            =   shift() ;
+    my $resolution       =   shift() ;
+    my $simulation       =   shift() ;
+    my $realization      =   shift() ;
+    my $isBestResolution =   shift() ;
+    my $redshift         =   shift() ;
     # If there are no selections, everything is a match.
     return 1
 	if ( scalar(@selections) == 0 );
     foreach my $selection ( @selections ) {
 	next unless ( ! defined($selection->{'suite'      }) || ! defined($suite      ) || grep {$_ eq $suite       || $_ eq "*"} @{$selection->{'suite'      }} );
 	next unless ( ! defined($selection->{'group'      }) || ! defined($group      ) || grep {$_ eq $group       || $_ eq "*"} @{$selection->{'group'      }} );
+	my $resolutionMatches;
+	if ( defined($selection->{'resolution'}) && defined($resolution) && defined($isBestResolution) ) {
+	    foreach my $selectResolution ( @{$selection->{'resolution'}} ) {
+		if ( $selectResolution eq "best" ) {
+		    $resolutionMatches = $isBestResolution;
+		} else {
+		    $resolutionMatches = $selectResolution eq $resolution || $selectResolution eq "*";
+		}
+	    }
+	} else {
+	    $resolutionMatches = 1;
+	}
+	next unless ( $resolutionMatches );
 	next unless ( ! defined($selection->{'simulation' }) || ! defined($simulation ) || grep {$_ eq $simulation  || $_ eq "*"} @{$selection->{'simulation' }} );
-	next unless ( ! defined($selection->{'realization'}) || ! defined($realization) || grep {$_ eq $realization || $_ eq "*"} @{$selection->{'realization'}} );
 	next unless ( ! defined($selection->{'redshift'   }) || ! defined($redshift   ) || grep {$_ eq $redshift    || $_ eq "*"} @{$selection->{'redshift'   }} );
+	next unless ( ! defined($selection->{'realization'}) || ! defined($realization) || grep {$_ eq $realization || $_ eq "*"} @{$selection->{'realization'}} );
 	return 1;
     }
     return 0
