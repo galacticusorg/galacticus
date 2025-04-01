@@ -53,12 +53,6 @@ module Node_Component_Dark_Matter_Profile_Scale_Free
        <argument>integer                              , intent(in   ), optional :: weightIndex  </argument>
       </interface>
      </binding>
-     <binding method="massDistributionInit" bindsTo="component" isDeferred="true" >
-      <interface>
-       <type>void</type>
-       <self pass="true" intent="inout"/>
-      </interface>
-     </binding>
    </bindings>
   </component>
   !!]
@@ -71,10 +65,6 @@ module Node_Component_Dark_Matter_Profile_Scale_Free
   ! Procedure pointers to mass distribution functions.
   procedure(Node_Component_Dark_Matter_Profile_Scale_Free_Mass_Dist), pointer :: Node_Component_Dark_Matter_Profile_Scale_Free_Mass_Dist_
 
-  ! Mass distribution pointer used for post-construction initialization.
-  class(massDistributionClass), pointer :: massDistribution__
-  !$omp threadprivate(massDistribution__)
-  
 contains
 
   !![
@@ -212,8 +202,7 @@ contains
     <optionalArgument name="massType"      defaultsTo="massTypeAll"     />
     !!]
 
-    massDistribution_  => null()
-    massDistribution__ => null()
+    massDistribution_ => null()
     if         (                                              &
          &       massType_      == massTypeAll                &
          &      .or.                                          &
@@ -224,12 +213,11 @@ contains
             &   .or.                                          &
             &    componentType_ == componentTypeDarkHalo      &
             &  ) then
-          massDistribution_  => darkMatterProfile_   %get(self%hostNode,weightBy,weightIndex)
-          massDistribution__ => massDistribution_
+          massDistribution_ => darkMatterProfile_   %get(self%hostNode,weightBy,weightIndex)
        else if (                                              &
             &   componentType_ == componentTypeDarkMatterOnly &
             &  ) then
-          massDistribution_  => darkMatterProfileDMO_%get(self%hostNode,weightBy,weightIndex)
+          massDistribution_ => darkMatterProfileDMO_%get(self%hostNode,weightBy,weightIndex)
           call massDistribution_%setTypes(componentType=componentTypeDarkMatterOnly)
        end if
     end if
