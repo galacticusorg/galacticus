@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1743498659904,
+  "lastUpdate": 1743674534437,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "60df16059ddc0d88fb44e723b27466fed2bd1131",
-          "message": "Merge pull request #630 from galacticusorg/featDirectiveCheck\n\nAdd functionality to check that all code directives were processed",
-          "timestamp": "2024-06-17T00:27:56Z",
-          "tree_id": "61c10eb4452a241660f36ffc29ef56748e602953",
-          "url": "https://github.com/galacticusorg/galacticus/commit/60df16059ddc0d88fb44e723b27466fed2bd1131"
-        },
-        "date": 1718602276168,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 497.806,
-            "unit": "seconds",
-            "range": 0.369324247766964
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10656,6 +10626,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": "9.463212566149398",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "26e24f89883a9b6f941f5eb4b69e4835b80e44ea",
+          "message": "fix: Ensure directory exists before attempting to lock a file in it",
+          "timestamp": "2025-04-02T20:33:26-07:00",
+          "tree_id": "b05a2e1b2cd8b43318f14393cdeea328aad68b67",
+          "url": "https://github.com/galacticusorg/galacticus/commit/26e24f89883a9b6f941f5eb4b69e4835b80e44ea"
+        },
+        "date": 1743674533546,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 33.784,
+            "unit": "seconds",
+            "range": 0.0387091720395994
           }
         ]
       }
