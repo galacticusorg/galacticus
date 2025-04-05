@@ -23,7 +23,6 @@
   Implements a black hole seed based on collapse of nuclear star clusters due to runaway stellar collisions.
   !!}
  
-  use :: Mass_Distributions , only : massDistributionClass  , kinematicsDistributionClass
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !![
@@ -65,9 +64,6 @@
      module procedure vergara2023ConstructorParameters
      module procedure vergara2023ConstructorInternal
   end interface blackHoleSeedsVergara2023
-
-  class(massDistributionClass), pointer :: massDistribution_, massDistributionStellarNuclearStarCluster_ 
-  !$omp threadprivate(massDistribution_,massDistributionStellarNuclearStarCluster_)
 
 contains
 
@@ -296,26 +292,28 @@ contains
             call nuclearStarCluster%floatRank0MetaPropertySet(self%redshiftBlackHoleSeedFormationID ,self              %cosmologyFunctions_%redshiftFromExpansionFactor   (self%cosmologyFunctions_%expansionFactor(time)))
             call nuclearStarCluster%floatRank0MetaPropertySet(self%criticalMassNuclearStarClustersID,                                       massCriticalNuclearStarCluster                                                )
             call nuclearStarCluster%floatRank0MetaPropertySet(self%radiusNuclearStarClustersID      ,                                       radiusNuclearStarCluster                                                      )
-            ! Adjust stellar mass of the nuclear star cluster
-            call nuclearStarCluster%massStellarSet      (                                         &
-                 &                                       +(                                       &
-                 &                                         +1.0d0                                 &
-                 &                                         -self%massEfficiency                   &
-                 &                                        )                                       &
-                 &                                       *nuclearStarCluster%      massStellar()  &
-                 &                                      )
-            ! Adjust stellar abundances of the nuclear star cluster 
-            call nuclearStarCluster%abundancesStellarSet(                                         &
-                 &                                       +(                                       &
-                 &                                         +1.0d0                                 &
-                 &                                         -self%massEfficiency                   &
-                 &                                        )                                       &
-                 &                                       *nuclearStarCluster%abundancesStellar()  &
-                 &                                      )
+
             mass   =+self              %massEfficiency   &
                  &  *nuclearStarCluster%massStellar   ()
             call nuclearStarCluster%           isCollapsedSet(                         .true.)
-            call nuclearStarCluster%floatRank0MetaPropertySet(self%blackHoleSeedMassID,mass  )            
+            call nuclearStarCluster%floatRank0MetaPropertySet(self%blackHoleSeedMassID,mass  )
+            
+            ! Adjust stellar mass of the nuclear star cluster
+            call nuclearStarCluster%           massStellarSet(                                         &
+                 &                                            +(                                       &
+                 &                                              +1.0d0                                 &
+                 &                                              -self%massEfficiency                   &
+                 &                                             )                                       &
+                 &                                            *nuclearStarCluster%      massStellar()  &
+                 &                                           )
+            ! Adjust stellar abundances of the nuclear star cluster 
+            call nuclearStarCluster%     abundancesStellarSet(                                         &
+                 &                                            +(                                       &
+                 &                                              +1.0d0                                 &
+                 &                                              -self%massEfficiency                   &
+                 &                                             )                                       &
+                 &                                            *nuclearStarCluster%abundancesStellar()  &
+                 &                                           )            
           else
             mass   =+0.0d0
           end if 
