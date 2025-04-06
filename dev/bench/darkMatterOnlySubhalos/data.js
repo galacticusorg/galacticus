@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1743799924515,
+  "lastUpdate": 1743915897361,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "e537fec3c4ddaad1f0e6751af4ddb6c26da4b858",
-          "message": "fix: Capitalize character in variable name",
-          "timestamp": "2024-06-18T10:34:30-07:00",
-          "tree_id": "6adcaf1388b26ed5841942391297d6b66cc0c494",
-          "url": "https://github.com/galacticusorg/galacticus/commit/e537fec3c4ddaad1f0e6751af4ddb6c26da4b858"
-        },
-        "date": 1718751565366,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 51.922,
-            "unit": "seconds",
-            "range": 0.114724016665939
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8736,6 +8706,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": "21054.521685649524",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f140ec36f8101945b45922b88de37011d6b31138",
+          "message": "Merge pull request #822 from liempi/fixAngularMomentum\n\nfix: Correct nuclear star cluster angular momentum rate and black hole seed mass",
+          "timestamp": "2025-04-05T22:39:30Z",
+          "tree_id": "6bf6432ac2c078ee3fd8936154e018bc9d6bdc68",
+          "url": "https://github.com/galacticusorg/galacticus/commit/f140ec36f8101945b45922b88de37011d6b31138"
+        },
+        "date": 1743915895139,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 54.994,
+            "unit": "seconds",
+            "range": 0.106725816932414
           }
         ]
       }
