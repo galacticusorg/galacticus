@@ -4,12 +4,12 @@ window.PONOSV_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@obs.carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "5d35e297995992e13d3819baf4c9ebf55bf90202",
-        "message": "fix: Update URL for CLASS code\n",
-        "timestamp": "2025-04-04 07:23:09-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/5d35e297995992e13d3819baf4c9ebf55bf90202"
+        "id": "f140ec36f8101945b45922b88de37011d6b31138",
+        "message": "Merge pull request #822 from liempi/fixAngularMomentum\n\nfix: Correct nuclear star cluster angular momentum rate and black hole seed mass\n",
+        "timestamp": "2025-04-05 22:39:30+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/f140ec36f8101945b45922b88de37011d6b31138"
     },
     "surfaceDensity": {
         "percentageBelow": 42.857142857142854,
@@ -17,8 +17,8 @@ window.PONOSV_DATA = {
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 69.23076923076923,
-        "percentageAbove": 30.76923076923077,
+        "percentageBelow": 60.0,
+        "percentageAbove": 40.0,
         "target": 0.85
     }
 }
