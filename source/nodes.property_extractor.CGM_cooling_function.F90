@@ -53,7 +53,8 @@
      type   (radiusSpecifier                        ), allocatable, dimension(:) :: radii
      logical                                                                     :: darkMatterScaleRadiusIsNeeded          , diskIsNeeded        , &
           &                                                                         spheroidIsNeeded                       , virialRadiusIsNeeded, &
-          &                                                                         nuclearStarClusterIsNeeded             , satelliteIsNeeded
+          &                                                                         nuclearStarClusterIsNeeded             , satelliteIsNeeded   , &
+          &                                                                         hotHaloIsNeeded
      type   (varying_string                         )                            :: label
    contains
      final     ::                       cgmCoolingFunctionDestructor
@@ -164,6 +165,7 @@ contains
     call Galactic_Structure_Radii_Definition_Decode(                                    &
          &                                          radiusSpecifiers                  , &
          &                                          self%radii                        , &
+         &                                          self%hotHaloIsNeeded              , &
          &                                          self%diskIsNeeded                 , &
          &                                          self%spheroidIsNeeded             , &
          &                                          self%nuclearStarClusterIsNeeded   , &
@@ -238,7 +240,8 @@ contains
          &                                              massTypeStellar
     use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius      , radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius              , radiusTypeGalacticLightFraction           , &
          &                                              radiusTypeGalacticMassFraction       , radiusTypeRadius            , radiusTypeSpheroidHalfMassRadius  , radiusTypeSpheroidRadius                  , &
-         &                                              radiusTypeStellarMassFraction        , radiusTypeVirialRadius      , radiusTypeNuclearStarClusterRadius, radiusTypeNuclearStarClusterHalfMassRadius    
+         &                                              radiusTypeStellarMassFraction        , radiusTypeVirialRadius      , radiusTypeNuclearStarClusterRadius, radiusTypeNuclearStarClusterHalfMassRadius, &
+          &                                             radiusTypeHotHaloOuterRadius
     use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile       , nodeComponentDisk           , nodeComponentSpheroid             , treeNode                                  , &
          &                                              nodeComponentBasic                   , nodeComponentHotHalo        , nodeComponentNSC
     use :: Mass_Distributions                  , only : massDistributionClass                , kinematicsDistributionClass
@@ -273,6 +276,7 @@ contains
     allocate(cgmCoolingFunctionExtract(self%radiiCount,self%elementCount_))
     radiusVirial                                               =  0.0d0
     if (self%         virialRadiusIsNeeded) radiusVirial       =  self%darkMatterHaloScale_%radiusVirial(node                    )
+    if (self%              hotHaloIsNeeded) hotHalo            =>                                        node%hotHalo          ()
     if (self%                 diskIsNeeded) disk               =>                                        node%disk             ()
     if (self%             spheroidIsNeeded) spheroid           =>                                        node%spheroid         ()
     if (self%   nuclearStarClusterIsNeeded) nuclearStarCluster =>                                        node%NSC              ()
@@ -286,6 +290,8 @@ contains
           radius=+radius*radiusVirial
        case   (radiusTypeDarkMatterScaleRadius           %ID)
           radius=+radius*darkMatterProfile %         scale()
+       case   (radiusTypeHotHaloOuterRadius              %ID)
+          radius=+radius*hotHalo           %   outerRadius()
        case   (radiusTypeDiskRadius                      %ID)
           radius=+radius*disk              %        radius()
        case   (radiusTypeSpheroidRadius                  %ID)

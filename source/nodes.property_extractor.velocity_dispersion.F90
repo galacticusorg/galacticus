@@ -58,7 +58,8 @@
      type   (radiusSpecifier         ), allocatable, dimension(:) :: radii
      logical                                                      :: darkMatterScaleRadiusIsNeeded          , diskIsNeeded        , &
           &                                                          spheroidIsNeeded                       , virialRadiusIsNeeded, &
-          &                                                          nuclearStarClusterIsNeeded             , satelliteIsNeeded
+          &                                                          nuclearStarClusterIsNeeded             , satelliteIsNeeded   , &
+          &                                                          hotHaloIsNeeded
    contains
      final     ::                       velocityDispersionDestructor
      procedure :: columnDescriptions => velocityDispersionColumnDescriptions
@@ -166,6 +167,7 @@ contains
     call Galactic_Structure_Radii_Definition_Decode(                                    &
          &                                          radiusSpecifiers                  , &
          &                                          self%radii                        , &
+         &                                          self%hotHaloIsNeeded              , &
          &                                          self%diskIsNeeded                 , &
          &                                          self%spheroidIsNeeded             , &
          &                                          self%nuclearStarClusterIsNeeded   , &
@@ -220,14 +222,15 @@ contains
     !!{
     Implement a {\normalfont \ttfamily velocityDispersion} property extractor.
     !!}
-    use :: Galactic_Structure_Options          , only : componentTypeAll               , componentTypeDisk           , componentTypeSpheroid                     , massTypeGalactic                   , &
+    use :: Galactic_Structure_Options          , only : componentTypeAll               , componentTypeDisk           , componentTypeSpheroid                     , massTypeGalactic                  , &
           &                                             massTypeStellar                , massTypeAll
-    use :: Galactic_Structure_Radii_Definitions, only : directionLambdaR               , directionLineOfSight        , directionLineOfSightInteriorAverage       , directionRadial                    , &
-          &                                             radiusTypeDarkMatterScaleRadius, radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius                      , radiusTypeGalacticLightFraction    , &
-          &                                             radiusTypeGalacticMassFraction , radiusTypeRadius            , radiusTypeSpheroidHalfMassRadius          , radiusTypeSpheroidRadius           , &
-          &                                             radiusTypeStellarMassFraction  , radiusTypeVirialRadius      , radiusTypeNuclearStarClusterHalfMassRadius, radiusTypeNuclearStarClusterRadius
-    use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile , nodeComponentDisk           , nodeComponentSpheroid                     , nodeComponentNSC                   , &
-          &                                             treeNode
+    use :: Galactic_Structure_Radii_Definitions, only : directionLambdaR               , directionLineOfSight        , directionLineOfSightInteriorAverage       , directionRadial                   , &
+          &                                             radiusTypeDarkMatterScaleRadius, radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius                      , radiusTypeGalacticLightFraction   , &
+          &                                             radiusTypeGalacticMassFraction , radiusTypeRadius            , radiusTypeSpheroidHalfMassRadius          , radiusTypeSpheroidRadius          , &
+          &                                             radiusTypeStellarMassFraction  , radiusTypeVirialRadius      , radiusTypeNuclearStarClusterHalfMassRadius, radiusTypeNuclearStarClusterRadius, &
+          &                                             radiusTypeHotHaloOuterRadius
+    use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile , nodeComponentDisk           , nodeComponentSpheroid                     , nodeComponentNSC                  , &
+          &                                             nodeComponentHotHalo           , treeNode
     use :: Coordinates                         , only : coordinateSpherical            , assignment(=)
     use :: Numerical_Integration               , only : integrator
     use :: Error                               , only : Error_Report
@@ -237,6 +240,7 @@ contains
     type            (treeNode                               ), intent(inout) , target      :: node
     double precision                                         , intent(in   )               :: time
     type            (multiCounter                           ), intent(inout) , optional    :: instance
+    class           (nodeComponentHotHalo                   ), pointer                     :: hotHalo
     class           (nodeComponentDisk                      ), pointer                     :: disk
     class           (nodeComponentSpheroid                  ), pointer                     :: spheroid
     class           (nodeComponentNSC                       ), pointer                     :: nuclearStarCluster
@@ -261,6 +265,7 @@ contains
     allocate(velocityDispersionExtract(self%radiiCount,self%elementCount_))
     radiusVirial                                         =  0.0d0
     if (self%         virialRadiusIsNeeded) radiusVirial       =  self%darkMatterHaloScale_%radiusVirial(node                    )
+    if (self%              hotHaloIsNeeded) hotHalo            =>                                        node%hotHalo          ()
     if (self%                 diskIsNeeded) disk               =>                                        node%disk             ()
     if (self%             spheroidIsNeeded) spheroid           =>                                        node%spheroid         ()
     if (self%   nuclearStarClusterIsNeeded) nuclearStarCluster =>                                        node%NSC              ()
@@ -277,6 +282,10 @@ contains
        case   (radiusTypeDarkMatterScaleRadius           %ID)
           radius                       =    radius*darkMatterProfile %         scale()
           radiusOuter_=max(radius,darkMatterProfile%         scale())*outerRadiusMultiplier
+       case   (radiusTypeHotHaloOuterRadius              %ID)
+          radius                       =    radius*hotHalo           %   outerRadius()
+          radiusOuter_=max(radius,hotHalo          %   outerRadius())*outerRadiusMultiplier
+          scaleIsZero                  =(hotHalo                    %   outerRadius() <= 0.0d0)
        case   (radiusTypeDiskRadius                      %ID)
           radius                       =    radius*disk              %        radius()
           radiusOuter_=max(radius,disk             %        radius())*outerRadiusMultiplier
