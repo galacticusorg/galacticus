@@ -729,12 +729,12 @@ module Mass_Distributions
       solversCount=solversCount-1
     </code>
    </method>
-   <data>type            (interpolator), allocatable               :: velocityDispersion1D__                                                                                               </data>
-   <data>double precision              , allocatable, dimension(:) :: velocityDispersionRadialVelocity__                             , velocityDispersionRadialRadius__                    </data>
-   <data>double precision                                          :: velocityDispersionRadialRadiusMinimum__           =+huge(0.0d0), velocityDispersionRadialRadiusMaximum__=-huge(0.0d0)</data>
-   <data>double precision                                          :: velocityDispersionRadialRadiusOuter__                                                                                </data>   
-   <data>double precision                                          :: toleranceRelativeVelocityDispersion       =1.0d-6                                                                    </data>
-   <data>double precision                                          :: toleranceRelativeVelocityDispersionMaximum=1.0d-3                                                                    </data>
+   <data>type            (interpolator), allocatable               :: velocityDispersion1D__                                                                                       </data>
+   <data>double precision              , allocatable, dimension(:) :: velocityDispersionRadialVelocity__                     , velocityDispersionRadialRadius__                    </data>
+   <data>double precision                                          :: velocityDispersionRadialRadiusMinimum__   =+huge(0.0d0), velocityDispersionRadialRadiusMaximum__=-huge(0.0d0)</data>
+   <data>double precision                                          :: velocityDispersionRadialRadiusOuter__                                                                        </data>
+   <data>double precision                                          :: toleranceRelativeVelocityDispersion       =1.0d-6                                                            </data>
+   <data>double precision                                          :: toleranceRelativeVelocityDispersionMaximum=1.0d-3                                                            </data>
   </functionClass>
   !!]
 
