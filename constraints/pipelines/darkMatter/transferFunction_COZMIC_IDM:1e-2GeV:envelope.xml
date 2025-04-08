@@ -6,10 +6,10 @@
   <!-- Transfer function options -->
   <!-- Use a tabulated transfer function for IDM -->
   <transferFunction value="file">
-    <fileName                            value="constraints/pipelines/darkMatter/transferFunction_Symphony_IDM:1e-2GeV:envelope.hdf5"/>
-    <redshift                            value="0.0"                                                                                 />
-    <transferFunctionType                value="total"                                                                               />
-    <factorWavenumberSmoothExtrapolation value="2.0"                                                                                 />
+    <fileName                            value="constraints/pipelines/darkMatter/transferFunction_COZMIC_IDM:1e-2GeV:envelope.hdf5"/>
+    <redshift                            value="0.0"                                                                               />
+    <transferFunctionType                value="total"                                                                             />
+    <factorWavenumberSmoothExtrapolation value="2.0"                                                                               />
   </transferFunction>
 
 </parameters>
