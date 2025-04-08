@@ -30,7 +30,7 @@
   <cosmologicalMassVariance value="artificialHalos">
     <normalization value="=[haloMassFunctionParameters/artificialNormalization]"                            />
     <exponent      value="=[haloMassFunctionParameters/artificialExponent]"                                 />
-    <massZeroPoint value="=[haloMassFunctionParameters/artificialCountParticles]*[simulation/massParticle]"/>
+    <massZeroPoint value="=[haloMassFunctionParameters/artificialCountParticles]*[massParticleAtResolution]"/>
   <cosmologicalMassVariance value="peakBackgroundSplit">
     <cosmologicalMassVariance value="filteredPower">
       <sigma_8                   value="0.820" />

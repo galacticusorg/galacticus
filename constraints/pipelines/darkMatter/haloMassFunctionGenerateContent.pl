@@ -232,6 +232,9 @@ CODE
   <xi:include href="{$outputDirectory}haloMassFunction_{$entry->{'suite'}->{'name'}}.xml"                                 xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
   <xi:include href="{$pipelinePath}transferFunction_{$entry->{'suite'}->{'name'}}_{$entry->{'simulation'}->{'name'}}.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
 
+  <!-- Particle mass at the current resolution -->
+  <massParticleAtResolution value="=[simulation/massParticle/{$entry->{'resolution'}->{'name'}}]" ignoreWarnings="true"/>
+
   <!-- Detection effiency -->
   <detectionMassMinimumParticleCount value="=[haloMassFunctionParameters/massMinimumParticleCount{$class}]"  ignoreWarnings="true"/>
   <detectionEfficiencyAtMassMinimum  value="=[haloMassFunctionParameters/efficiencyAtMassMinimum{$class}]"   ignoreWarnings="true"/>

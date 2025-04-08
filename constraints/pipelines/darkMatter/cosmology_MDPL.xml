@@ -36,7 +36,7 @@
   <cosmologicalMassVariance value="artificialHalos">
     <normalization value="=[haloMassFunctionParameters/artificialNormalization]"                            />
     <exponent      value="=[haloMassFunctionParameters/artificialExponent]"                                 />
-    <massZeroPoint value="=[haloMassFunctionParameters/artificialCountParticles]*[simulation/massParticle]"/>
+    <massZeroPoint value="=[haloMassFunctionParameters/artificialCountParticles]*[massParticleAtResolution]"/>
   <cosmologicalMassVariance value="filteredPower">
     <!-- Normalize to a reference power spectrum at small scales because the actual power spectrum we used excludes modes which do
          not fit into the cosmological box. Normalizing that power spectrum would result in too much power on small scales to

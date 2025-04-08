@@ -26,16 +26,16 @@
 
   <!-- N-body error model -->
   <nbodyHaloMassError value="trenti2010">
-    <massParticle value="=[simulation/massParticle]"/>
+    <massParticle value="=[massParticleAtResolution]"/>
   </nbodyHaloMassError>
 
   <!-- Halo mass function -->
   <haloMassFunction value="accelerator">
     <haloMassFunction value="detectionEfficiency">
-      <massMinimum             value="=[detectionMassMinimumParticleCount]*[simulation/massParticle]"/>
-      <efficiencyAtMassMinimum value="=[detectionEfficiencyAtMassMinimum]"                           />
-      <exponentMass            value="=[detectionExponentMass]"                                      />
-      <exponentRedshift        value="=[detectionExponentRedshift]"                                  />
+      <massMinimum             value="=[detectionMassMinimumParticleCount]*[massParticleAtResolution]"/>
+      <efficiencyAtMassMinimum value="=[detectionEfficiencyAtMassMinimum]"                            />
+      <exponentMass            value="=[detectionExponentMass]"                                       />
+      <exponentRedshift        value="=[detectionExponentRedshift]"                                   />
 	<haloMassFunction value="errorConvolved">
 	  <tolerateIntegrationFailure value="true"/>
 	  <errorFractionalMaximum value="1.0e+0"/>
