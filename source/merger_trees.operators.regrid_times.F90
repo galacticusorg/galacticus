@@ -179,7 +179,8 @@ contains
     class           (nodeEvent                    )                             , pointer :: event                           , pairedEvent
     type            (mergerTreeWalkerAllNodes     )                                       :: treeWalkerAllNodes
     type            (mergerTreeWalkerIsolatedNodes)                                       :: treeWalkerIsolatedNodes
-    logical                                                                               :: mergeTargetWarningIssued=.false.
+    logical                                        , save                                 :: mergeTargetWarningIssued=.false.
+    logical                                                                               :: snap
     type            (interpolator                 )                                       :: interpolator_
     integer         (c_size_t                     )                                       :: iNow                            , iParent    , &
          &                                                                                   iTime                           , countNodes
@@ -245,7 +246,24 @@ contains
              ! Find the closest time in the new time grid.
              iNow    =  interpolator_%locate(timeNow,closest=.true.)
              ! Test how close the node is to this time.
-             if (Values_Agree(timeNow,self%timeGrid(iNow),relTol=self%snapTolerance)) then
+             snap    =  Values_Agree(timeNow,self%timeGrid(iNow),relTol=self%snapTolerance)
+             ! Only snap if this node is closer to the output time than its parent or child.
+             if (snap) then
+                if (associated(node%parent    )) then
+                   basicParent => node%parent    %basic()
+                   snap        =   abs(timeNow-self%timeGrid(iNow)) < abs(basicParent%time()-self%timeGrid(iNow))      &
+                        &         .or.                                                                                 &
+                        &          .not.Values_Agree(basicParent%time(),self%timeGrid(iNow),relTol=self%snapTolerance)
+                end if
+                if (associated(node%firstChild)) then
+                   basicChild  => node%firstChild%basic()
+                   snap        =   abs(timeNow-self%timeGrid(iNow)) < abs(basicChild %time()-self%timeGrid(iNow))      &
+                        &         .or.                                                                                 &
+                        &          .not.Values_Agree(basicChild %time(),self%timeGrid(iNow),relTol=self%snapTolerance)
+                end if
+             end if
+             ! If this node is to be snapped, do so now.
+             if (snap) then
                 ! Adjust the time of the node.
                 call basic%timeSet(self%timeGrid(iNow))
                 ! Check for mergees with their merge times set to match the time of this node.
