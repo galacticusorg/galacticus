@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1743915909306,
+  "lastUpdate": 1744181567188,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "1810d5ac1875bab4ac736138444740d87cacb640",
-          "message": "Merge pull request #631 from galacticusorg/featMangleBuild\n\nBuild `mangle` from our forked repo",
-          "timestamp": "2024-06-20T21:55:34Z",
-          "tree_id": "0336638c63013b0aa0f29473866c26b0819a62f5",
-          "url": "https://github.com/galacticusorg/galacticus/commit/1810d5ac1875bab4ac736138444740d87cacb640"
-        },
-        "date": 1718938356478,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 351.355,
-            "unit": "seconds",
-            "range": 0.402932376461544
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10656,6 +10626,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": "9.46294089079215",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "16fb6ba74c772bfd0a7595f0ae707dcd63ad9154",
+          "message": "Merge pull request #823 from galacticusorg/fixCGMClumpingFactor\n\nAdd missing inner radius in evaluation of CGM clumping factor",
+          "timestamp": "2025-04-08T22:34:54Z",
+          "tree_id": "597ce08e0f5b008457955dfd37568a6a89a31ccf",
+          "url": "https://github.com/galacticusorg/galacticus/commit/16fb6ba74c772bfd0a7595f0ae707dcd63ad9154"
+        },
+        "date": 1744181566733,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 109.525,
+            "unit": "seconds",
+            "range": 1.49926932203653
           }
         ]
       }
