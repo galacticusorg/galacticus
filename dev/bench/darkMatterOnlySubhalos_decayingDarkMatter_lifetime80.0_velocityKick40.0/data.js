@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1743915965013,
+  "lastUpdate": 1744181632434,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=80 Gyr; vₖ=40 km/s)": [
@@ -1119,6 +1119,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
             "value": "46.93649352579957",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "16fb6ba74c772bfd0a7595f0ae707dcd63ad9154",
+          "message": "Merge pull request #823 from galacticusorg/fixCGMClumpingFactor\n\nAdd missing inner radius in evaluation of CGM clumping factor",
+          "timestamp": "2025-04-08T22:34:54Z",
+          "tree_id": "597ce08e0f5b008457955dfd37568a6a89a31ccf",
+          "url": "https://github.com/galacticusorg/galacticus/commit/16fb6ba74c772bfd0a7595f0ae707dcd63ad9154"
+        },
+        "date": 1744181631556,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": "10.06775394110751",
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": "50.71035866074544",
             "unit": "-logℒ"
           }
         ]
