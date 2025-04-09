@@ -419,7 +419,7 @@ foreach my $fileIdentifier ( keys(%{$usesPerFile}) ) {
     next
 	unless ( exists($usesPerFile->{$fileIdentifier}->{'submodules'}) && scalar(@{$usesPerFile->{$fileIdentifier}->{'submodules'}}) > 0 );
     my @modulesProvided = keys(%{$usesPerFile->{$fileIdentifier}->{'modulesProvided'}});
-    die("useDependencies.pl: submodules associated with multiple modules")
+    die("useDependencies.pl: submodules [".join(", ",@{$usesPerFile->{$fileIdentifier}->{'submodules'}})."] associated with multiple modules [".join(", ",@modulesProvided)."]")
 	unless ( scalar(@modulesProvided) == 1 );
     $submodules{$workDirectoryName.lc($modulesProvided[0])} = $usesPerFile->{$fileIdentifier}->{'submodules'};
 }
