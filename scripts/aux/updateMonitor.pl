@@ -14,7 +14,7 @@ my @filesChanged = @ARGV;
 
 # Get list of changes to watch.
 my $xml     = new XML::Simple();
-my $watches = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/scripts/aux/watches.xml");
+my $watches = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/scripts/aux/watches.xml", KeyAttr => 0);
 
 # Initialize a list of warnings.
 my $warnings;
