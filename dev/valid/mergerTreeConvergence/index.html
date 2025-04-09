@@ -126,6 +126,7 @@
 	<p>Convergence results are shown relative to the highest resolution model run (<span id="fit-massResolution"></span>). Perfect convergence would have all points at zero on the <i>y</i>-axis. The completeness of the progenitor mass function due to resolution effects is modeled as (shown as lines in the following figures):
 	  <div id="fit-equation">
 	  </div>
+	  where $$w(t)=\delta_\mathrm{c}(t)/D(t)$$ is the usual time variable used in Press-Schechter theory.
       </div>
       
       <div class="analysis" id="analysis-mergeProbability">
@@ -213,7 +214,7 @@
           const elemFitMassResolution = document.getElementById('fit-massResolution');
 	  const elemFitEquation       = document.getElementById('fit-equation'      );
 	  elemFitMassResolution.textContent = "\\( M_\\mathrm{res} = 10^{"+Math.log10(data['massResolutionFit']['massResolution']).toFixed(1)+"} \\mathrm{M}_\\odot \\)";
-	  elemFitEquation.textContent = "$$\n\\frac{N(m_\\mathrm{prog})}{N_0(m_\\mathrm{prog})}=\\exp\\left(-\\frac{"+floatToLatex(data['massResolutionFit']['a'],2)+"}{[m_\\mathrm{prog}/m_\\mathrm{res}-1]^{"+data['massResolutionFit']['b'].toFixed(3)+"}}\\right)$$\n";
+	  elemFitEquation.textContent = "$$\n\\frac{N(m_\\mathrm{prog})}{N_0(m_\\mathrm{prog})}=\\exp\\left(-\\frac{"+floatToLatex(data['massResolutionFit']['a'],2)+" w}{[m_\\mathrm{prog}/m_\\mathrm{res}-1]^{"+data['massResolutionFit']['b'].toFixed(3)+"}}\\right)$$\n";
 
           const elemTreesCount = document.getElementById('trees-number');
           const elemTreesMass  = document.getElementById('trees-mass'  );
