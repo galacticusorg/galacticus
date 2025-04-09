@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes" />
+    <style>
+      html {
+        font-family: BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",Helvetica,Arial,sans-serif;
+        -webkit-font-smoothing: antialiased;
+        background-color: #fff;
+        font-size: 16px;
+      }
+      body {
+        color: #4a4a4a;
+        margin: 8px;
+        font-size: 1em;
+        font-weight: 400;
+      }
+      header {
+        margin-bottom: 8px;
+        display: flex;
+        flex-direction: column;
+      }
+      main {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+      a {
+        color: #3273dc;
+        cursor: pointer;
+        text-decoration: none;
+      }
+      a:hover {
+        color: #000;
+      }
+      button {
+        color: #fff;
+        background-color: #3298dc;
+        border-color: transparent;
+        cursor: pointer;
+        text-align: center;
+      }
+      button:hover {
+        background-color: #2793da;
+        flex: none;
+      }
+      .spacer {
+        flex: auto;
+      }
+      .small {
+        font-size: 0.75rem;
+      }
+      footer {
+        margin-top: 16px;
+        display: flex;
+        align-items: center;
+      }
+      .header-label {
+        margin-right: 4px;
+      }
+      .benchmark-set {
+        margin: 8px 0;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+      .benchmark-title {
+        font-size: 3rem;
+        font-weight: 600;
+        word-break: break-word;
+        text-align: center;
+      }
+      .benchmark-graphs {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-around;
+        align-items: center;
+        flex-wrap: wrap;
+        width: 100%;
+      }
+      .benchmark-chart {
+        max-width: 1000px;
+      }
+    </style>
+    <title>Validation - Progenitor Mass Functions</title>
+  </head>
+
+  <body>
+    <header id="header">
+      <div class="header-item">
+        <strong class="header-label">Last Update:</strong>
+        <span id="last-update"></span>
+      </div>
+      <div class="header-item">
+        <strong class="header-label">Repository:</strong>
+        <a id="repository-link" rel="noopener"></a>
+      </div>
+      <div class="header-item">
+        <strong class="header-label">Commit:</strong>
+        <a id="commit-link" rel="noopener"></a>
+      </div>
+      <div class="header-item">
+        <strong class="header-label">Parameter File:</strong>
+        <a id="parameter-link" rel="noopener"></a>
+      </div>
+    </header>
+    <main id="main">
+      <div>
+	<p>This page contains a collection of results used to assess the convergence properties of merger trees built using as implemented in <a href="https://github.com/galacticusorg/galacticus">Galacticus</a> by the <a href="https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf#physics.mergerTreeBuilderCole2000"><tt>mergerTreeBuilderCole2000</tt></a> and <a href="https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf#physics.mergerTreeBranchingProbabilityParkinsonColeHelly"><tt>mergerTreeBranchingProbabilityParkinsonColeHelly</tt></a> classes.</p>
+	<p>All calculations were performed using <span id="trees-number"></span> merger trees each of mass <span id="trees-mass"></span>.</p>
+
+	<p>Convergence was tested for the following parameters:</p>
+	<ul>
+	  <li><a href="#analysis-massResolution"/><tt>massResolution</a></tt> - mass resolution of the merger tree</li>
+          <li><a href="#analysis-mergeProbability"/><tt>mergeProbability</a></tt> - maximum merging probability in a timestep</li>
+	  <li><a href="#analysis-accretionLimit"/><tt>accretionLimit</a></tt> - maximum subresolution accretion fraction in a timestep</li>
+	  <li><a href="#analysis-accuracyFirstOrder"/><tt>accuracyFirstOrder</a></tt> - limit timestep size to ensure the first-order expansion of the merging rate is accurate</li>
+	  <li><a href="#analysis-branchIntervalStep"/><tt>branchIntervalStep</a></tt> - controls whether the "interval step" algorithm of <a href="http://adsabs.harvard.edu/abs/2019MNRAS.485.5010B"/>Benson, Ludlow & Cole (2019)</a> is used</li>
+	  <li><a href="#analysis-massThreshold"/><tt>massThreshold</a></tt> - the mass below which subsampling is applied following the algorithm of <a href="https://ui.adsabs.harvard.edu/abs/2024arXiv240611989M">Menker & Benson (2024)</a></li>
+        </ul>
+      </div>
+
+      <div class="analysis" id="analysis-massResolution">
+	<p>The mass resolution sets the minimum halo mass that is tracked in a merger tree. </p>
+	<p>Convergence results are shown relative to the highest resolution model run (<span id="fit-massResolution"></span>). Perfect convergence would have all points at zero on the <i>y</i>-axis. The completeness of the progenitor mass function due to resolution effects is modeled as (shown as lines in the following figures):
+	  <div id="fit-equation">
+	  </div>
+      </div>
+      
+      <div class="analysis" id="analysis-mergeProbability">
+	<p>The <tt>mergeProbability</tt> numerical parameter controls the size of timesteps taken when constructing merger trees using the <a href="https://ui.adsabs.harvard.edu/abs/2000MNRAS.319..168C">Cole et al. (2000)</a> algorithm, implemented in Galacticus by the <a href="https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf#physics.mergerTreeBuilderCole2000"><tt>mergerTreeBuilderCole2000</tt></a> class. Specifically, <tt>mergeProbability</tt> sets the maximum probability for a binary branching event to occur in a timestep. A smaller value of <tt>mergeProbability</tt> will therefore result in smaller timesteps, and reduce the likelihood that multiple mergers that should have occurred in a timestep are missed.</p>
+	<p>Convergence results are shown relative to a default reference model. Perfect convergence would have all points at zero on the <i>y</i>-axis.</a>
+      </div>
+      
+      <div class="analysis" id="analysis-accretionLimit">
+	<p>The <tt>accretionLimit</tt> numerical parameter controls the size of timesteps taken when constructing merger trees using the <a href="https://ui.adsabs.harvard.edu/abs/2000MNRAS.319..168C">Cole et al. (2000)</a> algorithm, implemented in Galacticus by the <a href="https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf#physics.mergerTreeBuilderCole2000"><tt>mergerTreeBuilderCole2000</tt></a> class. Specifically, <tt>accretionLimit</tt> sets the maximum fraction of mass in subresolution accretion that is allowed occur in a timestep. A smaller value of <tt>accretionLimit</tt> will therefore result in smaller timesteps, and increase the accuracy of the mass evolution along each branch.</p>
+	<p>Convergence results are shown relative to a default reference model. Perfect convergence would have all points at zero on the <i>y</i>-axis.</a>
+      </div>
+      
+      <div class="analysis" id="analysis-accuracyFirstOrder">
+	<p>The <tt>accuracyFirstOrder</tt> numerical parameter controls the size of timesteps taken when constructing merger trees using branching rate of <a href="http://adsabs.harvard.edu/abs/2008MNRAS.383..557P">Parkinson, Cole & Helly. (2008)</a>, implemented in Galacticus by the <a href="https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf#physics.mergerTreeBranchingProbabilityParkinsonColeHelly"><tt>mergerTreeBranchingProbabilityParkinsonColeHelly</tt></a> class. Specifically, <tt>accuracyFirstOrder</tt> limits the timestep to <tt>accuracyFirstOrder</tt>\(\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}\), which ensures
+    the the first order expansion of the merging rate that is assumed is accurate. A smaller value of <tt>accuracyFirstOrder</tt> will therefore result in smaller timesteps, and increase the accuracy of the mass evolution along each branch.</p>
+	<p>Convergence results are shown relative to a default reference model. Perfect convergence would have all points at zero on the <i>y</i>-axis.</a>
+      </div>
+      
+      <div class="analysis" id="analysis-branchIntervalStep">
+	<p>The <tt>branchIntervalStep</tt> numerical parameter controls the algorithm used for taking steps when constructing merger trees using the <a href="https://ui.adsabs.harvard.edu/abs/2000MNRAS.319..168C">Cole et al. (2000)</a> algorithm, implemented in Galacticus by the <a href="https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf#physics.mergerTreeBuilderCole2000"><tt>mergerTreeBuilderCole2000</tt></a> class. Specifically, if <tt>branchIntervalStep=true</tt> timesteps are drawn from a negative exponential distribution following the algorithm of <a href="http://adsabs.harvard.edu/abs/2019MNRAS.485.5010B"/>Benson, Ludlow & Cole (2019)</a>, otherwise the original algorithm of <a href="https://ui.adsabs.harvard.edu/abs/2000MNRAS.319..168C">Cole et al. (2000)</a> is used instead.</p>
+	<p>Convergence results are shown relative to a default reference model. Perfect convergence would have all points at zero on the <i>y</i>-axis.</a>
+      </div>
+
+      <div class="analysis" id="analysis-massThreshold">
+	<p>The <tt>massThreshold</tt> numerical parameter controls the halo mass below which subsampling of merger tree branches occurs, following the algorithm of <a href="https://ui.adsabs.harvard.edu/abs/2024arXiv240611989M">Menker & Benson (2024)</a>. Below this mass, a branch of the merger tree is kept with probability \( p = M/\mathtt{[massThreshold]}\,\mathrm{M}_\odot \). The progenitor mass function is weighted by the subsampling weight (as defined in <a href="https://ui.adsabs.harvard.edu/abs/2024arXiv240611989M">Menker & Benson; 2024)</a>) to correct for the effects of subsampling.</p>
+	<p>Convergence results are shown relative to a default reference model. Perfect convergence would have all points at zero on the <i>y</i>-axis.</a>
+      </div>
+      
+    </main>
+    <footer>
+      <button id="dl-button">Download data as JSON</button>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-error-bars@3.9.1/build/index.umd.min.js"></script>
+    <script type="text/javascript"
+	    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <script src="results.json"></script>
+    <script id="main-script">
+      'use strict';
+      (function() {
+        // Colors from https://github.com/github/linguist/blob/master/lib/linguist/languages.yml
+        const toolColors = {
+          cargo: '#dea584',
+          go: '#00add8',
+          benchmarkjs: '#f1e05a',
+          benchmarkluau: '#000080',
+          pytest: '#3572a5',
+          googlecpp: '#f34b7d',
+          catch2: '#f34b7d',
+          julia: '#a270ba',
+          benchmarkdotnet: '#178600',
+          customBiggerIsBetter: '#38ff38',
+          customSmallerIsBetter: '#ff3838',
+          _: '#333333'
+        };
+
+        function init() {
+
+          const data = window.VALIDATION_DATA;
+
+          // Render header
+          document.getElementById('last-update').textContent = new Date(data.commit.timestamp).toString();
+          const repoLink = document.getElementById('repository-link');
+          repoLink.href = data.repoUrl;
+          repoLink.textContent = data.repoUrl;
+          const commitLink = document.getElementById('commit-link');
+          commitLink.href = data.commit.url;
+          commitLink.textContent = data.commit.id;
+          const parameterLink = document.getElementById('parameter-link');
+          parameterLink.href = data.repoUrl+'/blob/'+data.commit.id+'/'+data.parameterFile;
+          parameterLink.textContent = data.parameterFile;
+
+          // Render footer
+          document.getElementById('dl-button').onclick = () => {
+            const dataUrl = 'data:,' + JSON.stringify(data, null, 2);
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = 'validation_data.json';
+            a.click();
+          };
+
+          // Render fits
+          const elemFitMassResolution = document.getElementById('fit-massResolution');
+	  const elemFitEquation       = document.getElementById('fit-equation'      );
+	  elemFitMassResolution.textContent = "\\( M_\\mathrm{res} = 10^{"+Math.log10(data['massResolutionFit']['massResolution']).toFixed(1)+"} \\mathrm{M}_\\odot \\)";
+	  elemFitEquation.textContent = "$$\n\\frac{N(m_\\mathrm{prog})}{N_0(m_\\mathrm{prog})}=\\exp\\left(-\\frac{"+floatToLatex(data['massResolutionFit']['a'],2)+"}{[m_\\mathrm{prog}/m_\\mathrm{res}-1]^{"+data['massResolutionFit']['b'].toFixed(3)+"}}\\right)$$\n";
+
+          const elemTreesCount = document.getElementById('trees-number');
+          const elemTreesMass  = document.getElementById('trees-mass'  );
+	  elemTreesCount.textContent = data['massResolutionFit']['countTrees'];
+	  elemTreesMass .textContent = "\\( 10^{"+Math.log10(data['massResolutionFit']['massTrees']).toFixed(1)+"} \\mathrm{M}_\\odot \\)";
+
+          // Prepare data points for charts
+          return data.results;
+        }
+
+        function floatToLatex(num,digits) {
+          if (Number.isInteger(num)) {
+            return num.toString() + ".0";
+          } else if (Math.abs(num) < 1e-1 || Math.abs(num) > 1e1) {
+             return num.toExponential(digits).replace("e", "\\times 10^{") + "}";
+          } else {
+            return num.toString();
+          }
+        }
+	
+        function renderAllChars(dataSets) {
+
+          function renderGraphResolution(parent, dataset) {
+            const canvas = document.createElement('canvas');
+            canvas.className = 'benchmark-chart';
+            parent.appendChild(canvas);
+
+            const borderColor     = [ '#AF4D98', '#D66BA0', '#E5A9A9', '#F4E4BA', '#9DF7E5' ];
+            const backgroundColor = [ '#8E3E7B', '#CA3F85', '#D98181', '#ECCE83', '#68F3D7' ];
+
+            const datasets = [];
+            let iColor = 0;
+            for(let j = 0; j < dataset.resolutions.length; j++) {
+              const data = [];
+              for (let i = 0; i < dataset.resolutions[j].mass.length; i++) {
+                  const p = {x: dataset.resolutions[j].mass[i], y: dataset.resolutions[j].ratio[i], yMin: dataset.resolutions[j].ratio[i]-dataset.resolutions[j].error[i], yMax: dataset.resolutions[j].ratio[i]+dataset.resolutions[j].error[i]};
+	          data.push(p);
+	      }
+	      datasets.push(
+			    {
+			     type: "scatterWithErrorBars",
+			     label: 'mᵣₑₛ='+dataset.resolutions[j].massResolution.toExponential(1)+" M☉",
+		   	     data: data,
+			     borderColor: borderColor[iColor],
+			     backgroundColor: backgroundColor[iColor]
+			    }
+			   );
+              const dataFit = [];
+              for (let i = 0; i < dataset.resolutions[j].massFit.length; i++) {
+                  const p = {x: dataset.resolutions[j].massFit[i], y: dataset.resolutions[j].ratioFit[i]};
+	          dataFit.push(p);
+	      }
+	      datasets.push(
+			    {
+			     label: 'hideMe',
+			     type: 'line',
+		   	     data: dataFit,
+			     borderColor: borderColor[iColor],
+			     backgroundColor: backgroundColor[iColor],
+			     elements: {
+				  point:{
+				      radius: 0
+				        }
+				       }
+			    }
+			   );
+
+             iColor++;
+            }
+
+	    const options = {
+              scales: {
+                x: {
+                    ticks: {
+                      beginAtZero: false,
+                      callback: (val) => (val.toExponential(2))
+                    },
+                    title: {
+                      display: true,
+                      text: "mₚ [M☉]"
+                    },
+                    type: "logarithmic",
+                    min: 0.9e4,
+                    max: 1.3e9
+                   },
+                y: {
+                    title: {
+                      display: true,
+                      text: "N(mₚ)/N₀(mₚ)-1"
+                    },
+                    min: -0.2,
+                    max: +0.1
+                   }
+		},
+	    plugins: {
+	        legend: {
+                    labels: {
+                        filter: function(legendItem, data) {
+                            return legendItem.text !== 'hideMe';
+                        }
+                    }
+                }
+             }
+            };
+
+            new Chart(canvas, {
+              data: {
+	             datasets: datasets,
+		    },
+              options: options
+            });
+          }
+
+          function renderGraphGeneric(parent, dataset) {
+            const canvas = document.createElement('canvas');
+            canvas.className = 'benchmark-chart';
+            parent.appendChild(canvas);
+
+            const data = [];
+            for (let i = 0; i < dataset.mass.length; i++) {
+                const p = {x: dataset.mass[i], y: dataset.ratio[i], yMin: dataset.ratio[i]-dataset.error[i], yMax: dataset.ratio[i]+dataset.error[i]};
+	        data.push(p);
+	    }
+	    const options = {
+              plugins: {
+		legend: {
+		  display: false // This hides the legend
+                        }
+                       },
+              scales: {
+                x: {
+                    ticks: {
+                      beginAtZero: false,
+                      callback: (val) => (val.toExponential(2))
+                    },
+                    title: {
+                      display: true,
+                      text: "mₚ [M☉]"
+                    },
+                    type: "logarithmic",
+                    min: 0.9e4,
+                    max: 1.3e9
+                   },
+                y: {
+                    title: {
+                      display: true,
+                      text: "N(mₚ)/N₀(mₚ)-1"
+                    },
+                    min: -0.2,
+                    max: +0.1
+                   }
+	        }
+            };
+
+            new Chart(canvas, {
+              type: 'scatterWithErrorBars',
+              data: {
+                datasets:
+                  [
+                    {
+                      label: 'Galacticus',
+                      data: data,
+                      borderColor: '#ff0000',
+                      backgroundColor: '#ffff00'
+                    }
+                  ]
+              },
+              options: options
+            });
+          }
+
+          function renderResolution(setElem, dataSet) {
+
+            const titleElem = document.createElement('h1');
+            titleElem.className = 'analysis-title';
+  	    titleElem.textContent = 'massResolution';	   
+	    setElem.prepend(titleElem);
+
+            for (let i = 0; i < dataSet.length; i++) {
+                const redshiftElem = document.createElement('h2');
+                redshiftElem.className = 'analysis-title';
+                redshiftElem.textContent = "z = "+dataSet[i].redshift.toFixed(2)
+		setElem.appendChild(redshiftElem);
+
+		const graphsElem = document.createElement('div');
+                graphsElem.className = 'analysis-graphs';
+                setElem.appendChild(graphsElem);
+		renderGraphResolution(graphsElem, dataSet[i])
+
+	    }
+          }
+
+          function renderGeneric(setElem, name, dataSet) {
+
+            const titleElem = document.createElement('h1');
+            titleElem.className = 'analysis-title';
+            if (typeof value === "number") {
+  	      titleElem.textContent = name+" = "+dataSet[0].default.toFixed(3)+" → "+dataSet[0].updated.toFixed(3);
+	    } else {
+  	      titleElem.textContent = name+" = "+dataSet[0].default           +" → "+dataSet[0].updated           ;
+            }
+	    setElem.prepend(titleElem);
+
+            for (let i = 0; i < dataSet.length; i++) {
+                const redshiftElem = document.createElement('h2');
+                redshiftElem.className = 'analysis-title';
+                redshiftElem.textContent = "z = "+dataSet[i].redshift.toFixed(2)
+		setElem.appendChild(redshiftElem);
+
+		const graphsElem = document.createElement('div');
+                graphsElem.className = 'analysis-graphs';
+                setElem.appendChild(graphsElem);
+		renderGraphGeneric(graphsElem, dataSet[i])
+	    }
+          }
+
+          const setElemMassResolution     = document.getElementById('analysis-massResolution'    );
+          const setElemMergeProbability   = document.getElementById('analysis-mergeProbability'  );
+          const setElemAccretionLimit     = document.getElementById('analysis-accretionLimit'    );
+          const setElemAccuracyFirstOrder = document.getElementById('analysis-accuracyFirstOrder');
+          const setElemBranchIntervalStep = document.getElementById('analysis-branchIntervalStep');
+          const setElemMassThreshold      = document.getElementById('analysis-massThreshold'     );
+	  renderResolution(setElemMassResolution                         ,dataSets['massResolution'    ]);
+	  renderGeneric   (setElemMergeProbability  ,'mergeProbability'  ,dataSets['mergeProbability'  ]);
+	  renderGeneric   (setElemAccretionLimit    ,'accretionLimit'    ,dataSets['accretionLimit'    ]);
+	  renderGeneric   (setElemAccuracyFirstOrder,'accuracyFirstOrder',dataSets['accuracyFirstOrder']);
+	  renderGeneric   (setElemBranchIntervalStep,'branchIntervalStep',dataSets['branchIntervalStep']);
+	  renderGeneric   (setElemMassThreshold     ,'massThreshold'     ,dataSets['massThreshold'     ]);
+        }
+
+	renderAllChars(init());
+
+      })();
+    </script>
+
+  </body>
+</html>

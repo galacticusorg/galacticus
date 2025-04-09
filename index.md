@@ -29,6 +29,7 @@ Here you can find:
 	    * [rₚ/rₐ=0.2; γ=1.0](https://galacticusorg.github.io/galacticus/dev/bench/idealizedSubhaloSimulation_rpra0.2_gamma1.0)
 	    * [rₚ/rₐ=0.4; γ=0.0](https://galacticusorg.github.io/galacticus/dev/bench/idealizedSubhaloSimulation_rpra0.4_gamma0.0)
 * Validation plots and data for:
+    * [Merger tree builder convergence](https://galacticusorg.github.io/galacticus/dev/valid/mergerTreeConvergence)
     * [Dark matter-only subhalos](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalos/)
     * Decaying dark matter-only subhalos (see Nadler & Benson (2025) for details)
 	    * [τ=10 Gyr; vₖ=20 km/s](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosDecayingDarkMatter/index_lifetime10.0_velocityKick20.0.html)
