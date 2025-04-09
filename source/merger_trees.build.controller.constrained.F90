@@ -323,7 +323,7 @@ contains
     return
   end function constrainedControl
 
-  double precision function constrainedTimeMaximum(self,node,massBranch,criticalOverdensityBranch)
+  double precision function constrainedTimeMaximum(self,node,massBranch,criticalOverdensityBranch,timeReference,insertNode)
     !!{
     Return the maximum allowed time for this node.
     !!}
@@ -331,10 +331,14 @@ contains
     implicit none
     class           (mergerTreeBuildControllerConstrained), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
-    double precision                                      , intent(in   ) :: massBranch, criticalOverdensityBranch
+    double precision                                      , intent(in   ) :: massBranch   , criticalOverdensityBranch, &
+         &                                                                   timeReference
+    logical                                               , intent(  out) :: insertNode
     class           (nodeComponentBasic                  ), pointer       :: basic
     logical                                                               :: isConstrained
+    !$GLC attributes unused :: timeReference
 
+    insertNode    =  .false.
     basic         => node %basic                      (                   )
     isConstrained =  basic%integerRank0MetaPropertyGet(self%isConstrainedID) == 1
     if (isConstrained .and. criticalOverdensityBranch < self%criticalOverdensityConstrained) then
