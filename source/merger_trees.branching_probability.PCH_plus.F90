@@ -207,6 +207,6 @@ contains
     class           (mergerTreeBranchingProbabilityPCHPlus), intent(inout) :: self
     double precision                                       , intent(in   ) :: gamma
 
-    a=[0.5d0-0.5d0*gamma,1.5d0-self%gamma3]
+    a=[1.5d0-self%gamma3,0.5d0-0.5d0*gamma]
     return
   end function pchPlusHypergeometricA
