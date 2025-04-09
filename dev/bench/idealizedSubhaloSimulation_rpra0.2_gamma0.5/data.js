@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1743915933270,
+  "lastUpdate": 1744181599222,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.5)": [
@@ -6217,6 +6217,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/f140ec36f8101945b45922b88de37011d6b31138"
         },
         "date": 1743915932363,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteBoundMass",
+            "value": "40.86017639977341",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "22.39620473545655",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteVelocityMaximum",
+            "value": "20.390673708923003",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "16fb6ba74c772bfd0a7595f0ae707dcd63ad9154",
+          "message": "Merge pull request #823 from galacticusorg/fixCGMClumpingFactor\n\nAdd missing inner radius in evaluation of CGM clumping factor",
+          "timestamp": "2025-04-08T22:34:54Z",
+          "tree_id": "597ce08e0f5b008457955dfd37568a6a89a31ccf",
+          "url": "https://github.com/galacticusorg/galacticus/commit/16fb6ba74c772bfd0a7595f0ae707dcd63ad9154"
+        },
+        "date": 1744181598336,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
