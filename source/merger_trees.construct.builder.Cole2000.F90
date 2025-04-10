@@ -517,7 +517,7 @@ contains
          &                                                                            rootVarianceGrowthFactor_             , deltaCritical_
     logical                                                                        :: doBranch                              , branchIsDone               , &
          &                                                                            snapAccretionFraction                 , snapEarliestTime           , &
-         &                                                                            controlLimited
+         &                                                                            controlLimited                        , controlInsertNode
     type            (varying_string                     )                          :: message
     character       (len=20                             )                          :: label
 
@@ -692,7 +692,7 @@ contains
                      &     -                                                       branchDeltaCriticalCurrent                                                            &
                      &    )
                 ! Limit the timestep according to the build controller.
-                deltaWController=+self_%workers(numberWorker)%mergerTreeBuildController_%timeMaximum               (nodeCurrent,branchMassCurrent,branchDeltaCriticalCurrent) &
+                deltaWController=+self_%workers(numberWorker)%mergerTreeBuildController_%timeMaximum               (nodeCurrent,branchMassCurrent,branchDeltaCriticalCurrent,self_%timeNow,controlInsertNode) &
                      &           -                                                       branchDeltaCriticalCurrent
                 if (deltaWController < deltaW) then
                    deltaW               =deltaWController
@@ -849,7 +849,7 @@ contains
                    branchIsDone                 =  .true.
                 case (.false.)
                    ! No branching occurs - create one progenitor.
-                   if (accretionFractionCumulative >= self_%accretionLimit) then
+                   if (accretionFractionCumulative >= self_%accretionLimit .or. (controlLimited .and. controlInsertNode)) then
                       !$omp atomic
                       self_%nodeIndex =  self_%nodeIndex+1
                       nodeNew1        => treeNode(self_%nodeIndex,nodeCurrent%hostTree)
@@ -877,7 +877,7 @@ contains
                    end if
                 end select
                 ! If the timestep was limited by the build controller, allow the build controller to respond.
-                if (controlLimited) branchIsDone=.not.self_%workers(numberWorker)%mergerTreeBuildController_%controlTimeMaximum(nodeCurrent,branchMassCurrent,branchDeltaCriticalCurrent,self_%nodeIndex)
+                if (controlLimited) branchIsDone=branchIsDone .or. .not.self_%workers(numberWorker)%mergerTreeBuildController_%controlTimeMaximum(nodeCurrent,branchMassCurrent,branchDeltaCriticalCurrent,self_%nodeIndex)
              end if
           end if
        end do
@@ -954,7 +954,7 @@ contains
     basic_          => nodeTip                                           %basic         (                                                                 )
     ! Compute the collapse time.
     timeOfCollapse_ =  self_  %workers(numberWorker)%criticalOverdensity_%timeOfCollapse(criticalOverdensity=basic_%time(),mass=basic_%mass(),node=nodeTip)
-    call basic_%timeSet(timeOfCollapse_)      
+   call basic_%timeSet(timeOfCollapse_)
     return
   end subroutine cole2000ConvertTimeNode
       

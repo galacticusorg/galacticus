@@ -762,6 +762,49 @@ jobs:
       profiler: gprof
       cacheData: 1
       name: milkyWay_SIDM
+  # Watch for updates
+  Watch-Updates:
+    runs-on: ubuntu-latest
+    container: ghcr.io/galacticusorg/buildenv:latest
+    steps:
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -static" >> $GITHUB_ENV
+          echo "GALACTICUS_ANALYSIS_PERL_PATH=$GITHUB_WORKSPACE/analysis-perl" >> $GITHUB_ENV
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v46
+        with:
+          files: |
+            **/*.F90
+            **/*.Inc
+      - name: Look for updates
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          ./scripts/aux/updateMonitor.pl ${{ steps.changed-files.outputs.all_changed_files }}
+      - name: Check file existence
+        id: check_files
+        uses: andstor/file-existence-action@v3
+        with:
+          files: warnings.md
+      - name: Output to a job summary
+        if: steps.check_files.outputs.files_exists == 'true'
+        run: |
+          cat warnings.md >> $GITHUB_STEP_SUMMARY
+      - name: Comment on the PR if any warnings were found
+        if: steps.check_files.outputs.files_exists == 'true' && github.event.pull_request.head.repo.full_name == github.repository
+        continue-on-error: true
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          file-path: warnings.md
   # Validation
   Validate-Dark-Matter-Only-Subhalos:
     needs: Build-Executable-DMO-Linux

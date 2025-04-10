@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Dark matter subhalo evolution model -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
+
+  <verbosityLevel value="working"/>
+
+  <!-- Include required parameters -->
+  <xi:include href="../../parameters/reference/darkMatterParticleCDM.xml"   xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="../../parameters/reference/cosmologyDarkMatterOnly.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="../../parameters/reference/powerSpectrum.xml"           xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="../../parameters/reference/structureFormation.xml"      xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="../../parameters/reference/mergerTrees.xml"             xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="../../parameters/reference/evolutionDarkMatterOnly.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+  <!-- Random number generation -->
+  <randomNumberGenerator value="GSL">
+    <seed value="9126"/>
+  </randomNumberGenerator>
+
+  <!-- Merger tree building options --> 
+  <mergerTreeBuildController value="multi">
+    <mergerTreeBuildController value="outputTimeSnap"/>
+    <mergerTreeBuildController value="subsample">
+      <massThreshold              value="0.0"/>
+      <subsamplingRateAtThreshold value="1.0"/>
+      <exponent                   value="1.0"/>
+    </mergerTreeBuildController>
+  </mergerTreeBuildController>
+  
+  <!-- Tree regridding -->
+  <mergerTreeOperator value="regridTimes">
+    <!-- Snap nodes to output times - this ensures that nodes at the earliest time in our tree are at precisely the output
+         time. The tolerance must be quite small - otherwise we may snap other nodes to an output time in sufficiently high
+         resolution trees (which will have small timesteps. -->
+    <snapTolerance value="1.0e-6"/>
+  </mergerTreeOperator>
+
+  <!-- Output options -->
+  <mergerTreeOutputter value="standard"/>
+  <outputTimes value="list">
+    <redshifts value="0.0 0.1 0.5 1.0"/>
+  </outputTimes>
+
+</parameters>
