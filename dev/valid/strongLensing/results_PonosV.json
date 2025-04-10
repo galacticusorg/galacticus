@@ -6,19 +6,19 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "16fb6ba74c772bfd0a7595f0ae707dcd63ad9154",
-        "message": "Merge pull request #823 from galacticusorg/fixCGMClumpingFactor\n\nAdd missing inner radius in evaluation of CGM clumping factor\n",
-        "timestamp": "2025-04-08 22:34:54+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/16fb6ba74c772bfd0a7595f0ae707dcd63ad9154"
+        "id": "5e7d3ac83d5219b79af25af78e324618f12bebf3",
+        "message": "Merge pull request #825 from galacticusorg/featValidationMergerTreeBuilder\n\nAdd a script to perform convergence tests of merger tree building\n",
+        "timestamp": "2025-04-10 15:50:40+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/5e7d3ac83d5219b79af25af78e324618f12bebf3"
     },
     "surfaceDensity": {
-        "percentageBelow": 42.857142857142854,
-        "percentageAbove": 57.142857142857146,
+        "percentageBelow": 32.14285714285714,
+        "percentageAbove": 67.85714285714286,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 60.0,
-        "percentageAbove": 40.0,
+        "percentageBelow": 54.54545454545455,
+        "percentageAbove": 45.45454545454545,
         "target": 0.85
     }
 }
