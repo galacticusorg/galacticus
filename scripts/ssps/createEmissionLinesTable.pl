@@ -61,6 +61,18 @@ if ( exists($options{'sspFileName'}) ) {
     die("Specify either `--sspFileName` or `--agnModel`");
 }
 
+# Move any existing output file to a backup. This avoids attempting to overwrite HDF5 datasets with arrays of different size.
+unless (
+    $options{'generateOnly'} eq "yes"
+    ||
+    $options{'reprocess'   } eq "yes"
+    ||
+    $options{'rerun'       } eq "yes"
+    ) {
+    print "Moving old output file to `".$options{'outputFileName'}.".bak`\n";
+    system("mv ".$options{'outputFileName'}." ".$options{'outputFileName'}.".bak");
+}
+
 # Parse config options.
 my $queueManager = &Galacticus::Options::Config(                'queueManager' );
 my $queueConfig  = &Galacticus::Options::Config($queueManager->{'manager'     });
