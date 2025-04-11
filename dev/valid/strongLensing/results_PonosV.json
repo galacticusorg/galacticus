@@ -4,12 +4,12 @@ window.PONOSV_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "5e7d3ac83d5219b79af25af78e324618f12bebf3",
-        "message": "Merge pull request #825 from galacticusorg/featValidationMergerTreeBuilder\n\nAdd a script to perform convergence tests of merger tree building\n",
-        "timestamp": "2025-04-10 15:50:40+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/5e7d3ac83d5219b79af25af78e324618f12bebf3"
+        "id": "b6292e3efc6b1eb0f8df7aa7abaa14ff96c2e2ab",
+        "message": "fix: Mark `git` diectory safe\n",
+        "timestamp": "2025-04-11 08:32:00-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/b6292e3efc6b1eb0f8df7aa7abaa14ff96c2e2ab"
     },
     "surfaceDensity": {
         "percentageBelow": 32.14285714285714,
@@ -17,8 +17,8 @@ window.PONOSV_DATA = {
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 54.54545454545455,
-        "percentageAbove": 45.45454545454545,
+        "percentageBelow": 50.0,
+        "percentageAbove": 50.0,
         "target": 0.85
     }
 }
