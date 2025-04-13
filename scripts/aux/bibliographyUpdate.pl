@@ -102,20 +102,23 @@ while ( my $entry = Text::BibTeX::Entry->new($bibliography) ) {
 		}
 		close($response);
 		my $bibtexEntry = decode_json($json);
-		# If the returned record is something other than an arXiv reference, update to this new record.
-		unless ( 
-		    $bibtexEntry->{'export'} =~ m/^\s*adsurl\s*=\s*\{https:\/\/ui\.adsabs\.harvard\.edu\/abs\/\d+arXiv[\d\.]+[A-Z]\}/m
-		    ||
-		    $bibtexEntry->{'export'} =~ m/^\s*adsurl\s*=\s*\{https:\/\/ui\.adsabs\.harvard\.edu\/abs\/\d+astro\.ph\.\d+[A-Z]\}/m
+		if (
+		    exists ($bibtexEntry->{'export'})
+		    &&
+		    defined($bibtexEntry->{'export'})
 		    ) {
-		    # Replace the BibTeX key of this record with the original key - we do not want to have to re-write references
-		    # in all of our documentation.
-		    ++$countUpdated;
-		    my $key = $entry->key();
-		    ($entryText = $bibtexEntry->{'export'}) =~ s/^\@ARTICLE\{.*,/\@article\{$key,/;
-
-		    print $entryText."\n";
-
+		    # If the returned record is something other than an arXiv reference, update to this new record.
+		    unless ( 
+			$bibtexEntry->{'export'} =~ m/^\s*adsurl\s*=\s*\{https:\/\/ui\.adsabs\.harvard\.edu\/abs\/\d+arXiv[\d\.]+[A-Z]\}/m
+			||
+			$bibtexEntry->{'export'} =~ m/^\s*adsurl\s*=\s*\{https:\/\/ui\.adsabs\.harvard\.edu\/abs\/\d+astro\.ph\.\d+[A-Z]\}/m
+			) {
+			# Replace the BibTeX key of this record with the original key - we do not want to have to re-write references
+			# in all of our documentation.
+			++$countUpdated;
+			my $key = $entry->key();
+			($entryText = $bibtexEntry->{'export'}) =~ s/^\@ARTICLE\{.*,/\@article\{$key,/;
+		    }
 		}
 	    } else {
 		die("Failed to retrieve record identifier '".$identifier."': ".$retcode." ".$curl->strerror($retcode)." ".$curl->errbuf);
