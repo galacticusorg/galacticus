@@ -31,7 +31,7 @@ jobs:
       - name: Install tools
         run: |
           sudo apt -y update
-          sudo apt install -y python3-pypdf2 perl libregexp-common-perl curl git libwww-curl-perl libjson-pp-perl
+          sudo apt install -y python3-pypdf2 perl libregexp-common-perl curl git libwww-curl-perl libjson-pp-perl libxml-simple-perl
       - name: Check for broken links
         if: ${{ env.adstoken != '' }}
         run: |
