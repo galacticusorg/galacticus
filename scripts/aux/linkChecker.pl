@@ -159,6 +159,8 @@ sub checkURLs {
 	} elsif ( $url =~ m/adsabs\.harvard\.edu\/abs\/([^\/]+)/ ) {
 	    # NASA ADS link - accumulate the bibCode.
 	    my $bibCode = $1;
+	    # Translate escape codes.
+	    $bibCode =~ s/%26/&/;
 	    push(@{$bibCodes->{$bibCode}->{'sources'}},@{$urls->{$urlKey}});
 	    ${$bibCodes->{$bibCode}->{'urls'}}{$urlKey} = 1;
 	} else {
