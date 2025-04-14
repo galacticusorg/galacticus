@@ -218,10 +218,9 @@ sub checkURLs {
     # Check NASA ADS bibcodes.
     my $curl = WWW::Curl::Easy->new();
     $curl->setopt(CURLOPT_HEADER,1);
-    $curl->setopt(CURLOPT_HTTPHEADER, ['Authorization: Bearer:'.$apiToken]);
     my $countRecords = scalar(keys(%{$bibCodes}));
     $curl->setopt(CURLOPT_URL, 'https://api.adsabs.harvard.edu/v1/search/bigquery?q=*:*&rows='.$countRecords.'&fl=bibcode,alternate_bibcode,title,author,year,pub,volume,page');
-    $curl->setopt(CURLOPT_HTTPHEADER, ['Authorization: Bearer:'.$apiToken,"Content-Type: big-query/csv"]);
+    $curl->setopt(CURLOPT_HTTPHEADER, ['Authorization: Bearer '.$apiToken,"Content-Type: big-query/csv"]);
     my $response_body;
     $curl->setopt(CURLOPT_WRITEDATA,\$response_body);
     $curl->setopt(CURLOPT_POST, 1);
@@ -244,10 +243,12 @@ sub checkURLs {
 	    close($response);
 	    $records = decode_json($json);
 	} else {
-	    die("Failed to retrieve record identifiers: ".$response_code.$response_body);
+	    $status = 1;
+	    print "Failed to retrieve record identifiers: ".$response_code.$response_body."\n";
 	}
     } else {
-	die("Failed to retrieve record identifiers: ".$retcode." ".$curl->strerror($retcode)." ".$curl->errbuf);
+	$status = 1;
+	print "Failed to retrieve record identifiers: ".$retcode." ".$curl->strerror($retcode)." ".$curl->errbuf."\n";
     }
     # Parse records.
     foreach my $entry ( @{$records->{'response'}->{'docs'}} ) {
@@ -264,8 +265,10 @@ sub checkURLs {
 		}
 	    }
 	}
-	die("Received unrequested record for bibcode '".$entry->{'bibcode'}."'\n")
-	    unless ( $found );
+	unless ( $found ) {
+	    $status = 1;
+	    print "Received unrequested record for bibcode '".$entry->{'bibcode'}."'\n";
+	}
     }
     # Look for any bibcodes that were not found.
     foreach my $bibCode ( keys(%{$bibCodes}) ) {

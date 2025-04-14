@@ -18,7 +18,7 @@ my $apiToken = $ARGV[0];
 # Construct a curl object.
 my $curl = WWW::Curl::Easy->new();
 $curl->setopt(CURLOPT_HEADER,1);
-$curl->setopt(CURLOPT_HTTPHEADER, ['Authorization: Bearer:'.$apiToken]);
+$curl->setopt(CURLOPT_HTTPHEADER, ['Authorization: Bearer '.$apiToken]);
 
 # First read in all bibliography entries in their raw form. This will allow us to re-output the entirely unchanged if there is no
 # need to update.
@@ -83,7 +83,7 @@ while ( my $entry = Text::BibTeX::Entry->new($bibliography) ) {
 		unless ( defined($identifier) );
 	    # We have an identifier for an arXiv reference. Pull the ADS record for this identifier.
 	    $curl->setopt(CURLOPT_URL, 'https://api.adsabs.harvard.edu/v1/export/bibtex');
-	    $curl->setopt(CURLOPT_HTTPHEADER, ['Authorization: Bearer:'.$apiToken,"Content-Type: application/json"]);
+	    $curl->setopt(CURLOPT_HTTPHEADER, ['Authorization: Bearer '.$apiToken,"Content-Type: application/json"]);
 	    my $response_body;
 	    $curl->setopt(CURLOPT_WRITEDATA,\$response_body);
 	    $curl->setopt(CURLOPT_POST, 1);
