@@ -277,7 +277,7 @@ sub checkURLs {
 	} else {
 	    $status = 1
 		if ( &recordFailure($bibCode,$failures) );
-	    print "Broken link (for past ".$failures->{'url'}->{$bibCode}->{'consecutiveFailures'}." attempts): \"".join("; ",keys(%{$bibCodes->{$bibCode}->{'urls'}}))."\" in:\n";
+	    print "Broken link (for past ".$failures->{'url'}->{$bibCode}->{'consecutiveFailures'}." attempts): {bibCode: ".$bibCode."} \"".join("; ",keys(%{$bibCodes->{$bibCode}->{'urls'}}))."\" in:\n";
 	    foreach my $source ( @{$bibCodes->{$bibCode}->{'sources'}} ) {
 		print "\t".$source->{'path'}."/".$source->{'file'}." line ".$source->{'lineNumber'}."\n";
 	    }
