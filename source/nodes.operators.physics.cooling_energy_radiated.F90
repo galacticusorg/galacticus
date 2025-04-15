@@ -54,7 +54,7 @@
      final     ::                                coolingEnergyRadiatedDestructor
      procedure :: differentialEvolutionScales => coolingEnergyRadiatedDifferentialEvolutionScales
      procedure :: differentialEvolution       => coolingEnergyRadiatedDifferentialEvolution
-     procedure :: nodesMerge                  => coolingEnergyRadiatedNodesMerge
+     procedure :: galaxiesMerge               => coolingEnergyRadiatedGalaxiesMerge
      procedure :: nodePromote                 => coolingEnergyRadiatedNodePromote
      procedure :: autoHook                    => coolingEnergyRadiatedAutoHook
   end type nodeOperatorCoolingEnergyRadiated
@@ -337,9 +337,9 @@ contains
     return
   end subroutine coolingEnergyRadiatedNodePromote
   
-  subroutine coolingEnergyRadiatedNodesMerge(self,node)
+  subroutine coolingEnergyRadiatedGalaxiesMerge(self,node)
     !!{
-    Zero the radiated energy of the hot halo component of nodes about to merge.
+    Zero the radiated energy of the hot halo component of galaxies about to merge.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo
     implicit none
@@ -355,7 +355,7 @@ contains
          &                                 +0.0d0                  &
          &                                )
     return
-  end subroutine coolingEnergyRadiatedNodesMerge
+  end subroutine coolingEnergyRadiatedGalaxiesMerge
   
   subroutine coolingEnergyRadiatedHotHaloMassEjection(self,hotHalo,massRate)
     !!{
