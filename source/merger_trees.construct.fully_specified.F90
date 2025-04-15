@@ -43,6 +43,7 @@
   use :: FoX_DOM                 , only : node
   use :: IO_XML                  , only : xmlNodeList
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
+  use :: Merger_Tree_Seeds       , only : mergerTreeSeedsClass
 
   !![
   <mergerTreeConstructor name="mergerTreeConstructorFullySpecified">
@@ -135,6 +136,7 @@
      !!}
      private
      class  (randomNumberGeneratorClass), pointer                   :: randomNumberGenerator_ => null()
+     class  (mergerTreeSeedsClass      ), pointer                   :: mergerTreeSeeds_       => null()
      type   (varying_string            )                            :: fileName
      type   (documentContainer         ), pointer                   :: document               => null()
      type   (xmlNodeList               ), allocatable, dimension(:) :: trees
@@ -172,6 +174,7 @@ contains
     type (mergerTreeConstructorFullySpecified)                :: self
     type (inputParameters                    ), intent(inout) :: parameters
     class(randomNumberGeneratorClass         ), pointer       :: randomNumberGenerator_
+    class(mergerTreeSeedsClass               ), pointer       :: mergerTreeSeeds_
     type (varying_string                     )                :: fileName
 
     !![
@@ -181,16 +184,18 @@ contains
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    <objectBuilder class="mergerTreeSeeds"       name="mergerTreeSeeds_"       source="parameters"/>
     !!]
-    self=mergerTreeConstructorFullySpecified(fileName,randomNumberGenerator_)
+    self=mergerTreeConstructorFullySpecified(fileName,randomNumberGenerator_,mergerTreeSeeds_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="randomNumberGenerator_"/>
+    <objectDestructor name="mergerTreeSeeds_"      />
     !!]
     return
   end function fullySpecifiedConstructorParameters
 
-  function fullySpecifiedConstructorInternal(fileName,randomNumberGenerator_) result(self)
+  function fullySpecifiedConstructorInternal(fileName,randomNumberGenerator_,mergerTreeSeeds_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily fullySpecified} merger tree operator class.
     !!}
@@ -204,10 +209,11 @@ contains
     type   (mergerTreeConstructorFullySpecified)                        :: self
     type   (varying_string                     ), intent(in   )         :: fileName
     class  (randomNumberGeneratorClass         ), intent(in   ), target :: randomNumberGenerator_
+    class  (mergerTreeSeedsClass               ), intent(in   ), target :: mergerTreeSeeds_
     integer                                                             :: ioErr
     type   (varying_string                     )                        :: message
     !![
-    <constructorAssign variables="fileName, *randomNumberGenerator_"/>
+    <constructorAssign variables="fileName, *randomNumberGenerator_, *mergerTreeSeeds_"/>
     !!]
 
     !$omp critical (FoX_DOM_Access)
@@ -255,6 +261,7 @@ contains
     end if
     !![
     <objectDestructor name="self%randomNumberGenerator_"/>
+    <objectDestructor name="self%mergerTreeSeeds_"      />
     !!]
     return
   end subroutine fullySpecifiedDestructor
@@ -321,8 +328,8 @@ contains
        <deepCopyFinalize variables="tree%randomNumberGenerator_"/>
        !!]
        !$omp end critical(mergerTreeConstructFullySpecifiedDeepCopyReset)
-       call self%randomSequenceNonDeterministicWarn(tree)
-       call tree%randomNumberGenerator_%seedSet(seed=tree%index,offset=.true.)
+       call self                 %randomSequenceNonDeterministicWarn(tree)
+       call self%mergerTreeSeeds_%set                               (tree)
        ! Begin writing report.
        call displayIndent('Initial conditions of fully-specified tree',verbosityLevelInfo)
        ! Iterate over nodes.
