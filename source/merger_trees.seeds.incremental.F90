@@ -23,7 +23,15 @@ Implements a merger tree random number seed in which the seed increases incremen
 
   !![
   <mergerTreeSeeds name="mergerTreeSeedsIncremental">
-   <description>A merger tree random number seed in which the seed increases incrementally with tree index.</description>
+    <description>
+      A merger tree random number seed in which the seed increases incrementally with tree index. Specifically, the seed will be
+      set to the tree index offset by whatever seed was originally specified for the \refClass{randomNumberGeneratorClass} object
+      in the parameter file. Note that this means that, if tree indices are consecutive, then changing the seed of the
+      \refClass{randomNumberGeneratorClass} object in the parameter file by incrementing by a small number (e.g. 1, or any number
+      less than the total number of trees simulated) will result in significant overlap in seed values for trees between the two
+      models. To avoid this, either increment the random seed by a number larger than the total number of trees run, or consider
+      using the \refClass{mergerTreeSeedsRandom} class to generate seeds instead.
+    </description>
   </mergerTreeSeeds>
   !!]
   type, extends(mergerTreeSeedsClass) :: mergerTreeSeedsIncremental
