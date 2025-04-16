@@ -34,7 +34,7 @@
      class  (nbodyOperatorClass), pointer :: nbodyOperator_      => null()
      logical                              :: storeBackToImported          , nodeComponentsInitialized=.false.
      ! Pointer to the parameters for this task.
-     type   (inputParameters   )          :: parameters
+     type   (inputParameters   ), pointer :: parameters          => null()
    contains
      final     ::                       nbodyAnalyzeDestructor
      procedure :: perform            => nbodyAnalyzePerform
@@ -113,8 +113,7 @@ contains
     <constructorAssign variables="storeBackToImported, *nbodyImporter_, *nbodyOperator_"/>
     !!]
 
-    self%parameters=inputParameters(parameters)
-    call self%parameters%parametersGroupCopy(parameters)
+    self%parameters => parameters
     if (.not.self%nbodyImporter_%isHDF5()) self%storeBackToImported=.false.
     return
   end function nbodyAnalyzeConstructorInternal
