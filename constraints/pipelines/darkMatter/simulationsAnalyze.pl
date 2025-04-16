@@ -18,7 +18,7 @@ use Galacticus::Launch::Local;
 use Galacticus::Constraints::Parameters;
 use Galacticus::Constraints::HaloMassFunctions qw(iterate);
 
-# Construct halo mass function data from a variety of cosmological N-body simulations.
+# Analyze a variety of cosmological N-body simulations to extract statistics of interest.
 # Andrew Benson (14-October-2020)
 
 # Get command line options.
@@ -80,9 +80,9 @@ my $ompThreads = $options{'ompThreads'} eq "max" ? $queueConfig->{'ppn'} : $opti
 # Parse the simulations definition file.
 my $xml = new XML::Simple();
 my $simulations = $xml->XMLin(
-    $options{'pipelinePath'}."haloMassFunctionSimulations.xml",
-    ForceArray => [ "suite"         , "group"         , "simulation"          ],
-    KeyAttr    => {  suite => "name",  group => "name",  simulation => "name" }
+    $options{'pipelinePath'}."simulations.xml",
+    ForceArray => [ "suite"         , "group"         , "simulation"         , "resolution"           ],
+    KeyAttr    => {  suite => "name",  group => "name",  simulation => "name",  resolution  => "name" }
     );
 
 # Get the list of entries to process.
@@ -93,12 +93,12 @@ my @entries = &iterate($simulations,\%options, stopAfter => "realization");
     my @jobsIdentify;
     foreach my $entry ( @entries ) {
 	# Build redshift labels.
-	@{$entry->{'group'}->{'epochs'}} = map {my $redshift = 1.0/$_-1.0; {expansionFactor => $_, redshift => $redshift, redshiftLabel => sprintf("z%5.3f",$redshift)}} @{$entry->{'group'}->{'expansionFactors'}};
+	@{$entry->{'resolution'}->{'epochs'}} = map {my $redshift = 1.0/$_-1.0; {expansionFactor => $_, redshift => $redshift, redshiftLabel => sprintf("z%5.3f",$redshift)}} @{$entry->{'resolution'}->{'expansionFactors'}};
 	# Determine minimum and maximum masses for the mass function.
-	$entry->{'massMinimum'} = 10.0**(int(log($entry->{'group'}->{'massParticle'})/log(10.0))+2);
+	$entry->{'massMinimum'} = 10.0**(int(log($entry->{'resolution'}->{'massParticle'})/log(10.0))+2);
 	$entry->{'massMaximum'} = 1.0e16;
 	# Construct the simulation path.
-	$entry->{'path'} = $options{'simulationDataPath'}.$entry->{'suite'}->{'name'}."/".$entry->{'group'}->{'name'}."/".$entry->{'simulation'}->{'name'}."/".$entry->{'realization'}."/";
+	$entry->{'path'} = $options{'simulationDataPath'}.$entry->{'suite'}->{'name'}."/".$entry->{'group'}->{'name'}."/".$entry->{'resolution'}->{'name'}."/".$entry->{'simulation'}->{'name'}."/".$entry->{'realization'}."/";
 	# Iterate over subvolumes.
 	for(my $i=0;$i<$entry->{'group'}->{'subvolumes'};++$i) {
 	    for(my $j=0;$j<$entry->{'group'}->{'subvolumes'};++$j) {
@@ -140,9 +140,6 @@ my @entries = &iterate($simulations,\%options, stopAfter => "realization");
 	    }
 	}
     }
-
-    print scalar(@jobsIdentify)."\n";
-
     &{$Galacticus::Launch::Hooks::moduleHooks{$queueManager->{'manager'}}->{'jobArrayLaunch'}}(\%options,@jobsIdentify)
 	if ( scalar(@jobsIdentify) > 0 );
 }
@@ -176,7 +173,7 @@ my @entries = &iterate($simulations,\%options, stopAfter => "realization");
 	    for(my $j=0;$j<$entry->{'group'}->{'subvolumes'};++$j) {
 		for(my $k=0;$k<$entry->{'group'}->{'subvolumes'};++$k) {
 		    # Iterate over expansion factors.
-		    foreach my $epoch ( @{$entry->{'group'}->{'epochs'}} ) {
+		    foreach my $epoch ( @{$entry->{'resolution'}->{'epochs'}} ) {
 			my $expansionFactorLow  = (1.0-5.0e-4)*$epoch->{'expansionFactor'};
 			my $expansionFactorHigh = (1.0+5.0e-4)*$epoch->{'expansionFactor'};
 			# Parse the base parameters.
@@ -213,7 +210,7 @@ my @entries = &iterate($simulations,\%options, stopAfter => "realization");
 			$job->{'nodes'     } = 1;
 			$job->{'mem'       } = "8G";
 			$job->{'walltime'  } = "8:00:00";
-			$job->{'mpi'       } = "yes";
+			$job->{'mpi'       } = "no";
 			push(@jobsExtract,$job);
 		    }
 		}
@@ -249,7 +246,7 @@ my @entries = &iterate($simulations,\%options, stopAfter => "realization");
     my @massFunctionJobs;
     foreach my $entry ( @entries ) {
 	# Iterate over expansion factors.
-	foreach my $epoch ( @{$entry->{'group'}->{'epochs'}} ) {
+	foreach my $epoch ( @{$entry->{'resolution'}->{'epochs'}} ) {
 	    # Iterate over subvolumes.
 	    my @nbodyImporters;
 	    for(my $i=0;$i<$entry->{'group'}->{'subvolumes'};++$i) {
@@ -274,11 +271,11 @@ my @entries = &iterate($simulations,\%options, stopAfter => "realization");
 		    # Modify parameters.
 		    @{$massFunctionParameters->{'nbodyImporter' }->{'nbodyImporter'}}                                          = @nbodyImporters;
 		    $massFunctionParameters  ->{'outputFileName'}                                                  ->{'value'} = $entry->{'path'       }."haloMassFunction_nonFlyby_".$epoch->{'redshiftLabel'}.".hdf5";
-		    $massFunctionParameters  ->{'nbodyOperator' }->{'nbodyOperator'} ->[0]->{'values'             }->{'value'} = $entry->{'group'      }->{'massParticle'};
-		    $massFunctionParameters  ->{'nbodyOperator' }->{'nbodyOperator'} ->[1]->{'simulationReference'}->{'value'} = $entry->{'group'      }->{'reference'   };
-		    $massFunctionParameters  ->{'nbodyOperator' }->{'nbodyOperator'} ->[1]->{'simulationURL'      }->{'value'} = $entry->{'group'      }->{'url'         };
-		    $massFunctionParameters  ->{'nbodyOperator' }->{'nbodyOperator'} ->[1]->{'massMinimum'        }->{'value'} = $entry->{'massMinimum'}                  ;
-		    $massFunctionParameters  ->{'nbodyOperator' }->{'nbodyOperator'} ->[1]->{'massMaximum'        }->{'value'} = $entry->{'massMaximum'}                  ;
+		    $massFunctionParameters  ->{'nbodyOperator' }->{'nbodyOperator'} ->[0]->{'values'             }->{'value'} = $entry->{'resolution' }              ->{'massParticle'};
+		    $massFunctionParameters  ->{'nbodyOperator' }->{'nbodyOperator'} ->[1]->{'simulationReference'}->{'value'} = $entry->{'group'      }->{'metaData'}->{'reference'   };
+		    $massFunctionParameters  ->{'nbodyOperator' }->{'nbodyOperator'} ->[1]->{'simulationURL'      }->{'value'} = $entry->{'group'      }->{'metaData'}->{'url'         };
+		    $massFunctionParameters  ->{'nbodyOperator' }->{'nbodyOperator'} ->[1]->{'massMinimum'        }->{'value'} = $entry->{'massMinimum'}                                ;
+		    $massFunctionParameters  ->{'nbodyOperator' }->{'nbodyOperator'} ->[1]->{'massMaximum'        }->{'value'} = $entry->{'massMaximum'}                                ;
 		    $massFunctionParameters  ->{'nbodyOperator' }->{'nbodyOperator'} ->[1]->{'description'        }->{'value'} = "Halo mass function of non-flyby halos for the ".$entry->{'suite'}->{'name'}." ".$entry->{'group'}->{'name'}." ".$entry->{'simulation'}->{'name'}." ".$epoch->{'redshiftLabel'}." simulation";
 		    # Write the parameter file.
 		    my $parameterFileName = $entry->{'path'}."haloMassFunction_nonFlyby_".$epoch->{'redshiftLabel'}.".xml";
@@ -330,7 +327,7 @@ my @entries = &iterate($simulations,\%options, stopAfter => "realization");
 # Move the resulting mass functions.
 foreach my $entry ( @entries ) {
     # Iterate over expansion factors.
-    foreach my $epoch ( @{$entry->{'group'}->{'epochs'}} ) {
+    foreach my $epoch ( @{$entry->{'resolution'}->{'epochs'}} ) {
 	copy($entry->{'path'}."haloMassFunction_nonFlyby_".$epoch->{'redshiftLabel'}.":MPI0000.hdf5",$ENV{'GALACTICUS_DATA_PATH'}."/static/darkMatter/haloMassFunction_".$entry->{'suite'}->{'name'}."_".$entry->{'group'}->{'name'}."_".$entry->{'simulation'}->{'name'}."_".$entry->{'realization'}."_".$epoch->{'redshiftLabel'}.".hdf5");
     }
 }
@@ -342,11 +339,8 @@ sub symphonyProcessIdentify {
     my $entry      =   shift();
     my $parameters =   shift();
     my %options    = %{shift()};
-    # Find the host halo IDs for this simulation.
-    my $xml         = new XML::Simple();
-    my $hostHaloIDs = $xml->XMLin($options{'pipelinePath'}."symphonyZoomInHostHaloIDs.xml");
-    (my $identifier  = $entry->{'group'}->{'name'}."_".$entry->{'simulation'}->{'name'}) =~ s/:/_/g;
-    @{$entry->{'hostHaloIDs'}} = map {$hostHaloIDs->{$identifier}->{$_}} @{$entry->{'simulation'}->{'realizationsList'}};
+    # Find the host halo ID for this simulation.
+    $entry->{'hostHaloID'} = $entry->{'simulation'}->{'hostHaloIDs'}->{$entry->{'realization'}};
     # Add read of additional columns.
     my @propertiesImport = split(" ",$parameters->{'nbodyImporter'}->{'readColumns'}->{'value'});
     foreach my $property ( "X", "Y", "Z", "Rvir", "rs" ) {
@@ -384,15 +378,10 @@ sub symphonyPreProcessExtractLocate {
     my $jobs    =   shift() ;
     my %options = %{shift()};
     # Find the host halo ID for this realization.
-    my $hostHaloID;
-    if ( exists($entry->{'hostHaloIDs'}) ) {
-	($hostHaloID) = map {$entry->{'simulation'}->{'realizationsList'}->[$_] eq $entry->{'realization'} ? $entry->{'hostHaloIDs'}->[$_] : ()} 0..$#{$entry->{'simulation'}->{'realizationsList'}};
-    } else {
-	$hostHaloID   = -1;
-    }
+    my $hostHaloID = $entry->{'hostHaloID'};
     # Iterate over expansion factors.
     my $job;
-    foreach my $epoch ( @{$entry->{'group'}->{'epochs'}} ) {
+    foreach my $epoch ( @{$entry->{'resolution'}->{'epochs'}} ) {
 	# Look for an existing record of the primary halo.
 	my $primaryHaloFileName    = $entry->{'path'}."primaryHalo_".$epoch->{'redshiftLabel'}.".xml";
 	my $xml                    = new XML::Simple();
@@ -410,7 +399,7 @@ sub symphonyPreProcessExtractLocate {
 		$job->{'walltime'  } = "8:00:00";
 		$job->{'mpi'       } = "no";
 	    }
-	    $job->{'command'} .= $options{'pipelinePath'}."haloMassFunctionZoomInExtract.pl ".$entry->{'path'}." ".$primaryHaloFileName." ".$epoch->{'expansionFactor'}." ".$entry->{'suite'}->{'cosmology'}->{'hubbleConstant'}." ".$entry->{'group'}->{'massParticle'}." ".$entry->{'group'}->{'haloMassFunction'}->{'massHostLogMin'}->{'value'}." ".$entry->{'group'}->{'haloMassFunction'}->{'massHostLogMax'}->{'value'}." ".$hostHaloID."\n";
+	    $job->{'command'} .= $options{'pipelinePath'}."haloMassFunctionZoomInExtract.pl ".$entry->{'path'}." ".$primaryHaloFileName." ".$epoch->{'expansionFactor'}." ".$entry->{'suite'}->{'cosmology'}->{'hubbleConstant'}." ".$entry->{'resolution'}->{'massParticle'}." ".$entry->{'resolution'}->{'haloMassFunction'}->{'massHostLogMin'}->{'value'}." ".$entry->{'resolution'}->{'haloMassFunction'}->{'massHostLogMax'}->{'value'}." ".$hostHaloID."\n";
 	}
     }   
     push(@{$jobs},$job)
@@ -423,7 +412,7 @@ sub symphonyPreProcessExtractUncontaminated {
     my $jobs    =   shift() ;
     my %options = %{shift()};
     # Iterate over expansion factors.
-    foreach my $epoch ( @{$entry->{'group'}->{'epochs'}} ) {
+    foreach my $epoch ( @{$entry->{'resolution'}->{'epochs'}} ) {
 	# Look for an existing record of the primary halo.
 	my $primaryHaloFileName  = $entry->{'path'}."primaryHalo_".$epoch->{'redshiftLabel'}.".xml";
 	# Find properties of the central halo.
@@ -440,7 +429,7 @@ sub symphonyPreProcessExtractUncontaminated {
 	unless ( -e $uncontaminatedFileName ) {
 	    my $parametersUncontaminated = $xml->XMLin($options{'pipelinePath'}."zoomInSelectUncontaminated.xml");
 	    # Modify file names.
-	    (my $snapshot) = map {$entry->{'group'}->{'expansionFactors'}->[$_] == $epoch->{'expansionFactor'} ? $entry->{'group'}->{'snapshots'}->[$_] : ()} 0..$#{$entry->{'group'}->{'expansionFactors'}};
+	    (my $snapshot) = map {$entry->{'resolution'}->{'expansionFactors'}->[$_] == $epoch->{'expansionFactor'} ? $entry->{'resolution'}->{'snapshots'}->[$_] : ()} 0..$#{$entry->{'resolution'}->{'expansionFactors'}};
 	    $parametersUncontaminated->{'nbodyImporter'}                        ->{'fileName'      }->{'value'} = $entry->{'path'}."snapshots/snapshot_".$snapshot;
 	    $parametersUncontaminated->{'nbodyOperator'}->{'nbodyOperator'}->[0]->{'point'         }->{'value'} = $entry->{$expansionFactorLabel};
 	    $parametersUncontaminated->{'nbodyOperator'}->{'nbodyOperator'}->[1]->{'fileName'      }->{'value'} = $uncontaminatedFileName;
@@ -526,9 +515,9 @@ sub symphonyPostprocessSelectInSphere {
     my $xml        = new XML::Simple();
     my $parameters = $xml->XMLin($options{'pipelinePath'}."zoomInSelectInSphere.xml");
     # Iterate over expansion factors.
-    foreach my $epoch ( @{$entry->{'group'}->{'epochs'}} ) {
+    foreach my $epoch ( @{$entry->{'resolution'}->{'epochs'}} ) {
 	my $expansionFactorLabel = sprintf("sphericalOrigin:a%5.3f",$epoch->{'expansionFactor'});
-	(my $snapshot) = map {$entry->{'group'}->{'expansionFactors'}->[$_] == $epoch->{'expansionFactor'} ? $entry->{'group'}->{'snapshots'}->[$_] : ()} 0..$#{$entry->{'group'}->{'expansionFactors'}};
+	(my $snapshot) = map {$entry->{'resolution'}->{'expansionFactors'}->[$_] == $epoch->{'expansionFactor'} ? $entry->{'resolution'}->{'snapshots'}->[$_] : ()} 0..$#{$entry->{'resolution'}->{'expansionFactors'}};
 	$parameters->{'nbodyImporter'}                        ->{'fileName' }->{'value'} = $entry->{'path'}."snapshots/snapshot_".$snapshot;
 	$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[4]->{'fileName' }->{'value'} = $entry->{'path'}."selectedParticles_".$epoch->{'redshiftLabel'}.".hdf5";
 	$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[4]->{'redshift' }->{'value'} =                                       $epoch->{'redshift'     }        ;
@@ -562,7 +551,7 @@ sub symphonyPostprocessExtractSelectedIDs {
     my $jobs    =   shift() ;
     my %options = %{shift()};
     # Iterate over expansion factors.
-    foreach my $epoch ( @{$entry->{'group'}->{'epochs'}} ) {
+    foreach my $epoch ( @{$entry->{'resolution'}->{'epochs'}} ) {
 	# Read particle IDs.
 	next
 	    if ( -e $entry->{'path'}."selectedParticlesIDs_".$epoch->{'redshiftLabel'}.".hdf5" );
@@ -593,7 +582,7 @@ sub symphonyPostprocessSelectInICs {
     my $xml        = new XML::Simple();
     my $parameters = $xml->XMLin($options{'pipelinePath'}."zoomInSelectInICs.xml");
     # Iterate over expansion factors.
-    foreach my $epoch ( @{$entry->{'group'}->{'epochs'}} ) {
+    foreach my $epoch ( @{$entry->{'resolution'}->{'epochs'}} ) {
 	$parameters->{'nbodyImporter'}                        ->{'fileName'           }->{'value'} =                $entry->{'path'       }."ic/ic_gadget_dist"                                ;
 	$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[0]->{'idSelectionFileName'}->{'value'} =                $entry->{'path'       }."selectedParticlesIDs_".$epoch->{'redshiftLabel'}.    ".hdf5" ;
 	$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[1]->{'fileName'           }->{'value'} =                $entry->{'path'       }."selectedParticles_"   .$epoch->{'redshiftLabel'}."_ICs.hdf5" ;
@@ -629,7 +618,7 @@ sub symphonyPostprocessAnalyze {
     my $xml        = new XML::Simple();
     my $parameters = $xml->XMLin($options{'pipelinePath'}."zoomInAnalyze.xml");
     # Iterate over expansion factors.
-    foreach my $epoch ( @{$entry->{'group'}->{'epochs'}} ) {
+    foreach my $epoch ( @{$entry->{'resolution'}->{'epochs'}} ) {
 	$parameters->{'outputFileName'}                                                         ->{'value'} =                $entry->{'path'       }."environment_"      .$epoch->{'redshiftLabel'}.".hdf5"     ;
 	$parameters->{'nbodyImporter' }->{'nbodyImporter'}->[0]                   ->{'fileName'}->{'value'} =                $entry->{'path'       }."selectedParticles_".$epoch->{'redshiftLabel'}."_ICs.hdf5" ;
 	$parameters->{'nbodyImporter' }->{'nbodyImporter'}->[1]                   ->{'fileName'}->{'value'} =                $entry->{'path'       }."ic/ic_gadget_dist"                             ;
@@ -663,7 +652,7 @@ sub symphonyPostprocessSetVolume {
     my $jobs    =   shift() ;
     my %options = %{shift()};
     # Iterate over expansion factors.
-    foreach my $epoch ( @{$entry->{'group'}->{'epochs'}} ) {
+    foreach my $epoch ( @{$entry->{'resolution'}->{'epochs'}} ) {
 	# Extract the mass of the region.
 	my $analysisFile          = new PDL::IO::HDF5($entry->{'path'}."selectedParticles_".$epoch->{'redshiftLabel'}.".hdf5");
 	die("error: 'massTotal' attribute is missing from file '".$entry->{'path'}."selectedParticles_".$epoch->{'redshiftLabel'}.".hdf5'")
@@ -697,7 +686,7 @@ sub symphonyPostProcessMassFunction {
     my $jobs    =   shift() ;
     my %options = %{shift()};
     # Iterate over expansion factors.
-    foreach my $epoch ( @{$entry->{'group'}->{'epochs'}} ) {
+    foreach my $epoch ( @{$entry->{'resolution'}->{'epochs'}} ) {
 	# Extract overdensity from the analysis file.
 	my $analysisFile         = new PDL::IO::HDF5($entry->{'path'}."environment_".$epoch->{'redshiftLabel'}.":MPI0000.hdf5");
 	die("error: 'simulation0002' group is missing from file '".$entry->{'path'}."environment_".$epoch->{'redshiftLabel'}.":MPI0000.hdf5'")
