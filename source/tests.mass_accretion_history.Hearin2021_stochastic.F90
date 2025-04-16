@@ -99,7 +99,7 @@ program Test_Hearin2021_Stochastic_MAH
   allocate(randomNumberGeneratorGSL :: treeEarly%randomNumberGenerator_)
   select type (randomNumberGenerator_ => treeEarly%randomNumberGenerator_)
   type is (randomNumberGeneratorGSL)
-     randomNumberGenerator_=randomNumberGeneratorGSL(seed=8322_c_long)
+     randomNumberGenerator_=randomNumberGeneratorGSL(seed_=8322_c_long)
   end select
   call treeEarly%randomNumberGenerator_%seedSet   (seed=treeEarly%index,offset=.true.)
   call treeEarly%properties            %initialize(                                  )
@@ -114,7 +114,7 @@ program Test_Hearin2021_Stochastic_MAH
   allocate(randomNumberGeneratorGSL :: treeLate %randomNumberGenerator_)
   select type (randomNumberGenerator_ => treeLate %randomNumberGenerator_)
   type is (randomNumberGeneratorGSL)
-     randomNumberGenerator_=randomNumberGeneratorGSL(seed=8322_c_long)
+     randomNumberGenerator_=randomNumberGeneratorGSL(seed_=8322_c_long)
   end select
   call treeLate %randomNumberGenerator_%seedSet   (seed=treeLate %index,offset=.true.)
   call treeLate %properties            %initialize(                                  )

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which provieds a class that implements random number generators.
+Contains a module which provides a class that implements random number generators.
 !!}
 
 module Numerical_Random_Numbers
@@ -44,6 +44,22 @@ module Numerical_Random_Numbers
     <type>logical</type>
     <pass>yes</pass>
    </method>
+   <method name="rangeMinimum" >
+    <description>Return the smallest integer in the range for this generator.</description>
+    <type>integer(c_long)</type>
+    <pass>yes</pass>
+   </method>
+   <method name="rangeMaximum" >
+    <description>Return the largest integer in the range for this generator.</description>
+    <type>integer(c_long)</type>
+    <pass>yes</pass>
+   </method>
+   <method name="sample" >
+    <description>Return a random integer. If the optional argument {\normalfont \ttfamily n} is supplied the random integer will lie in the range 0 to  {\normalfont \ttfamily n}-1 inclusive (with all integers being equally likely). Otherwise, the integer will be drawn from the full range provided by the generator.</description>
+    <type>integer(c_long)</type>
+    <pass>yes</pass>
+    <argument>integer(c_long), intent(in   ), optional :: n</argument>
+   </method>
    <method name="uniformSample" >
     <description>Return a random number drawn from a uniform distribution on [0,1).</description>
     <type>double precision</type>
@@ -66,6 +82,11 @@ module Numerical_Random_Numbers
     <pass>yes</pass>
     <argument>integer(c_long), intent(in   ) :: seed</argument>
     <argument>logical        , intent(in   ) :: offset</argument>
+   </method>
+   <method name="seed" >
+    <description>Return the seed for this random number generator.</description>
+    <type>integer(c_long)</type>
+    <pass>yes</pass>
    </method>
   </functionClass>
   !!]

@@ -36,16 +36,20 @@
      A random number generator class which utilizes the \gls{gsl} random number generators.
      !!}
      private
-     integer(c_long) :: seed
+     integer(c_long) :: seed_                              , seed__
      logical         :: ompThreadOffset                    , mpiRankOffset
      type   (c_ptr ) :: gslRandomNumberGenerator=c_null_ptr
    contains
      final     ::                         gslDestructor
      procedure :: openMPIndependent    => gslOpenMPIndependent
      procedure :: mpiIndependent       => gslMPIIndependent
+     procedure :: rangeMinimum         => gslRangeMinimum
+     procedure :: rangeMaximum         => gslRangeMaximum
+     procedure :: sample               => gslSample
      procedure :: uniformSample        => gslUniformSample
      procedure :: poissonSample        => gslPoissonSample
      procedure :: standardNormalSample => gslStandardNormalSample
+     procedure :: seed                 => gslSeed
      procedure :: seedSet              => gslSeedSet
      procedure :: deepCopy             => gslDeepCopy
      procedure :: stateStore           => gslStateStore
@@ -92,6 +96,43 @@
        import c_ptr
        type(c_ptr), value :: r
      end subroutine gsl_rng_free
+
+     function gsl_rng_min(r) bind(c,name='gsl_rng_min')
+       !!{
+       Template for the GSL random number generator minimum function.
+       !!}
+       import c_ptr, c_long
+       integer(c_long)        :: gsl_rng_min
+       type   (c_ptr ), value :: r
+     end function gsl_rng_min
+
+     function gsl_rng_max(r) bind(c,name='gsl_rng_max')
+       !!{
+       Template for the GSL random number generator maximum function.
+       !!}
+       import c_ptr, c_long
+       integer(c_long)        :: gsl_rng_max
+       type   (c_ptr ), value :: r
+     end function gsl_rng_max
+
+     function gsl_rng_uniform_int(r,n) bind(c,name='gsl_rng_uniform_int')
+       !!{
+       Template for the GSL random number generator sampling function with a given upper bound.
+       !!}
+       import c_ptr, c_long
+       integer(c_long)        :: gsl_rng_uniform_int
+       type   (c_ptr ), value :: r
+       integer(c_long), value :: n
+     end function gsl_rng_uniform_int
+
+     function gsl_rng_get(r) bind(c,name='gsl_rng_get')
+       !!{
+       Template for the GSL random number generator sampling function.
+       !!}
+       import c_ptr, c_long
+       integer(c_long)        :: gsl_rng_get
+       type   (c_ptr ), value :: r
+     end function gsl_rng_get
 
      function gsl_rng_uniform(r) bind(c,name='gsl_rng_uniform')
        !!{
@@ -196,7 +237,7 @@ contains
     return
   end function gslConstructorParameters
 
-  function gslConstructorInternal(seed,ompThreadOffset,mpiRankOffset) result(self)
+  function gslConstructorInternal(seed_,ompThreadOffset,mpiRankOffset) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily gsl} random number generator class.
     !!}
@@ -209,11 +250,11 @@ contains
 #ifdef USEMPI
     integer                                                    :: mpiRank        , iError
 #endif
-    integer(c_long                  ), intent(in   )           :: seed
+    integer(c_long                  ), intent(in   )           :: seed_
     logical                          , intent(in   ), optional :: ompThreadOffset, mpiRankOffset
-    integer(c_long                  )                          :: seed_
+    integer(c_long                  )                          :: seed__
     !![
-    <constructorAssign variables="seed"/>
+    <constructorAssign variables="seed_"/>
     <optionalArgument name="ompThreadOffset" defaultsTo=".false."/>
     <optionalArgument name="mpiRankOffset"   defaultsTo=".false."/>
     !!]
@@ -229,15 +270,16 @@ contains
        !$omp end critical(GSL_RNG_Initialize)
     end if
     self%gslRandomNumberGenerator=GSL_RNG_Alloc(GSL_Rng_Default)
-    seed_                        =seed
-    !$ if (ompThreadOffset_) seed_=seed_+OMP_Get_Thread_Num()
+    seed__                         =seed_
+    !$ if (ompThreadOffset_) seed__=seed__+OMP_Get_Thread_Num()
     if (mpiRankOffset_) then
 #ifdef USEMPI
        call MPI_Comm_Rank(MPI_Comm_World,mpiRank,iError)
-       seed_=seed_+mpiRank
+       seed__=seed__+mpiRank
 #endif
     end if
-    call GSL_RNG_Set(self%gslRandomNumberGenerator,seed_)
+    call GSL_RNG_Set(self%gslRandomNumberGenerator,seed__)
+    self%seed_=seed__
     return
   end function gslConstructorInternal
   
@@ -279,6 +321,50 @@ contains
     return
   end function gslOpenMPIndependent
 
+  function gslRangeMinimum(self)
+    !!{
+    Return the minimum of the range.
+    !!}
+    implicit none
+    integer(c_long                  )                :: gslRangeMinimum
+    class  (randomNumberGeneratorGSL), intent(inout) :: self
+
+    gslRangeMinimum=GSL_RNG_Min(self%gslRandomNumberGenerator)
+    return
+  end function gslRangeMinimum
+
+  function gslRangeMaximum(self)
+    !!{
+    Return the maximum of the range.
+    !!}
+    implicit none
+    integer(c_long                  )                :: gslRangeMaximum
+    class  (randomNumberGeneratorGSL), intent(inout) :: self
+
+    gslRangeMaximum=GSL_RNG_Max(self%gslRandomNumberGenerator)
+    return
+  end function gslRangeMaximum
+
+  function gslSample(self,n)
+    !!{
+    Sample a random integer.
+    !!}
+    implicit none
+    integer(c_long                  )                          :: gslSample
+    class  (randomNumberGeneratorGSL), intent(inout)           :: self
+    integer(c_long                  ), intent(in   ), optional :: n
+
+    if (present(n)) then
+       gslSample=GSL_RNG_Uniform_Int(self%gslRandomNumberGenerator,n)
+    else
+       gslSample=-1_c_long
+       do while (gslSample <= 0_c_long)
+          gslSample=GSL_RNG_Get(self%gslRandomNumberGenerator)
+       end do
+    end if
+    return
+  end function gslSample
+
   double precision function gslUniformSample(self)
     !!{
     Sample from a uniform distribution on the interval [0,1).
@@ -313,6 +399,18 @@ contains
     return
   end function gslStandardNormalSample
 
+  function gslSeed(self) result(seed)
+    !!{
+    Return the seed for this random number generator.
+    !!}
+    implicit none
+    integer(c_long                  )                :: seed
+    class  (randomNumberGeneratorGSL), intent(inout) :: self
+
+    seed=self%seed__
+    return
+  end function gslSeed
+
   subroutine gslSeedSet(self,seed,offset)
     !!{
     Reset the seed for this random number generator.
@@ -324,8 +422,9 @@ contains
     integer(c_long                  )                :: seed_
 
     seed_=seed
-    if (offset) seed_=seed_+self%seed
+    if (offset) seed_=seed_+self%seed_
     call GSL_RNG_Set(self%gslRandomNumberGenerator,seed_)
+    self%seed__=seed_
     return
   end subroutine gslSeedSet
 
@@ -341,7 +440,8 @@ contains
     call self%randomNumberGeneratorClass%deepCopy(destination)
     select type (destination)
     type is (randomNumberGeneratorGSL)
-       destination%seed                    =              self%seed
+       destination%seed_                   =              self%seed_
+       destination%seed__                  =              self%seed__
        destination%ompThreadOffset         =              self%ompThreadOffset
        destination%mpiRankOffset           =              self%mpiRankOffset
        destination%gslRandomNumberGenerator=GSL_Rng_Clone(self%gslRandomNumberGenerator)
@@ -378,8 +478,12 @@ contains
     self%stateOperationID=stateOperationID
     call displayMessage('object type "randomNumberGeneratorGSL"',verbosity=verbosityLevelWorking)
     if (displayVerbosity() >= verbosityLevelWorking) then
-       write (label,'(i16)') sizeof(self%seed)
-       call displayMessage('storing "seed" with size '//trim(adjustl(label))//' bytes')
+       write (label,'(i16)') sizeof(self%seed_)
+       call displayMessage('storing "seed_" with size '//trim(adjustl(label))//' bytes')
+    end if
+    if (displayVerbosity() >= verbosityLevelWorking) then
+       write (label,'(i16)') sizeof(self%seed__)
+       call displayMessage('storing "seed__" with size '//trim(adjustl(label))//' bytes')
     end if
     if (displayVerbosity() >= verbosityLevelWorking) then
        write (label,'(i16)') sizeof(self%ompthreadoffset)
@@ -389,7 +493,7 @@ contains
        write (label,'(i16)') sizeof(self%mpirankoffset)
        call displayMessage('storing "mpirankoffset" with size '//trim(adjustl(label))//' bytes')
     end if
-    write (stateFile) self%seed,self%ompThreadOffset,self%mpiRankOffset
+    write (stateFile) self%seed_,self%seed__,self%ompThreadOffset,self%mpiRankOffset
     status=GSL_Rng_FWrite(gslStateFile,self%gslRandomNumberGenerator)
     if (status /= GSL_Success) call Error_Report('failed to store GSL random number generator state'//{introspection:location})
     call displayUnindent('done',verbosity=verbosityLevelWorking)
@@ -421,10 +525,11 @@ contains
     end if
     self%stateOperationID=stateOperationID
     call displayMessage('object type "randomNumberGeneratorGSL"',verbosity=verbosityLevelWorking)
-    call displayMessage('restoring "seed"'                      ,verbosity=verbosityLevelWorking)
+    call displayMessage('restoring "seed_"'                     ,verbosity=verbosityLevelWorking)
+    call displayMessage('restoring "seed__"'                    ,verbosity=verbosityLevelWorking)
     call displayMessage('restoring "ompthreadoffset"'           ,verbosity=verbosityLevelWorking)
     call displayMessage('restoring "mpirankoffset"'             ,verbosity=verbosityLevelWorking)
-    read (stateFile) self%seed,self%ompThreadOffset,self%mpiRankOffset
+    read (stateFile) self%seed_,self%seed__,self%ompThreadOffset,self%mpiRankOffset
     status=GSL_Rng_FRead(gslStateFile,self%gslRandomNumberGenerator)
     if (status /= GSL_Success) call Error_Report('failed to store GSL random number generator state'//{introspection:location})
     call displayUnindent('done',verbosity=verbosityLevelWorking)
