@@ -519,7 +519,7 @@
 	<simulation name="WDM:36eV:cutoff">
 	  <powerSpectrumClass value="COZMIC:WDM:6keV:cutoff"    />
 	  <label              value="Milky Way"                 />
-	  <transferFunction   value="WDM:6keV:cutoff            />
+	  <transferFunction   value="WDM:6keV:cutoff"           />
 	  <realizations       value="Halo004"                   />
 	  <hostHaloIDs        Halo004="6221903"                 />
 	</simulation>
@@ -807,7 +807,7 @@
 	<simulation name="WDM:36eV:cutoff">
 	  <powerSpectrumClass value="COZMIC:WDM:6keV:cutoff"    />
 	  <label              value="Milky Way"                 />
-	  <transferFunction   value="WDM:6keV:cutoff            />
+	  <transferFunction   value="WDM:6keV:cutoff"           />
 	  <realizations       value="Halo004"                   />
 	  <hostHaloIDs        Halo004="30307651"                />
 	</simulation>
