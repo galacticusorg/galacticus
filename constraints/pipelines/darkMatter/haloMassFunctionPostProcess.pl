@@ -46,9 +46,9 @@ my $queueConfig  = &Galacticus::Options::Config($queueManager->{'manager'     })
 # Parse the simulations definition file.
 my $xml = new XML::Simple();
 my $simulations = $xml->XMLin(
-    $options{'pipelinePath'}."haloMassFunctionSimulations.xml",
-    ForceArray => [ "suite"         , "group"         , "simulation"          ],
-    KeyAttr    => {  suite => "name",  group => "name",  simulation => "name" }
+    $options{'pipelinePath'}."simulations.xml",
+    ForceArray => [ "suite"         , "group"         , "simulation"         , "resolution"           ],
+    KeyAttr    => {  suite => "name",  group => "name",  simulation => "name",  resolution  => "name" }
     );
 
 # Determine if models/plots should be forcibly remade.
@@ -59,7 +59,7 @@ $options{'force'} = "yes"
 my @entries = &iterate($simulations,\%options);
 foreach my $entry ( @entries ) {
     # Construct the parameter and model file names.
-    my $identifier = $entry->{'suite'}->{'name'}."_".$entry->{'group'}->{'name'}."_".$entry->{'simulation'}->{'name'}."_".$entry->{'realization'}."_z".$entry->{'redshift'};
+    my $identifier = $entry->{'suite'}->{'name'}."_".$entry->{'group'}->{'name'}."_".$entry->{'resolution'}->{'name'}."_".$entry->{'simulation'}->{'name'}."_".$entry->{'realization'}."_z".$entry->{'redshift'};
     $entry->{'fileParameters'} = $options{'outputDirectory'}."haloMassFunctionBase_".$identifier.".xml";
     $entry->{'filePrefix'    } = $options{'outputDirectory'}."haloMassFunction_"    .$identifier       ;
 }
@@ -67,29 +67,11 @@ foreach my $entry ( @entries ) {
 # Create sets of models that can be plotted together.
 my %setsRealization;
 foreach my $entry ( @entries ) {
-    my $identifier = $entry->{'suite'}->{'name'}."_".$entry->{'group'}->{'name'}."_".$entry->{'simulation'}->{'name'}."_z".$entry->{'redshift'};
+    my $identifier = $entry->{'suite'}->{'name'}."_".$entry->{'group'}->{'name'}."_".$entry->{'resolution'}->{'name'}."_".$entry->{'simulation'}->{'name'}."_z".$entry->{'redshift'};
     push(
 	@{$setsRealization{$identifier}},
 	$entry
 	);
-}
-my %identifiersHiRes;
-my %setsResolution;
-foreach my $entry ( @entries ) {
-    next
-	unless ( $entry->{'group'}->{'name'} =~ m/:hires$/ );
-    (my $identifierLoRes = $entry->{'suite'}->{'name'}."_".$entry->{'group'}->{'name'}."_".$entry->{'simulation'}->{'name'}."_z".$entry->{'redshift'}) =~ s/:hires//;
-    ++$identifiersHiRes{$identifierLoRes};
-}
-foreach my $entry ( @entries ) {
-    (my $identifierLoRes = $entry->{'suite'}->{'name'}."_".$entry->{'group'}->{'name'}."_".$entry->{'simulation'}->{'name'}."_z".$entry->{'redshift'}) =~ s/:hires//;
-    next
-	unless ( exists($identifiersHiRes{$identifierLoRes}) );
-    if ( $entry->{'group'}->{'name'} =~ m/:hires$/ ) {
-	push(@{$setsResolution{$identifierLoRes}->{'hiRes'}},$entry);
-    } else {
-    	push(@{$setsResolution{$identifierLoRes}->{'loRes'}},$entry);
-    }
 }
 
 # Generate jobs to create the models.
@@ -107,7 +89,7 @@ push(
 	    command    => $ENV{'GALACTICUS_EXEC_PATH'}."/Galacticus.exe ".$_->{'fileParameters'},
 	    launchFile => $_->{'filePrefix'}.".sh" ,
 	    logFile    => $_->{'filePrefix'}.".log",
-	    label      => "haloMassFunction_".$_->{'suite'}->{'name'}."_".$_->{'group'}->{'name'}."_".$_->{'simulation'}->{'name'}."_".$_->{'realization'}."_z".$_->{'redshift'},
+	    label      => "haloMassFunction_".$_->{'suite'}->{'name'}."_".$_->{'group'}->{'name'}."_".$_->{'resolution'}->{'name'}."_".$_->{'simulation'}->{'name'}."_".$_->{'realization'}."_z".$_->{'redshift'},
 	    ppn        => 1,
 	    nodes      => 1,
 	    mpi        => "no"
@@ -128,7 +110,7 @@ push(
 	    command    => $ENV{'GALACTICUS_EXEC_PATH'}."/Galacticus.exe ".$_->{'fileParameters'}." ".$ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/changesTrue.xml",
 	    launchFile => $_->{'filePrefix'}."_true.sh" ,
 	    logFile    => $_->{'filePrefix'}."_true.log",
-	    label      => "haloMassFunction_".$_->{'suite'}->{'name'}."_".$_->{'group'}->{'name'}."_".$_->{'simulation'}->{'name'}."_".$_->{'realization'}."_z".$_->{'redshift'}."_true",
+	    label      => "haloMassFunction_".$_->{'suite'}->{'name'}."_".$_->{'group'}->{'name'}."_".$_->{'resolution'}->{'name'}."_".$_->{'simulation'}->{'name'}."_".$_->{'realization'}."_z".$_->{'redshift'}."_true",
 	    ppn        => 1,
 	    nodes      => 1,
 	    mpi        => "no"
@@ -149,7 +131,7 @@ push(
 	    command    => $ENV{'GALACTICUS_EXEC_PATH'}."/Galacticus.exe ".$_->{'fileParameters'}." ".$ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/changesDespali2015.xml",
 	    launchFile => $_->{'filePrefix'}."_despali2015.sh" ,
 	    logFile    => $_->{'filePrefix'}."_despali2015.log",
-	    label      => "haloMassFunction_".$_->{'suite'}->{'name'}."_".$_->{'group'}->{'name'}."_".$_->{'simulation'}->{'name'}."_".$_->{'realization'}."_z".$_->{'redshift'}."_despali2015",
+	    label      => "haloMassFunction_".$_->{'suite'}->{'name'}."_".$_->{'group'}->{'name'}."_".$_->{'resolution'}->{'name'}."_".$_->{'simulation'}->{'name'}."_".$_->{'realization'}."_z".$_->{'redshift'}."_despali2015",
 	    ppn        => 1,
 	    nodes      => 1,
 	    mpi        => "no"
@@ -170,7 +152,7 @@ push(
 	    command    => $ENV{'GALACTICUS_EXEC_PATH'}."/Galacticus.exe ".$_->{'fileParameters'}." ".$ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/changesBohr2021.xml",
 	    launchFile => $_->{'filePrefix'}."_bohr2021.sh" ,
 	    logFile    => $_->{'filePrefix'}."_bohr2021.log",
-	    label      => "haloMassFunction_".$_->{'suite'}->{'name'}."_".$_->{'group'}->{'name'}."_".$_->{'simulation'}->{'name'}."_".$_->{'realization'}."_z".$_->{'redshift'}."_bohr2021",
+	    label      => "haloMassFunction_".$_->{'suite'}->{'name'}."_".$_->{'group'}->{'name'}."_".$_->{'resolution'}->{'name'}."_".$_->{'simulation'}->{'name'}."_".$_->{'realization'}."_z".$_->{'redshift'}."_bohr2021",
 	    ppn        => 1,
 	    nodes      => 1,
 	    mpi        => "no"
@@ -193,7 +175,7 @@ foreach my $entry ( @entries ) {
 	foreach ( 'haloMass', 'haloMassFunctionLnMBinAveraged' );
     $dataModel->{'nonZero'} = which($dataModel->{'haloMassFunctionLnMBinAveraged'} > 0);
     # Determine the minimum halo mass that was used in the fit.
-    my $massHaloMinimum = $options{'countParticlesMinimum'}*$entry->{'group'}->{'massParticle'};
+    my $massHaloMinimum = $options{'countParticlesMinimum'}*$entry->{'resolution'}->{'massParticle'};
     # Read the target data.
     my $dataTarget;
     my $fileTarget       = new PDL::IO::HDF5($entry->{'fileTargetData'});
@@ -237,7 +219,7 @@ foreach my $entry ( @entries ) {
     open($gnuPlot,"|gnuplot");
     print $gnuPlot "set terminal cairolatex pdf standalone color lw 2 size 4in,4in\n";
     print $gnuPlot "set output '".$plotFileTeX."'\n";
-    print $gnuPlot "set title offset 0.0,-0.5 '".$entry->{'suite'}->{'name'}." ".$entry->{'group'}->{'name'}." ".$entry->{'simulation'}->{'name'}." ".$entry->{'realization'}." \$z=".$entry->{'redshift'}."\$'\n";
+    print $gnuPlot "set title offset 0.0,-0.5 '".$entry->{'suite'}->{'name'}." ".$entry->{'group'}->{'name'}." ".$entry->{'resolution'}->{'name'}." ".$entry->{'simulation'}->{'name'}." ".$entry->{'realization'}." \$z=".$entry->{'redshift'}."\$'\n";
     print $gnuPlot "set xlabel '\$ M \$ [\$\\mathrm{M}_\\odot\$]'\n";
     print $gnuPlot "set ylabel '\$ \\mathrm{d} n / \\mathrm{d} \\log M \$ [Mpc\$^{-3}\$]\n";
     print $gnuPlot "set lmargin screen 0.15\n";
