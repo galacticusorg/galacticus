@@ -1740,7 +1740,7 @@ CODE
 		}
 		$modulePreContains->{'content'} .= "     <method method=\"".$methodName."\">\n";
 		$modulePreContains->{'content'} .= "      <description>\n";
-                $modulePreContains->{'content'} .= join("\n",map {"       ".$_} split("\n",$method->{'description'}))."\n";
+                $modulePreContains->{'content'} .= join("\n",map {"       ".$xml->escape_value($_)} split("\n",$method->{'description'}))."\n";
                 $modulePreContains->{'content'} .= "      </description>\n";
 		$modulePreContains->{'content'} .= "     </method>\n";
 		if ( exists($directive->{'generic'}) ) {
