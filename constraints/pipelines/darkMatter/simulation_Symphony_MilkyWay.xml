@@ -6,7 +6,7 @@
   <!-- Simulation defintion -->
   <simulation value="" ignoreWarnings="true">
     <!-- Milky Way zoom-in simulation properties -->
-    <massParticle>
+    <massParticle value="" ignoreWarnings="true">
       <resolutionX1 value="4.02830e05"/>
       <resolutionX8 value="5.03538e04"/>
     </massParticle>

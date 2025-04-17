@@ -6,7 +6,7 @@
   <!-- Simulation defintion -->
   <simulation value="" ignoreWarnings="true">
     <!-- BigMDPL simulation properties; https://www.cosmosim.org/cms/simulations/bigmdpl -->
-    <massParticle>
+    <massParticle value="" ignoreWarnings="true">
       <resolutionX1      value="=2.359e10/([cosmologyParameters/HubbleConstant]/100.0)" />
     </massParticle>
     <lengthCube          value="=2.500e03/([cosmologyParameters/HubbleConstant]/100.0)" />

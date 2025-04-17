@@ -6,7 +6,7 @@
   <!-- Simulation defintion -->
   <simulation value="" ignoreWarnings="true">
     <!-- SMDPL simulation properties; https://www.cosmosim.org/cms/simulations/smdpl -->
-    <massParticle>
+    <massParticle value="" ignoreWarnings="true">
       <resolutionX1      value="=9.63e7/([cosmologyParameters/HubbleConstant]/100.0)"  />
     </massParticle>
     <lengthCube          value="=4.00e2/([cosmologyParameters/HubbleConstant]/100.0)"  />
