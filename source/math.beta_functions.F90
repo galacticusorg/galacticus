@@ -28,56 +28,73 @@ module Beta_Functions
   !!{
   Implements beta functions.
   !!}
-  use, intrinsic :: ISO_C_Binding, only : c_double
+  use, intrinsic :: ISO_C_Binding, only : c_double     , c_int
+  use            :: Interface_GSL, only : gsl_sf_result
   implicit none
   private
   public :: Beta_Function, Beta_Function_Incomplete_Normalized
 
   interface
-     function gsl_sf_beta(a,b) bind(c,name='gsl_sf_beta')
+     function gsl_sf_beta_e(a,b,r) bind(c,name='gsl_sf_beta_e')
        !!{
        Template for the GSL beta C function.
        !!}
        import
-       real(c_double)        :: gsl_sf_beta
-       real(c_double), value :: a          , b
-     end function gsl_sf_beta
+       integer(c_int        )        :: gsl_sf_beta_e
+       real   (c_double     ), value :: a            , b
+       type   (gsl_sf_result)        :: r
+     end function gsl_sf_beta_e
   end interface
 
   interface
-     function gsl_sf_beta_inc(a,b,x) bind(c,name='gsl_sf_beta_inc')
+     function gsl_sf_beta_inc_e(a,b,x,r) bind(c,name='gsl_sf_beta_inc_e')
        !!{
        Template for the GSL incomplete beta C function.
        !!}
        import
-       real(c_double)        :: gsl_sf_beta_inc
-       real(c_double), value :: a              , b, &
-            &                   x
-     end function gsl_sf_beta_inc
+       integer(c_int        )        :: gsl_sf_beta_inc_e
+       real   (c_double     ), value :: a                , b, &
+            &                           x
+       type   (gsl_sf_result)        :: r
+     end function gsl_sf_beta_inc_e
   end interface
 
 contains
 
-  double precision function Beta_Function(a,b)
+  double precision function Beta_Function(a,b) result(r)
     !!{
     Evaluate the beta function, $B(a,b)$.
     !!}
+    use :: Error             , only : Error_Report
+    use :: Interface_GSL     , only : GSL_Success , gslErrorDecode
+    use :: ISO_Varying_String, only : operator(//)
     implicit none
-    double precision, intent(in   ) :: a, b
+    double precision               , intent(in   ) :: a     , b
+    integer         (c_int        )                :: status
+    type            (gsl_sf_result)                :: r_
 
-    Beta_Function=GSL_SF_Beta(a,b)
+    status=GSL_SF_Beta_E(a,b,r_    )
+    r     =                  r_%val
+    if (status /= GSL_Success) call Error_Report('beta function evaluation failed: '//gslErrorDecode(status)//{introspection:location})
     return
   end function Beta_Function
 
-  double precision function Beta_Function_Incomplete_Normalized(a,b,x)
+  double precision function Beta_Function_Incomplete_Normalized(a,b,x) result(r)
     !!{
     Evaluate the normalized incomplete beta function, $B_x(a,b)/B(a,b)$.
     !!}
+    use :: Error             , only : Error_Report, GSL_Error_Handler_Abort_Off, GSL_Error_Handler_Abort_On
+    use :: Interface_GSL     , only : GSL_Success , gslErrorDecode
+    use :: ISO_Varying_String, only : operator(//)
     implicit none
-    double precision, intent(in   ) :: a, b, &
-         &                             x
+    double precision               , intent(in   ) :: a     , b, &
+         &                                            x
+    integer         (c_int        )                :: status
+    type            (gsl_sf_result)                :: r_
 
-    Beta_Function_Incomplete_Normalized=GSL_SF_Beta_Inc(a,b,x)
+    status=GSL_SF_Beta_Inc_E(a,b,x,r_    )
+    r     =                        r_%val
+    if (status /= GSL_Success) call Error_Report('incomplete beta function evaluation failed: '//gslErrorDecode(status)//{introspection:location})
     return
   end function Beta_Function_Incomplete_Normalized
 
