@@ -199,7 +199,7 @@ contains
     if (.not.self%haveProperties .or. any(self%properties == 'velocity'  )) call simulations(1)%propertiesRealRank1%set('velocity'  ,velocity   )
     write (snapshotLabel,'(a,i5.5)') 'Snapshot',self%snapshot
     !$ call hdf5Access%set()
-    call self%file%openFile(char(self%fileName),readOnly=.false.,objectsOverwritable=.true.)
+    call self%file%openFile(char(self%fileName),readOnly=.true.,objectsOverwritable=.false.)
     snapshotGroup            =self%file         %openGroup(snapshotLabel)
     simulations  (1)%analysis=     snapshotGroup%openGroup('HaloCatalog')
     call simulations(1)%analysis%datasets(datasetNames)
