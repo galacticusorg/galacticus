@@ -7,7 +7,7 @@
   <simulation value="" ignoreWarnings="true">
     <!-- Milky Way zoom-in simulation properties -->
     <massParticle>
-      <resolutionX1 value="3.3e6"/>
+      <resolutionX1 value="3.22264e6"/>
     </massParticle>
     <subvolumes          value="2"                                                                      />
     <simulationReference value="Nadler et al."                                                          />
