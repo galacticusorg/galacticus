@@ -16,7 +16,7 @@ use Galacticus::Launch::PBS;
 use Galacticus::Launch::Slurm;
 use Galacticus::Launch::Local;
 use Galacticus::Constraints::Parameters;
-use Galacticus::Constraints::HaloMassFunctions qw(iterate);
+use Galacticus::Constraints::Simulations qw(iterate);
 
 # Analyze a variety of cosmological N-body simulations to extract statistics of interest.
 # Andrew Benson (14-October-2020)

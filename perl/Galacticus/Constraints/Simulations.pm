@@ -1,6 +1,6 @@
-# Contains a Perl module which implements various useful functions for halo mass function constraints.
+# Contains a Perl module which implements various useful functions for working with simulations used as constraints.
 
-package Galacticus::Constraints::HaloMassFunctions;
+package Galacticus::Constraints::Simulations;
 use strict;
 use warnings;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";

@@ -8,7 +8,7 @@ use XML::Simple;
 use PDL;
 use PDL::IO::HDF5;
 use Galacticus::Options;
-use Galacticus::Constraints::HaloMassFunctions qw(iterate);
+use Galacticus::Constraints::Simulations qw(iterate);
 use List::Util;
 use List::ExtraUtils;
 use Data::Dumper;

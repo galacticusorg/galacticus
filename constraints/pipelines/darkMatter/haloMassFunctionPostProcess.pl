@@ -16,7 +16,7 @@ use Galacticus::Launch::Hooks;
 use Galacticus::Launch::PBS;
 use Galacticus::Launch::Slurm;
 use Galacticus::Launch::Local;
-use Galacticus::Constraints::HaloMassFunctions qw(iterate);
+use Galacticus::Constraints::Simulations qw(iterate);
 
 # Generate a halo mass function using the optimal parameters.
 # Andrew Benson (22-September-2020)
