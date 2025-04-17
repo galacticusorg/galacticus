@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
+
+  <!-- Simulation defintion -->
+  <simulation value="" ignoreWarnings="true">
+    <!-- Milky Way zoom-in simulation properties -->
+    <massParticle>
+      <resolutionX1 value="3.3e6"/>
+    </massParticle>
+    <subvolumes          value="2"                                                                      />
+    <simulationReference value="Nadler et al."                                                          />
+    <simulationURL       value="https://web.stanford.edu/group/gfc/symphony/build/html/simulations.html"/>
+  </simulation>
+
+</parameters>
