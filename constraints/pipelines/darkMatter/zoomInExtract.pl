@@ -11,7 +11,7 @@ use PDL::IO::HDF5;
 # Andrew Benson (15-March-2022)
 
 # Get arguments.
-die("Usgae: haloMassFunctionZoomInExtract.pl <pathName> <primaryHaloFileName> <expansionFactor> <hubbleConstant> <massParticle> <massHostLogMin> <massHostLogMax> <hostHaloID>")
+die("Usage: zoomInExtract.pl <pathName> <primaryHaloFileName> <expansionFactor> <hubbleConstant> <massParticle> <massHostLogMin> <massHostLogMax> <hostHaloID>")
     unless ( scalar(@ARGV) == 8 );
 my $pathName            =     $ARGV[0];
 my $primaryHaloFileName =     $ARGV[1];
@@ -41,7 +41,7 @@ close($musicFile);
 $boxSizeOriginal /= $hubbleConstant;
 my $boxSize       = $boxSizeOriginal*$regionExtent->prodover()->pow(1.0/3.0);
 # Extract the name of the tree file being processed.
-my $treeFileName = $pathName."tree_0_0_0.dat";
+my $treeFileName = $pathName."tree_?_?_?.dat";
 # Read the merger tree file looking for the position and virial radius of the most massive halo.
 print "\tPre-processing tree file\n";
 system("awk '{if (substr(\$1,1,1) != \"#\" && NF > 1 && \$15 == 1) print \$1,\$2,\$4,\$11,\$12,\$18,\$19,\$20}' ".$treeFileName." > ".$pathName."treeReduced.dat")
