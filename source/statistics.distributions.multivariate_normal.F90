@@ -280,43 +280,50 @@ contains
        else
           ! Integration failed to give a non-zero answer. But, logarithmic probability was requested. Attempt to provide an
           ! approximate answer using Monte Carlo integration.
-          probability=self%cumulativeMonteCarlo(xLow,xHigh,logarithmic,status)
+          probability=self%cumulativeMonteCarlo(xLow,xHigh,logarithmic,errorRelative,status)
        end if
     end if
     return
   end function multivariateNormalCumulative
 
-  double precision function multivariateNormalCumulativeMonteCarlo(self,xLow,xHigh,logarithmic,status) result(probability)
+  double precision function multivariateNormalCumulativeMonteCarlo(self,xLow,xHigh,logarithmic,toleranceRelative,status) result(probability)
     !!{
     Return the cumulative probability of a multivariate normal distribution computed using Monte Carlo methods.
     !!}
-    use :: Interface_GSL               , only : GSL_Success
+    use :: Interface_GSL               , only : GSL_Success  , GSL_EMaxIter
     use :: Models_Likelihoods_Constants, only : logImprobable
-
+    use :: Error                       , only : Error_Report
 
 !! AJB HACK
 use :: Error, only : signalHandlerRegister, signalHandlerDeregister, signalHandlerInterface
     
     implicit none
     class           (distributionFunctionMultivariateNormal), intent(inout)                             :: self
-    double precision                                        , intent(in   ), dimension(         :     ) :: xLow                                          , xHigh
+    double precision                                        , intent(in   ), dimension(         :     ) :: xLow                                           , xHigh
     logical                                                 , intent(in   ), optional                   :: logarithmic
+    double precision                                        , intent(in   ), optional                   :: toleranceRelative
     integer                                                 , intent(  out), optional                   :: status
-    integer                                                 , parameter                                 :: countMonteCarlo                      =1000
-    integer                                                 , parameter                                 :: probabilityRelativeLogarithmicMaximum= 600.0d0
-    double precision                                                       , dimension(size(self%mean)) :: yMinimum                                      , yMaximum                       , &
-         &                                                                                                 x                                             , y
+    integer                                                 , parameter                                 :: countMonteCarlo                      = 1000
+    integer                                                 , parameter                                 :: countTrialsMaximum                   =10000
+    integer                                                 , parameter                                 :: probabilityRelativeLogarithmicMaximum=  600.0d0
+    double precision                                                       , dimension(size(self%mean)) :: yMinimum                                       , yMaximum                       , &
+         &                                                                                                 x                                              , y
     logical                                                                , dimension(size(self%mean)) :: useTransform
     logical                                                                                             :: failed
-    integer                                                                                             :: i                                             , iSample
-    double precision                                                                                    :: probabilityRelativeLogarithmic                , probabilityLogarithmicReference
+    integer                                                                                             :: i                                              , iSample                        , &
+         &                                                                                                 iTrial
+    double precision                                                                                    :: probabilityRelativeLogarithmic                 , probabilityLogarithmicReference, &
+         &                                                                                                 integralCumulative                             , integralSquareCumulative       , &
+         &                                                                                                 errorEstimate                                  , probability_                   , &
+         &                                                                                                 integralEstimate
 
     !! AJB HACK
     procedure(signalHandlerInterface), pointer :: handler
 
 
     !![
-    <optionalArgument name="logarithmic" defaultsTo=".false."/>
+    <optionalArgument name="logarithmic"       defaultsTo=".false."/>
+    <optionalArgument name="toleranceRelative" defaultsTo="1.0d-3" />
     !!]
 
     probability=0.0d0
@@ -340,7 +347,7 @@ use :: Error, only : signalHandlerRegister, signalHandlerDeregister, signalHandl
        x=min(abs(xLow),abs(xHigh))
     end where
     probabilityLogarithmicReference=self%density(x,logarithmic=.true.,status=status)
-    if (status /= GSL_Success) return
+    if (present(status) .and. status /= GSL_Success) return
     !! Use an tanh⁻¹ transform to allow integration over infinite intervals.
     useTransform=xLow == -huge(0.0d0) .or. xHigh == +huge(0.0d0)
     where (useTransform)
@@ -385,48 +392,88 @@ use :: Error, only : signalHandlerRegister, signalHandlerDeregister, signalHandl
     deallocate(xhigh_)
     deallocate(useTransform_)
     
-    !! Repeatedly try to evaluate the integral.
+    !! Repeatedly try to evaluate the integral. This is necessary as our first guess at a suitable probability density offset may
+    !! be incorrect (i.e. some points in the integration volume may have hugely higher probability density), forcing us to update
+    !! our guess and try again.
     failed=.true.
     do while (failed)
-       failed     =.false.
-       probability=0.0d0
-       do iSample=1,countMonteCarlo
-          do i=1,size(self%mean)
-             y(i)=yMinimum(i)+(yMaximum(i)-yMinimum(i))*self%randomNumberGenerator_%uniformSample()
-          end do
-          if (any(useTransform .and. abs(y) >= 1.0d0)) then
-             ! Point at infinity, zero density.
-          else
-             where (useTransform)
-                x=atanh(y)
-             elsewhere
-                x=      y
-             end where
-             probabilityRelativeLogarithmic=+      self%density                        (        x ,logarithmic=.true.      ,status=status) &
-                  &                         +2.0d0*     sum                            (logCosh(x),mask       =useTransform              ) &
-                  &                         -           probabilityLogarithmicReference
-             if (status /= GSL_Success) return
-             if (probabilityRelativeLogarithmic > probabilityRelativeLogarithmicMaximum) then
-                ! The relative probability is too large, which means that our initial offset was too small. Update the offset
-                ! probability, and start again.
-                probabilityLogarithmicReference=probabilityRelativeLogarithmic+probabilityLogarithmicReference
-                failed=.true.
-                exit
+       failed=.false.
+       !! Evaluate until sufficient precision is reached.
+       iTrial                  =      0
+       errorEstimate           =+huge(0.0d0)
+       integralEstimate        =-     1.0d0
+       integralCumulative      =+     0.0d0
+       integralSquareCumulative=+     0.0d0
+       probability             =+     0.0d0
+       do while (errorEstimate > toleranceRelative*integralEstimate)
+          iTrial=iTrial+1
+          if (iTrial > countTrialsMaximum) then
+             if (present(status)) then
+                status=GSL_EMaxIter
+                return
              else
-                probability=+probability                                                                                        &
-                     &      +exp(                                                                                               &
-                     &           +      self%density                        (        x ,logarithmic=.true.      ,status=status) &
-                     &           +2.0d0*     sum                            (logCosh(x),mask       =useTransform)               &
-                     &           -           probabilityLogarithmicReference                                                    &
-                     &          )
-                if (status /= GSL_Success) return
+                call Error_Report('integral failed to converge'//{introspection:location})
              end if
+          end if
+          probability_=0.0d0
+          do iSample=1,countMonteCarlo
+             do i=1,size(self%mean)
+                y(i)=yMinimum(i)+(yMaximum(i)-yMinimum(i))*self%randomNumberGenerator_%uniformSample()
+             end do
+             if (any(useTransform .and. abs(y) >= 1.0d0)) then
+                ! Point at infinity, zero density.
+             else
+                where (useTransform)
+                   x=atanh(y)
+                elsewhere
+                   x=      y
+                end where
+                probabilityRelativeLogarithmic=+      self%density                        (        x ,logarithmic=.true.      ,status=status) &
+                     &                         +2.0d0*     sum                            (logCosh(x),mask       =useTransform              ) &
+                     &                         -           probabilityLogarithmicReference
+                if (present(status) .and. status /= GSL_Success) return
+                if (probabilityRelativeLogarithmic > probabilityRelativeLogarithmicMaximum) then
+                   ! The relative probability is too large, which means that our initial offset was too small. Update the offset
+                   ! probability, and start again.
+                   probabilityLogarithmicReference=probabilityRelativeLogarithmic+probabilityLogarithmicReference
+                   failed=.true.
+                   exit
+                else
+                   probability_=+probability_                                                                                       &
+                        &       +exp(                                                                                               &
+                        &            +      self%density                        (        x ,logarithmic=.true.      ,status=status) &
+                        &            +2.0d0*     sum                            (logCosh(x),mask       =useTransform              ) &
+                        &            -           probabilityLogarithmicReference                                                    &
+                        &           )
+                   if (present(status) .and. status /= GSL_Success) return
+                end if
+             end if
+          end do
+          ! Accumulate the probability.
+          probability      =+probability  &
+               &            +probability_
+          ! Estimate the error in the current estimate of the probability.
+          integralCumulative      =+integralCumulative      +probability_
+          integralSquareCumulative=+integralSquareCumulative+probability_**2
+          integralEstimate        =+integralCumulative                       &
+               &                   /dble(iTrial)
+          if (iTrial > 1) then
+             errorEstimate        =+sqrt(                                               &
+                  &                      +(                                             &
+                  &                        + integralSquareCumulative/dble(iTrial )     &
+                  &                        -(integralCumulative      /dble(iTrial ))**2 &
+                  &                       )                                             &
+                  &                      /                            dble(iTrial-1)    &
+                  &                     )
+          else
+             errorEstimate        =+huge(0.0d0)
           end if
        end do
     end do
     if (probability > 0.0d0) then
        probability=+    log(     probability              )  & ! Take the log of the accumulated Monte Carlo probability.
             &      -    log(dble(countMonteCarlo         ))  & ! Find the mean by "dividing" by the number of Monte Carlo trials.
+            &      -    log(dble(iTrial                  ))  & ! Find the mean by "dividing" by the number of Monte Carlo trials.
             &      +sum(log(     yMaximum       -yMinimum )) & ! Multiply by the volume of the region integrated over.
             &      +probabilityLogarithmicReference            ! Add back on the reference probability.
        ! Convert from logarithmic form if requested.
