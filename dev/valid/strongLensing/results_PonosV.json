@@ -6,10 +6,10 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "ee197e314ac28f1eca3b6dcc47c5f88682bbddb5",
-        "message": "Merge pull request #829 from galacticusorg/featMergerTreeSeeds\n\nSet merger tree seeds using a dedicated class\n",
-        "timestamp": "2025-04-16 13:20:37+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/ee197e314ac28f1eca3b6dcc47c5f88682bbddb5"
+        "id": "268e1f06504a739c16d284e9940ce261a842001f",
+        "message": "Merge pull request #830 from galacticusorg/featNewClasses\n\nAdd miscellaneous new classes\n",
+        "timestamp": "2025-04-17 14:21:30+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/268e1f06504a739c16d284e9940ce261a842001f"
     },
     "surfaceDensity": {
         "percentageBelow": 32.14285714285714,
