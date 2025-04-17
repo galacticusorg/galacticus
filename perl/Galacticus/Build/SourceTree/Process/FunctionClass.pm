@@ -708,6 +708,7 @@ sub Process_FunctionClass {
 		{
 		    $code::type = $nonAbstractClass->{'name'};
 		    my $class = $nonAbstractClass;
+		    my $rankMaximum = 0;
 		    while ( $class ) {
 			if ( exists($class->{'runTimeFileDependencies'}) ) {
 			    unless ( $fileModificationCodeAdded ) {
@@ -719,23 +720,55 @@ sub Process_FunctionClass {
 			    }
 			    $descriptorCode .= "if (includeFileModificationTimes_) then\ncountRunTimeFileDependency=0\n";
 			    my @paths = split(" ",$class->{'runTimeFileDependencies'}->{'paths'});
+			    my $rankMaximum = 0;
 			    foreach $code::path ( @paths ) {
+				# Find the named path variable.
+				my $rank = 0;
+				foreach my $declaration ( @{$potentialNames->{'parameters'}} ) {
+				    if ( grep {$_ eq lc($code::path)} @{$declaration->{'variables'}} ) {
+					if ( grep {$_ =~ m/^dimension\s*\([a-z0-9_:,\s]+\)/} @{$declaration->{'attributes'}} ) {
+					    my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
+					    $rank                   = ($dimensionDeclarator =~ tr/,//)+1;
+					}
+				    }
+				}
+				$rankMaximum            = $rank
+				    if ( $rank > $rankMaximum );
 				$code::introspection = &Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'});
+				if ( $rank > 0 ) {
+				    $code::selector = "(".join(",",map {"i".$_} 1..$rank).")";
+				    for(my $i=0;$i<$rank;++$i) {
+					$code::dim = $i+1;
+					$descriptorCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
+do i{$dim}=lbound(self%{$path},dim={$dim}),ubound(self%{$path},dim={$dim})
+CODE
+				    }
+				}
 				$descriptorCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
-timeModification=File_Modification_Time(self%{$path},status)
+timeModification=File_Modification_Time(self%{$path}{$selector},status)
 if (status == errorStatusSuccess) then
  countRunTimeFileDependency=countRunTimeFileDependency+1
  fileDependencyParameterName=var_str("runTimeFileDependency")//countRunTimeFileDependency
- call descriptor%addParameter(char(fileDependencyParameterName),char(self%{$path}//": "//trim(timeModification)))
+ call descriptor%addParameter(char(fileDependencyParameterName),char(self%{$path}{$selector}//": "//trim(timeModification)))
 else if (status /= errorStatusNotExist) then
  call Error_Report('unable to get file modification time'//{$introspection})
 end if
 CODE
+				if ( $rank > 0 ) {
+				    for(my $i=0;$i<$rank;++$i) {
+					$code::dim = $i;
+					$descriptorCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
+end do
+CODE
+				    }
+				}
 			    }
 			    $descriptorCode .= "end if\n";
 			}
 			$class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
 		    }
+		    $descriptorCode = "integer :: ".join(", ",map {"i".$_} 1..$rankMaximum)."\n".$descriptorCode
+			if ( $rankMaximum > 0 );
 		}
 		# Call any special descriptor function.
 		$descriptorCode .= " call self%".$nonAbstractClass->{'descriptorSpecial'}."(parameters)\n"
