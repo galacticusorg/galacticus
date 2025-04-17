@@ -139,8 +139,8 @@ module Statistics_Distributions
   !!]
 
   ! Module-scope variables used in root-finding.
-  class(distributionFunction1DClass), pointer :: self_
-  double precision :: p_
+  class           (distributionFunction1DClass), pointer :: self_
+  double precision                                       :: p_
   !$omp threadprivate(self_,p_)
   
   ! Define a list of distributions.
