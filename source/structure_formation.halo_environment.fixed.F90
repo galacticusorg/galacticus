@@ -193,9 +193,9 @@ contains
 
     fixedHEOverdensityLinear=self%overdensity
     if (.not.presentDay_) then
-       basic                  =>  node                               %basic(                 )
-       fixedHEOverdensityLinear = +fixedHEOverdensityLinear                                    &
-            &                    *self                 %linearGrowth_%value(time=basic%time())
+       basic                    =>  node                                 %basic(                 )
+       fixedHEOverdensityLinear = +fixedHEOverdensityLinear                                        &
+            &                     *self                    %linearGrowth_%value(time=basic%time())
     end if
     return
   end function fixedHEOverdensityLinear
