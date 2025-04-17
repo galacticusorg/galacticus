@@ -144,16 +144,14 @@ contains
 
   double precision function negativeBinomialCumulative(self,x)
     !!{
-    Return the cumulative probability of a negativeBinomial discrete distribution.
+    Return the cumulative probability of a negative binomial discrete distribution.
     !!}
-    use :: Error, only : Error_Report
+    use :: Beta_Functions, only : Beta_Function_Incomplete_Normalized
     implicit none
     class  (distributionFunctionDiscrete1DNegativeBinomial), intent(inout) :: self
     integer                                                , intent(in   ) :: x
-    !$GLC attributes unused :: self, x
 
-    negativeBinomialCumulative=0.0d0
-    call Error_Report('cumulative distribution function is not implemented'//{introspection:location})
+    negativeBinomialCumulative=Beta_Function_Incomplete_Normalized(self%countFailures,dble(x+1),self%probabilitySuccess)
     return
   end function negativeBinomialCumulative
 
