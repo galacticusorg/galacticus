@@ -138,6 +138,38 @@ module Statistics_Distributions
   </functionClass>
   !!]
 
+  !![
+  <functionClass>
+   <name>distributionFunctionMultivariate</name>
+   <descriptiveName>Multivariate Distribution Functions</descriptiveName>
+   <description>Class providing multivariate distribution functions.</description>
+   <default>normal</default>
+   <data>class(randomNumberGeneratorClass), pointer :: randomNumberGenerator_ => null()</data>
+   <destructor>
+    <code>
+     call distributionFunctionMultivariateFinalize(self)
+     return
+    </code>
+   </destructor>
+   <method name="density" >
+     <type>double precision</type>
+     <pass>yes</pass>
+     <argument>double precision, intent(in   ), dimension(:) :: x          </argument>
+     <argument>logical         , intent(in   ), optional     :: logarithmic</argument>
+     <argument>integer         , intent(  out), optional     :: status     </argument>
+     <description>Return the probability density at {\normalfont \ttfamily x}.</description>
+   </method>
+   <method name="cumulative" >
+     <type>double precision</type>
+     <pass>yes</pass>
+     <argument>double precision, intent(in   ), dimension(:) :: xLow       , xHigh</argument>
+     <argument>logical         , intent(in   ), optional     :: logarithmic       </argument>
+     <argument>integer         , intent(  out), optional     :: status            </argument>
+     <description>Return the cumulative probability between {\normalfont \ttfamily xLow}, and {\normalfont \ttfamily xHigh}. The cumulative distribution is defined as $P(x_1 &lt; X_1,\ldots,x_N &lt; X_N)$ where $\mathbf{X}=${\normalfont \ttfamily x}.</description>     
+   </method>
+  </functionClass>
+  !!]
+
   ! Module-scope variables used in root-finding.
   class           (distributionFunction1DClass), pointer :: self_
   double precision                                       :: p_
@@ -161,6 +193,18 @@ contains
     !!]
     return
   end subroutine distributionFunction1DFinalize
+
+  subroutine distributionFunctionMultivariateFinalize(self)
+    !!{
+    Destructor for {\normalfont \ttfamily distributionFunction1D} objects.
+    !!}
+    type(distributionFunctionMultivariateClass), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%randomNumberGenerator_"/>
+    !!]
+    return
+  end subroutine distributionFunctionMultivariateFinalize
 
   double precision function inverseRoot(x)
     !!{

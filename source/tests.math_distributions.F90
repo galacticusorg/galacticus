@@ -25,22 +25,28 @@ program Test_Math_Distributions
   !!{
   Tests of mathematical distributions.
   !!}
-  use            :: Display                            , only : displayVerbositySet          , verbosityLevelStandard
+  use            :: Display                            , only : displayVerbositySet                  , verbosityLevelStandard
   use, intrinsic :: ISO_C_Binding                      , only : c_long
   use            :: Input_Parameters                   , only : inputParameters
-  use            :: Math_Distributions_Poisson_Binomial, only : Poisson_Binomial_Distribution, Poisson_Binomial_Distribution_Mean_Pairs
+  use            :: Math_Distributions_Poisson_Binomial, only : Poisson_Binomial_Distribution        , Poisson_Binomial_Distribution_Mean_Pairs
   use            :: Numerical_Random_Numbers           , only : randomNumberGeneratorGSL
-  use            :: Statistics_Distributions           , only : distributionFunction1DGamma  , distributionFunction1DVoight            , distributionFunction1DNonCentralChiDegree3
-  use            :: Unit_Tests                         , only : Assert                       , Unit_Tests_Begin_Group                  , Unit_Tests_End_Group                      , Unit_Tests_Finish
+  use            :: Statistics_Distributions           , only : distributionFunction1DGamma          , distributionFunction1DVoight            , distributionFunction1DNonCentralChiDegree3, distributionFunctionMultivariateNormal
+  use            :: Statistics_Distributions_Discrete  , only : distributionFunctionDiscrete1DPoisson
+  use            :: Unit_Tests                         , only : Assert                               , Unit_Tests_Begin_Group                  , Unit_Tests_End_Group                      , Unit_Tests_Finish
   implicit none
-  double precision                                            , dimension(  10) :: p                                          , x           , y
+  double precision                                            , dimension(  10) :: p                                                 , x           , &
+       &                                                                           y
   integer                                                     , dimension(0:10) :: trials
-  double precision                                            , dimension(0:10) :: Pk                                         , PkMonteCarlo, errorMonteCarlo
-  integer                                                     , parameter       :: trialCount=100000
+  double precision                                            , dimension(0:10) :: Pk                                                , PkMonteCarlo, &
+       &                                                                           errorMonteCarlo
+  integer                                                     , parameter       :: trialCount                                 =100000
   type            (distributionFunction1DGamma               )                  :: distributionGamma_
   type            (distributionFunction1DVoight              )                  :: distributionVoight_
   type            (distributionFunction1DNonCentralChiDegree3)                  :: distributionFunction1DNonCentralChiDegree3_
-  integer                                                                       :: i                                          , j           , k
+  type            (distributionFunctionDiscrete1DPoisson     )                  :: distributionFunctionDiscrete1DPoisson_
+  type            (distributionFunctionMultivariateNormal    )                  :: distributionFunctionMultivariateNormal_
+  integer                                                                       :: i                                                  , j           , &
+       &                                                                           k
   type            (randomNumberGeneratorGSL                  )                  :: prng
   type            (inputParameters                           )                  :: parameters
 
@@ -103,7 +109,24 @@ program Test_Math_Distributions
      p(i)=distributionFunction1DNonCentralChiDegree3_%cumulative(x(i))
   end do
   call Assert("Degree-3 non-central χ²: pdf",y,[7.63176d-2,1.13407d-1,1.30448d-1,1.37513d-1,1.38387d-1,1.35191d-1,1.29316d-1,1.21737d-1,1.00442d-1,8.41979d-2],relTol=1.0d-4)
-  call Assert("Degree-3 non-central χ²: cdf",p,[1.55904d-2,6.4311d-2,1.25813d-1,1.93121d-1,2.62302d-1,3.30833d-1,3.97048d-1,4.59866d-1,5.93405d-1,6.76438d-1],relTol=1.0d-4)
+  call Assert("Degree-3 non-central χ²: cdf",p,[1.55904d-2,6.43110d-2,1.25813d-1,1.93121d-1,2.62302d-1,3.30833d-1,3.97048d-1,4.59866d-1,5.93405d-1,6.76438d-1],relTol=1.0d-4)
+
+  ! Multivariate normal distribution.
+  distributionFunctionMultivariateNormal_=distributionFunctionMultivariateNormal([0.0d0,0.0d0,0.0d0],reshape([2.0d0,0.4d0,0.0d0,0.4d0,2.0d0,-0.6d0,0.0d0,-0.6d0,2.0d0],[3,3]),prng)
+  call Assert("Multivariate normal: pdf"              ,distributionFunctionMultivariateNormal_%density             (                                              x    =[1.0d0,1.4d0,-0.6d0]),0.01270358738648228d0,relTol=1.0d-4)
+  call Assert("Multivariate normal: cdf"              ,distributionFunctionMultivariateNormal_%cumulative          (xLow=[-huge(0.0d0),-huge(0.0d0),-huge(0.0d0)],xHigh=[1.0d0,1.4d0,-0.6d0]),0.19958093555056500d0,relTol=1.0d-4)
+  call Assert("Multivariate normal: cdf"              ,distributionFunctionMultivariateNormal_%cumulative          (xLow=[-huge(0.0d0),-huge(0.0d0),-0.6d0      ],xHigh=[1.0d0,1.4d0,+0.6d0]),0.21763692486068890d0,relTol=1.0d-4)
+  call Assert("Multivariate normal: cdf (Monte Carlo)",distributionFunctionMultivariateNormal_%cumulativeMonteCarlo(xLow=[-huge(0.0d0),-huge(0.0d0),-huge(0.0d0)],xHigh=[1.0d0,1.4d0,-0.6d0]),0.19958093555056500d0,relTol=1.0d-2)
+  call Assert("Multivariate normal: cdf (Monte Carlo)",distributionFunctionMultivariateNormal_%cumulativeMonteCarlo(xLow=[-huge(0.0d0),-huge(0.0d0),-0.6d0      ],xHigh=[1.0d0,1.4d0,+0.6d0]),0.21763692486068890d0,relTol=1.0d-2)
+  
+  ! Poisson distribution.
+  distributionFunctionDiscrete1DPoisson_=distributionFunctionDiscrete1DPoisson(3.6d0)
+  do i=1,10
+     y(i)=distributionFunctionDiscrete1DPoisson_%mass      (i-1)
+     p(i)=distributionFunctionDiscrete1DPoisson_%cumulative(i-1)
+  end do
+  call Assert("Poisson: pdf",y,[2.732372244729256d-2,9.836540081025320d-2,1.770577214584558d-1,2.124692657501470d-1,1.912223391751323d-1,1.376800842060951d-1,8.26080505236573d-2,4.248414026930945d-2,1.911786312118916d-2,7.647145248475688d-3],relTol=1.0d-4)
+  call Assert("Poisson: cdf",p,[2.732372244729256d-2,1.256891232575458d-1,3.027468447160016d-1,5.152161104661483d-1,7.064384496412808d-1,8.441185338473760d-1,9.26726584371033d-1,9.692107246403430d-1,9.883285877615320d-1,9.959757330100080d-1],relTol=1.0d-4)
 
   ! End unit tests.
   call Unit_Tests_End_Group()

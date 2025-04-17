@@ -1,0 +1,469 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+  ! Include an explicit dependency on the low-level multivariate distribution integration code.
+  !: $(BUILDPATH)/Genz/mvndst.o
+
+  !!{
+  Implementation of a multivariate normal distribution function.
+  !!}
+
+  use :: Linear_Algebra, only : matrix
+
+  !![
+  <distributionFunctionMultivariate name="distributionFunctionMultivariateNormal">
+   <description>
+    A multivariate normal distribution.
+   </description>
+  </distributionFunctionMultivariate>
+  !!]
+  type, extends(distributionFunctionMultivariateClass) :: distributionFunctionMultivariateNormal
+     !!{
+     Implementation of a normal 1D distribution function.
+     !!}
+     private
+     double precision        , dimension(:  ), allocatable :: mean                 , rootVariance            , &
+          &                                                   correlation
+     double precision        , dimension(:,:), allocatable :: covariance
+     type            (matrix)                              :: covariance_
+     double precision                                      :: normalization        , logNormalization
+     logical                                               :: normalizationComputed, logNormalizationComputed
+   contains
+     !![
+     <methods>
+       <method method="cumulativeMonteCarlo" description="Compute the cumulative distribution function used Monte Carlo methods."/>
+     </methods>
+     !!]
+     procedure :: density              => multivariateNormalDensity
+     procedure :: cumulative           => multivariateNormalCumulative
+     procedure :: cumulativeMonteCarlo => multivariateNormalCumulativeMonteCarlo
+  end type distributionFunctionMultivariateNormal
+
+  interface distributionFunctionMultivariateNormal
+     !!{
+     Constructors for the {\normalfont \ttfamily normal} 1D distribution function class.
+     !!}
+     module procedure multivariateNormalConstructorParameters
+     module procedure multivariateNormalConstructorInternal
+  end interface distributionFunctionMultivariateNormal
+
+
+  !! AJB HACK
+  double precision, dimension(:), allocatable :: xlow_, xhigh_
+  logical, dimension(:), allocatable :: usetransform_
+  double precision :: probabilityLogarithmicReference_
+  !$omp threadprivate(xlow_,xhigh_,usetransform_,probabilityLogarithmicReference_)
+
+  
+contains
+
+  function multivariateNormalConstructorParameters(parameters) result(self)
+    !!{
+    Constructor for the {\normalfont \ttfamily multivariateNormal} 1D distribution function class which builds the object from a parameter
+    set.
+    !!}
+    use :: Input_Parameters, only : inputParameter, inputParameters
+    implicit none
+    type            (distributionFunctionMultivariateNormal)                              :: self
+    type            (inputParameters                       ), intent(inout)               :: parameters
+    class           (randomNumberGeneratorClass            ), pointer                     :: randomNumberGenerator_
+    double precision                                        , dimension(:  ), allocatable :: mean
+    double precision                                        , dimension(:,:), allocatable :: covariance
+
+    !![
+    <inputParameter>
+      <name>mean</name>
+      <description>The mean of the multivariate normal distribution.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>covariance</name>
+      <description>The covariance of the multivariate normal distribution.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !!]
+    self=distributionFunctionMultivariateNormal(mean,covariance,randomNumberGenerator_)
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="randomNumberGenerator_"/>
+    !!]
+    return
+  end function multivariateNormalConstructorParameters
+
+  function multivariateNormalConstructorInternal(mean,covariance,randomNumberGenerator_) result(self)
+    !!{
+    Constructor for {\normalfont \ttfamily multivariateNormal} multivariate distribution function class.
+    !!}
+    implicit none
+    type            (distributionFunctionMultivariateNormal)                                        :: self
+    double precision                                        , intent(in   ), dimension(:  )         :: mean
+    double precision                                        , intent(in   ), dimension(:,:)         :: covariance
+    class           (randomNumberGeneratorClass            ), intent(in   ), optional      , target :: randomNumberGenerator_
+    integer                                                                                         :: i                     , j
+    !![
+    <constructorAssign variables="mean, covariance, *randomNumberGenerator_"/>
+    !!]
+
+    if     (                                      &
+         &   size(covariance,dim=1) /= size(mean) &
+         &  .or.                                  &
+         &   size(covariance,dim=2) /= size(mean) &
+         & ) call Error_Report('`covariance` shape is invalid'//{introspection:location})
+    self%covariance_             =matrix(covariance)
+    self%normalizationComputed   =.false.
+    self%logNormalizationComputed=.false.
+    allocate(self%rootVariance(size(mean)                 ))
+    allocate(self%correlation (size(mean)*(size(mean)-1)/2))
+    do i=1,size(mean)
+       if (self%covariance(i,i) <= 0.0d0) call Error_Report('non-positive variance detected'//{introspection:location})
+       self   %rootVariance(i                )=+sqrt(                      &
+            &                                        +self%covariance(i,i) &
+            &                                       )
+       if (i == 1) cycle
+       do j=1,i-1
+          self%correlation (j+((i-2)*(i-1))/2)=+      self%covariance(i,j) &
+               &                               /sqrt(                      &
+               &                                     +self%covariance(i,i) &
+               &                                     *self%covariance(j,j) &
+               &                                    )
+       end do
+    end do
+    if (any(abs(self%correlation) > 1.0d0)) call Error_Report('invalid correlation matrix'//{introspection:location})
+    return
+  end function multivariateNormalConstructorInternal
+
+  double precision function multivariateNormalDensity(self,x,logarithmic,status) result(density)
+    !!{
+    Return the density of a multivariate normal distribution.
+    !!}
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Linear_Algebra          , only : assignment(=), vector
+    use :: Error                   , only : Error_Report
+    use :: Interface_GSL           , only : GSL_Success
+    use :: Sorting                 , only : sort
+    use :: String_Handling         , only : operator(//)
+    use :: ISO_Varying_String      , only : operator(//) , var_str
+    implicit none
+    class           (distributionFunctionMultivariateNormal), intent(inout)                     :: self
+    double precision                                        , intent(in   ), dimension(     : ) :: x
+    logical                                                 , intent(in   ), optional           :: logarithmic
+    integer                                                 , intent(  out), optional           :: status
+    type            (vector                                )                                    :: offset
+    double precision                                                                            :: argumentExponential
+    integer                                                                                     :: status_
+    !![
+    <optionalArgument name="logarithmic" defaultsTo=".false."/>
+    !!]
+
+    density=0.0d0
+    if (present(status)) status=GSL_Success
+    if (size(x) /= size(self%mean)) call Error_Report('vector `x` has incorrect size'//{introspection:location})
+    offset             =+     x    &
+         &              -self%mean
+    argumentExponential=self%covariance_%covarianceProduct(offset,status_)
+    if (status_ /= GSL_Success) then
+       if (present(status)) then
+          status=status_
+          return
+       else
+          call Error_Report(var_str('covariance product failed  (GSL error ')//status//')'//{introspection:location})
+       end if
+    end if
+    if (logarithmic_) then
+       if (.not.self%logNormalizationComputed) then
+          self%logNormalization        =-0.5d0*size(self%mean)*log(2.0d0*Pi)             &
+               &                        -0.5d0*self%covariance_%logarithmicDeterminant()
+          self%logNormalizationComputed=.true.
+       end if
+       density=+self%logNormalization &
+            &  -0.5d0                 &
+            &  *argumentExponential
+    else
+       if (.not.self%normalizationComputed) then
+          self%normalization        =+1.0d0                                &
+               &                     /sqrt(                                &
+               &                           +(+2.0d0*Pi)**size(self%mean)   &
+               &                           *self%covariance_%determinant() &
+               &                          )
+          self%normalizationComputed=.true.
+       end if
+       density=+     self%normalization  &
+            &  *exp(                     &
+            &       -0.5d0               &
+            &       *argumentExponential &
+            &      )
+    end if
+    return
+  end function multivariateNormalDensity
+
+  double precision function multivariateNormalCumulative(self,xLow,xHigh,logarithmic,status) result(probability)
+    !!{
+    Return the cumulative probability of a multivariate normal distribution.
+    !!}
+    use :: Models_Likelihoods_Constants, only : logImprobable
+    use :: Interface_GSL               , only : GSL_ERange   , GSL_ETol, GSL_Success
+    implicit none
+    class           (distributionFunctionMultivariateNormal), intent(inout)                             :: self
+    double precision                                        , intent(in   ), dimension(         :     ) :: xLow               , xHigh
+    logical                                                 , intent(in   ), optional                   :: logarithmic
+    integer                                                 , intent(  out), optional                   :: status
+    double precision                                        , parameter                                 :: errorAbsolute=0.0d0, errorRelative=1.0d-3
+    double precision                                                       , dimension(size(self%mean)) :: offsetLow          , offsetHigh
+    integer                                                                , dimension(size(self%mean)) :: infinite
+    integer                                                                                             :: maximumValues      , status_
+    double precision                                                                                    :: error
+    !![
+    <optionalArgument name="logarithmic" defaultsTo=".false."/>
+    !!]
+
+    probability=0.0d0
+    if (present(status)) status=GSL_Success
+    if (size(xLow         ) /= size(self%mean)) call Error_Report('vector `xLow` has incorrect size' //{introspection:location})
+    if (size(        xHigh) /= size(self%mean)) call Error_Report('vector `xHigh` has incorrect size'//{introspection:location})
+    if (any (xLow >  xHigh)                   ) call Error_Report('`xLow` > `xHigh` is not allowed'  //{introspection:location})
+    if (any (xLow == xHigh)                   ) then
+       if (logarithmic_) then
+          probability=logImprobable
+       else
+          probability=0.0d0
+       end if
+       return
+    end if
+    offsetLow    =(+xLow -self%mean)/self%rootVariance
+    offsetHigh   =(+xHigh-self%mean)/self%rootVariance
+    infinite     =-1
+    where (xLow  > -huge(0.0d0))
+       infinite=infinite+2
+    end where
+    where (xHigh < +huge(0.0d0))
+       infinite=infinite+1
+    end where
+    maximumValues=1000*size(self%mean)
+    call mvndst(size(self%mean),offsetLow,offsetHigh,infinite,self%correlation,maximumValues,errorAbsolute,errorRelative,error,probability,status_)
+    select case (status_)
+    case (1)
+       if (present(status)) then
+          status=GSL_ETol
+          return
+       else
+          call Error_Report('requested tolerance not obtained'//{introspection:location})
+       end if
+    case (2)
+      if (present(status)) then
+          status=GSL_ERange
+          return
+       else
+          if (size(self%mean) <   1) call Error_Report('too few dimensions' //{introspection:location})
+          if (size(self%mean) > 500) call Error_Report('too many dimensions'//{introspection:location})
+       end if
+    end select
+    if (logarithmic_) then
+       if (probability > 0.0d0) then
+          probability=log(probability)
+       else
+          ! Integration failed to give a non-zero answer. But, logarithmic probability was requested. Attempt to provide an
+          ! approximate answer using Monte Carlo integration.
+          probability=self%cumulativeMonteCarlo(xLow,xHigh,logarithmic,status)
+       end if
+    end if
+    return
+  end function multivariateNormalCumulative
+
+  double precision function multivariateNormalCumulativeMonteCarlo(self,xLow,xHigh,logarithmic,status) result(probability)
+    !!{
+    Return the cumulative probability of a multivariate normal distribution computed using Monte Carlo methods.
+    !!}
+    use :: Interface_GSL               , only : GSL_Success
+    use :: Models_Likelihoods_Constants, only : logImprobable
+
+
+!! AJB HACK
+use :: Error, only : signalHandlerRegister, signalHandlerDeregister, signalHandlerInterface
+    
+    implicit none
+    class           (distributionFunctionMultivariateNormal), intent(inout)                             :: self
+    double precision                                        , intent(in   ), dimension(         :     ) :: xLow                                          , xHigh
+    logical                                                 , intent(in   ), optional                   :: logarithmic
+    integer                                                 , intent(  out), optional                   :: status
+    integer                                                 , parameter                                 :: countMonteCarlo                      =1000
+    integer                                                 , parameter                                 :: probabilityRelativeLogarithmicMaximum= 600.0d0
+    double precision                                                       , dimension(size(self%mean)) :: yMinimum                                      , yMaximum                       , &
+         &                                                                                                 x                                             , y
+    logical                                                                , dimension(size(self%mean)) :: useTransform
+    logical                                                                                             :: failed
+    integer                                                                                             :: i                                             , iSample
+    double precision                                                                                    :: probabilityRelativeLogarithmic                , probabilityLogarithmicReference
+
+    !! AJB HACK
+    procedure(signalHandlerInterface), pointer :: handler
+
+
+    !![
+    <optionalArgument name="logarithmic" defaultsTo=".false."/>
+    !!]
+
+    probability=0.0d0
+    if (present(status)) status=GSL_Success
+    if (size(xLow         ) /= size(self%mean)) call Error_Report('vector `xLow` has incorrect size' //{introspection:location})
+    if (size(        xHigh) /= size(self%mean)) call Error_Report('vector `xHigh` has incorrect size'//{introspection:location})
+    if (any (xLow >  xHigh)                   ) call Error_Report('`xLow` > `xHigh` is not allowed'  //{introspection:location})
+    if (any (xLow == xHigh)                   ) then
+       if (logarithmic_) then
+          probability=logImprobable
+       else
+          probability=0.0d0
+       end if
+       return
+    end if
+    ! Find a suitable point at which to compute a reference probability.
+    where (sign(1.0d0,xLow)*sign(1.0d0,xHigh) <= 0.0d0)
+       ! Zero is spanned.
+       x=0.0d0
+    elsewhere
+       x=min(abs(xLow),abs(xHigh))
+    end where
+    probabilityLogarithmicReference=self%density(x,logarithmic=.true.,status=status)
+    if (status /= GSL_Success) return
+    !! Use an tanh⁻¹ transform to allow integration over infinite intervals.
+    useTransform=xLow == -huge(0.0d0) .or. xHigh == +huge(0.0d0)
+    where (useTransform)
+       where (xLow  > -huge(0.0d0))
+          yMinimum=+tanh(xLow )
+       elsewhere
+          yMinimum=-1.0d0
+       end where
+       where (xHigh < +huge(0.0d0))
+          yMaximum=+tanh(xHigh)
+       elsewhere
+          yMaximum=+1.0d0
+       end where
+    elsewhere
+       yMinimum   =+xLow
+       yMaximum   =+xHigh
+    end where
+    if (any(yMinimum >= yMaximum)) then
+       if (logarithmic_) then
+          probability=logImprobable
+       else
+          probability=0.0d0
+       end if
+       return
+    end if
+    !! Adjust the offset probability by any tanh transformation terms.
+
+    !! AJB HACK
+    handler => fpeHandler
+    call signalHandlerRegister(handler)
+    allocate(xlow_,source=xlow)
+    allocate(xhigh_,source=xhigh)
+    allocate(useTransform_,source=useTransform)
+    probabilityLogarithmicReference_=probabilityLogarithmicReference
+    
+    probabilityLogarithmicReference=+probabilityLogarithmicReference                                 &
+         &                          +2.0d0*sum(logCosh(min(abs(xLow),abs(xHigh))),mask=useTransform)
+
+    !! AJB HACK
+    call signalHandlerDeregister(handler)
+    deallocate(xlow_)
+    deallocate(xhigh_)
+    deallocate(useTransform_)
+    
+    !! Repeatedly try to evaluate the integral.
+    failed=.true.
+    do while (failed)
+       failed     =.false.
+       probability=0.0d0
+       do iSample=1,countMonteCarlo
+          do i=1,size(self%mean)
+             y(i)=yMinimum(i)+(yMaximum(i)-yMinimum(i))*self%randomNumberGenerator_%uniformSample()
+          end do
+          if (any(useTransform .and. abs(y) >= 1.0d0)) then
+             ! Point at infinity, zero density.
+          else
+             where (useTransform)
+                x=atanh(y)
+             elsewhere
+                x=      y
+             end where
+             probabilityRelativeLogarithmic=+      self%density                        (        x ,logarithmic=.true.      ,status=status) &
+                  &                         +2.0d0*     sum                            (logCosh(x),mask       =useTransform              ) &
+                  &                         -           probabilityLogarithmicReference
+             if (status /= GSL_Success) return
+             if (probabilityRelativeLogarithmic > probabilityRelativeLogarithmicMaximum) then
+                ! The relative probability is too large, which means that our initial offset was too small. Update the offset
+                ! probability, and start again.
+                probabilityLogarithmicReference=probabilityRelativeLogarithmic+probabilityLogarithmicReference
+                failed=.true.
+                exit
+             else
+                probability=+probability                                                                                        &
+                     &      +exp(                                                                                               &
+                     &           +      self%density                        (        x ,logarithmic=.true.      ,status=status) &
+                     &           +2.0d0*     sum                            (logCosh(x),mask       =useTransform)               &
+                     &           -           probabilityLogarithmicReference                                                    &
+                     &          )
+                if (status /= GSL_Success) return
+             end if
+          end if
+       end do
+    end do
+    if (probability > 0.0d0) then
+       probability=+    log(     probability              )  & ! Take the log of the accumulated Monte Carlo probability.
+            &      -    log(dble(countMonteCarlo         ))  & ! Find the mean by "dividing" by the number of Monte Carlo trials.
+            &      +sum(log(     yMaximum       -yMinimum )) & ! Multiply by the volume of the region integrated over.
+            &      +probabilityLogarithmicReference            ! Add back on the reference probability.
+       ! Convert from logarithmic form if requested.
+       if (.not.logarithmic_) probability=exp(probability)
+    else
+       if (logarithmic_) probability=logImprobable
+    end if
+    return
+  end function multivariateNormalCumulativeMonteCarlo
+  
+  pure elemental double precision function logCosh(x)
+    !!{
+    Evaluate the logarithm of $\cosh x$, handling large values.
+    !!}
+    implicit none
+    double precision, intent(in   ) :: x
+    double precision, parameter     :: xMaximum=300.0d0
+    
+    if (abs(x) < xMaximum) then
+       logCosh=log(cosh(x))
+    else
+       logCosh=abs(x)-log(2.0d0)
+    end if
+    return
+  end function logCosh
+
+  !! AJB HACK
+  subroutine fpeHandler(signal)
+    implicit none
+    integer, intent(in   ) :: signal
+    integer :: i
+    
+    write (0,*) "ERROR REPORT "
+    write (0,*) "probabilityLogarithmicReference = ",probabilityLogarithmicReference_
+    do i=1,size(xlow_)
+       write (0,*) "VEC ",i,xlow_(i),xhigh_(i),usetransform_(i)
+       if (useTransform_(i)) write (0,*) "  LOGCOSH ",logCosh(min(abs(xLow_(i)),abs(xHigh_(i))))
+    end do
+    return
+  end subroutine fpeHandler
