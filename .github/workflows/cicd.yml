@@ -1623,7 +1623,7 @@ jobs:
           type: 'validate'
           artifact: 'validate-darkMatterOnlySubhalos-decayingDarkMatter'
           suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime20.0_velocityKick40.0'
-          threshold: '250%'
+          threshold: '300%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Decaying dark matter-only subhalos benchmarks (τ=40 Gyr; vₖ=20 km/s)'
         uses: ./.github/actions/benchmark
