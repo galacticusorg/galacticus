@@ -1107,8 +1107,8 @@ sub outputSSP {
     # Write the line data to file.
     my $tableFile = new PDL::IO::HDF5(">".$options{'workspace'}.$options{'outputFileName'});
     # Add useful metadata.
-    $tableFile->setAttribute('time',DateTime->now());
-    $tableFile->setAttribute('gitRevision',$grid->{'gitRevision'});
+    $tableFile->attrSet('time'        => DateTime->now()->stringify());
+    $tableFile->attrSet('gitRevision' => $grid->{'gitRevision'}      );
     # Write parameter grid points and attributes.
     $tableFile->dataset('age'                                 )->    set(               $grid->{'ages'}                                                 );
     $tableFile->dataset('age'                                 )->attrSet(description => "Age of the stellar population."                                );
@@ -1159,8 +1159,8 @@ sub outputAGN {
     # Write the line data to file.
     my $tableFile = new PDL::IO::HDF5(">".$options{'workspace'}.$options{'outputFileName'});
     # Add useful metadata.
-    $tableFile->setAttribute('time',DateTime->now());
-    $tableFile->setAttribute('gitRevision',$grid->{'gitRevision'});
+    $tableFile->attrSet('time'        => DateTime->now()->stringify());
+    $tableFile->attrSet('gitRevision' => $grid->{'gitRevision'}      );
     # Write parameter grid points and attributes.
     $tableFile->dataset('spectralIndex'      )->    set(               $grid->{'spectralIndices'}                           );
     $tableFile->dataset('spectralIndex'      )->attrSet(description => "Spectral index at optical/UV wavelength population.");
