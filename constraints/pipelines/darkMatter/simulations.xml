@@ -186,6 +186,21 @@
      	  <massHostLogMax   value="  12.3                                           "/>
 	</haloMassFunction>
       </resolution>
+      <resolution name="resolutionX64">
+	<simulation name="CDM">
+	  <powerSpectrumClass value="Symphony:CDM"                />
+	  <label              value="Milky Way"                   />
+	  <transferFunction   value="CDM"                         />
+	  <realizations       value="Halo004"                     />
+	  <hostHaloIDS        Halo004="416663311"                 />
+	</simulation>
+	<haloMassFunction>
+     	  <expansionFactors value="   1.0000   0.66503   0.50239   0.32987   0.20064"/>
+     	  <snapshots        value=" 235      203       181       148       109      "/>
+     	  <massHostLogMin   value="  12.0                                           "/>
+     	  <massHostLogMax   value="  12.3                                           "/>
+	</haloMassFunction>
+      </resolution>
      </group>
      <group name="Group">
       <resolution name="resolutionX1">
