@@ -87,7 +87,7 @@ contains
       <source>parameters</source>
       <description>Exponent $\beta$ in the power law fit.</description>
       <defaultValue>0.39d0</defaultValue>
-      <defaultSource>\cite[][table 1: Parameter $\beta, for late type galaxies]{shen_size_2003}</defaultSource>
+      <defaultSource>\cite[][table 1: Parameter $\beta$, for late type galaxies]{shen_size_2003}</defaultSource>
     </inputParameter>
     <inputParameter>
       <name>gamma</name>
