@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1745472781833,
+  "lastUpdate": 1745527489212,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.05; γ=1.0)": [
@@ -6599,6 +6599,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/7c6458a46b99715745b4dc91fb0e3547978382db"
         },
         "date": 1745472780803,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteBoundMass",
+            "value": "69.36737870525188",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "39.24573106990871",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteVelocityMaximum",
+            "value": "32.23649323894533",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "087ab6a4ac2fa28b4673b00a43a63cadab5be9fe",
+          "message": "Merge pull request #831 from galacticusorg/fixCoolingBensonBowerNoHotHalo\n\nIn the `nodeOperatorCoolingEnergyRadiated` class, avoid attempting to set cooling scales in non-existant hot halos",
+          "timestamp": "2025-04-24T14:15:25Z",
+          "tree_id": "09471c7f969754b2eb213b18b6cc7b70ae391a8e",
+          "url": "https://github.com/galacticusorg/galacticus/commit/087ab6a4ac2fa28b4673b00a43a63cadab5be9fe"
+        },
+        "date": 1745527488766,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
