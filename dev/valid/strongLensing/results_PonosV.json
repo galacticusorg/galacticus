@@ -4,21 +4,21 @@ window.PONOSV_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "7c6458a46b99715745b4dc91fb0e3547978382db",
-        "message": "fix: Correct LaTeX syntax error\n",
-        "timestamp": "2025-04-23 14:53:21-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/7c6458a46b99715745b4dc91fb0e3547978382db"
+        "id": "087ab6a4ac2fa28b4673b00a43a63cadab5be9fe",
+        "message": "Merge pull request #831 from galacticusorg/fixCoolingBensonBowerNoHotHalo\n\nIn the `nodeOperatorCoolingEnergyRadiated` class, avoid attempting to set cooling scales in non-existant hot halos\n",
+        "timestamp": "2025-04-24 14:15:25+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/087ab6a4ac2fa28b4673b00a43a63cadab5be9fe"
     },
     "surfaceDensity": {
-        "percentageBelow": 35.71428571428571,
-        "percentageAbove": 64.28571428571429,
+        "percentageBelow": 32.14285714285714,
+        "percentageAbove": 67.85714285714286,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 50.0,
-        "percentageAbove": 50.0,
+        "percentageBelow": 54.54545454545455,
+        "percentageAbove": 45.45454545454545,
         "target": 0.85
     }
 }
