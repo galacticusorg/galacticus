@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1745472803398,
+  "lastUpdate": 1745527509003,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=10 Gyr; vₖ=20 km/s)": [
@@ -1355,6 +1355,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=10.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
             "value": "35.44902767770907",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "087ab6a4ac2fa28b4673b00a43a63cadab5be9fe",
+          "message": "Merge pull request #831 from galacticusorg/fixCoolingBensonBowerNoHotHalo\n\nIn the `nodeOperatorCoolingEnergyRadiated` class, avoid attempting to set cooling scales in non-existant hot halos",
+          "timestamp": "2025-04-24T14:15:25Z",
+          "tree_id": "09471c7f969754b2eb213b18b6cc7b70ae391a8e",
+          "url": "https://github.com/galacticusorg/galacticus/commit/087ab6a4ac2fa28b4673b00a43a63cadab5be9fe"
+        },
+        "date": 1745527508202,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=10.0 Gyr; vₖ=20.0 km/s) - Likelihood - mass function",
+            "value": "24.646893372110004",
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=10.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
+            "value": "82.63529923158174",
             "unit": "-logℒ"
           }
         ]
