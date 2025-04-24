@@ -4,16 +4,16 @@ window.PONOSV_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@carnegiescience.edu"
         },
-        "id": "268e1f06504a739c16d284e9940ce261a842001f",
-        "message": "Merge pull request #830 from galacticusorg/featNewClasses\n\nAdd miscellaneous new classes\n",
-        "timestamp": "2025-04-17 14:21:30+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/268e1f06504a739c16d284e9940ce261a842001f"
+        "id": "7c6458a46b99715745b4dc91fb0e3547978382db",
+        "message": "fix: Correct LaTeX syntax error\n",
+        "timestamp": "2025-04-23 14:53:21-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/7c6458a46b99715745b4dc91fb0e3547978382db"
     },
     "surfaceDensity": {
-        "percentageBelow": 32.14285714285714,
-        "percentageAbove": 67.85714285714286,
+        "percentageBelow": 35.71428571428571,
+        "percentageAbove": 64.28571428571429,
         "target": 0.006
     },
     "slope": {
