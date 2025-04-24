@@ -352,10 +352,9 @@ def reprocessSSP(grid,args):
                             "logError":             args.workspace+"emissionLines"+str(jobNumber)+".log",
                             "jobNumber":            jobNumber                                           ,
                             "grid":                 grid                                                ,
- 	                    "cloudyScriptFileName": cloudyScriptFileName                                ,
+ 	                    "cloudyScriptFileName": args.workspace+cloudyScriptFileName                 ,
  	                    "linesFileName":        args.workspace+"lines"        +str(jobNumber)+".out",
  	                    "continuumFileName":    args.workspace+"continuum"    +str(jobNumber)+".out",
- 	                    "cloudyScriptFileName": cloudyScriptFileName                                ,
  	                    "indices":              ( iAge, iMetallicity, iLogHydrogenLuminosity, iLogHydrogenDensity ),
                         }
 		    )
@@ -389,10 +388,9 @@ def reprocessAGN(grid,args):
                             "logError":             args.workspace+"emissionLines"+str(jobNumber)+".log",
                             "jobNumber":            jobNumber                                           ,
                             "grid":                 grid                                                ,
- 	                    "cloudyScriptFileName": cloudyScriptFileName                                ,
+ 	                    "cloudyScriptFileName": args.workspace+cloudyScriptFileName                 ,
  	                    "linesFileName":        args.workspace+"lines"        +str(jobNumber)+".out",
  	                    "continuumFileName":    args.workspace+"continuum"    +str(jobNumber)+".out",
- 	                    "cloudyScriptFileName": cloudyScriptFileName                                ,
  	                    "indices":              ( iSpectralIndex, iMetallicity, iIonizationParameter, iLogHydrogenDensity ),
                         }
 		    )
