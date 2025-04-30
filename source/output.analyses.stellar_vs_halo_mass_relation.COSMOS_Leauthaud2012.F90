@@ -169,7 +169,7 @@ contains
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                    , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersClass                   , cosmologyParametersSimple
-    use :: Galactic_Filters                      , only : filterList                                 , galacticFilterAll                              , galacticFilterHaloIsolated                  , galacticFilterStellarMass
+    use :: Galactic_Filters                      , only : galacticFilterHaloIsolated
     use :: Error                                 , only : Error_Report
     use :: Input_Paths                           , only : inputPath                                  , pathTypeDataStatic
     use :: Geometry_Surveys                      , only : surveyGeometryFullSky
@@ -208,10 +208,7 @@ contains
          &                                                                                                   massHaloMeanData                                              , massHaloLowData                                                    , &
          &                                                                                                   massStellarData
     double precision                                                      , allocatable  , dimension(:,:) :: outputWeight                                                  , massStellarLogarithmicCovarianceTarget
-    type            (galacticFilterStellarMass                           ), pointer                       :: galacticFilterStellarMass_
-    type            (galacticFilterHaloIsolated                          ), pointer                       :: galacticFilterHaloIsolated_
-    type            (galacticFilterAll                                   ), pointer                       :: galacticFilterAll_
-    type            (filterList                                          ), pointer                       :: filters_
+    type            (galacticFilterHaloIsolated                          ), pointer                       :: galacticFilter_
     type            (outputAnalysisDistributionOperatorIdentity          ), pointer                       :: outputAnalysisDistributionOperator_
     type            (outputAnalysisWeightOperatorProperty                ), pointer                       :: outputAnalysisWeightOperator_
     type            (outputAnalysisPropertyOperatorLog10                 ), pointer                       :: outputAnalysisPropertyOperatorLog10_                         , outputAnalysisWeightPropertyOperatorLog10_                          , &
@@ -355,18 +352,12 @@ contains
     end if
     allocate(self%massStellarLogarithmicTarget          ,source=massStellarLogarithmicTarget          )
     allocate(self%massStellarLogarithmicCovarianceTarget,source=massStellarLogarithmicCovarianceTarget)
-    ! Build a filter which select central galaxies with stellar mass above some coarse lower limit suitable for this sample.
-    allocate(galacticFilterStellarMass_      )
-    allocate(galacticFilterHaloIsolated_     )
-    allocate(galacticFilterAll_              )
-    allocate(filters_                        )
-    allocate(filters_                   %next)
-    filters_                        %filter_ => galacticFilterHaloIsolated_
-    filters_                   %next%filter_ => galacticFilterStellarMass_
+    ! Build a filter which select central galaxies. Note that no filter on stellar mass is included here. While Leauthaud et
+    ! al. (2012) did include a threshold on stellar mass (see their Table 1) in their analysis, what we are fitting to here is
+    ! their derived model - they accounted for the effects of the stellar mass threshold when deriving this model.
+    allocate(galacticFilter_)
     !![
-    <referenceConstruct object="galacticFilterStellarMass_"  constructor="galacticFilterStellarMass  (massThreshold=1.0d7   )"/>
-    <referenceConstruct object="galacticFilterHaloIsolated_" constructor="galacticFilterHaloIsolated (                      )"/>
-    <referenceConstruct object="galacticFilterAll_"          constructor="galacticFilterAll          (              filters_)"/>
+    <referenceConstruct object="galacticFilter_" constructor="galacticFilterHaloIsolated()"/>
     !!]
     ! Build identity distribution operator.
     allocate   (outputAnalysisDistributionOperator_                          )
@@ -522,7 +513,7 @@ contains
           &amp;                                                  outputAnalysisPropertyUnoperator_                                                                                      , &amp;
           &amp;                                                  outputAnalysisWeightOperator_                                                                                          , &amp;
           &amp;                                                  outputAnalysisDistributionOperator_                                                                                    , &amp;
-          &amp;                                                  galacticFilterAll_                                                                                                     , &amp;
+          &amp;                                                  galacticFilter_                                                                                                        , &amp;
           &amp;                                                  outputTimes_                                                                                                           , &amp;
           &amp;                                                  outputAnalysisCovarianceModelPoisson                                                                                   , &amp;
           &amp;                          likelihoodNormalize    =likelihoodNormalize                                                                                                    , &amp;
@@ -562,7 +553,7 @@ contains
           &amp;                                               outputAnalysisPropertyUnoperator_                                                                           , &amp;
           &amp;                                               outputAnalysisWeightOperator_                                                                               , &amp;
           &amp;                                               outputAnalysisDistributionOperator_                                                                         , &amp;
-          &amp;                                               galacticFilterAll_                                                                                          , &amp;
+          &amp;                                               galacticFilter_                                                                                             , &amp;
           &amp;                                               outputTimes_                                                                                                , &amp;
           &amp;                                               outputAnalysisCovarianceModelPoisson                                                                        , &amp;
           &amp;                          likelihoodNormalize =likelihoodNormalize                                                                                         , &amp;
@@ -583,9 +574,7 @@ contains
     <objectDestructor name="surveyGeometry_"                                              />
     <objectDestructor name="cosmologyParametersData"                                      />
     <objectDestructor name="cosmologyFunctionsData"                                       />
-    <objectDestructor name="galacticFilterStellarMass_"                                   />
-    <objectDestructor name="galacticFilterHaloIsolated_"                                  />
-    <objectDestructor name="galacticFilterAll_"                                           />
+    <objectDestructor name="galacticFilter_"                                              />
     <objectDestructor name="outputAnalysisDistributionOperator_"                          />
     <objectDestructor name="outputAnalysisWeightOperator_"                                />
     <objectDestructor name="outputAnalysisPropertyOperatorLog10_"                         />
@@ -608,7 +597,6 @@ contains
     nullify(propertyOperatorsMassHalo_  )
     nullify(propertyOperators_          )
     nullify(propertyOperatorsNormalized_)
-    nullify(filters_                    )
     return
   end function stellarVsHaloMassRelationLeauthaud2012ConstructorInternal
 
