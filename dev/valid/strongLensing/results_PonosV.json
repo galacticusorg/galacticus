@@ -4,12 +4,12 @@ window.PONOSV_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@carnegiescience.edu"
         },
-        "id": "087ab6a4ac2fa28b4673b00a43a63cadab5be9fe",
-        "message": "Merge pull request #831 from galacticusorg/fixCoolingBensonBowerNoHotHalo\n\nIn the `nodeOperatorCoolingEnergyRadiated` class, avoid attempting to set cooling scales in non-existant hot halos\n",
-        "timestamp": "2025-04-24 14:15:25+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/087ab6a4ac2fa28b4673b00a43a63cadab5be9fe"
+        "id": "e156d6404f99a281fd023be4de71dc69c68d70ce",
+        "message": "fix(style): Formatting only\n",
+        "timestamp": "2025-04-30 16:05:41-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/e156d6404f99a281fd023be4de71dc69c68d70ce"
     },
     "surfaceDensity": {
         "percentageBelow": 32.14285714285714,
