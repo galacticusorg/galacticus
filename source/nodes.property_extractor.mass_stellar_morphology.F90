@@ -78,10 +78,10 @@ contains
     double precision                                                                      :: massStellarDisk     , massStellarSpheroid
     !$GLC attributes unused :: self, instance
 
-    massDistributionDisk     => node                %massDistribution(massType=massTypeStellar,componentType=componentTypeDisk    )
-    massDistributionSpheroid => node                %massDistribution(massType=massTypeStellar,componentType=componentTypeSpheroid)
-    massStellarDisk          =  massDistributionDisk%massTotal       (                                                            )
-    massStellarSpheroid      =  massDistributionDisk%massTotal       (                                                            )
+    massDistributionDisk     => node                    %massDistribution(massType=massTypeStellar,componentType=componentTypeDisk    )
+    massDistributionSpheroid => node                    %massDistribution(massType=massTypeStellar,componentType=componentTypeSpheroid)
+    massStellarDisk          =  massDistributionDisk    %massTotal       (                                                            )
+    massStellarSpheroid      =  massDistributionSpheroid%massTotal       (                                                            )
     if (massStellarDisk+massStellarSpheroid > 0.0d0) then
        massStellarMorphologyExtract=+  massStellarSpheroid &
             &                       /(                     &
