@@ -152,12 +152,14 @@ sub Process_ObjectBuilder {
 		}
 	    }
 	    # Test for recursive build.
-	    $builderCode .= "      ! Test for a recursive build.\n";
-	    $builderCode .= "      genericObject => self\n";
-	    $builderCode .= "      select type (genericObject)\n";
-	    $builderCode .= "      class is (".$node->{'directive'}->{'class'}."Class)\n";
-	    $builderCode .= "         if (associated(parametersCurrent,".$node->{'directive'}->{'source'}."%parent)) call Error_Report('recursive build of [".$node->{'directive'}->{'class'}."] class detected'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
-	    $builderCode .= "      end select\n";
+	    if ( &Galacticus::Build::SourceTree::Parse::Declarations::DeclarationExists($node->{'parent'},'self') ) {
+		$builderCode .= "      ! Test for a recursive build.\n";
+		$builderCode .= "      genericObject => self\n";
+		$builderCode .= "      select type (genericObject)\n";
+		$builderCode .= "      class is (".$node->{'directive'}->{'class'}."Class)\n";
+		$builderCode .= "         if (associated(parametersCurrent,".$node->{'directive'}->{'source'}."%parent)) call Error_Report('recursive build of [".$node->{'directive'}->{'class'}."] class detected'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
+		$builderCode .= "      end select\n";
+	    }
 	    # Obtain or build the object.
 	    $builderCode .= $copyLoopOpen;
 	    $builderCode .= "      ! Object should belong to the parameter node. Get the node and test whether the object has already been created in it.\n";
