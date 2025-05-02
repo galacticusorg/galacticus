@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "e156d6404f99a281fd023be4de71dc69c68d70ce",
-        "message": "fix(style): Formatting only\n",
-        "timestamp": "2025-04-30 16:05:41-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/e156d6404f99a281fd023be4de71dc69c68d70ce"
+        "id": "1102f2ba46c37dd43f6353577fabc0018675e1b6",
+        "message": "Merge pull request #835 from galacticusorg/fixSFRAnalysisTarget\n\nAllow the `outputAnalysisStarFormationRateFunction` to set the covariance matrix from target data errors if no target covariance matrix is available\n",
+        "timestamp": "2025-05-01 19:52:40+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/1102f2ba46c37dd43f6353577fabc0018675e1b6"
     },
     "results": [
         {
