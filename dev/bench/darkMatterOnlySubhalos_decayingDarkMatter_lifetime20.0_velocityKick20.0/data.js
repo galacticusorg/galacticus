@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1746152824626,
+  "lastUpdate": 1746313567088,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=20 km/s)": [
@@ -1457,6 +1457,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
             "value": "18.21044424139983",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5acea79249949bfbb328f843f32bcc474e606421",
+          "message": "Merge pull request #836 from galacticusorg/featDetectRecursiveObjectBuild\n\nDetect recursion in `objectBuilder` directives",
+          "timestamp": "2025-05-03T16:38:03Z",
+          "tree_id": "c1befa33a562f28d14f1774711788bb8c5d0640f",
+          "url": "https://github.com/galacticusorg/galacticus/commit/5acea79249949bfbb328f843f32bcc474e606421"
+        },
+        "date": 1746313566254,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - mass function",
+            "value": "26.993128912685115",
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
+            "value": "19.86705980353356",
             "unit": "-logℒ"
           }
         ]
