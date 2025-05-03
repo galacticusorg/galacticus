@@ -151,6 +151,16 @@ sub Process_ObjectBuilder {
 		    $copyInstance = ",copyInstance=".$node->{'directive'}->{'copy'};
 		}
 	    }
+	    # Test for recursive build.
+	    if ( &Galacticus::Build::SourceTree::Parse::Declarations::DeclarationExists($node->{'parent'},'self') ) {
+		$builderCode .= "      ! Test for a recursive build.\n";
+		$builderCode .= "      genericObject => self\n";
+		$builderCode .= "      select type (genericObject)\n";
+		$builderCode .= "      class is (".$node->{'directive'}->{'class'}."Class)\n";
+		$builderCode .= "         if (associated(parametersCurrent,".$node->{'directive'}->{'source'}."%parent)) call Error_Report('recursive build of [".$node->{'directive'}->{'class'}."] class detected'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
+		$builderCode .= "      end select\n";
+	    }
+	    # Obtain or build the object.
 	    $builderCode .= $copyLoopOpen;
 	    $builderCode .= "      ! Object should belong to the parameter node. Get the node and test whether the object has already been created in it.\n";
 	    $builderCode .= "      parameterNode => parametersCurrent%node('".$parameterName."'".$copyInstance.")\n";
@@ -377,6 +387,11 @@ sub Process_ObjectBuilder {
 		    my $sourceDeclaration = &Galacticus::Build::SourceTree::Parse::Declarations::GetDeclaration($node->{'parent'},$node->{'directive'}->{'source'});
 		    &Galacticus::Build::SourceTree::Parse::Declarations::AddAttributes($node->{'parent'},$node->{'directive'}->{'source'},["target"])
 			unless ( grep {$_ eq "target" || $_ eq "pointer"} @{$sourceDeclaration->{'attributes'}} );
+		}
+		if ( &Galacticus::Build::SourceTree::Parse::Declarations::DeclarationExists($node->{'parent'},'self') ) {
+		    my $selfDeclaration = &Galacticus::Build::SourceTree::Parse::Declarations::GetDeclaration($node->{'parent'},'self');
+		    &Galacticus::Build::SourceTree::Parse::Declarations::AddAttributes($node->{'parent'},'self',["target"])
+			unless ( grep {$_ eq "target" || $_ eq "pointer"} @{$selfDeclaration->{'attributes'}} );
 		}
 		$node->{'parent'}->{'objectBuilderAttributes'}->{$node->{'directive'}->{'source'}} = 1;
 	    }
