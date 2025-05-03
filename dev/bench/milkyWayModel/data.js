@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1746152785455,
+  "lastUpdate": 1746313519519,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "1903023f16d3be4f730de841f29c5b1f923f4000",
-          "message": "fix: Correct formatting of output times when the final output time is before 1.0 Gyr",
-          "timestamp": "2024-07-19T10:49:50-07:00",
-          "tree_id": "6068b702cfa1d05eb5af89aebbc2923ce10ff3c5",
-          "url": "https://github.com/galacticusorg/galacticus/commit/1903023f16d3be4f730de841f29c5b1f923f4000"
-        },
-        "date": 1721432786790,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 367.997,
-            "unit": "seconds",
-            "range": 0.389486970253314
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10652,6 +10622,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": "14.566980422713591",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5acea79249949bfbb328f843f32bcc474e606421",
+          "message": "Merge pull request #836 from galacticusorg/featDetectRecursiveObjectBuild\n\nDetect recursion in `objectBuilder` directives",
+          "timestamp": "2025-05-03T16:38:03Z",
+          "tree_id": "c1befa33a562f28d14f1774711788bb8c5d0640f",
+          "url": "https://github.com/galacticusorg/galacticus/commit/5acea79249949bfbb328f843f32bcc474e606421"
+        },
+        "date": 1746313518614,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 112.262,
+            "unit": "seconds",
+            "range": 0.385841418202216
           }
         ]
       }
