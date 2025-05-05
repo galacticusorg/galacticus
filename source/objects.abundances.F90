@@ -818,8 +818,16 @@ contains
     class           (abundances), intent(in   ) :: self
     double precision            , parameter     :: massFractionMinimum=0.7d0
 
-    Abundances_Hydrogen_Mass_Fraction=max((self%metallicityValue/metallicitySolar)*(hydrogenByMassSolar&
-         &-hydrogenByMassPrimordial)+hydrogenByMassPrimordial,massFractionMinimum)
+    Abundances_Hydrogen_Mass_Fraction=min(                                                      &
+         &                                max(                                                  &
+         &                                    +self%metallicityValue                            &
+         &                                    /     metallicitySolar                            &
+         &                                    *(+hydrogenByMassSolar-hydrogenByMassPrimordial)  &
+         &                                    +                      hydrogenByMassPrimordial , &
+         &                                    +                      massFractionMinimum        &
+         &                                   )                                                , &
+         &                                    +                      hydrogenByMassPrimordial   &
+         &                               )
     return
   end function Abundances_Hydrogen_Mass_Fraction
 
@@ -831,8 +839,13 @@ contains
     implicit none
     class(abundances), intent(in   ) :: self
 
-    Abundances_Helium_Mass_Fraction=(self%metallicityValue/metallicitySolar)*(heliumByMassSolar-heliumByMassPrimordial)&
-         &+heliumByMassPrimordial
+    Abundances_Helium_Mass_Fraction=min(                                              &
+         &                              +self%metallicityValue                        &
+         &                              /     metallicitySolar                        &
+         &                              *(+heliumByMassSolar-heliumByMassPrimordial)  &
+         &                              +                    heliumByMassPrimordial , &
+         &                              +                    heliumByMassPrimordial   &
+         &                             )
     return
   end function Abundances_Helium_Mass_Fraction
 
