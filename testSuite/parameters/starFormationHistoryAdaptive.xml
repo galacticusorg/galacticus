@@ -9,7 +9,7 @@
   <componentBasic value="standard"/>
   <componentHotHalo value="null"/>
   <componentBlackHole value="null"/>
-  <componentDarkMatterProfile value="null"/>
+  <componentDarkMatterProfile value="scaleFree"/>
   <componentDisk value="standard">
     <massDistributionDisk value="exponentialDisk">
       <dimensionless value="true"/>
@@ -87,6 +87,8 @@
     <nodeOperator value="cosmicTime"/>
     <!-- DMO evolution -->
     <nodeOperator value="DMOInterpolate"/>
+    <!-- Dark matter profile -->
+    <nodeOperator value="darkMatterProfileInitialize"/>
     <!-- Halo spins -->
     <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Satellite evolution -->
