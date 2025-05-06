@@ -192,7 +192,7 @@
 	  <label              value="Milky Way"                   />
 	  <transferFunction   value="CDM"                         />
 	  <realizations       value="Halo004"                     />
-	  <hostHaloIDS        Halo004="416663311"                 />
+	  <hostHaloIDs        Halo004="416663311"                 />
 	</simulation>
 	<haloMassFunction>
      	  <expansionFactors value="   1.0000   0.66503   0.50239   0.32987   0.20064"/>
@@ -214,13 +214,13 @@
 				     Halo313 Halo331 Halo336 Halo342
 				     Halo346 Halo347 Halo352 Halo383
 				     Halo384 Halo399 Halo428 Halo444
-				     Halo470 Halo492 Halo496 Halo501
+				     Halo470 Halo496 Halo501
 				     Halo504 Halo551 Halo570 Halo579
 				     Halo581 Halo593 Halo606 Halo656
 				     Halo752 Halo755 Halo759 Halo774
 				     Halo781 Halo785 Halo790 Halo806
 				     Halo834 Halo861 Halo909 Halo927
-				     Halo962 Halo985"/>
+				     Halo962 Halo985"/>		<!-- Note that Halo492 was excluded due to snapshot errors. -->
 	  <hostHaloIDs               Halo015="91159631" Halo024="39697241"
 				     Halo029="93129043" Halo046="36695949"
 				     Halo055="55122063" Halo090="85983277"
