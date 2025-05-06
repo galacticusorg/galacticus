@@ -20,7 +20,9 @@
 !!{
 Implements an N-body data operator which constructs the convex hull of the particles.
 !!}
-  
+
+  use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
+
   !![
   <nbodyOperator name="nbodyOperatorConvexHull">
    <description>An N-body data operator which constructs the convex hull of the particles.</description>
@@ -31,7 +33,9 @@ Implements an N-body data operator which constructs the convex hull of the parti
      An N-body data operator which constructs the convex hull of the particles.
      !!}
      private
+     class(randomNumberGeneratorClass), pointer :: randomNumberGenerator_ => null()
    contains
+     final     ::            convexHullDestructor
      procedure :: operate => convexHullOperate
   end type nbodyOperatorConvexHull
 
@@ -40,6 +44,7 @@ Implements an N-body data operator which constructs the convex hull of the parti
      Constructors for the {\normalfont \ttfamily convexHull} N-body operator class.
      !!}
      module procedure convexHullConstructorParameters
+     module procedure convexHullConstructorInternal
   end interface nbodyOperatorConvexHull
 
 contains
@@ -50,15 +55,47 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(nbodyOperatorConvexHull)                :: self
-    type(inputParameters        ), intent(inout) :: parameters
+    type (nbodyOperatorConvexHull   )                :: self
+    type (inputParameters           ), intent(inout) :: parameters
+    class(randomNumberGeneratorClass), pointer       :: randomNumberGenerator_
     
-    self=nbodyOperatorConvexHull()
+    !![
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !!]
+    self=nbodyOperatorConvexHull(randomNumberGenerator_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="randomNumberGenerator_"/>
     !!]
     return
   end function convexHullConstructorParameters
+
+  function convexHullConstructorInternal(randomNumberGenerator_) result (self)
+    !!{
+    Internal constructor for the {\normalfont \ttfamily convexHull} N-body operator class.
+    !!}
+    implicit none
+    type (nbodyOperatorConvexHull   )                        :: self
+    class(randomNumberGeneratorClass), intent(in   ), target :: randomNumberGenerator_
+    !![
+    <constructorAssign variables="*randomNumberGenerator_"/>
+    !!]
+
+    return
+  end function convexHullConstructorInternal
+
+  subroutine convexHullDestructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily convexHull} N-body operator class.
+    !!}
+    implicit none
+    type(nbodyOperatorConvexHull), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%randomNumberGenerator_"/>
+    !!]
+    return
+  end subroutine convexHullDestructor
 
   subroutine convexHullOperate(self,simulations)
     !!{
@@ -72,13 +109,13 @@ contains
     double precision                         , pointer      , dimension(:,:) :: position
     type            (convexHull             ), pointer                       :: hull
     integer                                                                  :: i
-    double precision :: volume
+    double precision                                                         :: volume
 
     call displayIndent('construct convex hull',verbosityLevelStandard)
     do i=1,size(simulations)
        position => simulations(i)%propertiesRealRank1%value('position')
        allocate(hull)
-       hull=convexHull(position)
+       hull=convexHull(position,allowSubsampling=.true.,randomNumberGenerator_=self%randomNumberGenerator_)
        call simulations(i)%attributesGeneric%set('convexHull',hull)
        volume=hull%volume()
        nullify(hull    )
