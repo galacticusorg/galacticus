@@ -110,9 +110,9 @@ my @entries = &iterate($simulations,\%options, stopAfter => "realization");
 		    # Parse the base parameters.
 		    my $parameters = $xml->XMLin($options{'pipelinePath'}."identifyAlwaysIsolated.xml");
 		    # Modify file names.
-		    $parameters->{'nbodyImporter' }                        ->{'fileName'}->{'value'} = $entry->{'path'}."tree_"                   .$i."_".$j."_".$k.".dat" ;
-		    $parameters->{'nbodyOperator' }->{'nbodyOperator'}->[3]->{'fileName'}->{'value'} = $entry->{'path'}."alwaysIsolated_subVolume".$i."_".$j."_".$k.".hdf5";
-		    $parameters->{'outputFileName'}                                      ->{'value'} = $entry->{'path'}."alwaysIsolated_"         .$i."_".$j."_".$k.".hdf5";
+		    $parameters->{'outputFileName'}                                      ->{'value'} = $entry->{'path'}."identifyAlwaysIsolatedGLC_".$i."_".$j."_".$k.".hdf5";
+		    $parameters->{'nbodyImporter' }                        ->{'fileName'}->{'value'} = $entry->{'path'}."tree_"                     .$i."_".$j."_".$k.".dat" ;
+		    $parameters->{'nbodyOperator' }->{'nbodyOperator'}->[3]->{'fileName'}->{'value'} = $entry->{'path'}."alwaysIsolated_subVolume"  .$i."_".$j."_".$k.".hdf5";
 		    # Modify cosmological parameters.
 		    $parameters->{'cosmologyParameters'}->{$_}->{'value'} = $entry->{'suite'}->{'cosmology'}->{$_}
 		        foreach ( 'HubbleConstant', 'OmegaMatter', 'OmegaDarkEnergy', 'OmegaBaryon' );
@@ -187,13 +187,14 @@ my @entries = &iterate($simulations,\%options, stopAfter => "realization");
 			# Parse the base parameters.
 			my $parameters = $xml->XMLin($options{'pipelinePath'}."extractSnapshot.xml");
 			# Modify file names.
-			$parameters->{'nbodyImporter'}                        ->{'fileName'     }->{'value'} = $entry->{'path'}."alwaysIsolated_subVolume"                        .$i."_".$j."_".$k.".hdf5";
-			$parameters->{'nbodyImporter'}                        ->{'properties'   }->{'value'} = "particleID isFlyby expansionFactor massVirial";
-			$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[0]->{'propertyNames'}->{'value'} = "isFlyby expansionFactor";
-			$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[0]->{'rangeLow'     }->{'value'} = "0 ".$expansionFactorLow ;
-			$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[0]->{'rangeHigh'    }->{'value'} = "0 ".$expansionFactorHigh;
-			$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[1]->{'propertyNames'}->{'value'} = "isFlyby expansionFactor";
-			$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[2]->{'fileName'     }->{'value'} = $entry->{'path'}."nonFlyby_".$epoch->{'redshiftLabel'}."_subVolume".$i."_".$j."_".$k.".hdf5";
+			$parameters->{'outputFileName'}                                           ->{'value'} = $entry->{'path'}."alwaysIsolated_subVolumeGLC"                     .$i."_".$j."_".$k.".hdf5";
+			$parameters->{'nbodyImporter' }                        ->{'fileName'     }->{'value'} = $entry->{'path'}."alwaysIsolated_subVolume"                        .$i."_".$j."_".$k.".hdf5";
+			$parameters->{'nbodyImporter' }                        ->{'properties'   }->{'value'} = "particleID isFlyby expansionFactor massVirial";
+			$parameters->{'nbodyOperator' }->{'nbodyOperator'}->[0]->{'propertyNames'}->{'value'} = "isFlyby expansionFactor";
+			$parameters->{'nbodyOperator' }->{'nbodyOperator'}->[0]->{'rangeLow'     }->{'value'} = "0 ".$expansionFactorLow ;
+			$parameters->{'nbodyOperator' }->{'nbodyOperator'}->[0]->{'rangeHigh'    }->{'value'} = "0 ".$expansionFactorHigh;
+			$parameters->{'nbodyOperator' }->{'nbodyOperator'}->[1]->{'propertyNames'}->{'value'} = "isFlyby expansionFactor";
+			$parameters->{'nbodyOperator' }->{'nbodyOperator'}->[2]->{'fileName'     }->{'value'} = $entry->{'path'}."nonFlyby_".$epoch->{'redshiftLabel'}."_subVolume".$i."_".$j."_".$k.".hdf5";
 			$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[2]->{'redshift'     }->{'value'} =                              $epoch->{'redshift'     }                                      ;
 			# If a custom process function is defined, call it.
 			&{$processors{$entry->{'suite'}->{'name'}}->{'processExtract'}}($entry,$parameters,$epoch->{'expansionFactor'},\%options)
@@ -539,7 +540,7 @@ sub symphonyPostprocessSelectInSphere {
     foreach my $epoch ( @{$entry->{'resolution'}->{'epochs'}} ) {
 	my $expansionFactorLabel = sprintf("sphericalOrigin:a%5.3f",$epoch->{'expansionFactor'});
 	(my $snapshot) = map {$entry->{'resolution'}->{'expansionFactors'}->[$_] == $epoch->{'expansionFactor'} ? $entry->{'resolution'}->{'snapshots'}->[$_] : ()} 0..$#{$entry->{'resolution'}->{'expansionFactors'}};
-	$parameters->{'outputFileName'}                                       ->{'value'} = $entry->{'path'}."selectInSphere_"   .$epoch->{'redshiftLabel'}.".hdf5";
+	$parameters->{'outputFileName'}                                       ->{'value'} = $entry->{'path'}."selectInSphereGLC_".$epoch->{'redshiftLabel'}.".hdf5";
 	$parameters->{'nbodyImporter' }                        ->{'fileName' }->{'value'} = $entry->{'path'}."snapshots/snapshot_".$snapshot;
 	$parameters->{'nbodyOperator' }->{'nbodyOperator'}->[4]->{'fileName' }->{'value'} = $entry->{'path'}."selectedParticles_".$epoch->{'redshiftLabel'}.".hdf5";
 	$parameters->{'nbodyOperator' }->{'nbodyOperator'}->[4]->{'redshift' }->{'value'} =                                       $epoch->{'redshift'     }        ;
