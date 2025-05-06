@@ -9,7 +9,9 @@
     <massParticle value="" ignoreWarnings="true">
       <resolutionX1 value="3.22264e6"/>
     </massParticle>
-    <subvolumes          value="2"                                                                      />
+    <subvolumes value="" ignoreWarnings="true">
+      <resolutionX1  value="2"/>
+    </subvolumes>
     <simulationReference value="Nadler et al."                                                          />
     <simulationURL       value="https://web.stanford.edu/group/gfc/symphony/build/html/simulations.html"/>
   </simulation>

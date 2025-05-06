@@ -7,10 +7,15 @@
   <simulation value="" ignoreWarnings="true">
     <!-- Milky Way zoom-in simulation properties -->
     <massParticle value="" ignoreWarnings="true">
-      <resolutionX1 value="4.02830e05"/>
-      <resolutionX8 value="5.03538e04"/>
+      <resolutionX1  value="4.02830e05"/>
+      <resolutionX8  value="5.03538e04"/>
+      <resolutionX64 value="6.29448e03"/>
     </massParticle>
-    <subvolumes          value="1"                                                                      />
+    <subvolumes value="" ignoreWarnings="true">
+      <resolutionX1  value="1"/>
+      <resolutionX8  value="1"/>
+      <resolutionX64 value="3"/>
+    </subvolumes>
     <simulationReference value="Nadler et al."                                                          />
     <simulationURL       value="https://web.stanford.edu/group/gfc/symphony/build/html/simulations.html"/>
   </simulation>

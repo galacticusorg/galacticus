@@ -10,7 +10,9 @@
       <resolutionX1      value="=6.20e6/([cosmologyParameters/HubbleConstant]/100.0)"  />
     </massParticle>
     <lengthCube          value="=1.60e2/([cosmologyParameters/HubbleConstant]/100.0)"  />
-    <subvolumes          value="10"                                                    />
+    <subvolumes value="" ignoreWarnings="true">
+      <resolutionX1  value="10"/>
+    </subvolumes>
     <simulationReference value="Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340"/>
     <simulationURL       value="https://www.cosmosim.org/cms/simulations/vsmdpl/"      />
   </simulation>

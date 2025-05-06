@@ -51,12 +51,6 @@ sub iterate {
 	foreach my $group ( &List::ExtraUtils::hashList($suite->{'group'}, keyAs => "name") ) {
 	    next
 		unless ( &matchSelection($simulations->{'selections'},$suite->{'name'},$group->{'name'}) );
-	    # Find the number of subvolumes for this group.
-	    unless ( exists($group->{'subvolumes'}) ) {
-		my $xml = new XML::Simple();
-		my $simulationParameters = $xml->XMLin($options{'pipelinePath'}."simulation_".$suite->{'name'}."_".$group->{'name'}.".xml");	
-		$group->{'subvolumes'}   = $simulationParameters->{'simulation'}->{'subvolumes'}->{'value'};;
-	    }
 	    # Find metadata.
 	    unless ( exists($group->{'metaData'}) ) {
 		my $xml = new XML::Simple();
@@ -76,6 +70,12 @@ sub iterate {
 	    foreach my $resolution ( &List::ExtraUtils::hashList($group->{'resolution'}, keyAs => "name") ) {
 		next
 		    unless ( &matchSelection($simulations->{'selections'},$suite->{'name'},$group->{'name'},$resolution->{'name'}) );
+		# Find the number of subvolumes for this resolution.
+		unless ( exists($resolution->{'subvolumes'}) ) {
+		    my $xml = new XML::Simple();
+		    my $simulationParameters = $xml->XMLin($options{'pipelinePath'}."simulation_".$suite->{'name'}."_".$group->{'name'}.".xml");	
+		    $resolution->{'subvolumes'}   = $simulationParameters->{'simulation'}->{'subvolumes'}->{$resolution->{'name'}}->{'value'};
+		}
 		# Find the particle mass for this resolution.
 		unless ( exists($resolution->{'massParticle'}) ) {
 		    my $xml = new XML::Simple();
