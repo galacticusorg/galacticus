@@ -34,11 +34,13 @@ program Test_Math_Special_Functions
   use :: Error_Functions         , only : Error_Function
   use :: Exponential_Integrals   , only : Cosine_Integral                  , Sine_Integral
   use :: Factorials              , only : Factorial                        , Logarithmic_Double_Factorial
+  use :: Beta_Functions          , only : Beta_Function                    , Beta_Function_Incomplete_Normalized
   use :: Gamma_Functions         , only : Gamma_Function                   , Gamma_Function_Incomplete                      , Gamma_Function_Incomplete_Complementary, Gamma_Function_Logarithmic    , &
           &                               Inverse_Gamma_Function_Incomplete, Inverse_Gamma_Function_Incomplete_Complementary, Digamma_Function
   use :: Hypergeometric_Functions, only : Hypergeometric_1F1               , Hypergeometric_2F1                             , Hypergeometric_pFq                     , Hypergeometric_pFq_Regularized
   use :: Polylogarithms          , only : Polylogarithm_2                  , Polylogarithm_3
   use :: Numerical_Constants_Math, only : Pi
+  use :: Error                   , only : Error_Handler_Register
   use :: Unit_Tests              , only : Assert                           , Unit_Tests_Begin_Group                         , Unit_Tests_End_Group                   , Unit_Tests_Finish
   implicit none
   double precision, dimension(10) :: argument                            =[1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0,10.0d0]
@@ -66,6 +68,10 @@ program Test_Math_Special_Functions
   double complex  , dimension(17) :: errorFunctionComplex
   integer                         :: i
 
+
+  ! Establish error handlers.
+  call Error_Handler_Register()
+  
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
 
@@ -793,6 +799,24 @@ program Test_Math_Special_Functions
        &             [Binomial_Coefficient(2,1),Binomial_Coefficient(10,3),Binomial_Coefficient(-2,0),Binomial_Coefficient(-2,10),Binomial_Coefficient(-2,20),Binomial_Coefficient(-2,200)], &
        &             [2.0d0                    ,120.0d0                   ,1.0d0                     ,11.0d0                     ,21.0d0                     ,201.0d0                     ], &
        &      relTol=1.0d-9)
+
+  ! Test beta functions.
+  call Assert(                                                                                                &
+       &             "beta function, B₀.₅(4000,4000), B₀.₅(4000,3990), B₀.₅(4000,3500), B₀.₅(4000,5000)"    , &
+       &             [                                                                                        &
+       &              Beta_Function_Incomplete_Normalized(4000.0d0,4.00000000000000d3,0.500000000000000d-00), &
+       &              Beta_Function_Incomplete_Normalized(4000.0d0,3.99000000000000d3,0.500000000000000d-00), &
+       &              Beta_Function_Incomplete_Normalized(4000.0d0,3.50000000000000d3,0.500000000000000d-00), &
+       &              Beta_Function_Incomplete_Normalized(4000.0d0,5.00000000000000d3,0.500000000000000d-00)  &
+       &             ]                                                                                      , &
+       &             [                                                                                        &
+       &              0.5000000000000000d0                                                                  , &
+       &              0.4554595983119333d0                                                                  , &
+       &              0.0000000000000000d0                                                                  , &
+       &              1.0000000000000000d0                                                                    &
+       &             ]                                                                                      , &
+       &      relTol=1.0d-9,absTol=5.0d-9)
+  
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
