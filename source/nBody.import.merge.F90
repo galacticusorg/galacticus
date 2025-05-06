@@ -147,21 +147,27 @@ contains
     implicit none
     class           (nbodyImporterMerge), intent(inout)                              :: self
     type            (nBodyData         ), intent(  out), allocatable, dimension(  :) :: simulations
-    type            (nbodyImporterList )               , pointer                     :: importer_
+    type            (nbodyImporterList )               , pointer                     :: importer_           , importerReference
     integer         (c_size_t          )               , pointer    , dimension(  :) :: propertyInteger     , propertyIntegerMerged
     double precision                                   , pointer    , dimension(  :) :: propertyReal        , propertyRealMerged
     integer         (c_size_t          )               , pointer    , dimension(:,:) :: propertyIntegerRank1, propertyIntegerRank1Merged
     double precision                                   , pointer    , dimension(:,:) :: propertyRealRank1   , propertyRealRank1Merged
-    integer                                                                          :: j                   , k
+    integer                                                                          :: j                   , k                         , &
+         &                                                                              i
     integer         (c_size_t          )                                             :: countObjects        , countObjectsMerged
+    logical                                                                          :: propertiesFound
     
     call displayIndent('merging imported data',verbosityLevelStandard)
     allocate(simulations(1))
-    countObjectsMerged    =  0_c_size_t
-    importer_             => self%importers
+    importerReference     =>  null()
+    i                     =   0
+    countObjectsMerged    =   0_c_size_t
+    importer_             =>  self%importers
     do while (associated(importer_))
+       i=i+1
        call importer_%importer_%import(importer_%simulations)
        do j=1,size(importer_%simulations)
+          propertiesFound=.true.
           if (importer_%simulations(j)%propertiesInteger          %size() > 0) then
              propertyInteger      =>  importer_%simulations(j)%propertiesInteger     %value(1)
              countObjectsMerged   =  +countObjectsMerged               &
@@ -179,54 +185,56 @@ contains
              countObjectsMerged   =  +countObjectsMerged               &
                   &                  +size(propertyRealRank1   ,dim=2)
           else
-             call Error_Report('no properties are available in the simulations'//{introspection:location})
+             propertiesFound=.false.
           end if
+          if (.not.associated(importerReference) .and. propertiesFound) importerReference => importer_
        end do
        importer_ => importer_%next
-    end do    
+    end do
+    if (countObjectsMerged == 0_c_size_t) call Error_Report('no properties are available in the simulations'//{introspection:location})
     ! Set a label.
     if (self%label == "*") then
-       simulations(1)%label=self%importers%simulations(1)%label
+       simulations(1)%label=importerReference%simulations(1)%label
     else
-       simulations(1)%label=self%label
+       simulations(1)%label=self                            %label
     end if
     ! Extra attributes/properties.
     !! Integer attributes.
     simulations(1)%attributesInteger=integerSizeTHash     ()
-    if (self%importers%simulations(1)%attributesInteger%size() > 0) then
-       do k=1,self%importers%simulations(1)%attributesInteger%size()
-          call simulations(1)%attributesInteger%set(self%importers%simulations(1)%attributesInteger%key(k),self%importers%simulations(1)%attributesInteger%value(k))
+    if (importerReference%simulations(1)%attributesInteger%size() > 0) then
+       do k=1,importerReference%simulations(1)%attributesInteger%size()
+          call simulations(1)%attributesInteger%set(importerReference%simulations(1)%attributesInteger%key(k),importerReference%simulations(1)%attributesInteger%value(k))
        end do
     end if
     !! Real attributes.
     simulations(1)%attributesReal   =doubleHash           ()
-    if (self%importers%simulations(1)%attributesReal   %size() > 0) then
-       do k=1,self%importers%simulations(1)%attributesReal   %size()
-          call simulations(1)%attributesReal   %set(self%importers%simulations(1)%attributesReal   %key(k),self%importers%simulations(1)%attributesReal   %value(k))
+    if (importerReference%simulations(1)%attributesReal   %size() > 0) then
+       do k=1,importerReference%simulations(1)%attributesReal   %size()
+          call simulations(1)%attributesReal   %set(importerReference%simulations(1)%attributesReal   %key(k),importerReference%simulations(1)%attributesReal   %value(k))
        end do
     end if
     !! Text attributes.
     simulations(1)%attributesText   =varyingStringHash    ()
-    if (self%importers%simulations(1)%attributesText   %size() > 0) then
-       do k=1,self%importers%simulations(1)%attributesText   %size()
-          call simulations(1)%attributesText   %set(self%importers%simulations(1)%attributesText   %key(k),self%importers%simulations(1)%attributesText   %value(k))
+    if (importerReference%simulations(1)%attributesText   %size() > 0) then
+       do k=1,importerReference%simulations(1)%attributesText   %size()
+          call simulations(1)%attributesText   %set(importerReference%simulations(1)%attributesText   %key(k),importerReference%simulations(1)%attributesText   %value(k))
        end do
     end if
     !! Generic attributes.
     simulations(1)%attributesGeneric=genericHash          ()
-    if (self%importers%simulations(1)%attributesGeneric%size() > 0) then
-       do k=1,self%importers%simulations(1)%attributesGeneric%size()
-          call simulations(1)%attributesGeneric%set(self%importers%simulations(1)%attributesGeneric%key(k),self%importers%simulations(1)%attributesGeneric%value(k))
+    if (importerReference%simulations(1)%attributesGeneric%size() > 0) then
+       do k=1,importerReference%simulations(1)%attributesGeneric%size()
+          call simulations(1)%attributesGeneric%set(importerReference%simulations(1)%attributesGeneric%key(k),importerReference%simulations(1)%attributesGeneric%value(k))
        end do
     end if
     !! Scalar integer properties.
     simulations(1)%propertiesInteger=rank1IntegerSizeTPtrHash()
-    if (self%importers%simulations(1)%propertiesInteger%size() > 0) then
-       do k=1,self%importers%simulations(1)%propertiesInteger%size()
-          countObjects          = 0_c_size_t
-          importer_             => self%importers
-          propertyIntegerMerged => null()
-          do while (associated(importer_))
+    do k=1,importerReference%simulations(1)%propertiesInteger%size()
+       countObjects          = 0_c_size_t
+       importer_             => self%importers
+       propertyIntegerMerged => null()
+       do while (associated(importer_))
+          if (importer_%simulations(1)%propertiesInteger%size() > 0) then
              do j=1,size(importer_%simulations)
                 propertyInteger                                                                =>  importer_%simulations(j)%propertiesInteger%value(k)
                 if (.not.associated(propertyIntegerMerged)) allocate(propertyIntegerMerged(countObjectsMerged))
@@ -234,20 +242,20 @@ contains
                 countObjects                                                                   =  +countObjects                &
                      &                                                                            +size(propertyInteger,dim=1)
              end do
-             importer_ => importer_%next
-          end do
-          call simulations(1)%propertiesInteger%set(self%importers%simulations(1)%propertiesInteger%key(k),propertyIntegerMerged)
-          nullify(propertyIntegerMerged)
+          end if
+          importer_ => importer_%next
        end do
-    end if
+       call simulations(1)%propertiesInteger%set(importerReference%simulations(1)%propertiesInteger%key(k),propertyIntegerMerged)
+       nullify(propertyIntegerMerged)
+    end do
     !! Scalar real properties.
     simulations(1)%propertiesReal=rank1DoublePtrHash()
-    if (self%importers%simulations(1)%propertiesReal%size() > 0) then
-       do k=1,self%importers%simulations(1)%propertiesReal%size()
-          countObjects       = 0_c_size_t
-          importer_          => self%importers
-          propertyRealMerged => null()
-          do while (associated(importer_))
+    do k=1,importerReference%simulations(1)%propertiesReal%size()
+       countObjects       = 0_c_size_t
+       importer_          => self%importers
+       propertyRealMerged => null()
+       do while (associated(importer_))
+          if (importer_%simulations(1)%propertiesReal%size() > 0) then
              do j=1,size(importer_%simulations)
                 propertyReal                                                             =>  importer_%simulations(j)%propertiesReal%value(k)
                 if (.not.associated(propertyRealMerged)) allocate(propertyRealMerged(countObjectsMerged))
@@ -255,20 +263,20 @@ contains
                 countObjects                                                             =  +countObjects                &
                      &                                                                      +size(propertyReal,dim=1)
              end do
-             importer_ => importer_%next
-          end do
-          call simulations(1)%propertiesReal%set(self%importers%simulations(1)%propertiesReal%key(k),propertyRealMerged)
-          nullify(propertyRealMerged)
+          end if
+          importer_ => importer_%next
        end do
-    end if
+       call simulations(1)%propertiesReal%set(importerReference%simulations(1)%propertiesReal%key(k),propertyRealMerged)
+       nullify(propertyRealMerged)
+    end do
     !! Rank-1 integer properties.
     simulations(1)%propertiesIntegerRank1=rank2IntegerSizeTPtrHash()
-    if (self%importers%simulations(1)%propertiesIntegerRank1%size() > 0) then
-       do k=1,self%importers%simulations(1)%propertiesIntegerRank1%size()
-          countObjects               = 0_c_size_t
-          importer_                  => self%importers
-          propertyIntegerRank1Merged => null()
-          do while (associated(importer_))
+    do k=1,importerReference%simulations(1)%propertiesIntegerRank1%size()
+       countObjects               = 0_c_size_t
+       importer_                  => self%importers
+       propertyIntegerRank1Merged => null()
+       do while (associated(importer_))
+          if (importer_%simulations(1)%propertiesIntegerRank1%size() > 0) then
              do j=1,size(importer_%simulations)
                 propertyIntegerRank1                                                                       =>  importer_%simulations(j)%propertiesIntegerRank1%value(k)
                 if (.not.associated(propertyIntegerRank1Merged)) allocate(propertyIntegerRank1Merged(size(propertyIntegerRank1,dim=1),countObjectsMerged))
@@ -276,20 +284,20 @@ contains
                 countObjects                                                                               =  +countObjects                     &
                      &                                                                                        +size(propertyIntegerRank1,dim=2)
              end do
-             importer_ => importer_%next
-          end do
-          call simulations(1)%propertiesIntegerRank1%set(self%importers%simulations(1)%propertiesIntegerRank1%key(k),propertyIntegerRank1Merged)
-          nullify(propertyIntegerRank1Merged)
+          end if
+          importer_ => importer_%next
        end do
-    end if
+       call simulations(1)%propertiesIntegerRank1%set(importerReference%simulations(1)%propertiesIntegerRank1%key(k),propertyIntegerRank1Merged)
+       nullify(propertyIntegerRank1Merged)
+    end do
     !! Rank-1 real properties.
     simulations(1)%propertiesRealRank1=rank2DoublePtrHash()
-    if (self%importers%simulations(1)%propertiesRealRank1%size() > 0) then
-       do k=1,self%importers%simulations(1)%propertiesRealRank1%size()
-          countObjects            = 0_c_size_t
-          importer_               => self%importers
-          propertyRealRank1Merged => null()
-          do while (associated(importer_))
+    do k=1,importerReference%simulations(1)%propertiesRealRank1%size()
+       countObjects            = 0_c_size_t
+       importer_               => self%importers
+       propertyRealRank1Merged => null()
+       do while (associated(importer_))
+          if (importer_%simulations(1)%propertiesRealRank1%size() > 0) then
              do j=1,size(importer_%simulations)
                 propertyRealRank1                                                                    =>  importer_%simulations(j)%propertiesRealRank1%value(k)
                 if (.not.associated(propertyRealRank1Merged)) allocate(propertyRealRank1Merged(size(propertyRealRank1,dim=1),countObjectsMerged))
@@ -297,12 +305,12 @@ contains
                 countObjects                                                                         =  +countObjects                     &
                      &                                                                                  +size(propertyRealRank1,dim=2)
              end do
-             importer_ => importer_%next
-          end do
-          call simulations(1)%propertiesRealRank1%set(self%importers%simulations(1)%propertiesRealRank1%key(k),propertyRealRank1Merged)
-          nullify(propertyRealRank1Merged)
+          end if
+          importer_ => importer_%next
        end do
-    end if
+       call simulations(1)%propertiesRealRank1%set(importerReference%simulations(1)%propertiesRealRank1%key(k),propertyRealRank1Merged)
+       nullify(propertyRealRank1Merged)
+    end do
     ! Close analysis groups in merged importers and deallocate their simulation data.
     importer_ => self%importers
     do while (associated(importer_))

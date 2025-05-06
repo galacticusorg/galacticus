@@ -370,123 +370,125 @@ contains
        allocate(propertiesReal   (0                           ))
     end if
     ! Open the file and read.
-    i        =0_c_size_t
-    columnMap=-1
-    open(newUnit=file,file=char(self%fileName),status='old',form='formatted',iostat=status)
-    do while (status == 0)
-       read (file,'(a)',iostat=status) line
-       isComment=line(1:1) == "#"
-       if (isComment .and. columnMap < 0) then
-          ! Different versions of Rockstar have slightly different column layouts. Figure out which is used in this file.
-          allocate(columnNames(String_Count_Words(line)))
-          call String_Split_Words(columnNames,line)
-          if      (columnNames(36) == "Rs_Klypin"      ) then
-             columnMap=1
-          else if (columnNames(36) == "Tidal_Force(35)") then
-             columnMap=2
-          else if (columnNames(36) == "Mvir_all"       ) then
-             columnMap=3
-          else
-             call Error_Report('unrecognized column layout'//{introspection:location})
-          end if
-          ! Adjust column numbers to be read.
-          select case (columnMap)
-          case (1)
-             do j=1,size(self%readColumns)
-                if     (                                                  &
-                     &   self%readColumns(j) == rockstarColumnTidal_Force &
-                     &  .or.                                              &
-                     &   self%readColumns(j) == rockstarColumnTidal_ID    &
-                     & ) call Error_Report('tidal properties not available'//{introspection:location})
-                if (self%readColumns(j)%ID > 34)                            &
-                     & call self%readColumnsMapped(j)%subtract(2)
-             end do
-          case (3)
-             do j=1,size(self%readColumns)
-                if     (                                                  &
-                     &   self%readColumns(j) == rockstarColumnTidal_Force &
-                     &  .or.                                              &
-                     &   self%readColumns(j) == rockstarColumnTidal_ID    &
-                     & ) call Error_Report('tidal properties not available'//{introspection:location})
-                if (self%readColumns(j)%ID > 33)                            &
-                     & call self%readColumnsMapped(j)%subtract(3)
-             end do
-          end select
-       end if
-       if (.not.isComment) then
-          if (countTrees > 0_c_size_t) then
-             ! We have already determined the number of trees.
-             i=i+1_c_size_t
+    if (countHalos > 0_c_size_t) then
+       i        =0_c_size_t
+       columnMap=-1
+       open(newUnit=file,file=char(self%fileName),status='old',form='formatted',iostat=status)
+       do while (status == 0)
+          read (file,'(a)',iostat=status) line
+          isComment=line(1:1) == "#"
+          if (isComment .and. columnMap < 0) then
+             ! Different versions of Rockstar have slightly different column layouts. Figure out which is used in this file.
+             allocate(columnNames(String_Count_Words(line)))
+             call String_Split_Words(columnNames,line)
+             if      (columnNames(36) == "Rs_Klypin"      ) then
+                columnMap=1
+             else if (columnNames(36) == "Tidal_Force(35)") then
+                columnMap=2
+             else if (columnNames(36) == "Mvir_all"       ) then
+                columnMap=3
+             else
+                call Error_Report('unrecognized column layout'//{introspection:location})
+             end if
+             ! Adjust column numbers to be read.
              select case (columnMap)
              case (1)
-                ! Older layout with "Rs_Klypin" in column 35.
-                read (line,*,ioStat=lineStatus) columnsReal   ( 0   ), &
-                     &                          columnsInteger( 1   ), &
-                     &                          columnsReal   ( 2   ), &
-                     &                          columnsInteger( 3: 8), &
-                     &                          columnsReal   ( 9:13), &
-                     &                          columnsInteger(14:14), &
-                     &                          columnsReal   (15:26), &
-                     &                          columnsInteger(27:34), &
-                     &                          columnsReal   (35:54)
-             case (2)
-                ! Newer layout with "Tidal_Force" in column 35.
-                read (line,*,ioStat=lineStatus) columnsReal   ( 0   ), &
-                     &                          columnsInteger( 1   ), &
-                     &                          columnsReal   ( 2   ), &
-                     &                          columnsInteger( 3: 8), &
-                     &                          columnsReal   ( 9:13), &
-                     &                          columnsInteger(14:14), &
-                     &                          columnsReal   (15:26), &
-                     &                          columnsInteger(27:34), &
-                     &                          columnsReal   (35   ), &
-                     &                          columnsInteger(36   ), &
-                     &                          columnsReal   (37:56)
-             case (3)
-                ! Older layout with "Mvir_all" in column 35.
-                read (line,*,ioStat=lineStatus) columnsReal   ( 0   ), &
-                     &                          columnsInteger( 1   ), &
-                     &                          columnsReal   ( 2   ), &
-                     &                          columnsInteger( 3: 8), &
-                     &                          columnsReal   ( 9:13), &
-                     &                          columnsInteger(14:14), &
-                     &                          columnsReal   (15:26), &
-                     &                          columnsInteger(27:33), &
-                     &                          columnsReal   (35:54)
-             case default
-                call Error_Report('unknown column layout'//{introspection:location})
-             end select
-             if (lineStatus /= 0) call Error_Report('failed to parse line:'//char(10)//'"'//trim(line)//'"'//{introspection:location})
-             if (self%expansionFactorNeeded) expansionFactor(i)=columnsReal(0)
-             ! Read any extra columns.
-             if (allocated(self%readColumns)) then
-                jInteger=0
-                jReal   =0
                 do j=1,size(self%readColumns)
-                   select case (self%readColumnsType(j)%ID)
-                   case (columnTypeInteger%ID)
-                      jInteger                               =jInteger                                    +1
-                      propertiesInteger(jInteger)%property(i)=columnsInteger(self%readColumnsMapped(j)%ID)
-                   case (columnTypeReal   %ID)
-                      jReal                                  =jReal                                       +1
-                      propertiesReal   (jReal   )%property(i)=columnsReal   (self%readColumnsMapped(j)%ID)
-                   end select
+                   if     (                                                  &
+                        &   self%readColumns(j) == rockstarColumnTidal_Force &
+                        &  .or.                                              &
+                        &   self%readColumns(j) == rockstarColumnTidal_ID    &
+                        & ) call Error_Report('tidal properties not available'//{introspection:location})
+                   if (self%readColumns(j)%ID > 34)                            &
+                        & call self%readColumnsMapped(j)%subtract(2)
                 end do
-             end if
-          else
-             ! We have not yet determined the number of trees - read that now.
-             read (line,*) countTrees
+             case (3)
+                do j=1,size(self%readColumns)
+                   if     (                                                  &
+                        &   self%readColumns(j) == rockstarColumnTidal_Force &
+                        &  .or.                                              &
+                        &   self%readColumns(j) == rockstarColumnTidal_ID    &
+                        & ) call Error_Report('tidal properties not available'//{introspection:location})
+                   if (self%readColumns(j)%ID > 33)                            &
+                        & call self%readColumnsMapped(j)%subtract(3)
+                end do
+             end select
           end if
-          ! Exit once all halos have been read.
-          if (i == countHalos) exit
-       else if (line(1:16) == "#Full box size =") then
-          ! Extract box size.
-          read (line(17:len_trim(line)),*) boxSize
-       end if
-       call displayCounter(int(100.0d0*dble(i)/dble(countHalos)),verbosity=verbosityLevelStandard,isNew=i == 1_c_size_t)
-    end do
-    call displayCounterClear(verbosityLevelStandard)
-    close(file)
+          if (.not.isComment) then
+             if (countTrees > 0_c_size_t) then
+                ! We have already determined the number of trees.
+                i=i+1_c_size_t
+                select case (columnMap)
+                case (1)
+                   ! Older layout with "Rs_Klypin" in column 35.
+                   read (line,*,ioStat=lineStatus) columnsReal   ( 0   ), &
+                        &                          columnsInteger( 1   ), &
+                        &                          columnsReal   ( 2   ), &
+                        &                          columnsInteger( 3: 8), &
+                        &                          columnsReal   ( 9:13), &
+                        &                          columnsInteger(14:14), &
+                        &                          columnsReal   (15:26), &
+                        &                          columnsInteger(27:34), &
+                        &                          columnsReal   (35:54)
+                case (2)
+                   ! Newer layout with "Tidal_Force" in column 35.
+                   read (line,*,ioStat=lineStatus) columnsReal   ( 0   ), &
+                        &                          columnsInteger( 1   ), &
+                        &                          columnsReal   ( 2   ), &
+                        &                          columnsInteger( 3: 8), &
+                        &                          columnsReal   ( 9:13), &
+                        &                          columnsInteger(14:14), &
+                        &                          columnsReal   (15:26), &
+                        &                          columnsInteger(27:34), &
+                        &                          columnsReal   (35   ), &
+                        &                          columnsInteger(36   ), &
+                        &                          columnsReal   (37:56)
+                case (3)
+                   ! Older layout with "Mvir_all" in column 35.
+                   read (line,*,ioStat=lineStatus) columnsReal   ( 0   ), &
+                        &                          columnsInteger( 1   ), &
+                        &                          columnsReal   ( 2   ), &
+                        &                          columnsInteger( 3: 8), &
+                        &                          columnsReal   ( 9:13), &
+                        &                          columnsInteger(14:14), &
+                        &                          columnsReal   (15:26), &
+                        &                          columnsInteger(27:33), &
+                        &                          columnsReal   (35:54)
+                case default
+                   call Error_Report('unknown column layout'//{introspection:location})
+                end select
+                if (lineStatus /= 0) call Error_Report('failed to parse line:'//char(10)//'"'//trim(line)//'"'//{introspection:location})
+                if (self%expansionFactorNeeded) expansionFactor(i)=columnsReal(0)
+                ! Read any extra columns.
+                if (allocated(self%readColumns)) then
+                   jInteger=0
+                   jReal   =0
+                   do j=1,size(self%readColumns)
+                      select case (self%readColumnsType(j)%ID)
+                      case (columnTypeInteger%ID)
+                         jInteger                               =jInteger                                    +1
+                         propertiesInteger(jInteger)%property(i)=columnsInteger(self%readColumnsMapped(j)%ID)
+                      case (columnTypeReal   %ID)
+                         jReal                                  =jReal                                       +1
+                         propertiesReal   (jReal   )%property(i)=columnsReal   (self%readColumnsMapped(j)%ID)
+                      end select
+                   end do
+                end if
+             else
+                ! We have not yet determined the number of trees - read that now.
+                read (line,*) countTrees
+             end if
+             ! Exit once all halos have been read.
+             if (i == countHalos) exit
+          else if (line(1:16) == "#Full box size =") then
+             ! Extract box size.
+             read (line(17:len_trim(line)),*) boxSize
+          end if
+          call displayCounter(int(100.0d0*dble(i)/dble(countHalos)),verbosity=verbosityLevelStandard,isNew=i == 1_c_size_t)
+       end do
+       call displayCounterClear(verbosityLevelStandard)
+       close(file)
+    end if
     ! Convert positions to internal units (physical Mpc).
     jReal=0
     do j=1,size(self%readColumns)

@@ -248,40 +248,33 @@ contains
     <optionalArgument name="objectsOverwritable" defaultsTo=".false."/>
     !!]
     
-    ! Write data to file.
+    ! Write data to file. Chunking of the HDF5 datasets is disabled - this allows us to write zero-sized datasets (which can occur
+    ! in the case of an empty selection of halos).
     write (snapshotLabel,'(a,i5.5)') 'Snapshot',snapshot
     call irateFile%openFile(char(self%fileName),readOnly=.false.,overWrite=overWrite_,objectsOverwritable=objectsOverwritable_)
     snapshotGroup=irateFile    %openGroup(snapshotLabel)
     halosGroup   =snapshotGroup%openGroup('HaloCatalog')
     call snapshotGroup%writeAttribute(redshift,"Redshift")
     if (present(IDs     )) then
-       if (size(IDs     ) > 0) then
-          call halosGroup%writeDataset  (IDs                             ,'HaloID'  ,'Halo IDs'                                     )
-       end if
+       call halosGroup%writeDataset  (IDs                             ,'HaloID'  ,'Halo IDs'                                     ,chunkSize=-1_c_size_t)
     end if
     if (present(mass    )) then
-       if (size(mass    ) > 0) then
-          call halosGroup%writeDataset  (mass                            ,'Mass'    ,'Halo masses'          ,datasetReturned=dataset)
-          call dataset   %writeAttribute('Msolar'                        ,'unitname'                                                )
-          call dataset   %writeAttribute([kilo*massSolar  , 0.0d0, 0.0d0],'unitscgs'                                                )
-          call dataset   %close         (                                                                                           )
-       end if
+       call halosGroup%writeDataset  (mass                            ,'Mass'    ,'Halo masses'          ,datasetReturned=dataset,chunkSize=-1_c_size_t)
+       call dataset   %writeAttribute('Msolar'                        ,'unitname'                                                                      )
+       call dataset   %writeAttribute([kilo*massSolar  , 0.0d0, 0.0d0],'unitscgs'                                                                      )
+       call dataset   %close         (                                                                                                                 )
     end if
     if (present(center  )) then
-       if (size(center  ) > 0) then
-          call halosGroup%writeDataset   (center                         ,'Center'  ,'Halo center positions',datasetReturned=dataset)
-          call dataset   %writeAttribute('Mpc'                           ,'unitname'                                                )
-          call dataset   %writeAttribute([hecto*megaparsec, 0.0d0,-1.0d0],'unitscgs'                                                )
-          call dataset   %close         (                                                                                           )
-       end if
+       call halosGroup%writeDataset   (center                         ,'Center'  ,'Halo center positions',datasetReturned=dataset,chunkSize=-1_c_size_t)
+       call dataset   %writeAttribute('Mpc'                           ,'unitname'                                                                      )
+       call dataset   %writeAttribute([hecto*megaparsec, 0.0d0,-1.0d0],'unitscgs'                                                                      )
+       call dataset   %close         (                                                                                                                 )
     end if
     if (present(velocity)) then
-       if (size(velocity) > 0) then
-          call halosGroup%writeDataset  (velocity                       ,'Velocity','Halo center velocities',datasetReturned=dataset)
-          call dataset   %writeAttribute('Mpc'                          ,'unitname'                                                 )
-          call dataset   %writeAttribute([kilo*hecto      ,0.0d0, 0.0d0],'unitscgs'                                                 )
-          call dataset   %close         (                                                                                           )
-       end if
+       call halosGroup%writeDataset  (velocity                       ,'Velocity','Halo center velocities',datasetReturned=dataset,chunkSize=-1_c_size_t)
+       call dataset   %writeAttribute('Mpc'                          ,'unitname'                                                                       )
+       call dataset   %writeAttribute([kilo*hecto      ,0.0d0, 0.0d0],'unitscgs'                                                                       )
+       call dataset   %close         (                                                                                                                 )
     end if
     call halosGroup   %close()
     call snapshotGroup%close()

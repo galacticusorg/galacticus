@@ -132,14 +132,15 @@ contains
     !!{
     Output simulation data to an IRATE-format file.
     !!}
-    use :: Display                         , only : displayIndent, displayUnindent, verbosityLevelStandard
-    use :: Error                           , only : Error_Report
-    use :: HDF5_Access                     , only : hdf5Access
-    use :: IO_HDF5                         , only : hdf5Object
-    use :: IO_IRATE                        , only : irate
-    use :: ISO_Varying_String              , only : char
-    use :: Numerical_Constants_Astronomical, only : massSolar    , megaparsec
-    use :: Numerical_Constants_Prefixes    , only : kilo         , hecto
+    use, intrinsic :: ISO_C_Binding                   , only : c_size_t
+    use            :: Display                         , only : displayIndent, displayUnindent, verbosityLevelStandard
+    use            :: Error                           , only : Error_Report
+    use            :: HDF5_Access                     , only : hdf5Access
+    use            :: IO_HDF5                         , only : hdf5Object
+    use            :: IO_IRATE                        , only : irate
+    use            :: ISO_Varying_String              , only : char
+    use            :: Numerical_Constants_Astronomical, only : massSolar    , megaparsec
+    use            :: Numerical_Constants_Prefixes    , only : kilo         , hecto
     implicit none
     class           (nbodyOperatorExportIRATE), intent(inout)                 :: self
     type            (nBodyData               ), intent(inout), dimension(:  ) :: simulations
@@ -162,7 +163,7 @@ contains
     particleIDs => null()
     if (simulations(1)%propertiesRealRank1%exists('position'  )) position    => simulations(1)%propertiesRealRank1%value('position'  )
     if (simulations(1)%propertiesRealRank1%exists('velocity'  )) velocity    => simulations(1)%propertiesRealRank1%value('velocity'  )
-    if (simulations(1)%propertiesInteger  %exists('particleID')) particleIDs => simulations(1)%propertiesInteger  %value('particleID')
+    if (simulations(1)%propertiesInteger  %exists('particleID')) particleIDs => simulations(1)%propertiesInteger  %value('particleID')    
     !![
     <conditionalCall>
      <call>
@@ -244,7 +245,7 @@ contains
              datasetDescription="Unknown property."
           end select
           propertyInteger => simulations(1)%propertiesInteger%value(i)
-          if (size(propertyInteger) > 0) call halosGroup%writeDataset(propertyInteger,char(simulations(1)%propertiesInteger%key(i)),char(datasetDescription))
+          call halosGroup%writeDataset(propertyInteger,char(simulations(1)%propertiesInteger%key(i)),char(datasetDescription),chunkSize=-1_c_size_t)
        end do
        do i=1,simulations(1)%propertiesReal   %size()
           select case (char(simulations(1)%propertiesReal   %key(i)))
@@ -276,12 +277,10 @@ contains
              datasetDescription="Unknown property."
           end select
           propertyReal    => simulations(1)%propertiesReal   %value(i)
-          if (size(propertyReal   ) > 0) then
-             call halosGroup%writeDataset  (propertyReal   ,char(simulations(1)%propertiesReal   %key(i)),char(datasetDescription),datasetReturned=dataset)
-             call dataset   %writeAttribute(char(unitName) ,'unitname'                                                                                    )
-             call dataset   %writeAttribute(     unitscgs  ,'unitscgs'                                                                                    )
-             call dataset   %close         (                                                                                                              )
-          end if
+          call halosGroup%writeDataset  (propertyReal   ,char(simulations(1)%propertiesReal   %key(i)),char(datasetDescription),datasetReturned=dataset,chunkSize=-1_c_size_t)
+          call dataset   %writeAttribute(char(unitName) ,'unitname'                                                                                                          )
+          call dataset   %writeAttribute(     unitscgs  ,'unitscgs'                                                                                                          )
+          call dataset   %close         (                                                                                                                                    )
        end do
        call halosGroup   %close()
        call snapshotGroup%close()
