@@ -20,7 +20,8 @@
 
   <nbodyOperator value="sequence">
     <nbodyOperator value="filterID" >
-      <idSelectionFileName value=""/>
+      <idSelectionFileName    value=""/>
+      <idSelectionDatasetName value="Snapshot00001/HaloCatalog/HaloID"/>
     </nbodyOperator>
     <nbodyOperator value="exportIRATE">
       <fileName value="" />

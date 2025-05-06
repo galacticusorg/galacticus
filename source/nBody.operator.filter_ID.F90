@@ -32,7 +32,7 @@ Implements an N-body data operator which filters particles by ID.
      !!}
      private
      integer(c_size_t      ), allocatable, dimension(:) :: idSelection
-     type   (varying_string)                            :: idSelectionFileName
+     type   (varying_string)                            :: idSelectionFileName, idSelectionDatasetName
    contains
      procedure :: operate => filterIDOperate
   end type nbodyOperatorFilterID
@@ -54,13 +54,17 @@ contains
     use :: Input_Parameters, only : inputParameters
     use :: IO_HDF5         , only : hdf5Object
     use :: HDF5_Access     , only : hdf5Access
+    use :: String_Handling , only : String_Split_Words, String_Count_Words
     implicit none
     type   (nbodyOperatorFilterID)                              :: self
     type   (inputParameters      ), intent(inout)               :: parameters
-    type   (varying_string       )                              :: idSelectionFileName
+    type   (varying_string       )                              :: idSelectionFileName, idSelectionDatasetName
+    type   (varying_string       ), allocatable  , dimension(:) :: groupNames
     integer(c_size_t             ), allocatable  , dimension(:) :: idSelection
     type   (hdf5Object           )                              :: idFile
-
+    type   (hdf5Object           ), allocatable  , dimension(:) :: idGroup
+    integer                                                     :: i
+    
     if      (parameters%isPresent('idSelection'        )) then
        allocate(idSelection(parameters%count('idSelection')))
        !![
@@ -77,11 +81,34 @@ contains
 	 <source>parameters</source>
 	 <description>The name of a file containing the IDs of particles to retain.</description>
        </inputParameter>
+       <inputParameter>
+	 <name>idSelectionDatasetName</name>
+	 <source>parameters</source>
+	 <defaultValue>var_str('id')</defaultValue>
+	 <description>The name of the dataset containing the IDs of particles to retain.</description>
+       </inputParameter>
        !!]
+       allocate(groupNames(String_Count_Words(char(idSelectionDatasetName),"/")  ))
+       allocate(idGroup   (String_Count_Words(char(idSelectionDatasetName),"/")-1))
+       call String_Split_Words(groupNames,char(idSelectionDatasetName),"/")
        !$ call hdf5Access%set()
        call idFile%openFile   (char(idSelectionFileName)            )
-       call idFile%readDataset('id'                     ,idSelection)
-       call idFile%close      (                                     )
+       if (size(idGroup) > 0) then
+          do i=1,size(idGroup)
+             if (i == 1) then
+                idGroup(i)=idFile      %openGroup(char(groupNames(i)))
+             else
+                idGroup(i)=idGroup(i-1)%openGroup(char(groupNames(i)))
+             end if
+          end do
+          call idGroup(size(idGroup))%readDataset(char(groupNames(size(groupNames))),idSelection)
+          do i=size(idGroup),1,-1
+             call idGroup(i)%close()
+          end do
+       else
+          call idFile                %readDataset(     'id'                         ,idSelection)
+       end if
+       call idFile%close()
        !$ call hdf5Access%unset()
     else
        call Error_Report('either "idSelection" of "idSelectionFileName" must be provided'//{introspection:location})
@@ -113,7 +140,7 @@ contains
 
   subroutine filterIDOperate(self,simulations)
     !!{
-    Filter particles outside of a cuboid region.
+    Filter particles not matching the given IDs.
     !!}
     use :: Arrays_Search, only : searchArray
     use :: Display      , only : displayIndent, displayMessage  , displayUnindent, verbosityLevelStandard
