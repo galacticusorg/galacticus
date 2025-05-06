@@ -139,8 +139,8 @@ foreach $content::entry ( &iterate($simulations,\%options) ) {
     $content::massHaloMaximum = sprintf("%11.5e",$content::fractionMassPrimary  *$content::entry                ->{'massPrimary' })
 	if ( $content::entry->{'suite'}->{'limitMassMaximum'}->{'value'} eq "primaryFraction" );
     # Generate file names.
-    $content::fileNameBase   = $options{'outputDirectory'}  ."haloMassFunctionBase_".$content::entry->{'suite'}->{'name'}."_".$content::entry->{'group'}->{'name'}."_".$content::entry->{'simulation'}->{'name'}."_".$content::entry->{'realization'}."_z".$content::entry->{'redshift'}.".xml" ;
-    $content::fileNameTarget = "\%DATASTATICPATH\%/darkMatter/haloMassFunction_"    .$content::entry->{'suite'}->{'name'}."_".$content::entry->{'group'}->{'name'}."_".$content::entry->{'simulation'}->{'name'}."_".$content::entry->{'realization'}."_z".$content::entry->{'redshift'}.".hdf5";
+    $content::fileNameBase   = $options{'outputDirectory'}  ."haloMassFunctionBase_".$content::entry->{'suite'}->{'name'}."_".$content::entry->{'group'}->{'name'}."_".$content::entry->{'resolution' }->{'name'}."_".$content::entry->{'simulation'}->{'name'}."_".$content::entry->{'realization'}."_z".$content::entry->{'redshift'}.".xml" ;
+    $content::fileNameTarget = "\%DATASTATICPATH\%/darkMatter/haloMassFunction_"    .$content::entry->{'suite'}->{'name'}."_".$content::entry->{'group'}->{'name'}."_".$content::entry->{'resolution' }->{'name'}."_".$content::entry->{'simulation'}->{'name'}."_".$content::entry->{'realization'}."_z".$content::entry->{'redshift'}.".hdf5";
     # Determine detection efficiency class.
     (my $suiteName = $content::entry->{'suite'}->{'name'}) =~ s/://g;
     $content::class = $suiteName.(exists($content::entry->{'group'}->{'detectionEfficiencyClass'}) ? $content::entry->{'group'}->{'detectionEfficiencyClass'} : "");
