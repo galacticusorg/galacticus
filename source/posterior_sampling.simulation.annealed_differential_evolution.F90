@@ -24,7 +24,7 @@
   !![
   <posteriorSampleSimulation name="posteriorSampleSimulationAnnealedDffrntlEvltn">
    <description>
-    This class the {\normalfont \ttfamily differentialEvolution} class to include an annealing schedule---the simulation begins at
+    This class extends the {\normalfont \ttfamily differentialEvolution} class to include an annealing schedule---the simulation begins at
     high temperature, waits for convergence, lowers the temperature and repeats until convergence at $T=1$ is reached. In addition to
     the options for the {\normalfont \ttfamily differentialEvolution} algorithm, the details of the algorithm are controlled by the
     following sub-parameters:
