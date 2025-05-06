@@ -1018,32 +1018,22 @@ contains
     ! Determine the plausibility of the current disk.
     disk => node%disk()
     select type (disk)
-       class is (nodeComponentDiskStandard)
-       if      (disk%angularMomentum()                <                   0.0d0) &
-            & node%isPhysicallyPlausible=.false.
-       if      (disk%massStellar    ()+disk%massGas() <  -toleranceAbsoluteMass) then
-          node%isPhysicallyPlausible=.false.
-       else if (disk%massStellar    ()+disk%massGas() >=                  0.0d0) then
-          if      (                                                              &
-               &   disk%angularMomentum() < 0.0d0                                &
-               &  ) then
+    class is (nodeComponentDiskStandard)
+       if (disk%massStellar()+disk%massGas() >= 0.0d0 .and. disk%angularMomentum() > 0.0d0) then
+          angularMomentumScale=(                                           &
+               &                 disk%massStellar()                        &
+               &                +disk%massGas    ()                        &
+               &               )                                           &
+               &               * darkMatterHaloScale_%radiusVirial  (node) &
+               &               * darkMatterHaloScale_%velocityVirial(node)
+          if     (                                                                      &
+               &   disk%angularMomentum() > angularMomentumMaximum*angularMomentumScale &
+               &  .or.                                                                  &
+               &   disk%angularMomentum() < angularMomentumMinimum*angularMomentumScale &
+               & ) then
+             ! Ignore disks with angular momenta greatly exceeding that which would be expected if they had a radius comparable to the
+             ! virial radius of their halo.
              node%isPhysicallyPlausible=.false.
-          else
-             angularMomentumScale=(                                           &
-                  &                 disk%massStellar()                        &
-                  &                +disk%massGas    ()                        &
-                  &               )                                           &
-                  &               * darkMatterHaloScale_%radiusVirial  (node) &
-                  &               * darkMatterHaloScale_%velocityVirial(node)
-             if     (                                                                      &
-                  &   disk%angularMomentum() > angularMomentumMaximum*angularMomentumScale &
-                  &  .or.                                                                  &
-                  &   disk%angularMomentum() < angularMomentumMinimum*angularMomentumScale &
-                  & ) then
-                ! Ignore disks with angular momenta greatly exceeding that which would be expected if they had a radius comparable to the
-                ! virial radius of their halo.
-                node%isPhysicallyPlausible=.false.
-             end if
           end if
        end if
     end select
