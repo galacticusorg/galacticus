@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1746313546861,
+  "lastUpdate": 1746596149470,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.0)": [
@@ -6644,6 +6644,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/5acea79249949bfbb328f843f32bcc474e606421"
         },
         "date": 1746313546078,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteBoundMass",
+            "value": "13.931629727618084",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "6.553741456971881",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteVelocityMaximum",
+            "value": "5.001018844185234",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3d69accd17d5ad91c3db2f1b9fb0c8dae8361f8d",
+          "message": "Merge pull request #838 from galacticusorg/fixHydrogenMassFraction\n\nPrevent hydrogen and helium mass fractions exceeding primordial values for negative metallicities",
+          "timestamp": "2025-05-06T23:06:57Z",
+          "tree_id": "305b9fba9f49d6050d3536a3c781cefe5db1d587",
+          "url": "https://github.com/galacticusorg/galacticus/commit/3d69accd17d5ad91c3db2f1b9fb0c8dae8361f8d"
+        },
+        "date": 1746596148561,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
