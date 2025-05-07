@@ -114,6 +114,7 @@
   </intergalacticMediumState>
   
   <!-- Merger tree building options --> 
+  <mergerTreeSeeds value="random"/>
   <mergerTreeConstructor value="build"    >
     <redshiftBase value="0.0"/>
   </mergerTreeConstructor>
