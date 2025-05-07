@@ -6,19 +6,19 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "5acea79249949bfbb328f843f32bcc474e606421",
-        "message": "Merge pull request #836 from galacticusorg/featDetectRecursiveObjectBuild\n\nDetect recursion in `objectBuilder` directives\n",
-        "timestamp": "2025-05-03 16:38:03+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/5acea79249949bfbb328f843f32bcc474e606421"
+        "id": "3d69accd17d5ad91c3db2f1b9fb0c8dae8361f8d",
+        "message": "Merge pull request #838 from galacticusorg/fixHydrogenMassFraction\n\nPrevent hydrogen and helium mass fractions exceeding primordial values for negative metallicities\n",
+        "timestamp": "2025-05-06 23:06:57+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/3d69accd17d5ad91c3db2f1b9fb0c8dae8361f8d"
     },
     "surfaceDensity": {
-        "percentageBelow": 32.14285714285714,
-        "percentageAbove": 67.85714285714286,
+        "percentageBelow": 39.285714285714285,
+        "percentageAbove": 60.714285714285715,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 50.0,
-        "percentageAbove": 50.0,
+        "percentageBelow": 45.45454545454545,
+        "percentageAbove": 54.54545454545455,
         "target": 0.85
     }
 }
