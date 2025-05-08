@@ -104,7 +104,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily kaur2018} satellite dynamical friction class.
     !!}
-    use :: Table_Labels    , only : extrapolationTypeExtrapolate
+    use :: Table_Labels, only : extrapolationTypeExtrapolate
     implicit none
     type (satelliteDynamicalFrictionKaur2018)                        :: self
     class(darkMatterProfileDMOClass         ), intent(in   ), target :: darkMatterProfileDMO_
