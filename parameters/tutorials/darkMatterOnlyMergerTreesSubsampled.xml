@@ -56,6 +56,7 @@
   <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
 
   <!-- Merger tree building options -->
+  <mergerTreeSeeds value="random"/>
   <mergerTreeConstructor value="build"/>
   <mergerTreeBuilder value="cole2000">
     <accretionLimit value="0.1"/>

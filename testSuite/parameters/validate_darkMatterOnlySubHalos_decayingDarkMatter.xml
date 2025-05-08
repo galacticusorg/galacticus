@@ -87,7 +87,7 @@
     </darkMatterProfileDMO>
   </darkMatterProfileDMO>
   <!-- Including heating from both tidal interactions and decaying dark matter. Force monotonic behavior in the heating (as decaying dark matter heating can be non-monotonic). -->
-  <darkMatterProfileHeating value="monotonic">
+  <darkMatterProfileHeating value="monotonicWeak">
     <darkMatterProfileHeating value="summation">
       <darkMatterProfileHeating value="tidal">
 	<!-- The second order term is set based on the results of Du et al. (2024;

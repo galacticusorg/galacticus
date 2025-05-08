@@ -5,6 +5,10 @@
   <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
 
   <!-- Merger tree building options --> 
+  <mergerTreeSeeds value="random">
+    <!-- Assign random number seeds to trees randomly. This ensures that any change in the global random number generator seed
+         will produce an completely independent set of trees. -->
+  </mergerTreeSeeds>
   <mergerTreeConstructor value="filter">
     <!-- Use a 'filter' constructor here. It will default to an 'always' filter (making it inactive), but this allows models to
          impose a filter if they wish to do so. -->

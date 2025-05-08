@@ -1069,11 +1069,12 @@ contains
     Solve the Jeans equation numerically to find the 1D velocity dispersion.
     !!}
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
-    use            :: Error                  , only : Error_Report        , errorStatusSuccess
+    use            :: Error                  , only : Error_Report        , errorStatusSuccess  , GSL_Error_Details
     use            :: Numerical_Integration  , only : integrator
     use            :: Numerical_Ranges       , only : Make_Range          , rangeTypeLogarithmic
     use            :: Table_Labels           , only : extrapolationTypeFix
     use            :: Numerical_Interpolation, only : gsl_interp_linear
+    use            :: String_Handling        , only : operator(//)
     use            :: Coordinates            , only : coordinateSpherical , assignment(=)
     implicit none
     class           (kinematicsDistributionClass), intent(inout)              :: self
@@ -1196,7 +1197,14 @@ contains
                            &            *toleranceRelative
                    end if
                 end do
-                if (status /= errorStatusSuccess) call Error_Report('integration of Jeans equation failed'//{introspection:location})
+                if (status /= errorStatusSuccess) then
+                   block
+                     integer                 :: line
+                     type   (varying_string) :: reason, file
+                     call GSL_Error_Details(reason,file,line,status)
+                     call Error_Report(var_str('integration of Jeans equation failed - GSL Error ')//status//': "'//reason//'" at line '//line//' of file "'//file//'"'//{introspection:location})
+                   end block
+                end if
                 call integrator_%toleranceSet(toleranceRelative=self%toleranceRelativeVelocityDispersion)
              end if
              if (density <= 0.0d0) then
