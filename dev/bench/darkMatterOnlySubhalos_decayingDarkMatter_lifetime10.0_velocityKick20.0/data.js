@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1746596165511,
+  "lastUpdate": 1746737628491,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=10 Gyr; vₖ=20 km/s)": [
@@ -1525,6 +1525,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=10.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
             "value": "118.93062422278916",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c865d2933671663fde7dffc8f1e114a342229ca7",
+          "message": "Merge pull request #839 from galacticusorg/featRandomSeedsInReferenceModels\n\nUse randomly selected seeds for merger trees in reference and tutorial models",
+          "timestamp": "2025-05-08T14:22:44Z",
+          "tree_id": "aadf61924372db0bf4620cf3680da3932b3b868c",
+          "url": "https://github.com/galacticusorg/galacticus/commit/c865d2933671663fde7dffc8f1e114a342229ca7"
+        },
+        "date": 1746737627455,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=10.0 Gyr; vₖ=20.0 km/s) - Likelihood - mass function",
+            "value": "6.529882227830603",
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=10.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
+            "value": "11.86963131192374",
             "unit": "-logℒ"
           }
         ]
