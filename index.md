@@ -11,7 +11,7 @@ Here you can find:
 
 * Benchmark and validation metrics for:
     * [Dark matter-only subhalos](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalos/)
-    * Decaying dark matter-only subhalos (see Nadler & Benson (2025) for details)
+    * Decaying dark matter-only subhalos (see [Nadler & Benson (2025)](https://ui.adsabs.harvard.edu/abs/2025arXiv250112636N) for details)
 	    * [τ=10 Gyr; vₖ=20 km/s](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalos_decayingDarkMatter_lifetime10.0_velocityKick20.0/index.html)
 	    * [τ=20 Gyr; vₖ=20 km/s](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalos_decayingDarkMatter_lifetime20.0_velocityKick20.0/index.html)
 	    * [τ=20 Gyr; vₖ=40 km/s](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalos_decayingDarkMatter_lifetime20.0_velocityKick40.0/index.html)
@@ -31,7 +31,7 @@ Here you can find:
 * Validation plots and data for:
     * [Merger tree builder convergence](https://galacticusorg.github.io/galacticus/dev/valid/mergerTreeConvergence)
     * [Dark matter-only subhalos](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalos/)
-    * Decaying dark matter-only subhalos (see Nadler & Benson (2025) for details)
+    * Decaying dark matter-only subhalos (see [Nadler & Benson (2025)](https://ui.adsabs.harvard.edu/abs/2025arXiv250112636N) for details)
 	    * [τ=10 Gyr; vₖ=20 km/s](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosDecayingDarkMatter/index_lifetime10.0_velocityKick20.0.html)
 	    * [τ=20 Gyr; vₖ=20 km/s](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosDecayingDarkMatter/index_lifetime20.0_velocityKick20.0.html)
 	    * [τ=20 Gyr; vₖ=40 km/s](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosDecayingDarkMatter/index_lifetime20.0_velocityKick40.0.html)
