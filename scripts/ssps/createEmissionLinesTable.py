@@ -539,10 +539,9 @@ def generateJobSSP(grid,args):
         "onCompletion":         linesParse                                          ,
         "jobNumber":            jobNumber                                           ,
         "grid":                 grid                                                ,
- 	"cloudyScriptFileName": cloudyScriptFileName                                ,
+ 	"cloudyScriptFileName": args.workspace+cloudyScriptFileName                 ,
  	"linesFileName":        args.workspace+"lines"        +str(jobNumber)+".out",
  	"continuumFileName":    args.workspace+"continuum"    +str(jobNumber)+".out",
- 	"cloudyScriptFileName": cloudyScriptFileName                                ,
  	"indices":      	( iAge, iMetallicity, iLogHydrogenLuminosity, iLogHydrogenDensity ),
         "command":              "cd "+args.workspace+"; ulimit -c 0\n"+cloudyPath+"/source/cloudy.exe < "+cloudyScriptFileName+"\n"+"if [ $? != 0 ]; then\necho CLOUDY FAILED\nfi\n"
     }
@@ -657,10 +656,9 @@ def generateJobAGN(grid,args):
         "onCompletion":         linesParse                                          ,
         "jobNumber":            jobNumber                                           ,
         "grid":                 grid                                                ,
- 	"cloudyScriptFileName": cloudyScriptFileName                                ,
+ 	"cloudyScriptFileName": args.workspace+cloudyScriptFileName                 ,
  	"linesFileName":        args.workspace+"lines"        +str(jobNumber)+".out",
  	"continuumFileName":    args.workspace+"continuum"    +str(jobNumber)+".out",
- 	"cloudyScriptFileName": cloudyScriptFileName                                ,
  	"indices":      	( iSpectralIndex, iMetallicity, iIonizationParameter, iLogHydrogenDensity ),
         "command":              "cd "+args.workspace+"; ulimit -c 0\n"+cloudyPath+"/source/cloudy.exe < "+cloudyScriptFileName+"\n"+"if [ $? != 0 ]; then\necho CLOUDY FAILED\nfi\n"
     }
