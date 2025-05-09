@@ -163,7 +163,7 @@ jobs:
            echo Unrecognized file extension
            false
           fi
-          ! grep -q FAIL test.log
+          ! grep -q -e FAIL -e "ODE integration failed" test.log
       - name: "Clean datasets"
         if: ${{ format('{0}',inputs.cacheData) == '1' }}
         run: |
