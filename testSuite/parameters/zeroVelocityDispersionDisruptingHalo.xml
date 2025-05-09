@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Dark matter subhalo evolution model -->
+<!-- Test model for a case where a sub-subhalo orbits in a subhalo that is strongly tidally heated
+     and has a constant density core. Prior to fixing this in revision 5b3346ac61a7a6395e73d7d09b116821ee8681a9
+     this resulted in a zero velocity dispersion which lead to failure of orbit integration due to dynamical
+     friction being excessively large. -->
 <parameters>
   <formatVersion>2</formatVersion>
 
