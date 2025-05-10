@@ -1251,7 +1251,8 @@ jobs:
       matrix:
         file: [ testSuite/parameters/mergerTreeEvolverThreaded.xml,
                 testSuite/parameters/constrainedMilkyWay.xml,
-                testSuite/parameters/test-nuclear-star-cluster.xml ]
+                testSuite/parameters/test-nuclear-star-cluster.xml,
+                testSuite/parameters/zeroVelocityDispersionDisruptingHalo.xml ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
