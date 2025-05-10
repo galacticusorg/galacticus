@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1746783529376,
+  "lastUpdate": 1746909668881,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.0)": [
@@ -6761,6 +6761,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/e1b296af6affaea60acfddaa0726eadaa7f658a3"
         },
         "date": 1746783528467,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteBoundMass",
+            "value": "13.931629727618084",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "6.553741456971881",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteVelocityMaximum",
+            "value": "5.001018844185234",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b648c381ee588c2aabf4a66dd22c242b1e26e1fb",
+          "message": "Merge pull request #840 from galacticusorg/featVogel2022TransferFunction\n\nImplement the Vogel & Abazajian (2022) transfer function for WDM",
+          "timestamp": "2025-05-10T14:11:54Z",
+          "tree_id": "08ae1760aa6fe385c9a6c86c01c80f104dfe2245",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b648c381ee588c2aabf4a66dd22c242b1e26e1fb"
+        },
+        "date": 1746909668124,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
