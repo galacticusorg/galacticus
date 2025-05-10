@@ -31,9 +31,11 @@ Implements a transfer function class based on the thermal \gls{wdm} modifier of 
    <description>The model to use for the cut-off scale in the \cite{bode_halo_2001} transfer function.</description>
    <validator>yes</validator>
    <encodeFunction>yes</encodeFunction>
-   <entry label="bode2001"   />
-   <entry label="barkana2001"/>
-   <entry label="viel05"     />
+   <entry label="bode2001"              />
+   <entry label="barkana2001"           />
+   <entry label="viel05"                />
+   <entry label="vogel22SpinHalf"       />
+   <entry label="vogel22SpinThreeHalves"/>
   </enumeration>
   !!]
 
@@ -116,7 +118,7 @@ contains
       <name>scaleCutOffModel</name>
       <source>parameters</source>
       <defaultValue>var_str('barkana2001')</defaultValue>
-      <description>The model to use to compute the cut-off scale, either ``{\normalfont \ttfamily bode2001}'' to use the fitting function given by equation~A9 of \cite{bode_halo_2001}, ``{\normalfont \ttfamily barkana2001}'' to use the fitting function given by equation~(4) of \cite{barkana_constraints_2001}, or ``{\normalfont \ttfamily viel05}'' to use the fitting function given by equation~(7) of \cite{viel_constraining_2005}.</description>
+      <description>The model to use to compute the cut-off scale, either ``{\normalfont \ttfamily bode2001}'' to use the fitting function given by equation~A9 of \cite{bode_halo_2001}, ``{\normalfont \ttfamily barkana2001}'' to use the fitting function given by equation~(4) of \cite{barkana_constraints_2001}, ``{\normalfont \ttfamily viel05}'' to use the fitting function given by equation~(7) of \cite{viel_constraining_2005}, or ``{\normalfont \ttfamily vogel22spinHalf}'' or ``{\normalfont \ttfamily vogel22spinThreeHalves}'' to use the fitting function given by equation~(9) of \cite{vogel_entering_2022} for spin-1/2 or spin-3/2 particles respectively.</description>
     </inputParameter>
     <inputParameter>
       <name>epsilon</name>
@@ -187,7 +189,7 @@ contains
     select type (particle => self%darkMatterParticle_)
     class is (darkMatterParticleWDMThermal)
        select case (scaleCutOffModel%ID)
-       case (scaleCutOffModelBarkana2001%ID)
+       case (scaleCutOffModelBarkana2001           %ID)
           ! This uses equation (4) from Barkana et al. (2001; http://adsabs.harvard.edu/abs/2001ApJ...558..482B), with the
           ! prefactor of 0.932 to give the cut-off scale at the epoch of matter-radiation equality as discussed in the paragraph
           ! following their equation (4).
@@ -203,7 +205,7 @@ contains
                &            )                                                               **0.15d0 &
                &           /(particle%degreesOfFreedomEffective()/degreesOfFreedomReference)**0.29d0 &
                &           /(particle%mass                     ()/            massReference)**1.15d0
-       case (scaleCutOffModelBode2001   %ID)
+       case (scaleCutOffModelBode2001              %ID)
           ! This uses equation (A9) from Bode et al. (2001; https://ui.adsabs.harvard.edu/abs/2001ApJ...556...93B).
           self%scaleCutOff=+0.048d0                                                                  &
                &           *(                                                                        &
@@ -220,7 +222,7 @@ contains
                &           /  self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)           &
                &           /(particle%degreesOfFreedomEffective()/degreesOfFreedomReference)**0.29d0 &
                &           /(particle%mass                     ()/            massReference)**1.15d0
-       case (scaleCutOffModelViel05     %ID)
+       case (scaleCutOffModelViel05                %ID)
           ! This uses equation (7) from Viel et al. (2005; https://ui.adsabs.harvard.edu/abs/2005PhRvD..71f3534V).
           self%scaleCutOff=+0.049d0                                                                  &
                &           *(                                                                        &
@@ -236,6 +238,41 @@ contains
                &            )**1.22d0                                                                &
                &           /  self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)           &
                &           /(particle%mass                     ()/            massReference)**1.11d0
+
+       case (scaleCutOffModelVogel22SpinHalf       %ID)
+          ! This uses equation (9) from Vogel & Azabajian (2022; https://ui.adsabs.harvard.edu/abs/2022arXiv221010753V) with parameters for spin-1/2 particles.
+          self%scaleCutOff=+0.0437d0                                                                  &
+               &           *(                                                                         &
+               &             +(                                                                       &
+               &               +self%cosmologyParameters_%OmegaMatter   (                  )          &
+               &               -self%cosmologyParameters_%OmegaBaryon   (                  )          &
+               &              )                                                                       &
+               &             *  self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2       &
+               &             /0.12d0                                                                  &
+               &            )**0.2463d0                                                               &
+               &           *(                                                                         &
+               &             +  self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)          &
+               &             /0.6736d0                                                                &
+               &            )**2.012d0                                                                &
+               &           /    self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)          &
+               &           /(particle%mass                     ()/            massReference)**1.188d0
+       case (scaleCutOffModelVogel22SpinThreeHalves%ID)
+          ! This uses equation (9) from Vogel & Azabajian (2022; https://ui.adsabs.harvard.edu/abs/2022arXiv221010753V) with parameters for spin-3/2 particles.
+          self%scaleCutOff=+0.0345d0                                                                  &
+               &           *(                                                                         &
+               &             +(                                                                       &
+               &               +self%cosmologyParameters_%OmegaMatter   (                  )          &
+               &               -self%cosmologyParameters_%OmegaBaryon   (                  )          &
+               &              )                                                                       &
+               &             *  self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2       &
+               &             /0.12d0                                                                  &
+               &            )**0.2463d0                                                               &
+               &           *(                                                                         &
+               &             +  self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)          &
+               &             /0.6736d0                                                                &
+               &            )**2.012d0                                                                &
+               &           /    self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)          &
+               &           /(particle%mass                     ()/            massReference)**1.195d0
        case default
           call Error_Report('invalid cut-off scale model'//{introspection:location})
        end select
@@ -268,19 +305,23 @@ contains
     implicit none
     class           (transferFunctionBode2001), intent(inout) :: self
     double precision                          , intent(in   ) :: wavenumber
+    double precision                                          :: wavenumberDimensionless
 
     bode2001Value=+self%transferFunctionCDM%value(wavenumber)
-    if (self%scaleCutOff > 0.0d0)                    &
-         & bode2001Value=+bode2001Value              &
-         &               /(                          &
-         &                  1.0d0                    &
-         &                 +                         &
-         &                  (                        &
-         &                   +self%epsilon           &
-         &                   *wavenumber             &
-         &                   *self%scaleCutOff       &
-         &                  )**(2.0d0   *self%nu)    &
-         &                )  **(self%eta/self%nu)
+    if (self%scaleCutOff > 0.0d0) then
+       wavenumberDimensionless=+     wavenumber  &
+            &                  *self%scaleCutOff &
+            &                  *self%epsilon
+       if (exponent(wavenumberDimensionless)*2.0d0*self%eta < maxExponent(0.0d0)) then
+          bode2001Value=+bode2001Value                                 &
+               &        /(                                             &
+               &          +1.0d0                                       &
+               &          +wavenumberDimensionless**(2.0d0   *self%nu) &
+               &         )                        **(self%eta/self%nu)
+       else
+          bode2001Value=+0.0d0
+       end if
+    end if
     return
   end function bode2001Value
 
@@ -291,24 +332,29 @@ contains
     implicit none
     class           (transferFunctionBode2001), intent(inout) :: self
     double precision                          , intent(in   ) :: wavenumber
+    double precision                                          :: wavenumberDimensionless
 
     bode2001LogarithmicDerivative=+self%transferFunctionCDM%logarithmicDerivative(wavenumber)
-    if (self%scaleCutOff > 0.0d0)                                       &
-         & bode2001LogarithmicDerivative=+bode2001LogarithmicDerivative &
-         &                               +2.0d0                         &
-         &                               *self%eta                      &
-         &                               *(                             &
-         &                                 +1.0d0                       &
-         &                                 /(                           &
-         &                                   +1.0d0                     &
-         &                                   +(                         &
-         &                                     +self%epsilon            &
-         &                                     *wavenumber              &
-         &                                     *self%scaleCutOff        &
-         &                                    )**(2.0d0*self%nu)        &
-         &                                  )                           &
-         &                                 -1.0d0                       &
-         &                                )
+    if (self%scaleCutOff > 0.0d0) then
+       wavenumberDimensionless=+     wavenumber  &
+            &                  *self%scaleCutOff &
+            &                  *self%epsilon
+       if (exponent(wavenumberDimensionless)*2.0d0*self%eta < maxExponent(0.0d0)) then          
+          bode2001LogarithmicDerivative=+bode2001LogarithmicDerivative                &
+               &                        +2.0d0                                        &
+               &                        *self%eta                                     &
+               &                        *(                                            &
+               &                          +1.0d0                                      &
+               &                          /(                                          &
+               &                            +1.0d0                                    &
+               &                            +wavenumberDimensionless**(2.0d0*self%nu) &
+               &                           )                                          &
+               &                          -1.0d0                                      &
+               &                         )
+       else
+          bode2001LogarithmicDerivative=+0.0d0
+       end if
+    end if
     return
   end function bode2001LogarithmicDerivative
 
