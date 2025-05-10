@@ -4,21 +4,21 @@ window.PONOSV_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "e1b296af6affaea60acfddaa0726eadaa7f658a3",
-        "message": "fix(style): Formatting only\n",
-        "timestamp": "2025-05-08 15:54:49-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/e1b296af6affaea60acfddaa0726eadaa7f658a3"
+        "id": "b648c381ee588c2aabf4a66dd22c242b1e26e1fb",
+        "message": "Merge pull request #840 from galacticusorg/featVogel2022TransferFunction\n\nImplement the Vogel & Abazajian (2022) transfer function for WDM\n",
+        "timestamp": "2025-05-10 14:11:54+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/b648c381ee588c2aabf4a66dd22c242b1e26e1fb"
     },
     "surfaceDensity": {
-        "percentageBelow": 28.57142857142857,
-        "percentageAbove": 71.42857142857143,
+        "percentageBelow": 21.42857142857143,
+        "percentageAbove": 78.57142857142857,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 70.0,
-        "percentageAbove": 30.0,
+        "percentageBelow": 84.61538461538461,
+        "percentageAbove": 15.384615384615385,
         "target": 0.85
     }
 }
