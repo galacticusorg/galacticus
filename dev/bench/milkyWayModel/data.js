@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1746783509560,
+  "lastUpdate": 1746909641572,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "b90646e7cb33f064bd8f7c42805b7f989c69abc6",
-          "message": "Merge pull request #654 from galacticusorg/featClassDefaultErrorMessage\n\nAdd a more helpful error message for invalid default class names",
-          "timestamp": "2024-07-27T00:59:01Z",
-          "tree_id": "03e8dbfa2ab30d0dbff452f274a8fd3dee88fc24",
-          "url": "https://github.com/galacticusorg/galacticus/commit/b90646e7cb33f064bd8f7c42805b7f989c69abc6"
-        },
-        "date": 1722069749314,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 353.663,
-            "unit": "seconds",
-            "range": 0.645750803328971
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10652,6 +10622,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": "14.153981714473517",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b648c381ee588c2aabf4a66dd22c242b1e26e1fb",
+          "message": "Merge pull request #840 from galacticusorg/featVogel2022TransferFunction\n\nImplement the Vogel & Abazajian (2022) transfer function for WDM",
+          "timestamp": "2025-05-10T14:11:54Z",
+          "tree_id": "08ae1760aa6fe385c9a6c86c01c80f104dfe2245",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b648c381ee588c2aabf4a66dd22c242b1e26e1fb"
+        },
+        "date": 1746909640938,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 87.197,
+            "unit": "seconds",
+            "range": 0.138845597697821
           }
         ]
       }
