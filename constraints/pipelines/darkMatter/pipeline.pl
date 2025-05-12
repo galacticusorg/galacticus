@@ -127,13 +127,15 @@ foreach my $task ( @tasks ) {
 	while ( exists($likelihoodModel_->{'posteriorSampleLikelihood'}) ) {
 	    $likelihoodModel_ = $likelihoodModel_->{'posteriorSampleLikelihood'};
 	}
-	my $baseFileName = $likelihoodModel_->{'baseParametersFileName'}->{'value'};
-	my $dom          = $parser->load_xml(location => $baseFileName);
-	$parser->process_xincludes($dom);
-	$likelihoodModel->{'baseParametersFileName'}->{'value'} = $baseFileName;
-	$likelihoodModel->{'baseParameters'        }            = $xml->XMLin($dom->serialize());
+	my @redshifts = split(" ",$likelihoodModel_->{'redshifts'}->{'value'});
+	foreach my $redshift ( @redshifts ) {
+	    (my $baseFileName = $likelihoodModel_->{'baseParametersFileName'}->{'value'}) =~ s/_z[\d\.]+\d/_z$redshift/;
+	    my $dom          = $parser->load_xml(location => $baseFileName);
+	    $parser->process_xincludes($dom);
+	    push(@{$likelihoodModel_->{'baseParameters'}},$xml->XMLin($dom->serialize()));
+	}
     }
-   
+    
     # Copy in current best parameters.
     &applyParameters($config,\%parametersDetermined);
     print "  ...done\n";
@@ -212,7 +214,7 @@ foreach my $task ( @tasks ) {
 	&writeParameters($config                       );
 	print "  ...done\n";
     }
-    
+
     # Postprocess the results.
     if ( $task->{'postprocess'} ) {
 	print "  Postprocessing...\n";
@@ -235,12 +237,21 @@ sub applyParameters {
 	    my @parameterMap = &List::ExtraUtils::as_array($config->{'posteriorSampleLikelihood'}->{'parameterMap'});
 	    @parametersMapped = split(" ",$parameterMap[$i]->{'value'});
 	}
-	foreach my $parameterName ( keys(%parametersDetermined) ) {
-	    next
-		unless ( ! @parametersMapped || grep {$_ eq $parameterName} @parametersMapped );
-	    (my $parameter, my $valueIndex) = &Galacticus::Constraints::Parameters::parameterFind($likelihoodModel->{'baseParameters'},$parameterName);
-	    &Galacticus::Constraints::Parameters::parameterValueSet($parameter,$valueIndex,sclr($parametersDetermined{$parameterName}))
-		if ( defined($parameter) );
+	my $likelihoodModel_ = $likelihoodModel;
+	while ( exists($likelihoodModel_->{'posteriorSampleLikelihood'}) ) {
+	    $likelihoodModel_ = $likelihoodModel_->{'posteriorSampleLikelihood'};
+	}
+	my @redshifts = split(" ",$likelihoodModel_->{'redshifts'}->{'value'});
+	my $j = -1;
+	foreach my $redshift ( @redshifts ) {
+	    ++$j;
+	    foreach my $parameterName ( keys(%parametersDetermined) ) {
+		next
+		    unless ( ! @parametersMapped || grep {$_ eq $parameterName} @parametersMapped );
+		(my $parameter, my $valueIndex) = &Galacticus::Constraints::Parameters::parameterFind($likelihoodModel_->{'baseParameters'}->[$j],$parameterName);
+		&Galacticus::Constraints::Parameters::parameterValueSet($parameter,$valueIndex,sclr($parametersDetermined{$parameterName}))
+		    if ( defined($parameter) );
+	    }
 	}
     }
 }
@@ -249,9 +260,18 @@ sub writeParameters {
     # Write updated parameter sets back to file.
     my $config = shift();
     foreach my $likelihoodModel ( &List::ExtraUtils::as_array($config->{'posteriorSampleLikelihood'}->{'posteriorSampleLikelihood'}) ) {
-	my $baseFileName = $likelihoodModel->{'baseParametersFileName'}->{'value'};
- 	open(my $baseFile,">".$baseFileName);
-	print $baseFile $xml->XMLout($likelihoodModel->{'baseParameters'},RootName => "parameters");
-	close($baseFile);
+	my $likelihoodModel_ = $likelihoodModel;
+	while ( exists($likelihoodModel_->{'posteriorSampleLikelihood'}) ) {
+	    $likelihoodModel_ = $likelihoodModel_->{'posteriorSampleLikelihood'};
+	}
+	my @redshifts = split(" ",$likelihoodModel_->{'redshifts'}->{'value'});
+	my $j = -1;
+	foreach my $redshift ( @redshifts ) {
+	    ++$j;
+	    (my $baseFileName = $likelihoodModel_->{'baseParametersFileName'}->{'value'}) =~ s/_z[\d\.]+\d/_z$redshift/;
+	    open(my $baseFile,">".$baseFileName);
+	    print $baseFile $xml->XMLout($likelihoodModel_->{'baseParameters'}->[$j],RootName => "parameters");
+	    close($baseFile);
+	}
     }
 }
