@@ -125,15 +125,18 @@ contains
     return
   end function poissonMassLogarithmic
 
-  double precision function poissonCumulative(self,x) result(cumulativeDistribution)
+  double precision function poissonCumulative(self,x,status) result(cumulativeDistribution)
     !!{
     Return the cumulative probability of a Poisson discrete distribution.
     !!}
     use :: Gamma_Functions, only : Gamma_Function_Incomplete
+    use :: Interface_GSL  , only : GSL_Success
     implicit none
-    class  (distributionFunctionDiscrete1DPoisson), intent(inout) :: self
-    integer                                       , intent(in   ) :: x
+    class  (distributionFunctionDiscrete1DPoisson), intent(inout)           :: self
+    integer                                       , intent(in   )           :: x
+    integer                                       , intent(  out), optional :: status
 
+    if (present(status)) status=GSL_Success
     cumulativeDistribution=Gamma_Function_Incomplete(dble(x+1),self%mean)
     return
   end function poissonCumulative

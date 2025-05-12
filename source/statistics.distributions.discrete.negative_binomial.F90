@@ -33,12 +33,13 @@
      private
      double precision :: probabilitySuccess, countFailures
    contains
-     procedure :: mass            => negativeBinomialMass
-     procedure :: massLogarithmic => negativeBinomialMassLogarithmic
-     procedure :: cumulative      => negativeBinomialCumulative
-     procedure :: inverse         => negativeBinomialInverse
-     procedure :: minimum         => negativeBinomialMinimum
-     procedure :: maximum         => negativeBinomialMaximum
+     procedure :: mass                    => negativeBinomialMass
+     procedure :: massLogarithmic         => negativeBinomialMassLogarithmic
+     procedure :: cumulative              => negativeBinomialCumulative
+     procedure :: cumulativeComplementary => negativeBinomialCumulativeComplementary
+     procedure :: inverse                 => negativeBinomialInverse
+     procedure :: minimum                 => negativeBinomialMinimum
+     procedure :: maximum                 => negativeBinomialMaximum
   end type distributionFunctionDiscrete1DNegativeBinomial
 
   interface distributionFunctionDiscrete1DNegativeBinomial
@@ -142,18 +143,33 @@ contains
     return
   end function negativeBinomialMassLogarithmic
 
-  double precision function negativeBinomialCumulative(self,x)
+  double precision function negativeBinomialCumulative(self,x,status)
     !!{
     Return the cumulative probability of a negative binomial discrete distribution.
     !!}
     use :: Beta_Functions, only : Beta_Function_Incomplete_Normalized
     implicit none
-    class  (distributionFunctionDiscrete1DNegativeBinomial), intent(inout) :: self
-    integer                                                , intent(in   ) :: x
+    class  (distributionFunctionDiscrete1DNegativeBinomial), intent(inout)           :: self
+    integer                                                , intent(in   )           :: x
+    integer                                                , intent(  out), optional :: status
 
-    negativeBinomialCumulative=Beta_Function_Incomplete_Normalized(self%countFailures,dble(x+1),self%probabilitySuccess)
+    negativeBinomialCumulative=Beta_Function_Incomplete_Normalized(self%countFailures,dble(x+1),self%probabilitySuccess,status)
     return
   end function negativeBinomialCumulative
+
+  double precision function negativeBinomialCumulativeComplementary(self,x,status)
+    !!{
+    Return the complementary cumulative probability of a negative binomial discrete distribution.
+    !!}
+    use :: Beta_Functions, only : Beta_Function_Incomplete_Normalized
+    implicit none
+    class  (distributionFunctionDiscrete1DNegativeBinomial), intent(inout)           :: self
+    integer                                                , intent(in   )           :: x
+    integer                                                , intent(  out), optional :: status
+
+    negativeBinomialCumulativeComplementary=Beta_Function_Incomplete_Normalized(dble(x+1),self%countFailures,1.0d0-self%probabilitySuccess,status)
+    return
+  end function negativeBinomialCumulativeComplementary
 
   integer function negativeBinomialInverse(self,p)
     !!{
