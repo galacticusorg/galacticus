@@ -23,12 +23,13 @@ use Data::Dumper;
 my %options =
     (
      binAverage                   => "true" , # If true halo mass functions will be averaged over each bin.
-     initializeToPosteriorMaximum => "false", # If true, initialize state to the posterior maximumSpecify the state initializor to use.
+     includeCorrelations          => "true" , # If true likelihoods take into account correlations between halo mass functions at different redshifts.
      removeAccelerator            => "false", # If true any `<haloMassFunction value="accelerator"/>` will be removed.
      removeDetectionEfficiency    => "false", # If true any `<haloMassFunction value="detectionEfficiency"/>` will be removed.
      removeErrorConvolved         => "false", # If true any `<haloMassFunction value="errorConvolved"/>` will be removed.
      removeSimulationVariance     => "false", # If true any `<haloMassFunction value="simulationVariance"/>` will be removed.
      removeMultiplier             => "false", # If true any `<haloMassFunction value="multiplier"/>` (used for isolation bias models) will be removed.
+     heatRepeats                  => "true" , # If true any repeated realizations (at a given redshift and resolution) will be heated to account for correlations.
      countParticlesMinimum        => 300      # The minimum number of particles per halo to include in constraints.
     );
 &Galacticus::Options::Parse_Options(\@ARGV,\%options);
@@ -38,7 +39,8 @@ die("no `--outputDirectory` option given")
     unless ( exists($options{'outputDirectory'}) );
 
 # Export options.
-$content::binAverage = $options{'binAverage'};
+$content::binAverage          = $options{'binAverage'         };
+$content::includeCorrelations = $options{'includeCorrelations'};
 
 # Ensure paths are correctly suffixed.
 foreach my $path ( 'pipelinePath', 'outputDirectory' ) {
@@ -119,28 +121,61 @@ foreach my $entry ( &iterate($simulations,\%options, stopAfter => "suite") ) {
     close($haloMassFunctionParameterFileNew);
 }
 
+# Count the number of simulations which repeat each realization.
+my %countRealizations;
+foreach my $entry ( &iterate($simulations,\%options) ) {
+    my $identifierRealization = $entry->{'suite'      }->{'name'}."::".
+	                        $entry->{'group'      }->{'name'}."::".
+	                        $entry->{'resolution' }->{'name'}."::".
+	                        $entry->{'realization'}          ."::".
+	                        $entry->{'redshift'   }               ;
+    ++$countRealizations{$identifierRealization};
+}
+
+# Group entries into sets that differ only by redshift.
+my $haveModels = 0;
+my %entryGroups;
+foreach my $entry ( &iterate($simulations,\%options) ) {
+    $haveModels = 1;
+    my $identifier            = $entry->{'suite'      }->{'name'}."::".
+	                        $entry->{'group'      }->{'name'}."::".
+	                        $entry->{'resolution' }->{'name'}."::".
+	                        $entry->{'simulation' }->{'name'}."::".
+	                        $entry->{'realization'}               ;
+    my $identifierRealization = $entry->{'suite'      }->{'name'}."::".
+	                        $entry->{'group'      }->{'name'}."::".
+	                        $entry->{'resolution' }->{'name'}."::".
+	                        $entry->{'realization'}          ."::".
+	                        $entry->{'redshift'   }               ;
+    $entry->{'countRealizations'} = $countRealizations{$identifierRealization};
+    push(@{$entryGroups{$identifier}},$entry);
+}
+die("no models match this selection")
+    unless ( $haveModels );
+
 # Iterate over all suites/groups/simulations/redshifts/realizations generating parameter files and config entries.
 print "Generating base parameter files...\n";
 my $configLikelihood;
 my %detectionEfficiencyClasses;
-my $haveModels = 0;
-foreach $content::entry ( &iterate($simulations,\%options) ) {
-    $haveModels = 1;
+foreach my $identifier ( sort(keys(%entryGroups)) ) {
+    my $entryGroup      = $entryGroups{$identifier};
+    $content::entry     = ${$entryGroup}[0];
+    @content::redshifts = map {$_->{'redshift'}} @{$entryGroup};
     print
 	"  ".
-	     $content::entry->{'suite'      }->{'name'}."\t".
-     	     $content::entry->{'group'      }->{'name'}."\t".
-	     $content::entry->{'resolution' }->{'name'}."\t".
-	     $content::entry->{'simulation' }->{'name'}."\t".
-	     $content::entry->{'realization'}          ."\t".
-	"z=".$content::entry->{'redshift'   }          ."\n";
+	               $content::entry    ->{'suite'      }->{'name'} ."\t".
+     	               $content::entry    ->{'group'      }->{'name'} ."\t".
+	               $content::entry    ->{'resolution' }->{'name'} ."\t".
+	               $content::entry    ->{'simulation' }->{'name'} ."\t".
+	               $content::entry    ->{'realization'}           ."\t".
+	"z=".join(", ",@content::redshifts                           )."\n";
     # Determine the minimum and maximum halo masses.
     $content::massHaloMinimum = sprintf("%11.5e",$content::countParticlesMinimum*$content::entry->{'resolution'}->{'massParticle'});
     $content::massHaloMaximum = sprintf("%11.5e",$content::fractionMassPrimary  *$content::entry                ->{'massPrimary' })
 	if ( $content::entry->{'suite'}->{'limitMassMaximum'}->{'value'} eq "primaryFraction" );
     # Generate file names.
-    $content::fileNameBase   = $options{'outputDirectory'}  ."haloMassFunctionBase_".$content::entry->{'suite'}->{'name'}."_".$content::entry->{'group'}->{'name'}."_".$content::entry->{'resolution' }->{'name'}."_".$content::entry->{'simulation'}->{'name'}."_".$content::entry->{'realization'}."_z".$content::entry->{'redshift'}.".xml" ;
-    $content::fileNameTarget = "\%DATASTATICPATH\%/darkMatter/haloMassFunction_"    .$content::entry->{'suite'}->{'name'}."_".$content::entry->{'group'}->{'name'}."_".$content::entry->{'resolution' }->{'name'}."_".$content::entry->{'simulation'}->{'name'}."_".$content::entry->{'realization'}."_z".$content::entry->{'redshift'}.".hdf5";
+    @content::fileNamesBase   = map {$options{'outputDirectory'}  ."haloMassFunctionBase_".$content::entry->{'suite'}->{'name'}."_".$content::entry->{'group'}->{'name'}."_".$content::entry->{'resolution'}->{'name'}."_".$content::entry->{'simulation'}->{'name'}."_".$content::entry->{'realization'}."_z".$_.".xml" } @content::redshifts;
+    @content::fileNamesTarget = map {"\%DATASTATICPATH\%/darkMatter/haloMassFunction_"    .$content::entry->{'suite'}->{'name'}."_".$content::entry->{'group'}->{'name'}."_".$content::entry->{'resolution'}->{'name'}."_".$content::entry->{'simulation'}->{'name'}."_".$content::entry->{'realization'}."_z".$_.".hdf5"} @content::redshifts;
     # Determine detection efficiency class.
     (my $suiteName = $content::entry->{'suite'}->{'name'}) =~ s/://g;
     $content::class = $suiteName.(exists($content::entry->{'group'}->{'detectionEfficiencyClass'}) ? $content::entry->{'group'}->{'detectionEfficiencyClass'} : "");
@@ -159,10 +194,15 @@ CODE
     # Determine if the likelihood should be heated.
     $content::likelihoodHeatingOpener = "";
     $content::likelihoodHeatingCloser = "";
-    if ( exists($content::entry->{'options'}->{'likelihoodTemperature'}) ) {
+    if ( exists($content::entry->{'options'}->{'likelihoodTemperature'}) || $options{'heatRepeats'} eq "true" ) {
+	$content::temperature = 1.0;
+	$content::temperature *= $content::entry->{'options'}->{'likelihoodTemperature'}
+	    if ( exists($content::entry->{'options'}->{'likelihoodTemperature'}) );
+	$content::temperature *= $content::entry->{'countRealizations'}
+	    if ( $options{'heatRepeats'} eq "true" );
 	$content::likelihoodHeatingOpener .= fill_in_string(<<'CODE', PACKAGE => 'content');
     <posteriorSampleLikelihood value="heated">
-       <temperature value="{$entry->{'options'}->{'likelihoodTemperature'}}"/>
+       <temperature value="{$temperature}"/>
 CODE
 	$content::likelihoodHeatingCloser .= fill_in_string(<<'CODE', PACKAGE => 'content');
 </posteriorSampleLikelihood>
@@ -194,10 +234,10 @@ CODE
 {$likelihoodHeatingOpener}
     <posteriorSampleLikelihood value="haloMassFunction">
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
-      <baseParametersFileName value="{$fileNameBase}"       />
-      <fileName               value="{$fileNameTarget}"     />
-      <redshift               value="{$entry->{'redshift'}}"/>
-      <massRangeMinimum       value="{$massHaloMinimum}"/> <!-- {$countParticlesMinimum} times zoom-in {$entry->{'suite'}->{'name'}} {$entry->{'group'}->{'name'}} particle mass -->
+      <baseParametersFileName value="{         $fileNamesBase  [0] }"/>
+      <fileNames              value="{join(" ",@fileNamesTarget   )}"/>
+      <redshifts              value="{join(" ",@redshifts         )}"/>
+      <massRangeMinimum       value="{$massHaloMinimum}"             /> <!-- {$countParticlesMinimum} times zoom-in {$entry->{'suite'}->{'name'}} {$entry->{'group'}->{'name'}} particle mass -->
 CODE
     if ( $content::entry->{'suite'}->{'limitMassMaximum'}->{'value'} eq "primaryFraction" ) {
 	$configLikelihood .= fill_in_string(<<'CODE', PACKAGE => 'content');
@@ -205,24 +245,28 @@ CODE
 CODE
     }
     $configLikelihood .= fill_in_string(<<'CODE', PACKAGE => 'content');
-      <binCountMinimum        value="0"                 />    
-      <likelihoodPoisson      value="true"              />
-      <binAverage             value="{$binAverage}"     />
+      <binCountMinimum        value="0"                     />    
+      <likelihoodPoisson      value="true"                  />
+      <binAverage             value="{$binAverage}"         />
+      <includeCorrelations    value="{$includeCorrelations}"/>
     </posteriorSampleLikelihood>
 {$likelihoodHeatingCloser}
 CODE
 
-    # Generate the base parameter file for this instance.
-    my $base = fill_in_string(<<'CODE', PACKAGE => 'content');
+    # Generate the base parameter file for each redshift instance.
+    my $iRedshift = -1;
+    foreach $content::redshift ( @content::redshifts ) {
+	++$iRedshift;
+	my $base = fill_in_string(<<'CODE', PACKAGE => 'content');
 <?xml version="1.0" encoding="UTF-8"?>
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
 
   <!-- Output control -->
-  <outputFileName value="{$outputDirectory}haloMassFunction_{$entry->{'suite'}->{'name'}}_{$entry->{'group'}->{'name'}}_{$entry->{'simulation'}->{'name'}}_{$entry->{'realization'}}_z{$entry->{'redshift'}}.hdf5"/>
+  <outputFileName value="{$outputDirectory}haloMassFunction_{$entry->{'suite'}->{'name'}}_{$entry->{'group'}->{'name'}}_{$entry->{'resolution'}->{'name'}}_{$entry->{'simulation'}->{'name'}}_{$entry->{'realization'}}_z{$redshift}.hdf5"/>
   <outputTimes value="list">
-    <redshifts value="{$entry->{'redshift'}}"/>
+    <redshifts value="{$redshift}"/>
   </outputTimes>  
 
   <!-- Include cosmology and mass function parameters -->
@@ -241,45 +285,43 @@ CODE
   <detectionExponentMass             value="=[haloMassFunctionParameters/exponentMassDetection{$class}]"     ignoreWarnings="true"/>
   <detectionExponentRedshift         value="=[haloMassFunctionParameters/exponentRedshiftDetection{$class}]" ignoreWarnings="true"/>
 CODE
-    if ( $content::entry->{'suite'}->{'includePerturbation'}->{'value'} eq "true" && $options{'removeSimulationVariance'} eq "false" ) {
-	$base .= fill_in_string(<<'CODE', PACKAGE => 'content');
+	if ( $content::entry->{'suite'}->{'includePerturbation'}->{'value'} eq "true" && $options{'removeSimulationVariance'} eq "false" ) {
+	    $base .= fill_in_string(<<'CODE', PACKAGE => 'content');
 
   <!-- Use the simulation variance perturbation relevant to this simulation -->
   <perturbationFractional value="=[haloMassFunctionParameters/perturbation{$entry->{'group'}->{'labelPerturbation'}}]"/>
 CODE
-    }
-    if ( $content::entry->{'suite'}->{'includeIsolationBias'}->{'value'} eq "true" && $options{'removeMultiplier'} eq "false" ) {
-	$base .= fill_in_string(<<'CODE', PACKAGE => 'content');
+	}
+	if ( $content::entry->{'suite'}->{'includeIsolationBias'}->{'value'} eq "true" && $options{'removeMultiplier'} eq "false" ) {
+	    $base .= fill_in_string(<<'CODE', PACKAGE => 'content');
 
   <!-- Isolation bias -->
   <isolationBias         value="=[haloMassFunctionParameters/isolationBias{$entry->{'group'}->{'labelIsolationBias'}}]"         ignoreWarnings="true"/>
   <isolationBiasExponent value="=[haloMassFunctionParameters/isolationBiasExponent{$entry->{'group'}->{'labelIsolationBias'}}]" ignoreWarnings="true"/>
 
 CODE
-    }
-    if ( $content::entry->{'suite'}->{'includeEnvironment'}->{'value'} eq "true" ) {
-	$base .= fill_in_string(<<'CODE', PACKAGE => 'content');
+	}
+	if ( $content::entry->{'suite'}->{'includeEnvironment'}->{'value'} eq "true" ) {
+	    $base .= fill_in_string(<<'CODE', PACKAGE => 'content');
 
   <!-- Halo environments -->
   <haloEnvironment value="fixed">
-    <massEnvironment value="{$entry->{'environment'}->{'massEnvironment'       }}"                      />
-    <overdensity     value="{$entry->{'environment'}->{'overdensityEnvironment'}}"                      />
-    <redshift        value="{$entry                 ->{'redshift'              }}" ignoreWarnings="true"/>
+    <massEnvironment value="{$entry->{'environment'}->{'massEnvironment'       }}"/>
+    <overdensity     value="{$entry->{'environment'}->{'overdensityEnvironment'}}"/>
   </haloEnvironment>
 CODE
-    }
-    $base .= fill_in_string(<<'CODE', PACKAGE => 'content');
+	}
+	$base .= fill_in_string(<<'CODE', PACKAGE => 'content');
 
 </parameters>
 CODE
 
-    # Generate the base parameter file.
-    open(my $baseFile,">".$content::fileNameBase);
-    print $baseFile $base;
-    close($baseFile);
+	# Generate the base parameter file.
+	open(my $baseFile,">".$content::fileNamesBase[$iRedshift]);
+	print $baseFile $base;
+	close($baseFile);
+    }
 }
-die("no models match this selection")
-    unless ( $haveModels );
 print "...done\n";
 
 # Generate openers and closers for the config and parameter files.
@@ -352,7 +394,7 @@ $configInitializer .= fill_in_string(<<'CODE', PACKAGE => 'content');
     <stepsMaximum           value="100000"                                  />
     <acceptanceAverageCount value="    10"                                  />
     <stateSwapCount         value="    11"                                  /> <!-- Offset swaps from reporting, otherwise we only get reports for swap steps, which gives a biased view of progress. -->
-    <slowStepCount          value="    11"                                  />
+    <slowStepCount          value="    12"                                  />
     <logFileRoot            value="{$outputDirectory}haloMassFunctionChains"/>
     <reportCount            value="    10"                                  />
     <sampleOutliers         value="false"                                   />
@@ -369,7 +411,7 @@ my $configResumer = fill_in_string(<<'CODE', PACKAGE => 'content');
   </posteriorSampleStateInitialize>   
 
   <posteriorSampleDffrntlEvltnProposalSize value="adaptive" >
-    <gammaInitial          value="2.00e+0"/>
+    <gammaInitial          value="{$gammaInitial}"/>
     <gammaAdjustFactor     value="1.10e+0"/>
     <gammaMinimum          value="1.00e-4"/>
     <gammaMaximum          value="3.00e+0"/>
@@ -386,8 +428,8 @@ my $configResumer = fill_in_string(<<'CODE', PACKAGE => 'content');
   <posteriorSampleSimulation value="differentialEvolution">
     <stepsMaximum           value="100000"                                  />
     <acceptanceAverageCount value="    10"                                  />
-    <stateSwapCount         value="    20"                                  />
-    <slowStepCount          value="    10"                                  />
+    <stateSwapCount         value="    11"                                  /> <!-- Offset swaps from reporting, otherwise we only get reports for swap steps, which gives a biased view of progress. -->
+    <slowStepCount          value="    12"                                  />
     <logFileRoot            value="{$outputDirectory}haloMassFunctionChains"/>
     <reportCount            value="    10"                                  />
     <sampleOutliers         value="false"                                   />
