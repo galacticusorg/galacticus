@@ -63,13 +63,11 @@
      module procedure multivariateNormalConstructorInternal
   end interface distributionFunctionMultivariateNormal
 
-
-  !! AJB HACK
-  double precision, dimension(:), allocatable :: xlow_, xhigh_
-  logical, dimension(:), allocatable :: usetransform_
-  double precision :: probabilityLogarithmicReference_
-  !$omp threadprivate(xlow_,xhigh_,usetransform_,probabilityLogarithmicReference_)
-
+  ! Variables used for debugging purposes.
+  double precision, dimension(:), allocatable :: xlow__                          , xhigh__
+  logical         , dimension(:), allocatable :: useTransform_
+  double precision                            :: probabilityLogarithmicReference_
+  !$omp threadprivate(xLow__,xHigh__,usetransform_,probabilityLogarithmicReference_)
   
 contains
 
@@ -161,13 +159,13 @@ contains
     use :: String_Handling         , only : operator(//)
     use :: ISO_Varying_String      , only : operator(//) , var_str
     implicit none
-    class           (distributionFunctionMultivariateNormal), intent(inout)                     :: self
-    double precision                                        , intent(in   ), dimension(     : ) :: x
-    logical                                                 , intent(in   ), optional           :: logarithmic
-    integer                                                 , intent(  out), optional           :: status
-    type            (vector                                )                                    :: offset
-    double precision                                                                            :: argumentExponential
-    integer                                                                                     :: status_
+    class           (distributionFunctionMultivariateNormal), intent(inout)               :: self
+    double precision                                        , intent(in   ), dimension(:) :: x
+    logical                                                 , intent(in   ), optional     :: logarithmic
+    integer                                                 , intent(  out), optional     :: status
+    type            (vector                                )                              :: offset
+    double precision                                                                      :: argumentExponential
+    integer                                                                               :: status_
     !![
     <optionalArgument name="logarithmic" defaultsTo=".false."/>
     !!]
@@ -219,15 +217,17 @@ contains
     !!}
     use :: Models_Likelihoods_Constants, only : logImprobable
     use :: Interface_GSL               , only : GSL_ERange   , GSL_ETol, GSL_Success
+    use :: MPI_Utilities, only : mpiSelf
     implicit none
     class           (distributionFunctionMultivariateNormal), intent(inout)                             :: self
-    double precision                                        , intent(in   ), dimension(         :     ) :: xLow               , xHigh
+    double precision                                        , intent(in   ), dimension(         :     ) :: xLow                     , xHigh
     logical                                                 , intent(in   ), optional                   :: logarithmic
     integer                                                 , intent(  out), optional                   :: status
-    double precision                                        , parameter                                 :: errorAbsolute=0.0d0, errorRelative=1.0d-3
-    double precision                                                       , dimension(size(self%mean)) :: offsetLow          , offsetHigh
+    double precision                                        , parameter                                 :: errorAbsolute     = 0.0d0, errorRelative=1.0d-3
+    integer                                                 , parameter                                 :: countTrialsMaximum=10
+    double precision                                                       , dimension(size(self%mean)) :: offsetLow                , offsetHigh
     integer                                                                , dimension(size(self%mean)) :: infinite
-    integer                                                                                             :: maximumValues      , status_
+    integer                                                                                             :: maximumValues            , status_
     double precision                                                                                    :: error
     !![
     <optionalArgument name="logarithmic" defaultsTo=".false."/>
@@ -277,56 +277,62 @@ contains
     if (logarithmic_) then
        if (probability > 0.0d0) then
           probability=log(probability)
+          write (*,*) "NON MC ",mpiSelf%rank(),probability
        else
           ! Integration failed to give a non-zero answer. But, logarithmic probability was requested. Attempt to provide an
-          ! approximate answer using Monte Carlo integration.
-          probability=self%cumulativeMonteCarlo(xLow,xHigh,logarithmic,errorRelative,status)
+          ! approximate answer using Monte Carlo integration. Use a relatively small maximum number of trials here - we only need
+          ! an approximate answer.
+          probability=self%cumulativeMonteCarlo(xLow,xHigh,logarithmic,errorRelative,countTrialsMaximum,status)
+          write (*,*) "    MC ",mpiSelf%rank(),probability
        end if
     end if
     return
   end function multivariateNormalCumulative
 
-  double precision function multivariateNormalCumulativeMonteCarlo(self,xLow,xHigh,logarithmic,toleranceRelative,status) result(probability)
+  double precision function multivariateNormalCumulativeMonteCarlo(self,xLow,xHigh,logarithmic,toleranceRelative,countTrialsMaximum,status) result(probability)
     !!{
     Return the cumulative probability of a multivariate normal distribution computed using Monte Carlo methods.
     !!}
     use :: Interface_GSL               , only : GSL_Success  , GSL_EMaxIter
     use :: Models_Likelihoods_Constants, only : logImprobable
-    use :: Error                       , only : Error_Report
-
-!! AJB HACK
-use :: Error, only : signalHandlerRegister, signalHandlerDeregister, signalHandlerInterface
-    
+    use :: Error                       , only : Error_Report, signalHandlerRegister, signalHandlerDeregister, signalHandlerInterface
     implicit none
-    class           (distributionFunctionMultivariateNormal), intent(inout)                             :: self
-    double precision                                        , intent(in   ), dimension(         :     ) :: xLow                                           , xHigh
-    logical                                                 , intent(in   ), optional                   :: logarithmic
-    double precision                                        , intent(in   ), optional                   :: toleranceRelative
-    integer                                                 , intent(  out), optional                   :: status
-    integer                                                 , parameter                                 :: countMonteCarlo                      = 1000
-    integer                                                 , parameter                                 :: countTrialsMaximum                   =10000
-    integer                                                 , parameter                                 :: probabilityRelativeLogarithmicMaximum=  600.0d0
-    double precision                                                       , dimension(size(self%mean)) :: yMinimum                                       , yMaximum                       , &
-         &                                                                                                 x                                              , y
-    logical                                                                , dimension(size(self%mean)) :: useTransform
-    logical                                                                                             :: failed
-    integer                                                                                             :: i                                              , iSample                        , &
-         &                                                                                                 iTrial
-    double precision                                                                                    :: probabilityRelativeLogarithmic                 , probabilityLogarithmicReference, &
-         &                                                                                                 integralCumulative                             , integralSquareCumulative       , &
-         &                                                                                                 errorEstimate                                  , probability_                   , &
-         &                                                                                                 integralEstimate
-
-    !! AJB HACK
-    procedure(signalHandlerInterface), pointer :: handler
-
-
+    class           (distributionFunctionMultivariateNormal), intent(inout), target         :: self
+    double precision                                        , intent(in   ), dimension(:  ) :: xLow                                           , xHigh
+    logical                                                 , intent(in   ), optional       :: logarithmic
+    double precision                                        , intent(in   ), optional       :: toleranceRelative
+    integer                                                 , intent(in   ), optional       :: countTrialsMaximum
+    integer                                                 , intent(  out), optional       :: status
+    integer                                                 , parameter                     :: countMonteCarlo                      = 1000
+    integer                                                 , parameter                     :: probabilityRelativeLogarithmicMaximum=  300.0d0
+    class           (distributionFunctionMultivariateNormal), pointer                       :: self_
+    procedure       (signalHandlerInterface                ), pointer                       :: handler
+    double precision                                        , allocatable  , dimension(:  ) :: yMinimum                                       , yMaximum                       , &
+         &                                                                                     xLow_                                          , xHigh_                         , &
+         &                                                                                     x                                              , y                              , &
+         &                                                                                     mean
+    double precision                                        , allocatable  , dimension(:,:) :: covariance
+    logical                                                 , allocatable  , dimension(:  ) :: useTransform
+    logical                                                                                 :: failed
+    integer                                                                                 :: i                                               , j                             , &
+         &                                                                                     iSubset                                         , jSubset                       , &
+         &                                                                                     iSample                                         , iTrial                        , &
+         &                                                                                     countSubset
+    double precision                                                                        :: probabilityRelativeLogarithmic                 , probabilityLogarithmicReference, &
+         &                                                                                     integralCumulative                             , integralSquareCumulative       , &
+         &                                                                                     errorEstimate                                  , probability_                   , &
+         &                                                                                     integralEstimate
     !![
-    <optionalArgument name="logarithmic"       defaultsTo=".false."/>
-    <optionalArgument name="toleranceRelative" defaultsTo="1.0d-3" />
+    <optionalArgument name="logarithmic"        defaultsTo=".false."/>
+    <optionalArgument name="toleranceRelative"  defaultsTo="1.0d-3" />
+    <optionalArgument name="countTrialsMaximum" defaultsTo="10000"  />
     !!]
-
-    probability=0.0d0
+    
+    if (logarithmic_) then
+       probability=logImprobable
+    else
+       probability=0.0d0
+    end if
     if (present(status)) status=GSL_Success
     if (size(xLow         ) /= size(self%mean)) call Error_Report('vector `xLow` has incorrect size' //{introspection:location})
     if (size(        xHigh) /= size(self%mean)) call Error_Report('vector `xHigh` has incorrect size'//{introspection:location})
@@ -339,31 +345,83 @@ use :: Error, only : signalHandlerRegister, signalHandlerDeregister, signalHandl
        end if
        return
     end if
+    ! Find any dimensions which are fully integrated out. We can marginalize over these trivially by dropping the relevant entries
+    ! in the multivariate Gaussian.
+    countSubset=count(                      &
+         &             xLow  > -huge(0.0d0) &
+         &            .or.                  &
+         &             xHigh < +huge(0.0d0) &
+         &           )
+    if (countSubset == size(self%mean)) then
+       ! No dimensions are fully integrated out - simply set a pointer to self since we can use it unmodified.
+       self_ => self
+       allocate(xLow_ ,source=xLow )
+       allocate(xHigh_,source=xHigh)
+    else
+       ! One or more dimensions can be integrated out. Construct a new multivariate normal distribution with the marginalized
+       ! dimensions removed.
+       allocate(xLow_     (countSubset            ))
+       allocate(xHigh_    (countSubset            ))
+       allocate(mean      (countSubset            ))
+       allocate(covariance(countSubset,countSubset))
+       !! Iterate over rows.
+       iSubset=0
+       do       i=1,size(self%mean)
+          if       (xLow(i) > -huge(0.0d0) .or. xHigh(i) < +huge(0.0d0)) then
+             iSubset         =iSubset+1
+             xLow_  (iSubset)=     xLow (i)
+             xHigh_ (iSubset)=     xHigh(i)
+             mean   (iSubset)=self%mean (i)
+             !! Iterate over columns.
+             jSubset=0
+             do j=1,size(self%mean)
+                if (xLow(j) > -huge(0.0d0) .or. xHigh(j) < +huge(0.0d0)) then
+                   jSubset                    =jSubset+1
+                   covariance(iSubset,jSubset)=self%covariance(i,j)
+                end if
+             end do
+          end if
+       end do
+       allocate(distributionFunctionMultivariateNormal :: self_)
+       select type (self_)
+       type is (distributionFunctionMultivariateNormal)
+          self_=distributionFunctionMultivariateNormal(mean,covariance)
+       end select
+    end if
+    ! Allocate work arrays.
+    allocate(x           (size(xLow_)))
+    allocate(y           (size(xLow_)))
+    allocate(yMinimum    (size(xLow_)))
+    allocate(yMaximum    (size(xLow_)))
+    allocate(useTransform(size(xLow_)))
     ! Find a suitable point at which to compute a reference probability.
-    where (sign(1.0d0,xLow)*sign(1.0d0,xHigh) <= 0.0d0)
+    where (sign(1.0d0,xLow_)*sign(1.0d0,xHigh_) <= 0.0d0)
        ! Zero is spanned.
        x=0.0d0
     elsewhere
-       x=min(abs(xLow),abs(xHigh))
+       x=min(abs(xLow_),abs(xHigh_))
     end where
-    probabilityLogarithmicReference=self%density(x,logarithmic=.true.,status=status)
-    if (present(status) .and. status /= GSL_Success) return
+    probabilityLogarithmicReference=self_%density(x,logarithmic=.true.,status=status)
+    if (present(status) .and. status /= GSL_Success) then
+       call cleanUp()
+       return
+    end if
     !! Use an tanh⁻¹ transform to allow integration over infinite intervals.
-    useTransform=xLow == -huge(0.0d0) .or. xHigh == +huge(0.0d0)
+    useTransform=xLow_ == -huge(0.0d0) .or. xHigh_ == +huge(0.0d0)
     where (useTransform)
-       where (xLow  > -huge(0.0d0))
-          yMinimum=+tanh(xLow )
+       where (xLow_  > -huge(0.0d0))
+          yMinimum=+tanh(xLow_ )
        elsewhere
           yMinimum=-1.0d0
        end where
-       where (xHigh < +huge(0.0d0))
-          yMaximum=+tanh(xHigh)
+       where (xHigh_ < +huge(0.0d0))
+          yMaximum=+tanh(xHigh_)
        elsewhere
           yMaximum=+1.0d0
        end where
     elsewhere
-       yMinimum   =+xLow
-       yMaximum   =+xHigh
+       yMinimum   =+xLow_
+       yMaximum   =+xHigh_
     end where
     if (any(yMinimum >= yMaximum)) then
        if (logarithmic_) then
@@ -371,27 +429,25 @@ use :: Error, only : signalHandlerRegister, signalHandlerDeregister, signalHandl
        else
           probability=0.0d0
        end if
+       call cleanUp()
        return
     end if
-    !! Adjust the offset probability by any tanh transformation terms.
-
-    !! AJB HACK
-    handler => fpeHandler
-    call signalHandlerRegister(handler)
-    allocate(xlow_,source=xlow)
-    allocate(xhigh_,source=xhigh)
+    ! Register an error handler so that we can diagnose any floating point errors that occur during update of the reference
+    ! probability. Keep copies of the work arrays to use in error reporting.
+    allocate(xLow__       ,source=xLow_       )
+    allocate(xHigh__      ,source=xHigh_      )
     allocate(useTransform_,source=useTransform)
-    probabilityLogarithmicReference_=probabilityLogarithmicReference
-    
+    probabilityLogarithmicReference_ =  probabilityLogarithmicReference
+    handler                          => fpeHandler
+    call signalHandlerRegister(handler)
+    !! Adjust the offset probability by any tanh transformation terms.    
     probabilityLogarithmicReference=+probabilityLogarithmicReference                                 &
-         &                          +2.0d0*sum(logCosh(min(abs(xLow),abs(xHigh))),mask=useTransform)
-
-    !! AJB HACK
+         &                          +2.0d0*sum(logCosh(min(abs(xLow_),abs(xHigh_))),mask=useTransform)
+    ! Deregister our handler and free copied work arrays.
     call signalHandlerDeregister(handler)
-    deallocate(xlow_)
-    deallocate(xhigh_)
-    deallocate(useTransform_)
-    
+    deallocate(xLow__       )
+    deallocate(xHigh__      )
+    deallocate(useTransform_)    
     !! Repeatedly try to evaluate the integral. This is necessary as our first guess at a suitable probability density offset may
     !! be incorrect (i.e. some points in the integration volume may have hugely higher probability density), forcing us to update
     !! our guess and try again.
@@ -407,17 +463,17 @@ use :: Error, only : signalHandlerRegister, signalHandlerDeregister, signalHandl
        probability             =+     0.0d0
        do while (errorEstimate > toleranceRelative*integralEstimate)
           iTrial=iTrial+1
-          if (iTrial > countTrialsMaximum) then
+          if (iTrial > countTrialsMaximum_) then
              if (present(status)) then
                 status=GSL_EMaxIter
-                return
+                exit
              else
                 call Error_Report('integral failed to converge'//{introspection:location})
              end if
           end if
           probability_=0.0d0
           do iSample=1,countMonteCarlo
-             do i=1,size(self%mean)
+             do i=1,size(self_%mean)
                 y(i)=yMinimum(i)+(yMaximum(i)-yMinimum(i))*self%randomNumberGenerator_%uniformSample()
              end do
              if (any(useTransform .and. abs(y) >= 1.0d0)) then
@@ -428,10 +484,13 @@ use :: Error, only : signalHandlerRegister, signalHandlerDeregister, signalHandl
                 elsewhere
                    x=      y
                 end where
-                probabilityRelativeLogarithmic=+      self%density                        (        x ,logarithmic=.true.      ,status=status) &
-                     &                         +2.0d0*     sum                            (logCosh(x),mask       =useTransform              ) &
-                     &                         -           probabilityLogarithmicReference
-                if (present(status) .and. status /= GSL_Success) return
+                probabilityRelativeLogarithmic=+      self_%density                        (        x ,logarithmic=.true.      ,status=status) &
+                     &                         +2.0d0*      sum                            (logCosh(x),mask       =useTransform              ) &
+                     &                         -            probabilityLogarithmicReference
+                if (present(status) .and. status /= GSL_Success) then
+                   call cleanUp()
+                   return
+                end if
                 if (probabilityRelativeLogarithmic > probabilityRelativeLogarithmicMaximum) then
                    ! The relative probability is too large, which means that our initial offset was too small. Update the offset
                    ! probability, and start again.
@@ -439,13 +498,16 @@ use :: Error, only : signalHandlerRegister, signalHandlerDeregister, signalHandl
                    failed=.true.
                    exit
                 else
-                   probability_=+probability_                                                                                       &
-                        &       +exp(                                                                                               &
-                        &            +      self%density                        (        x ,logarithmic=.true.      ,status=status) &
-                        &            +2.0d0*     sum                            (logCosh(x),mask       =useTransform              ) &
-                        &            -           probabilityLogarithmicReference                                                    &
+                   probability_=+probability_                                                                                        &
+                        &       +exp(                                                                                                &
+                        &            +      self_%density                        (        x ,logarithmic=.true.      ,status=status) &
+                        &            +2.0d0*      sum                            (logCosh(x),mask       =useTransform              ) &
+                        &            -            probabilityLogarithmicReference                                                    &
                         &           )
-                   if (present(status) .and. status /= GSL_Success) return
+                   if (present(status) .and. status /= GSL_Success) then
+                      call cleanUp()
+                      return
+                   end if
                 end if
              end if
           end do
@@ -472,16 +534,31 @@ use :: Error, only : signalHandlerRegister, signalHandlerDeregister, signalHandl
     end do
     if (probability > 0.0d0) then
        probability=+    log(     probability              )  & ! Take the log of the accumulated Monte Carlo probability.
-            &      -    log(dble(countMonteCarlo         ))  & ! Find the mean by "dividing" by the number of Monte Carlo trials.
-            &      -    log(dble(iTrial                  ))  & ! Find the mean by "dividing" by the number of Monte Carlo trials.
-            &      +sum(log(     yMaximum       -yMinimum )) & ! Multiply by the volume of the region integrated over.
-            &      +probabilityLogarithmicReference            ! Add back on the reference probability.
+            &      -    log(dble(countMonteCarlo         ))  & ! Find the mean by "dividing" by the number of Monte Carlo samples per trial...
+            &      -    log(dble(iTrial                  ))  & ! ...and by the number of Monte Carlo trials.
+            &      +sum(log(     yMaximum       -yMinimum )) & ! "Multiply" by the volume of the region integrated over.
+            &      +probabilityLogarithmicReference            ! "Multiply" back in the reference probability.
        ! Convert from logarithmic form if requested.
-       if (.not.logarithmic_) probability=exp(probability)
+       if (.not.logarithmic_) probability=exp(probability  )
     else
-       if (logarithmic_) probability=logImprobable
+       if (     logarithmic_) probability=    logImprobable
     end if
+    call cleanUp()
     return
+
+  contains
+    
+    subroutine cleanUp()
+      !!{
+      Perform clean up before exiting Monte Carlo integration of the multivariate normal distribution.
+      !!}
+      implicit none
+
+      ! If a subset of dimensions was used, free the temporary distribution object that was created.
+      if (countSubset < size(self%mean)) deallocate(self_)
+      return
+    end subroutine cleanUp
+    
   end function multivariateNormalCumulativeMonteCarlo
   
   pure elemental double precision function logCosh(x)
@@ -500,17 +577,27 @@ use :: Error, only : signalHandlerRegister, signalHandlerDeregister, signalHandl
     return
   end function logCosh
 
-  !! AJB HACK
   subroutine fpeHandler(signal)
+    !!{
+    Report useful information if a floating point error occurs.
+    !!}
+    use :: Display           , only : displayIndent , displayUnindent, displayMessage, verbosityLevelSilent
     implicit none
-    integer, intent(in   ) :: signal
-    integer :: i
+    integer          , intent(in   ) :: signal
+    integer                          :: i
+    character(len=48)                :: message
+    !$GLC attributes unused :: signal
     
-    write (0,*) "ERROR REPORT "
+    call displayIndent("multivariate normal CDF MCMC evaluation - reference probability update error occured",verbosityLevelSilent)
     write (0,*) "probabilityLogarithmicReference = ",probabilityLogarithmicReference_
-    do i=1,size(xlow_)
-       write (0,*) "VEC ",i,xlow_(i),xhigh_(i),usetransform_(i)
-       if (useTransform_(i)) write (0,*) "  LOGCOSH ",logCosh(min(abs(xLow_(i)),abs(xHigh_(i))))
+    do i=1,size(xLow__)
+       if (useTransform_(i)) then
+          write (message,'(i3," ",e14.6," ",e14.6," ",e14.6)') i,xLow__(i),xHigh__(i),logCosh(min(abs(xlow__(i)),abs(xHigh__(i))))
+       else
+          write (message,'(i3," ",e14.6," ",e14.6," ",a3)'   ) i,xLow__(i),xHigh__(i),"n/a"
+       end if
+       call displayMessage(message,verbosityLevelSilent)
     end do
+    call displayUnindent("done",verbosityLevelSilent)
     return
   end subroutine fpeHandler
