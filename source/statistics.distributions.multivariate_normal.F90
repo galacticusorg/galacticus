@@ -277,13 +277,11 @@ contains
     if (logarithmic_) then
        if (probability > 0.0d0) then
           probability=log(probability)
-          write (*,*) "NON MC ",mpiSelf%rank(),probability
        else
           ! Integration failed to give a non-zero answer. But, logarithmic probability was requested. Attempt to provide an
           ! approximate answer using Monte Carlo integration. Use a relatively small maximum number of trials here - we only need
           ! an approximate answer.
           probability=self%cumulativeMonteCarlo(xLow,xHigh,logarithmic,errorRelative,countTrialsMaximum,status)
-          write (*,*) "    MC ",mpiSelf%rank(),probability
        end if
     end if
     return
