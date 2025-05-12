@@ -217,7 +217,6 @@ contains
     !!}
     use :: Models_Likelihoods_Constants, only : logImprobable
     use :: Interface_GSL               , only : GSL_ERange   , GSL_ETol, GSL_Success
-    use :: MPI_Utilities, only : mpiSelf
     implicit none
     class           (distributionFunctionMultivariateNormal), intent(inout)                             :: self
     double precision                                        , intent(in   ), dimension(         :     ) :: xLow                     , xHigh
@@ -486,6 +485,11 @@ contains
                      &                         +2.0d0*      sum                            (logCosh(x),mask       =useTransform              ) &
                      &                         -            probabilityLogarithmicReference
                 if (present(status) .and. status /= GSL_Success) then
+                   if (logarithmic_) then
+                      probability=logImprobable
+                   else
+                      probability=0.0d0
+                   end if
                    call cleanUp()
                    return
                 end if
@@ -503,6 +507,11 @@ contains
                         &            -            probabilityLogarithmicReference                                                    &
                         &           )
                    if (present(status) .and. status /= GSL_Success) then
+                      if (logarithmic_) then
+                         probability=logImprobable
+                      else
+                         probability=0.0d0
+                      end if
                       call cleanUp()
                       return
                    end if
