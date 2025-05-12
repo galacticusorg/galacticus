@@ -143,8 +143,9 @@ contains
     double precision                                               , intent(in   ) :: temperatureMaximum
     integer                                                                        :: i
 
-    self%temperatureLevelCount=temperatureLevelCount
-    self%temperatureMaximum   =temperatureMaximum
+    self%temperatureLevelCurrent=temperatureLevelCount
+    self%temperatureLevelCount  =temperatureLevelCount
+    self%temperatureMaximum     =temperatureMaximum
     allocate(self%temperatures(temperatureLevelCount))
     if (temperatureLevelCount == 1) then
        self%temperatures(1)=1.0d0
