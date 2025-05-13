@@ -155,7 +155,7 @@ jobs:
             false
            fi
            apt -y update && apt -y upgrade
-           apt -y install python3-numpy python3-h5py python3-lxml python3-blessings
+           apt -y install python3-numpy python3-h5py python3-lxml python3-blessings python3-matplotlib
            cd ${{ inputs.runPath }}
            chmod u=wrx ./${{ inputs.file }}
            ./${{ inputs.file }} ${{ inputs.options }} 2>&1 | tee test.log
