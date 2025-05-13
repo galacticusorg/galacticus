@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "b648c381ee588c2aabf4a66dd22c242b1e26e1fb",
-        "message": "Merge pull request #840 from galacticusorg/featVogel2022TransferFunction\n\nImplement the Vogel & Abazajian (2022) transfer function for WDM\n",
-        "timestamp": "2025-05-10 14:11:54+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/b648c381ee588c2aabf4a66dd22c242b1e26e1fb"
+        "id": "a2e21c23b817dcb49dc5efdc0a544d427c3e7bba",
+        "message": "fix: Avoid attempting to prune non-existant parent nodes\n",
+        "timestamp": "2025-05-13 08:42:46-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/a2e21c23b817dcb49dc5efdc0a544d427c3e7bba"
     },
     "results": [
         {
