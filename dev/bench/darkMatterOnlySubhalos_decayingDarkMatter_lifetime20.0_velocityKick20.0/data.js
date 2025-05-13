@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1746909689304,
+  "lastUpdate": 1747176336385,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=20 km/s)": [
@@ -1627,6 +1627,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
             "value": "3.605528038919298",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "a2e21c23b817dcb49dc5efdc0a544d427c3e7bba",
+          "message": "fix: Avoid attempting to prune non-existant parent nodes",
+          "timestamp": "2025-05-13T08:42:46-07:00",
+          "tree_id": "c751d7548d5f81908cd99619772f1daf7a9d6d0c",
+          "url": "https://github.com/galacticusorg/galacticus/commit/a2e21c23b817dcb49dc5efdc0a544d427c3e7bba"
+        },
+        "date": 1747176335420,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - mass function",
+            "value": "6.239842264911552",
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
+            "value": "2.8064995816974494",
             "unit": "-logℒ"
           }
         ]
