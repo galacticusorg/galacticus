@@ -163,7 +163,7 @@ contains
                 end if
              end do
              ! Always decouple the node from the tree.
-             call Merger_Tree_Prune_Unlink_Parent(node,node%parent,parentWillBePruned=.false.,preservePrimaryProgenitor=.false.)
+             if (associated(node%parent)) call Merger_Tree_Prune_Unlink_Parent(node,node%parent,parentWillBePruned=.false.,preservePrimaryProgenitor=.false.)
              node%parent  => null()
              node%sibling => null()
              ! Prune or keep the branch, depending on the masses found.
