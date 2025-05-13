@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1746909656900,
+  "lastUpdate": 1747176304582,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.01; γ=1.5)": [
@@ -6911,6 +6911,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/b648c381ee588c2aabf4a66dd22c242b1e26e1fb"
         },
         "date": 1746909656117,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.01; γ=1.5) - Likelihood - satelliteBoundMass",
+            "value": "57.21017197157417",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.01; γ=1.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "29.54532435642154",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.01; γ=1.5) - Likelihood - satelliteVelocityMaximum",
+            "value": "23.035304490924553",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "a2e21c23b817dcb49dc5efdc0a544d427c3e7bba",
+          "message": "fix: Avoid attempting to prune non-existant parent nodes",
+          "timestamp": "2025-05-13T08:42:46-07:00",
+          "tree_id": "c751d7548d5f81908cd99619772f1daf7a9d6d0c",
+          "url": "https://github.com/galacticusorg/galacticus/commit/a2e21c23b817dcb49dc5efdc0a544d427c3e7bba"
+        },
+        "date": 1747176303907,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
