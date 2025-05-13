@@ -1262,6 +1262,18 @@ module Galacticus_Nodes
     return
   end subroutine Node_Component_Serialize_Null
 
+  subroutine Node_Component_Serialize_NonNegative_Null(self,array)
+    !!{
+    Serialize the non-negative status for a generic tree node component.
+    !!}
+    implicit none
+    class  (nodeComponent)              , intent(in   ) :: self
+    logical               , dimension(:), intent(  out) :: array
+    !$GLC attributes unused :: self, array
+
+    return
+  end subroutine Node_Component_Serialize_NonNegative_Null
+
   subroutine Node_Component_Deserialize_Null(self,array,propertyType)
     !!{
     Deserialize a generic tree node component.
