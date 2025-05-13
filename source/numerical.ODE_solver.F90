@@ -93,17 +93,18 @@ module Numerical_ODE_Solvers
        real(c_double), intent(in   ), value :: epsabs                       , epsrel, &
             &                                  hstart
      end function gsl_odeiv2_driver_alloc_y_new
-     function gsl_odeiv2_driver_alloc_scaled2_new(sys,T,hstart,epsabs,epsrel,a_y,a_dydt,scale_abs) bind(c,name='gsl_odeiv2_driver_alloc_scaled2_new')
+     function gsl_odeiv2_driver_alloc_scaled2_new(sys,T,hstart,epsabs,epsrel,a_y,a_dydt,scale_abs,is_non_negative) bind(c,name='gsl_odeiv2_driver_alloc_scaled2_new')
        !!{
        Template for GSL interface ODEIV2 step allocation function.
        !!}
-       import c_ptr, c_double
-       type(c_ptr   )                              :: gsl_odeiv2_driver_alloc_scaled2_new
-       type(c_ptr   ), intent(in   ), value        :: sys                                , T
-       real(c_double), intent(in   ), value        :: epsabs                             , epsrel, &
-            &                                         a_y                                , a_dydt, &
-            &                                         hstart
-       real(c_double), intent(in   ), dimension(*) :: scale_abs
+       import c_ptr, c_double, c_int
+       type   (c_ptr   )                              :: gsl_odeiv2_driver_alloc_scaled2_new
+       type   (c_ptr   ), intent(in   ), value        :: sys                                , T
+       real   (c_double), intent(in   ), value        :: epsabs                             , epsrel, &
+            &                                            a_y                                , a_dydt, &
+            &                                            hstart
+       real   (c_double), intent(in   ), dimension(*) :: scale_abs
+       integer(c_int   ), intent(in   ), dimension(*) :: is_non_negative
      end function gsl_odeiv2_driver_alloc_scaled2_new
      subroutine gsl_odeiv2_driver_free(d) bind(c,name='gsl_odeiv2_driver_free')
        !!{
@@ -285,10 +286,10 @@ module Numerical_ODE_Solvers
 
   ! Error handler interface.
   abstract interface
-     subroutine errorHandlerTemplate(status,x,y)
+     subroutine errorHandlerTemplate(status,x,xStep,y)
        import c_int, c_double
        integer(c_int   ), intent(in   )               :: status
-       real   (c_double), intent(in   )               :: x
+       real   (c_double), intent(in   )               :: x     , xStep
        real   (c_double), intent(in   ), dimension(:) :: y
      end subroutine errorHandlerTemplate
   end interface
@@ -307,7 +308,7 @@ module Numerical_ODE_Solvers
 
 contains
 
-  function odeSolverConstructor(dim,derivatives,jacobian,integrator,integrands,integratorErrorTolerant,stepperType,toleranceAbsolute,toleranceRelative,hStart,dydtScale,yScale,scale,finalState,postStep,errorAnalyzer,errorHandler) result(self)
+  function odeSolverConstructor(dim,derivatives,jacobian,integrator,integrands,integratorErrorTolerant,stepperType,toleranceAbsolute,toleranceRelative,hStart,dydtScale,yScale,scale,finalState,postStep,errorAnalyzer,errorHandler,isNonNegative) result(self)
     !!{
     Constructor for {\normalfont \ttfamily odeSolver} objects.
     !!}
@@ -330,6 +331,8 @@ contains
          &                                                                                  yScale                 , dydtScale        , &
          &                                                                                  hStart
     double precision                             , intent(in   ), optional, dimension(:) :: scale
+    logical                                      , intent(in   ), optional, dimension(:) :: isNonNegative
+    integer         (c_int                      ), allocatable            , dimension(:) :: is_non_negative
     !![
     <optionalArgument name="stepperType"             defaultsTo="gsl_odeiv2_step_rkck"/>
     <optionalArgument name="toleranceAbsolute"       defaultsTo="0.0d0"               />
@@ -358,10 +361,17 @@ contains
     ! Allocate and initialize the driver object.
     allocate(self%gsl_odeiv2_driver)
     if (present(scale)) then
-       self%gsl_odeiv2_driver   =gsl_odeiv2_driver_alloc_scaled2_new(self%gsl_odeiv2_system,self%gsl_odeiv2_step_type,hStart_,toleranceAbsolute_,toleranceRelative_,yScale_,dydtScale_,scale)
+       allocate(is_non_negative(size(scale)))
+       is_non_negative=0
+       if (present(isNonNegative)) then
+          where (isNonNegative)
+             is_non_negative=1
+          end where
+       end if
+       self%gsl_odeiv2_driver   =gsl_odeiv2_driver_alloc_scaled2_new(self%gsl_odeiv2_system,self%gsl_odeiv2_step_type,hStart_,toleranceAbsolute_,toleranceRelative_,yScale_,dydtScale_,scale,is_non_negative)
        call gsl_odeiv2_driver_init_errors(self%gsl_odeiv2_driver)
     else
-       self%gsl_odeiv2_driver   =gsl_odeiv2_driver_alloc_y_new      (self%gsl_odeiv2_system,self%gsl_odeiv2_step_type,hStart_,toleranceAbsolute_,toleranceRelative_                         )
+       self%gsl_odeiv2_driver   =gsl_odeiv2_driver_alloc_y_new      (self%gsl_odeiv2_system,self%gsl_odeiv2_step_type,hStart_,toleranceAbsolute_,toleranceRelative_                                    )
     end if
     ! Set integrator error tolerance behavior.
     self%integratorErrorTolerant=integratorErrorTolerant_
@@ -490,7 +500,10 @@ contains
           if (present(xStep)) xStep=GSL_ODEIV2_Driver_h(self%gsl_odeiv2_driver)
        case (GSL_Failure)
           ! Generic failure - most likely a stepsize underflow.
-          if (associated(self%errorHandler)) call self%errorHandler(status_,x,y)
+          if (associated(self%errorHandler)) then
+             xStep_=GSL_ODEIV2_Driver_h(self%gsl_odeiv2_driver)
+             call self%errorHandler(status_,x,xStep_,y)
+          end if
           ! If ODE status was requested, then return it instead of aborting.
           if (present(status)) then
              x0    =x
