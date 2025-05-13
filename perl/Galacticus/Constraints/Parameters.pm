@@ -106,12 +106,25 @@ sub parameterCount {
 sub maximumPosteriorParameterVector {
     my $config  =   shift() ;
     my %options = %{shift()};
+    return &maximumParameterVector($config,4,\%options);
+}
+    
+sub maximumLikelihoodParameterVector {
+    my $config  =   shift() ;
+    my %options = %{shift()};
+    return &maximumParameterVector($config,5,\%options);
+}
+    
+sub maximumParameterVector {
+    my $config       =   shift() ;
+    my $selectColumn = shift();
+    my %options      = %{shift()};
     # Determine the MCMC directory.
     my $logFileRoot = &logFileRoot($config,\%options);
     (my $mcmcDirectory  = $logFileRoot) =~ s/\/[^\/]+$//;    
     # Determine number of chains.
     my $chainCount = &chainCount($config,\%options);
-    # Parse the chains to find the maximum likelihood model.
+    # Parse the chains to find the maximum likelihood/posterior model.
     my $maximumLikelihood;
     my @maximumLikelihoodParameters;
     my @chainFiles;
@@ -145,8 +158,8 @@ sub maximumPosteriorParameterVector {
 	    my $accept = 1;
 	    $accept = 0
 		if ( exists($options{'burnCount'}) && $step <= $options{'burnCount'} );
-	    if ( $accept == 1 && (! defined($maximumLikelihood) || $columns[4] > $maximumLikelihood ) ) {
-		$maximumLikelihood           = $columns[4];
+	    if ( $accept == 1 && (! defined($maximumLikelihood) || $columns[$selectColumn] > $maximumLikelihood ) ) {
+		$maximumLikelihood           = $columns[$selectColumn];
 		@maximumLikelihoodParameters = @columns[6..$#columns];
 	    }
 	}

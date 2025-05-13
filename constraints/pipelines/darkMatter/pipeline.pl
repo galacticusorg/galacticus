@@ -25,6 +25,7 @@ use Galacticus::Constraints::Parameters;
 my %options;
 $options{'outputDirectory'       } = getcwd()."/pipeline";
 $options{'updateResults'         } = "yes";
+$options{'maximum'               } = "posterior";
 $options{'writeParameters'       } = "yes";
 $options{'callgrind'             } = "no";
 $options{'generateContent'       } = "yes";
@@ -171,12 +172,17 @@ foreach my $task ( @tasks ) {
     # Get results.
     if ( $options{'updateResults'} eq "yes" ) {
 	# Extract results.
-	print "  Extracting maximum likelihood parameter vector...\n";
+	print "  Extracting maximum ".$options{'maximum'}." parameter vector...\n";
 	my %posteriorOptions =
 	    (
 	    );
-	(my $parametersMaximumLikelihood) = &Galacticus::Constraints::Parameters::maximumPosteriorParameterVector($config,\%posteriorOptions);
-	my @parameterNames                = &Galacticus::Constraints::Parameters::parameterNames                 ($config                   );
+	my $parametersMaximumLikelihood;
+	if ( $options{'maximum'} eq "likelihood" ) {
+	    ($parametersMaximumLikelihood) = &Galacticus::Constraints::Parameters::maximumLikelihoodParameterVector($config,\%posteriorOptions);
+	} else {
+	    ($parametersMaximumLikelihood) = &Galacticus::Constraints::Parameters::maximumPosteriorParameterVector ($config,\%posteriorOptions);
+	}
+	my @parameterNames                 = &Galacticus::Constraints::Parameters::parameterNames                  ($config                   );
 	for(my $i=0;$i<scalar(@parameterNames);++$i) {
 	    $parametersDetermined{$parameterNames[$i]} = $parametersMaximumLikelihood->(($i));
 	}
