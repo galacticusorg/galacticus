@@ -10,6 +10,7 @@ import argparse
 # Parse command line arguments.
 parser = argparse.ArgumentParser(prog='test-enforceNonNegativity.py',description='Test non-negative evolution.')
 parser.add_argument('--makeplots', action='store_true',help='make plots showing mass evolution')
+args = parser.parse_args()
 
 # Create output path.
 try:
