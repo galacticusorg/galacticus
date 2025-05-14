@@ -2,10 +2,14 @@
 # Plot expected evolution of disk/spheroid gas/stellar masses for a model with non-negative evolution.
 import numpy as np
 import h5py
-import matplotlib.pyplot as plt
 import subprocess
 import sys
 import os
+import argparse
+
+# Parse command line arguments.
+parser = argparse.ArgumentParser(prog='test-enforceNonNegativity.py',description='Test non-negative evolution.')
+parser.add_argument('--makeplots', action='store_true',help='make plots showing mass evolution')
 
 # Create output path.
 try:
@@ -26,11 +30,14 @@ for variation in ( "ODETol0.1", "ODETol0.01", "ODETol0.001", "ODETol0.0001", "OD
         sys.exit()
         
     # Begin a figure showing evolution of masses with time.
-    figure, axes = plt.subplots(tight_layout=True)
-    axes.set_yscale('log'                         )
-    axes.set_xlabel('$t/$Gyr'                     )
-    axes.set_ylabel('$M/\mathrm{M}_\odot$'        )
-    axes.set_title (f'ODE evolution ({variation})')
+    if args.makeplots:
+        import matplotlib.pyplot as plt
+        figure, axes = plt.subplots(tight_layout=True)
+        axes.set_yscale('log'                         )
+        axes.set_xlabel('$t/$Gyr'                     )
+        axes.set_ylabel('$M/\mathrm{M}_\odot$'        )
+        axes.set_title (f'ODE evolution ({variation})')
+
     # Initialize arrays that will hold times and masses.
     time                      = np.array([])
     massGasSpheroid           = np.array([])
@@ -49,7 +56,6 @@ for variation in ( "ODETol0.1", "ODETol0.01", "ODETol0.001", "ODETol0.0001", "OD
     enforcing              = parameters['mergerTreeNodeEvolver'                                ].attrs['enforceNonNegativity'].decode("utf-8")
     ## Extract meta-data on number of evaluations required.
     countEvaluations       = np.sum(model['metaData']['evolverProfiler']['evaluationCount'][:])
-    axes.text(12.5,0.01,f'$N_\mathrm{{eval}}={countEvaluations}$')
     ## Iterate over all outputs.
     outputs = model['Outputs']
     for outputName in outputs:
@@ -85,35 +91,36 @@ for variation in ( "ODETol0.1", "ODETol0.01", "ODETol0.001", "ODETol0.0001", "OD
     massMetalsGasSpheroidAnalytic     = metalYield/(1.0-recycledFraction)*massStellarSpheroidAnalytic-(1.0-recycledFraction+massLoading)/(1.0-recycledFraction)*massMetalsStellarSpheroidAnalytic
     
     # Plot model results.
-    ## Gas mass.
-    positive = massGasSpheroid           >= 0.0
-    negative = massGasSpheroid           <  0.0
-    axes.plot(time    [order][positive],+massGasSpheroid                  [order][positive],marker='o',linestyle='' ,label="$M_\mathrm{gas}$"    ,markerfacecolor="burlywood" ,markeredgecolor="burlywood" ,markersize=8)
-    axes.plot(time    [order][negative],-massGasSpheroid                  [order][negative],marker='o',linestyle='' ,label=""                    ,markerfacecolor="burlywood" ,markeredgecolor="burlywood" ,markersize=2)
-    axes.plot(timeFine                 , massGasSpheroidAnalytic                           ,marker='' ,linestyle='-',label=""                    ,color          ="burlywood"                                           )
-    ## Stellar mass.
-    positive = massStellarSpheroid       >= 0.0
-    negative = massStellarSpheroid       <  0.0
-    axes.plot(time    [order][positive],+massStellarSpheroid              [order][positive],marker='*',linestyle='' ,label="$M_\star$"           ,markerfacecolor="dodgerblue",markeredgecolor="dodgerblue",markersize=8)
-    axes.plot(time    [order][negative],+massStellarSpheroid              [order][negative],marker='*',linestyle='' ,label=""                    ,markerfacecolor="dodgerblue",markeredgecolor="dodgerblue",markersize=2)
-    axes.plot(timeFine                 , massStellarSpheroidAnalytic                       ,marker='' ,linestyle='-',label=""                    ,color          ="dodgerblue"                                          )
-    ## Gas metal mass.
-    positive = massMetalsGasSpheroid     >= 0.0
-    negative = massMetalsGasSpheroid     <  0.0
-    axes.plot(time    [order][positive],+massMetalsGasSpheroid            [order][positive],marker='d',linestyle='' ,label="$M_{Z,\mathrm{gas}}$",markerfacecolor="lightcoral",markeredgecolor="lightcoral",markersize=8)
-    axes.plot(time    [order][negative],+massMetalsGasSpheroid            [order][negative],marker='d',linestyle='' ,label=""                    ,markerfacecolor="lightcoral",markeredgecolor="lightcoral",markersize=2)
-    axes.plot(timeFine                 , massMetalsGasSpheroidAnalytic                     ,marker='' ,linestyle='-',label=""                    ,color          ="lightcoral"                                          )
-    ## Stellar metal mass.
-    positive = massMetalsStellarSpheroid >= 0.0
-    negative = massMetalsStellarSpheroid <  0.0
-    axes.plot(time    [order][positive],+massMetalsStellarSpheroid        [order][positive],marker='H',linestyle='' ,label="$M_{Z,\star}$"       ,markerfacecolor="plum"      ,markeredgecolor="plum"      ,markersize=8)
-    axes.plot(time    [order][negative],+massMetalsStellarSpheroid        [order][negative],marker='H',linestyle='' ,label=""                    ,markerfacecolor="plum"      ,markeredgecolor="plum"      ,markersize=2)
-    axes.plot(timeFine                 , massMetalsStellarSpheroidAnalytic                 ,marker='' ,linestyle='-',label=""                    ,color          ="plum"                                                )
-    
-    # Finalize the plot.
-    axes.legend(loc='upper center',bbox_to_anchor=(0.4,0.12),fancybox=True,shadow=True,ncol=4)
-    plt.savefig('outputs/enforceNonNegativity/massEvolution'+variation+'.pdf')
-    plt.clf()
+    if args.makeplots:
+        axes.text(12.5,0.01,f'$N_\mathrm{{eval}}={countEvaluations}$')
+        ## Gas mass.
+        positive = massGasSpheroid           >= 0.0
+        negative = massGasSpheroid           <  0.0
+        axes.plot(time    [order][positive],+massGasSpheroid                  [order][positive],marker='o',linestyle='' ,label="$M_\mathrm{gas}$"    ,markerfacecolor="burlywood" ,markeredgecolor="burlywood" ,markersize=8)
+        axes.plot(time    [order][negative],-massGasSpheroid                  [order][negative],marker='o',linestyle='' ,label=""                    ,markerfacecolor="burlywood" ,markeredgecolor="burlywood" ,markersize=2)
+        axes.plot(timeFine                 , massGasSpheroidAnalytic                           ,marker='' ,linestyle='-',label=""                    ,color          ="burlywood"                                           )
+        ## Stellar mass.
+        positive = massStellarSpheroid       >= 0.0
+        negative = massStellarSpheroid       <  0.0
+        axes.plot(time    [order][positive],+massStellarSpheroid              [order][positive],marker='*',linestyle='' ,label="$M_\star$"           ,markerfacecolor="dodgerblue",markeredgecolor="dodgerblue",markersize=8)
+        axes.plot(time    [order][negative],+massStellarSpheroid              [order][negative],marker='*',linestyle='' ,label=""                    ,markerfacecolor="dodgerblue",markeredgecolor="dodgerblue",markersize=2)
+        axes.plot(timeFine                 , massStellarSpheroidAnalytic                       ,marker='' ,linestyle='-',label=""                    ,color          ="dodgerblue"                                          )
+        ## Gas metal mass.
+        positive = massMetalsGasSpheroid     >= 0.0
+        negative = massMetalsGasSpheroid     <  0.0
+        axes.plot(time    [order][positive],+massMetalsGasSpheroid            [order][positive],marker='d',linestyle='' ,label="$M_{Z,\mathrm{gas}}$",markerfacecolor="lightcoral",markeredgecolor="lightcoral",markersize=8)
+        axes.plot(time    [order][negative],+massMetalsGasSpheroid            [order][negative],marker='d',linestyle='' ,label=""                    ,markerfacecolor="lightcoral",markeredgecolor="lightcoral",markersize=2)
+        axes.plot(timeFine                 , massMetalsGasSpheroidAnalytic                     ,marker='' ,linestyle='-',label=""                    ,color          ="lightcoral"                                          )
+        ## Stellar metal mass.
+        positive = massMetalsStellarSpheroid >= 0.0
+        negative = massMetalsStellarSpheroid <  0.0
+        axes.plot(time    [order][positive],+massMetalsStellarSpheroid        [order][positive],marker='H',linestyle='' ,label="$M_{Z,\star}$"       ,markerfacecolor="plum"      ,markeredgecolor="plum"      ,markersize=8)
+        axes.plot(time    [order][negative],+massMetalsStellarSpheroid        [order][negative],marker='H',linestyle='' ,label=""                    ,markerfacecolor="plum"      ,markeredgecolor="plum"      ,markersize=2)
+        axes.plot(timeFine                 , massMetalsStellarSpheroidAnalytic                 ,marker='' ,linestyle='-',label=""                    ,color          ="plum"                                                )    
+        ## Finalize the plot.
+        axes.legend(loc='upper center',bbox_to_anchor=(0.4,0.12),fancybox=True,shadow=True,ncol=4)
+        plt.savefig('outputs/enforceNonNegativity/massEvolution'+variation+'.pdf')
+        plt.clf()
 
 # Report status.
 print(testStatus)
