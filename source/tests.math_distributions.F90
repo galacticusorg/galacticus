@@ -113,13 +113,13 @@ program Test_Math_Distributions
   call Assert("Degree-3 non-central χ²: cdf",p,[1.55904d-2,6.43110d-2,1.25813d-1,1.93121d-1,2.62302d-1,3.30833d-1,3.97048d-1,4.59866d-1,5.93405d-1,6.76438d-1],relTol=1.0d-4)
 
   ! Multivariate normal distribution.
-  distributionFunctionMultivariateNormal_=distributionFunctionMultivariateNormal([0.0d0,0.0d0,0.0d0],reshape([2.0d0,0.4d0,0.0d0,0.4d0,2.0d0,-0.6d0,0.0d0,-0.6d0,2.0d0],[3,3]),prng)
-  call Assert("Multivariate normal: pdf"              ,distributionFunctionMultivariateNormal_%density             (                                              x    =[1.0d0      ,1.4d0,-0.6d0]                         ),0.01270358738648228d0,relTol=1.0d-4)
-  call Assert("Multivariate normal: cdf"              ,distributionFunctionMultivariateNormal_%cumulative          (xLow=[-huge(0.0d0),-huge(0.0d0),-huge(0.0d0)],xHigh=[1.0d0      ,1.4d0,-0.6d0]                         ),0.19958093555056500d0,relTol=1.0d-4)
-  call Assert("Multivariate normal: cdf"              ,distributionFunctionMultivariateNormal_%cumulative          (xLow=[-huge(0.0d0),-huge(0.0d0),-0.6d0      ],xHigh=[1.0d0      ,1.4d0,+0.6d0]                         ),0.21763692486068890d0,relTol=1.0d-4)
-  call Assert("Multivariate normal: cdf (Monte Carlo)",distributionFunctionMultivariateNormal_%cumulativeMonteCarlo(xLow=[-huge(0.0d0),-huge(0.0d0),-huge(0.0d0)],xHigh=[1.0d0      ,1.4d0,-0.6d0],toleranceRelative=1.0d-3),0.19958093555056500d0,relTol=2.0d-3)
-  call Assert("Multivariate normal: cdf (Monte Carlo)",distributionFunctionMultivariateNormal_%cumulativeMonteCarlo(xLow=[-huge(0.0d0),-huge(0.0d0),-0.6d0      ],xHigh=[1.0d0      ,1.4d0,+0.6d0],toleranceRelative=1.0d-3),0.21763692486068890d0,relTol=2.0d-3)
-  call Assert("Multivariate normal: cdf (Monte Carlo)",distributionFunctionMultivariateNormal_%cumulativeMonteCarlo(xLow=[-huge(0.0d0),-huge(0.0d0),-huge(0.0d0)],xHigh=[huge(0.0d0),1.4d0,-0.6d0],toleranceRelative=1.0d-3),0.25311583763230570d0,relTol=3.0d-3)
+  distributionFunctionMultivariateNormal_=distributionFunctionMultivariateNormal([0.0d0,0.0d0,0.0d0],reshape([2.0d0,0.4d0,0.0d0,0.4d0,2.0d0,-0.6d0,0.0d0,-0.6d0,2.0d0],[3,3]),errorAbsolute=0.0d0,errorRelative=1.0d-3,countTrialsMaximum=10000,randomNumberGenerator_=prng)
+  call Assert("Multivariate normal: pdf"              ,distributionFunctionMultivariateNormal_%density             (                                              x    =[1.0d0      ,1.4d0,-0.6d0]),0.01270358738648228d0,relTol=1.0d-4)
+  call Assert("Multivariate normal: cdf"              ,distributionFunctionMultivariateNormal_%cumulative          (xLow=[-huge(0.0d0),-huge(0.0d0),-huge(0.0d0)],xHigh=[1.0d0      ,1.4d0,-0.6d0]),0.19958093555056500d0,relTol=1.0d-4)
+  call Assert("Multivariate normal: cdf"              ,distributionFunctionMultivariateNormal_%cumulative          (xLow=[-huge(0.0d0),-huge(0.0d0),-0.6d0      ],xHigh=[1.0d0      ,1.4d0,+0.6d0]),0.21763692486068890d0,relTol=1.0d-4)
+  call Assert("Multivariate normal: cdf (Monte Carlo)",distributionFunctionMultivariateNormal_%cumulativeMonteCarlo(xLow=[-huge(0.0d0),-huge(0.0d0),-huge(0.0d0)],xHigh=[1.0d0      ,1.4d0,-0.6d0]),0.19958093555056500d0,relTol=2.0d-3)
+  call Assert("Multivariate normal: cdf (Monte Carlo)",distributionFunctionMultivariateNormal_%cumulativeMonteCarlo(xLow=[-huge(0.0d0),-huge(0.0d0),-0.6d0      ],xHigh=[1.0d0      ,1.4d0,+0.6d0]),0.21763692486068890d0,relTol=2.0d-3)
+  call Assert("Multivariate normal: cdf (Monte Carlo)",distributionFunctionMultivariateNormal_%cumulativeMonteCarlo(xLow=[-huge(0.0d0),-huge(0.0d0),-huge(0.0d0)],xHigh=[huge(0.0d0),1.4d0,-0.6d0]),0.25311583763230570d0,relTol=3.0d-3)
 
   ! Poisson distribution.
   distributionFunctionDiscrete1DPoisson_=distributionFunctionDiscrete1DPoisson(3.6d0)

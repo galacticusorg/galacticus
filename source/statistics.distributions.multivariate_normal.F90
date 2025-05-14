@@ -38,6 +38,8 @@
      Implementation of a normal 1D distribution function.
      !!}
      private
+     double precision                                      :: errorAbsolute        , errorRelative
+     integer                                               :: countTrialsMaximum
      double precision        , dimension(:  ), allocatable :: mean                 , rootVariance            , &
           &                                                   correlation
      double precision        , dimension(:,:), allocatable :: covariance
@@ -83,6 +85,8 @@ contains
     class           (randomNumberGeneratorClass            ), pointer                     :: randomNumberGenerator_
     double precision                                        , dimension(:  ), allocatable :: mean
     double precision                                        , dimension(:,:), allocatable :: covariance
+    double precision                                                                      :: errorAbsolute         , errorRelative
+    integer                                                                               :: countTrialsMaximum
 
     !![
     <inputParameter>
@@ -95,9 +99,24 @@ contains
       <description>The covariance of the multivariate normal distribution.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>errorAbsolute</name>
+      <description>The absolute error tolerance in determining the cumulative distribution function.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>errorRelative</name>
+      <description>The relative error tolerance in determining the cumulative distribution function.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>countTrialsMaximum</name>
+      <description>The maximum number of trials allowed in Monte Carlo evaluation of the cumulative distribution function.</description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     !!]
-    self=distributionFunctionMultivariateNormal(mean,covariance,randomNumberGenerator_)
+    self=distributionFunctionMultivariateNormal(mean,covariance,errorAbsolute,errorRelative,countTrialsMaximum,randomNumberGenerator_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="randomNumberGenerator_"/>
@@ -105,7 +124,7 @@ contains
     return
   end function multivariateNormalConstructorParameters
 
-  function multivariateNormalConstructorInternal(mean,covariance,randomNumberGenerator_) result(self)
+  function multivariateNormalConstructorInternal(mean,covariance,errorAbsolute,errorRelative,countTrialsMaximum,randomNumberGenerator_) result(self)
     !!{
     Constructor for {\normalfont \ttfamily multivariateNormal} multivariate distribution function class.
     !!}
@@ -114,9 +133,11 @@ contains
     double precision                                        , intent(in   ), dimension(:  )         :: mean
     double precision                                        , intent(in   ), dimension(:,:)         :: covariance
     class           (randomNumberGeneratorClass            ), intent(in   ), optional      , target :: randomNumberGenerator_
+    double precision                                        , intent(in   )                         :: errorAbsolute         , errorRelative
+    integer                                                 , intent(in   )                         :: countTrialsMaximum
     integer                                                                                         :: i                     , j
     !![
-    <constructorAssign variables="mean, covariance, *randomNumberGenerator_"/>
+    <constructorAssign variables="mean, covariance ,errorAbsolute, errorRelative, countTrialsMaximum, *randomNumberGenerator_"/>
     !!]
 
     if     (                                      &
@@ -219,14 +240,12 @@ contains
     use :: Interface_GSL               , only : GSL_ERange   , GSL_ETol, GSL_Success
     implicit none
     class           (distributionFunctionMultivariateNormal), intent(inout)                             :: self
-    double precision                                        , intent(in   ), dimension(         :     ) :: xLow                     , xHigh
+    double precision                                        , intent(in   ), dimension(         :     ) :: xLow         , xHigh
     logical                                                 , intent(in   ), optional                   :: logarithmic
     integer                                                 , intent(  out), optional                   :: status
-    double precision                                        , parameter                                 :: errorAbsolute     = 0.0d0, errorRelative=1.0d-3
-    integer                                                 , parameter                                 :: countTrialsMaximum=10
-    double precision                                                       , dimension(size(self%mean)) :: offsetLow                , offsetHigh
+    double precision                                                       , dimension(size(self%mean)) :: offsetLow    , offsetHigh
     integer                                                                , dimension(size(self%mean)) :: infinite
-    integer                                                                                             :: maximumValues            , status_
+    integer                                                                                             :: maximumValues, status_
     double precision                                                                                    :: error
     !![
     <optionalArgument name="logarithmic" defaultsTo=".false."/>
@@ -255,7 +274,7 @@ contains
        infinite=infinite+1
     end where
     maximumValues=1000*size(self%mean)
-    call mvndst(size(self%mean),offsetLow,offsetHigh,infinite,self%correlation,maximumValues,errorAbsolute,errorRelative,error,probability,status_)
+    call mvndst(size(self%mean),offsetLow,offsetHigh,infinite,self%correlation,maximumValues,self%errorAbsolute,self%errorRelative,error,probability,status_)
     select case (status_)
     case (1)
        if (present(status)) then
@@ -280,13 +299,13 @@ contains
           ! Integration failed to give a non-zero answer. But, logarithmic probability was requested. Attempt to provide an
           ! approximate answer using Monte Carlo integration. Use a relatively small maximum number of trials here - we only need
           ! an approximate answer.
-          probability=self%cumulativeMonteCarlo(xLow,xHigh,logarithmic,errorRelative,countTrialsMaximum,status)
+          probability=self%cumulativeMonteCarlo(xLow,xHigh,logarithmic,status)
        end if
     end if
     return
   end function multivariateNormalCumulative
 
-  double precision function multivariateNormalCumulativeMonteCarlo(self,xLow,xHigh,logarithmic,toleranceRelative,countTrialsMaximum,status) result(probability)
+  double precision function multivariateNormalCumulativeMonteCarlo(self,xLow,xHigh,logarithmic,status) result(probability)
     !!{
     Return the cumulative probability of a multivariate normal distribution computed using Monte Carlo methods.
     !!}
@@ -297,8 +316,6 @@ contains
     class           (distributionFunctionMultivariateNormal), intent(inout), target         :: self
     double precision                                        , intent(in   ), dimension(:  ) :: xLow                                           , xHigh
     logical                                                 , intent(in   ), optional       :: logarithmic
-    double precision                                        , intent(in   ), optional       :: toleranceRelative
-    integer                                                 , intent(in   ), optional       :: countTrialsMaximum
     integer                                                 , intent(  out), optional       :: status
     integer                                                 , parameter                     :: countMonteCarlo                      = 1000
     integer                                                 , parameter                     :: probabilityRelativeLogarithmicMaximum=  300.0d0
@@ -320,9 +337,7 @@ contains
          &                                                                                     errorEstimate                                  , probability_                   , &
          &                                                                                     integralEstimate
     !![
-    <optionalArgument name="logarithmic"        defaultsTo=".false."/>
-    <optionalArgument name="toleranceRelative"  defaultsTo="1.0d-3" />
-    <optionalArgument name="countTrialsMaximum" defaultsTo="10000"  />
+    <optionalArgument name="logarithmic" defaultsTo=".false."/>
     !!]
     
     if (logarithmic_) then
@@ -382,7 +397,7 @@ contains
        allocate(distributionFunctionMultivariateNormal :: self_)
        select type (self_)
        type is (distributionFunctionMultivariateNormal)
-          self_=distributionFunctionMultivariateNormal(mean,covariance)
+          self_=distributionFunctionMultivariateNormal(mean,covariance,self%errorAbsolute,self%errorRelative,self%countTrialsMaximum)
        end select
     end if
     ! Allocate work arrays.
@@ -438,7 +453,7 @@ contains
     handler                          => fpeHandler
     call signalHandlerRegister(handler)
     !! Adjust the offset probability by any tanh transformation terms.    
-    probabilityLogarithmicReference=+probabilityLogarithmicReference                                 &
+    probabilityLogarithmicReference=+probabilityLogarithmicReference                                   &
          &                          +2.0d0*sum(logCosh(min(abs(xLow_),abs(xHigh_))),mask=useTransform)
     ! Deregister our handler and free copied work arrays.
     call signalHandlerDeregister(handler)
@@ -458,9 +473,9 @@ contains
        integralCumulative      =+     0.0d0
        integralSquareCumulative=+     0.0d0
        probability             =+     0.0d0
-       do while (errorEstimate > toleranceRelative*integralEstimate)
+       do while (errorEstimate > self%errorRelative*integralEstimate)
           iTrial=iTrial+1
-          if (iTrial > countTrialsMaximum_) then
+          if (iTrial > self%countTrialsMaximum) then
              if (present(status)) then
                 status=GSL_EMaxIter
                 exit
@@ -500,21 +515,8 @@ contains
                    failed=.true.
                    exit
                 else
-                   probability_=+probability_                                                                                        &
-                        &       +exp(                                                                                                &
-                        &            +      self_%density                        (        x ,logarithmic=.true.      ,status=status) &
-                        &            +2.0d0*      sum                            (logCosh(x),mask       =useTransform              ) &
-                        &            -            probabilityLogarithmicReference                                                    &
-                        &           )
-                   if (present(status) .and. status /= GSL_Success) then
-                      if (logarithmic_) then
-                         probability=logImprobable
-                      else
-                         probability=0.0d0
-                      end if
-                      call cleanUp()
-                      return
-                   end if
+                   probability_=+    probability_                    &
+                        &       +exp(probabilityRelativeLogarithmic)
                 end if
              end if
           end do
