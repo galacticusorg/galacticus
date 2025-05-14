@@ -136,6 +136,8 @@
     <nodeOperator value="satelliteMergingTime"/>
     <nodeOperator value="satelliteMassLoss"   />
     <nodeOperator value="empiricalGalaxyUniverseMachine">
+      <redshiftMaximum value="1.0e6"/>
+      <massHaloMinimum value="0.0e0"/>
       <massStellarFinal value="-1.0d0" />
       <fractionMassSpheroid value="1.0d0" />
       <fractionMassDisk value="0.0d0" />
