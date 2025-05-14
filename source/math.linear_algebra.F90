@@ -79,7 +79,10 @@ module Linear_Algebra
      private
      type   (c_ptr   ), allocatable  :: matrix_
      integer(c_size_t), dimension(2) :: size_
-     logical                         :: isSquare
+     logical                         :: nonZeroRowColumnsChecked          , isSquare, &
+          &                             hasZeroRowColumns
+     type   (matrix  ), pointer      :: LUdecomposition          => null()
+     type   (c_ptr   ), pointer      :: LUpermutation            => null()
    contains
      !![
      <methods>
@@ -693,9 +696,11 @@ contains
     integer         (c_size_t)                                :: i    , j
 
     allocate(self%matrix_)
-    self%size_   =shape(array,kind=c_size_t)
-    self%isSquare=self%size_(1) == self%size_(2)
-    self%matrix_ =gsl_matrix_alloc(self%size_(1),self%size_(2))
+    self%size_                   =shape(array,kind=c_size_t)
+    self%isSquare                =self%size_(1) == self%size_(2)
+    self%matrix_                 =gsl_matrix_alloc(self%size_(1),self%size_(2))
+    self%nonZeroRowColumnsChecked=.false.
+    self%hasZeroRowColumns       =.false.
     do i=1,size(array,dim=1,kind=c_size_t)
        do j=1,size(array,dim=2,kind=c_size_t)
           call gsl_matrix_set(self%matrix_,i-1_c_size_t,j-1_c_size_t,array(i,j))
@@ -713,9 +718,11 @@ contains
     integer(c_size_t), intent(in   ) :: n1  , n2
 
     allocate(self%matrix_)
-    self%isSquare=n1 == n2
-    self%size_   =[n1,n2]
-    self%matrix_ =gsl_matrix_alloc(self%size_(1),self%size_(2))
+    self%isSquare                =n1 == n2
+    self%size_                   =[n1,n2]
+    self%nonZeroRowColumnsChecked=.false.
+    self%hasZeroRowColumns       =.false.
+    self%matrix_                 =gsl_matrix_alloc(self%size_(1),self%size_(2))
     call gsl_matrix_set_zero(self%matrix_)
     return
   end function matrixZeroConstructor
@@ -732,10 +739,12 @@ contains
     integer(c_int )             :: status
 
     allocate(self%matrix_)
-    self%size_   =source%size_
-    self%isSquare=source%isSquare
-    self%matrix_ =gsl_matrix_alloc(self%size_(1),self%size_(2))
-    status       =gsl_matrix_memcpy(self%matrix_,source%matrix_)
+    self%size_                   =source%size_
+    self%isSquare                =source%isSquare
+    self%nonZeroRowColumnsChecked=source%nonZeroRowColumnsChecked
+    self%hasZeroRowColumns       =source%hasZeroRowColumns
+    self%matrix_                 =gsl_matrix_alloc(self%size_(1),self%size_(2))
+    status                       =gsl_matrix_memcpy(self%matrix_,source%matrix_)
     if (status /= GSL_Success) call Error_Report('matrix copy failed'//{introspection:location})
     return
   end function matrixCopyConstructor
@@ -779,6 +788,11 @@ contains
     if (allocated(self%matrix_)) then
        call gsl_matrix_free(self%matrix_)
        deallocate(self%matrix_)
+    end if
+    if (associated(self%LUdecomposition)) then
+       call gsl_permutation_free(self%LUpermutation)
+       deallocate(self%LUdecomposition)
+       deallocate(self%LUpermutation  )
     end if
     return
   end subroutine matrixDestructorRank0
@@ -996,18 +1010,19 @@ contains
     type   (vector)                :: matrixLinearSystemSolve
     class  (matrix), intent(inout) :: self
     type   (vector), intent(in   ) :: y
-    type   (c_ptr )                :: permutation
     integer(c_int )                :: status                 , decompositionSign
-    type   (matrix)                :: LU
 
-    matrixLinearSystemSolve=vector(y   %size_)
-    LU                     =matrix(self      )
-    permutation            =GSL_Permutation_Alloc(self%size_  (1)                                                              )
-    status                 =GSL_LinAlg_LU_Decomp (LU  %matrix_   ,permutation,decompositionSign                                )
-    if (status /= GSL_Success) call Error_Report('LU decomposition failed'//{introspection:location})
-    status                 =GSL_LinAlg_LU_Solve  (LU%matrix_     ,permutation,y%vector_        ,matrixLinearSystemSolve%vector_)
-    if (status /= GSL_Success) call Error_Report('LU solve failed'        //{introspection:location})
-    call gsl_permutation_free(permutation)
+    if (.not.associated(self%LUdecomposition)) then
+       allocate(self%LUdecomposition)
+       allocate(self%LUpermutation  )
+       self%LUdecomposition=matrix               (self                                                                )
+       self%LUpermutation  =GSL_Permutation_Alloc(self%size_                  (1)                                     )
+       status              =GSL_LinAlg_LU_Decomp (self%LUdecomposition%matrix_   ,self%LUpermutation,decompositionSign)
+       if (status /= GSL_Success) call Error_Report('LU decomposition failed'//{introspection:location})
+    end if    
+    matrixLinearSystemSolve=vector             (                                                y%size_                                  )
+    status                 =GSL_LinAlg_LU_Solve(self%LUdecomposition%matrix_,self%LUpermutation,y%vector_,matrixLinearSystemSolve%vector_)
+    if (status /= GSL_Success) call Error_Report('LU solve failed'//{introspection:location})
     return
   end function matrixLinearSystemSolve
 
@@ -1030,34 +1045,34 @@ contains
     if (present(status)) then
        status=GSL_Success
        ! Check that the matrix has no zero rows/columns.
-       do i=1_c_size_t,self%size_(1)
-          allZero=.true.
-          do j=1_c_size_t,self%size_(2)
-             if (gsl_matrix_get(self%matrix_,i-1_c_size_t,j-1_c_size_t) /= 0.0d0) then
-                allZero=.false.
-                exit
-             endif
-          end do
-          if (allZero) then
-             matrixCovarianceProduct=0.0d0
-             status                 =GSL_ESing
-             return
-          end if
-       end do
-       do j=1_c_size_t,self%size_(2)
-          allZero=.true.
+       if (.not.self%nonZeroRowColumnsChecked) then
           do i=1_c_size_t,self%size_(1)
-             if (gsl_matrix_get(self%matrix_,i-1_c_size_t,j-1_c_size_t) /= 0.0d0) then
-                allZero=.false.
-                exit
-             endif
+             allZero=.true.
+             do j=1_c_size_t,self%size_(2)
+                if (gsl_matrix_get(self%matrix_,i-1_c_size_t,j-1_c_size_t) /= 0.0d0) then
+                   allZero=.false.
+                   exit
+                endif
+             end do
+             if (allZero) self%hasZeroRowColumns=.true.
           end do
-          if (allZero) then
-             matrixCovarianceProduct=0.0d0
-             status                 =GSL_ESing
-             return
-          end if
-       end do
+          do j=1_c_size_t,self%size_(2)
+             allZero=.true.
+             do i=1_c_size_t,self%size_(1)
+                if (gsl_matrix_get(self%matrix_,i-1_c_size_t,j-1_c_size_t) /= 0.0d0) then
+                   allZero=.false.
+                   exit
+                endif
+             end do
+             if (allZero) self%hasZeroRowColumns=.true.
+          end do
+          self%nonZeroRowColumnsChecked=.true.
+       end if
+       if (self%hasZeroRowColumns) then
+          matrixCovarianceProduct=0.0d0
+          status                 =GSL_ESing
+          return
+       end if
     end if
     CyT=self%linearSystemSolve(y)
     matrixCovarianceProduct=y.dot.CyT
