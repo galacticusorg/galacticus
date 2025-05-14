@@ -38,7 +38,7 @@ open(my $output,">",$outputFile);
 # Iterate over nodes.
 foreach my $nodeName ( @nodeNames ) {
     print $output "Node: ".$nodeName."\n";
-    open(my $srun,"srun --jobid=".$jobID." --pty bash -c 'pgrep -u ".$ENV{'USER'}." \"Galacticus.exe\" | xargs -i{} gdb --pid {} -batch -ex \"info threads\" -ex \"thread apply all where\"' 2>&1 |");
+    open(my $srun,"srun --jobid=".$jobID." -w ".$nodeName." --pty bash -c 'pgrep -u ".$ENV{'USER'}." \"Galacticus.exe\" | xargs -i{} gdb --pid {} -batch -ex \"info threads\" -ex \"thread apply all where\"' 2>&1 |");
     while ( my $line = <$srun> ) {
 	print $output $line;
     }    
