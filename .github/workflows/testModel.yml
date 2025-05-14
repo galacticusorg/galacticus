@@ -158,7 +158,7 @@ jobs:
            apt -y install python3-numpy python3-h5py python3-lxml python3-blessings python3-matplotlib
            cd ${{ inputs.runPath }}
            chmod u=wrx ./${{ inputs.file }}
-           ./${{ inputs.file }} ${{ inputs.options }} 2>&1 | tee test.log
+           LD_LIBRARY_PATH= ./${{ inputs.file }} ${{ inputs.options }} 2>&1 | tee test.log
           else
            echo Unrecognized file extension
            false
