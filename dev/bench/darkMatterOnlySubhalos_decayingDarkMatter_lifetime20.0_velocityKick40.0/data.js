@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1747176340371,
+  "lastUpdate": 1747307239303,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=40 km/s)": [
@@ -1661,6 +1661,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
             "value": "16.4387458762565",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0933f2270bb35c9ed6e4ea3aaba2378824d3d069",
+          "message": "Merge pull request #843 from galacticusorg/featNonNegativeEvolution\n\nAdd functionality to mark component properties as non-negative",
+          "timestamp": "2025-05-15T04:13:34Z",
+          "tree_id": "965b20d4c9c08a30f9954dc20c86d4b46278768d",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0933f2270bb35c9ed6e4ea3aaba2378824d3d069"
+        },
+        "date": 1747307237972,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": "6.13422920455105",
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": "15.037033193623017",
             "unit": "-logℒ"
           }
         ]
