@@ -30,7 +30,7 @@ program Test_Recombination_Cooling_Hummer
   use :: Atomic_Rates_Recombination_Radiative        , only : atomicRecombinationRateRadiativeVerner1996     , recombinationCase1
   use :: Atomic_Rates_Recombination_Radiative_Cooling, only : atomicRecombinationRateRadiativeCoolingComputed, atomicRecombinationRateRadiativeCoolingHummer
   use :: Display                                     , only : displayVerbositySet                            , verbosityLevelStandard
-  use :: Error                            , only : errorStatusSuccess
+  use :: Error                                       , only : errorStatusSuccess
   use :: Unit_Tests                                  , only : Assert                                         , Unit_Tests_Begin_Group                       , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type(atomicCrossSectionIonizationPhotoVerner        ), pointer :: atomicCrossSectionIonizationPhoto_

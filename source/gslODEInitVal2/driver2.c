@@ -106,7 +106,7 @@ gsl_odeiv2_driver_alloc_scaled2_new (const gsl_odeiv2_system * sys,
                                     const double hstart,
                                     const double epsabs, const double epsrel,
                                     const double a_y, const double a_dydt,
-                                    const double scale_abs[])
+				    const double scale_abs[], const int is_non_negative[])
 {
   /* Initializes an ODE driver system with control object of type
      scaled_new. 
@@ -122,7 +122,7 @@ gsl_odeiv2_driver_alloc_scaled2_new (const gsl_odeiv2_system * sys,
   if (epsabs >= 0.0 && epsrel >= 0.0)
     {
       state->c = gsl_odeiv2_control_scaled2_new (epsabs, epsrel, a_y, a_dydt,
-                                                scale_abs, sys->dimension);
+						 scale_abs, is_non_negative, sys->dimension);
 
       if (state->c == NULL)
         {

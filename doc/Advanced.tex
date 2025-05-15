@@ -263,6 +263,8 @@ galacticus.hdf5
  |    |    |
  |    |    +-> mergerTreeIndex                Dataset {<treeCount>}
  |    |    |
+ |    |    +-> mergerTreeSeed                 Dataset {<treeCount>}
+ |    |    |
  |    |    +-> mergerTreeStartIndex           Dataset {<treeCount>}
  |    |    |
  |    |    +-> mergerTreeWeight               Dataset {<treeCount>}
@@ -391,7 +393,7 @@ The {\normalfont \ttfamily nodeData} group contains all data from nodes in all m
 
 \subsubsection{mergerTree datasets}\label{sec:mergerTreeDatasets}
 
-To allow locating of nodes belonging to a given merger tree in the datasets in the {\normalfont \ttfamily nodeData} group, the {\normalfont \ttfamily mergerTreeStartIndex} and {\normalfont \ttfamily mergerTreeCount} datasets list the starting index of each tree's nodes in the {\normalfont \ttfamily nodeData} datasets, and the number of nodes belonging to each tree respectively. Additionally, the {\normalfont \ttfamily mergerTreeWeight} dataset lists the {\normalfont \ttfamily volumeWeight} property for each tree (see \S\ref{sec:mergerTreeSubgroups}) which gives the weight (in Mpc$^{-3}$) which should be assigned to this tree (and all nodes in it) to create a volume-averaged sample (see \S\ref{sec:volumeLimitedSamples}). Finally, the {\normalfont \ttfamily mergerTreeIndex} dataset gives the index of each tree stored in the {\normalfont \ttfamily nodeData} datasets.
+To allow locating of nodes belonging to a given merger tree in the datasets in the {\normalfont \ttfamily nodeData} group, the {\normalfont \ttfamily mergerTreeStartIndex} and {\normalfont \ttfamily mergerTreeCount} datasets list the starting index of each tree's nodes in the {\normalfont \ttfamily nodeData} datasets, and the number of nodes belonging to each tree respectively. Additionally, the {\normalfont \ttfamily mergerTreeWeight} dataset lists the {\normalfont \ttfamily volumeWeight} property for each tree (see \S\ref{sec:mergerTreeSubgroups}) which gives the weight (in Mpc$^{-3}$) which should be assigned to this tree (and all nodes in it) to create a volume-averaged sample (see \S\ref{sec:volumeLimitedSamples}). The {\normalfont \ttfamily mergerTreeIndex} dataset gives the index of each tree stored in the {\normalfont \ttfamily nodeData} datasets. Finally, the {\normalfont \ttfamily mergerTreeSeed} dataset gives the seed used by this tree when generating random numbers.
 
 \subsubsection{mergerTree subgroups}\label{sec:mergerTreeSubgroups}
 

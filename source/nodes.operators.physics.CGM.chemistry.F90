@@ -362,7 +362,7 @@ contains
        lengthColumn      =  +radiusOuter                                                                   &
             &               *megaParsec                                                                    &
             &               /centi
-       factorClumping    =  +massDistribution_%densitySquareIntegral(      radiusOuter                   ) &
+       factorClumping    =  +massDistribution_%densitySquareIntegral(0.0d0,radiusOuter                   ) &
             &               *4.0d0                                                                         &
             &               /3.0d0                                                                         &
             &               *Pi                                                                            &

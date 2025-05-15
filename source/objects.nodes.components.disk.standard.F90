@@ -54,47 +54,47 @@ module Node_Component_Disk_Standard
       <name>massStellar</name>
       <type>double</type>
       <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
       <output unitsInSI="massSolar" comment="Mass of stars in the standard disk."/>
     </property>
     <property>
       <name>massStellarFormed</name>
       <type>double</type>
       <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
     </property>
     <property>
       <name>fractionMassRetained</name>
       <type>double</type>
       <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
     </property>
     <property>
       <name>abundancesStellar</name>
       <type>abundances</type>
       <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
       <output unitsInSI="massSolar" comment="Mass of metals in the stellar phase of the standard disk."/>
     </property>
     <property>
       <name>massGas</name>
       <type>double</type>
       <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" isNonNegative="true" />
       <output unitsInSI="massSolar" comment="Mass of gas in the standard disk."/>
     </property>
     <property>
       <name>abundancesGas</name>
       <type>abundances</type>
       <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" isNonNegative="true" />
       <output unitsInSI="massSolar" comment="Mass of metals in the gas phase of the standard disk."/>
     </property>
     <property>
       <name>angularMomentum</name>
       <type>double</type>
       <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" isNonNegative="true" />
       <output unitsInSI="massSolar*megaParsec*kilo" comment="Angular momentum of the standard disk."/>
     </property>
     <property>
@@ -122,7 +122,7 @@ module Node_Component_Disk_Standard
       <name>luminositiesStellar</name>
       <type>stellarLuminosities</type>
       <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
       <output unitsInSI="luminosityZeroPointAB" comment="Luminosity of disk stars."/>
     </property>
     <property>
@@ -135,7 +135,7 @@ module Node_Component_Disk_Standard
       <name>starFormationHistory</name>
       <type>history</type>
       <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
     </property>
    </properties>
    <bindings>
@@ -1018,32 +1018,22 @@ contains
     ! Determine the plausibility of the current disk.
     disk => node%disk()
     select type (disk)
-       class is (nodeComponentDiskStandard)
-       if      (disk%angularMomentum()                <                   0.0d0) &
-            & node%isPhysicallyPlausible=.false.
-       if      (disk%massStellar    ()+disk%massGas() <  -toleranceAbsoluteMass) then
-          node%isPhysicallyPlausible=.false.
-       else if (disk%massStellar    ()+disk%massGas() >=                  0.0d0) then
-          if      (                                                              &
-               &   disk%angularMomentum() < 0.0d0                                &
-               &  ) then
+    class is (nodeComponentDiskStandard)
+       if (disk%massStellar()+disk%massGas() >= 0.0d0 .and. disk%angularMomentum() > 0.0d0) then
+          angularMomentumScale=(                                           &
+               &                 disk%massStellar()                        &
+               &                +disk%massGas    ()                        &
+               &               )                                           &
+               &               * darkMatterHaloScale_%radiusVirial  (node) &
+               &               * darkMatterHaloScale_%velocityVirial(node)
+          if     (                                                                      &
+               &   disk%angularMomentum() > angularMomentumMaximum*angularMomentumScale &
+               &  .or.                                                                  &
+               &   disk%angularMomentum() < angularMomentumMinimum*angularMomentumScale &
+               & ) then
+             ! Ignore disks with angular momenta greatly exceeding that which would be expected if they had a radius comparable to the
+             ! virial radius of their halo.
              node%isPhysicallyPlausible=.false.
-          else
-             angularMomentumScale=(                                           &
-                  &                 disk%massStellar()                        &
-                  &                +disk%massGas    ()                        &
-                  &               )                                           &
-                  &               * darkMatterHaloScale_%radiusVirial  (node) &
-                  &               * darkMatterHaloScale_%velocityVirial(node)
-             if     (                                                                      &
-                  &   disk%angularMomentum() > angularMomentumMaximum*angularMomentumScale &
-                  &  .or.                                                                  &
-                  &   disk%angularMomentum() < angularMomentumMinimum*angularMomentumScale &
-                  & ) then
-                ! Ignore disks with angular momenta greatly exceeding that which would be expected if they had a radius comparable to the
-                ! virial radius of their halo.
-                node%isPhysicallyPlausible=.false.
-             end if
           end if
        end if
     end select

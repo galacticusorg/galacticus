@@ -58,7 +58,16 @@
 
   !![
   <mergerTreeNodeEvolver name="mergerTreeNodeEvolverStandard">
-   <description>The standard merger tree node evolver.</description>
+    <description>
+      The standard merger tree node evolver.
+
+      If the parameter {\normalfont \ttfamily [enforceNonNegativity] = true} then properties which are marked as being
+      non-negative (e.g. masses) are evolved in such a way to ensure that they remain non-negative. This typically requires
+      smaller time step size and so longer run times. In some cases it may be impossible to ensure non-negativity even for
+      arbitrarily small timesteps\footnote{This can occur if a property as a non-zero, negative derivative as the property
+      approaches zero. Such cases are quite likely unphysical, but are tolerated here.}. In such cases, if a property remains
+      negative with the smallest possible time step, it will be zeroed and evolution continues.
+    </description>
    <deepCopy>
     <ignore variables="galacticStructureSolver_"/>
    </deepCopy>
@@ -89,7 +98,9 @@
           &                                                                              propertyValuesActiveSaved                    , propertyScalesInactive       , &
           &                                                                              propertyValuesInactiveSaved                  , propertyValuesInactive       , &
           &                                                                              odeTolerancesInactiveRelative                , odeTolerancesInactiveAbsolute
-     logical                                                                          :: profileOdeEvolver                            , reuseODEStepSize
+     logical                                              , allocatable, dimension(:) :: isNonNegative
+     logical                                                                          :: profileOdeEvolver                            , reuseODEStepSize             , &
+          &                                                                              enforceNonNegativity
      integer         (kind=kind_int8                     )                            :: activeTreeIndex
      type            (treeNode                           ), pointer                   :: activeNode                          => null()
      integer                                                                          :: trialCount                                   , propertyTypeODE              , &
@@ -147,7 +158,8 @@ contains
     integer                                                        :: odeLatentIntegratorOrder   , odeLatentIntegratorIntervalsMaximum
     double precision                                               :: odeToleranceAbsolute       , odeToleranceRelative               , &
          &                                                            odeJacobianStepSizeRelative
-    logical                                                        :: profileOdeEvolver          , reuseODEStepSize
+    logical                                                        :: profileOdeEvolver          , reuseODEStepSize                   , &
+         &                                                            enforceNonNegativity
 
     !![
     <inputParameter>
@@ -210,6 +222,12 @@ contains
       <description>If true, re-use the previous ODE step size when resuming the evolution of a node. Otherwise, the initial step size is not specified.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>enforceNonNegativity</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, properties that are marked as non-negative (e.g. masses) will be evolved in such a way as to enforce that non-negativity.</description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="mergerTreeNodeMerger"     name="mergerTreeNodeMerger_"     source="parameters"/>
     <objectBuilder class="nodeOperator"             name="nodeOperator_"             source="parameters"/>
     <objectBuilder class="mergerTreeEvolveProfiler" name="mergerTreeEvolveProfiler_" source="parameters"/>
@@ -225,6 +243,7 @@ contains
          &                                                                        odeLatentIntegratorIntervalsMaximum                         , &
          &                                                                        profileOdeEvolver                                           , &
          &                                                                        reuseODEStepSize                                            , &
+         &                                                                        enforceNonNegativity                                        , &
          &                                                                        mergerTreeNodeMerger_                                       , &
          &                                                                        nodeOperator_                                               , &
          &                                                                        mergerTreeEvolveProfiler_                                     &
@@ -238,7 +257,7 @@ contains
     return
   end function standardConstructorParameters
 
-   function standardConstructorInternal(odeToleranceAbsolute,odeToleranceRelative,odeAlgorithm,odeAlgorithmNonJacobian,odeJacobianStepSizeRelative,odeLatentIntegratorType,odeLatentIntegratorOrder,odeLatentIntegratorIntervalsMaximum,profileOdeEvolver,reuseODEStepSize,mergerTreeNodeMerger_,nodeOperator_,mergerTreeEvolveProfiler_) result(self)
+   function standardConstructorInternal(odeToleranceAbsolute,odeToleranceRelative,odeAlgorithm,odeAlgorithmNonJacobian,odeJacobianStepSizeRelative,odeLatentIntegratorType,odeLatentIntegratorOrder,odeLatentIntegratorIntervalsMaximum,profileOdeEvolver,reuseODEStepSize,enforceNonNegativity,mergerTreeNodeMerger_,nodeOperator_,mergerTreeEvolveProfiler_) result(self)
      !!{
      Internal constructor for the {\normalfont \ttfamily standard} merger tree node evolver class.
      !!}
@@ -252,12 +271,13 @@ contains
      integer                                              , intent(in   )         :: odeLatentIntegratorIntervalsMaximum, odeLatentIntegratorOrder
      double precision                                     , intent(in   )         :: odeToleranceAbsolute               , odeToleranceRelative    , &
           &                                                                          odeJacobianStepSizeRelative
-     logical                                              , intent(in   )         :: profileOdeEvolver                  , reuseODEStepSize
+     logical                                              , intent(in   )         :: profileOdeEvolver                  , reuseODEStepSize        , &
+          &                                                                          enforceNonNegativity
      class           (mergerTreeNodeMergerClass          ), intent(in   ), target :: mergerTreeNodeMerger_
      class           (nodeOperatorClass                  ), intent(in   ), target :: nodeOperator_
      class           (mergerTreeEvolveProfilerClass      ), intent(in   ), target :: mergerTreeEvolveProfiler_
     !![
-    <constructorAssign variables="odeToleranceAbsolute, odeToleranceRelative, odeJacobianStepSizeRelative, odeLatentIntegratorType, odeLatentIntegratorOrder, odeLatentIntegratorIntervalsMaximum, profileOdeEvolver, reuseODEStepSize, *mergerTreeNodeMerger_, *nodeOperator_, *mergerTreeEvolveProfiler_"/>
+    <constructorAssign variables="odeToleranceAbsolute, odeToleranceRelative, odeJacobianStepSizeRelative, odeLatentIntegratorType, odeLatentIntegratorOrder, odeLatentIntegratorIntervalsMaximum, profileOdeEvolver, reuseODEStepSize, enforceNonNegativity, *mergerTreeNodeMerger_, *nodeOperator_, *mergerTreeEvolveProfiler_"/>
     !!]
 
      ! Construct ODE solver object.
@@ -347,7 +367,7 @@ contains
          &                                           displayReset
     use            :: Calculations_Resets   , only : Calculations_Reset
     use            :: Error                 , only : Error_Report               , Warn                                            , errorStatusFail                                , errorStatusSuccess, &
-          &                                          errorStatusXCPU
+          &                                          errorStatusXCPU            , errorStatusUnderflow
     use            :: Galacticus_Nodes      , only : interruptTask              , mergerTree                                      , nodeComponentBasic                             , propertyTypeActive, &
           &                                          propertyTypeAll            , propertyTypeInactive                            , propertyTypeNone                               , rateComputeState  , &
           &                                          treeNode                   , propertyTypeNumerics
@@ -454,6 +474,7 @@ contains
        ! Allocate pointer arrays if necessary.
        if (self%propertyCountAll > self%propertyCountMaximum) then
           if (allocated(self%propertyValuesActive)) then
+             deallocate(self%isNonNegative                )
              deallocate(self%propertyValuesActive         )
              deallocate(self%propertyValuesActiveSaved    )
              deallocate(self%propertyValuesInactive       )
@@ -467,6 +488,7 @@ contains
              deallocate(self%odeTolerancesInactiveRelative)
              deallocate(self%odeTolerancesInactiveAbsolute)
           end if
+          allocate(self%isNonNegative                (self%propertyCountAll))
           allocate(self%propertyValuesActive         (self%propertyCountAll))
           allocate(self%propertyValuesActiveSaved    (self%propertyCountAll))
           allocate(self%propertyValuesInactive       (self%propertyCountAll))
@@ -521,6 +543,8 @@ contains
           call node%serializeValues(self%propertyValuesInactive,self%propertyTypeIntegrator)
           self%propertyValuesActiveSaved  (1:self%propertyCountActive  )=self%propertyValuesActive  (1:self%propertyCountActive  )
           self%propertyValuesInactiveSaved(1:self%propertyCountInactive)=self%propertyValuesInactive(1:self%propertyCountInactive)
+          ! Find properties that must be non-negative.
+          if (self%enforceNonNegativity) call node%serializeNonNegative(self%isNonNegative)
           ! Compute scales for all properties and extract from the node.
           call node%odeStepScalesInitialize()
           !![
@@ -619,11 +643,12 @@ contains
                       &amp;           {conditions}                                         &amp;
                       &amp;          )
 		    </call>
-                    <argument name="jacobian"                value="standardODEsJacobian"      condition="jacobianSolver"        />
-                    <argument name="integrator"              value="integrator_"               condition="jacobianSolver"        />
-                    <argument name="integratorErrorTolerant" value=".true."                    condition="jacobianSolver"        />
-                    <argument name="integrands"              value="standardIntegrands"        condition="jacobianSolver"        />
-                    <argument name="errorAnalyzer"           value="standardStepErrorAnalyzer" condition="self%profileOdeEvolver"/>
+                    <argument name="jacobian"                value="standardODEsJacobian"      condition="jacobianSolver"           />
+                    <argument name="integrator"              value="integrator_"               condition="jacobianSolver"           />
+                    <argument name="integratorErrorTolerant" value=".true."                    condition="jacobianSolver"           />
+                    <argument name="integrands"              value="standardIntegrands"        condition="jacobianSolver"           />
+                    <argument name="errorAnalyzer"           value="standardStepErrorAnalyzer" condition="self%profileOdeEvolver"   />
+                    <argument name="isNonNegative"           value="self%isNonNegative"        condition="self%enforceNonNegativity"/>
                    </conditionalCall>
                    !!]
                    solverInitialized=.true.
@@ -642,6 +667,37 @@ contains
                    call solver     %solve(timeStart,timeEnd,self%propertyValuesActive,status=odeStatus,xStep=stepSize,z=self%propertyValuesInactive(1:self%propertyCountInactive))
                 else
                    call solver     %solve(timeStart,timeEnd,self%propertyValuesActive,status=odeStatus,xStep=stepSize                                                            )
+                end if
+                ! If non-negativity is being enforced for some properties, check for failures in the step and, if these are due to such a property
+                ! being negative, zero that property and ignore the failure. This is necessary as it may be that a non-negative property has
+                ! non-zero derivative as it approaches zero, such that even an arbitrarily small step size still results in it becoming negative.                
+                if     (                                                                    &
+                     &   self%enforceNonNegativity                                          &
+                     &  .and.                                                               &
+                     &   .not.                                                              &
+                     &    (                                                                 &
+                     &      odeStatus == errorStatusSuccess                                 &
+                     &     .or.                                                             &
+                     &      odeStatus == odeSolverInterrupt                                 &
+                     &    )                                                                 &
+                     &  .and.                                                               &
+                     &   any(                                                               &
+                     &        self%propertyValuesActive(1:self%propertyCountActive) < 0.0d0 &
+                     &       .and.                                                          &
+                     &        self%isNonNegative       (1:self%propertyCountActive)         &
+                     &      )                                                               &
+                     & ) then
+                   where  (                                                               &
+                        &   self%propertyValuesActive(1:self%propertyCountActive) < 0.0d0 &
+                        &  .and.                                                          &
+                        &   self%isNonNegative       (1:self%propertyCountActive)         &
+                        & )
+                      self%propertyValuesActive(1:self%propertyCountActive)=0.0d0
+                   end where
+                   ! Ignore the returned step size in this case.
+                   stepSize =node%timeStep()/2.0d0**self%trialCount
+                   ! Reset status to success.
+                   odeStatus=errorStatusSuccess
                 end if
                 ! Check for failure.
                 if (.not.(odeStatus == errorStatusSuccess .or. odeStatus == odeSolverInterrupt)) then
@@ -818,6 +874,7 @@ contains
     type            (varying_string    )                                                      :: message
     double precision                                   , dimension(self_%propertyCountActive) :: valuesDebug, ratesDebug
 #endif
+
     ! Check for exceeding wall time.
     if (self_%systemClockMaximum > 0_kind_int8) then
        call System_Clock(systemClockCount)
@@ -873,7 +930,7 @@ contains
        case (.false.)
           ! No interrupt - place derivatives into ODE arrays.
           call self_%activeNode%serializeRates(dydt(1:self_%propertyCountActive),self_%propertyTypeODE)
-          self_%propertyRatesPrevious(1:self_%propertyCountActive)=dydt(1:self_%propertyCountActive)
+          self_%propertyRatesPrevious(1:self_%propertyCountActive)=dydt(1:self_%propertyCountActive)             
        case (.true.)
           ! Interrupt requested - freeze evolution and store the interrupt if it is the earliest one to occur.
           dydt                              (1:self_%propertyCountActive)=0.0d0
@@ -1024,7 +1081,7 @@ contains
     return
   end subroutine standardDerivativesCompute
 
-  subroutine standardErrorHandler(status,time,y)
+  subroutine standardErrorHandler(status,time,timeStep,y)
     !!{
     Handles errors in the ODE solver when evolving \glc\ nodes. Dumps the content of the node.
     !!}
@@ -1034,9 +1091,9 @@ contains
     use            :: String_Handling, only : operator(//)
     implicit none
     integer         (kind=c_int                   ), intent(in   )                                       :: status
-    real            (kind=c_double                ), intent(in   )                                       :: time
+    real            (kind=c_double                ), intent(in   )                                       :: time          , timeStep
     real            (kind=c_double                ), intent(in   ), dimension(:                        ) :: y
-    real            (kind=c_double                )               , dimension(self_%propertyCountActive) :: dydt          , yError, &
+    real            (kind=c_double                )               , dimension(self_%propertyCountActive) :: dydt          , yError  , &
          &                                                                                                  yTolerance
     type            (varying_string               )                                                      :: message       , line
     integer                                                                                              :: lengthMaximum
@@ -1050,7 +1107,6 @@ contains
     if (self_%trialCount == trialCountMaximum-1) then
        ! Get the current errors and tolerances in the ODE driver.
        call solver_%errors(yError)
-       yTolerance=standardODEStepTolerances(y)
        ! Report the failure message.
        verbosityLevel=displayVerbosity()
        if (verbosityLevel < verbosityLevelStandard) call displayVerbositySet(verbosityLevelStandard)
@@ -1059,8 +1115,15 @@ contains
        call displayMessage(message)
        ! Dump all node properties.
        call self_%activeNode%serializeASCII()
+       ! Report timestep.
+       write (label,'(e12.6)') time
+       message="time, timeStep = "//label
+       write (label,'(e12.6)') timeStep
+       message=message//", "//label
+       call displayMessage(message)       
        ! Evaluate derivatives.
-       odeStatus=standardODEs(time,y,dydt)
+       odeStatus =standardODEs             (time,y,dydt)
+       yTolerance=standardODEStepTolerances(     y     )
        call displayIndent('ODE system parameters')
        lengthMaximum=0
        do i=1,self_%propertyCountActive
@@ -1104,7 +1167,7 @@ contains
     implicit none
     double precision                         , dimension(self_%propertyCountActive) :: standardODEStepTolerances
     double precision          , intent(in   ), dimension(self_%propertyCountActive) :: propertyValues
-    integer         (c_size_t)                                                             :: i
+    integer         (c_size_t)                                                      :: i
 
     forall(i=1:self_%propertyCountActive)
        standardODEStepTolerances(i)=+    self_%odeToleranceRelative     &

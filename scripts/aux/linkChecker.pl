@@ -5,6 +5,7 @@ use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use System::Redirect;
 use Regexp::Common;
 use WWW::Curl::Easy;
+use XML::Simple;
 use JSON::PP qw(encode_json decode_json);
 
 # Check for broken links in Galacticus documentation.
@@ -15,7 +16,7 @@ die("Usage: linkChecker.pl <apiToken>")
     unless ( scalar(@ARGV) == 1 );
 my $apiToken = $ARGV[0];
 
-# # Extract PDF destinations.
+# Extract PDF destinations.
 my $pdfDestinations;
 foreach my $suffix ( "Usage", "Physics", "Development", "Source" ) {
     system("curl --silent -L --insecure --output Galacticus_".$suffix.".pdf https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_".$suffix.".pdf");
@@ -26,6 +27,14 @@ foreach my $suffix ( "Usage", "Physics", "Development", "Source" ) {
 	$pdfDestinations->{$suffix}->{$dest} = 1;
     }
     close($destFile);
+}
+
+# Initialize records of number of consecutive checks for which a URL has failed.
+my $xml = new XML::Simple();
+my $failures =  -e "linkCheckFailures.xml" ? $xml->XMLin("linkCheckFailures.xml") : {};
+print "Current consecutive failure count (in order of increasing number of failures:\n";
+foreach my $url ( sort { $failures->{'url'}->{$a}->{'consecutiveFailures'} <=> $failures->{'url'}->{$b}->{'consecutiveFailures'}} keys(%{$failures->{'url'}}) ) {
+    print $failures->{'url'}->{$url}->{'consecutiveFailures'}.":\t".$url."\n";
 }
 
 # Initialize structure of links to check.
@@ -61,7 +70,12 @@ while ( my $fileName = readdir($wikiFolder) ) {
 closedir($wikiFolder);
 
 # Check the URLs.
-my $status = &checkURLs($urls,$pdfDestinations,$apiToken);
+my $status = &checkURLs($urls,$pdfDestinations,$apiToken,\$failures);
+
+# Store records of consecutive failures.
+open(my $record,">","linkCheckFailures.xml");
+print $record $xml->XMLout($failures, RootName => "failures");
+close($record);
 
 # Finished.
 exit $status;
@@ -116,8 +130,10 @@ sub scanWiki {
 
 sub checkURLs {
     # Check URLs are valid.
-    my $urls            = shift();
-    my $pdfDestinations = shift();
+    my $urls            =   shift() ;
+    my $pdfDestinations =   shift() ;
+    my $apiToken        =   shift() ;
+    my $failures        = ${shift()};
     my $status          = 0;
     my $bibCodes;
     foreach my $urlKey ( keys(%{$urls}) ) {
@@ -140,9 +156,11 @@ sub checkURLs {
 		    print "\t ".$source->{'path'}."/".$source->{'file'}." line ".$source->{'lineNumber'}."\n";
 		}
 	    }   
-	} elsif ( $url =~ m/\.adsabs\.harvard\.edu\/abs\/([^\/]+)/ ) {
+	} elsif ( $url =~ m/adsabs\.harvard\.edu\/abs\/([^\/]+)/ ) {
 	    # NASA ADS link - accumulate the bibCode.
 	    my $bibCode = $1;
+	    # Translate escape codes.
+	    $bibCode =~ s/%26/&/;
 	    push(@{$bibCodes->{$bibCode}->{'sources'}},@{$urls->{$urlKey}});
 	    ${$bibCodes->{$bibCode}->{'urls'}}{$urlKey} = 1;
 	} else {
@@ -182,8 +200,9 @@ sub checkURLs {
 		close($logFile);
 	    }
 	    if ( $error ) {		
-		$status = 1;
-		print "Broken link: \"".$url."\" in:\n";
+		$status = 1
+		    if ( &recordFailure($url,$failures) );
+		print "Broken link: \"".$url."\" (for past ".$failures->{'url'}->{$url}->{'consecutiveFailures'}." attempts) in:\n";
 		foreach my $source ( @{$urls->{$urlKey}} ) {
 		    print "\t".$source->{'path'}."/".$source->{'file'}." line ".$source->{'lineNumber'}."\n";
 		}
@@ -193,16 +212,17 @@ sub checkURLs {
 		    print $line;
 		}
 		close($logFile);
+	    } else {
+		&recordSuccess($url,$failures);
 	    }
 	}
     }
     # Check NASA ADS bibcodes.
     my $curl = WWW::Curl::Easy->new();
     $curl->setopt(CURLOPT_HEADER,1);
-    $curl->setopt(CURLOPT_HTTPHEADER, ['Authorization: Bearer:'.$apiToken]);
     my $countRecords = scalar(keys(%{$bibCodes}));
     $curl->setopt(CURLOPT_URL, 'https://api.adsabs.harvard.edu/v1/search/bigquery?q=*:*&rows='.$countRecords.'&fl=bibcode,alternate_bibcode,title,author,year,pub,volume,page');
-    $curl->setopt(CURLOPT_HTTPHEADER, ['Authorization: Bearer:'.$apiToken,"Content-Type: big-query/csv"]);
+    $curl->setopt(CURLOPT_HTTPHEADER, ['Authorization: Bearer '.$apiToken,"Content-Type: big-query/csv"]);
     my $response_body;
     $curl->setopt(CURLOPT_WRITEDATA,\$response_body);
     $curl->setopt(CURLOPT_POST, 1);
@@ -225,10 +245,12 @@ sub checkURLs {
 	    close($response);
 	    $records = decode_json($json);
 	} else {
-	    die("Failed to retrieve record identifiers: ".$response_code.$response_body);
+	    $status = 1;
+	    print "Failed to retrieve record identifiers: ".$response_code.$response_body."\n";
 	}
     } else {
-	die("Failed to retrieve record identifiers: ".$retcode." ".$curl->strerror($retcode)." ".$curl->errbuf);
+	$status = 1;
+	print "Failed to retrieve record identifiers: ".$retcode." ".$curl->strerror($retcode)." ".$curl->errbuf."\n";
     }
     # Parse records.
     foreach my $entry ( @{$records->{'response'}->{'docs'}} ) {
@@ -245,19 +267,43 @@ sub checkURLs {
 		}
 	    }
 	}
-	die("Received unrequested record for bibcode '".$entry->{'bibcode'}."'\n")
-	    unless ( $found );
+	unless ( $found ) {
+	    $status = 1;
+	    print "Received unrequested record for bibcode '".$entry->{'bibcode'}."'\n";
+	}
     }
     # Look for any bibcodes that were not found.
     foreach my $bibCode ( keys(%{$bibCodes}) ) {
-	next
-	    if ( exists($bibCodes->{$bibCode}->{'found'}) );
-	$status = 1;
-	print "Broken link: \"".join("; ",keys(%{$bibCodes->{$bibCode}->{'urls'}}))."\" in:\n";
-	foreach my $source ( @{$bibCodes->{$bibCode}->{'sources'}} ) {
-	    print "\t".$source->{'path'}."/".$source->{'file'}." line ".$source->{'lineNumber'}."\n";
-	}	
+	if ( exists($bibCodes->{$bibCode}->{'found'}) ) {
+	    &recordSuccess($bibCode,$failures);
+	} else {
+	    $status = 1
+		if ( &recordFailure($bibCode,$failures) );
+	    print "Broken link (for past ".$failures->{'url'}->{$bibCode}->{'consecutiveFailures'}." attempts): {bibCode: ".$bibCode."} \"".join("; ",keys(%{$bibCodes->{$bibCode}->{'urls'}}))."\" in:\n";
+	    foreach my $source ( @{$bibCodes->{$bibCode}->{'sources'}} ) {
+		print "\t".$source->{'path'}."/".$source->{'file'}." line ".$source->{'lineNumber'}."\n";
+	    }
+	}
     }
     # Return final status.
     return $status;
+}
+
+sub recordFailure {
+    # Record a failure to retrieve a URL.
+    my $url      = shift();
+    my $failures = shift();
+    # Increment the number of consecutive fails by 1.
+    $failures->{'url'}->{$url}->{'consecutiveFailures'} += 1;
+    # Return a status depending on the number of consecutive failures.
+    my $status = $failures->{'url'}->{$url}->{'consecutiveFailures'} >= 3;
+    return $status;
+}
+
+sub recordSuccess {
+    # Record a failure to retrieve a URL.
+    my $url      = shift();
+    my $failures = shift();
+    # Zero the number of consecutive failures for this URL.
+    $failures->{'url'}->{$url}->{'consecutiveFailures'} = 0;    
 }

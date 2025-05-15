@@ -729,12 +729,12 @@ module Mass_Distributions
       solversCount=solversCount-1
     </code>
    </method>
-   <data>type            (interpolator), allocatable               :: velocityDispersion1D__                                                                                               </data>
-   <data>double precision              , allocatable, dimension(:) :: velocityDispersionRadialVelocity__                             , velocityDispersionRadialRadius__                    </data>
-   <data>double precision                                          :: velocityDispersionRadialRadiusMinimum__           =+huge(0.0d0), velocityDispersionRadialRadiusMaximum__=-huge(0.0d0)</data>
-   <data>double precision                                          :: velocityDispersionRadialRadiusOuter__                                                                                </data>   
-   <data>double precision                                          :: toleranceRelativeVelocityDispersion       =1.0d-6                                                                    </data>
-   <data>double precision                                          :: toleranceRelativeVelocityDispersionMaximum=1.0d-3                                                                    </data>
+   <data>type            (interpolator), allocatable               :: velocityDispersion1D__                                                                                       </data>
+   <data>double precision              , allocatable, dimension(:) :: velocityDispersionRadialVelocity__                     , velocityDispersionRadialRadius__                    </data>
+   <data>double precision                                          :: velocityDispersionRadialRadiusMinimum__   =+huge(0.0d0), velocityDispersionRadialRadiusMaximum__=-huge(0.0d0)</data>
+   <data>double precision                                          :: velocityDispersionRadialRadiusOuter__                                                                        </data>
+   <data>double precision                                          :: toleranceRelativeVelocityDispersion       =1.0d-6                                                            </data>
+   <data>double precision                                          :: toleranceRelativeVelocityDispersionMaximum=1.0d-3                                                            </data>
   </functionClass>
   !!]
 
@@ -1069,11 +1069,12 @@ contains
     Solve the Jeans equation numerically to find the 1D velocity dispersion.
     !!}
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
-    use            :: Error                  , only : Error_Report        , errorStatusSuccess
+    use            :: Error                  , only : Error_Report        , errorStatusSuccess  , GSL_Error_Details
     use            :: Numerical_Integration  , only : integrator
     use            :: Numerical_Ranges       , only : Make_Range          , rangeTypeLogarithmic
     use            :: Table_Labels           , only : extrapolationTypeFix
     use            :: Numerical_Interpolation, only : gsl_interp_linear
+    use            :: String_Handling        , only : operator(//)
     use            :: Coordinates            , only : coordinateSpherical , assignment(=)
     implicit none
     class           (kinematicsDistributionClass), intent(inout)              :: self
@@ -1196,7 +1197,14 @@ contains
                            &            *toleranceRelative
                    end if
                 end do
-                if (status /= errorStatusSuccess) call Error_Report('integration of Jeans equation failed'//{introspection:location})
+                if (status /= errorStatusSuccess) then
+                   block
+                     integer                 :: line
+                     type   (varying_string) :: reason, file
+                     call GSL_Error_Details(reason,file,line,status)
+                     call Error_Report(var_str('integration of Jeans equation failed - GSL Error ')//status//': "'//reason//'" at line '//line//' of file "'//file//'"'//{introspection:location})
+                   end block
+                end if
                 call integrator_%toleranceSet(toleranceRelative=self%toleranceRelativeVelocityDispersion)
              end if
              if (density <= 0.0d0) then

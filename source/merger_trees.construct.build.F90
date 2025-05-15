@@ -26,6 +26,7 @@
   use :: Halo_Mass_Functions      , only : haloMassFunctionClass
   use :: Merger_Trees_Build_Masses, only : mergerTreeBuildMassesClass
   use :: Merger_Trees_Builders    , only : mergerTreeBuilderClass
+  use :: Merger_Tree_Seeds        , only : mergerTreeSeedsClass
   use :: Numerical_Random_Numbers , only : randomNumberGeneratorClass
   use :: Output_Times             , only : outputTimesClass
 
@@ -46,6 +47,7 @@
      class           (cosmologyFunctionsClass   ), pointer                   :: cosmologyFunctions_    => null()
      class           (mergerTreeBuildMassesClass), pointer                   :: mergerTreeBuildMasses_ => null()
      class           (mergerTreeBuilderClass    ), pointer                   :: mergerTreeBuilder_     => null()
+     class           (mergerTreeSeedsClass      ), pointer                   :: mergerTreeSeeds_       => null()
      class           (haloMassFunctionClass     ), pointer                   :: haloMassFunction_      => null()
      class           (outputTimesClass          ), pointer                   :: outputTimes_           => null()
      class           (randomNumberGeneratorClass), pointer                   :: randomNumberGenerator_ => null()
@@ -93,6 +95,7 @@ contains
     class           (cosmologyParametersClass  ), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass   ), pointer       :: cosmologyFunctions_
     class           (mergerTreeBuilderClass    ), pointer       :: mergerTreeBuilder_
+    class           (mergerTreeSeedsClass      ), pointer       :: mergerTreeSeeds_
     class           (haloMassFunctionClass     ), pointer       :: haloMassFunction_
     class           (mergerTreeBuildMassesClass), pointer       :: mergerTreeBuildMasses_
     class           (randomNumberGeneratorClass), pointer       :: randomNumberGenerator_
@@ -129,6 +132,7 @@ contains
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
     <objectBuilder class="mergerTreeBuilder"     name="mergerTreeBuilder_"     source="parameters"/>
+    <objectBuilder class="mergerTreeSeeds"       name="mergerTreeSeeds_"       source="parameters"/>
     <objectBuilder class="haloMassFunction"      name="haloMassFunction_"      source="parameters"/>
     <objectBuilder class="mergerTreeBuildMasses" name="mergerTreeBuildMasses_" source="parameters"/>
     <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
@@ -143,6 +147,7 @@ contains
          &                          cosmologyFunctions_                                                                                   , &
          &                          mergerTreeBuildMasses_                                                                                , &
          &                          mergerTreeBuilder_                                                                                    , &
+         &                          mergerTreeSeeds_                                                                                      , &
          &                          haloMassFunction_                                                                                     , &
          &                          outputTimes_                                                                                          , &
          &                          randomNumberGenerator_                                                                                  &
@@ -152,6 +157,7 @@ contains
     <objectDestructor name="cosmologyParameters_"  />
     <objectDestructor name="cosmologyFunctions_"   />
     <objectDestructor name="mergerTreeBuilder_"    />
+    <objectDestructor name="mergerTreeSeeds_"      />
     <objectDestructor name="haloMassFunction_"     />
     <objectDestructor name="mergerTreeBuildMasses_"/>
     <objectDestructor name="outputTimes_"          />
@@ -160,7 +166,7 @@ contains
     return
   end function buildConstructorParameters
 
-  function buildConstructorInternal(timeBase,timeSnapTolerance,treeBeginAt,processDescending,cosmologyParameters_,cosmologyFunctions_,mergerTreeBuildMasses_,mergerTreeBuilder_,haloMassFunction_,outputTimes_,randomNumberGenerator_) result(self)
+  function buildConstructorInternal(timeBase,timeSnapTolerance,treeBeginAt,processDescending,cosmologyParameters_,cosmologyFunctions_,mergerTreeBuildMasses_,mergerTreeBuilder_,mergerTreeSeeds_,haloMassFunction_,outputTimes_,randomNumberGenerator_) result(self)
     !!{
     Initializes the merger tree building module.
     !!}
@@ -174,13 +180,14 @@ contains
     class           (cosmologyParametersClass  ), intent(in   ), target :: cosmologyParameters_
     class           (cosmologyFunctionsClass   ), intent(in   ), target :: cosmologyFunctions_
     class           (mergerTreeBuilderClass    ), intent(in   ), target :: mergerTreeBuilder_
+    class           (mergerTreeSeedsClass      ), intent(in   ), target :: mergerTreeSeeds_
     class           (haloMassFunctionClass     ), intent(in   ), target :: haloMassFunction_
     class           (mergerTreeBuildMassesClass), intent(in   ), target :: mergerTreeBuildMasses_
     class           (outputTimesClass          ), intent(in   ), target :: outputTimes_
     class           (randomNumberGeneratorClass), intent(in   ), target :: randomNumberGenerator_
     integer         (c_size_t                  )                        :: i
     !![
-    <constructorAssign variables="timeBase, timeSnapTolerance, treeBeginAt, processDescending, *cosmologyParameters_, *cosmologyFunctions_, *mergerTreeBuildMasses_, *mergerTreeBuilder_, *haloMassFunction_, *outputTimes_, *randomNumberGenerator_"/>
+    <constructorAssign variables="timeBase, timeSnapTolerance, treeBeginAt, processDescending, *cosmologyParameters_, *cosmologyFunctions_, *mergerTreeBuildMasses_, *mergerTreeBuilder_, *mergerTreeSeeds_, *haloMassFunction_, *outputTimes_, *randomNumberGenerator_"/>
     !!]
 
     ! Store base redshift.
@@ -211,6 +218,7 @@ contains
     <objectDestructor name="self%cosmologyParameters_"  />
     <objectDestructor name="self%cosmologyFunctions_"   />
     <objectDestructor name="self%mergerTreeBuilder_"    />
+    <objectDestructor name="self%mergerTreeSeeds_"      />
     <objectDestructor name="self%haloMassFunction_"     />
     <objectDestructor name="self%mergerTreeBuildMasses_"/>
     <objectDestructor name="self%outputTimes_"          />
@@ -277,8 +285,8 @@ contains
        <deepCopyFinalize variables="tree%randomNumberGenerator_"/>
        !!]
        !$omp end critical(mergerTreeConstructBuildDeepCopyReset)
-       call self%randomSequenceNonDeterministicWarn(tree)
-       call tree%randomNumberGenerator_%seedSet(seed=tree%index,offset=.true.)
+       call self                 %randomSequenceNonDeterministicWarn(tree)
+       call self%mergerTreeSeeds_%set                               (tree)
        ! Store the internal state.
        if (treeStateStoreSequence == -1_c_size_t) treeStateStoreSequence=treeNumber
        message=var_str('Storing state for tree #')//treeNumber

@@ -194,20 +194,23 @@ contains
     return
   end function singleStepTimeMinimum
   
-  double precision function singleStepTimeMaximum(self,node,massBranch,criticalOverdensityBranch)
+  double precision function singleStepTimeMaximum(self,node,massBranch,criticalOverdensityBranch,timeReference,insertNode)
     !!{
     Return the maximum allowed time for this node.
     !!}
     implicit none
     class           (mergerTreeBuildControllerSingleStep), intent(inout) :: self
     type            (treeNode                           ), intent(inout) :: node
-    double precision                                     , intent(in   ) :: massBranch, criticalOverdensityBranch
+    double precision                                     , intent(in   ) :: massBranch   , criticalOverdensityBranch, &
+         &                                                                  timeReference
+    logical                                              , intent(  out) :: insertNode
 
     if (associated(node%parent)) then
-       singleStepTimeMaximum=self%mergerTreeBuildController_%timeMaximum(node,massBranch,criticalOverdensityBranch)
+       singleStepTimeMaximum=self%mergerTreeBuildController_%timeMaximum(node,massBranch,criticalOverdensityBranch,timeReference,insertNode)
     else
        singleStepTimeMaximum=self%criticalOverdensityStep
     end if
+    insertNode=.false.
     return
   end function singleStepTimeMaximum
   

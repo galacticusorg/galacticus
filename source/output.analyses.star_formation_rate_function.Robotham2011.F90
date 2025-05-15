@@ -200,7 +200,7 @@ contains
     <constructorAssign variables="randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, sizeSourceLensing, *gravitationalLensing_"/>
     !!]
 
-    ! Build a filter which select galaxies with stellar mass greater than 10^5.25.
+    ! Build a filter which selects galaxies with stellar mass greater than 10^5.25.
     allocate(galacticFilter_)
     !![
     <referenceConstruct object="galacticFilter_" constructor="galacticFilterStellarMass(massThreshold=10.0d0**5.25d0)"/>

@@ -181,7 +181,7 @@ contains
     type            (distributionFunction1DBeta                           )                                :: betaDistributionLower                                                  , betaDistributionUpper
     integer         (c_size_t                                             )                                :: iBin                                                                   , binCount
     type            (hdf5Object                                           )                                :: dataFile
-    double precision                                                                                       :: probit,sqrtArg
+    double precision                                                                                       :: probit                                                                 , sqrtArg
     !![
     <constructorAssign variables="ratioEarlyType, ratioEarlyTypeError, systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyFunctions_"/>
     !!]

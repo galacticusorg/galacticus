@@ -54,7 +54,7 @@
      final     ::                                coolingEnergyRadiatedDestructor
      procedure :: differentialEvolutionScales => coolingEnergyRadiatedDifferentialEvolutionScales
      procedure :: differentialEvolution       => coolingEnergyRadiatedDifferentialEvolution
-     procedure :: nodesMerge                  => coolingEnergyRadiatedNodesMerge
+     procedure :: galaxiesMerge               => coolingEnergyRadiatedGalaxiesMerge
      procedure :: nodePromote                 => coolingEnergyRadiatedNodePromote
      procedure :: autoHook                    => coolingEnergyRadiatedAutoHook
   end type nodeOperatorCoolingEnergyRadiated
@@ -174,11 +174,16 @@ contains
     class           (nodeComponentBasic               ), pointer       :: basic
     double precision                                                   :: massVirial                      , velocityVirial
    
-    basic         => node                      %basic         (    )
-    hotHalo       => node                      %hotHalo       (    )
-    massVirial    =  basic                     %mass          (    )
-    velocityVirial=  self %darkMatterHaloScale_%velocityVirial(node)
-    call hotHalo%floatRank0MetaPropertyScale(self%energyRadiatedID,unitEnergyRadiated*massVirial*velocityVirial**2*scaleRelative)
+    hotHalo => node%hotHalo()
+    select type (hotHalo)
+    type is (nodeComponentHotHalo)
+       ! Hot halo does not exist - nothing to do here.
+    class default
+       basic         => node                      %basic         (    )
+       massVirial    =  basic                     %mass          (    )
+       velocityVirial=  self %darkMatterHaloScale_%velocityVirial(node)
+       call hotHalo%floatRank0MetaPropertyScale(self%energyRadiatedID,unitEnergyRadiated*massVirial*velocityVirial**2*scaleRelative)
+    end select
     return
   end subroutine coolingEnergyRadiatedDifferentialEvolutionScales
   
@@ -222,7 +227,7 @@ contains
     hotHalo      =>  node   %hotHalo      ()
     select type (hotHalo)
     type is (nodeComponentHotHalo)
-       ! Hot halo does not exists - nothing to do here.
+       ! Hot halo does not exist - nothing to do here.
     class default
        basic             =>  node             %basic           (                         )
        massDistribution_ =>  node             %massDistribution(massType=massTypeGalactic)
@@ -337,9 +342,9 @@ contains
     return
   end subroutine coolingEnergyRadiatedNodePromote
   
-  subroutine coolingEnergyRadiatedNodesMerge(self,node)
+  subroutine coolingEnergyRadiatedGalaxiesMerge(self,node)
     !!{
-    Zero the radiated energy of the hot halo component of nodes about to merge.
+    Zero the radiated energy of the hot halo component of galaxies about to merge.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo
     implicit none
@@ -350,12 +355,17 @@ contains
     ! We do not add the energy radiated from this node to that of its parent, as we assume that, on merging, the hot halo gas of
     ! this node is shock heated to the virial temperature of the parent, effectively negating the energy radiated.
     hotHalo => node%hotHalo()
-    call hotHalo%floatRank0MetaPropertySet(                        &
-         &                                  self%energyRadiatedID, &
-         &                                 +0.0d0                  &
-         &                                )
+    select type (hotHalo)
+    type is (nodeComponentHotHalo)
+       ! Hot halo does not exist - nothing to do here.
+    class default
+       call hotHalo%floatRank0MetaPropertySet(                        &
+            &                                  self%energyRadiatedID, &
+            &                                 +0.0d0                  &
+            &                                )
+    end select
     return
-  end subroutine coolingEnergyRadiatedNodesMerge
+  end subroutine coolingEnergyRadiatedGalaxiesMerge
   
   subroutine coolingEnergyRadiatedHotHaloMassEjection(self,hotHalo,massRate)
     !!{

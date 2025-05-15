@@ -21,7 +21,8 @@
   Implements a merger tree constructor class which constructs a merger tree by restoring state from file.
   !!}
 
-  use :: Numerical_Random_Numbers , only : randomNumberGeneratorClass
+  use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
+  use :: Merger_Tree_Seeds       , only : mergerTreeSeedsClass
 
   public :: mergerTreeStateStore, mergerTreeStateFromFile
 
@@ -67,6 +68,7 @@
      !!}
      private
      class(randomNumberGeneratorClass), pointer :: randomNumberGenerator_ => null()
+     class(mergerTreeSeedsClass      ), pointer :: mergerTreeSeeds_       => null()
      type (varying_string            )          :: fileName
    contains
      final     ::              stateRestoredDestructor
@@ -92,6 +94,7 @@ contains
     type (mergerTreeConstructorStateRestored)                :: self
     type (inputParameters                   ), intent(inout) :: parameters
     class(randomNumberGeneratorClass        ), pointer       :: randomNumberGenerator_
+    class(mergerTreeSeedsClass              ), pointer       :: mergerTreeSeeds_
     type (varying_string                    )                :: fileName
 
     !![
@@ -102,16 +105,18 @@ contains
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    <objectBuilder class="mergerTreeSeeds"       name="mergerTreeSeeds_"       source="parameters"/>
     !!]
-    self=mergerTreeConstructorStateRestored(fileName,randomNumberGenerator_)
+    self=mergerTreeConstructorStateRestored(fileName,randomNumberGenerator_,mergerTreeSeeds_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="randomNumberGenerator_"/>
+    <objectDestructor name="mergerTreeSeeds_"      />
     !!]
     return
   end function stateRestoredConstructorParameters
 
-  function stateRestoredConstructorInternal(fileName,randomNumberGenerator_) result(self)
+  function stateRestoredConstructorInternal(fileName,randomNumberGenerator_,mergerTreeSeeds_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily stateRestored} merger tree operator class.
     !!}
@@ -119,8 +124,9 @@ contains
     type (mergerTreeConstructorStateRestored)                        :: self
     type (varying_string                    ), intent(in   )         :: fileName
     class(randomNumberGeneratorClass        ), intent(in   ), target :: randomNumberGenerator_
+    class(mergerTreeSeedsClass              ), intent(in   ), target :: mergerTreeSeeds_
     !![
-    <constructorAssign variables="fileName, *randomNumberGenerator_"/>
+    <constructorAssign variables="fileName, *randomNumberGenerator_, *mergerTreeSeeds_"/>
     !!]
 
     return
@@ -135,6 +141,7 @@ contains
 
     !![
     <objectDestructor name="self%randomNumberGenerator_"/>
+    <objectDestructor name="self%mergerTreeSeeds_"      />
     !!]
     return
   end subroutine stateRestoredDestructor
@@ -158,7 +165,7 @@ contains
        call State_Retrieve_()
        ! Read the tree(s).
        allocate(tree)
-       call mergerTreeStateFromFile(tree,char(self%fileName),self%randomNumberGenerator_)
+       call mergerTreeStateFromFile(tree,char(self%fileName),self%randomNumberGenerator_,self%mergerTreeSeeds_)
        call self%randomSequenceNonDeterministicWarn(tree)
     else
        nullify(tree)
@@ -333,7 +340,7 @@ contains
 
   end subroutine mergerTreeStateStore
 
-  subroutine mergerTreeStateFromFile(tree,fileName,randomNumberGenerator_,deleteAfterRead)
+  subroutine mergerTreeStateFromFile(tree,fileName,randomNumberGenerator_,mergerTreeSeeds_,deleteAfterRead)
     !!{
     Read the state of a merger tree from file.
     !!}
@@ -346,6 +353,7 @@ contains
     type     (mergerTree                ), intent(inout), target       :: tree
     character(len=*                     ), intent(in   )               :: fileName
     class    (randomNumberGeneratorClass), intent(inout)               :: randomNumberGenerator_
+    class    (mergerTreeSeedsClass      ), intent(inout)               :: mergerTreeSeeds_
     logical                              , intent(in   ), optional     :: deleteAfterRead
     integer                                                            :: treeUnit           , ioStatus
     type     (mergerTree                )               , pointer      :: treeCurrent
@@ -477,7 +485,7 @@ contains
     <deepCopyFinalize variables="tree%randomNumberGenerator_"/>
     !!]
     !$omp end critical(mergerTreeStateRestoreDeepCopyReset)
-    call tree%randomNumberGenerator_%seedSet(seed=tree%index,offset=.true.)
+    call mergerTreeSeeds_%set(tree)
     return
 
   contains
