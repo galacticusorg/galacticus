@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1747176296363,
+  "lastUpdate": 1747307173522,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "a341a7f09a9a4af10c242ac9a149af18a419766a",
-          "message": "Merge pull request #660 from galacticusorg/featXMLIncludeAbsolutePaths\n\nCorrectly handle XML `XInclude` elements with absolute paths",
-          "timestamp": "2024-08-01T03:15:02Z",
-          "tree_id": "1e8120b446e0c30085e7bb228526564ed24145a4",
-          "url": "https://github.com/galacticusorg/galacticus/commit/a341a7f09a9a4af10c242ac9a149af18a419766a"
-        },
-        "date": 1722504257602,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 463.669,
-            "unit": "seconds",
-            "range": 0.213749619867609
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10652,6 +10622,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": "13.782973254714092",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0933f2270bb35c9ed6e4ea3aaba2378824d3d069",
+          "message": "Merge pull request #843 from galacticusorg/featNonNegativeEvolution\n\nAdd functionality to mark component properties as non-negative",
+          "timestamp": "2025-05-15T04:13:34Z",
+          "tree_id": "965b20d4c9c08a30f9954dc20c86d4b46278768d",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0933f2270bb35c9ed6e4ea3aaba2378824d3d069"
+        },
+        "date": 1747307172143,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 98.697,
+            "unit": "seconds",
+            "range": 0.181036184229228
           }
         ]
       }
