@@ -19,15 +19,16 @@ use Galacticus::Build::Components::DataTypes;
      {
 	 functions =>
 	     [
-	      \&Tree_Node_ODE_Step_Initialize   ,
-	      \&Tree_Node_ODE_Serialize_Count   ,
-	      \&Tree_Node_ODE_Serialize_Values  ,
-	      \&Tree_Node_ODE_Deserialize_Values,
-	      \&Tree_Node_ODE_Serialize_Rates   ,
-	      \&Tree_Node_ODE_Deserialize_Rates ,
-	      \&Tree_Node_ODE_Serialize_Scales  ,
-	      \&Tree_Node_ODE_Serialize_Inactive,
-	      \&Tree_Node_ODE_Name_From_Index   ,
+	      \&Tree_Node_ODE_Step_Initialize      ,
+	      \&Tree_Node_ODE_Serialize_Count      ,
+	      \&Tree_Node_ODE_Serialize_Values     ,
+	      \&Tree_Node_ODE_Deserialize_Values   ,
+	      \&Tree_Node_ODE_Serialize_Rates      ,
+	      \&Tree_Node_ODE_Deserialize_Rates    ,
+	      \&Tree_Node_ODE_Serialize_Scales     ,
+	      \&Tree_Node_ODE_Serialize_Inactive   ,
+	      \&Tree_Node_ODE_Serialize_NonNegative,
+	      \&Tree_Node_ODE_Name_From_Index      ,
 	      \&Tree_Node_ODE_Offsets
 	     ]
      }
@@ -451,6 +452,61 @@ CODE
 	    type        => "procedure", 
 	    descriptor  => $function,
 	    name        => "serializeInactives"
+	}
+	);
+}
+
+sub Tree_Node_ODE_Serialize_NonNegative {
+    # Generate a function to serialize non-negative status of evolvable properties of a node into an array.
+    my $build = shift();
+    my $function =
+    {
+	type        => "void",
+	name        => "treeNodeSerializeNonNegativeToArray",
+	description => "Serialize non-negative status of evolvable properties of a node into an array.",
+	variables   =>
+	    [
+	     {
+		 intrinsic  => "class",
+		 type       => "treeNode",
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "logical",
+		 attributes => [ "dimension(:)", "intent(  out)" ],
+		 variables  => [ "array" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 variables  => [ "count", "offset", "i" ],
+	     }
+	    ]
+    };    
+    $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
+offset=1
+CODE
+    # Iterate over all component classes
+    foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
+	next
+	    unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+if (allocated(self%component{ucfirst($class->{'name'})})) then
+  do i=1,size(self%component{ucfirst($class->{'name'})})
+    count=self%component{ucfirst($class->{'name'})}(i)%serializeCount(propertyTypeActive)
+    if (count > 0) call self%component{ucfirst($class->{'name'})}(i)%serializeNonNegative(array(offset:))
+    offset=offset+count
+  end do
+end if
+CODE
+    }
+    # Insert a type-binding for this function into the treeNode type.
+    push(
+	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	{
+	    type        => "procedure", 
+	    descriptor  => $function,
+	    name        => "serializeNonNegative"
 	}
 	);
 }
