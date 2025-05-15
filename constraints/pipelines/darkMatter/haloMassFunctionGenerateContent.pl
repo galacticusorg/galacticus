@@ -324,6 +324,16 @@ CODE
 }
 print "...done\n";
 
+# Determine a suitable initial γ.
+my $countParameters = 16+scalar(keys(%perturbations))+2*scalar(keys(%isolationBiases))+4*scalar(keys(%detectionEfficiencyClasses));
+$content::gammaInitial = 2.35/sqrt($countParameters);
+
+# If including correlations, force recomputation of the likelihood periodically. Correlations require evaluation of the cumulative
+# distribution function of very high dimesional multivariate normals. This typically must be done using Monte Carlo integration
+# which can have poor convergence properties in high dimensions. If a chain happens to get stuck in a state that was judged to
+# have very high likelihood because of such Monte Carlo fluctuations, this recomputation can allow it to break out.
+$content::recomputeCount = $options{'includeCorrelations'} eq "true" ? '<recomputeCount value="13">' : '';
+
 # Generate openers and closers for the config and parameter files.
 my $configOpener = fill_in_string(<<'CODE', PACKAGE => 'content');
 <?xml version="1.0" encoding="UTF-8"?>
@@ -345,8 +355,6 @@ my $configOpener = fill_in_string(<<'CODE', PACKAGE => 'content');
   <posteriorSampleLikelihood value="independentLikelihoods">
     <orderRotation value="byRankOnNode"/> <!-- Rotate likelihoods by the on-node rank to ensure that each process begins with a different power spectrum class. -->
 CODE
-my $countParameters = 16+scalar(keys(%perturbations))+2*scalar(keys(%isolationBiases))+4*scalar(keys(%detectionEfficiencyClasses));
-$content::gammaInitial = 2.35/sqrt($countParameters);
 my $configInitializer = fill_in_string(<<'CODE', PACKAGE => 'content');
   </posteriorSampleLikelihood>
 
@@ -395,6 +403,7 @@ $configInitializer .= fill_in_string(<<'CODE', PACKAGE => 'content');
     <acceptanceAverageCount value="    10"                                  />
     <stateSwapCount         value="    11"                                  /> <!-- Offset swaps from reporting, otherwise we only get reports for swap steps, which gives a biased view of progress. -->
     <slowStepCount          value="    12"                                  />
+    {$recomputeCount}
     <logFileRoot            value="{$outputDirectory}haloMassFunctionChains"/>
     <reportCount            value="    10"                                  />
     <sampleOutliers         value="false"                                   />
