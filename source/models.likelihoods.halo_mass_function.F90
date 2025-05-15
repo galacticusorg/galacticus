@@ -405,10 +405,6 @@ contains
     Return the log-likelihood for the halo mass function likelihood function. If {\normalfont \ttfamily [likelihoodPoisson]=false}
     then Gaussian statistics are assumed, otherwise, Poisson statistics are assumed. No covariance between bins is assumed.
     !!}
-
-use :: MPI_Utilities, only : mpiSelf
-
-    
     use :: Error                            , only : Error_Report
     use :: Display                          , only : displayMessage                                , displayIndent                         , displayUnindent
     use :: Halo_Mass_Functions              , only : haloMassFunctionClass
@@ -756,8 +752,8 @@ use :: MPI_Utilities, only : mpiSelf
                       end do
                    end do
                 end do
-                distributionFunctionMultivariateNormal_=distributionFunctionMultivariateNormal            (meanCopula,correlationCopula,self%randomNumberGenerator_              )
-                logLikelihood                          =distributionFunctionMultivariateNormal_%cumulative(xCopulaLow,xCopulaHigh      ,logarithmic=.true.         ,status=status)
+                distributionFunctionMultivariateNormal_=distributionFunctionMultivariateNormal            (meanCopula,correlationCopula,errorAbsolute=0.0d0 ,errorRelative=1.0d-2,countTrialsMaximum=1000,randomNumberGenerator_=self%randomNumberGenerator_)
+                logLikelihood                          =distributionFunctionMultivariateNormal_%cumulative(xCopulaLow,xCopulaHigh      ,logarithmic  =.true.,status       =status                                                                           )
                 select case (status)
                 case (GSL_Success             )
                    ! Successful evaluation - proceed.
