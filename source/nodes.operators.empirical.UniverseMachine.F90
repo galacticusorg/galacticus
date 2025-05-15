@@ -34,7 +34,8 @@
    <description>
      A node operator that inserts an empirical model of the formation history of a galaxy. Mass evolution is modeled using the
      \textsc{UniverseMachine} \citep{behroozi_universemachine_2019} correlation between galaxy growth and dark matter halo
-     assembly.
+     assembly. The \textsc{UniverseMachine} fits are used only for redshifts less than {\normalfont \ttfamily [redshiftMaximum]},
+     and for halo masses above {\normalfont \ttfamily [massHaloMinimum]}. Outside of those ranges, no galaxy is inserted.
    </description>
    <deepCopy>
     <functionClass variables="virialDensityContrastDefinition_"/>
@@ -57,7 +58,8 @@
           &                                                    alpha_0                                   , alpha_a             , alpha_lna       , alpha_z  , &
           &                                                    beta_0                                    , beta_a              , beta_z                     , &
           &                                                    gamma_0                                   , gamma_a             , gamma_z                    , &
-          &                                                    delta_0
+          &                                                    delta_0                                                                                      , &
+          &                                                    redshiftMaximum                           , massHaloMinimum
      logical                                                :: setFinalStellarMass                       , hasDisk             , hasSpheroid
      class  (cosmologyParametersClass            ), pointer :: cosmologyParameters_             => null()
      class  (cosmologyFunctionsClass             ), pointer :: cosmologyFunctions_              => null()
@@ -105,7 +107,8 @@ contains
           &                                                                        alpha_0               , alpha_a             , alpha_lna       , alpha_z  , &
           &                                                                        beta_0                , beta_a              , beta_z                     , &
           &                                                                        gamma_0               , gamma_a             , gamma_z                    , &
-          &                                                                        delta_0
+          &                                                                        delta_0                                                                  , &
+          &                                                                        redshiftMaximum       , massHaloMinimum
     class           (cosmologyParametersClass                 ), pointer        :: cosmologyParameters_
     class           (cosmologyFunctionsClass                  ), pointer        :: cosmologyFunctions_
     class           (virialDensityContrastClass               ), pointer        :: virialDensityContrast_
@@ -269,6 +272,20 @@ contains
       <defaultSource>\cite[][Table J1]{behroozi_universemachine_2019}</defaultSource>
       <description>Parameter $\gamma_z$ of the \textsc{UniverseMachine} fits.</description>
     </inputParameter> 
+    <inputParameter>
+      <name>redshiftMaximum</name>
+      <source>parameters</source>
+      <defaultValue>10.0d0</defaultValue>
+      <defaultSource>\cite[][Table J1]{behroozi_universemachine_2019}</defaultSource>
+      <description>The maximum redshift at which UniverseMachine fits will be applied.</description>
+    </inputParameter> 
+    <inputParameter>
+      <name>massHaloMinimum</name>
+      <source>parameters</source>
+      <defaultValue>1.0d10</defaultValue>
+      <defaultSource>\cite[][Table J1]{behroozi_universemachine_2019}</defaultSource>
+      <description>The minimum halo mass at which UniverseMachine fits will be applied.</description>
+    </inputParameter> 
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
     <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
@@ -281,6 +298,7 @@ contains
          &                                          beta_0              ,beta_a              ,beta_z                          , &
          &                                          gamma_0             ,gamma_a             ,gamma_z                         , &
          &                                          delta_0                                                                   , &
+         &                                          redshiftMaximum     ,massHaloMinimum                                      , &
          &                                          cosmologyParameters_,cosmologyFunctions_ ,virialDensityContrast_            &
          &                                         )
     !![
@@ -298,6 +316,7 @@ contains
          &                                                   beta_0              ,beta_a              ,beta_z                          , &
          &                                                   gamma_0             ,gamma_a             ,gamma_z                         , &
          &                                                   delta_0                                                                   , &
+         &                                                   redshiftMaximum     ,massHaloMinimum                                      , &
          &                                                   cosmologyParameters_,cosmologyFunctions_ ,virialDensityContrast_            &
          &                                                  ) result(self)
     !!{
@@ -314,12 +333,13 @@ contains
          &                                                                                 alpha_a               , alpha_lna           , alpha_z         , &
          &                                                                                 beta_0                , beta_a              , beta_z          , &
          &                                                                                 delta_0               , gamma_0             , gamma_a         , &
-         &                                                                                 gamma_z 
+         &                                                                                 gamma_z                                                       , &
+         &                                                                                 redshiftMaximum       , massHaloMinimum
     class           (cosmologyParametersClass                  ), intent(in   ), target :: cosmologyParameters_
     class           (cosmologyFunctionsClass                   ), intent(in   ), target :: cosmologyFunctions_
     class           (virialDensityContrastClass                ), intent(in   ), target :: virialDensityContrast_
     !![
-    <constructorAssign variables="massStellarFinal, fractionMassSpheroid, fractionMassDisk, epsilon_0, epsilon_a, epsilon_lna, epsilon_z, M_0, M_a, M_lna, M_z, alpha_0, alpha_a, alpha_lna, alpha_z, beta_0, beta_a, beta_z, delta_0, gamma_0, gamma_a, gamma_z, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_"/>
+    <constructorAssign variables="massStellarFinal, fractionMassSpheroid, fractionMassDisk, epsilon_0, epsilon_a, epsilon_lna, epsilon_z, M_0, M_a, M_lna, M_z, alpha_0, alpha_a, alpha_lna, alpha_z, beta_0, beta_a, beta_z, delta_0, gamma_0, gamma_a, gamma_z, redshiftMaximum, massHaloMinimum, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_"/>
     !!]
     
     self%setFinalStellarMass=massStellarFinal     >= 0.0d0
@@ -378,14 +398,15 @@ contains
     !!}
     implicit none  
     class           (nodeOperatorEmpiricalGalaxyUniverseMachine), intent(in) :: self 
-    double precision                                            , intent(in) :: massHalo, redshift
-    double precision                                                         :: MLog10  , gammalog10, &
-         &                                                                      M1      , epsilon   , &
-         &                                                                      alpha   , beta      , &
-         &                                                                      delta   , gamma     , &
-         &                                                                      x       , smfm1Log10, &
-         &                                                                      smfm1   , powa      , &
-         &                                                                      powb    , expd  
+    double precision                                            , intent(in) :: massHalo          , redshift
+    double precision                                            , parameter  :: expMaximum=100.0d0
+    double precision                                                         :: MLog10            , gammalog10, &
+         &                                                                      M1                , epsilon   , &
+         &                                                                      alpha             , beta      , &
+         &                                                                      delta             , gamma     , &
+         &                                                                      x                 , smfm1Log10, &
+         &                                                                      smfm1             , expd      , &
+         &                                                                      expab             , ab
     
     MLog10     =self%scaling(redshift,self%M_0      ,self%M_a      ,self%M_lna      ,self%M_z      )
     gammalog10 =self%scaling(redshift,self%gamma_0  ,self%gamma_a  ,     0.0d0      ,self%gamma_z  )
@@ -396,25 +417,34 @@ contains
     M1         =+10.0d0**MLog10
     gamma      =+10.0d0**gammalog10
     x          =+log10(          &
-      &                +massHalo &
-      &                /M1       &
-      &               )             
-    powa       =+10.0d0**(-alpha*x)
-    powb       =+10.0d0**(-beta *x)
+         &             +massHalo &
+         &             /M1       &
+         &            )
     expd       =+0.50d0  &
-      &         *(       &
-      &           +x     &
-      &           /delta &                     
-      &          )**2    
+         &      *(       &
+         &        +x     &
+         &        /delta &                     
+         &       )**2
+    expab      =+(       &
+         &        +alpha &
+         &        -beta  &
+         &       )       &
+         &      *x
+    if (expab > expMaximum) then
+       ab  =+beta *x
+    else
+       ab  =+alpha*x              &
+         &  -log10(               &
+         &         +1.0d0         &
+         &         +10.0d0**expab &
+         &        )   
+       end if
     smfm1Log10 =+epsilon     &
-     &          -log10(      &
-     &                 +powa &
-     &                 +powb &
-     &                )      &
-     &          +gamma       &
-     &          *exp  (      &
-     &                 -expd &
-     &                )         
+         &      +ab          &
+         &      +gamma       &
+         &      *exp  (      &
+         &             -expd &
+         &            )         
     smfm1      =+10.0d0**smfm1Log10
     massStellar=+M1*smfm1 
     return
@@ -436,8 +466,10 @@ contains
     double precision                                                            :: redshift   , redshiftRoot   , &
          &                                                                         massHalo   , massHaloRoot   , &
          &                                                                         massStellar, massStellarRoot
-    
-    if (.not.node%isOnMainBranch()) return 
+
+    ! Insert a galaxy on the main branch of the tree only.
+    if (.not.node%isOnMainBranch()) return
+    ! Do not insert galaxies below the halo mass limit, or before the earliest time.
     basic       => node   %basic                                            (                 )
     redshift    =  self   %cosmologyFunctions_%redshiftFromExpansionFactor(                     &
         &           self  %cosmologyFunctions_%expansionFactor             (                    &
@@ -454,10 +486,16 @@ contains
          &                                                                 cosmologyFunctions_   =self%cosmologyFunctions_                                                      , &
          &                                                                 virialDensityContrast_=self%virialDensityContrast_                                                     &
          &                                                                ) 
+    if     (                                 &
+         &   redshift > self%redshiftMaximum &
+         &  .or.                             &
+         &   massHalo < self%massHaloMinimum &
+         & ) return
+    ! Find the stellar mass from the stellar mass-halo mass relation.
     massStellar =  self   %stellarMassHaloMassRelation                      (massHalo,redshift)     
     ! If necessary, rescale the stellar mass to ensure that we match the requested final stellar mass.
     if (self%setFinalStellarMass) then 
-      ! Compute the stellar mass at root
+      ! Compute the stellar mass at the root node.
       nodeRoot        => node%hostTree%nodeBase
       basicRoot       => nodeRoot   %basic                                            (                         )     
       massHaloRoot    =  Dark_Matter_Profile_Mass_Definition                          (                                                                                                           &
