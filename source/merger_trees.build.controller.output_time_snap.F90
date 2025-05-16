@@ -48,7 +48,7 @@ Implements a merger tree build controller class that forces tree time steps to e
 
   interface mergerTreeBuildControllerOutputTimeSnap
      !!{
-     Constructors for the ``outputTimeSnap'' merger tree build controller class.
+     Constructors for the \refClass{mergerTreeBuildControllerOutputTimeSnap} merger tree build controller class.
      !!}
      module procedure outputTimeSnapConstructorParameters
      module procedure outputTimeSnapConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function outputTimeSnapConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``outputTimeSnap'' merger tree build controller class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeBuildControllerOutputTimeSnap} merger tree build controller class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -88,7 +88,7 @@ contains
 
   function outputTimeSnapConstructorInternal(mergerTreeBranchingProbability_,outputTimes_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !!{
-    Internal constructor for the ``outputTimeSnap'' merger tree build controller class .
+    Internal constructor for the \refClass{mergerTreeBuildControllerOutputTimeSnap} merger tree build controller class.
     !!}
     implicit none
     type (mergerTreeBuildControllerOutputTimeSnap)                        :: self
@@ -105,7 +105,7 @@ contains
 
   subroutine outputTimeSnapDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily outputTimeSnap} merger tree build controller class.
+    Destructor for the \refClass{mergerTreeBuildControllerOutputTimeSnap} merger tree build controller class.
     !!}
     implicit none
     type(mergerTreeBuildControllerOutputTimeSnap), intent(inout) :: self

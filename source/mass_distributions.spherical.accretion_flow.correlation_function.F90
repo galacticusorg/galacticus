@@ -48,7 +48,7 @@
 
   interface massDistributionCorrelationFunction
      !!{
-     Constructors for the {\normalfont \ttfamily correlationFunction} mass distribution class.
+     Constructors for the \refClass{massDistributionCorrelationFunction} mass distribution class.
      !!}
      module procedure massDistributionCorrelationFunctionConstructorParameters
      module procedure massDistributionCorrelationFunctionConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function massDistributionCorrelationFunctionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily correlationFunction} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionCorrelationFunction} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
@@ -139,7 +139,7 @@ contains
 
   subroutine correlationFunctionDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily correlationFunction} accretion flow mass distribution class.
+    Destructor for the \refClass{massDistributionCorrelationFunction} accretion flow mass distribution class.
     !!}
     implicit none
     type(massDistributionCorrelationFunction), intent(inout) :: self

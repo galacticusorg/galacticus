@@ -68,7 +68,7 @@
 
   interface outputAnalysisDistributionOperatorRandomErrorALFLF
      !!{
-     Constructors for the {\normalfont \ttfamily randomErrorHIALFALFA} output analysis distribution operator class.
+     Constructors for the \refClass{outputAnalysisDistributionOperatorRandomErrorALFLF} output analysis distribution operator class.
      !!}
      module procedure randomErrorHIALFALFAConstructorParameters
      module procedure randomErrorHIALFALFAConstructorInternal
@@ -78,7 +78,7 @@ contains
 
   function randomErrorHIALFALFAConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily randomErrorHIALFALFA} output analysis distribution operator class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisDistributionOperatorRandomErrorALFLF} output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -124,7 +124,7 @@ contains
 
   function randomErrorHIALFALFAConstructorInternal(a,b,c,outputAnalysisMolecularRatio_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily randomErrorHIALFALFA} output analysis distribution operator class.
+    Internal constructor for the \refClass{outputAnalysisDistributionOperatorRandomErrorALFLF} output analysis distribution operator class.
     !!}
     implicit none
     type            (outputAnalysisDistributionOperatorRandomErrorALFLF)                        :: self
@@ -140,7 +140,7 @@ contains
 
   subroutine randomErrorHIALFALFADestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily randomErrorHIALFALFA} output analysis distribution operator class.
+    Destructor for the \refClass{outputAnalysisDistributionOperatorRandomErrorALFLF} output analysis distribution operator class.
     !!}
     implicit none
     type(outputAnalysisDistributionOperatorRandomErrorALFLF), intent(inout) :: self

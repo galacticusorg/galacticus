@@ -50,7 +50,7 @@
   
   interface massDistributionCoredNFW
      !!{
-     Constructors for the {\normalfont \ttfamily coredNFW} mass distribution class.
+     Constructors for the \refClass{massDistributionCoredNFW} mass distribution class.
      !!}
      module procedure coredNFWConstructorParameters
      module procedure coredNFWConstructorInternal
@@ -70,7 +70,7 @@ contains
 
   function coredNFWConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily coredNFW} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionCoredNFW} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters

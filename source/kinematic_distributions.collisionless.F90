@@ -37,7 +37,7 @@
 
   interface kinematicsDistributionCollisionless
      !!{
-     Constructors for the {\normalfont \ttfamily collisionless} kinematic distribution class.
+     Constructors for the \refClass{kinematicsDistributionCollisionless} kinematic distribution class.
      !!}
      module procedure collisionlessConstructorParameters
      module procedure collisionlessConstructorInternal
@@ -48,7 +48,7 @@ contains
 
   function collisionlessConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily collisionless} kinematic distribution class which builds the object from a parameter
+    Constructor for the \refClass{kinematicsDistributionCollisionless} kinematic distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -80,7 +80,7 @@ contains
 
   function collisionlessConstructorInternal(toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily collisionless} kinematic distribution class.
+    Internal constructor for the \refClass{kinematicsDistributionCollisionless} kinematic distribution class.
     !!}
     implicit none
     type            (kinematicsDistributionCollisionless)                          :: self
@@ -94,7 +94,7 @@ contains
   
   function collisionlessConstructorDecorated(kinematicsDistribution_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily collisionless} kinematic distribution class.
+    Internal constructor for the \refClass{kinematicsDistributionCollisionless} kinematic distribution class.
     !!}
     implicit none
     type (kinematicsDistributionCollisionless)                :: self

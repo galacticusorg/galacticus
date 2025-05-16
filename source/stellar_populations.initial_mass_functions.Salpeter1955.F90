@@ -46,7 +46,7 @@
 
   interface initialMassFunctionSalpeter1955
      !!{
-     Constructors for the {\normalfont \ttfamily salpeter1955} initial mass function class.
+     Constructors for the \refClass{initialMassFunctionSalpeter1955} initial mass function class.
      !!}
      module procedure salpeter1955ConstructorParameters
      module procedure salpeter1955ConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function salpeter1955ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily salpeter1955} initial mass function class which takes a parameter list as input.
+    Constructor for the \refClass{initialMassFunctionSalpeter1955} initial mass function class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -72,7 +72,7 @@ contains
 
   function salpeter1955ConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily salpeter1955} initial mass function.
+    Internal constructor for the \refClass{initialMassFunctionSalpeter1955} initial mass function.
     !!}
     implicit none
     type(initialMassFunctionSalpeter1955):: self

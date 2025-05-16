@@ -44,7 +44,7 @@ Implements a spin parameter output analysis property extractor class.
 
   interface nodePropertyExtractorSpin
      !!{
-     Constructors for the {\normalfont \ttfamily spin} output property extractor class.
+     Constructors for the \refClass{nodePropertyExtractorSpin} output property extractor class.
      !!}
      module procedure spinConstructorParameters
      module procedure spinConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function spinConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily spin} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorSpin} output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -76,7 +76,7 @@ contains
 
   function spinConstructorInternal(darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily spin} output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorSpin} output analysis property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorSpin)                        :: self
@@ -90,7 +90,7 @@ contains
 
   subroutine spinDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily spin} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorSpin} output analysis property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSpin), intent(inout) :: self

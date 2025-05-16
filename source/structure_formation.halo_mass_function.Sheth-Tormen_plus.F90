@@ -67,7 +67,7 @@
 
   interface haloMassFunctionShethTormenPlus
      !!{
-     Constructors for the {\normalfont \ttfamily shethTormenPlus} halo mass function class.
+     Constructors for the \refClass{haloMassFunctionShethTormenPlus} halo mass function class.
      !!}
      module procedure shethTormenPlusConstructorParameters
      module procedure shethTormenPlusConstructorInternal
@@ -77,7 +77,7 @@ contains
 
   function shethTormenPlusConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily shethTormenPlus} halo mass function class which takes a parameter set as input.
+    Constructor for the \refClass{haloMassFunctionShethTormenPlus} halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -158,7 +158,7 @@ contains
 
   function shethTormenPlusConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,linearGrowth_,a,b,c,d,p,q,normalization) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily shethTormenPlus} halo mass function class.
+    Internal constructor for the \refClass{haloMassFunctionShethTormenPlus} halo mass function class.
     !!}
     implicit none
     type            (haloMassFunctionShethTormenPlus)                        :: self
@@ -186,7 +186,7 @@ contains
 
   subroutine shethTormenPlusDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily shethTormenPlus} halo mass function class.
+    Destructor for the \refClass{haloMassFunctionShethTormenPlus} halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionShethTormenPlus), intent(inout) :: self

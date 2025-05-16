@@ -41,7 +41,7 @@ Implements a cooling energy radiated property extractor class.
 
   interface nodePropertyExtractorCoolingEnergyRadiated
      !!{
-     Constructors for the {\normalfont \ttfamily coolingEnergyRadiated} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorCoolingEnergyRadiated} output analysis class.
      !!}
      module procedure coolingEnergyRadiatedConstructorParameters
      module procedure coolingEnergyRadiatedConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function coolingEnergyRadiatedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily coolingEnergyRadiated} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorCoolingEnergyRadiated} output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -67,7 +67,7 @@ contains
 
   function coolingEnergyRadiatedConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily coolingEnergyRadiated} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorCoolingEnergyRadiated} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorCoolingEnergyRadiated) :: self

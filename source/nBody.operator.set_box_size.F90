@@ -38,7 +38,7 @@
 
   interface nbodyOperatorSetBoxSize
      !!{
-     Constructors for the {\normalfont \ttfamily setBoxSize} N-body operator class.
+     Constructors for the \refClass{nbodyOperatorSetBoxSize} N-body operator class.
      !!}
      module procedure setBoxSizeConstructorParameters
      module procedure setBoxSizeConstructorInternal
@@ -48,7 +48,7 @@ contains
 
   function setBoxSizeConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily setBoxSize} N-body operator class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyOperatorSetBoxSize} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -72,7 +72,7 @@ contains
 
   function setBoxSizeConstructorInternal(boxSize) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily setBoxSize} N-body operator class.
+    Internal constructor for the \refClass{nbodyOperatorSetBoxSize} N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorSetBoxSize)                :: self

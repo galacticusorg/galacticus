@@ -45,7 +45,7 @@
 
   interface intergalacticMediumStateRecFast
      !!{
-     Constructors for the {\normalfont \scshape RecFast} intergalactic medium state class.
+     Constructors for the \refClass{intergalacticMediumStateRecFast} intergalactic medium state class.
      !!}
      module procedure recFastConstructorParameters
      module procedure recFastConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function recFastConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \scshape RecFast} \gls{igm} state class.
+    Default constructor for the \refClass{intergalacticMediumStateRecFast} \gls{igm} state class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -80,7 +80,7 @@ contains
 
   function recFastConstructorInternal(cosmologyFunctions_,cosmologyParameters_) result(self)
     !!{
-    Constructor for the {\normalfont \scshape RecFast} \gls{igm} state class.
+    Constructor for the \refClass{intergalacticMediumStateRecFast} \gls{igm} state class.
     !!}
     use :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsStandard
     use :: Dates_and_Times                 , only : Formatted_Date_and_Time

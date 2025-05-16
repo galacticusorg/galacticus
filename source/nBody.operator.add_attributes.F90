@@ -38,7 +38,7 @@ Implements an N-body data operator which adds attributes to the data.
 
   interface nbodyOperatorAddAttributes
      !!{
-     Constructors for the {\normalfont \ttfamily addAttributes} N-body operator class.
+     Constructors for the \refClass{nbodyOperatorAddAttributes} N-body operator class.
      !!}
      module procedure addAttributesConstructorParameters
      module procedure addAttributesConstructorInternal
@@ -48,7 +48,7 @@ contains
 
   function addAttributesConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily addAttributes} N-body operator class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyOperatorAddAttributes} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,7 +79,7 @@ contains
 
   function addAttributesConstructorInternal(names,values) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily addAttributes} N-body operator class.
+    Internal constructor for the \refClass{nbodyOperatorAddAttributes} N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorAddAttributes)                              :: self

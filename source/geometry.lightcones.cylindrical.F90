@@ -87,7 +87,7 @@
 
   interface geometryLightconeCylindrical
      !!{
-     Constructors for the {\normalfont \ttfamily cylindrical} dark matter halo spin distribution class.
+     Constructors for the \refClass{geometryLightconeCylindrical} dark matter halo spin distribution class.
      !!}
      module procedure cylindricalConstructorParameters
      module procedure cylindricalConstructorInternal
@@ -100,7 +100,7 @@ contains
 
   function cylindricalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily cylindrical} lightcone geometry distribution class which takes a parameter list as
+    Constructor for the \refClass{geometryLightconeCylindrical} lightcone geometry distribution class which takes a parameter list as
     input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -168,7 +168,7 @@ contains
 
   function cylindricalConstructorInternal(radiusCylinderComoving,radiusBufferComoving,massHaloLens,redshiftLens,cosmologyFunctions_,powerSpectrum_,linearGrowth_,outputTimes_,darkMatterHaloBias_,darkMatterHaloScale_,correlationFunctionTwoPoint_,randomNumberGenerator_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily cylindrical} lightcone geometry distribution class.
+    Internal constructor for the \refClass{geometryLightconeCylindrical} lightcone geometry distribution class.
     !!}
     use :: File_Utilities          , only : File_Exists, File_Lock          , File_Unlock  , lockDescriptor
     use :: Galacticus_Nodes        , only : treeNode   , nodeComponentBasic
@@ -455,7 +455,7 @@ contains
 
   subroutine cylindricalDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily cylindrical} lightcone geometry distribution class.
+    Destructor for the \refClass{geometryLightconeCylindrical} lightcone geometry distribution class.
     !!}
     implicit none
     type(geometryLightconeCylindrical), intent(inout) :: self

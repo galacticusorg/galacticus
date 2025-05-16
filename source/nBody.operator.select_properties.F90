@@ -39,7 +39,7 @@
 
   interface nbodyOperatorSelectProperties
      !!{
-     Constructors for the {\normalfont \ttfamily selectProperties} N-body operator class.
+     Constructors for the \refClass{nbodyOperatorSelectProperties} N-body operator class.
      !!}
      module procedure selectPropertiesConstructorParameters
      module procedure selectPropertiesConstructorInternal
@@ -49,7 +49,7 @@ contains
 
   function selectPropertiesConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily selectProperties} N-body operator class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyOperatorSelectProperties} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -82,7 +82,7 @@ contains
 
   function selectPropertiesConstructorInternal(propertyName,selectedValues) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily selectProperties} N-body operator class.
+    Internal constructor for the \refClass{nbodyOperatorSelectProperties} N-body operator class.
     !!}
     implicit none
     type   (nbodyOperatorSelectProperties)                              :: self

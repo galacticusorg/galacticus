@@ -46,7 +46,7 @@
 
   interface initialMassFunctionKennicutt1983
      !!{
-     Constructors for the {\normalfont \ttfamily kennicutt1983} initial mass function class.
+     Constructors for the \refClass{initialMassFunctionKennicutt1983} initial mass function class.
      !!}
      module procedure kennicutt1983ConstructorParameters
      module procedure kennicutt1983ConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function kennicutt1983ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily kennicutt1983} initial mass function class which takes a parameter list as input.
+    Constructor for the \refClass{initialMassFunctionKennicutt1983} initial mass function class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -72,7 +72,7 @@ contains
 
   function kennicutt1983ConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily kennicutt1983} initial mass function.
+    Internal constructor for the \refClass{initialMassFunctionKennicutt1983} initial mass function.
     !!}
     implicit none
     type(initialMassFunctionKennicutt1983):: self

@@ -63,7 +63,7 @@
 
   interface posteriorSampleSimulationAnnealedDffrntlEvltn
      !!{
-     Constructors for the {\normalfont \ttfamily annealedDifferentialEvolution} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleSimulationAnnealedDffrntlEvltn} posterior sampling convergence class.
      !!}
      module procedure annealedDifferentialEvolutionConstructorParameters
      module procedure annealedDifferentialEvolutionConstructorInternal
@@ -73,7 +73,7 @@ contains
 
   function annealedDifferentialEvolutionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily annealedDifferentialEvolution} posterior sampling simulation class which builds the object from a
+    Constructor for the \refClass{posteriorSampleSimulationAnnealedDffrntlEvltn} posterior sampling simulation class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters

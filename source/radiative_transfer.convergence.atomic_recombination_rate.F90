@@ -36,7 +36,7 @@
   
   interface radiativeTransferConvergenceHydrogenRecombinationRate
      !!{
-     Constructors for the {\normalfont \ttfamily hydrogenRecombinationRate} radiative transfer matter class.
+     Constructors for the \refClass{radiativeTransferConvergenceHydrogenRecombinationRate} radiative transfer matter class.
      !!}
      module procedure hydrogenRecombinationRateConstructorParameters
      module procedure hydrogenRecombinationRateConstructorInternal
@@ -46,7 +46,7 @@ contains
 
   function hydrogenRecombinationRateConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily hydrogenRecombinationRate} radiative transfer matter class which takes a parameter set as input.
+    Constructor for the \refClass{radiativeTransferConvergenceHydrogenRecombinationRate} radiative transfer matter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -71,7 +71,7 @@ contains
 
   function hydrogenRecombinationRateConstructorInternal(toleranceRelative) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily hydrogenRecombinationRate} radiative transfer matter class.
+    Internal constructor for the \refClass{radiativeTransferConvergenceHydrogenRecombinationRate} radiative transfer matter class.
     !!}
     implicit none
     type            (radiativeTransferConvergenceHydrogenRecombinationRate)                :: self

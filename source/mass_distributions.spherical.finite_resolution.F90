@@ -52,7 +52,7 @@
 
   interface massDistributionSphericalFiniteResolution
      !!{
-     Constructors for the {\normalfont \ttfamily sphericalFiniteResolution} mass distribution class.
+     Constructors for the \refClass{massDistributionSphericalFiniteResolution} mass distribution class.
      !!}
      module procedure sphericalFiniteResolutionConstructorParameters
      module procedure sphericalFiniteResolutionConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function sphericalFiniteResolutionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sphericalFiniteResolution} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionSphericalFiniteResolution} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameters
@@ -116,7 +116,7 @@ contains
   
   function sphericalFiniteResolutionConstructorInternal(lengthResolution,nonAnalyticSolver,massDistribution_,componentType,massType) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily sphericalFiniteResolution} mass distribution class.
+    Constructor for the \refClass{massDistributionSphericalFiniteResolution} mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalFiniteResolution)                          :: self
@@ -135,7 +135,7 @@ contains
 
   subroutine sphericalFiniteResolutionDestructor(self)
     !!{
-    Destructor for the abstract {\normalfont \ttfamily massDistributionSphericalFiniteResolution} class.
+    Destructor for the abstract \refClass{massDistributionSphericalFiniteResolution} class.
     !!}
     implicit none
     type(massDistributionSphericalFiniteResolution), intent(inout) :: self

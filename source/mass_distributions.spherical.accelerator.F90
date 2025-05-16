@@ -47,7 +47,7 @@
 
   interface massDistributionSphericalAccelerator
      !!{
-     Constructors for the {\normalfont \ttfamily sphericalAccelerator} mass distribution class.
+     Constructors for the \refClass{massDistributionSphericalAccelerator} mass distribution class.
      !!}
      module procedure sphericalAcceleratorConstructorParameters
      module procedure sphericalAcceleratorConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function sphericalAcceleratorConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sphericalAccelerator} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionSphericalAccelerator} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameters
@@ -118,7 +118,7 @@ contains
   
   function sphericalAcceleratorConstructorInternal(toleranceRelative,factorRadiusMaximum,nonAnalyticSolver,massDistribution_,componentType,massType) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily sphericalAccelerator} mass distribution class.
+    Constructor for the \refClass{massDistributionSphericalAccelerator} mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalAccelerator)                          :: self
@@ -138,7 +138,7 @@ contains
 
   subroutine sphericalAcceleratorDestructor(self)
     !!{
-    Destructor for the abstract {\normalfont \ttfamily massDistributionSphericalAccelerator} class.
+    Destructor for the abstract \refClass{massDistributionSphericalAccelerator} class.
     !!}
     implicit none
     type(massDistributionSphericalAccelerator), intent(inout) :: self

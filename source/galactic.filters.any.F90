@@ -51,7 +51,7 @@ contains
 
   function anyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily any} galactic filter class which takes a parameter set as input.
+    Constructor for the \refClass{galacticFilterAny} galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -82,7 +82,7 @@ contains
 
   function anyConstructorInternal(filters) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily any} filter class.
+    Internal constructor for the \refClass{galacticFilterAny} filter class.
     !!}
     implicit none
     type(galacticFilterAny)                        :: self
@@ -102,7 +102,7 @@ contains
 
   subroutine anyDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily any} galactic filter class.
+    Destructor for the \refClass{galacticFilterAny} galactic filter class.
     !!}
     implicit none
     type(galacticFilterAny), intent(inout) :: self

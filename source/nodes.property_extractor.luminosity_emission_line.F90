@@ -97,7 +97,7 @@
   
   interface nodePropertyExtractorLuminosityEmissionLine
      !!{
-     Constructors for the {\normalfont \ttfamily emissionLineLuminosity} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorLuminosityEmissionLine} output analysis class.
      !!}
      module procedure emissionLineLuminosityConstructorParameters
      module procedure emissionLineLuminosityConstructorInternal
@@ -107,7 +107,7 @@ contains
 
   function emissionLineLuminosityConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily emission line luminosity} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorLuminosityEmissionLine} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode
@@ -167,7 +167,7 @@ contains
 
   function emissionLineLuminosityConstructorInternal(cloudyTableFileName,component,lineNames,toleranceRelative,starFormationHistory_,outputTimes_,hiiRegionLuminosityFunction_,hiiRegionDensityDistribution_,hiiRegionEscapeFraction_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily sed} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorLuminosityEmissionLine} property extractor class.
     !!}
     use :: Array_Utilities                 , only : slice5Dto2D
     use :: Galactic_Structure_Options      , only : componentTypeDisk, componentTypeSpheroid, componentTypeAll
@@ -337,7 +337,7 @@ contains
 
   subroutine emissionLineLuminosityDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily emission line luminosity} property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorLuminosityEmissionLine} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorLuminosityEmissionLine), intent(inout) :: self

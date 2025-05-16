@@ -60,7 +60,7 @@
 
   interface posteriorSampleLikelihoodMltiVrtNormalStochastic
      !!{
-     Constructors for the {\normalfont \ttfamily multivariateNormalStochastic} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleLikelihoodMltiVrtNormalStochastic} posterior sampling convergence class.
      !!}
      module procedure multivariateNormalStochasticConstructorParameters
      module procedure multivariateNormalStochasticConstructorInternal
@@ -70,7 +70,7 @@ contains
 
   function multivariateNormalStochasticConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily multivariateNormalStochastic} posterior sampling convergence class which builds the object from a
+    Constructor for the \refClass{posteriorSampleLikelihoodMltiVrtNormalStochastic} posterior sampling convergence class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -117,7 +117,7 @@ contains
 
   function multivariateNormalStochasticConstructorInternal(means,covariance,realizationCount,realizationCountMinimum,randomNumberGenerator_) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily multivariateNormalStochastic} convergence class.
+    Constructor for the \refClass{posteriorSampleLikelihoodMltiVrtNormalStochastic} convergence class.
     !!}
     type            (posteriorSampleLikelihoodMltiVrtNormalStochastic)                                :: self
     double precision                                                  , intent(in   ), dimension(:  ) :: means
@@ -134,7 +134,7 @@ contains
 
   subroutine multivariateNormalStochasticDestructor(self)
     !!{
-    Destructor for the  {\normalfont \ttfamily multivariateNormalStochastic} model likelihood class.
+    Destructor for the \refClass{posteriorSampleLikelihoodMltiVrtNormalStochastic} model likelihood class.
     !!}
     implicit none
     type(posteriorSampleLikelihoodMltiVrtNormalStochastic), intent(inout) :: self

@@ -41,7 +41,7 @@
 
   interface mergerProgenitorPropertiesSimple
      !!{
-     Constructors for the {\normalfont \ttfamily simple} merger progenitor properties class.
+     Constructors for the \refClass{mergerProgenitorPropertiesSimple} merger progenitor properties class.
      !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function simpleConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily simple} merger progenitor properties class which takes a parameter list as input.
+    Constructor for the \refClass{mergerProgenitorPropertiesSimple} merger progenitor properties class which takes a parameter list as input.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Error           , only : Error_Report        , Component_List
@@ -112,7 +112,7 @@ contains
 
  function simpleConstructorInternal(mergerMassMovements_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily simple} merger progenitor properties class.
+    Internal constructor for the \refClass{mergerProgenitorPropertiesSimple} merger progenitor properties class.
     !!}
     implicit none
     type (mergerProgenitorPropertiesSimple)                        :: self
@@ -126,7 +126,7 @@ contains
 
   subroutine simpleDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily simple} merger progenitor properties class.
+    Destructor for the \refClass{mergerProgenitorPropertiesSimple} merger progenitor properties class.
     !!}
     implicit none
     type(mergerProgenitorPropertiesSimple), intent(inout) :: self

@@ -44,7 +44,7 @@
 
   interface massDistributionGaussianSlab
      !!{
-     Constructors for the {\normalfont \ttfamily gaussianSlab} mass distribution class.
+     Constructors for the \refClass{massDistributionGaussianSlab} mass distribution class.
      !!}
      module procedure gaussianSlabConstructorParameters
      module procedure gaussianSlabConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function gaussianSlabConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily gaussianSlab} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionGaussianSlab} mass distribution class which builds the object from a parameter
     set.
     !!}
      use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode

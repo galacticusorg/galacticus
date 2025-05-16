@@ -42,7 +42,7 @@ Implements a stellar mass function output analysis class.
 
   interface outputAnalysisLuminosityFunctionGunawardhana2013SDSS
      !!{
-     Constructors for the {\normalfont \ttfamily luminosityFunctionGunawardhana2013SDSS} output analysis class.
+     Constructors for the \refClass{outputAnalysisLuminosityFunctionGunawardhana2013SDSS} output analysis class.
      !!}
      module procedure luminosityFunctionGunawardhana2013SDSSConstructorParameters
      module procedure luminosityFunctionGunawardhana2013SDSSConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function luminosityFunctionGunawardhana2013SDSSConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily luminosityFunctionGunawardhana2013SDSS} output analysis class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisLuminosityFunctionGunawardhana2013SDSS} output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters              , only : inputParameter                 , inputParameters
     use :: Star_Formation_Rates_Disks    , only : starFormationRateDisksClass
@@ -169,7 +169,7 @@ contains
 
   function luminosityFunctionGunawardhana2013SDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,stellarSpectraDustAttenuation_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,depthOpticalISMCoefficient) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily luminosityFunctionGunawardhana2013SDSS} output analysis class for internal use.
+    Constructor for the \refClass{outputAnalysisLuminosityFunctionGunawardhana2013SDSS} output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -328,7 +328,7 @@ contains
 
   subroutine luminosityFunctionGunawardhana2013SDSSDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily luminosityFunctionGunawardhana2013SDSS} output analysis class.
+    Destructor for the \refClass{outputAnalysisLuminosityFunctionGunawardhana2013SDSS} output analysis class.
     !!}
     implicit none
     type(outputAnalysisLuminosityFunctionGunawardhana2013SDSS), intent(inout) :: self

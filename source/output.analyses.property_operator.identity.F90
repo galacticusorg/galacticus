@@ -37,7 +37,7 @@ Implements an identity output analysis property operator class.
 
   interface outputAnalysisPropertyOperatorIdentity
      !!{
-     Constructors for the {\normalfont \ttfamily identity} output analysis class.
+     Constructors for the \refClass{outputAnalysisPropertyOperatorIdentity} output analysis class.
      !!}
      module procedure identityConstructorParameters
   end interface outputAnalysisPropertyOperatorIdentity
@@ -46,7 +46,7 @@ contains
 
   function identityConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily identity} output analysis property operator class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisPropertyOperatorIdentity} output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

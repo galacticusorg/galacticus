@@ -34,7 +34,7 @@
 
   interface outputTimesUniformSpacingInTime
      !!{
-     Constructors for the {\normalfont \ttfamily uniformSpacingInTime} output times class.
+     Constructors for the \refClass{outputTimesUniformSpacingInTime} output times class.
      !!}
      module procedure uniformSpacingInTimeConstructorParameters
      module procedure uniformSpacingInTimeConstructorInternal
@@ -44,7 +44,7 @@ contains
 
   function uniformSpacingInTimeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily uniformSpacingInTime} output times class which takes a parameter set as input.
+    Constructor for the \refClass{outputTimesUniformSpacingInTime} output times class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     use :: Error           , only : Error_Report
@@ -126,7 +126,7 @@ contains
 
   function uniformSpacingInTimeConstructorInternal(timeMinimum,timeMaximum,countTimes,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily uniformSpacingInTime} output times class.
+    Internal constructor for the \refClass{outputTimesUniformSpacingInTime} output times class.
     !!}
     use :: Numerical_Ranges, only : Make_Range  , rangeTypeLinear
     use :: Error           , only : Error_Report

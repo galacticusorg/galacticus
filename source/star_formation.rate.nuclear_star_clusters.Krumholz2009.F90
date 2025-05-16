@@ -70,7 +70,7 @@
 
   interface starFormationRateNuclearStarClustersKrumholz2009
      !!{
-     Constructors for the {\normalfont \ttfamily krumholz2009} star formation rate law for galactic \glspl{nsc}.
+     Constructors for the \refClass{starFormationRateNuclearStarClustersKrumholz2009} star formation rate law for galactic \glspl{nsc}.
      !!}
      module procedure krumholz2009ConstructorParameters
      module procedure krumholz2009ConstructorInternal
@@ -80,7 +80,7 @@ contains
 
   function krumholz2009ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily krumholz2009} star formation rate law for galactic \glspl{nsc} which takes a parameter set as input.
+    Constructor for the \refClass{starFormationRateNuclearStarClustersKrumholz2009} star formation rate law for galactic \glspl{nsc} which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -106,7 +106,7 @@ contains
 
   function krumholz2009ConstructorInternal(frequencyStarFormation) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily krumholz2009} star formation rate law for galactic \glspl{nsc}.
+    Internal constructor for the \refClass{starFormationRateNuclearStarClustersKrumholz2009} star formation rate law for galactic \glspl{nsc}.
     !!}
     implicit none
     type            (starFormationRateNuclearStarClustersKrumholz2009)                 :: self

@@ -54,7 +54,7 @@
 
   interface satelliteEvaporationSIDMKummer2018
      !!{
-     Constructors for the {\normalfont \ttfamily kummer2018} satellite evaporation due to dark matter self-interactions class.
+     Constructors for the \refClass{satelliteEvaporationSIDMKummer2018} satellite evaporation due to dark matter self-interactions class.
      !!}
      module procedure kummer2018ConstructorParameters
      module procedure kummer2018ConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function kummer2018ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily kummer2018} satellite evaporation due to dark matter self-interactions class
+    Constructor for the \refClass{satelliteEvaporationSIDMKummer2018} satellite evaporation due to dark matter self-interactions class
     which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -89,7 +89,7 @@ contains
 
   function kummer2018ConstructorInternal(darkMatterParticle_,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily kummer2018} satellite evaporation due to dark matter self-interactions
+    Internal constructor for the \refClass{satelliteEvaporationSIDMKummer2018} satellite evaporation due to dark matter self-interactions
     class.
     !!}
     use :: Dark_Matter_Particles           , only : darkMatterParticleSelfInteractingDarkMatter
@@ -124,7 +124,7 @@ contains
 
   subroutine kummer2018Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily kummer2018} satellite evaporation due to dark matter self-interactions class.
+    Destructor for the \refClass{satelliteEvaporationSIDMKummer2018} satellite evaporation due to dark matter self-interactions class.
     !!}
     implicit none
     type(satelliteEvaporationSIDMKummer2018), intent(inout) :: self

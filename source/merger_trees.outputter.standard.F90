@@ -116,7 +116,7 @@
 
   interface mergerTreeOutputterStandard
      !!{
-     Constructors for the {\normalfont \ttfamily standard} merger tree outputter.
+     Constructors for the \refClass{mergerTreeOutputterStandard} merger tree outputter.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -126,7 +126,7 @@ contains
 
   function standardConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily standard} merger tree outputter class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeOutputterStandard} merger tree outputter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -167,7 +167,7 @@ contains
 
   function standardConstructorInternal(outputsGroupName,outputReferences,galacticFilter_,cosmologyFunctions_,nodePropertyExtractor_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily standard} merger tree outputter class.
+    Internal constructor for the \refClass{mergerTreeOutputterStandard} merger tree outputter class.
     !!}
     implicit none
     type   (mergerTreeOutputterStandard)                        :: self
@@ -205,7 +205,7 @@ contains
 
   subroutine standardDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily standard} merger tree outputter class.
+    Destructor for the \refClass{mergerTreeOutputterStandard} merger tree outputter class.
     !!}
     implicit none
     type(mergerTreeOutputterStandard), intent(inout) :: self

@@ -42,7 +42,7 @@
 
   interface nodePropertyExtractorPresetNamedReals
      !!{
-     Constructors for the {\normalfont \ttfamily presetNamedReals} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorPresetNamedReals} output extractor class.
      !!}
      module procedure presetNamedRealsConstructorParameters
      module procedure presetNamedRealsConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function presetNamedRealsConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily presetNamedReals} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorPresetNamedReals} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function presetNamedRealsConstructorInternal(presetnames) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily presetNamedReals} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorPresetNamedReals} output extractor property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorPresetNamedReals)                              :: self

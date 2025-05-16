@@ -45,7 +45,7 @@ Implements an N-body data operator which applies a sequence of other operators.
 
   interface nbodyOperatorSequence
      !!{
-     Constructors for the {\normalfont \ttfamily sequence} N-body operator class.
+     Constructors for the \refClass{nbodyOperatorSequence} N-body operator class.
      !!}
      module procedure sequenceConstructorParameters
      module procedure sequenceConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function sequenceConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily sequence} N-body operator class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyOperatorSequence} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -86,7 +86,7 @@ contains
 
   function sequenceConstructorInternal(operators) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily sequence} N-body operator class.
+    Internal constructor for the \refClass{nbodyOperatorSequence} N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorSequence)                        :: self

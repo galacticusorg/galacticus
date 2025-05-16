@@ -45,7 +45,7 @@
 
   interface distributionFunctionDiscrete1DBinomial
      !!{
-     Constructors for the {\normalfont \ttfamily binomial} 1D discrete distribution function class.
+     Constructors for the \refClass{distributionFunctionDiscrete1DBinomial} 1D discrete distribution function class.
      !!}
      module procedure binomialConstructorParameters
      module procedure binomialConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function binomialConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily binomial} 1D discrete distribution function class which builds
+    Constructor for the \refClass{distributionFunctionDiscrete1DBinomial} 1D discrete distribution function class which builds
     the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -89,7 +89,7 @@ contains
 
   function binomialConstructorInternal(probabilitySuccess,countTrials,randomNumberGenerator_) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily binomial} 1D distribution function class.
+    Constructor for the \refClass{distributionFunctionDiscrete1DBinomial} 1D distribution function class.
     !!}
     use :: Error, only : Error_Report
     implicit none

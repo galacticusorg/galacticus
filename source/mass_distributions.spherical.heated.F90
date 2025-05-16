@@ -79,7 +79,7 @@
 
   interface massDistributionSphericalHeated
      !!{
-     Constructors for the {\normalfont \ttfamily sphericalHeated} mass distribution class.
+     Constructors for the \refClass{massDistributionSphericalHeated} mass distribution class.
      !!}
      module procedure sphericalHeatedConstructorParameters
      module procedure sphericalHeatedConstructorInternal
@@ -94,7 +94,7 @@ contains
 
   function sphericalHeatedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sphericalHeated} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionSphericalHeated} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameters
@@ -178,7 +178,7 @@ contains
   
   function sphericalHeatedConstructorInternal(nonAnalyticSolver,tolerateVelocityMaximumFailure,tolerateEnclosedMassIntegrationFailure,toleratePotentialIntegrationFailure,fractionRadiusFinalSmall,toleranceRelativePotential,massDistribution_,massDistributionHeating_,componentType,massType) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily sphericalHeated} mass distribution class.
+    Constructor for the \refClass{massDistributionSphericalHeated} mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalHeated  )                          :: self
@@ -209,7 +209,7 @@ contains
 
   subroutine sphericalHeatedDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily sphericalHeated} mass distribution class.
+    Destructor for the \refClass{massDistributionSphericalHeated} mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalHeated), intent(inout) :: self

@@ -46,7 +46,7 @@
 
   interface posteriorSampleStateHistory
      !!{
-     Constructors for the {\normalfont \ttfamily history} posterior sampling state class.
+     Constructors for the \refClass{posteriorSampleStateHistory} posterior sampling state class.
      !!}
      module procedure historyConstructorParameters
      module procedure historyConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function historyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily history} posterior sampling state class which builds the object from a
+    Constructor for the \refClass{posteriorSampleStateHistory} posterior sampling state class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -82,7 +82,7 @@ contains
 
   function historyConstructorInternal(acceptedStateCount) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily history} posterior sampling state class which builds the object from a
+    Constructor for the \refClass{posteriorSampleStateHistory} posterior sampling state class which builds the object from a
     parameter set.
     !!}
     use :: MPI_Utilities, only : mpiSelf

@@ -39,7 +39,7 @@ Implements a null N-body dark matter halo mass error class.
 
   interface nbodyHaloMassErrorNull
      !!{
-     Constructors for the {\normalfont \ttfamily null} N-body halo mass error class.
+     Constructors for the \refClass{nbodyHaloMassErrorNull} N-body halo mass error class.
      !!}
      module procedure nbodyHaloMassErrorNullParameters
   end interface nbodyHaloMassErrorNull
@@ -48,7 +48,7 @@ contains
 
   function nbodyHaloMassErrorNullParameters(parameters)
     !!{
-    Constructor for the {\normalfont \ttfamily null} N-body halo mass error class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyHaloMassErrorNull} N-body halo mass error class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

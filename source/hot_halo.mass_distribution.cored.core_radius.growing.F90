@@ -58,7 +58,7 @@
 
   interface hotHaloMassDistributionCoreRadiusGrowing
      !!{
-     Constructors for the {\normalfont \ttfamily growing} hot halo mass distribution core radius class.
+     Constructors for the \refClass{hotHaloMassDistributionCoreRadiusGrowing} hot halo mass distribution core radius class.
      !!}
      module procedure growingConstructorParameters
      module procedure growingConstructorInternal
@@ -70,7 +70,7 @@ contains
 
   function growingConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily growing} hot halo mass distribution core radius class which builds the object
+    Constructor for the \refClass{hotHaloMassDistributionCoreRadiusGrowing} hot halo mass distribution core radius class which builds the object
     from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -142,7 +142,7 @@ contains
 
   subroutine growingDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily growing} hot halo mass distribution class.
+    Destructor for the \refClass{hotHaloMassDistributionCoreRadiusGrowing} hot halo mass distribution class.
     !!}
     implicit none
     type(hotHaloMassDistributionCoreRadiusGrowing), intent(inout) :: self

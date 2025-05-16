@@ -111,7 +111,7 @@ contains
 
   subroutine villalobos2013Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily villalobos2013} satellite merging timescale class.
+    Destructor for the \refClass{satelliteMergingTimescalesVillalobos2013} satellite merging timescale class.
     !!}
     implicit none
     type(satelliteMergingTimescalesVillalobos2013), intent(inout) :: self

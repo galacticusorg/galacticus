@@ -44,7 +44,7 @@
 
   interface taskIntergalacticMediumState
      !!{
-     Constructors for the {\normalfont \ttfamily intergalacticMediumState} task.
+     Constructors for the \refClass{taskIntergalacticMediumState} task.
      !!}
      module procedure intergalacticMediumStateConstructorParameters
      module procedure intergalacticMediumStateConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function intergalacticMediumStateConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily intergalacticMediumState} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskIntergalacticMediumState} task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -103,7 +103,7 @@ contains
        &                                               intergalacticMediumFilteringMass_  &
        &                                              ) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily intergalacticMediumState} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskIntergalacticMediumState} task class which takes a parameter set as input.
     !!}
     implicit none
     type (taskIntergalacticMediumState         )                        :: self
@@ -121,7 +121,7 @@ contains
 
   subroutine intergalacticMediumStateDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily intergalacticMediumState} task class.
+    Destructor for the \refClass{taskIntergalacticMediumState} task class.
     !!}
     implicit none
     type(taskIntergalacticMediumState), intent(inout) :: self

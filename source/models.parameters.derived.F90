@@ -43,7 +43,7 @@
 
   interface modelParameterDerived
      !!{
-     Constructors for the {\normalfont \ttfamily derived} 1D distribution function class.
+     Constructors for the \refClass{modelParameterDerived} 1D distribution function class.
      !!}
      module procedure derivedConstructorParameters
      module procedure derivedConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function derivedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily derived} model parameter class which builds the object from a parameter set.
+    Constructor for the \refClass{modelParameterDerived} model parameter class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -82,7 +82,7 @@ contains
 
   function derivedConstructorInternal(name_,definition_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily derived} model parameter class.
+    Internal constructor for the \refClass{modelParameterDerived} model parameter class.
     !!}
     implicit none
     type(modelParameterDerived)                :: self

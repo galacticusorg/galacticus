@@ -40,7 +40,7 @@
 
   interface satelliteMergingTimescalesPreset
      !!{
-     Constructors for the {\normalfont \ttfamily preset} satellite merging timescale class.
+     Constructors for the \refClass{satelliteMergingTimescalesPreset} satellite merging timescale class.
      !!}
      module procedure presetConstructorParameters
   end interface satelliteMergingTimescalesPreset

@@ -55,7 +55,7 @@
   
   interface nodeOperatorDiskRadiusPowerLaw
      !!{
-     Constructors for the {\normalfont \ttfamily diskRadiusPowerLaw} node operator class.
+     Constructors for the \refClass{nodeOperatorDiskRadiusPowerLaw} node operator class.
      !!}
      module procedure diskRadiusPowerLawConstructorParameters
      module procedure diskRadiusPowerLawConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function diskRadiusPowerLawConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily diskRadiusPowerLaw} {\normalfont \ttfamily nodeOperator} which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorDiskRadiusPowerLaw} class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -112,7 +112,7 @@ contains
 
   function diskRadiusPowerLawConstructorInternal(alpha,beta,gamma,massPivot) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily diskRadiusPowerLaw} node operator class.
+    Internal constructor for the \refClass{nodeOperatorDiskRadiusPowerLaw} node operator class.
     !!}
     implicit none
     type            (nodeOperatorDiskRadiusPowerLaw)             :: self

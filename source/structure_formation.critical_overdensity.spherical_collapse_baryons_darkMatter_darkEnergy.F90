@@ -72,7 +72,7 @@
 
   interface criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy
      !!{
-     Constructors for the {\normalfont \ttfamily sphericalCollapseBrynsDrkMttrDrkEnrgy} critical overdensity for collapse class.
+     Constructors for the \refClass{criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy} critical overdensity for collapse class.
      !!}
      module procedure sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorParameters
      module procedure sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorInternal
@@ -82,7 +82,7 @@ contains
 
   function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sphericalCollapseBrynsDrkMttrDrkEnrgy} critical overdensity class
+    Constructor for the \refClass{criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy} critical overdensity class
     which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameter                                , inputParameters
@@ -147,7 +147,7 @@ contains
 
   function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorInternal(cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,intergalacticMediumFilteringMass_,tableStore,tablePointsPerOctave,energyFixedAt,normalization) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily sphericalCollapseBrynsDrkMttrDrkEnrgy} critical overdensity class.
+    Internal constructor for the \refClass{criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy} critical overdensity class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleCDM
     use :: Error                , only : Error_Report
@@ -186,7 +186,7 @@ contains
 
   subroutine sphericalCollapseBrynsDrkMttrDrkEnrgyDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily sphericalCollapseBrynsDrkMttrDrkEnrgy} critical overdensity for collapse class.
+    Destructor for the \refClass{criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy} critical overdensity for collapse class.
     !!}
     implicit none
     type(criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy), intent(inout) :: self

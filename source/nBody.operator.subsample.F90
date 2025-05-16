@@ -42,7 +42,7 @@ Implements an N-body data operator which subsamples points at a given rate.
 
   interface nbodyOperatorSubsample
      !!{
-     Constructors for the {\normalfont \ttfamily subsample} N-body operator class.
+     Constructors for the \refClass{nbodyOperatorSubsample} N-body operator class.
      !!}
      module procedure subsampleConstructorParameters
      module procedure subsampleConstructorInternal
@@ -52,7 +52,7 @@ contains
   
   function subsampleConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily subsample} N-body operator class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyOperatorSubsample} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -79,7 +79,7 @@ contains
 
   function subsampleConstructorInternal(rate,randomNumberGenerator_) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily subsample} N-body operator class.
+    Internal constructor for the \refClass{nbodyOperatorSubsample} N-body operator class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -96,7 +96,7 @@ contains
 
   subroutine subsampleDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily subsample} N-body operator class.
+    Destructor for the \refClass{nbodyOperatorSubsample} N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorSubsample), intent(inout) :: self

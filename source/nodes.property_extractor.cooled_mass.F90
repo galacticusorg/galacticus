@@ -41,7 +41,7 @@
 
   interface nodePropertyExtractorMassCooled
      !!{
-     Constructors for the {\normalfont \ttfamily massCooled} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorMassCooled} output extractor class.
      !!}
      module procedure massCooledConstructorParameters
      module procedure massCooledConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function massCooledConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily massCooled} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorMassCooled} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -76,7 +76,7 @@ contains
 
   function massCooledConstructorInternal(resetAfterExtract) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily massCooled} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorMassCooled} output extractor property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorMassCooled)                :: self

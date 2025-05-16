@@ -43,7 +43,7 @@
 
   interface distributionFunctionDiscrete1DNegativeBinomial
      !!{
-     Constructors for the {\normalfont \ttfamily negativeBinomial} 1D discrete distribution function class.
+     Constructors for the \refClass{distributionFunctionDiscrete1DNegativeBinomial} 1D discrete distribution function class.
      !!}
      module procedure negativeBinomialConstructorParameters
      module procedure negativeBinomialConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function negativeBinomialConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily negativeBinomial} 1D discrete distribution function class which builds
+    Constructor for the \refClass{distributionFunctionDiscrete1DNegativeBinomial} 1D discrete distribution function class which builds
     the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -86,7 +86,7 @@ contains
 
   function negativeBinomialConstructorInternal(probabilitySuccess,countFailures,randomNumberGenerator_) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily negativeBinomial} 1D distribution function class.
+    Constructor for the \refClass{distributionFunctionDiscrete1DNegativeBinomial} 1D distribution function class.
     !!}
     use :: Error, only : Error_Report
     implicit none

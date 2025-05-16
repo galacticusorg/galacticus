@@ -100,7 +100,7 @@ contains
 
   subroutine wetzelWhite2010Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily wetzelWhite2010} satellite merging timescale class.
+    Destructor for the \refClass{satelliteMergingTimescalesWetzelWhite2010} satellite merging timescale class.
     !!}
     implicit none
     type(satelliteMergingTimescalesWetzelWhite2010), intent(inout) :: self

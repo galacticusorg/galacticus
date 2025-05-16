@@ -47,7 +47,7 @@
 
   interface initialMassFunctionKroupa2001
      !!{
-     Constructors for the {\normalfont \ttfamily kroupa2001} initial mass function class.
+     Constructors for the \refClass{initialMassFunctionKroupa2001} initial mass function class.
      !!}
      module procedure kroupa2001ConstructorParameters
      module procedure kroupa2001ConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function kroupa2001ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily kroupa2001} initial mass function class which takes a parameter list as input.
+    Constructor for the \refClass{initialMassFunctionKroupa2001} initial mass function class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -73,7 +73,7 @@ contains
 
   function kroupa2001ConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily kroupa2001} initial mass function.
+    Internal constructor for the \refClass{initialMassFunctionKroupa2001} initial mass function.
     !!}
     implicit none
     type(initialMassFunctionKroupa2001):: self

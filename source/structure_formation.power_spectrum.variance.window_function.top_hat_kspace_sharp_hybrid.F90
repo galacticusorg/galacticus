@@ -74,7 +74,7 @@
 
   interface powerSpectrumWindowFunctionTopHatSharpKHybrid
      !!{
-     Constructors for the {\normalfont \ttfamily topHatSharpKHybrid} power spectrum window function class.
+     Constructors for the \refClass{powerSpectrumWindowFunctionTopHatSharpKHybrid} power spectrum window function class.
      !!}
      module procedure topHatSharpKHybridConstructorParameters
      module procedure topHatSharpKHybridConstructorInternal
@@ -84,7 +84,7 @@ contains
 
   function topHatSharpKHybridConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily topHatSharpKHybrid} power spectrum window function class which takes a parameter set as input.
+    Constructor for the \refClass{powerSpectrumWindowFunctionTopHatSharpKHybrid} power spectrum window function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -136,7 +136,7 @@ contains
 
   function topHatSharpKHybridConstructorInternal(cosmologyParameters_,normalization,radiiRatio) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily topHatSharpKHybrid} power spectrum window function class.
+    Internal constructor for the \refClass{powerSpectrumWindowFunctionTopHatSharpKHybrid} power spectrum window function class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -168,7 +168,7 @@ contains
 
   subroutine topHatSharpKHybridDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily topHatSharpKHybrid} power spectrum window function class.
+    Destructor for the \refClass{powerSpectrumWindowFunctionTopHatSharpKHybrid} power spectrum window function class.
     !!}
     implicit none
     type(powerSpectrumWindowFunctionTopHatSharpKHybrid), intent(inout) :: self

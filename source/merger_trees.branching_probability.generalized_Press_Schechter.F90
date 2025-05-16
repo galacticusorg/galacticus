@@ -117,7 +117,7 @@ Implements a merger tree branching probability class using a generalized Press-S
 
   interface mergerTreeBranchingProbabilityGnrlzdPrssSchchtr
      !!{
-     Constructors for the {\normalfont \ttfamily generalizedPressSchechter} merger tree builder class.
+     Constructors for the \refClass{mergerTreeBranchingProbabilityGnrlzdPrssSchchtr} merger tree builder class.
      !!}
      module procedure generalizedPressSchechterConstructorParameters
      module procedure generalizedPressSchechterConstructorInternal
@@ -138,7 +138,7 @@ contains
 
   function generalizedPressSchechterConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily generalizedPressSchechter} merger tree branching probability class which reads parameters from a
+    Constructor for the \refClass{mergerTreeBranchingProbabilityGnrlzdPrssSchchtr} merger tree branching probability class which reads parameters from a
     provided parameter list.
     !!}
     implicit none

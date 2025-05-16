@@ -51,7 +51,7 @@ Implements a dark matter halo mass function class which modifies another mass fu
 
   interface haloMassFunctionSimpleSystematic
      !!{
-     Constructors for the {\normalfont \ttfamily simpleSystematic} halo mass function class.
+     Constructors for the \refClass{haloMassFunctionSimpleSystematic} halo mass function class.
      !!}
      module procedure simpleSystematicConstructorParameters
      module procedure simpleSystematicConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function simpleSystematicConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily simpleSystematic} halo mass function class which takes a parameter set as input.
+    Constructor for the \refClass{haloMassFunctionSimpleSystematic} halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -99,7 +99,7 @@ contains
 
   function simpleSystematicConstructorInternal(alpha,beta,cosmologyParameters_,referenceMassFunction) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily simpleSystematic} halo mass function class.
+    Internal constructor for the \refClass{haloMassFunctionSimpleSystematic} halo mass function class.
     !!}
     implicit none
     type            (haloMassFunctionSimpleSystematic)                        :: self
@@ -115,7 +115,7 @@ contains
 
   subroutine simpleSystematicDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily simpleSystematic} halo mass function class.
+    Destructor for the \refClass{haloMassFunctionSimpleSystematic} halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionSimpleSystematic), intent(inout) :: self

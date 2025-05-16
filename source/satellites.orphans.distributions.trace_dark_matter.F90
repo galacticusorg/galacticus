@@ -44,7 +44,7 @@
 
   interface satelliteOrphanDistributionTraceDarkMatter
      !!{
-     Constructors for the {\normalfont \ttfamily traceDarkMatter} orphan satellite distribution class.
+     Constructors for the \refClass{satelliteOrphanDistributionTraceDarkMatter} orphan satellite distribution class.
      !!}
      module procedure traceDarkMatterConstructorParameters
      module procedure traceDarkMatterConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function traceDarkMatterConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily traceDarkMatter} orphan satellite distribution class which takes a parameter
+    Constructor for the \refClass{satelliteOrphanDistributionTraceDarkMatter} orphan satellite distribution class which takes a parameter
     list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -77,7 +77,7 @@ contains
 
   function traceDarkMatterConstructorInternal(darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily traceDarkMatter} orphan satellite distribution class.
+    Internal constructor for the \refClass{satelliteOrphanDistributionTraceDarkMatter} orphan satellite distribution class.
     !!}
     implicit none
     type (satelliteOrphanDistributionTraceDarkMatter)                        :: self
@@ -92,7 +92,7 @@ contains
 
   subroutine traceDarkMatterDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily traceDarkMatter} orphan satellite distribution class.
+    Destructor for the \refClass{satelliteOrphanDistributionTraceDarkMatter} orphan satellite distribution class.
     !!}
     implicit none
     type(satelliteOrphanDistributionTraceDarkMatter), intent(inout) :: self

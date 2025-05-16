@@ -126,7 +126,7 @@
 
   interface taskMassFunctionCovariance
      !!{
-     Constructors for the {\normalfont \ttfamily powerSpectrum} task.
+     Constructors for the \refClass{taskMassFunctionCovariance} task.
      !!}
      module procedure massFunctionCovarianceConstructorParameters
      module procedure massFunctionCovarianceConstructorInternal
@@ -140,7 +140,7 @@ contains
 
   function massFunctionCovarianceConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily powerSpectrum} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskMassFunctionCovariance} task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -254,7 +254,7 @@ contains
 
   function massFunctionCovarianceConstructorInternal(massFunctionFileName,surveyRedshiftMinimum,surveyRedshiftMaximum,massMinimum,massMaximum,massHaloMinimum,massHaloMaximum,countMassBins,sizeGridFFT,includePoisson,includeHalo,includeLSS,cosmologyFunctions_,surveyGeometry_,powerSpectrumNonlinear_,darkMatterHaloBias_,conditionalMassFunction_,haloMassFunction_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily massFunctionCovariance} task class.
+    Internal constructor for the \refClass{taskMassFunctionCovariance} task class.
     !!}
     implicit none
     type            (taskMassFunctionCovariance  )                        :: self
@@ -280,7 +280,7 @@ contains
 
   subroutine massFunctionCovarianceDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily massFunctionCovariance} task class.
+    Destructor for the \refClass{taskMassFunctionCovariance} task class.
     !!}
     implicit none
     type(taskMassFunctionCovariance), intent(inout) :: self

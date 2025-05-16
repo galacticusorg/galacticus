@@ -39,7 +39,7 @@
   
   interface nodeOperatorPositionToHost
      !!{
-     Constructors for the {\normalfont \ttfamily positionToHost} node operator class.
+     Constructors for the \refClass{nodeOperatorPositionToHost} node operator class.
      !!}
      module procedure positionToHostConstructorParameters
   end interface nodeOperatorPositionToHost
@@ -48,7 +48,7 @@ contains
   
   function positionToHostConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily positionToHost} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorPositionToHost} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -76,7 +76,7 @@ contains
 
   subroutine positionToHostDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily positionToHost} node operator class.
+    Destructor for the \refClass{nodeOperatorPositionToHost} node operator class.
     !!}
     use :: Events_Hooks, only : openMPThreadBindingAtLevel, satelliteHostChangeEvent
     implicit none

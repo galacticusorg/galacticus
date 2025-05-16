@@ -124,7 +124,7 @@
 
   interface mergerTreeNodeEvolverStandard
      !!{
-     Constructors for the {\normalfont \ttfamily standard} merger tree node evolver.
+     Constructors for the \refClass{mergerTreeNodeEvolverStandard} merger tree node evolver.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -144,7 +144,7 @@ contains
 
   function standardConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily standard} merger tree node evolver class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeNodeEvolverStandard} merger tree node evolver class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -259,7 +259,7 @@ contains
 
    function standardConstructorInternal(odeToleranceAbsolute,odeToleranceRelative,odeAlgorithm,odeAlgorithmNonJacobian,odeJacobianStepSizeRelative,odeLatentIntegratorType,odeLatentIntegratorOrder,odeLatentIntegratorIntervalsMaximum,profileOdeEvolver,reuseODEStepSize,enforceNonNegativity,mergerTreeNodeMerger_,nodeOperator_,mergerTreeEvolveProfiler_) result(self)
      !!{
-     Internal constructor for the {\normalfont \ttfamily standard} merger tree node evolver class.
+     Internal constructor for the \refClass{mergerTreeNodeEvolverStandard} merger tree node evolver class.
      !!}
      use :: Error                , only : Error_Report
      use :: Numerical_ODE_Solvers, only : GSL_ODEIV2_Step_RK2  , GSL_ODEIV2_Step_RK4    , GSL_ODEIV2_Step_RK8PD, GSL_ODEIV2_Step_RKCK       , &
@@ -344,7 +344,7 @@ contains
 
   subroutine standardDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily standard} merger tree node evolver class.
+    Destructor for the \refClass{mergerTreeNodeEvolverStandard} merger tree node evolver class.
     !!}
     use :: Events_Hooks, only : subhaloPromotionEvent
     implicit none

@@ -46,7 +46,7 @@
 
   interface darkMatterProfileDMOEinasto
      !!{
-     Constructors for the {\normalfont \ttfamily einasto} dark matter halo profile class.
+     Constructors for the \refClass{darkMatterProfileDMOEinasto} dark matter halo profile class.
      !!}
      module procedure einastoConstructorParameters
      module procedure einastoConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function einastoConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily einasto} dark matter halo profile class which takes a parameter set as input.
+    Constructor for the \refClass{darkMatterProfileDMOEinasto} dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function einastoConstructorInternal(darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily einasto} dark matter halo profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOEinasto} dark matter halo profile class.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Error           , only : Component_List                   , Error_Report
@@ -116,7 +116,7 @@ contains
 
   subroutine einastoDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily einasto} dark matter halo profile class.
+    Destructor for the \refClass{darkMatterProfileDMOEinasto} dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOEinasto), intent(inout) :: self

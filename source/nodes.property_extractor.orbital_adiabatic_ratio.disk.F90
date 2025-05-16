@@ -52,7 +52,7 @@ Implements a property extractor class for the orbital adiabatic ratio of disks.
 
   interface nodePropertyExtractorAdiabaticRatioOrbitalDisk
      !!{
-     Constructors for the {\normalfont \ttfamily adiabaticRatioOrbitalDisk} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorAdiabaticRatioOrbitalDisk} output analysis class.
      !!}
      module procedure adiabaticRatioOrbitalDiskConstructorParameters
      module procedure adiabaticRatioOrbitalDiskConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function adiabaticRatioOrbitalDiskConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily adiabaticRatioOrbitalDisk} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorAdiabaticRatioOrbitalDisk} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -83,7 +83,7 @@ contains
 
   function adiabaticRatioOrbitalDiskConstructorInternal(darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily adiabaticRatioOrbital} node operator class.
+    Internal constructor for the \refClass{nodePropertyExtractorAdiabaticRatioOrbitalDisk} node operator class.
     !!}
     implicit none
     type (nodePropertyExtractorAdiabaticRatioOrbitalDisk)                        :: self
@@ -97,7 +97,7 @@ contains
 
   subroutine adiabaticRatioOrbitalDiskDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily adiabaticRatioOrbital} node operator class.
+    Destructor for the \refClass{nodePropertyExtractorAdiabaticRatioOrbitalDisk} node operator class.
     !!}
     implicit none
     type(nodePropertyExtractorAdiabaticRatioOrbitalDisk), intent(inout) :: self

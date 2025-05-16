@@ -53,7 +53,7 @@ Implements a sequence output analysis property operator class.
 
   interface outputAnalysisPropertyOperatorSequence
      !!{
-     Constructors for the {\normalfont \ttfamily sequence} output analysis class.
+     Constructors for the \refClass{outputAnalysisPropertyOperatorSequence} output analysis class.
      !!}
      module procedure sequenceConstructorParameters
      module procedure sequenceConstructorInternal
@@ -63,7 +63,7 @@ contains
 
   function sequenceConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily sequence} output analysis property operator class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisPropertyOperatorSequence} output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

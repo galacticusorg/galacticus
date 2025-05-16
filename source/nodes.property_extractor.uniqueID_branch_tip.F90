@@ -40,7 +40,7 @@ Implements a node branch tip index property extractor.
 
   interface nodePropertyExtractorUniqueIDBranchTip
      !!{
-     Constructors for the {\normalfont \ttfamily uniqueIDBranchTip} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorUniqueIDBranchTip} output analysis class.
      !!}
      module procedure uniqueIDBranchTipConstructorParameters
      module procedure uniqueIDBranchTipConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function uniqueIDBranchTipConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily uniqueIDBranchTip} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorUniqueIDBranchTip} node property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -66,7 +66,7 @@ contains
 
   function uniqueIDBranchTipConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily uniqueIDBranchTip} node property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorUniqueIDBranchTip} node property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorUniqueIDBranchTip) :: self

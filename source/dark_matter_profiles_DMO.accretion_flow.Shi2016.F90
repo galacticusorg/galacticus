@@ -56,7 +56,7 @@
 
   interface darkMatterProfileDMOAccretionFlowShi2016
      !!{
-     Constructors for the {\normalfont \ttfamily accretionFlowShi2016} dark matter halo profile class.
+     Constructors for the \refClass{darkMatterProfileDMOAccretionFlowShi2016} dark matter halo profile class.
      !!}
      module procedure accretionFlowShi2016ConstructorParameters
      module procedure accretionFlowShi2016ConstructorInternal
@@ -66,7 +66,7 @@ contains
 
   function accretionFlowShi2016ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily accretionFlowShi2016} dark matter halo profile class which takes a parameter set as input.
+    Constructor for the \refClass{darkMatterProfileDMOAccretionFlowShi2016} dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -112,7 +112,7 @@ contains
 
   function accretionFlowShi2016ConstructorInternal(scaleFactorVelocity,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterHaloMassAccretionHistory_,sphericalCollapseSolver_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily accretionFlowShi2016} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOAccretionFlowShi2016} dark matter profile class.
     !!}
     implicit none
     type            (darkMatterProfileDMOAccretionFlowShi2016)                        :: self
@@ -133,7 +133,7 @@ contains
 
   subroutine accretionFlowShi2016Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily accretionFlowShi2016} dark matter profile class.
+    Destructor for the \refClass{darkMatterProfileDMOAccretionFlowShi2016} dark matter profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOAccretionFlowShi2016), intent(inout) :: self

@@ -55,7 +55,7 @@
 
   interface nodePropertyExtractorDensityProfile
      !!{
-     Constructors for the {\normalfont \ttfamily densityProfile} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorDensityProfile} output analysis class.
      !!}
      module procedure densityProfileConstructorParameters
      module procedure densityProfileConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function densityProfileConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily densityProfile} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorDensityProfile} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -100,7 +100,7 @@ contains
 
   function densityProfileConstructorInternal(radiusSpecifiers,includeRadii,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily densityProfile} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorDensityProfile} property extractor class.
     !!}
     use :: Galactic_Structure_Radii_Definitions, only : Galactic_Structure_Radii_Definition_Decode
     implicit none
@@ -134,7 +134,7 @@ contains
 
   subroutine densityProfileDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily densityProfile} property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorDensityProfile} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorDensityProfile), intent(inout) :: self

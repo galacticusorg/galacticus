@@ -65,7 +65,7 @@ $\delta_\mathrm{c}/\sigma(M)$ (and, therefore, the same halo mass function) on a
 
   interface criticalOverdensityRenormalize
      !!{
-     Constructors for the {\normalfont \ttfamily renormalize} critical overdensity class.
+     Constructors for the \refClass{criticalOverdensityRenormalize} critical overdensity class.
      !!}
      module procedure renormalizeConstructorParameters
      module procedure renormalizeConstructorInternal
@@ -75,7 +75,7 @@ contains
 
   function renormalizeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily renormalize} critical overdensity class which takes a parameter set as input.
+    Constructor for the \refClass{criticalOverdensityRenormalize} critical overdensity class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -119,7 +119,7 @@ contains
 
   function renormalizeConstructorInternal(criticalOverdensity_,cosmologyFunctions_,cosmologicalMassVariance_,cosmologicalMassVarianceReference_,linearGrowth_,massMatch) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily renormalize} critical overdensity class.
+    Internal constructor for the \refClass{criticalOverdensityRenormalize} critical overdensity class.
     !!}
     implicit none
     type            (criticalOverdensityRenormalize)                          :: self
@@ -147,7 +147,7 @@ contains
 
   subroutine renormalizeDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily renormalize} critical overdensity class.
+    Destructor for the \refClass{criticalOverdensityRenormalize} critical overdensity class.
     !!}
     implicit none
     type(criticalOverdensityRenormalize), intent(inout) :: self

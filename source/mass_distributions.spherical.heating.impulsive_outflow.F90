@@ -55,7 +55,7 @@
 
   interface massDistributionHeatingImpulsiveOutflow
      !!{
-     Constructors for the {\normalfont \ttfamily impulsiveOutflow} mass distribution class.
+     Constructors for the \refClass{massDistributionHeatingImpulsiveOutflow} mass distribution class.
      !!}
      module procedure impulsiveOutflowConstructorParameters
      module procedure impulsiveOutflowConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function impulsiveOutflowConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily impulsiveOutflow} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionHeatingImpulsiveOutflow} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -102,7 +102,7 @@ contains
   
   function impulsiveOutflowConstructorInternal(energyImpulsiveOutflowDisk,energyImpulsiveOutflowSpheroid,impulsiveEnergyFactor) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily impulsiveOutflow} dark matter profile heating class.
+    Constructor for the \refClass{massDistributionHeatingImpulsiveOutflow} dark matter profile heating class.
     !!}
     implicit none
     type             (massDistributionHeatingImpulsiveOutflow)                :: self

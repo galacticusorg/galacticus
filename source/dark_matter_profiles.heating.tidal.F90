@@ -42,7 +42,7 @@
 
   interface darkMatterProfileHeatingTidal
      !!{
-     Constructors for the {\normalfont \ttfamily tidal} dark matter profile heating class.
+     Constructors for the \refClass{darkMatterProfileHeatingTidal} dark matter profile heating class.
      !!}
      module procedure tidalConstructorParameters
      module procedure tidalConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function tidalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily tidal} dark matter profile heating scales class which takes a parameter set as input.
+    Constructor for the \refClass{darkMatterProfileHeatingTidal} dark matter profile heating scales class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -96,7 +96,7 @@ contains
 
   function tidalConstructorInternal(coefficientSecondOrder0,coefficientSecondOrder1,coefficientSecondOrder2,correlationVelocityRadius) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily tidal} dark matter profile heating scales class.
+    Internal constructor for the \refClass{darkMatterProfileHeatingTidal} dark matter profile heating scales class.
     !!}
     implicit none
     type            (darkMatterProfileHeatingTidal)                :: self

@@ -121,7 +121,7 @@ contains
 
   subroutine jiang2008Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily jiang2008} satellite merging timescale class.
+    Destructor for the \refClass{satelliteMergingTimescalesJiang2008} satellite merging timescale class.
     !!}
     implicit none
     type(satelliteMergingTimescalesJiang2008), intent(inout) :: self

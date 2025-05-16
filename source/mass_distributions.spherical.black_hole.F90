@@ -45,7 +45,7 @@
 
   interface massDistributionBlackHole
      !!{
-     Constructors for the {\normalfont \ttfamily blackHole} mass distribution class.
+     Constructors for the \refClass{massDistributionBlackHole} mass distribution class.
      !!}
      module procedure blackHoleConstructorParameters
      module procedure blackHoleConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function blackHoleConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily blackHole} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionBlackHole} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameters
@@ -105,7 +105,7 @@ contains
   
   function blackHoleConstructorInternal(mass,dimensionless,componentType,massType) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily blackHole} mass distribution class.
+    Constructor for the \refClass{massDistributionBlackHole} mass distribution class.
     !!}
     use :: Error                           , only : Error_Report
     use :: Numerical_Comparison            , only : Values_Differ

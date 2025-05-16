@@ -40,7 +40,7 @@ Implements a stellar mass-weighted morphology output analysis property extractor
 
   interface nodePropertyExtractorMassStellarMorphology
      !!{
-     Constructors for the {\normalfont \ttfamily massStellarMorphology} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMassStellarMorphology} output analysis class.
      !!}
      module procedure massStellarMorphologyConstructorParameters
   end interface nodePropertyExtractorMassStellarMorphology
@@ -49,7 +49,7 @@ contains
 
   function massStellarMorphologyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily massStellarMorphology} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorMassStellarMorphology} output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

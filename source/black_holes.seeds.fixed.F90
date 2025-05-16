@@ -42,7 +42,7 @@
   
   interface blackHoleSeedsFixed
      !!{
-     Constructors for the {\normalfont \ttfamily fixed} black hole seeds class.
+     Constructors for the \refClass{blackHoleSeedsFixed} black hole seeds class.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function standardConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily fixed} black hole seeds class which takes a parameter list as input.
+    Constructor for the \refClass{blackHoleSeedsFixed} black hole seeds class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -83,7 +83,7 @@ contains
 
   function standardConstructorInternal(mass_,spin_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily fixed} black hole seed class.
+    Internal constructor for the \refClass{blackHoleSeedsFixed} black hole seed class.
     !!}
     implicit none
     type            (blackHoleSeedsFixed)                :: self

@@ -40,7 +40,7 @@ Implements a node branch tip index property extractor.
 
   interface nodePropertyExtractorIndexBranchTip
      !!{
-     Constructors for the {\normalfont \ttfamily indexBranchTip} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorIndexBranchTip} output analysis class.
      !!}
      module procedure indexBranchTipConstructorParameters
      module procedure indexBranchTipConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function indexBranchTipConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily indexBranchTip} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorIndexBranchTip} node property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -66,7 +66,7 @@ contains
 
   function indexBranchTipConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily indexBranchTip} node property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorIndexBranchTip} node property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorIndexBranchTip) :: self

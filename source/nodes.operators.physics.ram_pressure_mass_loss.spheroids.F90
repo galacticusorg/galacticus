@@ -41,7 +41,7 @@
   
   interface nodeOperatorRamPressureMassLossSpheroids
      !!{
-     Constructors for the {\normalfont \ttfamily ramPressureMassLossSpheroids} node operator class.
+     Constructors for the \refClass{nodeOperatorRamPressureMassLossSpheroids} node operator class.
      !!}
      module procedure ramPressureMassLossSpheroidsConstructorParameters
      module procedure ramPressureMassLossSpheroidsConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function ramPressureMassLossSpheroidsConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily ramPressureMassLossSpheroids} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorRamPressureMassLossSpheroids} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -72,7 +72,7 @@ contains
 
   function ramPressureMassLossSpheroidsConstructorInternal(ramPressureStripping_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily ramPressureMassLossSpheroids} node operator class.
+    Internal constructor for the \refClass{nodeOperatorRamPressureMassLossSpheroids} node operator class.
     !!}
     implicit none
     type (nodeOperatorRamPressureMassLossSpheroids)                        :: self
@@ -86,7 +86,7 @@ contains
 
   subroutine ramPressureMassLossSpheroidsDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily ramPressureMassLossSpheroids} node operator class.
+    Destructor for the \refClass{nodeOperatorRamPressureMassLossSpheroids} node operator class.
     !!}
     implicit none
     type(nodeOperatorRamPressureMassLossSpheroids), intent(inout) :: self

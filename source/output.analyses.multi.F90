@@ -49,7 +49,7 @@
 
   interface outputAnalysisMulti
      !!{
-     Constructors for the {\normalfont \ttfamily multi} merger tree analysis.
+     Constructors for the \refClass{outputAnalysisMulti} merger tree analysis.
      !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function multiConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily multi} merger tree analysis class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisMulti} merger tree analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -90,7 +90,7 @@ contains
 
   function multiConstructorInternal(analyses) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily multi} analysis class.
+    Internal constructor for the \refClass{outputAnalysisMulti} analysis class.
     !!}
     implicit none
     type(outputAnalysisMulti)                        :: self
@@ -110,7 +110,7 @@ contains
 
   subroutine multiDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily multi} analysis class.
+    Destructor for the \refClass{outputAnalysisMulti} analysis class.
     !!}
     implicit none
     type(outputAnalysisMulti), intent(inout) :: self

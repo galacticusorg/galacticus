@@ -40,7 +40,7 @@
 
   interface nodePropertyExtractorMassAccretionHistory
      !!{
-     Constructors for the {\normalfont \ttfamily massAccretionHistory} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorMassAccretionHistory} output extractor class.
      !!}
      module procedure massAccretionHistoryConstructorParameters
      module procedure massAccretionHistoryConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function massAccretionHistoryConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily massAccretionHistory} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorMassAccretionHistory} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,7 +66,7 @@ contains
 
   function massAccretionHistoryConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily massAccretionHistory} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorMassAccretionHistory} output extractor property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorMassAccretionHistory) :: self

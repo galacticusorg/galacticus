@@ -44,7 +44,7 @@ Implements an N-body data operator which determines the mean position and veloci
 
   interface nbodyOperatorMeanPosition
      !!{
-     Constructors for the {\normalfont \ttfamily meanPosition} N-body operator class.
+     Constructors for the \refClass{nbodyOperatorMeanPosition} N-body operator class.
      !!}
      module procedure meanPositionConstructorParameters
      module procedure meanPositionConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function meanPositionConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily meanPosition} N-body operator class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyOperatorMeanPosition} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -88,7 +88,7 @@ contains
 
   function meanPositionConstructorInternal(selfBoundParticlesOnly,bootstrapSampleCount,randomNumberGenerator_) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily meanPosition} N-body operator class.
+    Internal constructor for the \refClass{nbodyOperatorMeanPosition} N-body operator class.
     !!}
     implicit none
     type   (nbodyOperatorMeanPosition)                         :: self
@@ -104,7 +104,7 @@ contains
 
   subroutine meanPositionDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily meanPosition} N-body operator class.
+    Destructor for the \refClass{nbodyOperatorMeanPosition} N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorMeanPosition), intent(inout) :: self

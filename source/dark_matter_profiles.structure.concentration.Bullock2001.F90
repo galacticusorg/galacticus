@@ -59,7 +59,7 @@
 
   interface darkMatterProfileConcentrationBullock2001
      !!{
-     Constructors for the {\normalfont \ttfamily bullock2001} dark matter halo profile concentration class.
+     Constructors for the \refClass{darkMatterProfileConcentrationBullock2001} dark matter halo profile concentration class.
      !!}
      module procedure bullock2001ConstructorParameters
      module procedure bullock2001ConstructorInternal
@@ -119,7 +119,7 @@ contains
 
   function bullock2001ConstructorInternal(F,K,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,virialDensityContrast_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily bullock2001} dark matter halo profile
+    Constructor for the \refClass{darkMatterProfileConcentrationBullock2001} dark matter halo profile
     concentration class.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
@@ -172,7 +172,7 @@ contains
 
   subroutine bullock2001Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily bullock2001} dark matter halo profile concentration class.
+    Destructor for the \refClass{darkMatterProfileConcentrationBullock2001} dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationBullock2001), intent(inout) :: self

@@ -50,7 +50,7 @@
   
   interface nodePropertyExtractorStarFormationHistoryMass
      !!{
-     Constructors for the {\normalfont \ttfamily starFormationHistoryMass} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorStarFormationHistoryMass} output analysis class.
      !!}
      module procedure starFormationHistoryMassConstructorParameters
      module procedure starFormationHistoryMassConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function starFormationHistoryMassConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily starFormationHistoryMass} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorStarFormationHistoryMass} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode
@@ -91,7 +91,7 @@ contains
 
   function starFormationHistoryMassConstructorInternal(component,starFormationHistory_,outputTimes_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily starFormationHistoryMass} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorStarFormationHistoryMass} property extractor class.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNuclearStarCluster, componentTypeAll
     use :: Error                     , only : Error_Report
@@ -118,7 +118,7 @@ contains
 
   subroutine starFormationHistoryMassDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily sed} property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorStarFormationHistoryMass} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorStarFormationHistoryMass), intent(inout) :: self

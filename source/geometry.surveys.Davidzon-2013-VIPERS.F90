@@ -124,7 +124,7 @@ contains
 
   function davidzon2013VIPERSConstructorInternal(redshiftBin,cosmologyFunctions_) result(self)
     !!{
-    Generic constructor for the \cite{davidzon_vimos_2013} mass function class.
+    Internal constructor for the \cite{davidzon_vimos_2013} mass function class.
     !!}
     use :: Cosmology_Functions        , only : cosmologyFunctionsClass
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
@@ -168,7 +168,7 @@ contains
 
   subroutine davidzon2013VIPERSDestructor(self)
     !!{
-    Destructor for the ``baldry2012GAMA'' survey geometry class.
+    Destructor for the \refClass{surveyGeometryDavidzon2013VIPERS} survey geometry class.
     !!}
     implicit none
     type(surveyGeometryDavidzon2013VIPERS), intent(inout) :: self

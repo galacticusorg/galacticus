@@ -41,7 +41,7 @@
 
   interface kinematicsDistributionIsothermal
      !!{
-     Constructors for the {\normalfont \ttfamily isothermal} kinematic distribution class.
+     Constructors for the \refClass{kinematicsDistributionIsothermal} kinematic distribution class.
      !!}
      module procedure isothermalConstructorParameters
      module procedure isothermalConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function isothermalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily isothermal} kinematic distribution class which builds the object from a parameter
+    Constructor for the \refClass{kinematicsDistributionIsothermal} kinematic distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -93,7 +93,7 @@ contains
   
   function isothermalConstructorInternal(temperature_,massAtomicMean,velocityDispersion_) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily isothermal} kinematics distribution class.
+    Constructor for the \refClass{kinematicsDistributionIsothermal} kinematics distribution class.
     !!}
     use :: Error                       , only : Error_Report
     use :: Numerical_Constants_Atomic  , only : atomicMassUnit

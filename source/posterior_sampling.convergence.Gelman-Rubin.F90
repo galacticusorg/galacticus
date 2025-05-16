@@ -76,7 +76,7 @@
 
   interface posteriorSampleConvergenceGelmanRubin
      !!{
-     Constructors for the {\normalfont \ttfamily gelmanRubin} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleConvergenceGelmanRubin} posterior sampling convergence class.
      !!}
      module procedure gelmanRubinConstructorParameters
      module procedure gelmanRubinConstructorInternal
@@ -86,7 +86,7 @@ contains
 
   function gelmanRubinConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily gelmanRubin} posterior sampling convergence class which builds the object from a
+    Constructor for the \refClass{posteriorSampleConvergenceGelmanRubin} posterior sampling convergence class which builds the object from a
     parameter set.
     !!}
     use :: ISO_Varying_String, only : varying_string
@@ -158,7 +158,7 @@ contains
 
   function gelmanRubinConstructorInternal(thresholdHatR,burnCount,testCount,outlierCountMaximum,outlierSignificance,outlierLogLikelihoodOffset,reportCount,logFileName) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily GelmanRubin} convergence class.
+    Constructor for the \refClass{posteriorSampleConvergenceGelmanRubin} convergence class.
     !!}
     use :: Error            , only : Error_Report
     use :: MPI_Utilities    , only : mpiSelf

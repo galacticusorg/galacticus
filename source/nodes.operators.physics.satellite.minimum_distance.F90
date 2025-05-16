@@ -65,7 +65,7 @@
   
   interface nodeOperatorSatelliteMinimumDistance
      !!{
-     Constructors for the {\normalfont \ttfamily satelliteMinimumDistance} node operator class.
+     Constructors for the \refClass{nodeOperatorSatelliteMinimumDistance} node operator class.
      !!}
      module procedure satelliteMinimumDistanceConstructorParameters
      module procedure satelliteMinimumDistanceConstructorInternal
@@ -75,7 +75,7 @@ contains
 
   function satelliteMinimumDistanceConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily satelliteMinimumDistance} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorSatelliteMinimumDistance} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -104,7 +104,7 @@ contains
 
   function satelliteMinimumDistanceConstructorInternal(relativeTo) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily satelliteMinimumDistance} node operator class.
+    Internal constructor for the \refClass{nodeOperatorSatelliteMinimumDistance} node operator class.
     !!}
     implicit none
     type(nodeOperatorSatelliteMinimumDistance)                :: self
@@ -135,7 +135,7 @@ contains
 
   subroutine satelliteMinimumDistanceDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily satelliteMinimumDistance} node operator class.
+    Destructor for the \refClass{nodeOperatorSatelliteMinimumDistance} node operator class.
     !!}
     use :: Events_Hooks, only : satelliteHostChangeEvent, subhaloPromotionEvent
     implicit none

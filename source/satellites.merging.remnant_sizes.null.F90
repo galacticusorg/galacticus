@@ -40,7 +40,7 @@
 
   interface mergerRemnantSizeNull
      !!{
-     Constructors for the {\normalfont \ttfamily null} merger remnant size class.
+     Constructors for the \refClass{mergerRemnantSizeNull} merger remnant size class.
      !!}
      module procedure nullConstructorParameters
   end interface mergerRemnantSizeNull
@@ -49,7 +49,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily null} merger remnant size class which takes a parameter list as input.
+    Constructor for the \refClass{mergerRemnantSizeNull} merger remnant size class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

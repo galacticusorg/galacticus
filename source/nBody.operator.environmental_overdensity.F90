@@ -43,7 +43,7 @@ Implements an N-body data operator which determines the environmental overdensit
 
   interface nbodyOperatorEnvironmentalOverdensity
      !!{
-     Constructors for the {\normalfont \ttfamily environmentalOverdensity} N-body operator class.
+     Constructors for the \refClass{nbodyOperatorEnvironmentalOverdensity} N-body operator class.
      !!}
      module procedure environmentalOverdensityConstructorParameters
      module procedure environmentalOverdensityConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function environmentalOverdensityConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily environmentalOverdensity} N-body operator class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyOperatorEnvironmentalOverdensity} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -103,7 +103,7 @@ contains
 
   function environmentalOverdensityConstructorInternal(radiusSphere,densityParticleMean,sampleRate,lengthBox,periodic) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily environmentalOverdensity} N-body operator class.
+    Internal constructor for the \refClass{nbodyOperatorEnvironmentalOverdensity} N-body operator class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

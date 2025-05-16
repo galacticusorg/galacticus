@@ -45,7 +45,7 @@
 
   interface accretionDiskSpectraHopkins2007
      !!{
-     Constructors for the {\normalfont \ttfamily hopkins2007} accretion disk spectra class.
+     Constructors for the \refClass{accretionDiskSpectraHopkins2007} accretion disk spectra class.
      !!}
      module procedure hopkins2007ConstructorParameters
      module procedure hopkins2007ConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function hopkins2007ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily hopkins2007} accretion disk spectra class.
+    Constructor for the \refClass{accretionDiskSpectraHopkins2007} accretion disk spectra class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -79,7 +79,7 @@ contains
 
   function hopkins2007ConstructorInternal(blackHoleAccretionRate_,accretionDisks_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily hopkins2007} accretion disk spectra class.
+    Constructor for the \refClass{accretionDiskSpectraHopkins2007} accretion disk spectra class.
     !!}
     use :: File_Utilities, only : File_Lock, File_Unlock
     use :: Input_Paths   , only : inputPath, pathTypeDataStatic

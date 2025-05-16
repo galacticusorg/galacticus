@@ -62,7 +62,7 @@
 
   interface distributionFunction1DStudentT
      !!{
-     Constructors for the {\normalfont \ttfamily studentT} 1D distribution function class.
+     Constructors for the \refClass{distributionFunction1DStudentT} 1D distribution function class.
      !!}
      module procedure studentTConstructorParameters
      module procedure studentTConstructorInternal
@@ -119,7 +119,7 @@ contains
 
   function studentTConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily studentT} 1D distribution function class which builds
+    Constructor for the \refClass{distributionFunction1DStudentT} 1D distribution function class which builds
     the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -147,7 +147,7 @@ contains
 
   function studentTConstructorInternal(degreesOfFreedom,randomNumberGenerator_) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily studentT} 1D distribution function class.
+    Constructor for the \refClass{distributionFunction1DStudentT} 1D distribution function class.
     !!}
     type            (distributionFunction1DStudentT)                                  :: self
     double precision                                , intent(in   )                   :: degreesOfFreedom

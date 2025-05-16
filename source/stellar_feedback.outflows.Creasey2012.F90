@@ -108,7 +108,7 @@ contains
 
   function creasey2012ConstructorInternal(mu,nu,beta0,starFormationRateSurfaceDensityDisks_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily creasey2012} stellar feedback class.
+    Internal constructor for the \refClass{stellarFeedbackOutflowsCreasey2012} stellar feedback class.
     !!}
     implicit none
     type            (stellarFeedbackOutflowsCreasey2012       )                        :: self
@@ -124,7 +124,7 @@ contains
 
   subroutine creasey2012Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily creasey2012} feedback in disks class.
+    Destructor for the \refClass{stellarFeedbackOutflowsCreasey2012} feedback in disks class.
     !!}
     implicit none
     type(stellarFeedbackOutflowsCreasey2012), intent(inout) :: self

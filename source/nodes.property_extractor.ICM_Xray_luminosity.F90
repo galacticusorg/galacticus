@@ -48,7 +48,7 @@ Implements an intracluster medium X-ray luminosity property extractor class.
 
   interface nodePropertyExtractorICMXRayLuminosity
      !!{
-     Constructors for the {\normalfont \ttfamily icmXRayLuminosity} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorICMXRayLuminosity} output analysis class.
      !!}
      module procedure icmXRayLuminosityConstructorParameters
      module procedure icmXRayLuminosityConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function icmXRayLuminosityConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily icmXRayLuminosity} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorICMXRayLuminosity} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -85,7 +85,7 @@ contains
 
   function icmXRayLuminosityConstructorInternal(cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily icmXRayLuminosity} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorICMXRayLuminosity} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorICMXRayLuminosity)                        :: self
@@ -101,7 +101,7 @@ contains
 
   subroutine icmXRayLuminosityDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily icmXRayLuminosity} property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorICMXRayLuminosity} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorICMXRayLuminosity), intent(inout) :: self

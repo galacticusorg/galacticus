@@ -56,7 +56,7 @@
 
   interface posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive
      !!{
-     Constructors for the {\normalfont \ttfamily adaptive} posterior sampling differential evolution random jump class.
+     Constructors for the \refClass{posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive} posterior sampling differential evolution random jump class.
      !!}
      module procedure adaptiveConstructorParameters
      module procedure adaptiveConstructorInternal
@@ -66,7 +66,7 @@ contains
 
   function adaptiveConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily adaptive} posterior sampling differential evolution random jump class which
+    Constructor for the \refClass{posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive} posterior sampling differential evolution random jump class which
     builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -124,7 +124,7 @@ contains
 
   function adaptiveConstructorInternal(exponentInitial,exponentMinimum,exponentMaximum,exponentAdjustFactor,gradientMinimum,gradientMaximum,updateCount) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily adaptive} differential evolution proposal size class.
+    Constructor for the \refClass{posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive} differential evolution proposal size class.
     !!}
     implicit none
     type            (posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive)                :: self

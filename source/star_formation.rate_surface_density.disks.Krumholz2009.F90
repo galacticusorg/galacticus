@@ -105,7 +105,7 @@
 
   interface starFormationRateSurfaceDensityDisksKrumholz2009
      !!{
-     Constructors for the {\normalfont \ttfamily krumholz2009} star formation surface density rate in disks class.
+     Constructors for the \refClass{starFormationRateSurfaceDensityDisksKrumholz2009} star formation surface density rate in disks class.
      !!}
      module procedure krumholz2009ConstructorParameters
      module procedure krumholz2009ConstructorInternal
@@ -123,7 +123,7 @@ contains
 
   function krumholz2009ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily krumholz2009} star formation surface density rate in disks class which takes a parameter set as input.
+    Constructor for the \refClass{starFormationRateSurfaceDensityDisksKrumholz2009} star formation surface density rate in disks class which takes a parameter set as input.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -168,7 +168,7 @@ contains
 
   function krumholz2009ConstructorInternal(frequencyStarFormation,clumpingFactorMolecularComplex,molecularFractionFast,assumeMonotonicSurfaceDensity) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily krumholz2009} star formation surface density rate from disks class.
+    Internal constructor for the \refClass{starFormationRateSurfaceDensityDisksKrumholz2009} star formation surface density rate from disks class.
     !!}
     use :: Abundances_Structure                      , only : unitAbundances
     use :: Table_Labels                              , only : extrapolationTypeFix
@@ -243,7 +243,7 @@ contains
 
   subroutine krumholz2009Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily krumholz2009} star formation surface density rate from disks class.
+    Destructor for the \refClass{starFormationRateSurfaceDensityDisksKrumholz2009} star formation surface density rate from disks class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none

@@ -39,7 +39,7 @@ Implements a null filter.
 
   interface galacticFilterNull
      !!{
-     Constructors for the {\normalfont \ttfamily null} galactic filter class.
+     Constructors for the \refClass{galacticFilterNull} galactic filter class.
      !!}
      module procedure nullConstructorParameters
      module procedure nullConstructorInternal
@@ -49,7 +49,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily null} galactic filter class which takes a parameter set as input.
+    Constructor for the \refClass{galacticFilterNull} galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -70,7 +70,7 @@ contains
 
   function nullConstructorInternal(galacticFilter_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily null} galactic filter class.
+    Internal constructor for the \refClass{galacticFilterNull} galactic filter class.
     !!}
     implicit none
     type (galacticFilterNull )                        :: self
@@ -84,7 +84,7 @@ contains
 
   subroutine nullDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily null} galactic filter class.
+    Destructor for the \refClass{galacticFilterNull} galactic filter class.
     !!}
     implicit none
     type(galacticFilterNull), intent(inout) :: self

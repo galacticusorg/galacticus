@@ -91,7 +91,7 @@
 
   interface starFormationHistoryFixedAges
      !!{
-     Constructors for the {\normalfont \ttfamily fixedAges} star formation history class.
+     Constructors for the \refClass{starFormationHistoryFixedAges} star formation history class.
      !!}
      module procedure fixedAgesConstructorParameters
      module procedure fixedAgesConstructorInternal
@@ -104,7 +104,7 @@ contains
 
   recursive function fixedAgesConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily fixedAges} star formation history class which takes a parameter set as input.
+    Constructor for the \refClass{starFormationHistoryFixedAges} star formation history class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -186,7 +186,7 @@ contains
 
   recursive function fixedAgesConstructorInternal(cosmologyFunctions_,geometryLightcone_,ageMinimum,countAges,metallicityBoundaries,countMetallicities,metallicityMinimum,metallicityMaximum) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily fixedAges} star formation history class.
+    Internal constructor for the \refClass{starFormationHistoryFixedAges} star formation history class.
     !!}
     use :: Error                     , only : Error_Report
     use :: Galactic_Structure_Options, only : componentTypeMax, componentTypeMin
@@ -258,7 +258,7 @@ contains
 
   subroutine fixedAgesDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily fixedAges} star formation histories class.
+    Destructor for the \refClass{starFormationHistoryFixedAges} star formation histories class.
     !!}
     implicit none
     type(starFormationHistoryFixedAges), intent(inout) :: self

@@ -40,7 +40,7 @@
 
   interface kinematicsDistributionSphericalScaler
      !!{
-     Constructors for the {\normalfont \ttfamily sphericalScaler} kinematic distribution class.
+     Constructors for the \refClass{kinematicsDistributionSphericalScaler} kinematic distribution class.
      !!}
      module procedure kinematicsSphericalScalerConstructorParameters
      module procedure kinematicsSphericalScalerConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function kinematicsSphericalScalerConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sphericalScaler} kinematic distribution class which builds the object from a parameter
+    Constructor for the \refClass{kinematicsDistributionSphericalScaler} kinematic distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -83,7 +83,7 @@ contains
     
   function kinematicsSphericalScalerConstructorInternal(factorScalingLength,factorScalingMass,kinematicsDistribution_) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily sphericalScaler} convergence class.
+    Constructor for the \refClass{kinematicsDistributionSphericalScaler} convergence class.
     !!}
     implicit none
     type            (kinematicsDistributionSphericalScaler)                        :: self
@@ -98,7 +98,7 @@ contains
 
   subroutine kinematicsSphericalScalerDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily sphericalScaler} mass distribution class.
+    Destructor for the \refClass{kinematicsDistributionSphericalScaler} mass distribution class.
     !!}
     implicit none
     type(kinematicsDistributionSphericalScaler), intent(inout) :: self

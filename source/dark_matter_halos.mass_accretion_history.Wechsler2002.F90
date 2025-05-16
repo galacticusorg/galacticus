@@ -68,7 +68,7 @@
 
   interface darkMatterHaloMassAccretionHistoryWechsler2002
      !!{
-     Constructors for the {\normalfont \ttfamily wechsler2002} dark matter halo mass accretion history class.
+     Constructors for the \refClass{darkMatterHaloMassAccretionHistoryWechsler2002} dark matter halo mass accretion history class.
      !!}
      module procedure wechsler2002ConstructorParameters
      module procedure wechsler2002ConstructorInternal
@@ -126,7 +126,7 @@ contains
 
   function wechsler2002ConstructorInternal(cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,formationRedshiftCompute,formationRedshift) result(self)
     !!{
-    Generic constructor for the {\normalfont \ttfamily wechsler2002} dark matter halo mass accretion history class.
+    Internal constructor for the \refClass{darkMatterHaloMassAccretionHistoryWechsler2002} dark matter halo mass accretion history class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -158,7 +158,7 @@ contains
   
   subroutine wechsler2002Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily wechsler2002} dark matter halo mass accretion history class.
+    Destructor for the \refClass{darkMatterHaloMassAccretionHistoryWechsler2002} dark matter halo mass accretion history class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none

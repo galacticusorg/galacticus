@@ -178,7 +178,7 @@ contains
 
   subroutine muzzin2013ULTRAVISTADestructor(self)
     !!{
-    Destructor for the ``muzzin2013ULTRAVISTA'' survey geometry class.
+    Destructor for the \refClass{surveyGeometryMuzzin2013ULTRAVISTA} survey geometry class.
     !!}
     implicit none
     type(surveyGeometryMuzzin2013ULTRAVISTA), intent(inout) :: self

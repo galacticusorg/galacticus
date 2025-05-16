@@ -55,7 +55,7 @@ contains
 
   function petts2015ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily petts2015} satellite dynamical friction class which builds the object from a parameter set.
+    Constructor for the \refClass{satelliteDynamicalFrictionPetts2015} satellite dynamical friction class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -89,7 +89,7 @@ contains
 
   function petts2015ConstructorInternal(logarithmCoulombApproximate,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily petts2015} satellite dynamical friction class.
+    Internal constructor for the \refClass{satelliteDynamicalFrictionPetts2015} satellite dynamical friction class.
     !!}
     implicit none
     type   (satelliteDynamicalFrictionPetts2015)                        :: self
@@ -106,7 +106,7 @@ contains
 
   subroutine petts2015Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily petts2015} satellite dynamical friction class.
+    Destructor for the \refClass{satelliteDynamicalFrictionPetts2015} satellite dynamical friction class.
     !!}
     implicit none
     type(satelliteDynamicalFrictionPetts2015), intent(inout) :: self

@@ -42,7 +42,7 @@
 
   interface atomicRecombinationRateRadiativeCoolingFixed
      !!{
-     Constructors for the {\normalfont \ttfamily fixed} atomic radiative recombination class.
+     Constructors for the \refClass{atomicRecombinationRateRadiativeCoolingFixed} atomic radiative recombination class.
      !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function fixedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily fixed} atomic radiative recombination class which takes a parameter set as input.
+    Constructor for the \refClass{atomicRecombinationRateRadiativeCoolingFixed} atomic radiative recombination class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -80,7 +80,7 @@ contains
   
   function fixedConstructorInternal(gamma,atomicRecombinationRateRadiative_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily fixed} atomic radiative recombination class.
+    Internal constructor for the \refClass{atomicRecombinationRateRadiativeCoolingFixed} atomic radiative recombination class.
     !!}
     use :: Input_Parameters, only : inputParameters
     use :: Table_Labels    , only : extrapolationTypeExtrapolate
@@ -97,7 +97,7 @@ contains
 
   subroutine fixedDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily fixed} recombination cooling class.
+    Destructor for the \refClass{atomicRecombinationRateRadiativeCoolingFixed} recombination cooling class.
     !!}
     implicit none
     type(atomicRecombinationRateRadiativeCoolingFixed), intent(inout) :: self

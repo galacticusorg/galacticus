@@ -47,7 +47,7 @@
 
   interface supernovaeTypeIaNagashima2005
      !!{
-     Constructors for the {\normalfont \ttfamily nagashima2005} supernovae type Ia class.
+     Constructors for the \refClass{supernovaeTypeIaNagashima2005} supernovae type Ia class.
      !!}
      module procedure nagashima2005ConstructorParameters
      module procedure nagashima2005ConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function nagashima2005ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily nagashima2005} supernovae type Ia class which takes a parameter list as input.
+    Constructor for the \refClass{supernovaeTypeIaNagashima2005} supernovae type Ia class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -88,7 +88,7 @@ contains
 
   function nagashima2005ConstructorInternal(stellarAstrophysics_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily nagashima2005} supernovae type Ia class.
+    Internal constructor for the \refClass{supernovaeTypeIaNagashima2005} supernovae type Ia class.
     !!}
     implicit none
     type (supernovaeTypeIaNagashima2005)                        :: self
@@ -104,7 +104,7 @@ contains
 
   subroutine nagashima2005Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily nagashima2005} supernovae type Ia class.
+    Destructor for the \refClass{supernovaeTypeIaNagashima2005} supernovae type Ia class.
     !!}
     implicit none
     type(supernovaeTypeIaNagashima2005), intent(inout) :: self

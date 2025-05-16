@@ -71,7 +71,7 @@
 
   interface posteriorSampleSimulationParticleSwarm
      !!{
-     Constructors for the {\normalfont \ttfamily particleSwarm} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleSimulationParticleSwarm} posterior sampling convergence class.
      !!}
      module procedure particleSwarmConstructorParameters
      module procedure particleSwarmConstructorInternal
@@ -81,7 +81,7 @@ contains
 
   function particleSwarmConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily particleSwarm} posterior sampling simulation class which builds the object from a
+    Constructor for the \refClass{posteriorSampleSimulationParticleSwarm} posterior sampling simulation class which builds the object from a
     parameter set.
     !!}
     use :: Display         , only : displayMessage      , displayVerbosity      , verbosityLevelInfo

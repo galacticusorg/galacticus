@@ -56,7 +56,7 @@ contains
 
   function haloFormationConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily haloFormation} freefall time available class which builds the object from a parameter set.
+    Constructor for the \refClass{freefallTimeAvailableHaloFormation} freefall time available class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters  , only : inputParameters
     implicit none
@@ -72,7 +72,7 @@ contains
 
   function haloFormationConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily haloFormation} freefall time available class.
+    Internal constructor for the \refClass{freefallTimeAvailableHaloFormation} freefall time available class.
     !!}
     implicit none
     type(freefallTimeAvailableHaloFormation) :: self

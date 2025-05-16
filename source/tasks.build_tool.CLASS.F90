@@ -34,7 +34,7 @@
 
   interface taskBuildToolCLASS
      !!{
-     Constructors for the {\normalfont \ttfamily buildToolCLASS} task.
+     Constructors for the \refClass{taskBuildToolCLASS} task.
      !!}
      module procedure buildToolCLASSParameters
   end interface taskBuildToolCLASS
@@ -43,7 +43,7 @@ contains
 
   function buildToolCLASSParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily buildToolCLASS} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskBuildToolCLASS} task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

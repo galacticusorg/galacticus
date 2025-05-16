@@ -66,7 +66,7 @@
 
   interface mergerTreeEvolverThreaded
      !!{
-     Constructors for the {\normalfont \ttfamily threaded} merger tree evolver.
+     Constructors for the \refClass{mergerTreeEvolverThreaded} merger tree evolver.
      !!}
      module procedure threadedConstructorParameters
      module procedure threadedConstructorInternal
@@ -80,7 +80,7 @@ contains
 
   function threadedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily threaded} merger tree evolver class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeEvolverThreaded} merger tree evolver class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -179,7 +179,7 @@ contains
 
   function threadedConstructorInternal(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,profileSteps,reportTiming,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,mergerTreeEvolveConcurrency_,metaTreeProcessingTime_,galacticStructureSolver_,mergerTreeEvolveProfiler_,parameters) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily threaded} merger tree evolver class.
+    Internal constructor for the \refClass{mergerTreeEvolverThreaded} merger tree evolver class.
     !!}
     implicit none
     type            (mergerTreeEvolverThreaded       )                        :: self
@@ -210,7 +210,7 @@ contains
 
   subroutine threadedDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily threaded} merger tree evolver class.
+    Destructor for the \refClass{mergerTreeEvolverThreaded} merger tree evolver class.
     !!}
     implicit none
     type   (mergerTreeEvolverThreaded), intent(inout) :: self

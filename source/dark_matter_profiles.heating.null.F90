@@ -40,7 +40,7 @@
 
   interface darkMatterProfileHeatingNull
      !!{
-     Constructors for the {\normalfont \ttfamily null} dark matter profile heating class.
+     Constructors for the \refClass{darkMatterProfileHeatingNull} dark matter profile heating class.
      !!}
      module procedure nullConstructorParameters
   end interface darkMatterProfileHeatingNull
@@ -49,7 +49,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily null} dark matter profile heating scales class which takes a parameter set as input.
+    Constructor for the \refClass{darkMatterProfileHeatingNull} dark matter profile heating scales class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

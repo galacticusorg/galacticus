@@ -46,7 +46,7 @@
 
   interface hiiRegionDensityDistributionDeltaFunction
      !!{
-     Constructors for the {\normalfont \ttfamily hiiRegionDensityDistributionDeltaFunction} HII region density distribution class.
+     Constructors for the \refClass{hiiRegionDensityDistributionDeltaFunction} HII region density distribution class.
      !!}
      module procedure deltaFunctionConstructorParameters
      module procedure deltaFunctionConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function deltaFunctionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily hiiRegionDensityDistributionDeltaFunction} class.
+    Constructor for the \refClass{hiiRegionDensityDistributionDeltaFunction} class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -81,7 +81,7 @@ contains
 
   function deltaFunctionConstructorInternal(densityHydrogen) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily hiiRegionDensityDistributionDeltaFunction} class.
+    Internal constructor for the \refClass{hiiRegionDensityDistributionDeltaFunction} class.
     !!}
     
     implicit none

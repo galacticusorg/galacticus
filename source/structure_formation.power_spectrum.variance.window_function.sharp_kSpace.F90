@@ -53,7 +53,7 @@ Implements a sharp $k$-space power spectrum window function class.
 
   interface powerSpectrumWindowFunctionSharpKSpace
      !!{
-     Constructors for the {\normalfont \ttfamily sharpKSpace} power spectrum window function class.
+     Constructors for the \refClass{powerSpectrumWindowFunctionSharpKSpace} power spectrum window function class.
      !!}
      module procedure sharpKSpaceConstructorParameters
      module procedure sharpKSpaceConstructorInternal
@@ -63,7 +63,7 @@ contains
 
   function sharpKSpaceConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sharpKSpace} power spectrum window function class which takes a parameter set as input.
+    Constructor for the \refClass{powerSpectrumWindowFunctionSharpKSpace} power spectrum window function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -106,7 +106,7 @@ contains
 
   function sharpKSpaceConstructorInternal(cosmologyParameters_,normalization) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily sharpKSpace} power spectrum window function class.
+    Internal constructor for the \refClass{powerSpectrumWindowFunctionSharpKSpace} power spectrum window function class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -148,7 +148,7 @@ contains
 
   subroutine sharpKSpaceDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily sharpKSpace} power spectrum window function class.
+    Destructor for the \refClass{powerSpectrumWindowFunctionSharpKSpace} power spectrum window function class.
     !!}
     implicit none
     type(powerSpectrumWindowFunctionSharpKSpace), intent(inout) :: self

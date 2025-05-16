@@ -129,7 +129,7 @@ contains
 
   subroutine martin2010ALFALFADestructor(self)
     !!{
-    Destructor for the ``martin2010ALFALFA'' survey geometry class.
+    Destructor for the \refClass{surveyGeometryMartin2010ALFALFA} survey geometry class.
     !!}
     implicit none
     type(surveyGeometryMartin2010ALFALFA), intent(inout) :: self

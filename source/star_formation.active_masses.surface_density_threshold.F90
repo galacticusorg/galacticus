@@ -44,7 +44,7 @@
 
   interface starFormationActiveMassSurfaceDensityThreshold
      !!{
-     Constructors for the {\normalfont \ttfamily surfaceDensityThreshold} active mass for star formation class.
+     Constructors for the \refClass{starFormationActiveMassSurfaceDensityThreshold} active mass for star formation class.
      !!}
      module procedure surfaceDensityThresholdConstructorParameters
      module procedure surfaceDensityThresholdConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function surfaceDensityThresholdConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily surfaceDensityThreshold} active mass for star formation class which takes a parameter set as
+    Constructor for the \refClass{starFormationActiveMassSurfaceDensityThreshold} active mass for star formation class which takes a parameter set as
     input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -89,7 +89,7 @@ contains
 
   function surfaceDensityThresholdConstructorInternal(surfaceDensityThreshold,exponentVelocity,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily surfaceDensityThreshold} active mass for star formation class.
+    Internal constructor for the \refClass{starFormationActiveMassSurfaceDensityThreshold} active mass for star formation class.
     !!}
     implicit none
     type            (starFormationActiveMassSurfaceDensityThreshold)                        :: self
@@ -109,7 +109,7 @@ contains
 
   subroutine surfaceDensityThresholdDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily surfaceDensityThreshold} active mass for star formation class.
+    Destructor for the \refClass{starFormationActiveMassSurfaceDensityThreshold} active mass for star formation class.
     !!}
     implicit none
     type(starFormationActiveMassSurfaceDensityThreshold), intent(inout) :: self

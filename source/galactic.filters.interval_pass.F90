@@ -42,7 +42,7 @@ Implements an interval pass filter on any node property.
 
   interface galacticFilterIntervalPass
      !!{
-     Constructors for the {\normalfont \ttfamily intervalPass} galactic filter class.
+     Constructors for the \refClass{galacticFilterIntervalPass} galactic filter class.
      !!}
      module procedure intervalPassConstructorParameters
      module procedure intervalPassConstructorInternal
@@ -52,7 +52,7 @@ contains
   
   function intervalPassConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily intervalPass} galactic filter class which takes a parameter set as input.
+    Constructor for the \refClass{galacticFilterIntervalPass} galactic filter class which takes a parameter set as input.
     !!}
     use :: Error                   , only : Error_Report
     use :: Input_Parameters        , only : inputParameter            , inputParameters
@@ -91,7 +91,7 @@ contains
 
   function intervalPassConstructorInternal(thresholdLow,thresholdHigh,nodePropertyExtractor_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily intervalPass} galactic filter class.
+    Internal constructor for the \refClass{galacticFilterIntervalPass} galactic filter class.
     !!}
     implicit none
     type            (galacticFilterIntervalPass )                        :: self
@@ -106,7 +106,7 @@ contains
 
   subroutine intervalPassDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily intervalPass} galactic filter class.
+    Destructor for the \refClass{galacticFilterIntervalPass} galactic filter class.
     !!}
     implicit none
     type(galacticFilterIntervalPass), intent(inout) :: self

@@ -48,7 +48,7 @@
 
   interface intergalacticMediumStateMetallicityAstraeusV
      !!{
-     Constructors for the {\normalfont \ttfamily metallicityAstraeusV} intergalactic medium state class.
+     Constructors for the \refClass{intergalacticMediumStateMetallicityAstraeusV} intergalactic medium state class.
      !!}
      module procedure metallicityAstraeusVIGMConstructorParameters
      module procedure metallicityAstraeusVIGMConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function metallicityAstraeusVIGMConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily metallicityAstraeusV} \gls{igm} state class which takes a parameter set as input.
+    Constructor for the \refClass{intergalacticMediumStateMetallicityAstraeusV} \gls{igm} state class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -83,7 +83,7 @@ contains
 
   function metallicityAstraeusVIGMConstructorInternal(cosmologyFunctions_,intergalacticMediumState_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily metallicityAstraeusV} \gls{igm} state class.
+    Constructor for the \refClass{intergalacticMediumStateMetallicityAstraeusV} \gls{igm} state class.
     !!}
     implicit none
     type (intergalacticMediumStateMetallicityAstraeusV)                        :: self

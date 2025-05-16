@@ -72,7 +72,7 @@
 
   interface massDistributionSphericalScaler
      !!{
-     Constructors for the {\normalfont \ttfamily sphericalScaler} mass distribution class.
+     Constructors for the \refClass{massDistributionSphericalScaler} mass distribution class.
      !!}
      module procedure sphericalScalerConstructorParameters
      module procedure sphericalScalerConstructorInternal
@@ -82,7 +82,7 @@ contains
 
   function sphericalScalerConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sphericalScaler} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionSphericalScaler} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Error           , only : Error_Report
@@ -121,7 +121,7 @@ contains
   
   function sphericalScalerConstructorInternal(factorScalingLength,factorScalingMass,massDistribution_,chandrasekharIntegralComputeVelocityDispersion) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily sphericalScaler} convergence class.
+    Constructor for the \refClass{massDistributionSphericalScaler} convergence class.
     !!}
     implicit none
     type            (massDistributionSphericalScaler)                          :: self
@@ -141,7 +141,7 @@ contains
 
   subroutine sphericalScalerDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily sphericalScaler} mass distribution class.
+    Destructor for the \refClass{massDistributionSphericalScaler} mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalScaler), intent(inout) :: self

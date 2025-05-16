@@ -65,7 +65,7 @@ contains
 
   function readXMLConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily readXML} merger tree masses class which takes a parameter set
+    Constructor for the \refClass{mergerTreeBuildMassesReadXML} merger tree masses class which takes a parameter set
     as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -97,7 +97,7 @@ contains
 
   function readXMLConstructorInternal(fileName,massIntervalFractional) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily readXML} merger tree masses class.
+    Internal constructor for the \refClass{mergerTreeBuildMassesReadXML} merger tree masses class.
     !!}
     implicit none
     type            (mergerTreeBuildMassesReadXML)                :: self

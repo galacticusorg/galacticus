@@ -38,7 +38,7 @@
 
   interface nbodyOperatorHostedRootID
      !!{
-     Constructors for the {\normalfont \ttfamily hostedRootID} N-body operator class.
+     Constructors for the \refClass{nbodyOperatorHostedRootID} N-body operator class.
      !!}
      module procedure hostedRootIDConstructorParameters
      module procedure hostedRootIDConstructorInternal
@@ -48,7 +48,7 @@ contains
 
   function hostedRootIDConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily hostedRootID} N-body operator class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyOperatorHostedRootID} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -73,7 +73,7 @@ contains
 
   function hostedRootIDConstructorInternal(missingHalosAreFatal) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily hostedRootID} N-body operator class.
+    Internal constructor for the \refClass{nbodyOperatorHostedRootID} N-body operator class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

@@ -67,7 +67,7 @@
 
   interface blackHoleAccretionRateStandard
      !!{
-     Constructors for the {\normalfont \ttfamily standard} black hole accretion rate class.
+     Constructors for the \refClass{blackHoleAccretionRateStandard} black hole accretion rate class.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -77,7 +77,7 @@ contains
 
   function standardConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily standard} black hole accretion rate class which takes a parameter list as input.
+    Constructor for the \refClass{blackHoleAccretionRateStandard} black hole accretion rate class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -150,7 +150,7 @@ contains
 
   function standardConstructorInternal(bondiHoyleAccretionEnhancementHotHalo,bondiHoyleAccretionEnhancementSpheroid,bondiHoyleAccretionEnhancementNuclearStarCluster,bondiHoyleAccretionTemperatureSpheroid,bondiHoyleAccretionTemperatureNuclearStarCluster,bondiHoyleAccretionHotModeOnly,blackHoleBinarySeparationGrowthRate_,hotHaloTemperatureProfile_,accretionDisks_,coolingRadius_,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily standard} node operator class.
+    Internal constructor for the \refClass{blackHoleAccretionRateStandard} node operator class.
     !!}
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none

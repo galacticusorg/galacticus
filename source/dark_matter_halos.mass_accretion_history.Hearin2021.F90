@@ -62,7 +62,7 @@
 
   interface darkMatterHaloMassAccretionHistoryHearin2021
      !!{
-     Constructors for the {\normalfont \ttfamily hearin2021} dark matter halo mass accretion history class.
+     Constructors for the \refClass{darkMatterHaloMassAccretionHistoryHearin2021} dark matter halo mass accretion history class.
      !!}
      module procedure hearin2021ConstructorParameters
      module procedure hearin2021ConstructorInternal
@@ -72,7 +72,7 @@ contains
 
   function hearin2021ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily hearin2021} dark matter halo mass accretion history class which takes a parameter
+    Constructor for the \refClass{darkMatterHaloMassAccretionHistoryHearin2021} dark matter halo mass accretion history class which takes a parameter
     set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -113,7 +113,7 @@ contains
 
   function hearin2021ConstructorInternal(powerLawIndexEarly,powerLawIndexLate,rateRollOver,timeMaximum) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily hearin2021} dark matter halo mass accretion history class.
+    Internal constructor for the \refClass{darkMatterHaloMassAccretionHistoryHearin2021} dark matter halo mass accretion history class.
     !!}
     implicit none
     type            (darkMatterHaloMassAccretionHistoryHearin2021)                :: self

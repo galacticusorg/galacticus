@@ -61,7 +61,7 @@
 
   interface darkMatterProfileScaleRadiusConcentration
      !!{
-     Constructors for the {\normalfont \ttfamily concentration} dark matter halo profile scale radius class.
+     Constructors for the \refClass{darkMatterProfileScaleRadiusConcentration} dark matter halo profile scale radius class.
      !!}
      module procedure concentrationConstructorParameters
      module procedure concentrationConstructorInternal
@@ -85,7 +85,7 @@ contains
 
   function concentrationConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily concentration} dark matter halo profile scale radius class which takes a
+    Constructor for the \refClass{darkMatterProfileScaleRadiusConcentration} dark matter halo profile scale radius class which takes a
     parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -137,7 +137,7 @@ contains
 
   function concentrationConstructorInternal(correctForConcentrationDefinition,useMeanConcentration,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,virialDensityContrast_,darkMatterProfileConcentration_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily concentration} dark matter halo profile scale radius class.
+    Internal constructor for the \refClass{darkMatterProfileScaleRadiusConcentration} dark matter halo profile scale radius class.
     !!}
     implicit none
     type   (darkMatterProfileScaleRadiusConcentration)                        :: self
@@ -165,7 +165,7 @@ contains
 
   subroutine concentrationDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily concentration} dark matter halo profile scale radius class.
+    Destructor for the \refClass{darkMatterProfileScaleRadiusConcentration} dark matter halo profile scale radius class.
     !!}
     implicit none
     type(darkMatterProfileScaleRadiusConcentration), intent(inout) :: self

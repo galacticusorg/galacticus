@@ -43,7 +43,7 @@ dynamical timescale.
 
   interface hotHaloOutflowReincorporationHaloDynamicalTime
      !!{
-     Constructors for the {\normalfont \ttfamily haloDynamicalTime} hot halo outflow reincorporation class.
+     Constructors for the \refClass{hotHaloOutflowReincorporationHaloDynamicalTime} hot halo outflow reincorporation class.
      !!}
      module procedure haloDynamicalTimeConstructorParameters
      module procedure haloDynamicalTimeConstructorInternal
@@ -97,7 +97,7 @@ contains
 
   subroutine haloDynamicalTimeDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily haloDynamicalTime} hot halo outflow reincorporation class.
+    Destructor for the \refClass{hotHaloOutflowReincorporationHaloDynamicalTime} hot halo outflow reincorporation class.
     !!}
     implicit none
     type(hotHaloOutflowReincorporationHaloDynamicalTime), intent(inout) :: self

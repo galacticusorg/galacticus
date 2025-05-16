@@ -67,7 +67,7 @@
 
   interface computationalDomainSpherical
      !!{
-     Constructors for the {\normalfont \ttfamily spherical} computational domain.
+     Constructors for the \refClass{computationalDomainSpherical} computational domain.
      !!}
      module procedure sphericalConstructorParameters
      module procedure sphericalConstructorInternal
@@ -92,7 +92,7 @@ contains
 
   function sphericalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily spherical} computational domain class which takes a parameter set as input.
+    Constructor for the \refClass{computationalDomainSpherical} computational domain class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -150,7 +150,7 @@ contains
 
   function sphericalConstructorInternal(boundaries,countCells,convergencePercentile,convergenceThreshold,convergenceRatioThreshold,radiativeTransferMatter_,radiativeTransferConvergence_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily spherical} computational domain class which takes a parameter set as input.
+    Constructor for the \refClass{computationalDomainSpherical} computational domain class which takes a parameter set as input.
     !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLinear
     implicit none
@@ -176,7 +176,7 @@ contains
 
   subroutine sphericalDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily spherical} computational domain class.
+    Destructor for the \refClass{computationalDomainSpherical} computational domain class.
     !!}
     implicit none
     type(computationalDomainSpherical), intent(inout) :: self

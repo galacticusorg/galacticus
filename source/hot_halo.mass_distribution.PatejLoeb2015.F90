@@ -44,7 +44,7 @@ An implementation of the hot halo mass distribution class which uses the model o
 
   interface hotHaloMassDistributionPatejLoeb2015
      !!{
-     Constructors for the {\normalfont \ttfamily patejLoeb2015} hot halo mass distribution class.
+     Constructors for the \refClass{hotHaloMassDistributionPatejLoeb2015} hot halo mass distribution class.
      !!}
      module procedure patejLoeb2015ConstructorParameters
      module procedure patejLoeb2015ConstructorInternal
@@ -91,7 +91,7 @@ contains
 
   function patejLoeb2015ConstructorInternal(gamma,radiusShock,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !!{
-    Generic constructor for the {\normalfont \ttfamily patejLoeb2015} hot halo mass distribution class.
+    Internal constructor for the \refClass{hotHaloMassDistributionPatejLoeb2015} hot halo mass distribution class.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Error           , only : Component_List                   , Error_Report
@@ -149,7 +149,7 @@ contains
 
   subroutine patejLoeb2015Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily patejLoeb2015} hot halo mass distribution class.
+    Destructor for the \refClass{hotHaloMassDistributionPatejLoeb2015} hot halo mass distribution class.
     !!}
     implicit none
     type(hotHaloMassDistributionPatejLoeb2015), intent(inout) :: self

@@ -52,7 +52,7 @@
 
   interface modelParameterActive
      !!{
-     Constructors for the {\normalfont \ttfamily active} 1D distribution function class.
+     Constructors for the \refClass{modelParameterActive} 1D distribution function class.
      !!}
      module procedure activeConstructorParameters
      module procedure activeConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function activeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily active} model parameter class which builds the object from a parameter set.
+    Constructor for the \refClass{modelParameterActive} model parameter class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -95,7 +95,7 @@ contains
 
   function activeConstructorInternal(name_,prior,perturber,mapper) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily active} model parameter class.
+    Internal constructor for the \refClass{modelParameterActive} model parameter class.
     !!}
     implicit none
     type (modelParameterActive       )                        :: self
@@ -111,7 +111,7 @@ contains
 
   subroutine activeDestructor(self)
     !!{
-    Destructor for ``active'' model parameter class.
+    Destructor for \refClass{modelParameterActive} model parameter class.
     !!}
     implicit none
     type(modelParameterActive), intent(inout) :: self

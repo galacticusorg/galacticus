@@ -40,7 +40,7 @@
 
   interface stellarPopulationSpectraPostprocessorMeiksin2006
      !!{
-     Constructors for the {\normalfont \ttfamily meiksin2006} stellar population spectra postprocessor class.
+     Constructors for the \refClass{stellarPopulationSpectraPostprocessorMeiksin2006} stellar population spectra postprocessor class.
      !!}
      module procedure meiksin2006ConstructorParameters
   end interface stellarPopulationSpectraPostprocessorMeiksin2006
@@ -49,7 +49,7 @@ contains
 
   function meiksin2006ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily meiksin2006} stellar population spectra postprocessor class which takes a
+    Constructor for the \refClass{stellarPopulationSpectraPostprocessorMeiksin2006} stellar population spectra postprocessor class which takes a
     parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters

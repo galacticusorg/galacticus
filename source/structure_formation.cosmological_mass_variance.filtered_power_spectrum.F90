@@ -135,7 +135,7 @@
 
   interface cosmologicalMassVarianceFilteredPower
      !!{
-     Constructors for the {\normalfont \ttfamily filteredPower} cosmological mass variance class.
+     Constructors for the \refClass{cosmologicalMassVarianceFilteredPower} cosmological mass variance class.
      !!}
      module procedure filteredPowerConstructorParameters
      module procedure filteredPowerConstructorInternal
@@ -152,7 +152,7 @@ contains
 
   function filteredPowerConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily filteredPower} cosmological mass variance class which takes a parameter set as input.
+    Constructor for the \refClass{cosmologicalMassVarianceFilteredPower} cosmological mass variance class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     use :: Error           , only : Error_Report
@@ -306,7 +306,7 @@ contains
 
   function filteredPowerConstructorInternal(sigma8,amplitudeScalar,cosmologicalMassVarianceReference,powerSpectrumPrimordialTransferredReference,wavenumberReference,tolerance,toleranceTopHat,nonMonotonicIsFatal,monotonicInterpolation,truncateAtParticleHorizon,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,transferFunction_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_,powerSpectrumWindowFunctionTopHat_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily filteredPower} linear growth class.
+    Internal constructor for the \refClass{cosmologicalMassVarianceFilteredPower} linear growth class.
     !!}
     use :: File_Utilities                 , only : Directory_Make                   , File_Path
     use :: Error                          , only : Error_Report
@@ -403,7 +403,7 @@ contains
 
   subroutine filteredPowerDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily filteredPower} linear growth class.
+    Destructor for the \refClass{cosmologicalMassVarianceFilteredPower} linear growth class.
     !!}
     implicit none
     type   (cosmologicalMassVarianceFilteredPower), intent(inout) :: self

@@ -38,7 +38,7 @@
 
   interface evolveForestsWorkShareStride
      !!{
-     Constructors for the {\normalfont \ttfamily stride} forest evolution work sharing class.
+     Constructors for the \refClass{evolveForestsWorkShareStride} forest evolution work sharing class.
      !!}
      module procedure strideConstructorParameters
      module procedure strideConstructorInternal
@@ -48,7 +48,7 @@ contains
 
   function strideConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily stride} forest evolution work sharing class which takes a parameter set as
+    Constructor for the \refClass{evolveForestsWorkShareStride} forest evolution work sharing class which takes a parameter set as
     input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -81,7 +81,7 @@ contains
 
   function strideConstructorInternal(stride,offset,evolveForestsWorkShare_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily stride} forest evolution work sharing class.
+    Internal constructor for the \refClass{evolveForestsWorkShareStride} forest evolution work sharing class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -98,7 +98,7 @@ contains
 
   subroutine strideDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily stride} forest evolution work sharing class.
+    Destructor for the \refClass{evolveForestsWorkShareStride} forest evolution work sharing class.
     !!}
     implicit none
     type(evolveForestsWorkShareStride), intent(inout) :: self

@@ -108,7 +108,7 @@ contains
 
   subroutine hearin2014SDSSDestructor(self)
     !!{
-    Destructor for the ``hearin2014SDSS'' survey geometry class.
+    Destructor for the \refClass{surveyGeometryHearin2014SDSS} survey geometry class.
     !!}
     implicit none
     type(surveyGeometryHearin2014SDSS), intent(inout) :: self

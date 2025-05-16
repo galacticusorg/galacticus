@@ -41,7 +41,7 @@ Implements a spheroid stellar mass output analysis property extractor class.
 
   interface nodePropertyExtractorMassStellarSpheroid
      !!{
-     Constructors for the {\normalfont \ttfamily massStellarSpheroid} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMassStellarSpheroid} output analysis class.
      !!}
      module procedure massStellarSpheroidConstructorParameters
   end interface nodePropertyExtractorMassStellarSpheroid
@@ -50,7 +50,7 @@ contains
 
   function massStellarSpheroidConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily massStellarSpheroid} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorMassStellarSpheroid} output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

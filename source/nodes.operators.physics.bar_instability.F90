@@ -49,7 +49,7 @@
 
   interface nodeOperatorBarInstability
      !!{
-     Constructors for the {\normalfont \ttfamily barInstability} node operator class.
+     Constructors for the \refClass{nodeOperatorBarInstability} node operator class.
      !!}
      module procedure barInstabilityConstructorParameters
      module procedure barInstabilityConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function barInstabilityConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily barInstability} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorBarInstability} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -90,7 +90,7 @@ contains
 
   function barInstabilityConstructorInternal(luminositiesStellarInactive,darkMatterHaloScale_,galacticDynamicsBarInstability_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily barInstability} node operator class.
+    Internal constructor for the \refClass{nodeOperatorBarInstability} node operator class.
     !!}
     implicit none
     type   (nodeOperatorBarInstability         )                        :: self
@@ -106,7 +106,7 @@ contains
 
   subroutine barInstabilityDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily barInstability} node operator class.
+    Destructor for the \refClass{nodeOperatorBarInstability} node operator class.
     !!}
     implicit none
     type(nodeOperatorBarInstability), intent(inout) :: self

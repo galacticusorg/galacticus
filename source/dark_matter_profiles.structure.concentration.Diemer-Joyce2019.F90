@@ -75,7 +75,7 @@
 
   interface darkMatterProfileConcentrationDiemerJoyce2019
      !!{
-     Constructors for the {\normalfont \ttfamily diemerJoyce2019} dark matter halo profile concentration class.
+     Constructors for the \refClass{darkMatterProfileConcentrationDiemerJoyce2019} dark matter halo profile concentration class.
      !!}
      module procedure diemerJoyce2019ConstructorParameters
      module procedure diemerJoyce2019ConstructorInternal
@@ -189,7 +189,7 @@ contains
 
   function diemerJoyce2019ConstructorInternal(kappa,a0,a1,b0,b1,cAlpha,scatter,truncateConcentration,includeUpturn,truncateUpturn,cosmologyFunctions_,cosmologyParameters_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily diemerJoyce2019} dark matter halo profile
+    Constructor for the \refClass{darkMatterProfileConcentrationDiemerJoyce2019} dark matter halo profile
     concentration class.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
@@ -267,7 +267,7 @@ contains
 
   subroutine diemerJoyce2019Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily diemerJoyce2019} dark matter halo profile concentration class.
+    Destructor for the \refClass{darkMatterProfileConcentrationDiemerJoyce2019} dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationDiemerJoyce2019), intent(inout) :: self

@@ -37,7 +37,7 @@ Implements a depth-first merger tree walker over all isolated nodes.
 
   interface mergerTreeWalkerIsolatedNodes
      !!{
-     Constructors for the {\normalfont \ttfamily isolatedNodes} merger tree walker class.
+     Constructors for the \refClass{mergerTreeWalkerIsolatedNodes} merger tree walker class.
      !!}
      module procedure isolatedNodesParameters
      module procedure isolatedNodesInternal
@@ -47,7 +47,7 @@ contains
 
   function isolatedNodesParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily isolatedNodes} merger tree walker class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeWalkerIsolatedNodes} merger tree walker class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameters
@@ -62,7 +62,7 @@ contains
 
   function isolatedNodesInternal(tree,spanForest) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily isolatedNodes} merger tree walker class.
+    Internal constructor for the \refClass{mergerTreeWalkerIsolatedNodes} merger tree walker class.
     !!}
     implicit none
     type(mergerTreeWalkerIsolatedNodes)                          :: self

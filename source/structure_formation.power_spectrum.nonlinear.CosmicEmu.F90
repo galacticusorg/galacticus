@@ -59,7 +59,7 @@ code of \cite{lawrence_coyote_2010}.
 
   interface powerSpectrumNonlinearCosmicEmu
      !!{
-     Constructors for the {\normalfont \ttfamily CosmicEmu} nonlinear power spectrum class.
+     Constructors for the \refClass{powerSpectrumNonlinearCosmicEmu} nonlinear power spectrum class.
      !!}
      module procedure cosmicEmuConstructorParameters
      module procedure cosmicEmuConstructorInternal
@@ -105,7 +105,7 @@ contains
 
   function cosmicEmuConstructorInternal(cosmologyFunctions_,cosmologyParameters_,powerSpectrumPrimordial_,cosmologicalMassVariance_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily CosmicEmu} nonlinear power spectrum class.
+    Internal constructor for the \refClass{powerSpectrumNonlinearCosmicEmu} nonlinear power spectrum class.
     !!}
     use :: Error               , only : Error_Report
     use :: Numerical_Comparison, only : Values_Differ
@@ -151,7 +151,7 @@ contains
 
   subroutine cosmicEmuDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily CosmicEmu} nonlinear power spectrum class.
+    Destructor for the \refClass{powerSpectrumNonlinearCosmicEmu} nonlinear power spectrum class.
     !!}
     implicit none
     type(powerSpectrumNonlinearCosmicEmu), intent(inout) :: self

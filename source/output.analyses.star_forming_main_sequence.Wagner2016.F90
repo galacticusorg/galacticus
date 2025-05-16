@@ -68,7 +68,7 @@
 
   interface outputAnalysisStarFormingMainSequenceWagner2016
      !!{
-     Constructors for the {\normalfont \ttfamily starFormingMainSequenceWagner2016} output analysis class.
+     Constructors for the \refClass{outputAnalysisStarFormingMainSequenceWagner2016} output analysis class.
      !!}
      module procedure starFormingMainSequenceWagner2016ConstructorParameters
      module procedure starFormingMainSequenceWagner2016ConstructorInternal
@@ -78,7 +78,7 @@ contains
 
   function starFormingMainSequenceWagner2016ConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily starFormingMainSequenceWagner2016} output analysis class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisStarFormingMainSequenceWagner2016} output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Parameters   , only : cosmologyParameters       , cosmologyParametersClass
     use :: Cosmology_Functions    , only : cosmologyFunctions        , cosmologyFunctionsClass
@@ -180,7 +180,7 @@ contains
 
   function starFormingMainSequenceWagner2016ConstructorInternal(redshiftRange,galaxyType,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily starFormingMainSequenceWagner2016} output analysis class.
+    Internal constructor for the \refClass{outputAnalysisStarFormingMainSequenceWagner2016} output analysis class.
     !!}
     use :: Error                                 , only : Error_Report
     use :: Cosmology_Functions                   , only : cosmologyFunctionsMatterLambda
@@ -435,7 +435,7 @@ contains
 
   subroutine starFormingMainSequenceWagner2016Destructor(self)
     !!{
-    Destructor for the ``starFormingMainSequenceWagner2016 output analysis class.
+    Destructor for the \refClass{outputAnalysisStarFormingMainSequenceWagner2016} output analysis class.
     !!}
     implicit none
     type(outputAnalysisStarFormingMainSequenceWagner2016), intent(inout) :: self

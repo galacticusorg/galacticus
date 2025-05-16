@@ -77,7 +77,7 @@
   
   interface blackHoleWindCiotti2009
      !!{
-     Constructors for the {\normalfont \ttfamily ciotti2009} black hole winds class.
+     Constructors for the \refClass{blackHoleWindCiotti2009} black hole winds class.
      !!}
      module procedure ciotti2009ConstructorParameters
      module procedure ciotti2009ConstructorInternal
@@ -87,7 +87,7 @@ contains
 
   function ciotti2009ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily ciotti2009} black hole winds class which takes a parameter list as input.
+    Constructor for the \refClass{blackHoleWindCiotti2009} black hole winds class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -125,7 +125,7 @@ contains
 
   function ciotti2009ConstructorInternal(efficiencyWind,efficiencyWindScalesWithEfficiencyRadiative,blackHoleAccretionRate_,accretionDisks_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily ciotti2009} node operator class.
+    Internal constructor for the \refClass{blackHoleWindCiotti2009} node operator class.
     !!}
     implicit none
     type            (blackHoleWindCiotti2009    )                        :: self

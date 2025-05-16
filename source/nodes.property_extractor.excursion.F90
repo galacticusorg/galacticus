@@ -40,7 +40,7 @@
 
   interface nodePropertyExtractorExcursion
      !!{
-     Constructors for the {\normalfont \ttfamily excursion} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorExcursion} output extractor class.
      !!}
      module procedure excursionConstructorParameters
      module procedure excursionConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function excursionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily excursion} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorExcursion} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,7 +66,7 @@ contains
 
   function excursionConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily excursion} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorExcursion} output extractor property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorExcursion) :: self

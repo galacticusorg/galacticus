@@ -56,7 +56,7 @@
 
   interface outputAnalysisSatelliteVelocityMaximum
      !!{
-     Constructors for the {\normalfont \ttfamily satelliteVelocityMaximum} output analysis class.
+     Constructors for the \refClass{outputAnalysisSatelliteVelocityMaximum} output analysis class.
      !!}
      module procedure satelliteVelocityMaximumConstructorParameters
      module procedure satelliteVelocityMaximumConstructorInternal
@@ -66,7 +66,7 @@ contains
 
   function satelliteVelocityMaximumConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily satelliteVelocityMaximum} output analysis class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisSatelliteVelocityMaximum} output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     use :: Output_Times    , only : outputTimesClass
@@ -106,7 +106,7 @@ contains
   
   function satelliteVelocityMaximumConstructorInternal(fileName,relativeModelUncertainty,darkMatterProfileDMO_,darkMatterProfileDMOUnheated,outputTimes_) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily satelliteVelocityMaximum} output analysis class for internal use.
+    Constructor for the \refClass{outputAnalysisSatelliteVelocityMaximum} output analysis class for internal use.
     !!}
     use :: HDF5_Access            , only : hdf5Access
     use :: IO_HDF5                , only : hdf5Object
@@ -160,7 +160,7 @@ contains
 
   subroutine satelliteVelocityMaximumDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily satelliteVelocityMaximum} output analysis class.
+    Destructor for the \refClass{outputAnalysisSatelliteVelocityMaximum} output analysis class.
     !!}
     !$ use :: OMP_Lib, only : OMP_Destroy_Lock
     implicit none

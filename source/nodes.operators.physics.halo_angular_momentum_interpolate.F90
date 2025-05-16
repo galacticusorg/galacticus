@@ -48,7 +48,7 @@
   
   interface nodeOperatorHaloAngularMomentumInterpolate
      !!{
-     Constructors for the {\normalfont \ttfamily haloAngularMomentumInterpolate} node operator class.
+     Constructors for the \refClass{nodeOperatorHaloAngularMomentumInterpolate} node operator class.
      !!}
      module procedure haloAngMomInterpolateConstructorParameters
   end interface nodeOperatorHaloAngularMomentumInterpolate
@@ -57,7 +57,7 @@ contains
   
   function haloAngMomInterpolateConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily haloAngularMomentumInterpolate} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorHaloAngularMomentumInterpolate} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

@@ -67,7 +67,7 @@
 
   interface massDistributionSersic
      !!{
-     Constructors for the {\normalfont \ttfamily sersic} mass distribution class.
+     Constructors for the \refClass{massDistributionSersic} mass distribution class.
      !!}
      module procedure sersicConstructorParameters
      module procedure sersicConstructorInternal
@@ -84,7 +84,7 @@ contains
 
   function sersicConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sersic} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionSersic} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters

@@ -58,7 +58,7 @@
   
   interface nodeOperatorGalaxyMergerTree
      !!{
-     Constructors for the {\normalfont \ttfamily galaxyMergerTree} node operator class.
+     Constructors for the \refClass{nodeOperatorGalaxyMergerTree} node operator class.
      !!}
      module procedure galaxyMergerTreeConstructorParameters
      module procedure galaxyMergerTreeConstructorInternal
@@ -68,7 +68,7 @@ contains
 
   function galaxyMergerTreeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily galaxyMergerTree} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorGalaxyMergerTree} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -108,7 +108,7 @@ contains
 
   function galaxyMergerTreeConstructorInternal(timeStep,extractors) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily galaxyMergerTree} node operator class.
+    Internal constructor for the \refClass{nodeOperatorGalaxyMergerTree} node operator class.
     !!}
     implicit none
     type            (nodeOperatorGalaxyMergerTree)                         :: self
@@ -174,7 +174,7 @@ contains
   
   subroutine galaxyMergerTreeDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily galaxyMergerTree} node operator class.
+    Destructor for the \refClass{nodeOperatorGalaxyMergerTree} node operator class.
     !!}
     use :: Events_Hooks, only : satelliteMergerEvent
     implicit none

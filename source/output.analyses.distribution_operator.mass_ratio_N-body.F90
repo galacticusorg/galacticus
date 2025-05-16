@@ -53,7 +53,7 @@ contains
 
   function massRatioNBodyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily massRatioNBody} output analysis weight operator class which takes a parameter
+    Constructor for the \refClass{outputAnalysisDistributionOperatorMassRatioNBody} output analysis weight operator class which takes a parameter
     set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -94,7 +94,7 @@ contains
 
   function massRatioNBodyConstructorInternal(massParentMinimum,massParentMaximum,timeParent,nbodyHaloMassError_,galacticFilter_) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily massRatioNBody} output analysis distribution operator class.
+    Internal constructor for the \refClass{outputAnalysisDistributionOperatorMassRatioNBody} output analysis distribution operator class.
     !!}
     use :: Error                   , only : Error_Report
     use :: Node_Property_Extractors, only : nodePropertyExtractorClass, nodePropertyExtractorScalar
@@ -113,7 +113,7 @@ contains
 
   subroutine massRatioNBodyDestructor(self)
     !!{
-    Destructor for  the {\normalfont \ttfamily massRatioNBody} output analysis weight operator class.
+    Destructor for the \refClass{outputAnalysisDistributionOperatorMassRatioNBody} output analysis weight operator class.
     !!}
     type(outputAnalysisDistributionOperatorMassRatioNBody), intent(inout) :: self
 

@@ -50,7 +50,7 @@
 
   interface hiiRegionDensityDistributionLogNormal
      !!{
-     Constructors for the {\normalfont \ttfamily hiiRegionDensityDistributionLogNormal} HII region density distribution class.
+     Constructors for the \refClass{hiiRegionDensityDistributionLogNormal} HII region density distribution class.
      !!}
      module procedure logNormalConstructorParameters
      module procedure logNormalConstructorInternal
@@ -107,7 +107,7 @@ contains
 
   function logNormalConstructorInternal(densityHydrogenReference,sigma,densityHydrogenMinimum,densityHydrogenMaximum) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily hiiRegionDensityDistributionLogNormal} class.
+    Internal constructor for the \refClass{hiiRegionDensityDistributionLogNormal} class.
     !!}
     implicit none
     type            (hiiRegionDensityDistributionLogNormal)                :: self

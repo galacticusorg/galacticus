@@ -51,7 +51,7 @@
 
   interface nuclearStarClusterGrowthRatesAntonini2015
      !!{
-     Constructors for the {\normalfont \ttfamily antonini2015} gas inflow rate in \glspl{nsc} class.
+     Constructors for the \refClass{nuclearStarClusterGrowthRatesAntonini2015} gas inflow rate in \glspl{nsc} class.
      !!}
      module procedure antonini2015ConstructorParameters
      module procedure antonini2015ConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function antonini2015ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily antonini2015} gas inflow rate in \glspl{nsc} class which takes a parameter set as input.
+    Constructor for the \refClass{nuclearStarClusterGrowthRatesAntonini2015} gas inflow rate in \glspl{nsc} class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -90,7 +90,7 @@ contains
 
   function antonini2015ConstructorInternal(efficiency,starFormationRateSpheroids_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily antonini2015} gas inflow rate from NSCs class.
+    Internal constructor for the \refClass{nuclearStarClusterGrowthRatesAntonini2015} gas inflow rate from NSCs class.
     !!}
     implicit none
     type            (nuclearStarClusterGrowthRatesAntonini2015)                        :: self
@@ -104,7 +104,7 @@ contains
 
   subroutine antonini2015Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily NuclearStarClusterGrowth} class
+    Destructor for the \refClass{nuclearStarClusterGrowthRatesAntonini2015} class
     !!}
     implicit none
     type(nuclearStarClusterGrowthRatesAntonini2015), intent(inout) :: self

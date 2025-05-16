@@ -45,7 +45,7 @@ Implements an N-body data operator which computes the inertia tensor eigenvalues
 
   interface nbodyOperatorInertiaTensor
      !!{
-     Constructors for the {\normalfont \ttfamily inertiaTensor} N-body operator class.
+     Constructors for the \refClass{nbodyOperatorInertiaTensor} N-body operator class.
      !!}
      module procedure inertiaTensorConstructorParameters
      module procedure inertiaTensorConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function inertiaTensorConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily inertiaTensor} N-body operator class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyOperatorInertiaTensor} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter  , inputParameters
     implicit none
@@ -95,7 +95,7 @@ contains
 
   function inertiaTensorConstructorInternal(radiusMaximum,selfBoundParticlesOnly,bootstrapSampleCount,randomNumberGenerator_) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily inertiaTensor} N-body operator class.
+    Internal constructor for the \refClass{nbodyOperatorInertiaTensor} N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorInertiaTensor)                        :: self
@@ -112,7 +112,7 @@ contains
 
   subroutine inertiaTensorDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily inertiaTensor} N-body operator class.
+    Destructor for the \refClass{nbodyOperatorInertiaTensor} N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorInertiaTensor), intent(inout) :: self

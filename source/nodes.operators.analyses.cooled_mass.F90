@@ -46,7 +46,7 @@
   
   interface nodeOperatorMassCooled
      !!{
-     Constructors for the {\normalfont \ttfamily massCooled} node operator class.
+     Constructors for the \refClass{nodeOperatorMassCooled} node operator class.
      !!}
      module procedure massCooledConstructorParameters
      module procedure massCooledConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function massCooledConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily massCooled} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorMassCooled} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function massCooledConstructorInternal(coolingRate_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily massCooled} node operator class.
+    Internal constructor for the \refClass{nodeOperatorMassCooled} node operator class.
     !!}
     implicit none
     type (nodeOperatorMassCooled)                        :: self
@@ -94,7 +94,7 @@ contains
 
   subroutine massCooledDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily massCooled} node operator class.
+    Destructor for the \refClass{nodeOperatorMassCooled} node operator class.
     !!}
     implicit none
     type(nodeOperatorMassCooled), intent(inout) :: self

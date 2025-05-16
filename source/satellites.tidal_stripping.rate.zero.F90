@@ -40,7 +40,7 @@
 
   interface satelliteTidalStrippingZero
      !!{
-     Constructors for the {\normalfont \ttfamily zero} satellite tidal stripping class.
+     Constructors for the \refClass{satelliteTidalStrippingZero} satellite tidal stripping class.
      !!}
      module procedure zeroConstructorParameters
   end interface satelliteTidalStrippingZero
@@ -49,7 +49,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily zero} satellite tidal stripping class which builds the object from a parameter set.
+    Constructor for the \refClass{satelliteTidalStrippingZero} satellite tidal stripping class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

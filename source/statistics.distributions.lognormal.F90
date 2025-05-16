@@ -47,7 +47,7 @@
 
   interface distributionFunction1DLogNormal
      !!{
-     Constructors for the {\normalfont \ttfamily normal} 1D distribution function class.
+     Constructors for the \refClass{distributionFunction1DLogNormal} 1D distribution function class.
      !!}
      module procedure logNormalConstructorParameters
      module procedure logNormalConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function logNormalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily normal} 1D distribution function class which builds the object from a parameter
+    Constructor for the \refClass{distributionFunction1DLogNormal} 1D distribution function class which builds the object from a parameter
     set.
     !!}
     use :: Error           , only : Error_Report
@@ -132,7 +132,7 @@ contains
 
   function logNormalConstructorInternal(mean,variance,x0,sigma,limitLower,limitUpper,randomNumberGenerator_) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily normal} 1D distribution function class.
+    Constructor for the \refClass{distributionFunction1DLogNormal} 1D distribution function class.
     !!}
     use :: Error, only : Error_Report
     implicit none

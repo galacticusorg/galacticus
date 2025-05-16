@@ -72,7 +72,7 @@
 
   interface nodePropertyExtractorLmnstyEmssnLineAGN
      !!{
-     Constructors for the ``lmnstyEmssnLineAGN'' output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorLmnstyEmssnLineAGN} output analysis class.
      !!}
      module procedure lmnstyEmssnLineAGNConstructorParameters
      module procedure lmnstyEmssnLineAGNConstructorInternal
@@ -93,7 +93,7 @@
 contains
   function lmnstyEmssnLineAGNConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``lmnstyEmssnLineAGN'' output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorLmnstyEmssnLineAGN} output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -156,7 +156,7 @@ contains
 
   function lmnstyEmssnLineAGNConstructorInternal(accretionDisks_,blackHoleAccretionRate_,outputTimes_,atomicRecombinationRateRadiative_,lineNames,indexSpectralShortWavelength,factorFillingVolume,densityHydrogen_,temperature,outputMask) result(self)
     !!{
-    Internal constructor for the ``lmnstyEmssnLineAGN'' output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorLmnstyEmssnLineAGN} output analysis property extractor class.
     !!}
     use            :: Error                         , only : Error_Report
     use            :: Input_Paths                   , only : inputPath             , pathTypeDataStatic
@@ -283,7 +283,7 @@ contains
 
   subroutine lmnstyEmssnLineAGNDestructor(self)
     !!{
-    Destructor for the ``lmnstyEmssnLineAGN'' output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorLmnstyEmssnLineAGN} output analysis property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout) :: self

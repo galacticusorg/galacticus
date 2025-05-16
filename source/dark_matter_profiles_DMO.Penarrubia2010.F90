@@ -54,7 +54,7 @@
 
   interface darkMatterProfileDMOPenarrubia2010
      !!{
-     Constructors for the {\normalfont \ttfamily penarrubia2010} dark matter halo profile class.
+     Constructors for the \refClass{darkMatterProfileDMOPenarrubia2010} dark matter halo profile class.
      !!}
      module procedure penarrubia2010ConstructorParameters
      module procedure penarrubia2010ConstructorInternal
@@ -138,7 +138,7 @@ contains
 
   function penarrubia2010ConstructorInternal(alpha,beta,gamma,betaStripped,muRadius,etaRadius,muVelocity,etaVelocity,darkMatterHaloScale_) result(self)
     !!{
-    Generic constructor for the {\normalfont \ttfamily penarrubia2010} dark matter halo profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOPenarrubia2010} dark matter halo profile class.
     !!}
     use :: Mass_Distributions, only : massDistributionZhao1996
     implicit none
@@ -168,7 +168,7 @@ contains
 
   subroutine penarrubia2010Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily penarrubia2010} dark matter halo profile class.
+    Destructor for the \refClass{darkMatterProfileDMOPenarrubia2010} dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOPenarrubia2010), intent(inout) :: self

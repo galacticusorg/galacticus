@@ -42,7 +42,7 @@ Implements an ISM metallicity output analysis property extractor class.
 
   interface nodePropertyExtractorMetallicityISM
      !!{
-     Constructors for the {\normalfont \ttfamily metallicityISM} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMetallicityISM} output analysis class.
      !!}
      module procedure metallicityISMConstructorParameters
      module procedure metallicityISMConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function metallicityISMConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily metallicityISM} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorMetallicityISM} output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Abundances_Structure, only : Abundances_Index_From_Name
     use :: Input_Parameters    , only : inputParameter            , inputParameters
@@ -81,7 +81,7 @@ contains
 
   function metallicityISMConstructorInternal(indexElement) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily metallicityISM} output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorMetallicityISM} output analysis property extractor class.
     !!}
     use :: Abundances_Structure, only : Abundances_Names
     implicit none

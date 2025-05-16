@@ -45,7 +45,7 @@
 
   interface haloSpinDistributionDeltaFunction
      !!{
-     Constructors for the {\normalfont \ttfamily deltaFunction} dark matter halo spin
+     Constructors for the \refClass{haloSpinDistributionDeltaFunction} dark matter halo spin
      distribution class.
      !!}
      module procedure deltaFunctionConstructorParameters
@@ -56,7 +56,7 @@ contains
 
   function deltaFunctionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily deltaFunction} dark matter halo spin
+    Constructor for the \refClass{haloSpinDistributionDeltaFunction} dark matter halo spin
     distribution class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -83,7 +83,7 @@ contains
 
   function deltaFunctionConstructorInternal(spin) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily deltaFunction} dark matter halo spin
+    Internal constructor for the \refClass{haloSpinDistributionDeltaFunction} dark matter halo spin
     distribution class.
     !!}
     implicit none

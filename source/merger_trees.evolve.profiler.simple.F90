@@ -69,7 +69,7 @@
 
   interface mergerTreeEvolveProfilerSimple
      !!{
-     Constructors for the {\normalfont \ttfamily simple} merger tree evolve profiler class.
+     Constructors for the \refClass{mergerTreeEvolveProfilerSimple} merger tree evolve profiler class.
      !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
@@ -79,7 +79,7 @@ contains
   
   function simpleConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily simple} merger tree evolve profiler class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeEvolveProfilerSimple} merger tree evolve profiler class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

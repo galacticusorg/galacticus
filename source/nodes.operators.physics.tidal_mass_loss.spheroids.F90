@@ -41,7 +41,7 @@
   
   interface nodeOperatorTidalMassLossSpheroids
      !!{
-     Constructors for the {\normalfont \ttfamily tidalMassLossSpheroids} node operator class.
+     Constructors for the \refClass{nodeOperatorTidalMassLossSpheroids} node operator class.
      !!}
      module procedure tidalMassLossSpheroidsConstructorParameters
      module procedure tidalMassLossSpheroidsConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function tidalMassLossSpheroidsConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily tidalMassLossSpheroids} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorTidalMassLossSpheroids} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -72,7 +72,7 @@ contains
 
   function tidalMassLossSpheroidsConstructorInternal(tidalStripping_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily tidalMassLossSpheroids} node operator class.
+    Internal constructor for the \refClass{nodeOperatorTidalMassLossSpheroids} node operator class.
     !!}
     implicit none
     type (nodeOperatorTidalMassLossSpheroids)                        :: self
@@ -86,7 +86,7 @@ contains
 
   subroutine tidalMassLossSpheroidsDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily tidalMassLossSpheroids} node operator class.
+    Destructor for the \refClass{nodeOperatorTidalMassLossSpheroids} node operator class.
     !!}
     implicit none
     type(nodeOperatorTidalMassLossSpheroids), intent(inout) :: self

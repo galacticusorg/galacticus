@@ -67,7 +67,7 @@
 
   interface mergerTreeOperatorAugment
      !!{
-     Constructors for the {\normalfont \ttfamily augment} merger tree operator class.
+     Constructors for the \refClass{mergerTreeOperatorAugment} merger tree operator class.
      !!}
      module procedure augmentConstructorParameters
      module procedure augmentConstructorInternal
@@ -101,7 +101,7 @@ contains
 
   function augmentConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily augment} merger tree operator class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeOperatorAugment} merger tree operator class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -221,7 +221,7 @@ contains
 
   function augmentConstructorInternal(massCutOff,performChecks,toleranceScale,retryMaximum,rescaleMaximum,attemptsMaximum,massCutOffAttemptsMaximum,massCutOffScaleFactor,massOvershootAttemptsMaximum,massOvershootScaleFactor,useOneNodeTrees,mergerTreeBuilder_,cosmologyFunctions_,timeSnapshots) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily augment} merger tree operator class.
+    Internal constructor for the \refClass{mergerTreeOperatorAugment} merger tree operator class.
     !!}
     use :: Cosmology_Functions, only : cosmologyFunctionsClass
     use :: Sorting            , only : sort

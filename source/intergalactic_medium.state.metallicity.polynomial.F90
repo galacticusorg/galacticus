@@ -49,7 +49,7 @@
 
   interface intergalacticMediumStateMetallicityPolynomial
      !!{
-     Constructors for the {\normalfont \ttfamily metallicityPolynomial} intergalactic medium state class.
+     Constructors for the \refClass{intergalacticMediumStateMetallicityPolynomial} intergalactic medium state class.
      !!}
      module procedure metallicityPolynomialIGMConstructorParameters
      module procedure metallicityPolynomialIGMConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function metallicityPolynomialIGMConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily metallicityPolynomial} \gls{igm} state class which takes a parameter set as input.
+    Constructor for the \refClass{intergalacticMediumStateMetallicityPolynomial} \gls{igm} state class which takes a parameter set as input.
     !!}
     use :: Input_Parameters                , only : inputParameter  , inputParameters
     implicit none
@@ -92,7 +92,7 @@ contains
 
   function metallicityPolynomialIGMConstructorInternal(coefficients,cosmologyFunctions_,intergalacticMediumState_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily metallicityPolynomial} \gls{igm} state class.
+    Constructor for the \refClass{intergalacticMediumStateMetallicityPolynomial} \gls{igm} state class.
     !!}
     implicit none
     type            (intergalacticMediumStateMetallicityPolynomial)                        :: self

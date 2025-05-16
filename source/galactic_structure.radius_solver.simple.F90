@@ -56,7 +56,7 @@
 
   interface galacticStructureSolverSimple
      !!{
-     Constructors for the {\normalfont \ttfamily simple} galactic structure solver class.
+     Constructors for the \refClass{galacticStructureSolverSimple} galactic structure solver class.
      !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
@@ -66,7 +66,7 @@ contains
 
   function simpleConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily simple} galactic structure solver class which takes a
+    Constructor for the \refClass{galacticStructureSolverSimple} galactic structure solver class which takes a
     parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -101,7 +101,7 @@ contains
 
   function simpleConstructorInternal(useFormationHalo,solveForInactiveProperties,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily simple} galactic structure solver class.
+    Internal constructor for the \refClass{galacticStructureSolverSimple} galactic structure solver class.
     !!}
     implicit none
     type   (galacticStructureSolverSimple)                        :: self
@@ -134,7 +134,7 @@ contains
 
   subroutine simpleDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily simple} galactic structure solver class.
+    Destructor for the \refClass{galacticStructureSolverSimple} galactic structure solver class.
     !!}
     use :: Events_Hooks, only : nodePromotionEvent, postEvolveEvent, preDerivativeEvent, satelliteMergerEvent
     implicit none

@@ -41,7 +41,7 @@ Implements a cosmic time output analysis property extractor class.
 
   interface nodePropertyExtractorTimeFirstInfall
      !!{
-     Constructors for the {\normalfont \ttfamily timeFirstInfall} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorTimeFirstInfall} output analysis class.
      !!}
      module procedure timeFirstInfallConstructorParameters
      module procedure timeFirstInfallConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function timeFirstInfallConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily timeFirstInfall} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorTimeFirstInfall} output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -67,7 +67,7 @@ contains
 
   function timeFirstInfallConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily timeFirstInfall} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorTimeFirstInfall} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorTimeFirstInfall) :: self

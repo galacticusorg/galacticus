@@ -46,7 +46,7 @@ Implements a tidal radius property extractor class.
 
   interface nodePropertyExtractorRadiusTidal
      !!{
-     Constructors for the {\normalfont \ttfamily radiusTidal} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusTidal} output analysis class.
      !!}
      module procedure radiusTidalConstructorParameters
      module procedure radiusTidalConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function radiusTidalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily radiusTidal} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorRadiusTidal} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function radiusTidalConstructorInternal(satelliteTidalStrippingRadius_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily radiusTidal} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorRadiusTidal} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorRadiusTidal  )                        :: self
@@ -91,7 +91,7 @@ contains
 
   subroutine radiusTidalDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily radiusTidal} property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorRadiusTidal} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRadiusTidal), intent(inout) :: self

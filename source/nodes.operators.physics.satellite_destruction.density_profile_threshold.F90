@@ -47,7 +47,7 @@
   
   interface nodeOperatorSatelliteDestructionDensityProfileThreshold
      !!{
-     Constructors for the {\normalfont \ttfamily satelliteDestructionDensityProfileThreshold} node operator class.
+     Constructors for the \refClass{nodeOperatorSatelliteDestructionDensityProfileThreshold} node operator class.
      !!}
      module procedure satelliteDestructionDensityProfileThresholdCnstrctrPrmtrs
      module procedure satelliteDestructionDensityProfileThresholdCnstrctrIntrnl
@@ -61,7 +61,7 @@ contains
 
   function satelliteDestructionDensityProfileThresholdCnstrctrPrmtrs(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily satelliteDestructionDensityProfileThreshold} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorSatelliteDestructionDensityProfileThreshold} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -88,7 +88,7 @@ contains
 
   function satelliteDestructionDensityProfileThresholdCnstrctrIntrnl(fractionDensityProfileVirialFraction,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily satelliteDestructionDensityProfileThreshold} node operator class.
+    Internal constructor for the \refClass{nodeOperatorSatelliteDestructionDensityProfileThreshold} node operator class.
     !!}
     implicit none
     type            (nodeOperatorSatelliteDestructionDensityProfileThreshold)                        :: self
@@ -103,7 +103,7 @@ contains
 
   subroutine satelliteDestructionDensityProfileThresholdDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily satelliteDestructionDensityProfileThreshold} node operator class.
+    Destructor for the \refClass{nodeOperatorSatelliteDestructionDensityProfileThreshold} node operator class.
     !!}
     implicit none
     type(nodeOperatorSatelliteDestructionDensityProfileThreshold), intent(inout) :: self

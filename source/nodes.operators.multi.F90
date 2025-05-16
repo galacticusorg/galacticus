@@ -65,7 +65,7 @@
 
   interface nodeOperatorMulti
      !!{
-     Constructors for the {\normalfont \ttfamily multi} node operator class.
+     Constructors for the \refClass{nodeOperatorMulti} node operator class.
      !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
@@ -75,7 +75,7 @@ contains
 
   function multiConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily multi} node operator property process class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorMulti} node operator property process class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -106,7 +106,7 @@ contains
 
   function multiConstructorInternal(processes) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily multi} output process property process class.
+    Internal constructor for the \refClass{nodeOperatorMulti} output process property process class.
     !!}
     implicit none
     type(nodeOperatorMulti)                         :: self
@@ -126,7 +126,7 @@ contains
 
   subroutine multiDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily multi} output process property process class.
+    Destructor for the \refClass{nodeOperatorMulti} output process property process class.
     !!}
     implicit none
     type(nodeOperatorMulti), intent(inout) :: self

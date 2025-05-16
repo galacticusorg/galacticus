@@ -56,7 +56,7 @@
 
   interface initialMassFunctionPiecewisePowerLaw
      !!{
-     Constructors for the {\normalfont \ttfamily piecewisePowerLaw} initial mass function class.
+     Constructors for the \refClass{initialMassFunctionPiecewisePowerLaw} initial mass function class.
      !!}
      module procedure piecewisePowerLawConstructorParameters
      module procedure piecewisePowerLawConstructorInternal
@@ -66,7 +66,7 @@ contains
 
   function piecewisePowerLawConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily piecewisePowerLaw} initial mass function class which takes a parameter list as input.
+    Constructor for the \refClass{initialMassFunctionPiecewisePowerLaw} initial mass function class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -102,7 +102,7 @@ contains
 
   function piecewisePowerLawConstructorInternal(mass,exponent) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily piecewisePowerLaw} initial mass function.
+    Internal constructor for the \refClass{initialMassFunctionPiecewisePowerLaw} initial mass function.
     !!}
     use :: Array_Utilities, only : Array_Is_Monotonic, directionIncreasing
     use :: Error          , only : Error_Report

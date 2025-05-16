@@ -68,7 +68,7 @@
 
   interface virialOrbitBenson2005
      !!{
-     Constructors for the {\normalfont \ttfamily benson2005} virial orbit class.
+     Constructors for the \refClass{virialOrbitBenson2005} virial orbit class.
      !!}
      module procedure benson2005ConstructorParameters
      module procedure benson2005ConstructorInternal
@@ -78,7 +78,7 @@ contains
 
   function benson2005ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily benson2005} virial orbits class which takes a parameter set as input.
+    Constructor for the \refClass{virialOrbitBenson2005} virial orbits class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -111,7 +111,7 @@ contains
 
   function benson2005ConstructorInternal(darkMatterHaloScale_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily benson2005} virial orbits class.
+    Internal constructor for the \refClass{virialOrbitBenson2005} virial orbits class.
     !!}
     use :: Virial_Density_Contrast, only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
     implicit none
@@ -134,7 +134,7 @@ contains
 
   subroutine benson2005Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily benson2005} virial orbits class.
+    Destructor for the \refClass{virialOrbitBenson2005} virial orbits class.
     !!}
     implicit none
     type(virialOrbitBenson2005), intent(inout) :: self

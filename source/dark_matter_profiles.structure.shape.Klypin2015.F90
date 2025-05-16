@@ -54,7 +54,7 @@
 
   interface darkMatterProfileShapeKlypin2015
      !!{
-     Constructors for the {\normalfont \ttfamily klypin2015} dark matter halo profile shape parameter class.
+     Constructors for the \refClass{darkMatterProfileShapeKlypin2015} dark matter halo profile shape parameter class.
      !!}
      module procedure klypin2015ConstructorParameters
      module procedure klypin2015ConstructorInternal
@@ -96,7 +96,7 @@ contains
 
   function klypin2015ConstructorInternal(sample,criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily klypin2015} dark matter halo profile
+    Constructor for the \refClass{darkMatterProfileShapeKlypin2015} dark matter halo profile
     shape class.
     !!}
     use :: Error, only : Error_Report
@@ -115,7 +115,7 @@ contains
 
   subroutine klypin2015Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily klypin2015} dark matter halo profile shape class.
+    Destructor for the \refClass{darkMatterProfileShapeKlypin2015} dark matter halo profile shape class.
     !!}
     implicit none
     type(darkMatterProfileShapeKlypin2015), intent(inout) :: self

@@ -68,7 +68,7 @@
 
   interface cosmologicalVelocityFieldFilteredPower
      !!{
-     Constructors for the {\normalfont \ttfamily filteredPower} cosmological mass variance class.
+     Constructors for the \refClass{cosmologicalVelocityFieldFilteredPower} cosmological mass variance class.
      !!}
      module procedure filteredPowerConstructorParameters
      module procedure filteredPowerConstructorInternal
@@ -78,7 +78,7 @@ contains
 
   function filteredPowerConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily filteredPower} cosmological mass variance class which takes a parameter set as input.
+    Constructor for the \refClass{cosmologicalVelocityFieldFilteredPower} cosmological mass variance class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -121,7 +121,7 @@ contains
 
   function filteredPowerConstructorInternal(wavenumberMaximum,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,powerSpectrum_,powerSpectrumWindowFunction_,correlationFunctionTwoPoint_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily filteredPower} linear growth class.
+    Internal constructor for the \refClass{cosmologicalVelocityFieldFilteredPower} linear growth class.
     !!}
     implicit none
     type            (cosmologicalVelocityFieldFilteredPower)                        :: self
@@ -141,7 +141,7 @@ contains
 
   subroutine filteredPowerDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily filteredPower} linear growth class.
+    Destructor for the \refClass{cosmologicalVelocityFieldFilteredPower} linear growth class.
     !!}
     implicit none
     type   (cosmologicalVelocityFieldFilteredPower), intent(inout) :: self

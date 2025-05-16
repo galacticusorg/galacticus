@@ -42,7 +42,7 @@
 
   interface nodePropertyExtractorRadiusBlackHoles
      !!{
-     Constructors for the {\normalfont \ttfamily radiusBlackHoles} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusBlackHoles} output extractor class.
      !!}
     module procedure radiusBlackHolesConstructorParameters
   end interface nodePropertyExtractorRadiusBlackHoles
@@ -51,7 +51,7 @@ contains
 
   function radiusBlackHolesConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily radiusBlackHoles} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorRadiusBlackHoles} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -72,7 +72,7 @@ contains
 
   function radiusBlackHolesConstructorInternal(blackHoleBinarySeparationGrowthRate_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily radiusBlackHoles} node operator class.
+    Internal constructor for the \refClass{nodePropertyExtractorRadiusBlackHoles} node operator class.
     !!}
     implicit none
     type (nodePropertyExtractorRadiusBlackHoles   )                        :: self
