@@ -307,168 +307,168 @@
 	  <realizations       value= "Halo004 Halo113 Halo023"    />
 	  <hostHaloIDs        Halo004="5142328" Halo023="5036676" Halo113="9029790" />
 	</simulation>
-	<simulation name="WDM:3keVf0.8">
+	<simulation name="WDM:3keV:f0.8">
 	  <powerSpectrumClass value="COZMIC:WDM:3keV:f0.8"/>
 	  <label              value="Milky Way"           />
 	  <transferFunction   value="WDM:3keV:f0.8"       />
 	  <realizations       value="Halo004"             />
 	  <hostHaloIDs        Halo004="2395936"           />
 	</simulation>
-	<simulation name="WDM:3keVf0.6">
+	<simulation name="WDM:3keV:f0.6">
 	  <powerSpectrumClass value="COZMIC:WDM:3keV:f0.6"/>
 	  <label              value="Milky Way"           />
 	  <transferFunction   value="WDM:3keV:f0.6"       />
 	  <realizations       value="Halo004"             />
 	  <hostHaloIDs        Halo004="3310920"           />
 	</simulation>
-	<simulation name="WDM:3keVf0.4">
+	<simulation name="WDM:3keV:f0.4">
 	  <powerSpectrumClass value="COZMIC:WDM:3keV:f0.4"/>
 	  <label              value="Milky Way"           />
 	  <transferFunction   value="WDM:3keV:f0.4"       />
 	  <realizations       value="Halo004"             />
 	  <hostHaloIDs        Halo004="4495746"           />
 	</simulation>
-	<simulation name="WDM:3keVf0.2">
+	<simulation name="WDM:3keV:f0.2">
 	  <powerSpectrumClass value="COZMIC:WDM:3keV:f0.2"/>
 	  <label              value="Milky Way"           />
 	  <transferFunction   value="WDM:3keV:f0.2"       />
 	  <realizations       value="Halo004"             />
 	  <hostHaloIDs        Halo004="5827022"           />
 	</simulation>
-	<simulation name="WDM:4keVf0.8">
+	<simulation name="WDM:4keV:f0.8">
 	  <powerSpectrumClass value="COZMIC:WDM:4keV:f0.8"/>
 	  <label              value="Milky Way"           />
 	  <transferFunction   value="WDM:4keV:f0.8"       />
 	  <realizations       value="Halo004"             />
 	  <hostHaloIDs        Halo004="2949812"           />
 	</simulation>
-	<simulation name="WDM:4keVf0.6">
+	<simulation name="WDM:4keV:f0.6">
 	  <powerSpectrumClass value="COZMIC:WDM:4keV:f0.6"/>
 	  <label              value="Milky Way"           />
 	  <transferFunction   value="WDM:4keV:f0.6"       />
 	  <realizations       value="Halo004"             />
 	  <hostHaloIDs        Halo004="3765039"           />
 	</simulation>
-	<simulation name="WDM:4keVf0.4">
+	<simulation name="WDM:4keV:f0.4">
 	  <powerSpectrumClass value="COZMIC:WDM:4keV:f0.4"/>
 	  <label              value="Milky Way"           />
 	  <transferFunction   value="WDM:4keV:f0.4"       />
 	  <realizations       value="Halo004"             />
 	  <hostHaloIDs        Halo004="4795454"           />
 	</simulation>
-	<simulation name="WDM:4keVf0.2">
+	<simulation name="WDM:4keV:f0.2">
 	  <powerSpectrumClass value="COZMIC:WDM:4keV:f0.2"/>
 	  <label              value="Milky Way"           />
 	  <transferFunction   value="WDM:4keV:f0.2"       />
 	  <realizations       value="Halo004"             />
 	  <hostHaloIDs        Halo004="5980182"           />
 	</simulation>
-	<simulation name="WDM:5keVf0.8">
+	<simulation name="WDM:5keV:f0.8">
 	  <powerSpectrumClass value="COZMIC:WDM:5keV:f0.8"/>
 	  <label              value="Milky Way"           />
 	  <transferFunction   value="WDM:5keV:f0.8"       />
 	  <realizations       value="Halo004"             />
 	  <hostHaloIDs        Halo004="3460226"           />
 	</simulation>
-	<simulation name="WDM:5keVf0.6">
+	<simulation name="WDM:5keV:f0.6">
 	  <powerSpectrumClass value="COZMIC:WDM:5keV:f0.6"/>
 	  <label              value="Milky Way"           />
 	  <transferFunction   value="WDM:5keV:f0.6"       />
 	  <realizations       value="Halo004"             />
 	  <hostHaloIDs        Halo004="4201057"           />
 	</simulation>
-	<simulation name="WDM:5keVf0.4">
+	<simulation name="WDM:5keV:f0.4">
 	  <powerSpectrumClass value="COZMIC:WDM:5keV:f0.4"/>
 	  <label              value="Milky Way"           />
 	  <transferFunction   value="WDM:5keV:f0.4"       />
 	  <realizations       value="Halo004"             />
 	  <hostHaloIDs        Halo004="5103562"           />
 	</simulation>
-	<simulation name="WDM:5keVf0.2">
+	<simulation name="WDM:5keV:f0.2">
 	  <powerSpectrumClass value="COZMIC:WDM:5keV:f0.2"/>
 	  <label              value="Milky Way"           />
 	  <transferFunction   value="WDM:5keV:f0.2"       />
 	  <realizations       value="Halo004"             />
 	  <hostHaloIDs        Halo004="6113763"           />
 	</simulation>
-	<simulation name="WDM:6keVf0.8">
+	<simulation name="WDM:6keV:f0.8">
 	  <powerSpectrumClass value="COZMIC:WDM:6keV:f0.8"/>
 	  <label              value="Milky Way"           />
 	  <transferFunction   value="WDM:6keV:f0.8"       />
 	  <realizations       value="Halo004"             />
 	  <hostHaloIDs        Halo004="3924842"           />
 	</simulation>
-	<simulation name="WDM:6keVf0.6">
+	<simulation name="WDM:6keV:f0.6">
 	  <powerSpectrumClass value="COZMIC:WDM:6keV:f0.6"/>
 	  <label              value="Milky Way"           />
 	  <transferFunction   value="WDM:6keV:f0.6"       />
 	  <realizations       value="Halo004"             />
 	  <hostHaloIDs        Halo004="4615171"           />
 	</simulation>
-	<simulation name="WDM:6keVf0.4">
+	<simulation name="WDM:6keV:f0.4">
 	  <powerSpectrumClass value="COZMIC:WDM:6keV:f0.4"/>
 	  <label              value="Milky Way"           />
 	  <transferFunction   value="WDM:6keV:f0.4"       />
 	  <realizations       value="Halo004"             />
 	  <hostHaloIDs        Halo004="5403587"           />
 	</simulation>
-	<simulation name="WDM:6keVf0.2">
+	<simulation name="WDM:6keV:f0.2">
 	  <powerSpectrumClass value="COZMIC:WDM:6keV:f0.2"/>
 	  <label              value="Milky Way"           />
 	  <transferFunction   value="WDM:6keV:f0.2"       />
 	  <realizations       value="Halo004"             />
 	  <hostHaloIDs        Halo004="6287430"           />
 	</simulation>
-	<simulation name="WDM:6.5keVf0.8">
+	<simulation name="WDM:6.5keV:f0.8">
 	  <powerSpectrumClass value="COZMIC:WDM:6.5keV:f0.8"/>
 	  <label              value="Milky Way"           />
 	  <transferFunction   value="WDM:6.5keV:f0.8"       />
 	  <realizations       value="Halo004"             />
 	  <hostHaloIDs        Halo004="4259695"           />
 	</simulation>
-	<simulation name="WDM:6.5keVf0.6">
+	<simulation name="WDM:6.5keV:f0.6">
 	  <powerSpectrumClass value="COZMIC:WDM:6.5keV:f0.6"/>
 	  <label              value="Milky Way"           />
 	  <transferFunction   value="WDM:6.5keV:f0.6"       />
 	  <realizations       value="Halo004"             />
 	  <hostHaloIDs        Halo004="4883345"           />
 	</simulation>
-	<simulation name="WDM:6.5keVf0.4">
+	<simulation name="WDM:6.5keV:f0.4">
 	  <powerSpectrumClass value="COZMIC:WDM:6.5keV:f0.4"/>
 	  <label              value="Milky Way"           />
 	  <transferFunction   value="WDM:6.5keV:f0.4"       />
 	  <realizations       value="Halo004"             />
 	  <hostHaloIDs        Halo004="5611050"           />
 	</simulation>
-	<simulation name="WDM:6.5keVf0.2">
+	<simulation name="WDM:6.5keV:f0.2">
 	  <powerSpectrumClass value="COZMIC:WDM:6.5keV:f0.2"/>
 	  <label              value="Milky Way"           />
 	  <transferFunction   value="WDM:6.5keV:f0.2"       />
 	  <realizations       value="Halo004"             />
 	  <hostHaloIDs        Halo004="6377639"           />
 	</simulation>
-	<simulation name="WDM:10keVf0.8">
+	<simulation name="WDM:10keV:f0.8">
 	  <powerSpectrumClass value="COZMIC:WDM:10keV:f0.8"/>
 	  <label              value="Milky Way"           />
 	  <transferFunction   value="WDM:10keV:f0.8"       />
 	  <realizations       value="Halo004"             />
 	  <hostHaloIDs        Halo004="5477872"           />
 	</simulation>
-	<simulation name="WDM:10keVf0.6">
+	<simulation name="WDM:10keV:f0.6">
 	  <powerSpectrumClass value="COZMIC:WDM:10keV:f0.6"/>
 	  <label              value="Milky Way"           />
 	  <transferFunction   value="WDM:10keV:f0.6"       />
 	  <realizations       value="Halo004"             />
 	  <hostHaloIDs        Halo004="5883003"           />
 	</simulation>
-	<simulation name="WDM:10keVf0.4">
+	<simulation name="WDM:10keV:f0.4">
 	  <powerSpectrumClass value="COZMIC:WDM:10keV:f0.4"/>
 	  <label              value="Milky Way"           />
 	  <transferFunction   value="WDM:10keV:f0.4"       />
 	  <realizations       value="Halo004"             />
 	  <hostHaloIDs        Halo004="6306162"           />
 	</simulation>
-	<simulation name="WDM:10keVf0.2">
+	<simulation name="WDM:10keV:f0.2">
 	  <powerSpectrumClass value="COZMIC:WDM:10keV:f0.2"/>
 	  <label              value="Milky Way"            />
 	  <transferFunction   value="WDM:10keV:f0.2"       />
@@ -489,7 +489,7 @@
 	  <realizations       value="Halo004"                   />
 	  <hostHaloIDs        Halo004="6359134"                 />
 	</simulation>
-	<simulation name="WDM:36eV:bumpCutoff">
+	<simulation name="WDM:6keV:bumpCutoff">
 	  <powerSpectrumClass value="COZMIC:WDM:6keV:bumpCutoff"/>
 	  <label              value="Milky Way"                 />
 	  <transferFunction   value="WDM:6keV:bumpCutoff"       />
@@ -510,7 +510,7 @@
 	  <realizations       value="Halo004"                   />
 	  <hostHaloIDs        Halo004="8336884"                 />
 	</simulation>
-	<simulation name="WDM:36eV:bump">
+	<simulation name="WDM:6keV:bump">
 	  <powerSpectrumClass value="COZMIC:WDM:6keV:bump"      />
 	  <label              value="Milky Way"                 />
 	  <transferFunction   value="WDM:6keV:bump"             />
@@ -531,7 +531,7 @@
 	  <realizations       value="Halo004"                   />
 	  <hostHaloIDs        Halo004="4304680"                 />
 	</simulation>
-	<simulation name="WDM:36eV:cutoff">
+	<simulation name="WDM:6keV:cutoff">
 	  <powerSpectrumClass value="COZMIC:WDM:6keV:cutoff"    />
 	  <label              value="Milky Way"                 />
 	  <transferFunction   value="WDM:6keV:cutoff"           />
@@ -735,28 +735,28 @@
 	  <realizations       value="Halo004"                     />
 	  <hostHaloIDs        Halo004="26174044"                  />
 	</simulation>
-	<simulation name="WDM:3keVf0.8">
+	<simulation name="WDM:3keV:f0.8">
 	  <powerSpectrumClass value="COZMIC:WDM:3keV:f0.8"/>
 	  <label              value="Milky Way"           />
 	  <transferFunction   value="WDM:3keV:f0.8"       />
 	  <realizations       value="Halo004"             />
-	  <hostHaloIDs        Halo004="56005717"          />
+	  <hostHaloIDs        Halo004="12708366"          />
 	</simulation>
-	<simulation name="WDM:3keVf0.6">
+	<simulation name="WDM:3keV:f0.6">
 	  <powerSpectrumClass value="COZMIC:WDM:3keV:f0.6"/>
 	  <label              value="Milky Way"           />
 	  <transferFunction   value="WDM:3keV:f0.6"       />
 	  <realizations       value="Halo004"             />
-	  <hostHaloIDs        Halo004="12708366"          />
+	  <hostHaloIDs        Halo004="21859266"          />
 	</simulation>
-	<simulation name="WDM:3keVf0.4">
+	<simulation name="WDM:3keV:f0.4">
 	  <powerSpectrumClass value="COZMIC:WDM:3keV:f0.4"/>
 	  <label              value="Milky Way"           />
 	  <transferFunction   value="WDM:3keV:f0.4"       />
 	  <realizations       value="Halo004"             />
-	  <hostHaloIDs        Halo004="21859266"          />
+	  <hostHaloIDs        Halo004="33228156"          />
 	</simulation>
-	<simulation name="WDM:3keVf0.2">
+	<simulation name="WDM:3keV:f0.2">
 	  <powerSpectrumClass value="COZMIC:WDM:3keV:f0.2"/>
 	  <label              value="Milky Way"           />
 	  <transferFunction   value="WDM:3keV:f0.2"       />
@@ -777,7 +777,7 @@
 	  <realizations       value="Halo004"                   />
 	  <hostHaloIDs        Halo004="26529482"                />
 	</simulation>
-	<simulation name="WDM:36eV:bumpCutoff">
+	<simulation name="WDM:6keV:bumpCutoff">
 	  <powerSpectrumClass value="COZMIC:WDM:6keV:bumpCutoff"/>
 	  <label              value="Milky Way"                 />
 	  <transferFunction   value="WDM:6keV:bumpCutoff"       />
@@ -798,7 +798,7 @@
 	  <realizations       value="Halo004"                   />
 	  <hostHaloIDs        Halo004="47621470"                />
 	</simulation>
-	<simulation name="WDM:36eV:bump">
+	<simulation name="WDM:6keV:bump">
 	  <powerSpectrumClass value="COZMIC:WDM:6keV:bump"      />
 	  <label              value="Milky Way"                 />
 	  <transferFunction   value="WDM:6keV:bump"             />
@@ -819,7 +819,7 @@
 	  <realizations       value="Halo004"                   />
 	  <hostHaloIDs        Halo004="19615018"                />
 	</simulation>
-	<simulation name="WDM:36eV:cutoff">
+	<simulation name="WDM:6keV:cutoff">
 	  <powerSpectrumClass value="COZMIC:WDM:6keV:cutoff"    />
 	  <label              value="Milky Way"                 />
 	  <transferFunction   value="WDM:6keV:cutoff"           />
