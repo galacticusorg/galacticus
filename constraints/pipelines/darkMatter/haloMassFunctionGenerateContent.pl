@@ -332,7 +332,7 @@ $content::gammaInitial = 2.35/sqrt($countParameters);
 # distribution function of very high dimesional multivariate normals. This typically must be done using Monte Carlo integration
 # which can have poor convergence properties in high dimensions. If a chain happens to get stuck in a state that was judged to
 # have very high likelihood because of such Monte Carlo fluctuations, this recomputation can allow it to break out.
-$content::recomputeCount = $options{'includeCorrelations'} eq "true" ? '<recomputeCount value="13">' : '';
+$content::recomputeCount = $options{'includeCorrelations'} eq "true" ? '<recomputeCount value="13"/>' : '';
 
 # Generate openers and closers for the config and parameter files.
 my $configOpener = fill_in_string(<<'CODE', PACKAGE => 'content');
