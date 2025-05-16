@@ -12,7 +12,7 @@
     </massParticle>
     <subvolumes value="" ignoreWarnings="true">
       <resolutionX1  value="1"/>
-      <resolutionX8  value="1"/>
+      <resolutionX8  value="2"/>
     </subvolumes>
     <simulationReference value="Nadler et al. (2025; https://ui.adsabs.harvard.edu/abs/2024arXiv241003635N;
 				https://ui.adsabs.harvard.edu/abs/2024arXiv241213065N);
