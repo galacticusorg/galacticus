@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "0933f2270bb35c9ed6e4ea3aaba2378824d3d069",
-        "message": "Merge pull request #843 from galacticusorg/featNonNegativeEvolution\n\nAdd functionality to mark component properties as non-negative\n",
-        "timestamp": "2025-05-15 04:13:34+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/0933f2270bb35c9ed6e4ea3aaba2378824d3d069"
+        "id": "76e00e5c4ca046c22328317515ffe66c75ed338a",
+        "message": "Merge pull request #845 from galacticusorg/fixMemoryLeaks\n\nFix memory leaks\n",
+        "timestamp": "2025-05-18 17:23:20+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/76e00e5c4ca046c22328317515ffe66c75ed338a"
     },
     "results": [
         {
