@@ -166,7 +166,7 @@ contains
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none
-    type (darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
+    type(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
 
     !![
     <objectDestructor name="self%cosmologyParameters_"  />
