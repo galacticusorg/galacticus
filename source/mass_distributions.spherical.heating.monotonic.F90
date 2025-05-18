@@ -55,6 +55,7 @@
        <method description="Root function used in finding the radius of shell crossing."       method="radiusShellCrossingRoot"   />
      </methods>
      !!]
+     final     ::                                   monotonicDestructor
      procedure :: specificEnergy                 => monotonicSpecificEnergy
      procedure :: specificEnergyGradient         => monotonicSpecificEnergyGradient
      procedure :: specificEnergyIsEveryWhereZero => monotonicSpecificEnergyIsEverywhereZero
