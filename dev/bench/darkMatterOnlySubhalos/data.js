@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1747612244285,
+  "lastUpdate": 1747612254259,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "f6c72d27e56cc28a924e6b2a47ef8d6d68383317",
-          "message": "feat: Expand the functionality of the analysis script\n\nThe script can now assess and update the range of priors needed to encapsulate the span of \"good\" models. An updated configuration file is output suitable for the next iteration of model optimization.",
-          "timestamp": "2024-08-06T10:15:40-07:00",
-          "tree_id": "d27964c7e2c1b8d9c7db2198b5185a0ae2d272ad",
-          "url": "https://github.com/galacticusorg/galacticus/commit/f6c72d27e56cc28a924e6b2a47ef8d6d68383317"
-        },
-        "date": 1722998446569,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 16.9945814534548,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 9.76655466912177,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 20675.296504755,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8732,6 +8693,45 @@ window.BENCHMARK_DATA = {
             "value": 59.241,
             "unit": "seconds",
             "range": 0.0599408041325594
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "76e00e5c4ca046c22328317515ffe66c75ed338a",
+          "message": "Merge pull request #845 from galacticusorg/fixMemoryLeaks\n\nFix memory leaks",
+          "timestamp": "2025-05-18T17:23:20Z",
+          "tree_id": "393683877263021870f7ec7462cc6f28611e6b50",
+          "url": "https://github.com/galacticusorg/galacticus/commit/76e00e5c4ca046c22328317515ffe66c75ed338a"
+        },
+        "date": 1747612252930,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": "18.633452248927114",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": "10.466254239919694",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": "24300.10047372952",
+            "unit": "-logℒ"
           }
         ]
       }
