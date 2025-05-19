@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an N-body data operator which determines the mean position and velocity of particles.
+Implements an N-body data operator which determines the mean position and velocity of particles.
 !!}
 
   use, intrinsic :: ISO_C_Binding           , only : c_size_t
@@ -44,7 +44,7 @@ Contains a module which implements an N-body data operator which determines the 
 
   interface nbodyOperatorMeanPosition
      !!{
-     Constructors for the ``meanPosition'' N-body operator class.
+     Constructors for the {\normalfont \ttfamily meanPosition} N-body operator class.
      !!}
      module procedure meanPositionConstructorParameters
      module procedure meanPositionConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function meanPositionConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``meanPosition'' N-body operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily meanPosition} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -88,7 +88,7 @@ contains
 
   function meanPositionConstructorInternal(selfBoundParticlesOnly,bootstrapSampleCount,randomNumberGenerator_) result (self)
     !!{
-    Internal constructor for the ``meanPosition'' N-body operator class.
+    Internal constructor for the {\normalfont \ttfamily meanPosition} N-body operator class.
     !!}
     implicit none
     type   (nbodyOperatorMeanPosition)                         :: self
@@ -104,7 +104,7 @@ contains
 
   subroutine meanPositionDestructor(self)
     !!{
-    Destructor for the ``meanPosition'' N-body operator class.
+    Destructor for the {\normalfont \ttfamily meanPosition} N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorMeanPosition), intent(inout) :: self

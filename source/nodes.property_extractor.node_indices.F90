@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a property extractor for basic node indices.
+Implements a property extractor for basic node indices.
 !!}
 
   !![
@@ -74,7 +74,7 @@ Contains a module which implements a property extractor for basic node indices.
 
   interface nodePropertyExtractorNodeIndices
      !!{
-     Constructors for the ``nodeIndices'' output analysis class.
+     Constructors for the {\normalfont \ttfamily nodeIndices} output analysis class.
      !!}
      module procedure nodeIndicesConstructorParameters
   end interface nodePropertyExtractorNodeIndices

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a tidal radius property extractor class.
+Implements a tidal radius property extractor class.
 !!}
 
   use :: Satellite_Tidal_Stripping_Radii, only : satelliteTidalStrippingRadiusClass
@@ -46,7 +46,7 @@ Contains a module which implements a tidal radius property extractor class.
 
   interface nodePropertyExtractorRadiusTidal
      !!{
-     Constructors for the ``radiusTidal'' output analysis class.
+     Constructors for the {\normalfont \ttfamily radiusTidal} output analysis class.
      !!}
      module procedure radiusTidalConstructorParameters
      module procedure radiusTidalConstructorInternal

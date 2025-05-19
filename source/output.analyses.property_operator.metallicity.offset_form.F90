@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a property operator class which converts a metallicity, assumed to be a mass ratio of a
+  Implements a property operator class which converts a metallicity, assumed to be a mass ratio of a
   given element to hydrogen, to $12+\log_{10}(\mathrm{N}/\mathrm{H})$ form.
   !!}
 
@@ -40,7 +40,7 @@
 
   interface outputAnalysisPropertyOperatorMetallicity12LogNH
      !!{
-     Constructors for the ``metallicity'' output analysis class.
+     Constructors for the {\normalfont \ttfamily metallicity} output analysis class.
      !!}
      module procedure metallicity12LogNHConstructorParameters
      module procedure metallicity12LogNHConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function metallicity12LogNHConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``metallicity12LogNH'' output analysis property operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily metallicity12LogNH} output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,7 +75,7 @@ contains
 
   function metallicity12LogNHConstructorInternal(massElement) result (self)
     !!{
-    Internal constructor for the ``metallicity12LogNH'' output analysis distribution operator class.
+    Internal constructor for the {\normalfont \ttfamily metallicity12LogNH} output analysis distribution operator class.
     !!}
     implicit none
     type            (outputAnalysisPropertyOperatorMetallicity12LogNH)                :: self

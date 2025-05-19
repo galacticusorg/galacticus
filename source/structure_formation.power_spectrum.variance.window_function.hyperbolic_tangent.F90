@@ -20,7 +20,7 @@
 !+    Contributions to this file made by: Xiaolong Du
 
   !!{
-  Contains a module which implements a hyperbolic tangent power spectrum window function class.
+  Implements a hyperbolic tangent power spectrum window function class.
   !!}
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 

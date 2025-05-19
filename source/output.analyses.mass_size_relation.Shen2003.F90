@@ -55,7 +55,7 @@
 
   interface outputAnalysisMassSizeRelationShen2003
      !!{
-     Constructors for the ``massSizeRelationShen2003'' output analysis class.
+     Constructors for the {\normalfont \ttfamily massSizeRelationShen2003} output analysis class.
      !!}
      module procedure massSizeRelationShen2003ConstructorParameters
      module procedure massSizeRelationShen2003ConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function massSizeRelationShen2003ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``massSizeRelationShen2003'' output analysis class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily massSizeRelationShen2003} output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -86,7 +86,7 @@ contains
   
   function massSizeRelationShen2003ConstructorInternal(cosmologyFunctions_) result (self)
     !!{
-    Constructor for the ``massSizeRelationShen2003'' output analysis class for internal use.
+    Constructor for the {\normalfont \ttfamily massSizeRelationShen2003} output analysis class for internal use.
     !!}
     implicit none
     type (outputAnalysisMassSizeRelationShen2003)                        :: self

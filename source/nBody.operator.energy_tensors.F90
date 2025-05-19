@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an N-body data operator which determines the kinetic and Chandrasekhar potential energy tensors.
+Implements an N-body data operator which determines the kinetic and Chandrasekhar potential energy tensors.
 !!}
 
   use, intrinsic :: ISO_C_Binding           , only : c_size_t
@@ -44,7 +44,7 @@ Contains a module which implements an N-body data operator which determines the 
 
   interface nbodyOperatorEnergyTensors
      !!{
-     Constructors for the ``energyTensors'' N-body operator class.
+     Constructors for the {\normalfont \ttfamily energyTensors} N-body operator class.
      !!}
      module procedure energyTensorsConstructorParameters
      module procedure energyTensorsConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function energyTensorsConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``energyTensors'' N-body operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily energyTensors} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -88,7 +88,7 @@ contains
 
   function energyTensorsConstructorInternal(selfBoundParticlesOnly,bootstrapSampleCount,randomNumberGenerator_) result (self)
     !!{
-    Internal constructor for the ``energyTensors'' N-body operator class.
+    Internal constructor for the {\normalfont \ttfamily energyTensors} N-body operator class.
     !!}
     implicit none
     type   (nbodyOperatorEnergyTensors)                        :: self
@@ -104,7 +104,7 @@ contains
 
   subroutine energyTensorsDestructor(self)
     !!{
-    Destructor for the ``energyTensors'' N-body operator class.
+    Destructor for the {\normalfont \ttfamily energyTensors} N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorEnergyTensors), intent(inout) :: self

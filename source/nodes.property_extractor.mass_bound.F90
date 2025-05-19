@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an output analysis property extractor class that extracts the bound mass.
+Implements an output analysis property extractor class that extracts the bound mass.
 !!}
 
   !![
@@ -40,7 +40,7 @@ Contains a module which implements an output analysis property extractor class t
 
   interface nodePropertyExtractorMassBound
      !!{
-     Constructors for the ``massBound'' output analysis class.
+     Constructors for the {\normalfont \ttfamily massBound} output analysis class.
      !!}
      module procedure massBoundConstructorParameters
   end interface nodePropertyExtractorMassBound
@@ -49,7 +49,7 @@ contains
 
   function massBoundConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``massBound'' output analysis property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily massBound} output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

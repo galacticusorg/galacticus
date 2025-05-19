@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a property extractor class for the mass and radii of spheres are specified density contrast.
+Implements a property extractor class for the mass and radii of spheres are specified density contrast.
 !!}
 
   use :: Cosmology_Functions       , only : cosmologyFunctions     , cosmologyFunctionsClass , enumerationDensityCosmologicalType
@@ -69,7 +69,7 @@ Contains a module which implements a property extractor class for the mass and r
 
   interface nodePropertyExtractorDensityContrasts
      !!{
-     Constructors for the ``densityContrasts'' output analysis class.
+     Constructors for the {\normalfont \ttfamily densityContrasts} output analysis class.
      !!}
      module procedure densityContrastsConstructorParameters
      module procedure densityContrastsConstructorInternal

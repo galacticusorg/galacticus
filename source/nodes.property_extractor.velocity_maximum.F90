@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a cooling rate property extractor class.
+Implements a cooling rate property extractor class.
 !!}
 
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
@@ -46,7 +46,7 @@ Contains a module which implements a cooling rate property extractor class.
 
   interface nodePropertyExtractorVelocityMaximum
      !!{
-     Constructors for the ``velocityMaximum'' output analysis class.
+     Constructors for the {\normalfont \ttfamily velocityMaximum} output analysis class.
      !!}
      module procedure velocityMaximumConstructorParameters
      module procedure velocityMaximumConstructorInternal

@@ -107,7 +107,7 @@ contains
 
   function voightConstructorInternal(gamma,mu,sigma,limitLower,limitUpper,randomNumberGenerator_) result(self)
     !!{
-    Constructor for ``voight'' 1D distribution function class.
+    Constructor for {\normalfont \ttfamily voight} 1D distribution function class.
     !!}
     type            (distributionFunction1DVoight)                                  :: self
     double precision                              , intent(in   )                   :: gamma                 , mu          , &

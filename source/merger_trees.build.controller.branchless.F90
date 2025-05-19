@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a merger tree build controller class which builds branchless trees.
+Implements a merger tree build controller class which builds branchless trees.
 !!}
 
   !![
@@ -43,7 +43,7 @@ Contains a module which implements a merger tree build controller class which bu
 
   interface mergerTreeBuildControllerBranchless
      !!{
-     Constructors for the ``branchless'' merger tree build controller class.
+     Constructors for the {\normalfont \ttfamily branchless} merger tree build controller class.
      !!}
      module procedure branchlessConstructorParameters
      module procedure branchlessConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function branchlessConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``branchless'' merger tree build controller class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily branchless} merger tree build controller class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -74,7 +74,7 @@ contains
 
   function branchlessConstructorInternal(mergerTreeBranchingProbability_) result(self)
     !!{
-    Internal constructor for the ``branchless'' merger tree build controller class .
+    Internal constructor for the {\normalfont \ttfamily branchless} merger tree build controller class .
     !!}
     implicit none
     type (mergerTreeBuildControllerBranchless)                        :: self

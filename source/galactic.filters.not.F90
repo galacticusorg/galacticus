@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an inverting filter.
+Implements an inverting filter.
 !!}
 
   !![
@@ -39,7 +39,7 @@ Contains a module which implements an inverting filter.
 
   interface galacticFilterNot
      !!{
-     Constructors for the ``not'' galactic filter class.
+     Constructors for the {\normalfont \ttfamily not} galactic filter class.
      !!}
      module procedure notConstructorParameters
      module procedure notConstructorInternal
@@ -49,7 +49,7 @@ contains
 
   function notConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``not'' galactic filter class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily not} galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -70,7 +70,7 @@ contains
 
   function notConstructorInternal(galacticFilter_) result(self)
     !!{
-    Internal constructor for the ``not'' galactic filter class.
+    Internal constructor for the {\normalfont \ttfamily not} galactic filter class.
     !!}
     implicit none
     type (galacticFilterNot  )                        :: self

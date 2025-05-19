@@ -131,7 +131,7 @@ contains
 
   function adaptiveConstructorInternal(gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate) result(self)
     !!{
-    Constructor for the ``adaptive'' differential evolution proposal size class.
+    Constructor for the {\normalfont \ttfamily adaptive} differential evolution proposal size class.
     !!}
     implicit none
     type            (posteriorSampleDffrntlEvltnProposalSizeAdaptive)                :: self

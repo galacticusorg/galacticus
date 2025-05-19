@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a node property extractor for the most massive progenitor.
+Implements a node property extractor for the most massive progenitor.
 !!}
 
   !![
@@ -44,7 +44,7 @@ Contains a module which implements a node property extractor for the most massiv
 
   interface nodePropertyExtractorMostMassiveProgenitor
      !!{
-     Constructors for the ``mostMassiveProgenitor'' output analysis class.
+     Constructors for the {\normalfont \ttfamily mostMassiveProgenitor} output analysis class.
      !!}
      module procedure mostMassiveProgenitorConstructorParameters
      module procedure mostMassiveProgenitorConstructorInternal

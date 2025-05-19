@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a null N-body dark matter halo mass error class.
+Implements a null N-body dark matter halo mass error class.
 !!}
 
   !![

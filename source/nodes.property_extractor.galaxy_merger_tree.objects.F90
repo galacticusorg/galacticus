@@ -31,13 +31,13 @@
     ! `nodePropertyExtractor` classes. It is necessitated by the fact that we don't have a good way for objects defined in the
     ! parameter file to communicate their behavior.
 
-    type, public :: nodePropertyExtractorList
+    type, public :: nodePropertyExtractorListWrapper
        class(*), pointer :: extractor_ => null()
-    end type nodePropertyExtractorList
+    end type nodePropertyExtractorListWrapper
      
     ! Public-scope pointer to the extractor used in galaxy merger trees.
-    integer                                                      , public :: nodePropertyExtractorGalaxyMergerTreeCount
-    type   (nodePropertyExtractorList), allocatable, dimension(:), public :: nodePropertyExtractorGalaxyMergerTree_
+    integer                                                             , public :: nodePropertyExtractorGalaxyMergerTreeCount
+    type   (nodePropertyExtractorListWrapper), allocatable, dimension(:), public :: nodePropertyExtractorGalaxyMergerTree_
     !$omp threadprivate(nodePropertyExtractorGalaxyMergerTreeCount,nodePropertyExtractorGalaxyMergerTree_)
   
   end module Node_Property_Extractor_Galaxy_Merger_Trees

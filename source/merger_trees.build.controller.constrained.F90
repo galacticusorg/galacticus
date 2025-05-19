@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a merger tree build controller class which builds constrained trees.
+Implements a merger tree build controller class which builds constrained trees.
 !!}
 
   use :: Cosmology_Functions               , only : cosmologyFunctionsClass
@@ -75,7 +75,7 @@ Contains a module which implements a merger tree build controller class which bu
   
   interface mergerTreeBuildControllerConstrained
      !!{
-     Constructors for the ``constrained'' merger tree build controller class.
+     Constructors for the {\normalfont \ttfamily constrained} merger tree build controller class.
      !!}
      module procedure constrainedConstructorParameters
      module procedure constrainedConstructorInternal
@@ -85,7 +85,7 @@ contains
 
   function constrainedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``constrained'' merger tree build controller class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily constrained} merger tree build controller class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
 
@@ -210,7 +210,7 @@ contains
 
   function constrainedConstructorInternal(criticalOverdensityConstrained,varianceConstrained,constructionOption,label,labelDescription,mergerTreeBranchingProbabilityUnconstrained_,mergerTreeBranchingProbabilityConstrained_,cosmologyFunctions_,linearGrowth_,criticalOverdensity_,cosmologicalMassVariance_,mergerTreeMassResolution_) result(self)
     !!{
-    Internal constructor for the ``constrained'' merger tree build controller class.
+    Internal constructor for the {\normalfont \ttfamily constrained} merger tree build controller class.
     !!}
     use :: Nodes_Labels, only : nodeLabelRegister
     implicit none
@@ -323,7 +323,7 @@ contains
     return
   end function constrainedControl
 
-  double precision function constrainedTimeMaximum(self,node,massBranch,criticalOverdensityBranch)
+  double precision function constrainedTimeMaximum(self,node,massBranch,criticalOverdensityBranch,timeReference,insertNode)
     !!{
     Return the maximum allowed time for this node.
     !!}
@@ -331,10 +331,14 @@ contains
     implicit none
     class           (mergerTreeBuildControllerConstrained), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
-    double precision                                      , intent(in   ) :: massBranch, criticalOverdensityBranch
+    double precision                                      , intent(in   ) :: massBranch   , criticalOverdensityBranch, &
+         &                                                                   timeReference
+    logical                                               , intent(  out) :: insertNode
     class           (nodeComponentBasic                  ), pointer       :: basic
     logical                                                               :: isConstrained
+    !$GLC attributes unused :: timeReference
 
+    insertNode    =  .false.
     basic         => node %basic                      (                   )
     isConstrained =  basic%integerRank0MetaPropertyGet(self%isConstrainedID) == 1
     if (isConstrained .and. criticalOverdensityBranch < self%criticalOverdensityConstrained) then

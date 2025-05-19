@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a merger tree operator which prunes tips of branches (i.e. sections from the leaf node to
+  Implements a merger tree operator which prunes tips of branches (i.e. sections from the leaf node to
   the first node with a sibling).
   !!}
 

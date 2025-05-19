@@ -88,7 +88,7 @@ contains
   
   function summationConstructorInternal(massDistributionHeatings) result(self)
     !!{
-    Constructor for ``summation'' dark matter profile heating class.
+    Constructor for {\normalfont \ttfamily summation} dark matter profile heating class.
     !!}
     implicit none
     type(massDistributionHeatingSummation)                         :: self

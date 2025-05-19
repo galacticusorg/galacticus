@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a generic 1D volume function (i.e. number density of objects binned by some property, e.g. a
+Implements a generic 1D volume function (i.e. number density of objects binned by some property, e.g. a
 mass function) output analysis class.
 !!}
 
@@ -89,7 +89,7 @@ mass function) output analysis class.
 
   interface outputAnalysisCrossCorrelator1D
      !!{
-     Constructors for the ``crossCorrelator1D'' output analysis class.
+     Constructors for the {\normalfont \ttfamily crossCorrelator1D} output analysis class.
      !!}
      module procedure crossCorrelator1DConstructorParameters
      module procedure crossCorrelator1DConstructorInternal
@@ -99,7 +99,7 @@ contains
 
   function crossCorrelator1DConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``crossCorrelator1D'' output analysis class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily crossCorrelator1D} output analysis class which takes a parameter set as input.
     !!}
     use :: Error                  , only : Error_Report
     use :: Input_Parameters       , only : inputParameter                                , inputParameters
@@ -234,7 +234,7 @@ contains
 
   function crossCorrelator1DConstructorInternal(binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator1_,outputAnalysisWeightOperator2_,outputAnalysisDistributionOperator_,outputAnalysisDistributionNormalizer_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,binWidth) result (self)
     !!{
-    Constructor for the ``crossCorrelator1D'' output analysis class for internal use.
+    Constructor for the {\normalfont \ttfamily crossCorrelator1D} output analysis class for internal use.
     !!}
     use    :: Error                   , only : Error_Report
     use    :: Node_Property_Extractors, only : nodePropertyExtractorClass           , nodePropertyExtractorScalar
@@ -325,7 +325,7 @@ contains
 
   subroutine crossCorrelator1DDestructor(self)
     !!{
-    Destructor for  the ``crossCorrelator1D'' output analysis class.
+    Destructor for  the {\normalfont \ttfamily crossCorrelator1D} output analysis class.
     !!}
     !$ use :: OMP_Lib, only : OMP_Destroy_Lock
     implicit none

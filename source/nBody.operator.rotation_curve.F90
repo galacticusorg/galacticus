@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an N-body data operator which computes the rotation curve at a set of given radii.
+Implements an N-body data operator which computes the rotation curve at a set of given radii.
 !!}
 
   use, intrinsic :: ISO_C_Binding           , only : c_size_t
@@ -45,7 +45,7 @@ Contains a module which implements an N-body data operator which computes the ro
 
   interface nbodyOperatorRotationCurve
      !!{
-     Constructors for the ``rotationCurve'' N-body operator class.
+     Constructors for the {\normalfont \ttfamily rotationCurve} N-body operator class.
      !!}
      module procedure rotationCurveConstructorParameters
      module procedure rotationCurveConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function rotationCurveConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``rotationCurve'' N-body operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily rotationCurve} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -96,7 +96,7 @@ contains
 
   function rotationCurveConstructorInternal(selfBoundParticlesOnly,bootstrapSampleCount,radius,randomNumberGenerator_) result (self)
     !!{
-    Internal constructor for the ``rotationCurve'' N-body operator class.
+    Internal constructor for the {\normalfont \ttfamily rotationCurve} N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorRotationCurve)                              :: self
@@ -113,7 +113,7 @@ contains
 
   subroutine rotationCurveDestructor(self)
     !!{
-    Destructor for the ``meanPosition'' N-body operator class.
+    Destructor for the {\normalfont \ttfamily meanPosition} N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorRotationCurve), intent(inout) :: self

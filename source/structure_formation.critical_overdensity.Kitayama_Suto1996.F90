@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a critical overdensity class based on the fitting functions of
+  Implements a critical overdensity class based on the fitting functions of
   \cite{kitayama_semianalytic_1996}.
   !!}
 

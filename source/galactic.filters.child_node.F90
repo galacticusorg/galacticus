@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a galactic filter which applies another filter to a child node of the given node.
+Implements a galactic filter which applies another filter to a child node of the given node.
 !!}
   
   !![
@@ -44,7 +44,7 @@ Contains a module which implements a galactic filter which applies another filte
 
   interface galacticFilterChildNode
      !!{
-     Constructors for the ``childNode'' galactic filter class.
+     Constructors for the {\normalfont \ttfamily childNode} galactic filter class.
      !!}
      module procedure childNodeConstructorParameters
      module procedure childNodeConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function childNodeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``childNode'' galactic filter class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily childNode} galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -81,7 +81,7 @@ contains
   
   function childNodeConstructorInternal(childRank,galacticFilter_) result(self)
     !!{
-    Internal constructor for the ``childNode'' galactic filter class.
+    Internal constructor for the {\normalfont \ttfamily childNode} galactic filter class.
     !!}
     implicit none
     type   (galacticFilterChildNode)                        :: self
@@ -96,7 +96,7 @@ contains
   
   subroutine childNodeDestructor(self)
     !!{
-    Destructor for  the ``childNode'' galactic filter class.
+    Destructor for  the {\normalfont \ttfamily childNode} galactic filter class.
     !!}
     implicit none
     type(galacticFilterChildNode), intent(inout) :: self

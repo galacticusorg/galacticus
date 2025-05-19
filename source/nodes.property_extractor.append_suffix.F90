@@ -38,7 +38,7 @@
 
   interface nodePropertyExtractorAppendSuffix
      !!{
-     Constructors for the ``appendSuffix'' output extractor class.
+     Constructors for the {\normalfont \ttfamily appendSuffix} output extractor class.
      !!}
      module procedure appendSuffixConstructorParameters
      module procedure appendSuffixConstructorInternal
@@ -48,7 +48,7 @@ contains
 
   function appendSuffixConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``appendSuffix'' output extractor property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily appendSuffix} output extractor property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -70,7 +70,7 @@ contains
 
   function appendSuffixConstructorInternal(suffix,extractors) result(self)
     !!{
-    Internal constructor for the ``appendSuffix'' output extractor property extractor class.
+    Internal constructor for the {\normalfont \ttfamily appendSuffix} output extractor property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorAppendSuffix)                :: self
@@ -86,7 +86,7 @@ contains
 
   subroutine appendSuffixNames(self,elementType,time,names)
     !!{
-    Return the names of the appendSuffixple properties.
+    Return the names of the suffixed properties.
     !!}
     implicit none
     class           (nodePropertyExtractorAppendSuffix), intent(inout)                             :: self

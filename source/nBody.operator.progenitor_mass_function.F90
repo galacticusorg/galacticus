@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an N-body data operator which computes progenitor mass functions.
+Implements an N-body data operator which computes progenitor mass functions.
 !!}
 
   use            :: Cosmology_Parameters, only : cosmologyParametersClass
@@ -49,7 +49,7 @@ Contains a module which implements an N-body data operator which computes progen
 
   interface nbodyOperatorProgenitorMassFunction
      !!{
-     Constructors for the ``progenitorMassFunction'' N-body operator class.
+     Constructors for the {\normalfont \ttfamily progenitorMassFunction} N-body operator class.
      !!}
      module procedure progenitorMassFunctionConstructorParameters
      module procedure progenitorMassFunctionConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function progenitorMassFunctionConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``progenitorMassFunction'' N-body operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily progenitorMassFunction} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -145,7 +145,7 @@ contains
 
   function progenitorMassFunctionConstructorInternal(massParentMinimum,massParentMaximum,massParentCountPerDecade,massRatioProgenitorMinimum,massRatioProgenitorMaximum,massRatioProgenitorCountPerDecade,snapshotParents,snapshotsProgenitors,description,simulationReference,simulationURL,cosmologyParameters_) result (self)
     !!{
-    Internal constructor for the ``progenitorMassFunction'' N-body operator class.
+    Internal constructor for the {\normalfont \ttfamily progenitorMassFunction} N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorProgenitorMassFunction)                              :: self
@@ -166,7 +166,7 @@ contains
   
   subroutine progenitorMassFunctionDestructor(self)
     !!{
-    Destructor for the ``progenitorMassFunction'' N-body operator class.
+    Destructor for the {\normalfont \ttfamily progenitorMassFunction} N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorProgenitorMassFunction), intent(inout) :: self

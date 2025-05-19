@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an output analysis property extractor class that extracts a property from a descendant node of the given node.
+Implements an output analysis property extractor class that extracts a property from a descendant node of the given node.
 !!}
   
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
@@ -46,7 +46,7 @@ Contains a module which implements an output analysis property extractor class t
 
   interface nodePropertyExtractorDescendantNode
      !!{
-     Constructors for the ``descendantNode'' node property extractor class.
+     Constructors for the {\normalfont \ttfamily descendantNode} node property extractor class.
      !!}
      module procedure descendantNodeConstructorParameters
      module procedure descendantNodeConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function descendantNodeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``descendantNode'' node property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily descendantNode} node property extractor class which takes a parameter set as input.
     !!}
     use :: Error              , only : Error_Report
     use :: Input_Parameters   , only : inputParameters
@@ -92,7 +92,7 @@ contains
 
   function descendantNodeConstructorInternal(timeDescendant,cosmologyFunctions_,nodePropertyExtractor_) result(self)
     !!{
-    Internal constructor for the ``descendantNode'' node property extractor class.
+    Internal constructor for the {\normalfont \ttfamily descendantNode} node property extractor class.
     !!}
     implicit none
     type            (nodePropertyExtractorDescendantNode)                        :: self
@@ -109,7 +109,7 @@ contains
   
   subroutine descendantNodeDestructor(self)
     !!{
-    Destructor for  the ``descendantNode'' node property extractor class.
+    Destructor for  the {\normalfont \ttfamily descendantNode} node property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorDescendantNode), intent(inout) :: self

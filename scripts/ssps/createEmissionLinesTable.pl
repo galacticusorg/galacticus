@@ -499,7 +499,7 @@ sub establishGridAGN {
     my $grid    =   shift() ;
     my %options = %{shift()};
 
-    # Define ionization parameters, Uₛ, to tabulate.
+    # Define spectral indices, α, to tabulate.
     $grid->{'spectralIndices'        } = pdl [ -1.2, -1.4, -1.7, -2.0 ];
 
     # Define ionization parameters, Uₛ, to tabulate.

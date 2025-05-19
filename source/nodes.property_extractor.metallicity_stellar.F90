@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an ISM metallicity output analysis property extractor class.
+Implements an ISM metallicity output analysis property extractor class.
 !!}
 
   !![
@@ -42,7 +42,7 @@ Contains a module which implements an ISM metallicity output analysis property e
 
   interface nodePropertyExtractorMetallicityStellar
      !!{
-     Constructors for the ``metallicityStellar'' output analysis class.
+     Constructors for the {\normalfont \ttfamily metallicityStellar} output analysis class.
      !!}
      module procedure metallicityStellarConstructorParameters
      module procedure metallicityStellarConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function metallicityStellarConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``metallicityStellar'' output analysis property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily metallicityStellar} output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Abundances_Structure, only : Abundances_Index_From_Name
     use :: Input_Parameters    , only : inputParameter            , inputParameters
@@ -81,7 +81,7 @@ contains
 
   function metallicityStellarConstructorInternal(indexElement) result(self)
     !!{
-    Internal constructor for the ``metallicityStellar'' output analysis property extractor class.
+    Internal constructor for the {\normalfont \ttfamily metallicityStellar} output analysis property extractor class.
     !!}
     use :: Abundances_Structure, only : Abundances_Names
     implicit none

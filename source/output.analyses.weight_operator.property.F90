@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an analysis weight operator class which weights by a property value.
+Implements an analysis weight operator class which weights by a property value.
 !!}
   use :: Node_Property_Extractors          , only : nodePropertyExtractorClass
   use :: Output_Analysis_Property_Operators, only : outputAnalysisPropertyOperatorClass
@@ -42,7 +42,7 @@ Contains a module which implements an analysis weight operator class which weigh
 
   interface outputAnalysisWeightOperatorProperty
      !!{
-     Constructors for the ``property'' output analysis class.
+     Constructors for the {\normalfont \ttfamily property} output analysis class.
      !!}
      module procedure propertyConstructorParameters
      module procedure propertyConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function propertyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``property'' output analysis weight operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily property} output analysis weight operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function propertyConstructorInternal(extractor_,operator_) result(self)
     !!{
-    Internal constructor for the ``property'' output analysis weight operator class.
+    Internal constructor for the {\normalfont \ttfamily property} output analysis weight operator class.
     !!}
     use :: Error                   , only : Error_Report
     use :: Node_Property_Extractors, only : nodePropertyExtractorClass, nodePropertyExtractorScalar
@@ -101,7 +101,7 @@ contains
 
   subroutine propertyDestructor(self)
     !!{
-    Destructor for the ``property'' output analysis weight operator class.
+    Destructor for the {\normalfont \ttfamily property} output analysis weight operator class.
     !!}
     implicit none
     type(outputAnalysisWeightOperatorProperty), intent(inout) :: self

@@ -56,7 +56,7 @@
 
   interface outputAnalysisSatelliteRadiusVelocityMaximum
      !!{
-     Constructors for the ``satelliteRadiusVelocityMaximum'' output analysis class.
+     Constructors for the {\normalfont \ttfamily satelliteRadiusVelocityMaximum} output analysis class.
      !!}
      module procedure satelliteRadiusVelocityMaximumConstructorParameters
      module procedure satelliteRadiusVelocityMaximumConstructorInternal
@@ -66,7 +66,7 @@ contains
 
   function satelliteRadiusVelocityMaximumConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``satelliteRadiusVelocityMaximum'' output analysis class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily satelliteRadiusVelocityMaximum} output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     use :: Output_Times    , only : outputTimesClass
@@ -106,7 +106,7 @@ contains
   
   function satelliteRadiusVelocityMaximumConstructorInternal(fileName,relativeModelUncertainty,darkMatterProfileDMO_,darkMatterProfileDMOUnheated,outputTimes_) result (self)
     !!{
-    Constructor for the ``satelliteRadiusVelocityMaximum'' output analysis class for internal use.
+    Constructor for the {\normalfont \ttfamily satelliteRadiusVelocityMaximum} output analysis class for internal use.
     !!}
     use :: HDF5_Access            , only : hdf5Access
     use :: IO_HDF5                , only : hdf5Object

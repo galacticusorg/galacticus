@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- List of directives to watch for changes. Any file containing a directive that matches a watch will result in a message being
+     posted to the Actions run (and PR where possible).  -->
+<watches>
+  <!-- Watches related to merger tree builder convergence validation. -->
+  <watch type="mergerTreeBuilder" name="mergerTreeBuilderCole2000" message="This may affect merger tree builder convergence - suggest re-running convergence validation tests: `./testSuite/validate-mergerTreeConvergence.py --outputPath /scratch/mergerTreeBuilderValidation` - see that script for more details."/>
+  <watch type="mergerTreeBuildController" name="mergerTreeBuildControllerSubsample" message="This may affect merger tree builder convergence - suggest re-running convergence validation tests: `./testSuite/validate-mergerTreeConvergence.py --outputPath /scratch/mergerTreeBuilderValidation` - see that script for more details."/>
+  <watch type="mergerTreeBranchingProbability" name="mergerTreeBranchingProbabilityPCHPlus" message="This may affect merger tree builder convergence - suggest re-running convergence validation tests: `./testSuite/validate-mergerTreeConvergence.py --outputPath /scratch/mergerTreeBuilderValidation` - see that script for more details."/>
+</watches>
+    

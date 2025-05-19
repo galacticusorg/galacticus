@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an N-body data operator which determines the subset of particles that are self-bound. The potential is computed using a tree method following \cite{barnes_hierarchical_1986}.
+Implements an N-body data operator which determines the subset of particles that are self-bound. The potential is computed using a tree method following \cite{barnes_hierarchical_1986}.
 !!}
 
   use, intrinsic :: ISO_C_Binding           , only : c_size_t
@@ -41,7 +41,7 @@ Contains a module which implements an N-body data operator which determines the 
 
   interface nbodyOperatorSelfBoundBarnesHut
      !!{
-     Constructors for the ``selfBoundBarnesHut'' N-body operator class.
+     Constructors for the {\normalfont \ttfamily selfBoundBarnesHut} N-body operator class.
      !!}
      module procedure selfBoundBarnesHutConstructorParameters
      module procedure selfBoundBarnesHutConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function selfBoundBarnesHutConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``selfBoundBarnesHut'' N-body operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily selfBoundBarnesHut} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function selfBoundBarnesHutConstructorInternal(thetaTolerance,tolerance,bootstrapSampleCount,bootstrapSampleRate,representativeMinimumCount,representativeFraction,analyzeAllParticles,useVelocityMostBound,randomNumberGenerator_) result (self)
     !!{
-    Internal constructor for the ``selfBoundBarnesHut'' N-body operator class
+    Internal constructor for the {\normalfont \ttfamily selfBoundBarnesHut} N-body operator class
     !!}
     implicit none
     type            (nbodyOperatorSelfBoundBarnesHut)                        :: self

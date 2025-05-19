@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a conversion of ISM mass to HI mass analysis property operator class.
+Implements a conversion of ISM mass to HI mass analysis property operator class.
 !!}
 
   use :: Output_Analysis_Molecular_Ratios, only : outputAnalysisMolecularRatioClass
@@ -41,7 +41,7 @@ Contains a module which implements a conversion of ISM mass to HI mass analysis 
 
   interface outputAnalysisPropertyOperatorHIMass
      !!{
-     Constructors for the ``hiMass'' output analysis class.
+     Constructors for the {\normalfont \ttfamily hiMass} output analysis class.
      !!}
      module procedure hiMassConstructorParameters
      module procedure hiMassConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function hiMassConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``hiMass'' output analysis property operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily hiMass} output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -73,7 +73,7 @@ contains
 
   function hiMassConstructorInternal(outputAnalysisMolecularRatio_) result (self)
     !!{
-    Internal constructor for the ``hiMass'' output analysis distribution operator class.
+    Internal constructor for the {\normalfont \ttfamily hiMass} output analysis distribution operator class.
     !!}
     implicit none
     type (outputAnalysisPropertyOperatorHIMass)                        :: self
@@ -87,7 +87,7 @@ contains
 
   subroutine hiMassDestructor(self)
     !!{
-    Destructor for the ``hiMass'' output analysis distribution operator class.
+    Destructor for the {\normalfont \ttfamily hiMass} output analysis distribution operator class.
     !!}
     implicit none
     type (outputAnalysisPropertyOperatorHIMass), intent(inout) :: self

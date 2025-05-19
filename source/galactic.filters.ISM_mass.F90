@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a galactic high-pass filter for total ISM mass.
+Implements a galactic high-pass filter for total ISM mass.
 !!}
 
   !![
@@ -41,7 +41,7 @@ Contains a module which implements a galactic high-pass filter for total ISM mas
 
   interface galacticFilterISMMass
      !!{
-     Constructors for the ``ismMass'' galactic filter class.
+     Constructors for the {\normalfont \ttfamily ismMass} galactic filter class.
      !!}
      module procedure ismMassConstructorParameters
      module procedure ismMassConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function ismMassConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``ismMass'' galactic filter class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily ismMass} galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,7 +75,7 @@ contains
 
   function ismMassConstructorInternal(massThreshold) result(self)
     !!{
-    Internal constructor for the ``ismMass'' galactic filter class.
+    Internal constructor for the {\normalfont \ttfamily ismMass} galactic filter class.
     !!}
     implicit none
     type            (galacticFilterISMMass)                :: self

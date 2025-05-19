@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a cold mode infall rate property extractor class.
+Implements a cold mode infall rate property extractor class.
 !!}
 
   use :: Cooling_Cold_Mode_Infall_Rates, only : coldModeInfallRate, coldModeInfallRateClass

@@ -40,7 +40,7 @@
 
   interface nodePropertyExtractorGalaxyMergerTreeIndices
      !!{
-     Constructors for the ``galaxyMergerTreeIndices'' output extractor class.
+     Constructors for the {\normalfont \ttfamily galaxyMergerTreeIndices} output extractor class.
      !!}
      module procedure galaxyMergerTreeIndicesConstructorParameters
      module procedure galaxyMergerTreeIndicesConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function galaxyMergerTreeIndicesConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``galaxyMergerTreeIndices'' property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily galaxyMergerTreeIndices} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,7 +66,7 @@ contains
 
   function galaxyMergerTreeIndicesConstructorInternal() result(self)
     !!{
-    Internal constructor for the ``galaxyMergerTreeIndices'' output extractor property extractor class.
+    Internal constructor for the {\normalfont \ttfamily galaxyMergerTreeIndices} output extractor property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorGalaxyMergerTreeIndices) :: self

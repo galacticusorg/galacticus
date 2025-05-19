@@ -116,7 +116,7 @@ contains
   
   function sphericalFiniteResolutionConstructorInternal(lengthResolution,nonAnalyticSolver,massDistribution_,componentType,massType) result(self)
     !!{
-    Constructor for ``sphericalFiniteResolution'' mass distribution class.
+    Constructor for {\normalfont \ttfamily sphericalFiniteResolution} mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalFiniteResolution)                          :: self

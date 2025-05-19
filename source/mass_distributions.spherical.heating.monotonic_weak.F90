@@ -105,7 +105,7 @@ contains
   
   function monotonicWeakConstructorInternal(toleranceShellCrossing,massDistributionHeating_) result(self)
     !!{
-    Constructor for ``monotonicWeak'' mass distribution heating class.
+    Constructor for {\normalfont \ttfamily monotonicWeak} mass distribution heating class.
     !!}
     implicit none
     type            (massDistributionHeatingMonotonicWeak)                        :: self

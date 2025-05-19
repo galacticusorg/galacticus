@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an output analysis class for the \cite{bernardi_massive_2013} stellar mass function.
+Implements an output analysis class for the \cite{bernardi_massive_2013} stellar mass function.
 !!}
 
 
@@ -42,7 +42,7 @@ Contains a module which implements an output analysis class for the \cite{bernar
 
   interface outputAnalysisMassFunctionStellarBernardi2013SDSS
      !!{
-     Constructors for the ``massFunctionStellarBernardi2013SDSS'' output analysis class.
+     Constructors for the {\normalfont \ttfamily massFunctionStellarBernardi2013SDSS} output analysis class.
      !!}
      module procedure massFunctionStellarBernardi2013SDSSConstructorParameters
      module procedure massFunctionStellarBernardi2013SDSSConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function massFunctionStellarBernardi2013SDSSConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``massFunctionStellarBernardi2013SDSS'' output analysis class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily massFunctionStellarBernardi2013SDSS} output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -152,7 +152,7 @@ contains
 
   function massFunctionStellarBernardi2013SDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !!{
-    Constructor for the ``massFunctionStellarBernardi2013SDSS'' output analysis class for internal use.
+    Constructor for the {\normalfont \ttfamily massFunctionStellarBernardi2013SDSS} output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple

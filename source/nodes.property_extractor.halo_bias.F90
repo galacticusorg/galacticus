@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an ISM mass output analysis property extractor class.
+Implements an ISM mass output analysis property extractor class.
 !!}
 
   use :: Dark_Matter_Halo_Biases, only : darkMatterHaloBias, darkMatterHaloBiasClass
@@ -47,7 +47,7 @@ Contains a module which implements an ISM mass output analysis property extracto
 
   interface nodePropertyExtractorHaloBias
      !!{
-     Constructors for the ``haloBias'' output analysis class.
+     Constructors for the {\normalfont \ttfamily haloBias} output analysis class.
      !!}
      module procedure haloBiasConstructorParameters
      module procedure haloBiasConstructorInternal

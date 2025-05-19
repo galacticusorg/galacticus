@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a unitarity output analysis distribution normalizer class.
+  Implements a unitarity output analysis distribution normalizer class.
   !!}
 
   !![
@@ -37,7 +37,7 @@
 
   interface outputAnalysisDistributionNormalizerUnitarity
      !!{
-     Constructors for the ``unitarity'' output analysis distribution normalizer class.
+     Constructors for the {\normalfont \ttfamily unitarity} output analysis distribution normalizer class.
      !!}
      module procedure unitarityConstructorParameters
   end interface outputAnalysisDistributionNormalizerUnitarity
@@ -46,7 +46,7 @@ contains
 
   function unitarityConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``unitarity'' output analysis distribution normalizer class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily unitarity} output analysis distribution normalizer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

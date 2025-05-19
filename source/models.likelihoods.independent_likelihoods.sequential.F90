@@ -53,7 +53,7 @@
 
   interface posteriorSampleLikelihoodIndpndntLklhdsSqntl
      !!{
-     Constructors for the {\normalfont \ttfamily independentLikelihoods} posterior sampling convergence class.
+     Constructors for the {\normalfont \ttfamily indpndntLklhdsSqntl} posterior sampling convergence class.
      !!}
      module procedure independentLikelihoodsSequentialConstructorParameters
      module procedure independentLikelihoodsSequentialConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function independentLikelihoodsSequentialConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily independentLikelihoods} posterior sampling convergence class which builds the object from a
+    Constructor for the {\normalfont \ttfamily indpndntLklhdsSqntl} posterior sampling convergence class which builds the object from a
     parameter set.
     !!}
     use :: Error           , only : Error_Report
@@ -122,7 +122,7 @@ contains
 
   function independentLikelihoodsSequentialConstructorInternal(modelLikelihoods,finalLikelihoodFullEvaluation,restoreLevels,likelihoodMultiplier,likelihoodAccept) result(self)
     !!{
-    Constructor for ``independentLikelihoods'' posterior sampling likelihood class.
+    Constructor for {\normalfont \ttfamily indpndntLklhdsSqntl} posterior sampling likelihood class.
     !!}
     implicit none
     type            (posteriorSampleLikelihoodIndpndntLklhdsSqntl)                              :: self

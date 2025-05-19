@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a concentration distribution output analysis class for dark matter halo progenitor mass functions.
+  Implements a concentration distribution output analysis class for dark matter halo progenitor mass functions.
   !!}
   
   use :: Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMOClass
@@ -75,7 +75,7 @@
 
   interface outputAnalysisProgenitorMassFunction
      !!{
-     Constructors for the ``progenitorMassFunction'' output analysis class.
+     Constructors for the {\normalfont \ttfamily progenitorMassFunction} output analysis class.
      !!}
      module procedure progenitorMassFunctionConstructorParameters
      module procedure progenitorMassFunctionConstructorFile
@@ -86,7 +86,7 @@ contains
   
   function progenitorMassFunctionConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``progenitorMassFunction'' output analysis class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily progenitorMassFunction} output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass
     use :: Input_Parameters                 , only : inputParameter            , inputParameters
@@ -338,7 +338,7 @@ contains
   
   function progenitorMassFunctionConstructorFile(fileName,label,comment,targetLabel,indexParent,indexRedshift,redshiftParent,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,rootVarianceTargetFractional,likelihoodInLog,alwaysIsolatedOnly,darkMatterProfileDMO_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,virialDensityContrastDefinition_,nbodyHaloMassError_,outputTimes_) result(self)
     !!{
-    Constructor for the ``progenitorMassFunction'' output analysis class which reads all required properties from file.
+    Constructor for the {\normalfont \ttfamily progenitorMassFunction} output analysis class which reads all required properties from file.
     !!}
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass
     use :: HDF5_Access                      , only : hdf5Access
@@ -422,7 +422,7 @@ contains
 
   function progenitorMassFunctionConstructorInternal(label,comment,massRatioMinimum,massRatioMaximum,countMassRatio,massParentMinimum,massParentMaximum,timeProgenitor,timeParent,alwaysIsolatedOnly,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,rootVarianceTargetFractional,likelihoodInLog,darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,virialDensityContrastDefinition_,nbodyHaloMassError_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
     !!{
-    Internal constructor for the ``progenitorMassFunction'' output analysis class.
+    Internal constructor for the {\normalfont \ttfamily progenitorMassFunction} output analysis class.
     !!}
     use :: Galactic_Filters                        , only : filterList                                      , galacticFilterDescendantNode                , galacticFilterHaloAlwaysIsolated              , galacticFilterHaloIsolated                  , &
           &                                                 galacticFilterHaloMass                          , galacticFilterNot
@@ -695,7 +695,7 @@ contains
 
   subroutine progenitorMassFunctionDestructor(self)
     !!{
-    Destructor for the ``progenitorMassFunction'' output analysis class.
+    Destructor for the {\normalfont \ttfamily progenitorMassFunction} output analysis class.
     !!}
     implicit none
     type(outputAnalysisProgenitorMassFunction), intent(inout) :: self

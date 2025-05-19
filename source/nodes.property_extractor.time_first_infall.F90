@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a cosmic time output analysis property extractor class.
+Implements a cosmic time output analysis property extractor class.
 !!}
 
   !![
@@ -41,7 +41,7 @@ Contains a module which implements a cosmic time output analysis property extrac
 
   interface nodePropertyExtractorTimeFirstInfall
      !!{
-     Constructors for the ``timeFirstInfallFirstInfall'' output analysis class.
+     Constructors for the {\normalfont \ttfamily timeFirstInfall} output analysis class.
      !!}
      module procedure timeFirstInfallConstructorParameters
      module procedure timeFirstInfallConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function timeFirstInfallConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``timeFirstInfall'' output analysis property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily timeFirstInfall} output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -67,7 +67,7 @@ contains
 
   function timeFirstInfallConstructorInternal() result(self)
     !!{
-    Internal constructor for the ``timeFirstInfall'' property extractor class.
+    Internal constructor for the {\normalfont \ttfamily timeFirstInfall} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorTimeFirstInfall) :: self

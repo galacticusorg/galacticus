@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a generalized top-hat power spectrum window function class \citep{brown_towards_2022}.
+  Implements a generalized top-hat power spectrum window function class \citep{brown_towards_2022}.
   !!}
 
   use :: Cosmology_Parameters, only : cosmologyParametersClass

@@ -132,7 +132,7 @@ contains
 
   function logNormalConstructorInternal(mean,variance,x0,sigma,limitLower,limitUpper,randomNumberGenerator_) result(self)
     !!{
-    Constructor for ``normal'' 1D distribution function class.
+    Constructor for {\normalfont \ttfamily normal} 1D distribution function class.
     !!}
     use :: Error, only : Error_Report
     implicit none

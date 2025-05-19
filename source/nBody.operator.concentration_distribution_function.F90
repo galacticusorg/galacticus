@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements an N-body data operator which computes mass functions.
+  Implements an N-body data operator which computes mass functions.
   !!}
   
   use            :: Cosmology_Parameters, only : cosmologyParametersClass
@@ -47,7 +47,7 @@
 
   interface nbodyOperatorConcentrationDistributionFunction
      !!{
-     Constructors for the ``concentrationDistributionFunction'' N-body operator class.
+     Constructors for the {\normalfont \ttfamily concentrationDistributionFunction} N-body operator class.
      !!}
      module procedure concentrationDistributionFunctionConstructorParameters
      module procedure concentrationDistributionFunctionConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function concentrationDistributionFunctionConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``concentrationDistributionFunction'' N-body operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily concentrationDistributionFunction} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -123,7 +123,7 @@ contains
 
   function concentrationDistributionFunctionConstructorInternal(massMinimum,massMaximum,concentrationMinimum,concentrationMaximum,concentrationCountPerDecade,description,simulationReference,simulationURL,cosmologyParameters_) result (self)
     !!{
-    Internal constructor for the ``concentrationDistributionFunction'' N-body operator class.
+    Internal constructor for the {\normalfont \ttfamily concentrationDistributionFunction} N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorConcentrationDistributionFunction)                        :: self
@@ -142,7 +142,7 @@ contains
   
   subroutine concentrationDistributionFunctionDestructor(self)
     !!{
-    Destructor for the ``concentrationDistributionFunction'' N-body operator class.
+    Destructor for the {\normalfont \ttfamily concentrationDistributionFunction} N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorConcentrationDistributionFunction), intent(inout) :: self

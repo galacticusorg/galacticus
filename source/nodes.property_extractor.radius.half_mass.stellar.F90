@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a half-stellar mass radius output analysis property extractor class.
+Implements a half-stellar mass radius output analysis property extractor class.
 !!}
 
   !![
@@ -40,7 +40,7 @@ Contains a module which implements a half-stellar mass radius output analysis pr
 
   interface nodePropertyExtractorRadiusHalfMassStellar
      !!{
-     Constructors for the ``radiusHalfMassStellar'' output analysis class.
+     Constructors for the {\normalfont \ttfamily radiusHalfMassStellar} output analysis class.
      !!}
      module procedure radiusHalfMassStellarConstructorParameters
   end interface nodePropertyExtractorRadiusHalfMassStellar
@@ -49,7 +49,7 @@ contains
 
   function radiusHalfMassStellarConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``radiusHalfMassStellar'' output analysis property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily radiusHalfMassStellar} output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

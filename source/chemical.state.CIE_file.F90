@@ -187,7 +187,7 @@
 
   interface chemicalStateCIEFile
      !!{
-     Constructors for the ``CIE file'' chemical state class.
+     Constructors for the {\normalfont \ttfamily CIEFile} chemical state class.
      !!}
      module procedure cieFileConstructorParameters
      module procedure cieFileConstructorInternal
@@ -200,7 +200,7 @@ contains
 
   function cieFileConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``CIE file'' chemical state class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily CIEFile} chemical state class which takes a parameter set as input.
     !!}
     implicit none
     type(chemicalStateCIEFile)                :: self
@@ -224,7 +224,7 @@ contains
 
   function cieFileConstructorInternal(fileName) result(self)
     !!{
-    Internal constructor for the ``CIE file'' chemical state class.
+    Internal constructor for the {\normalfont \ttfamily CIEFile} chemical state class.
     !!}
     use :: Chemical_Abundances_Structure, only : unitChemicalAbundances
     implicit none

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a stellar mass-weighted morphology output analysis property extractor class.
+Implements a stellar mass-weighted morphology output analysis property extractor class.
 !!}
 
   !![
@@ -40,7 +40,7 @@ Contains a module which implements a stellar mass-weighted morphology output ana
 
   interface nodePropertyExtractorMassStellarMorphology
      !!{
-     Constructors for the ``massStellarMorphology'' output analysis class.
+     Constructors for the {\normalfont \ttfamily massStellarMorphology} output analysis class.
      !!}
      module procedure massStellarMorphologyConstructorParameters
   end interface nodePropertyExtractorMassStellarMorphology
@@ -49,7 +49,7 @@ contains
 
   function massStellarMorphologyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``massStellarMorphology'' output analysis property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily massStellarMorphology} output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a merger tree filter which passes if any node in the tree passes the given galactic filter.
+Implements a merger tree filter which passes if any node in the tree passes the given galactic filter.
 !!}
 
   use :: Galactic_Filters, only : galacticFilterClass
@@ -44,7 +44,7 @@ Contains a module which implements a merger tree filter which passes if any node
 
   interface mergerTreeFilterAnyNode
      !!{
-     Constructors for the ``anyNode'' merger tree filter class.
+     Constructors for the {\normalfont \ttfamily anyNode} merger tree filter class.
      !!}
      module procedure anyNodeConstructorParameters
      module procedure anyNodeConstructorInternal
@@ -54,7 +54,7 @@ contains
   
   function anyNodeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``anyNode'' merger tree filter class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily anyNode} merger tree filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -101,7 +101,7 @@ contains
 
   function anyNodeConstructorInternal(label,labelBranch,labelDescription,galacticFilter_) result(self)
     !!{
-    Internal constructor for the ``anyNode'' merger tree filter class.
+    Internal constructor for the {\normalfont \ttfamily anyNode} merger tree filter class.
     !!}
     use :: Nodes_Labels, only : nodeLabelRegister
     implicit none

@@ -48,7 +48,7 @@
 
   interface nodePropertyExtractorVirialProperties
      !!{
-     Constructors for the ``virialProperties'' output extractor class.
+     Constructors for the {\normalfont \ttfamily virialProperties} output extractor class.
      !!}
      module procedure virialPropertiesConstructorParameters
      module procedure virialPropertiesConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function virialPropertiesConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``virialProperties'' property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily virialProperties} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,7 +79,7 @@ contains
 
   function virialPropertiesConstructorInternal(darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the ``virialProperties'' output extractor property extractor class.
+    Internal constructor for the {\normalfont \ttfamily virialProperties} output extractor property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorVirialProperties)                        :: self

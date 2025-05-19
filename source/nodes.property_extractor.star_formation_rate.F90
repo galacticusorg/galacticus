@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a star formation rate property extractor class.
+Implements a star formation rate property extractor class.
 !!}
 
   use :: Star_Formation_Rates_Disks                , only : starFormationRateDisksClass
@@ -56,7 +56,7 @@ Contains a module which implements a star formation rate property extractor clas
 
   interface nodePropertyExtractorStarFormationRate
      !!{
-     Constructors for the ``starFormationRate'' output analysis class.
+     Constructors for the {\normalfont \ttfamily starFormationRate} output analysis class.
      !!}
      module procedure starFormationRateConstructorParameters
      module procedure starFormationRateConstructorInternal
@@ -66,7 +66,7 @@ contains
 
   function starFormationRateConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``starFormationRate'' property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily starFormationRate} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -124,7 +124,7 @@ contains
 
   function starFormationRateConstructorInternal(starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_) result(self)
     !!{
-    Internal constructor for the ``starFormationRate'' property extractor class.
+    Internal constructor for the {\normalfont \ttfamily starFormationRate} property extractor class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -160,7 +160,7 @@ contains
 
   subroutine starFormationRateDestructor(self)
     !!{
-    Destructor for the ``starFormationRate'' property extractor class.
+    Destructor for the {\normalfont \ttfamily starFormationRate} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorStarFormationRate), intent(inout) :: self

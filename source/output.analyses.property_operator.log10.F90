@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an log10 output analysis property operator class.
+Implements an log10 output analysis property operator class.
 !!}
 
   !![
@@ -37,7 +37,7 @@ Contains a module which implements an log10 output analysis property operator cl
 
   interface outputAnalysisPropertyOperatorLog10
      !!{
-     Constructors for the ``log10'' output analysis class.
+     Constructors for the {\normalfont \ttfamily log10} output analysis class.
      !!}
      module procedure log10ConstructorParameters
   end interface outputAnalysisPropertyOperatorLog10
@@ -46,7 +46,7 @@ contains
 
   function log10ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``log10'' output analysis property operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily log10} output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

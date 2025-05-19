@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an ALFALFA HI mass function output analysis class.
+Implements an ALFALFA HI mass function output analysis class.
 !!}
 
 
@@ -49,7 +49,7 @@ Contains a module which implements an ALFALFA HI mass function output analysis c
 
   interface outputAnalysisMassFunctionHIALFALFAMartin2010
      !!{
-     Constructors for the ``massFunctionHIALFALFAMartin2010'' output analysis class.
+     Constructors for the {\normalfont \ttfamily massFunctionHIALFALFAMartin2010} output analysis class.
      !!}
      module procedure massFunctionHIALFALFAMartin2010ConstructorParameters
      module procedure massFunctionHIALFALFAMartin2010ConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function massFunctionHIALFALFAMartin2010ConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``massFunctionHIALFALFAMartin2010'' output analysis class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily massFunctionHIALFALFAMartin2010} output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Parameters            , only : cosmologyParameters         , cosmologyParametersClass
     use :: Input_Parameters                , only : inputParameter              , inputParameters
@@ -143,7 +143,7 @@ contains
 
   function massFunctionHIALFALFAMartin2010ConstructorInternal(cosmologyFunctions_,cosmologyParameters_,outputAnalysisDistributionOperatorRandomError_,outputAnalysisMolecularRatio_,gravitationalLensing_,outputTimes_,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !!{
-    Constructor for the ``massFunctionHIALFALFAMartin2010'' output analysis class for internal use.
+    Constructor for the {\normalfont \ttfamily massFunctionHIALFALFAMartin2010} output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersClass                       , cosmologyParametersSimple
@@ -280,7 +280,7 @@ contains
 
   subroutine massFunctionHIALFALFAMartin2010Destructor(self)
     !!{
-    Destructor for the ``massFunctionHIALFALFAMartin2010'' output analysis class.
+    Destructor for the {\normalfont \ttfamily massFunctionHIALFALFAMartin2010} output analysis class.
     !!}
     implicit none
     type(outputAnalysisMassFunctionHIALFALFAMartin2010), intent(inout) :: self

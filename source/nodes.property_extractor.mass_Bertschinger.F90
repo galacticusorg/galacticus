@@ -39,7 +39,7 @@
 
   interface nodePropertyExtractorMassBertschinger
      !!{
-     Constructors for the ``massBertschinger'' output extractor class.
+     Constructors for the {\normalfont \ttfamily massBertschinger} output extractor class.
      !!}
      module procedure massBertschingerConstructorParameters
      module procedure massBertschingerConstructorInternal
@@ -49,7 +49,7 @@ contains
 
   function massBertschingerConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``massBertschinger'' property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily massBertschinger} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -65,7 +65,7 @@ contains
 
   function massBertschingerConstructorInternal() result(self)
     !!{
-    Internal constructor for the ``massBertschinger'' output extractor property extractor class.
+    Internal constructor for the {\normalfont \ttfamily massBertschinger} output extractor property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorMassBertschinger) :: self

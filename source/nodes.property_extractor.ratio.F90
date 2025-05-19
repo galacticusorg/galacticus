@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a ratio output analysis property extractor class.
+Implements a ratio output analysis property extractor class.
 !!}
 
   !![
@@ -44,7 +44,7 @@ Contains a module which implements a ratio output analysis property extractor cl
 
   interface nodePropertyExtractorRatio
      !!{
-     Constructors for the ``ratio'' output analysis class.
+     Constructors for the {\normalfont \ttfamily ratio} output analysis class.
      !!}
      module procedure ratioConstructorParameters
      module procedure ratioConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function ratioConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``ratio'' output analysis property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily ratio} output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -88,7 +88,7 @@ contains
 
   function ratioConstructorInternal(name,description,propertyNumerator_,propertyDenominator_) result(self)
     !!{
-    Internal constructor for the ``ratio'' output analysis property extractor class.
+    Internal constructor for the {\normalfont \ttfamily ratio} output analysis property extractor class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -119,7 +119,7 @@ contains
 
   subroutine ratioDestructor(self)
     !!{
-    Destructor for the ``ratio'' output analysis property extractor class.
+    Destructor for the {\normalfont \ttfamily ratio} output analysis property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRatio), intent(inout) :: self

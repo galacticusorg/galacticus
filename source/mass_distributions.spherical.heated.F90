@@ -178,7 +178,7 @@ contains
   
   function sphericalHeatedConstructorInternal(nonAnalyticSolver,tolerateVelocityMaximumFailure,tolerateEnclosedMassIntegrationFailure,toleratePotentialIntegrationFailure,fractionRadiusFinalSmall,toleranceRelativePotential,massDistribution_,massDistributionHeating_,componentType,massType) result(self)
     !!{
-    Constructor for ``sphericalHeated'' mass distribution class.
+    Constructor for {\normalfont \ttfamily sphericalHeated} mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalHeated  )                          :: self
@@ -209,7 +209,7 @@ contains
 
   subroutine sphericalHeatedDestructor(self)
     !!{
-    Destructor for the ``sphericalHeated'' mass distribution class.
+    Destructor for the {\normalfont \ttfamily sphericalHeated} mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalHeated), intent(inout) :: self

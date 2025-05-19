@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a filter which passes only non-isolated halos.
+Implements a filter which passes only non-isolated halos.
 !!}
 
   !![
@@ -37,7 +37,7 @@ Contains a module which implements a filter which passes only non-isolated halos
 
   interface galacticFilterHaloNotIsolated
      !!{
-     Constructors for the ``haloNotIsolated'' galactic filter class.
+     Constructors for the {\normalfont \ttfamily haloNotIsolated} galactic filter class.
      !!}
      module procedure haloNotIsolatedConstructorParameters
   end interface galacticFilterHaloNotIsolated
@@ -46,7 +46,7 @@ contains
 
   function haloNotIsolatedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``haloNotIsolated'' galactic filter class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily haloNotIsolated} galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

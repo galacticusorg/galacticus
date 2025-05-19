@@ -92,7 +92,7 @@ contains
   
   function twoBodyRelaxationConstructorInternal(massParticle,lengthSoftening,timeRelaxing,efficiency) result(self)
     !!{
-    Constructor for ``twoBodyRelaxation'' dark matter profile heating class.
+    Constructor for {\normalfont \ttfamily twoBodyRelaxation} dark matter profile heating class.
     !!}
     implicit none
     type             (massDistributionHeatingTwoBodyRelaxation)                :: self

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an orbital speed output analysis property extractor class.
+Implements an orbital speed output analysis property extractor class.
 !!}
 
   !![
@@ -40,7 +40,7 @@ Contains a module which implements an orbital speed output analysis property ext
 
   interface nodePropertyExtractorSpeedOrbital
      !!{
-     Constructors for the ``speedOrbital'' output analysis class.
+     Constructors for the {\normalfont \ttfamily speedOrbital} output analysis class.
      !!}
      module procedure speedOrbitalConstructorParameters
   end interface nodePropertyExtractorSpeedOrbital
@@ -49,7 +49,7 @@ contains
 
   function speedOrbitalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``speedOrbital'' output analysis property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily speedOrbital} output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

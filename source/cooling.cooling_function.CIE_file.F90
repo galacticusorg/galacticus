@@ -187,7 +187,7 @@
 
   interface coolingFunctionCIEFile
      !!{
-     Constructors for the ``CIE file'' cooling function class.
+     Constructors for the {\normalfont \ttfamily CIEFile} cooling function class.
      !!}
      module procedure cieFileConstructorParameters
      module procedure cieFileConstructorInternal
@@ -200,7 +200,7 @@ contains
 
   function cieFileConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``CIE file'' cooling function class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily CIEFile} cooling function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -224,7 +224,7 @@ contains
 
   function cieFileConstructorInternal(fileName) result(self)
     !!{
-    Internal constructor for the ``CIE file'' cooling function class.
+    Internal constructor for the {\normalfont \ttfamily CIEFile} cooling function class.
     !!}
     implicit none
     type(coolingFunctionCIEFile)                :: self

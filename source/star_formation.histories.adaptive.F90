@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a star formation histories class which records star formation in adaptively sized time
+  Implements a star formation histories class which records star formation in adaptively sized time
   bins and split by metallicity.
   !!}
 
@@ -96,7 +96,7 @@
 
   interface starFormationHistoryAdaptive
      !!{
-     Constructors for the ``adaptive'' star formation history class.
+     Constructors for the {\normalfont \ttfamily adaptive} star formation history class.
      !!}
      module procedure adaptiveConstructorParameters
      module procedure adaptiveConstructorInternal
@@ -109,7 +109,7 @@ contains
 
   function adaptiveConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``adaptive'' star formation history class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily adaptive} star formation history class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -188,7 +188,7 @@ contains
 
   function adaptiveConstructorInternal(outputTimes_,timeStepMinimum,countTimeStepsMaximum,metallicityBoundaries,countMetallicities,metallicityMinimum,metallicityMaximum) result(self)
     !!{
-    Internal constructor for the ``adaptive'' star formation history class.
+    Internal constructor for the {\normalfont \ttfamily adaptive} star formation history class.
     !!}
     use :: Error                     , only : Error_Report
     use :: Galactic_Structure_Options, only : componentTypeMax, componentTypeMin
@@ -563,7 +563,6 @@ contains
     double precision                              , intent(  out), optional     :: timeStart
     !$GLC attributes unused :: allowTruncation
     
-    if (     present(node       ).or.present(starFormationHistory)) call Error_Report('`node` is not supported'  //{introspection:location})
     if (.not.present(indexOutput)                                 ) call Error_Report('`indexOutput` is required'//{introspection:location})
     ! Set the times. These are just our tabulated intervals, except for the final time which is pinned to the output time. This is
     ! because our final interval may extend past the output time due to the finite size of our minimum interval. Pinning to the

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements an output analysis class for the star forming main sequence measurements of \cite{wagner_evolution_2016}.
+  Implements an output analysis class for the star forming main sequence measurements of \cite{wagner_evolution_2016}.
   !!}
 
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
@@ -68,7 +68,7 @@
 
   interface outputAnalysisStarFormingMainSequenceWagner2016
      !!{
-     Constructors for the ``starFormingMainSequenceWagner2016'' output analysis class.
+     Constructors for the {\normalfont \ttfamily starFormingMainSequenceWagner2016} output analysis class.
      !!}
      module procedure starFormingMainSequenceWagner2016ConstructorParameters
      module procedure starFormingMainSequenceWagner2016ConstructorInternal
@@ -78,7 +78,7 @@ contains
 
   function starFormingMainSequenceWagner2016ConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``starFormingMainSequenceWagner2016'' output analysis class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily starFormingMainSequenceWagner2016} output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Parameters   , only : cosmologyParameters       , cosmologyParametersClass
     use :: Cosmology_Functions    , only : cosmologyFunctions        , cosmologyFunctionsClass
@@ -180,7 +180,7 @@ contains
 
   function starFormingMainSequenceWagner2016ConstructorInternal(redshiftRange,galaxyType,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_) result(self)
     !!{
-    Internal constructor for the ``starFormingMainSequenceWagner2016'' output analysis class.
+    Internal constructor for the {\normalfont \ttfamily starFormingMainSequenceWagner2016} output analysis class.
     !!}
     use :: Error                                 , only : Error_Report
     use :: Cosmology_Functions                   , only : cosmologyFunctionsMatterLambda

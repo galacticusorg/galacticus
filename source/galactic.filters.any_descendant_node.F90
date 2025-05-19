@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a galactic filter which applies another filter to all descendant nodes of the given node and
+  Implements a galactic filter which applies another filter to all descendant nodes of the given node and
   passes if any descendant passes.
   !!}
   
@@ -41,7 +41,7 @@
 
   interface galacticFilterAnyDescendantNode
      !!{
-     Constructors for the ``anyDescendantNode'' galactic filter class.
+     Constructors for the {\normalfont \ttfamily anyDescendantNode} galactic filter class.
      !!}
      module procedure anyDescendantNodeConstructorParameters
      module procedure anyDescendantNodeConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function anyDescendantNodeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``anyDescendantNode'' galactic filter class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily anyDescendantNode} galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -84,7 +84,7 @@ contains
   
   function anyDescendantNodeConstructorInternal(allowSelf,branchOnly,galacticFilter_) result(self)
     !!{
-    Internal constructor for the ``anyDescendantNode'' galactic filter class.
+    Internal constructor for the {\normalfont \ttfamily anyDescendantNode} galactic filter class.
     !!}
     implicit none
     type   (galacticFilterAnyDescendantNode)                        :: self
@@ -99,7 +99,7 @@ contains
   
   subroutine anyDescendantNodeDestructor(self)
     !!{
-    Destructor for  the ``anyDescendantNode'' galactic filter class.
+    Destructor for  the {\normalfont \ttfamily anyDescendantNode} galactic filter class.
     !!}
     implicit none
     type(galacticFilterAnyDescendantNode), intent(inout) :: self

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a star forming main sequence output analysis class.
+  Implements a star forming main sequence output analysis class.
   !!}
 
   use :: Cosmology_Functions                       , only : cosmologyFunctionsClass
@@ -50,7 +50,7 @@
 
   interface outputAnalysisStarFormingMainSequence
      !!{
-     Constructors for the ``starFormingMainSequence'' output analysis class.
+     Constructors for the {\normalfont \ttfamily starFormingMainSequence} output analysis class.
      !!}
      module procedure starFormingMainSequenceConstructorParameters
      module procedure starFormingMainSequenceConstructorFile
@@ -61,7 +61,7 @@ contains
 
   function starFormingMainSequenceConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``starFormingMainSequence'' output analysis class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily starFormingMainSequence} output analysis class which takes a parameter set as input.
     !!}
     use :: Error             , only : Error_Report
     use :: Input_Parameters  , only : inputParameter, inputParameters
@@ -238,7 +238,7 @@ contains
 
   function starFormingMainSequenceConstructorFile(fileName,label,comment,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_) result(self)
     !!{
-    Constructor for the ``starFormingMainSequence'' output analysis class which reads all required properties from file.
+    Constructor for the {\normalfont \ttfamily starFormingMainSequence} output analysis class which reads all required properties from file.
     !!}
     use :: IO_HDF5       , only : hdf5Object
     use :: HDF5_Access   , only : hdf5Access
@@ -296,7 +296,7 @@ contains
 
   function starFormingMainSequenceConstructorInternal(label,comment,massesStellar,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_,targetLabel,meanValueTarget,meanCovarianceTarget,massesStellarBinWidthLogarithmic) result(self)
     !!{
-    Internal constructor for the ``starFormingMainSequence'' output analysis class.
+    Internal constructor for the {\normalfont \ttfamily starFormingMainSequence} output analysis class.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass
     use :: Galactic_Filters                      , only : galacticFilterClass

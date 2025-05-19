@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a filter which passes only halos below a specified hierarchy depth.
+Implements a filter which passes only halos below a specified hierarchy depth.
 !!}
 
   !![
@@ -38,7 +38,7 @@ Contains a module which implements a filter which passes only halos below a spec
 
   interface galacticFilterHierarchyDepthMaximum
      !!{
-     Constructors for the ``hierarchyDepthMaximum'' galactic filter class.
+     Constructors for the {\normalfont \ttfamily hierarchyDepthMaximum} galactic filter class.
      !!}
      module procedure hierarchyDepthMaximumConstructorParameters
      module procedure hierarchyDepthMaximumConstructorInternal
@@ -48,7 +48,7 @@ contains
 
   function hierarchyDepthMaximumConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``hierarchyDepthMaximum'' galactic filter class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily hierarchyDepthMaximum} galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -72,7 +72,7 @@ contains
 
   function hierarchyDepthMaximumConstructorInternal(depthHierarchyLargest) result(self)
     !!{
-    Internal constructor for the ``hierarchyDepthMaximum'' galactic filter class.
+    Internal constructor for the {\normalfont \ttfamily hierarchyDepthMaximum} galactic filter class.
     !!}
     implicit none
     type   (galacticFilterHierarchyDepthMaximum)                :: self

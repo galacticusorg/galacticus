@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a mass-metallicity relation analysis class.
+  Implements a mass-metallicity relation analysis class.
   !!}
 
   !![
@@ -45,7 +45,7 @@
   
   interface outputAnalysisMassMetallicityAndrews2013
      !!{
-     Constructors for the ``massMetallicityAndrews2013'' output analysis class.
+     Constructors for the {\normalfont \ttfamily massMetallicityAndrews2013} output analysis class.
      !!}
      module procedure massMetallicityAndrews2013ConstructorParameters
      module procedure massMetallicityAndrews2013ConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function massMetallicityAndrews2013ConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``massMetallicityAndrews2013'' output analysis class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily massMetallicityAndrews2013} output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions                       , only : cosmologyFunctions             , cosmologyFunctionsClass
     use :: Input_Parameters                          , only : inputParameter                 , inputParameters
@@ -142,7 +142,7 @@ contains
 
   function massMetallicityAndrews2013ConstructorInternal(metallicitySystematicErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,fractionGasThreshold,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_) result (self)
     !!{
-    Constructor for the ``massMetallicityAndrews2013'' output analysis class for internal use.
+    Constructor for the {\normalfont \ttfamily massMetallicityAndrews2013} output analysis class for internal use.
     !!}
     use :: Abundances_Structure                      , only : Abundances_Index_From_Name                         , abundances
     use :: Atomic_Data                               , only : Atomic_Mass

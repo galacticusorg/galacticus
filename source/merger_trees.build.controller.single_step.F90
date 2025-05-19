@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a merger tree build controller class which limits tree building to a single step.
+Implements a merger tree build controller class which limits tree building to a single step.
 !!}
   
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
@@ -55,7 +55,7 @@ Contains a module which implements a merger tree build controller class which li
 
   interface mergerTreeBuildControllerSingleStep
      !!{
-     Constructors for the ``singleStep'' merger tree build controller class.
+     Constructors for the {\normalfont \ttfamily singleStep} merger tree build controller class.
      !!}
      module procedure singleStepConstructorParameters
      module procedure singleStepConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function singleStepConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``singleStep'' merger tree build controller class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily singleStep} merger tree build controller class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -112,7 +112,7 @@ contains
 
   function singleStepConstructorInternal(criticalOverdensityStep,haltAfterStep,cosmologyFunctions_,criticalOverdensity_,linearGrowth_,mergerTreeBuildController_) result(self)
     !!{
-    Internal constructor for the ``singleStep'' merger tree build controller class .
+    Internal constructor for the {\normalfont \ttfamily singleStep} merger tree build controller class .
     !!}
     use :: Nodes_Labels, only : nodeLabelRegister
     implicit none
@@ -194,20 +194,23 @@ contains
     return
   end function singleStepTimeMinimum
   
-  double precision function singleStepTimeMaximum(self,node,massBranch,criticalOverdensityBranch)
+  double precision function singleStepTimeMaximum(self,node,massBranch,criticalOverdensityBranch,timeReference,insertNode)
     !!{
     Return the maximum allowed time for this node.
     !!}
     implicit none
     class           (mergerTreeBuildControllerSingleStep), intent(inout) :: self
     type            (treeNode                           ), intent(inout) :: node
-    double precision                                     , intent(in   ) :: massBranch, criticalOverdensityBranch
+    double precision                                     , intent(in   ) :: massBranch   , criticalOverdensityBranch, &
+         &                                                                  timeReference
+    logical                                              , intent(  out) :: insertNode
 
     if (associated(node%parent)) then
-       singleStepTimeMaximum=self%mergerTreeBuildController_%timeMaximum(node,massBranch,criticalOverdensityBranch)
+       singleStepTimeMaximum=self%mergerTreeBuildController_%timeMaximum(node,massBranch,criticalOverdensityBranch,timeReference,insertNode)
     else
        singleStepTimeMaximum=self%criticalOverdensityStep
     end if
+    insertNode=.false.
     return
   end function singleStepTimeMaximum
   

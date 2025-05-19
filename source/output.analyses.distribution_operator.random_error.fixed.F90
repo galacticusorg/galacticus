@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a random error output analysis distribution operator class.
+Implements a random error output analysis distribution operator class.
 !!}
   !![
   <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRandomErrorFixed">
@@ -37,7 +37,7 @@ Contains a module which implements a random error output analysis distribution o
 
   interface outputAnalysisDistributionOperatorRandomErrorFixed
      !!{
-     Constructors for the ``randomErrorFixed'' output analysis distribution operator class.
+     Constructors for the {\normalfont \ttfamily randomErrorFixed} output analysis distribution operator class.
      !!}
      module procedure randomErrorFixedConstructorParameters
      module procedure randomErrorFixedConstructorInternal
@@ -47,7 +47,7 @@ contains
 
   function randomErrorFixedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``randomErrorFixed'' output analysis distribution operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily randomErrorFixed} output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -74,7 +74,7 @@ contains
 
   function randomErrorFixedConstructorInternal(rootVariance_) result(self)
     !!{
-    Internal constructor for the ``randomErrorFixed'' output analysis distribution operator class.
+    Internal constructor for the {\normalfont \ttfamily randomErrorFixed} output analysis distribution operator class.
     !!}
     implicit none
     type            (outputAnalysisDistributionOperatorRandomErrorFixed)                :: self

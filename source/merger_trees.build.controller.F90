@@ -59,12 +59,15 @@ module Merger_Tree_Build_Controllers
     <description>Return the maximum ``time'' (using the usual $w$ variable for merger tree building) allowed for this node.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>type            (treeNode), intent(inout) :: node                                 </argument>
-    <argument>double precision          , intent(in   ) :: massBranch, criticalOverdensityBranch</argument>
+    <argument>type            (treeNode), intent(inout) :: node                                                </argument>
+    <argument>double precision          , intent(in   ) :: massBranch, criticalOverdensityBranch, timeReference</argument>
+    <argument>logical                   , intent(  out) :: insertNode                                          </argument>
     <code>
-      !$GLC attributes unused :: self, node, massBranch, criticalOverdensityBranch
+      !$GLC attributes unused :: self, node, massBranch, criticalOverdensityBranch, timeReference
       ! No limit to time by default.
       mergerTreeBuildControllerTimeMaximum=huge(0.0d0)
+      ! Do not force creation of a node by default.
+      insertNode=.false.
     </code>
    </method>   
    <method name="controlTimeMaximum" >

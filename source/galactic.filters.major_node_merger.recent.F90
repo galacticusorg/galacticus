@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a galactic low-pass filter for time since the last major node merger.
+Implements a galactic low-pass filter for time since the last major node merger.
 !!}
 
   !![
@@ -42,7 +42,7 @@ Contains a module which implements a galactic low-pass filter for time since the
 
   interface galacticFilterNodeMajorMergerRecent
      !!{
-     Constructors for the ``nodeMajorMergerRecent'' galactic filter class.
+     Constructors for the {\normalfont \ttfamily nodeMajorMergerRecent} galactic filter class.
      !!}
      module procedure nodeMajorMergerRecentConstructorParameters
      module procedure nodeMajorMergerRecentConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function nodeMajorMergerRecentConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``nodeMajorMergerRecent'' galactic filter class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily nodeMajorMergerRecent} galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function nodeMajorMergerRecentConstructorInternal(timeRecent) result(self)
     !!{
-    Internal constructor for the ``nodeMajorMergerRecent'' galactic filter class.
+    Internal constructor for the {\normalfont \ttfamily nodeMajorMergerRecent} galactic filter class.
     !!}
     implicit none
     type            (galacticFilterNodeMajorMergerRecent)                :: self

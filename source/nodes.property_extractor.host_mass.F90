@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a massHost property extractor class.
+Implements a massHost property extractor class.
 !!}
 
   !![
@@ -40,7 +40,7 @@ Contains a module which implements a massHost property extractor class.
 
   interface nodePropertyExtractorMassHost
      !!{
-     Constructors for the ``massHost'' output analysis class.
+     Constructors for the {\normalfont \ttfamily massHost} output analysis class.
      !!}
      module procedure massHostConstructorParameters
   end interface nodePropertyExtractorMassHost

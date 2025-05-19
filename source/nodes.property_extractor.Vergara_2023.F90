@@ -50,7 +50,7 @@
 
   interface nodePropertyExtractorBlackHoleSeedingVergara2023
      !!{
-     Constructors for the ``BlackHoleSeedingVergara2023'' output analysis class.
+     Constructors for the {\normalfont \ttfamily blackHoleSeedingVergara2023} output analysis class.
      !!}
      module procedure blackHoleSeedingVergara2023ConstructorParameters
      module procedure blackHoleSeedingVergara2023ConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function blackHoleSeedingVergara2023ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily BlackHoleSeedingVergara2023} property extractor class.
+    Constructor for the {\normalfont \ttfamily blackHoleSeedingVergara2023} property extractor class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -76,7 +76,7 @@ contains
 
   function blackHoleSeedingVergara2023ConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily BlackHoleSeedingVergara2023} property extractor class.
+    Internal constructor for the {\normalfont \ttfamily blackHoleSeedingVergara2023} property extractor class.
     !!}
     implicit none
     type          (nodePropertyExtractorBlackHoleSeedingVergara2023) :: self
@@ -96,7 +96,7 @@ contains
 
   integer function blackHoleSeedingVergara2023ElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily BlackHoleSeedingVergara2023} property extractors.
+    Return the number of elements in the {\normalfont \ttfamily blackHoleSeedingVergara2023} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorBlackHoleSeedingVergara2023), intent(inout) :: self
@@ -109,7 +109,7 @@ contains
 
   function blackHoleSeedingVergara2023Extract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily BlackHoleSeedingVergara2023} property extractor.
+    Implement a {\normalfont \ttfamily blackHoleSeedingVergara2023} property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentNSC
     implicit none
@@ -154,7 +154,7 @@ contains
 
   subroutine blackHoleSeedingVergara2023Names(self,time,names)
     !!{
-    Return the names of the {\normalfont \ttfamily BlackHoleSeedingVergara2023} properties.
+    Return the names of the {\normalfont \ttfamily blackHoleSeedingVergara2023} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorBlackHoleSeedingVergara2023), intent(inout)                             :: self

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a node branch tip index property extractor.
+Implements a node branch tip index property extractor.
 !!}
 
   !![
@@ -40,7 +40,7 @@ Contains a module which implements a node branch tip index property extractor.
 
   interface nodePropertyExtractorUniqueIDBranchTip
      !!{
-     Constructors for the ``uniqueIDBranchTip'' output analysis class.
+     Constructors for the {\normalfont \ttfamily uniqueIDBranchTip} output analysis class.
      !!}
      module procedure uniqueIDBranchTipConstructorParameters
      module procedure uniqueIDBranchTipConstructorInternal

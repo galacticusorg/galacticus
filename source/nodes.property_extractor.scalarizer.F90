@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an output analysis property extractor class that scalarizes one element from an array node property extractor.
+Implements an output analysis property extractor class that scalarizes one element from an array node property extractor.
 !!}
 
   !![
@@ -43,7 +43,7 @@ Contains a module which implements an output analysis property extractor class t
 
   interface nodePropertyExtractorScalarizer
      !!{
-     Constructors for the ``scalarizer'' output analysis class.
+     Constructors for the {\normalfont \ttfamily scalarizer} output analysis class.
      !!}
      module procedure scalarizerConstructorParameters
      module procedure scalarizerConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function scalarizerConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``scalarizer'' output analysis property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily scalarizer} output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

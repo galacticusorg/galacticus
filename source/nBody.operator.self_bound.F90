@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an N-body data operator which determines the subset of particles that are self-bound.
+Implements an N-body data operator which determines the subset of particles that are self-bound.
 !!}
 
   use, intrinsic :: ISO_C_Binding           , only : c_size_t
@@ -46,7 +46,7 @@ Contains a module which implements an N-body data operator which determines the 
 
   interface nbodyOperatorSelfBound
      !!{
-     Constructors for the ``selfBound'' N-body operator class.
+     Constructors for the {\normalfont \ttfamily selfBound} N-body operator class.
      !!}
      module procedure selfBoundConstructorParameters
      module procedure selfBoundConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function selfBoundConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``selfBound'' N-body operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily selfBound} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -123,7 +123,7 @@ contains
 
   function selfBoundConstructorInternal(tolerance,bootstrapSampleCount,bootstrapSampleRate,representativeMinimumCount,representativeFraction,analyzeAllParticles,useVelocityMostBound,randomNumberGenerator_) result (self)
     !!{
-    Internal constructor for the ``selfBound'' N-body operator class
+    Internal constructor for the {\normalfont \ttfamily selfBound} N-body operator class
     !!}
     implicit none
     type            (nbodyOperatorSelfBound    )                        :: self
@@ -144,7 +144,7 @@ contains
 
   subroutine selfBoundDestructor(self)
     !!{
-    Destructor for the ``selfBound'' N-body operator class.
+    Destructor for the {\normalfont \ttfamily selfBound} N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorSelfBound), intent(inout) :: self

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an N-body data operator which determines the mean angular momentum of particles.
+Implements an N-body data operator which determines the mean angular momentum of particles.
 !!}
 
   use, intrinsic :: ISO_C_Binding           , only : c_size_t
@@ -44,7 +44,7 @@ Contains a module which implements an N-body data operator which determines the 
 
   interface nbodyOperatorAngularMomentum
      !!{
-     Constructors for the ``angularMomentum'' N-body operator class.
+     Constructors for the {\normalfont \ttfamily angularMomentum} N-body operator class.
      !!}
      module procedure angularMomentumConstructorParameters
      module procedure angularMomentumConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function angularMomentumConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``angularMomentum'' N-body operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily angularMomentum} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -88,7 +88,7 @@ contains
 
   function angularMomentumConstructorInternal(selfBoundParticlesOnly,bootstrapSampleCount,randomNumberGenerator_) result (self)
     !!{
-    Internal constructor for the ``angularMomentum'' N-body operator class.
+    Internal constructor for the {\normalfont \ttfamily angularMomentum} N-body operator class.
     !!}
     implicit none
     type   (nbodyOperatorAngularMomentum)                        :: self
@@ -104,7 +104,7 @@ contains
 
   subroutine angularMomentumDestructor(self)
     !!{
-    Destructor for the ``angularMomentum'' N-body operator class.
+    Destructor for the {\normalfont \ttfamily angularMomentum} N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorAngularMomentum), intent(inout) :: self

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a concentration vs. halo mass analysis class matched to the
+  Implements a concentration vs. halo mass analysis class matched to the
   \cite{ludlow_mass-concentration-redshift_2016} CDM sample.
   !!}
 
@@ -45,7 +45,7 @@
 
   interface outputAnalysisConcentrationVsHaloMassCDMLudlow2016
      !!{
-     Constructors for the ``concentrationVsHaloMassCDMLudlow2016'' output analysis class.
+     Constructors for the {\normalfont \ttfamily concentrationVsHaloMassCDMLudlow2016} output analysis class.
      !!}
      module procedure concentrationVsHaloMassCDMLudlow2016ConstructorParameters
      module procedure concentrationVsHaloMassCDMLudlow2016ConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function concentrationVsHaloMassCDMLudlow2016ConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``concentrationVsHaloMassCDMLudlow2016'' output analysis class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily concentrationVsHaloMassCDMLudlow2016} output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions , only : cosmologyFunctions , cosmologyFunctionsClass
     use :: Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
@@ -99,7 +99,7 @@ contains
 
   function concentrationVsHaloMassCDMLudlow2016ConstructorInternal(darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,nbodyHaloMassError_,outputTimes_) result (self)
     !!{
-    Constructor for the ``concentrationVsHaloMassCDMLudlow2016'' output analysis class for internal use.
+    Constructor for the {\normalfont \ttfamily concentrationVsHaloMassCDMLudlow2016} output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass
     use :: Cosmology_Parameters                  , only : cosmologyParametersClass

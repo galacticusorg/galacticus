@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an ISM mass output analysis property extractor class.
+Implements an ISM mass output analysis property extractor class.
 !!}
 
   !![
@@ -39,7 +39,7 @@ Contains a module which implements an ISM mass output analysis property extracto
 
   interface nodePropertyExtractorFinalDescendant
      !!{
-     Constructors for the ``finalDescendant'' output analysis class.
+     Constructors for the {\normalfont \ttfamily finalDescendant} output analysis class.
      !!}
      module procedure finalDescendantConstructorParameters
   end interface nodePropertyExtractorFinalDescendant

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a merger tree filter which passes if the base node in the tree passes the given galactic filter.
+Implements a merger tree filter which passes if the base node in the tree passes the given galactic filter.
 !!}
 
   use :: Galactic_Filters, only : galacticFilterClass
@@ -41,7 +41,7 @@ Contains a module which implements a merger tree filter which passes if the base
 
   interface mergerTreeFilterBaseNode
      !!{
-     Constructors for the ``baseNode'' merger tree filter class.
+     Constructors for the {\normalfont \ttfamily baseNode} merger tree filter class.
      !!}
      module procedure baseNodeConstructorParameters
      module procedure baseNodeConstructorInternal
@@ -51,7 +51,7 @@ contains
   
   function baseNodeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``baseNode'' merger tree filter class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily baseNode} merger tree filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -71,7 +71,7 @@ contains
 
   function baseNodeConstructorInternal(galacticFilter_) result(self)
     !!{
-    Internal constructor for the ``baseNode'' merger tree filter class.
+    Internal constructor for the {\normalfont \ttfamily baseNode} merger tree filter class.
     !!}
     implicit none
     type (mergerTreeFilterBaseNode)                        :: self

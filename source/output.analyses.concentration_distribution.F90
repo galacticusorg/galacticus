@@ -20,7 +20,7 @@
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !!{
-  Contains a module which implements a concentration distribution output analysis class.
+  Implements a concentration distribution output analysis class.
   !!}
 
   !![
@@ -52,7 +52,7 @@
 
   interface outputAnalysisConcentrationDistribution
      !!{
-     Constructors for the ``concentrationDistribution'' output analysis class.
+     Constructors for the {\normalfont \ttfamily concentrationDistribution} output analysis class.
      !!}
      module procedure concentrationDistributionConstructorParameters
      module procedure concentrationDistributionConstructorFile
@@ -63,7 +63,7 @@ contains
 
   function concentrationDistributionConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``concentrationDistribution'' output analysis class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily concentrationDistribution} output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions              , only : cosmologyFunctions, cosmologyFunctionsClass
     use :: Input_Parameters                 , only : inputParameter    , inputParameters
@@ -261,7 +261,7 @@ contains
 
   function concentrationDistributionConstructorFile(fileName,label,comment,rootVarianceFractionalMinimum,darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,virialDensityContrast_,virialDensityContrastDefinition_,outputTimes_) result(self)
     !!{
-    Constructor for the ``progenitorMassFunction'' output analysis class which reads all required properties from file.
+    Constructor for the {\normalfont \ttfamily progenitorMassFunction} output analysis class which reads all required properties from file.
     !!}
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass
     use :: IO_HDF5                          , only : hdf5Object
@@ -330,7 +330,7 @@ contains
 
   function concentrationDistributionConstructorInternal(label,comment,time,massMinimum,massMaximum,concentrationMinimum,concentrationMaximum,countConcentrations,timeRecent,massParticle,rootVarianceFractionalMinimum,darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,virialDensityContrast_,virialDensityContrastDefinition_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
     !!{
-    Internal constructor for the ``concentrationDistribution'' output analysis class.
+    Internal constructor for the {\normalfont \ttfamily concentrationDistribution} output analysis class.
     !!}
     use :: Cosmology_Functions                     , only : cosmologyFunctionsClass
     use :: Galactic_Filters                        , only : filterList                                      , galacticFilterAll                           , galacticFilterFormationTime                   , galacticFilterHaloIsolated
@@ -672,7 +672,7 @@ contains
 
   subroutine concentrationDistributionDestructor(self)
     !!{
-    Destructor for  the ``concentrationDistribution'' output analysis class.
+    Destructor for  the {\normalfont \ttfamily concentrationDistribution} output analysis class.
     !!}
     type(outputAnalysisConcentrationDistribution), intent(inout) :: self
 

@@ -128,7 +128,7 @@ contains
   
   function cloudOverdensitiesConstructorInternal(radius,densityContrast,volumeFillingFactor,radiusBoundary,massDistribution_,randomNumberGenerator_,dimensionless,componentType,massType) result(self)
     !!{
-    Constructor for ``cloudOverdensities'' mass distribution class.
+    Constructor for {\normalfont \ttfamily cloudOverdensities} mass distribution class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     use :: Sorting                 , only : sortIndex, sortByIndex

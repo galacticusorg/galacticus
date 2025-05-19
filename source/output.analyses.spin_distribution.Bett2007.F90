@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a spin parameter distribution output analysis class.
+Implements a spin parameter distribution output analysis class.
 !!}
 
   use :: Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
@@ -37,7 +37,7 @@ Contains a module which implements a spin parameter distribution output analysis
 
   interface outputAnalysisSpinDistributionBett2007
      !!{
-     Constructors for the ``spinDistributionBett2007'' output analysis class.
+     Constructors for the {\normalfont \ttfamily spinDistributionBett2007} output analysis class.
      !!}
      module procedure spinDistributionBett2007ConstructorParameters
      module procedure spinDistributionBett2007ConstructorInternal
@@ -47,7 +47,7 @@ contains
 
   function spinDistributionBett2007ConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``spinDistributionBett2007'' output analysis class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily spinDistributionBett2007} output analysis class which takes a parameter set as input.
     !!}
     use :: Functions_Global, only : Virial_Density_Contrast_Percolation_Objects_Constructor_
     use :: Input_Parameters, only : inputParameter                                          , inputParameters
@@ -107,7 +107,7 @@ contains
 
   function spinDistributionBett2007ConstructorInternal(logNormalRange,errorTolerant,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileScaleRadius_,virialDensityContrast_,outputTimes_,percolationObjects_) result(self)
     !!{
-    Internal constructor for the ``spinDistributionBett2007'' output analysis class.
+    Internal constructor for the {\normalfont \ttfamily spinDistributionBett2007} output analysis class.
     !!}
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass
     use :: Dark_Matter_Halo_Scales          , only : darkMatterHaloScaleClass

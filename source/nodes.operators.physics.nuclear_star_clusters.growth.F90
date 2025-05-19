@@ -142,7 +142,7 @@ contains
        call spheroid          %angularMomentumRate(-rateMassAccretionGas*spheroid%angularMomentum()/(spheroid%massGas()+spheroid%massStellar()))
        call spheroid          %  abundancesGasRate(-rateMassAccretionGas*spheroid%abundancesGas  ()/ spheroid%massGas()                        )
        call nuclearStarCluster%        massGasRate(+rateMassAccretionGas)
-       call nuclearStarCluster%angularMomentumRate(-rateMassAccretionGas*spheroid%angularMomentum()/(spheroid%massGas()+spheroid%massStellar()))
+       call nuclearStarCluster%angularMomentumRate(+rateMassAccretionGas*spheroid%angularMomentum()/(spheroid%massGas()+spheroid%massStellar()))
        call nuclearStarCluster%  abundancesGasRate(+rateMassAccretionGas*spheroid%abundancesGas  ()/ spheroid%massGas()                        )
     end select
     return

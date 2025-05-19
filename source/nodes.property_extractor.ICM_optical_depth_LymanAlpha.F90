@@ -17,8 +17,10 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an intracluster medium cooling power in band property extractor class.
-
+  !!{
+  Implements an intracluster medium cooling power in band property extractor class.
+  !!}
+  
   use :: Cosmology_Functions    , only : cosmologyFunctions , cosmologyFunctionsClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
   
@@ -28,7 +30,9 @@
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorICMOpticalDepthLymanAlpha
-     !% A property extractor class which extracts the fraction of the ICM cooling power due to emission in a given energy band.
+     !!{
+     A property extractor class which extracts the fraction of the ICM cooling power due to emission in a given energy band.
+     !!}
      private
      class  (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_   => null()
      class  (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_    => null()
@@ -42,7 +46,9 @@
   end type nodePropertyExtractorICMOpticalDepthLymanAlpha
 
   interface nodePropertyExtractorICMOpticalDepthLymanAlpha
-     !% Constructors for the ``icmOpticalDepthLymanAlpha'' output analysis class.
+     !!{
+     Constructors for the {\normalfont \ttfamily icmOpticalDepthLymanAlpha} output analysis class.
+     !!}
      module procedure icmOpticalDepthLymanAlphaConstructorParameters
      module procedure icmOpticalDepthLymanAlphaConstructorInternal
   end interface nodePropertyExtractorICMOpticalDepthLymanAlpha
@@ -50,7 +56,9 @@
 contains
 
   function icmOpticalDepthLymanAlphaConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily icmOpticalDepthLymanAlpha} property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily icmOpticalDepthLymanAlpha} property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorICMOpticalDepthLymanAlpha)                :: self
@@ -72,7 +80,9 @@ contains
   end function icmOpticalDepthLymanAlphaConstructorParameters
 
   function icmOpticalDepthLymanAlphaConstructorInternal(cosmologyFunctions_,darkMatterHaloScale_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily icmOpticalDepthLymanAlpha} property extractor class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily icmOpticalDepthLymanAlpha} property extractor class.
+    !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     implicit none
     type (nodePropertyExtractorICMOpticalDepthLymanAlpha)                        :: self
@@ -88,7 +98,9 @@ contains
   end function icmOpticalDepthLymanAlphaConstructorInternal
 
   subroutine icmOpticalDepthLymanAlphaDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily icmOpticalDepthLymanAlpha} property extractor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily icmOpticalDepthLymanAlpha} property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorICMOpticalDepthLymanAlpha), intent(inout) :: self
 
@@ -100,7 +112,9 @@ contains
   end subroutine icmOpticalDepthLymanAlphaDestructor
 
   double precision function icmOpticalDepthLymanAlphaExtract(self,node,instance)
-    !% Implement an ICM X-ray properties extractor.
+    !!{
+    Implement an ICM X-ray properties extractor.
+    !!}
     use :: Numerical_Constants_Physical, only : boltzmannsConstant
     use :: Numerical_Constants_Prefixes, only : kilo
     use :: Numerical_Constants_Units   , only : electronVolt
@@ -139,7 +153,9 @@ contains
   contains
     
     double precision function integrandOpticalDepth(radius)
-      !% Integrand function used for computing ICM optical depth to Lyman-$\alpha$.
+      !!{
+      Integrand function used for computing ICM optical depth to Lyman-$\alpha$.
+      !!}
       use :: Abundances_Structure            , only : abundances
       use :: Chemical_Abundances_Structure   , only : chemicalAbundances
       use :: Numerical_Constants_Prefixes    , only : centi
@@ -170,7 +186,9 @@ contains
     end function integrandOpticalDepth
 
     double precision function crossSectionLymanAlphaLineCenter(temperature)
-      !% The cross-section at the center of the Lyman-$\alpha$ line at finite temperature \cite[][eqn.~54]{dijkstra_saas-fee_2017}.
+      !!{
+      The cross-section at the center of the Lyman-$\alpha$ line at finite temperature \cite[][eqn.~54]{dijkstra_saas-fee_2017}.
+      !!}
       implicit none
       double precision, intent(in   ) :: temperature
 
@@ -238,7 +256,9 @@ contains
   end function icmOpticalDepthLymanAlphaExtract
 
   function icmOpticalDepthLymanAlphaName(self)
-    !% Return the name of the cooling power in band property.
+    !!{
+    Return the name of the cooling power in band property.
+    !!}
     use :: ISO_Varying_String, only : operator(//)
     implicit none
     type (varying_string                                )                :: icmOpticalDepthLymanAlphaName
@@ -249,7 +269,9 @@ contains
   end function icmOpticalDepthLymanAlphaName
 
   function icmOpticalDepthLymanAlphaDescription(self)
-    !% Return a description of the cooling power in band property.
+    !!{
+    Return a description of the cooling power in band property.
+    !!}
     use :: ISO_Varying_String, only : operator(//)
     implicit none
     type (varying_string                                )                :: icmOpticalDepthLymanAlphaDescription
@@ -260,7 +282,9 @@ contains
   end function icmOpticalDepthLymanAlphaDescription
 
   double precision function icmOpticalDepthLymanAlphaUnitsInSI(self)
-    !% Return the units of the {\normalfont \ttfamily icmOpticalDepthLymanAlpha} properties in the SI system.
+    !!{
+    Return the units of the {\normalfont \ttfamily icmOpticalDepthLymanAlpha} properties in the SI system.
+    !!}
     implicit none
     class(nodePropertyExtractorICMOpticalDepthLymanAlpha), intent(inout) :: self
     !$GLC attributes unused :: self

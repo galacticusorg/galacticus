@@ -162,7 +162,7 @@ contains
 
   function spinDistributionConstructorInternal(fileName,distributionType,redshift,logNormalRange,massHaloMinimum,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,cosmologyFunctions_,haloMassFunction_,nbodyHaloMassError_,darkMatterHaloScale_,darkMatterProfileScaleRadius_) result(self)
     !!{
-    Constructor for ``spinDistribution'' posterior sampling likelihood class.
+    Constructor for {\normalfont \ttfamily spinDistribution} posterior sampling likelihood class.
     !!}
     use :: HDF5_Access      , only : hdf5Access
     use :: IO_HDF5          , only : hdf5Object
@@ -219,7 +219,7 @@ contains
 
   subroutine spinDistributionDestructor(self)
     !!{
-    Destructor for ``spinDistribution'' posterior sampling likelihood class.
+    Destructor for {\normalfont \ttfamily spinDistribution} posterior sampling likelihood class.
     !!}
     implicit none
     type(posteriorSampleLikelihoodSpinDistribution), intent(inout) :: self

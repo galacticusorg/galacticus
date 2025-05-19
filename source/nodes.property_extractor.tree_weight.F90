@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a merger tree weight property extractor class.
+Implements a merger tree weight property extractor class.
 !!}
 
   !![
@@ -40,7 +40,7 @@ Contains a module which implements a merger tree weight property extractor class
 
   interface nodePropertyExtractorTreeWeight
      !!{
-     Constructors for the ``treeWeight'' output analysis class.
+     Constructors for the {\normalfont \ttfamily treeWeight} output analysis class.
      !!}
      module procedure treeWeightConstructorParameters
   end interface nodePropertyExtractorTreeWeight

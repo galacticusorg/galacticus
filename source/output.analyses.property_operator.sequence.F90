@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a sequence output analysis property operator class.
+Implements a sequence output analysis property operator class.
 !!}
 
   type, public :: propertyOperatorList
@@ -53,7 +53,7 @@ Contains a module which implements a sequence output analysis property operator 
 
   interface outputAnalysisPropertyOperatorSequence
      !!{
-     Constructors for the ``sequence'' output analysis class.
+     Constructors for the {\normalfont \ttfamily sequence} output analysis class.
      !!}
      module procedure sequenceConstructorParameters
      module procedure sequenceConstructorInternal
@@ -63,7 +63,7 @@ contains
 
   function sequenceConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``sequence'' output analysis property operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily sequence} output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

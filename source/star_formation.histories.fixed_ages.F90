@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a star formation histories class which records star formation in logarithmically-sized time
+  Implements a star formation histories class which records star formation in logarithmically-sized time
   bins of fixed age and split by metallicity.
   !!}
 
@@ -91,7 +91,7 @@
 
   interface starFormationHistoryFixedAges
      !!{
-     Constructors for the ``fixedAges'' star formation history class.
+     Constructors for the {\normalfont \ttfamily fixedAges} star formation history class.
      !!}
      module procedure fixedAgesConstructorParameters
      module procedure fixedAgesConstructorInternal
@@ -104,7 +104,7 @@ contains
 
   recursive function fixedAgesConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``fixedAges'' star formation history class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily fixedAges} star formation history class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -186,7 +186,7 @@ contains
 
   recursive function fixedAgesConstructorInternal(cosmologyFunctions_,geometryLightcone_,ageMinimum,countAges,metallicityBoundaries,countMetallicities,metallicityMinimum,metallicityMaximum) result(self)
     !!{
-    Internal constructor for the ``fixedAges'' star formation history class.
+    Internal constructor for the {\normalfont \ttfamily fixedAges} star formation history class.
     !!}
     use :: Error                     , only : Error_Report
     use :: Galactic_Structure_Options, only : componentTypeMax, componentTypeMin

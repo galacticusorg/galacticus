@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a property extractor class for the orbital adiabatic ratio of disks.
+Implements a property extractor class for the orbital adiabatic ratio of disks.
 !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
@@ -52,7 +52,7 @@ Contains a module which implements a property extractor class for the orbital ad
 
   interface nodePropertyExtractorAdiabaticRatioOrbitalDisk
      !!{
-     Constructors for the ``adiabaticRatioOrbitalDisk'' output analysis class.
+     Constructors for the {\normalfont \ttfamily adiabaticRatioOrbitalDisk} output analysis class.
      !!}
      module procedure adiabaticRatioOrbitalDiskConstructorParameters
      module procedure adiabaticRatioOrbitalDiskConstructorInternal

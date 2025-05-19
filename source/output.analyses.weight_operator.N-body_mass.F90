@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a weight operator class in which the weight is multiplied by an integral over the N-body
+Implements a weight operator class in which the weight is multiplied by an integral over the N-body
 halo mass distribution.
 !!}
 
@@ -42,7 +42,7 @@ halo mass distribution.
 
   interface outputAnalysisWeightOperatorNbodyMass
      !!{
-     Constructors for the ``nbodyMass'' output analysis class.
+     Constructors for the {\normalfont \ttfamily nbodyMass} output analysis class.
      !!}
      module procedure nbodyMassConstructorParameters
      module procedure nbodyMassConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function nbodyMassConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``nbodyMass'' output analysis weight operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily nbodyMass} output analysis weight operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -91,7 +91,7 @@ contains
 
   function nbodyMassConstructorInternal(rangeLower,rangeUpper,nodePropertyExtractor_,outputAnalysisPropertyOperator_,nbodyHaloMassError_) result (self)
     !!{
-    Internal constructor for the ``nbodyMass'' output analysis distribution operator class.
+    Internal constructor for the {\normalfont \ttfamily nbodyMass} output analysis distribution operator class.
     !!}
     use :: Error                   , only : Error_Report
     use :: Node_Property_Extractors, only : nodePropertyExtractorClass, nodePropertyExtractorScalar
@@ -116,7 +116,7 @@ contains
 
   subroutine nbodyMassDestructor(self)
     !!{
-    Destructor for  the ``nbodyMass'' output analysis weight operator class.
+    Destructor for  the {\normalfont \ttfamily nbodyMass} output analysis weight operator class.
     !!}
     type(outputAnalysisWeightOperatorNbodyMass), intent(inout) :: self
 
@@ -130,7 +130,7 @@ contains
 
   double precision function nbodyMassRootVariance(self,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
     !!{
-    Return the root variance for use in the ``nbodyMass'' output analysis weight operator class.
+    Return the root variance for use in the {\normalfont \ttfamily nbodyMass} output analysis weight operator class.
     !!}
     use :: Node_Property_Extractors, only : nodePropertyExtractorScalar
     implicit none

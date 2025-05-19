@@ -3,6 +3,7 @@
 
 ARG TAG=latest
 FROM ghcr.io/galacticusorg/buildenv:${TAG} as build
+ARG REPO=galacticusorg/galacticus
 ARG BRANCH=master
 
 # Set build options.
@@ -19,7 +20,7 @@ RUN     pwd && ls
 
 # Clone datasets.
 RUN     cd /opt &&\
-	git clone --depth 1 -b ${BRANCH} https://github.com/galacticusorg/galacticus.git galacticus &&\
+	git clone --depth 1 -b ${BRANCH} https://github.com/${REPO}.git galacticus &&\
 	git clone --depth 1 https://github.com/galacticusorg/datasets.git datasets
 
 # Build Galacticus.

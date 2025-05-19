@@ -43,7 +43,7 @@ Implements a property extractor for ``in lightcone'' status.
 
   interface nodePropertyExtractorIsInLightcone
      !!{
-     Constructors for the ``isInLightcone'' output analysis class.
+     Constructors for the {\normalfont \ttfamily isInLightcone} output analysis class.
      !!}
      module procedure isInLightconeConstructorParameters
      module procedure isInLightconeConstructorInternal

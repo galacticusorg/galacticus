@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a high-pass filter analysis property operator class.
+Implements a high-pass filter analysis property operator class.
 !!}
 
   !![
@@ -39,7 +39,7 @@ Contains a module which implements a high-pass filter analysis property operator
 
   interface outputAnalysisPropertyOperatorFilterHighPass
      !!{
-     Constructors for the ``filterHighPass'' output analysis class.
+     Constructors for the {\normalfont \ttfamily filterHighPass} output analysis class.
      !!}
      module procedure filterHighPassConstructorParameters
      module procedure filterHighPassConstructorInternal
@@ -49,7 +49,7 @@ contains
 
   function filterHighPassConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``filterHighPass'' output analysis property operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily filterHighPass} output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -87,7 +87,7 @@ contains
 
   function filterHighPassConstructorInternal(filterThreshold,filterWidth,normalized) result (self)
     !!{
-    Internal constructor for the ``filterHighPass'' output analysis distribution operator class.
+    Internal constructor for the {\normalfont \ttfamily filterHighPass} output analysis distribution operator class.
     !!}
     implicit none
     type            (outputAnalysisPropertyOperatorFilterHighPass)                          :: self

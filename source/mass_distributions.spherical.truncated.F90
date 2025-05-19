@@ -129,7 +129,7 @@ contains
   
   function sphericalTruncatedConstructorInternal(radiusTruncateMinimum,radiusTruncateMaximum,nonAnalyticSolver,massDistribution_,componentType,massType) result(self)
     !!{
-    Constructor for ``sphericalTruncated'' mass distribution class.
+    Constructor for {\normalfont \ttfamily sphericalTruncated} mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalTruncated)                          :: self

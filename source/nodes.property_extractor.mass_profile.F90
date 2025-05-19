@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a property extractor class for the enclosed mass at a set of radii.
+  Implements a property extractor class for the enclosed mass at a set of radii.
   !!}
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScaleClass
   use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
@@ -43,7 +43,8 @@
 
      logical                                                      :: darkMatterScaleRadiusIsNeeded          , diskIsNeeded        , &
           &                                                          spheroidIsNeeded                       , virialRadiusIsNeeded, &
-          &                                                          nuclearStarClusterIsNeeded             , satelliteIsNeeded
+          &                                                          nuclearStarClusterIsNeeded             , satelliteIsNeeded   , &
+          &                                                          hotHaloIsNeeded
      double precision                                             :: fractionDarkMatter
    contains
      final     ::                       massProfileDestructor
@@ -58,7 +59,7 @@
 
   interface nodePropertyExtractorMassProfile
      !!{
-     Constructors for the ``massProfile'' output analysis class.
+     Constructors for the {\normalfont \ttfamily massProfile} output analysis class.
      !!}
      module procedure massProfileConstructorParameters
      module procedure massProfileConstructorInternal
@@ -127,6 +128,7 @@ contains
     call Galactic_Structure_Radii_Definition_Decode(                                    &
          &                                          radiusSpecifiers                  , &
          &                                          self%radii                        , &
+         &                                          self%hotHaloIsNeeded              , &
          &                                          self%diskIsNeeded                 , &
          &                                          self%spheroidIsNeeded             , &
          &                                          self%nuclearStarClusterIsNeeded   , &
@@ -192,9 +194,9 @@ contains
     use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius           , radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius                , radiusTypeGalacticLightFraction   , &
          &                                              radiusTypeGalacticMassFraction            , radiusTypeRadius            , radiusTypeSpheroidHalfMassRadius    , radiusTypeSpheroidRadius          , &
          &                                              radiusTypeStellarMassFraction             , radiusTypeVirialRadius      , radiusTypeSatelliteBoundMassFraction, radiusTypeNuclearStarClusterRadius, &
-         &                                              radiusTypeNuclearStarClusterHalfMassRadius 
+         &                                              radiusTypeNuclearStarClusterHalfMassRadius, radiusTypeHotHaloOuterRadius
     use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile            , nodeComponentDisk           , nodeComponentSpheroid               , nodeComponentNSC                  , & 
-         &                                              nodeComponentSatellite                    , treeNode
+         &                                              nodeComponentSatellite                    , nodeComponentHotHalo        , treeNode
     use :: Mass_Distributions                  , only : massDistributionClass
     use :: Error                               , only : Error_Report
     implicit none
@@ -203,6 +205,7 @@ contains
     type            (treeNode                        ), intent(inout) , target      :: node
     double precision                                  , intent(in   )               :: time
     type            (multiCounter                    ), intent(inout) , optional    :: instance
+    class           (nodeComponentHotHalo            ), pointer                     :: hotHalo
     class           (nodeComponentDisk               ), pointer                     :: disk
     class           (nodeComponentSpheroid           ), pointer                     :: spheroid
     class           (nodeComponentNSC                ), pointer                     :: nuclearStarCluster
@@ -217,6 +220,7 @@ contains
     allocate(massProfileExtract(self%radiiCount,self%elementCount_))
     radiusVirial                                               =  0.0d0
     if (self%         virialRadiusIsNeeded) radiusVirial       =  self%darkMatterHaloScale_%radiusVirial(node                    )
+    if (self%              hotHaloIsNeeded) hotHalo            =>                                        node%hotHalo          ()
     if (self%                 diskIsNeeded) disk               =>                                        node%disk             ()
     if (self%             spheroidIsNeeded) spheroid           =>                                        node%spheroid         ()
     if (self%   nuclearStarClusterIsNeeded) nuclearStarCluster =>                                        node%NSC              ()
@@ -231,6 +235,8 @@ contains
           radius=+radius*radiusVirial
        case   (radiusTypeDarkMatterScaleRadius           %ID)
           radius=+radius*darkMatterProfile %         scale()
+       case   (radiusTypeHotHaloOuterRadius              %ID)
+          radius=+radius*hotHalo           %   outerRadius()
        case   (radiusTypeDiskRadius                      %ID)
           radius=+radius*disk              %        radius()
        case   (radiusTypeSpheroidRadius                  %ID)

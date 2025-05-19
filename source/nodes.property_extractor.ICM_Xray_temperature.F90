@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an intracluster medium X-ray luminosity-weighted temperature property extractor class.
+Implements an intracluster medium X-ray luminosity-weighted temperature property extractor class.
 !!}
 
   use :: Cooling_Functions      , only : coolingFunction    , coolingFunctionClass
@@ -48,7 +48,7 @@ Contains a module which implements an intracluster medium X-ray luminosity-weigh
 
   interface nodePropertyExtractorICMXRayTemperature
      !!{
-     Constructors for the ``icmXRayTemperature'' output analysis class.
+     Constructors for the {\normalfont \ttfamily icmXRayTemperature} output analysis class.
      !!}
      module procedure icmXRayTemperatureConstructorParameters
      module procedure icmXRayTemperatureConstructorInternal

@@ -18,14 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a redshift property extractor class.
+Implements a redshift property extractor class.
 !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRedshift">
-   <description>A node property extractor class which extracts the current redshift at which a \gls{node} exists---named ``{\normalfont \ttfamily redshift}.</description>
+   <description>A node property extractor class which extracts the current redshift at which a \gls{node} exists---named ``{\normalfont \ttfamily redshift}''.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRedshift
@@ -44,7 +44,7 @@ Contains a module which implements a redshift property extractor class.
 
   interface nodePropertyExtractorRedshift
      !!{
-     Constructors for the ``redshift'' output analysis class.
+     Constructors for the {\normalfont \ttfamily redshift} output analysis class.
      !!}
      module procedure redshiftConstructorParameters
      module procedure redshiftConstructorInternal

@@ -1,0 +1,11 @@
+{
+    "image": "ghcr.io/galacticusorg/buildenv:latest",
+    "containerEnv": {
+	"LC_ALL": "C",
+	"GALACTICUS_EXEC_PATH": "/workspaces/galacticus",
+	"GALACTICUS_DATA_PATH": "/workspaces/datasets",
+	"DEBIAN_FRONTEND": "noninteractive",
+    },
+    "onCreateCommand": "unset LD_LIBRARY_PATH && echo '#!/bin/bash\nunset LD_LIBRARY_PATH\n/usr/bin/apt $@' > /usr/local/bin/apt && chmod a+x /usr/local/bin/apt && apt-get update && apt-get install -y emacs && git clone https://github.com/galacticusorg/datasets.git /workspaces/datasets",
+    "updateContentCommand": "export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu && git -C /workspaces/datasets pull && wget https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus.exe -O $GALACTICUS_EXEC_PATH/Galacticus.exe && chmod u=wrx $GALACTICUS_EXEC_PATH/Galacticus.exe; wget https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/tools.tar.bz2 -O $GALACTICUS_DATA_PATH/tools.tar.bz2 && cd $GALACTICUS_DATA_PATH && tar xvfj tools.tar.bz2 && rm tools.tar.bz2 && cd -",
+}

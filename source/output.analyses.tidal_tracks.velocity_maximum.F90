@@ -53,7 +53,7 @@
 
   interface outputAnalysisTidalTracksVelocityMaximum
      !!{
-     Constructors for the ``tidalTracksVelocityMaximum'' output analysis class.
+     Constructors for the {\normalfont \ttfamily tidalTracksVelocityMaximum} output analysis class.
      !!}
      module procedure tidalTracksVelocityMaximumConstructorParameters
      module procedure tidalTracksVelocityMaximumConstructorInternal
@@ -63,7 +63,7 @@ contains
 
   function tidalTracksVelocityMaximumConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``tidalTracksVelocityMaximum'' output analysis class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily tidalTracksVelocityMaximum} output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -99,7 +99,7 @@ contains
   
   function tidalTracksVelocityMaximumConstructorInternal(mu,eta,darkMatterProfileDMO_,darkMatterProfileDMOUnheated) result (self)
     !!{
-    Constructor for the ``tidalTracksVelocityMaximum'' output analysis class for internal use.
+    Constructor for the {\normalfont \ttfamily tidalTracksVelocityMaximum} output analysis class for internal use.
     !!}
     implicit none
     type            (outputAnalysisTidalTracksVelocityMaximum)                         :: self

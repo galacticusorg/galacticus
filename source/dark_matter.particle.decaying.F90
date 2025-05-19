@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a decaying dark matter particle class.
+Implements a decaying dark matter particle class.
 !!}
 
   !![
@@ -51,7 +51,7 @@ Contains a module which implements a decaying dark matter particle class.
 
   interface darkMatterParticleDecayingDarkMatter
      !!{
-     Constructors for the ``{\normalfont \ttfamily decayingDarkMatter}'' dark matter particle class.
+     Constructors for the {\normalfont \ttfamily decayingDarkMatter} dark matter particle class.
      !!}
      module procedure decayingDMConstructorParameters
      module procedure decayingDMConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function decayingDMConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``{\normalfont \ttfamily decayingDarkMatter}'' dark matter particle class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily decayingDarkMatter} dark matter particle class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameters
@@ -115,7 +115,7 @@ contains
 
   function decayingDMConstructorInternal(darkMatterParticle_,lifetime,massSplitting,velocityKick) result(self)
     !!{
-    Internal constructor for the ``{\normalfont \ttfamily decayingDarkMatter}'' dark matter particle class.
+    Internal constructor for the {\normalfont \ttfamily decayingDarkMatter} dark matter particle class.
     !!}
     use :: Error                       , only : Error_Report
     use :: Numerical_Constants_Physical, only : speedLight

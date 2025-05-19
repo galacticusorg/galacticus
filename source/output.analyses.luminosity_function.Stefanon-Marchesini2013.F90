@@ -43,7 +43,7 @@ Implements a luminosity function output analysis class for the \cite{stefanon_ev
 
   interface outputAnalysisLuminosityFunctionStefanonMarchesini2013
      !!{
-     Constructors for the ``luminosityFunctionStefanonMarchesini2013'' output analysis class.
+     Constructors for the {\normalfont \ttfamily luminosityFunctionStefanonMarchesini2013} output analysis class.
      !!}
      module procedure luminosityFunctionStefanonMarchesini2013ConstructorParameters
      module procedure luminosityFunctionStefanonMarchesini2013ConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function luminosityFunctionStefanonMarchesini2013ConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``luminosityFunctionStefanonMarchesini2013'' output analysis class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily luminosityFunctionStefanonMarchesini2013} output analysis class which takes a parameter set as input.
     !!}
     use :: Gravitational_Lensing, only : gravitationalLensing, gravitationalLensingClass
     use :: Input_Parameters     , only : inputParameter      , inputParameters
@@ -170,7 +170,7 @@ contains
 
   function luminosityFunctionStefanonMarchesini2013ConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,band,redshiftInterval) result (self)
     !!{
-    Constructor for the ``luminosityFunctionStefanonMarchesini2013'' output analysis class for internal use.
+    Constructor for the {\normalfont \ttfamily luminosityFunctionStefanonMarchesini2013} output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -375,7 +375,7 @@ contains
 
   subroutine luminosityFunctionStefanonMarchesini2013Destructor(self)
     !!{
-    Destructor for the ``luminosityFunctionStefanonMarchesini2013'' output analysis class.
+    Destructor for the {\normalfont \ttfamily luminosityFunctionStefanonMarchesini2013} output analysis class.
     !!}
     implicit none
     type(outputAnalysisLuminosityFunctionStefanonMarchesini2013), intent(inout) :: self

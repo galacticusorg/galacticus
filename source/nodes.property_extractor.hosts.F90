@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a host index output analysis property extractor class.
+Implements a host index output analysis property extractor class.
 !!}
 
   !![
@@ -43,7 +43,7 @@ Contains a module which implements a host index output analysis property extract
 
   interface nodePropertyExtractorIndicesHost
      !!{
-     Constructors for the ``indicesHost'' output analysis class.
+     Constructors for the {\normalfont \ttfamily indicesHost} output analysis class.
      !!}
      module procedure indicesHostConstructorParameters
      module procedure indicesHostConstructorInternal

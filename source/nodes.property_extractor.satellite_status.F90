@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an ISM mass output analysis property extractor class.
+Implements an ISM mass output analysis property extractor class.
 !!}
 
   !![
@@ -51,7 +51,7 @@ Contains a module which implements an ISM mass output analysis property extracto
 
   interface nodePropertyExtractorSatelliteStatus
      !!{
-     Constructors for the ``satelliteStatus'' output analysis class.
+     Constructors for the {\normalfont \ttfamily satelliteStatus} output analysis class.
      !!}
      module procedure satelliteStatusConstructorParameters
      module procedure satelliteStatusConstructorInternal

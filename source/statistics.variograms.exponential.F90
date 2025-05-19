@@ -100,7 +100,7 @@ contains
 
   function exponentialConstructorInternal(variogramFitOption,assumeZeroVarianceAtZeroLag) result(self)
     !!{
-    Constructor for ``exponential'' variogram class.
+    Constructor for {\normalfont \ttfamily exponential} variogram class.
     !!}
     implicit none
     type   (variogramExponential             )                :: self

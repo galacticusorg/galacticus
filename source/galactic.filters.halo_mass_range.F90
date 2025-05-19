@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a galactic filter for halo mass under a given definition.
+Implements a galactic filter for halo mass under a given definition.
 !!}
 
   use :: Cosmology_Parameters   , only : cosmologyParametersClass
@@ -48,7 +48,7 @@ Contains a module which implements a galactic filter for halo mass under a given
 
   interface galacticFilterHaloMassRange
      !!{
-     Constructors for the ``haloMassRange'' galactic filter class.
+     Constructors for the {\normalfont \ttfamily haloMassRange} galactic filter class.
      !!}
      module procedure haloMassRangeConstructorParameters
      module procedure haloMassRangeConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function haloMassRangeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``haloMassRange'' galactic filter class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily haloMassRange} galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -99,7 +99,7 @@ contains
 
   function haloMassRangeConstructorInternal(massLow,massHigh,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
     !!{
-    Internal constructor for the ``haloMassRange'' galactic filter class.
+    Internal constructor for the {\normalfont \ttfamily haloMassRange} galactic filter class.
     !!}
     implicit none
     type            (galacticFilterHaloMassRange)                        :: self
@@ -116,7 +116,7 @@ contains
 
   subroutine haloMassRangeDestructor(self)
     !!{
-    Destructor for the ``haloMassRange'' galactic filter class.
+    Destructor for the {\normalfont \ttfamily haloMassRange} galactic filter class.
     !!}
     implicit none
     type(galacticFilterHaloMassRange), intent(inout) :: self

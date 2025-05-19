@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a star formation histories class which records star formation split by metallicity.
+Implements a star formation histories class which records star formation split by metallicity.
 !!}
 
   use :: Output_Times, only : outputTimes, outputTimesClass
@@ -81,7 +81,7 @@ Contains a module which implements a star formation histories class which record
 
   interface starFormationHistoryMetallicitySplit
      !!{
-     Constructors for the ``metallicitySplit'' star formation history class.
+     Constructors for the {\normalfont \ttfamily metallicitySplit} star formation history class.
      !!}
      module procedure metallicitySplitConstructorParameters
      module procedure metallicitySplitConstructorInternal
@@ -102,7 +102,7 @@ contains
 
   function metallicitySplitConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``metallicitySplit'' star formation history class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily metallicitySplit} star formation history class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -187,7 +187,7 @@ contains
 
   function metallicitySplitConstructorInternal(outputTimes_,timeStep,timeStepFine,timeFine,metallicityBoundaries,countMetallicities,metallicityMinimum,metallicityMaximum) result(self)
     !!{
-    Internal constructor for the ``metallicitySplit'' star formation history class.
+    Internal constructor for the {\normalfont \ttfamily metallicitySplit} star formation history class.
     !!}
     use :: Error           , only : Error_Report
     use :: Numerical_Ranges, only : Make_Range  , rangeTypeLogarithmic

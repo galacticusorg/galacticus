@@ -20,7 +20,7 @@
   !+    Contributions to this file made by: Xiaolong Du, Andrew Benson.
 
   !!{
-  Contains a module which implements a merger tree operator which creates particle representations of \glc\ halos.
+  Implements a merger tree operator which creates particle representations of \glc\ halos.
   !!}
 
   use :: Cosmology_Functions     , only : cosmologyFunctionsClass

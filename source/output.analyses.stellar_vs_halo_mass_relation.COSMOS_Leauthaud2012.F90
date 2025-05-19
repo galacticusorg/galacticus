@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a stellar vs halo mass relation analysis class.
+  Implements a stellar vs halo mass relation analysis class.
   !!}
 
   use, intrinsic :: ISO_C_Binding           , only : c_size_t
@@ -57,7 +57,7 @@
 
   interface outputAnalysisStellarVsHaloMassRelationLeauthaud2012
      !!{
-     Constructors for the ``stellarVsHaloMassRelationLeauthaud2012'' output analysis class.
+     Constructors for the {\normalfont \ttfamily stellarVsHaloMassRelationLeauthaud2012} output analysis class.
      !!}
      module procedure stellarVsHaloMassRelationLeauthaud2012ConstructorParameters
      module procedure stellarVsHaloMassRelationLeauthaud2012ConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function stellarVsHaloMassRelationLeauthaud2012ConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``stellarVsHaloMassRelationLeauthaud2012'' output analysis class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily stellarVsHaloMassRelationLeauthaud2012} output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions     , only : cosmologyFunctionsClass
     use :: Cosmology_Parameters    , only : cosmologyParametersClass
@@ -165,7 +165,7 @@ contains
 
   function stellarVsHaloMassRelationLeauthaud2012ConstructorInternal(redshiftInterval,likelihoodBins,likelihoodNormalize,computeScatter,systematicErrorPolynomialCoefficient,systematicErrorMassHaloPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,outputTimes_) result (self)
     !!{
-    Constructor for the ``stellarVsHaloMassRelationLeauthaud2012'' output analysis class for internal use.
+    Constructor for the {\normalfont \ttfamily stellarVsHaloMassRelationLeauthaud2012} output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                    , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersClass                   , cosmologyParametersSimple

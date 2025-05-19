@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a halo mass output analysis property extractor class.
+Implements a halo mass output analysis property extractor class.
 !!}
 
   use :: Cosmology_Parameters    , only : cosmologyParametersClass
@@ -54,7 +54,7 @@ Contains a module which implements a halo mass output analysis property extracto
 
   interface nodePropertyExtractorMassHalo
      !!{
-     Constructors for the ``massHalo'' output analysis class.
+     Constructors for the {\normalfont \ttfamily massHalo} output analysis class.
      !!}
      module procedure massHaloConstructorParameters
      module procedure massHaloConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function massHaloConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``massHalo'' output analysis property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily massHalo} output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -103,7 +103,7 @@ contains
 
   function massHaloConstructorInternal(useLastIsolatedTime,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
     !!{
-    Internal constructor for the ``massHalo'' output analysis property extractor class.
+    Internal constructor for the {\normalfont \ttfamily massHalo} output analysis property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorMassHalo)                        :: self

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a black hole mass output analysis property extractor class.
+Implements a black hole mass output analysis property extractor class.
 !!}
 
   !![
@@ -41,7 +41,7 @@ Contains a module which implements a black hole mass output analysis property ex
 
   interface nodePropertyExtractorMassBlackHole
      !!{
-     Constructors for the ``massBlackHole'' output analysis class.
+     Constructors for the {\normalfont \ttfamily massBlackHole} output analysis class.
      !!}
      module procedure massBlackHoleConstructorParameters
   end interface nodePropertyExtractorMassBlackHole
@@ -50,7 +50,7 @@ contains
 
   function massBlackHoleConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``massBlackHole'' output analysis property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily massBlackHole} output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

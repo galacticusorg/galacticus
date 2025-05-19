@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a identity output analysis distribution operator class.
+  Implements a identity output analysis distribution operator class.
   !!}
 
   !![
@@ -38,7 +38,7 @@
 
   interface outputAnalysisDistributionOperatorIdentity
      !!{
-     Constructors for the ``identity'' output analysis class.
+     Constructors for the {\normalfont \ttfamily identity} output analysis class.
      !!}
      module procedure identityConstructorParameters
   end interface outputAnalysisDistributionOperatorIdentity
@@ -47,7 +47,7 @@ contains
 
   function identityConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``identity'' output analysis distribution operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily identity} output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

@@ -139,7 +139,7 @@ contains
 
   function haloMassFunctionConstructorInternal(fileName,redshift,massRangeMinimum,binCountMinimum,likelihoodPoisson,parametersModel,changeParametersFileNames,cosmologyFunctions_) result(self)
     !!{
-    Constructor for ``haloMassFunction'' posterior sampling likelihood class.
+    Constructor for {\normalfont \ttfamily haloMassFunction} posterior sampling likelihood class.
     !!}
     use :: Display          , only : displayMessage  , displayMagenta, displayReset
     use :: File_Utilities   , only : File_Name_Expand
@@ -280,7 +280,7 @@ contains
 
   subroutine haloMassFunctionDestructor(self)
     !!{
-    Destructor for ``haloMassFunction'' posterior sampling likelihood class.
+    Destructor for {\normalfont \ttfamily haloMassFunction} posterior sampling likelihood class.
     !!}
     implicit none
     type(posteriorSampleLikelihoodHaloMassFunction), intent(inout) :: self

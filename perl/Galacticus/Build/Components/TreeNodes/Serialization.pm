@@ -50,6 +50,17 @@ sub Tree_Node_Serialize_ASCII {
 		 variables  => [ "self" ]
 	     },
 	     {
+		 intrinsic  => "type",
+		 type       => "enumerationVerbosityLevelType",
+		 variables  => [ "verbosityLevel" ],
+		 attributes => [ "intent(in   )", "optional" ]
+	     },
+	     {
+		 intrinsic  => "type",
+		 type       => "enumerationVerbosityLevelType",
+		 variables  => [ "verbosityLevel_" ]
+	     },
+	     {
 		 intrinsic  => "integer",
 		 variables  => [ "i" ]
 	     },
@@ -66,28 +77,30 @@ sub Tree_Node_Serialize_ASCII {
 	    ]
     };    
     $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
+verbosityLevel_=verbosityLevelStandard
+if (present(verbosityLevel)) verbosityLevel_=verbosityLevel
 message='Dumping node '
 message=message//self%index()
-call displayIndent(message)
+call displayIndent(message,verbosityLevel_)
 message='host tree: '
 if (associated(self%hostTree)) then
  message=message//self%hostTree%index
 else
  message=message//'unhosted'
 end if
-call displayMessage(message)
-call displayIndent('pointers')
+call displayMessage(message,verbosityLevel_)
+call displayIndent('pointers',verbosityLevel_)
 CODE
     foreach $code::pointer ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee", "formationNode" ) {
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 message='{" " x (14-length($pointer))}{$pointer}: '
 message=message//self%{$pointer}%index()
-call displayMessage(message)
+call displayMessage(message,verbosityLevel_)
 CODE
     }
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-call displayUnindent('done')
-call displayIndent('state')
+call displayUnindent('done',verbosityLevel_)
+call displayIndent('state',verbosityLevel_)
 CODE
     foreach $code::state ( "isPhysicallyPlausible", "isSolvable" ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -97,8 +110,8 @@ message=message//trim(adjustl(label))
 CODE
     }
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-call displayMessage(message)
-call displayUnindent('done')
+call displayMessage(message,verbosityLevel_)
+call displayUnindent('done',verbosityLevel_)
 CODE
     # Iterate over all component classes
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
@@ -107,13 +120,13 @@ CODE
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(self%component{ucfirst($class->{'name'})})) then
   do i=1,size(self%component{ucfirst($class->{'name'})})
-    call self%component{ucfirst($class->{'name'})}(i)%serializeASCII()
+    call self%component{ucfirst($class->{'name'})}(i)%serializeASCII(verbosityLevel_)
   end do
 end if
 CODE
     }
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-call displayUnindent('done')
+call displayUnindent('done',verbosityLevel_)
 CODE
     # Insert a type-binding for this function into the treeNode type.
     push(

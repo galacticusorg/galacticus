@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an N-body data importer for Gadget HDF5 files.
+Implements an N-body data importer for Gadget HDF5 files.
 !!}
 
   use :: Cosmology_Parameters, only : cosmologyParametersClass
@@ -50,7 +50,7 @@ Contains a module which implements an N-body data importer for Gadget HDF5 files
 
   interface nbodyImporterGadgetHDF5
      !!{
-     Constructors for the ``gadgetHDF5'' N-body importer class.
+     Constructors for the {\normalfont \ttfamily gadgetHDF5} N-body importer class.
      !!}
      module procedure gadgetHDF5ConstructorParameters
      module procedure gadgetHDF5ConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function gadgetHDF5ConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``gadgetHDF5'' N-body importer class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily gadgetHDF5} N-body importer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -127,7 +127,7 @@ contains
 
   function gadgetHDF5ConstructorInternal(fileName,label,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI,isCosmological,cosmologyParameters_) result (self)
     !!{
-    Internal constructor for the ``gadgetHDF5'' N-body importer class.
+    Internal constructor for the {\normalfont \ttfamily gadgetHDF5} N-body importer class.
     !!}
     implicit none
     type            (nbodyImporterGadgetHDF5 )                        :: self

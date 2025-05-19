@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a merger tree operator which computes the cladistic
+  Implements a merger tree operator which computes the cladistic
   information content \cite{thorley_information_1998} of merger trees.
   !!}
 

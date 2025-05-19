@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a property extractor class for the star formation history of a component.
+  Implements a property extractor class for the star formation history of a component.
   !!}
   
   use :: Galactic_Structure_Options, only : enumerationComponentTypeType
@@ -50,7 +50,7 @@
   
   interface nodePropertyExtractorStarFormationHistoryMass
      !!{
-     Constructors for the ``starFormationHistoryMass'' output analysis class.
+     Constructors for the {\normalfont \ttfamily starFormationHistoryMass} output analysis class.
      !!}
      module procedure starFormationHistoryMassConstructorParameters
      module procedure starFormationHistoryMassConstructorInternal

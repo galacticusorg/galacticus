@@ -117,7 +117,7 @@ contains
 
   function multivariateNormalStochasticConstructorInternal(means,covariance,realizationCount,realizationCountMinimum,randomNumberGenerator_) result(self)
     !!{
-    Constructor for ``multivariateNormalStochastic'' convergence class.
+    Constructor for {\normalfont \ttfamily multivariateNormalStochastic} convergence class.
     !!}
     type            (posteriorSampleLikelihoodMltiVrtNormalStochastic)                                :: self
     double precision                                                  , intent(in   ), dimension(:  ) :: means

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a galactic high-pass filter for ISM gas fraction (i.e. ISM gas mass to stellar mass ratio).
+Implements a galactic high-pass filter for ISM gas fraction (i.e. ISM gas mass to stellar mass ratio).
 !!}
 
   !![
@@ -40,7 +40,7 @@ Contains a module which implements a galactic high-pass filter for ISM gas fract
 
   interface galacticFilterGasFractionISM
      !!{
-     Constructors for the ``gasFractionISM'' galactic filter class.
+     Constructors for the {\normalfont \ttfamily gasFractionISM} galactic filter class.
      !!}
      module procedure gasFractionISMConstructorParameters
      module procedure gasFractionISMConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function gasFractionISMConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``gasFractionISM'' galactic filter class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily gasFractionISM} galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,7 +75,7 @@ contains
 
   function gasFractionISMConstructorInternal(fractionGasThreshold) result(self)
     !!{
-    Internal constructor for the ``gasFractionISM'' galactic filter class.
+    Internal constructor for the {\normalfont \ttfamily gasFractionISM} galactic filter class.
     !!}
     implicit none
     type            (galacticFilterGasFractionISM)                :: self

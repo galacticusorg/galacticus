@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an N-body data operator which computes virial crossing orbit statistics in bins of separation.
+Implements an N-body data operator which computes virial crossing orbit statistics in bins of separation.
 !!}
   
   use            :: Cosmology_Functions     , only : cosmologyFunctionsClass
@@ -55,7 +55,7 @@ Contains a module which implements an N-body data operator which computes virial
 
   interface nbodyOperatorVirialCrossingOrbitStatistics
      !!{
-     Constructors for the ``virialCrossingOrbitStatistics'' N-body operator class.
+     Constructors for the {\normalfont \ttfamily virialCrossingOrbitStatistics} N-body operator class.
      !!}
      module procedure virialCrossingOrbitStatisticsConstructorParameters
      module procedure virialCrossingOrbitStatisticsConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function virialCrossingOrbitStatisticsConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``virialCrossingOrbitStatistics'' N-body operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily virialCrossingOrbitStatistics} N-body operator class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions, only : cosmologyFunctionsClass
     use :: Input_Parameters   , only : inputParameter
@@ -177,7 +177,7 @@ contains
 
   function virialCrossingOrbitStatisticsConstructorInternal(velocityMinimum,velocityMaximum,velocityCount,separationMinimum,separationMaximum,time,crossCount,addHubbleFlow,velocityCut,includeUnbootstrapped,bootstrapSampleCount,bootstrapSampleRate,randomNumberGenerator_,darkMatterHaloScale_,cosmologyFunctions_,parameters) result (self)
     !!{
-    Internal constructor for the ``virialCrossingOrbitStatistics'' N-body operator class.
+    Internal constructor for the {\normalfont \ttfamily virialCrossingOrbitStatistics} N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorVirialCrossingOrbitStatistics)                        :: self
@@ -203,7 +203,7 @@ contains
 
   subroutine virialCrossingOrbitStatisticsDestructor(self)
     !!{
-    Destructor for the ``virialCrossingOrbitStatistics'' N-body operator class.
+    Destructor for the {\normalfont \ttfamily virialCrossingOrbitStatistics} N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorVirialCrossingOrbitStatistics), intent(inout) :: self

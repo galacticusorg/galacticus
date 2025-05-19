@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an output analysis property operator class which converts luminosity to absolute magnitude.
+Implements an output analysis property operator class which converts luminosity to absolute magnitude.
 !!}
 
   !![
@@ -37,7 +37,7 @@ Contains a module which implements an output analysis property operator class wh
 
   interface outputAnalysisPropertyOperatorMagnitude
      !!{
-     Constructors for the ``magnitude'' output analysis class.
+     Constructors for the {\normalfont \ttfamily magnitude} output analysis class.
      !!}
      module procedure magnitudeConstructorParameters
   end interface outputAnalysisPropertyOperatorMagnitude
@@ -46,7 +46,7 @@ contains
 
   function magnitudeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``magnitude'' output analysis property operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily magnitude} output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

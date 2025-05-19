@@ -40,7 +40,7 @@
 
   interface nodePropertyExtractorMassBoundMaximum
      !!{
-     Constructors for the ``massBoundMaximum'' output extractor class.
+     Constructors for the {\normalfont \ttfamily massBoundMaximum} output extractor class.
      !!}
      module procedure massBoundMaximumConstructorParameters
      module procedure massBoundMaximumConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function massBoundMaximumConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``massBoundMaximum'' property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily massBoundMaximum} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,7 +66,7 @@ contains
 
   function massBoundMaximumConstructorInternal() result(self)
     !!{
-    Internal constructor for the ``massBoundMaximum'' output extractor property extractor class.
+    Internal constructor for the {\normalfont \ttfamily massBoundMaximum} output extractor property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorMassBoundMaximum) :: self

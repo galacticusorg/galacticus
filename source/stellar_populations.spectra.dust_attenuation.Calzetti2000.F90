@@ -37,7 +37,7 @@
 
   interface stellarSpectraDustAttenuationCalzetti2000
      !!{
-     Constructors for the ``calzetti2000'' stellar spectra dust attenuation class.
+     Constructors for the {\normalfont \ttfamily calzetti2000} stellar spectra dust attenuation class.
      !!}
      module procedure calzetti2000ConstructorParameters
   end interface stellarSpectraDustAttenuationCalzetti2000

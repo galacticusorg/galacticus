@@ -18,8 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements the transfer function fitting function of
-  \cite{bardeen_statistics_1986}.
+  Implements the transfer function fitting function of \cite{bardeen_statistics_1986}.
   !!}
 
   use :: Cosmology_Functions  , only : cosmologyFunctionsClass
@@ -53,7 +52,7 @@
 
   interface transferFunctionBBKS
      !!{
-     Constructors for the ``BBKS'' transfer function class.
+     Constructors for the {\normalfont \ttfamily BBKS} transfer function class.
      !!}
      module procedure constructorParameters
      module procedure constructorInternal
@@ -66,7 +65,7 @@ contains
 
   function constructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``BBKS'' transfer function class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily BBKS} transfer function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -93,7 +92,7 @@ contains
 
   function constructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the ``BBKS'' transfer function class.
+    Internal constructor for the {\normalfont \ttfamily BBKS} transfer function class.
     !!}
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleCDM
@@ -139,7 +138,7 @@ contains
 
   subroutine destructor(self)
     !!{
-    Destructor for the ``BBKS'' transfer function class.
+    Destructor for the {\normalfont \ttfamily BBKS} transfer function class.
     !!}
     implicit none
     type(transferFunctionBBKS), intent(inout) :: self

@@ -50,7 +50,7 @@ Implements a thermal Sunyaev-Zeldovich cosmological scaling corrector analysis p
 
   interface outputAnalysisPropertyOperatorCosmologySZ
      !!{
-     Constructors for the ``csmlgySZ'' output analysis class.
+     Constructors for the {\normalfont \ttfamily csmlgySZ} output analysis class.
      !!}
      module procedure csmlgySZConstructorParameters
      module procedure csmlgySZConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function csmlgySZConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``csmlgySZ'' output analysis property operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily csmlgySZ} output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -88,7 +88,7 @@ contains
 
   function csmlgySZConstructorInternal(cosmologyParameters_,cosmologyFunctions_,outputTimes_) result(self)
     !!{
-    Internal constructor for the ``randomErrorPolynomial'' output analysis property operator class.
+    Internal constructor for the {\normalfont \ttfamily randomErrorPolynomial} output analysis property operator class.
     !!}
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
     implicit none
@@ -113,7 +113,7 @@ contains
 
   subroutine csmlgySZDestructor(self)
     !!{
-    Destructor for the ``cosmologySZ'' output analysis property operator class.
+    Destructor for the {\normalfont \ttfamily cosmologySZ} output analysis property operator class.
     !!}
     implicit none
     type(outputAnalysisPropertyOperatorCosmologySZ), intent(inout) :: self

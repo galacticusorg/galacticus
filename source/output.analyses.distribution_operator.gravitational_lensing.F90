@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a gravitational lensing output analysis distribution operator class.
+Implements a gravitational lensing output analysis distribution operator class.
 !!}
 
   use :: Gravitational_Lensing, only : gravitationalLensingClass
@@ -65,7 +65,7 @@ Contains a module which implements a gravitational lensing output analysis distr
 
   interface outputAnalysisDistributionOperatorGrvtnlLnsng
      !!{
-     Constructors for the ``gravitational lensing'' output analysis distribution operator class.
+     Constructors for the {\normalfont \ttfamily gravitationalLensing} output analysis distribution operator class.
      !!}
      module procedure grvtnlLnsngConstructorParameters
      module procedure grvtnlLnsngConstructorInternal
@@ -80,7 +80,7 @@ contains
 
   function grvtnlLnsngConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``gravitational lensing'' output analysis distribution operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily gravitationalLensing} output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -119,7 +119,7 @@ contains
 
   function grvtnlLnsngConstructorInternal(gravitationalLensing_,outputTimes_,sizeSource,lensedProperty) result(self)
     !!{
-    Internal constructor for the ``gravitational lensing'' output analysis distribution operator class.
+    Internal constructor for the {\normalfont \ttfamily gravitationalLensing} output analysis distribution operator class.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: Error        , only : Error_Report
@@ -148,7 +148,7 @@ contains
 
   subroutine grvtnlLnsngDestructor(self)
     !!{
-    Destructor for the ``gravitational lensing'' output analysis distribution operator class.
+    Destructor for the {\normalfont \ttfamily gravitationalLensing} output analysis distribution operator class.
     !!}
     implicit none
     type(outputAnalysisDistributionOperatorGrvtnlLnsng), intent(inout) :: self

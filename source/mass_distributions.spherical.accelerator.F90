@@ -118,7 +118,7 @@ contains
   
   function sphericalAcceleratorConstructorInternal(toleranceRelative,factorRadiusMaximum,nonAnalyticSolver,massDistribution_,componentType,massType) result(self)
     !!{
-    Constructor for ``sphericalAccelerator'' mass distribution class.
+    Constructor for {\normalfont \ttfamily sphericalAccelerator} mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalAccelerator)                          :: self

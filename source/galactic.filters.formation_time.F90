@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a galactic filter which removes recently-formed halos.
+Implements a galactic filter which removes recently-formed halos.
 !!}
 
   !![
@@ -42,7 +42,7 @@ Contains a module which implements a galactic filter which removes recently-form
 
   interface galacticFilterFormationTime
      !!{
-     Constructors for the ``formationTime'' galactic filter class.
+     Constructors for the {\normalfont \ttfamily formationTime} galactic filter class.
      !!}
      module procedure formationTimeConstructorParameters
      module procedure formationTimeConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function formationTimeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``formationTime'' galactic filter class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily formationTime} galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function formationTimeConstructorInternal(timeRecent) result(self)
     !!{
-    Internal constructor for the ``formationTime'' galactic filter class.
+    Internal constructor for the {\normalfont \ttfamily formationTime} galactic filter class.
     !!}
     implicit none
     type            (galacticFilterFormationTime)                :: self

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements an output analysis class that computes mass-metallicity relations for Local Group satellite
+  Implements an output analysis class that computes mass-metallicity relations for Local Group satellite
   galaxies.
   !!}
 
@@ -50,7 +50,7 @@
 
   interface outputAnalysisLocalGroupMassMetallicityRelation
      !!{
-     Constructors for the ``localGroupMassMetallicityRelation'' output analysis class.
+     Constructors for the {\normalfont \ttfamily localGroupMassMetallicityRelation} output analysis class.
      !!}
      module procedure localGroupMassMetallicityRelationConstructorParameters
      module procedure localGroupMassMetallicityRelationConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function localGroupMassMetallicityRelationConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``localGroupMassMetallicityRelation'' output analysis class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily localGroupMassMetallicityRelation} output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters            , only : inputParameter               , inputParameters
     use :: Output_Times                , only : outputTimes                  , outputTimesClass
@@ -156,7 +156,7 @@ contains
 
   function localGroupMassMetallicityRelationConstructorInternal(outputTimes_,positionType,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,metallicitySystematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
     !!{
-    Constructor for the ``localGroupMassMetallicityRelation'' output analysis class for internal use.
+    Constructor for the {\normalfont \ttfamily localGroupMassMetallicityRelation} output analysis class for internal use.
     !!}
     use :: Atomic_Data                             , only : Atomic_Number
     use :: Abundances_Structure                    , only : Abundances_Index_From_Name

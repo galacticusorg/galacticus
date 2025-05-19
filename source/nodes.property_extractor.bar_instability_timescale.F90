@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a property extractor class for bar instability timescales.
+Implements a property extractor class for bar instability timescales.
 !!}
 
   use :: Galactic_Dynamics_Bar_Instabilities, only : galacticDynamicsBarInstabilityClass
@@ -44,7 +44,7 @@ Contains a module which implements a property extractor class for bar instabilit
 
   interface nodePropertyExtractorTimescaleBarInstability
      !!{
-     Constructors for the ``timescaleBarInstability'' output analysis class.
+     Constructors for the {\normalfont \ttfamily timescaleBarInstability} output analysis class.
      !!}
      module procedure timescaleBarInstabilityConstructorParameters
      module procedure timescaleBarInstabilityConstructorInternal

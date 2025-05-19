@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a galactic low-pass (i.e. bright-pass) filter for stellar absolute magnitudes.
+Implements a galactic low-pass (i.e. bright-pass) filter for stellar absolute magnitudes.
 !!}
 
   !![
@@ -41,7 +41,7 @@ Contains a module which implements a galactic low-pass (i.e. bright-pass) filter
 
   interface galacticFilterStellarAbsoluteMagnitudes
      !!{
-     Constructors for the ``stellarAbsoluteMagnitudes'' galactic filter class.
+     Constructors for the {\normalfont \ttfamily stellarAbsoluteMagnitudes} galactic filter class.
      !!}
      module procedure stellarAbsoluteMagnitudesConstructorParameters
      module procedure stellarAbsoluteMagnitudesConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function stellarAbsoluteMagnitudesConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``stellarAbsoluteMagnitudes'' galactic filter class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily stellarAbsoluteMagnitudes} galactic filter class which takes a parameter set as input.
     !!}
     use :: Error                         , only : Error_Report
     use :: Input_Parameters              , only : inputParameter         , inputParameters
@@ -84,7 +84,7 @@ contains
 
   function stellarAbsoluteMagnitudesConstructorInternal(absoluteMagnitudeThreshold) result(self)
     !!{
-    Internal constructor for the ``stellarAbsoluteMagnitudes'' galactic filter class.
+    Internal constructor for the {\normalfont \ttfamily stellarAbsoluteMagnitudes} galactic filter class.
     !!}
     use :: Error                         , only : Error_Report
     use :: Stellar_Luminosities_Structure, only : Stellar_Luminosities_Parameter_Map, unitStellarLuminosities

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a node property extractor which reports the formation channel for the central black hole of a given node.
+  Implements a node property extractor which reports the formation channel for the central black hole of a given node.
   !!}
 
   !![
@@ -42,7 +42,7 @@
 
   interface nodePropertyExtractorBlackHoleFormationChannel
      !!{
-     Constructors for the ``blackHoleFormationChannel'' node property extractor class.
+     Constructors for the {\normalfont \ttfamily blackHoleFormationChannel} node property extractor class.
      !!}
      module procedure blackHoleFormationChannelConstructorParameters
      module procedure blackHoleFormationChannelConstructorInternal

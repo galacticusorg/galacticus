@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a \cite{reed_halo_2007} dark matter halo mass function class.
+  Implements a \cite{reed_halo_2007} dark matter halo mass function class.
   !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass

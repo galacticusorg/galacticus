@@ -42,7 +42,7 @@
 
   interface nodePropertyExtractorStarFormationRateInterOutput
      !!{
-     Constructors for the ``starFormationRateInterOutput'' output extractor class.
+     Constructors for the {\normalfont \ttfamily starFormationRateInterOutput} output extractor class.
      !!}
      module procedure starFormationRateInterOutputConstructorParameters
      module procedure starFormationRateInterOutputConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function starFormationRateInterOutputConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``starFormationRateInterOutput'' property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily starFormationRateInterOutput} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -68,7 +68,7 @@ contains
 
   function starFormationRateInterOutputConstructorInternal() result(self)
     !!{
-    Internal constructor for the ``starFormationRateInterOutput'' output extractor property extractor class.
+    Internal constructor for the {\normalfont \ttfamily starFormationRateInterOutput} output extractor property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorStarFormationRateInterOutput) :: self

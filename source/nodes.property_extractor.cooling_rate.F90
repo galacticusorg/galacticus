@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a cooling rate property extractor class.
+Implements a cooling rate property extractor class.
 !!}
 
   use :: Cooling_Rates, only : coolingRate, coolingRateClass
@@ -47,7 +47,7 @@ Contains a module which implements a cooling rate property extractor class.
 
   interface nodePropertyExtractorRateCooling
      !!{
-     Constructors for the ``rateCooling'' output analysis class.
+     Constructors for the {\normalfont \ttfamily rateCooling} output analysis class.
      !!}
      module procedure rateCoolingConstructorParameters
      module procedure rateCoolingConstructorInternal
