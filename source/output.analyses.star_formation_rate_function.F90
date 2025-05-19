@@ -215,22 +215,39 @@ contains
     class           (starFormationRateDisksClass              ), intent(in   ) , target      :: starFormationRateDisks_
     class           (starFormationRateSpheroidsClass          ), intent(in   ) , target      :: starFormationRateSpheroids_
     class           (starFormationRateNuclearStarClustersClass), intent(in   ) , target      :: starFormationRateNuclearStarClusters_
-    double precision                                           , dimension(:  ), allocatable :: starFormationRates                   , functionValueTarget
-    double precision                                           , dimension(:,:), allocatable :: functionCovarianceTarget
     integer                                                    , intent(in   )               :: covarianceBinomialBinsPerDecade
     double precision                                           , intent(in   )               :: covarianceBinomialMassHaloMinimum    , covarianceBinomialMassHaloMaximum
+    double precision                                           , dimension(:  ), allocatable :: starFormationRates                   , functionValueTarget              , &
+         &                                                                                      functionErrorTarget
+    double precision                                           , dimension(:,:), allocatable :: functionCovarianceTarget
     type            (hdf5Object                               )                              :: dataFile
     type            (varying_string                           )                              :: targetLabel
     logical                                                                                  :: haveTarget
+    integer                                                                                  :: i
 
     !$ call hdf5Access%set()
     dataFile=hdf5Object(fileName,readOnly=.true.)
     call    dataFile%readDataset  ('starFormationRate'   ,starFormationRates      )
-    haveTarget=dataFile%hasDataset('starFormationRateFunctionObserved').and.dataFile%hasDataset('covariance')
+    haveTarget=   dataFile%hasDataset('starFormationRateFunctionObserved'          ) &
+         &     .and.                                                                 &
+         &      (                                                                    &
+         &        dataFile%hasDataset('starFormationRateFunctionObservedCovariance') &
+         &       .or.                                                                &
+         &        dataFile%hasDataset('starFormationRateFunctionObservedError'     ) &
+         &      )
     if (haveTarget) then
-       call dataFile%readAttribute('label'               ,targetLabel             )
-       call dataFile%readDataset  ('massFunctionObserved',functionValueTarget     )
-       call dataFile%readDataset  ('covariance'          ,functionCovarianceTarget)
+       call dataFile%readAttribute('label'                            ,targetLabel        )
+       call dataFile%readDataset  ('starFormationRateFunctionObserved',functionValueTarget)
+       if (dataFile%hasDataset('starFormationRateFunctionObservedCovariance')) then
+          call dataFile%readDataset('starFormationRateFunctionObservedCovariance',functionCovarianceTarget)
+       else
+          call dataFile%readDataset('starFormationRateFunctionObservedError'     ,functionErrorTarget     )
+          allocate(functionCovarianceTarget(size(functionErrorTarget),size(functionErrorTarget)))
+          functionCovarianceTarget=0.0d0
+          do i=1,size(functionErrorTarget)
+             functionCovarianceTarget(i,i)=functionErrorTarget(i)**2
+          end do
+       end if
     end if
     !$ call hdf5Access%unset()
     ! Construct the object.

@@ -40,6 +40,7 @@
      private
      class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
+     final     ::        finiteResolutionNFWDestructor
      procedure :: get => finiteResolutionNFWGet
   end type darkMatterProfileDMOFiniteResolutionNFW
 
@@ -134,6 +135,19 @@ contains
     end select    
     return
   end function finiteResolutionNFWConstructorInternal
+  
+  subroutine finiteResolutionNFWDestructor(self)
+    !!{
+    Destructor for the \refClass{darkMatterProfileDMOFiniteResolutionNFW} dark matter halo profile class.
+    !!}
+    implicit none
+    type(darkMatterProfileDMOFiniteResolutionNFW), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_"/>
+    !!]
+    return
+  end subroutine finiteResolutionNFWDestructor
 
   function finiteResolutionNFWGet(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{

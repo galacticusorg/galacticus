@@ -56,30 +56,6 @@
           &                                                         lengthResolutionPotentialSqrtOnePlusSquare             , lengthResolutionPotentialOnePlusTwoSquare     , &
           &                                                         lengthResolutionPotentialOnePlusSquareP1p5             , lengthResolutionPotentialAtanh                , &
           &                                                         concentrationPotentialTerm
-     ! Radius-enclosing-density tabulation.
-     logical                                                     :: radiusEnclosingDensityTableInitialized
-     integer                                                     :: radiusEnclosingDensityTableLengthResolutionCount       , radiusEnclosingDensityTableDensityCount
-     double precision              , allocatable, dimension(:  ) :: radiusEnclosingDensityTableLengthResolution            , radiusEnclosingDensityTableDensity
-     double precision              , allocatable, dimension(:,:) :: radiusEnclosingDensityTable
-     type            (interpolator), allocatable                 :: radiusEnclosingDensityTableLengthResolutionInterpolator, radiusEnclosingDensityTableDensityInterpolator
-     double precision                                            :: radiusEnclosingDensityDensityMinimum                   , radiusEnclosingDensityDensityMaximum          , &
-          &                                                         radiusEnclosingDensityLengthResolutionMinimum          , radiusEnclosingDensityLengthResolutionMaximum
-     ! Radius-enclosing-mass tabulation.
-     logical                                                     :: radiusEnclosingMassTableInitialized
-     integer                                                     :: radiusEnclosingMassTableLengthResolutionCount          , radiusEnclosingMassTableMassCount
-     double precision              , allocatable, dimension(:  ) :: radiusEnclosingMassTableLengthResolution               , radiusEnclosingMassTableMass
-     double precision              , allocatable, dimension(:,:) :: radiusEnclosingMassTable
-     type            (interpolator), allocatable                 :: radiusEnclosingMassTableLengthResolutionInterpolator   , radiusEnclosingMassTableMassInterpolator
-     double precision                                            :: radiusEnclosingMassMassMinimum                         , radiusEnclosingMassMassMaximum                , &
-          &                                                         radiusEnclosingMassLengthResolutionMinimum             , radiusEnclosingMassLengthResolutionMaximum
-     ! Energy tabulation.
-     logical                                                     :: energyTableInitialized
-     integer                                                     :: energyTableLengthResolutionCount                       , energyTableRadiusOuterCount
-     double precision              , allocatable, dimension(:  ) :: energyTableLengthResolution                            , energyTableRadiusOuter
-     double precision              , allocatable, dimension(:,:) :: energyTable
-     type            (interpolator), allocatable                 :: energyTableLengthResolutionInterpolator                , energyTableRadiusOuterInterpolator
-     double precision                                            :: energyRadiusOuterMinimum                               , energyRadiusOuterMaximum                      , &
-          &                                                         energyLengthResolutionMinimum                          , energyLengthResolutionMaximum
      ! Enclosed mass quantities.
      double precision                                            :: lengthResolutionScaleFreeLowerTerm                     , lengthResolutionScaleFreeSquared              , &
           &                                                         lengthResolutionScaleFreeCubed                         , lengthResolutionScaleFreeOnePlusTerm          , &
@@ -100,6 +76,7 @@
        <method method="restoreMassTable"               description="Attempt to restore the tabulated radius-enclosing-mass from file, returning true if successful."   />
        <method method="storeEnergyTable"               description="Store the tabulated energy to file."                                                               />
        <method method="restoreEnergyTable"             description="Attempt to restore the tabulated energy from file, returning true if successful."                  />
+       <method method="suffix"                         description="Return a file name suffix (containing a source code digest."                                       />
      </methods>
      !!]
      procedure :: density                        => sphericalFiniteResolutionNFWDensity
@@ -121,6 +98,7 @@
      procedure :: restoreMassTable               => sphericalFiniteResolutionNFWRestoreMassTable
      procedure :: storeEnergyTable               => sphericalFiniteResolutionNFWStoreEnergyTable
      procedure :: restoreEnergyTable             => sphericalFiniteResolutionNFWRestoreEnergyTable
+     procedure :: suffix                         => finiteResolutionNFWSuffix
   end type massDistributionSphericalFiniteResolutionNFW
 
   interface massDistributionSphericalFiniteResolutionNFW
@@ -132,21 +110,56 @@
   end interface massDistributionSphericalFiniteResolutionNFW
 
   ! Tabulation resolution parameters.
-  integer                                                       , parameter :: radiusEnclosingDensityTableDensityPointsPerDecade         =100
-  integer                                                       , parameter :: radiusEnclosingDensityTableLengthResolutionPointsPerDecade=100
-  integer                                                       , parameter :: radiusEnclosingMassTableMassPointsPerDecade               =100
-  integer                                                       , parameter :: radiusEnclosingMassTableLengthResolutionPointsPerDecade   =100
-  integer                                                       , parameter :: energyTableRadiusOuterPointsPerDecade                     =100
-  integer                                                       , parameter :: energyTableLengthResolutionPointsPerDecade                =100
-
-  ! Sub-module-scope variables used in integrations.
-  class           (massDistributionSphericalFiniteResolutionNFW), pointer   :: self_
-  integer                                                                   :: iLengthResolution_                                               , iDensity_, &
-       &                                                                       iMass_
-  !$omp threadprivate(self_,iLengthResolution_,iDensity_,iMass_)
+  integer                                                       , parameter                   :: radiusEnclosingDensityTableDensityPointsPerDecade         =100
+  integer                                                       , parameter                   :: radiusEnclosingDensityTableLengthResolutionPointsPerDecade=100
+  integer                                                       , parameter                   :: radiusEnclosingMassTableMassPointsPerDecade               =100
+  integer                                                       , parameter                   :: radiusEnclosingMassTableLengthResolutionPointsPerDecade   =100
+  integer                                                       , parameter                   :: energyTableRadiusOuterPointsPerDecade                     =100
+  integer                                                       , parameter                   :: energyTableLengthResolutionPointsPerDecade                =100
 
   ! Largest radius for precise arctanh() evaluation.
-  double precision                                              , parameter :: radiusScaleFreeLargeATanh                                 =1.0d+6
+  double precision                                              , parameter                   :: radiusScaleFreeLargeATanh                                 =1.0d+6
+
+  ! Radius-enclosing-density tabulation.
+  logical                                                                                     :: radiusEnclosingDensityTableInitialized                           =.false.
+  integer                                                                                     :: radiusEnclosingDensityTableLengthResolutionCount                              , radiusEnclosingDensityTableDensityCount
+  double precision                                              , allocatable, dimension(:  ) :: radiusEnclosingDensityTableLengthResolution                                   , radiusEnclosingDensityTableDensity
+  double precision                                              , allocatable, dimension(:,:) :: radiusEnclosingDensityTable
+  type            (interpolator                                ), allocatable                 :: radiusEnclosingDensityTableLengthResolutionInterpolator                       , radiusEnclosingDensityTableDensityInterpolator
+  double precision                                                                            :: radiusEnclosingDensityDensityMinimum                             =+huge(0.0d0), radiusEnclosingDensityDensityMaximum          =-huge(0.0d0), &
+       &                                                                                         radiusEnclosingDensityLengthResolutionMinimum                    =+huge(0.0d0), radiusEnclosingDensityLengthResolutionMaximum =-huge(0.0d0)
+  !$omp threadprivate(radiusEnclosingDensityTableInitialized,radiusEnclosingDensityTableLengthResolutionCount,radiusEnclosingDensityTableDensityCount,radiusEnclosingDensityTableLengthResolution, radiusEnclosingDensityTableDensity,radiusEnclosingDensityTable,radiusEnclosingDensityTableLengthResolutionInterpolator,radiusEnclosingDensityTableDensityInterpolator,radiusEnclosingDensityDensityMinimum,radiusEnclosingDensityDensityMaximum,radiusEnclosingDensityLengthResolutionMinimum,radiusEnclosingDensityLengthResolutionMaximum)
+  
+  ! Radius-enclosing-mass tabulation.
+  logical                                                                                     :: radiusEnclosingMassTableInitialized                              =.false.
+  integer                                                                                     :: radiusEnclosingMassTableLengthResolutionCount                                 , radiusEnclosingMassTableMassCount
+  double precision                                              , allocatable, dimension(:  ) :: radiusEnclosingMassTableLengthResolution                                      , radiusEnclosingMassTableMass
+  double precision                                              , allocatable, dimension(:,:) :: radiusEnclosingMassTable
+  type            (interpolator                                ), allocatable                 :: radiusEnclosingMassTableLengthResolutionInterpolator                          , radiusEnclosingMassTableMassInterpolator
+  double precision                                                                            :: radiusEnclosingMassMassMinimum                                   =+huge(0.0d0), radiusEnclosingMassMassMaximum                =-huge(0.0d0), &
+       &                                                                                         radiusEnclosingMassLengthResolutionMinimum                       =+huge(0.0d0), radiusEnclosingMassLengthResolutionMaximum    =-huge(0.0d0)
+  !$omp threadprivate(radiusEnclosingMassTableInitialized,radiusEnclosingMassTableLengthResolutionCount,radiusEnclosingMassTableMassCount,radiusEnclosingMassTableLengthResolution,radiusEnclosingMassTableMass,radiusEnclosingMassTable,radiusEnclosingMassTableLengthResolutionInterpolator,radiusEnclosingMassTableMassInterpolator,radiusEnclosingMassMassMinimum,radiusEnclosingMassMassMaximum,radiusEnclosingMassLengthResolutionMinimum,radiusEnclosingMassLengthResolutionMaximum)
+  
+  ! Energy tabulation.
+  logical                                                                                     :: energyTableInitialized                                           =.false.
+  integer                                                                                     :: energyTableLengthResolutionCount                                              , energyTableRadiusOuterCount
+  double precision                                              , allocatable, dimension(:  ) :: energyTableLengthResolution                                                   , energyTableRadiusOuter
+  double precision                                              , allocatable, dimension(:,:) :: energyTable
+  type            (interpolator                                ), allocatable                 :: energyTableLengthResolutionInterpolator                                       , energyTableRadiusOuterInterpolator
+  double precision                                                                            :: energyRadiusOuterMinimum                                         =+huge(0.0d0), energyRadiusOuterMaximum                      =-huge(0.0d0), &
+       &                                                                                         energyLengthResolutionMinimum                                    =+huge(0.0d0), energyLengthResolutionMaximum                 =-huge(0.0d0)
+  !$omp threadprivate(energyTableInitialized,energyTableLengthResolutionCount,energyTableRadiusOuterCount,energyTableLengthResolution,energyTableRadiusOuter,energyTable,energyTableLengthResolutionInterpolator,energyTableRadiusOuterInterpolator,energyRadiusOuterMinimum,energyRadiusOuterMaximum,energyLengthResolutionMinimum,energyLengthResolutionMaximum) 
+  
+  ! Sub-module-scope variables used in integrations.
+  class           (massDistributionSphericalFiniteResolutionNFW), pointer                     :: self_
+  integer                                                                                     :: iLengthResolution_                                               , iDensity_, &
+       &                                                                                         iMass_
+  !$omp threadprivate(self_,iLengthResolution_,iDensity_,iMass_)
+
+  ! Generate a source digest.
+  !![
+  <sourceDigest name="massDistributionFiniteResolutionNFWSourceDigest"/>
+  !!]
 
 contains
 
@@ -221,44 +234,26 @@ contains
     <constructorAssign variables="lengthResolution, radiusScale, radiusVirial, mass, componentType, massType"/>
     !!]
 
-    self%dimensionless                                 =.false.
-    self%lengthResolutionScalefreePrevious             =-huge(0.0d0)
-    self%massEnclosedMassPrevious                      =-huge(0.0d0)
-    self%massEnclosedRadiusPrevious                    =-huge(0.0d0)
-    self%potentialPrevious                             =-huge(0.0d0)
-    self%potentialRadiusPrevious                       =-huge(0.0d0)
-    self%lengthResolutionScaleFreePotentialPrevious    =-huge(0.0d0)
-    self%concentrationPotentialTerm                    =-huge(0.0d0)
-    self%densityRadiusPrevious                         =-huge(0.0d0)
-    self%densityPrevious                               =-huge(0.0d0)
-    self%densityNormalizationPrevious                  =-huge(0.0d0)
-    self%radiusEnclosingDensityDensityPrevious         =-huge(0.0d0)
-    self%radiusEnclosingDensityPrevious                =-huge(0.0d0)
-    self%radiusEnclosingMassMassPrevious               =-huge(0.0d0)
-    self%radiusEnclosingMassPrevious                   =-huge(0.0d0)
-    self%energyPrevious                                =+huge(0.0d0)
-    ! Radius enclosing density table initialization.
-    self%radiusEnclosingDensityDensityMinimum          =+huge(0.0d0)
-    self%radiusEnclosingDensityDensityMaximum          =-huge(0.0d0)
-    self%radiusEnclosingDensityLengthResolutionMinimum =+huge(0.0d0)
-    self%radiusEnclosingDensityLengthResolutionMaximum =-huge(0.0d0)
-    self%radiusEnclosingDensityTableInitialized        =.false.
-    ! Radius enclosing mass table initialization.
-    self%radiusEnclosingMassMassMinimum                =+huge(0.0d0)
-    self%radiusEnclosingMassMassMaximum                =-huge(0.0d0)
-    self%radiusEnclosingMassLengthResolutionMinimum    =+huge(0.0d0)
-    self%radiusEnclosingMassLengthResolutionMaximum    =-huge(0.0d0)
-    self%radiusEnclosingMassTableInitialized           =.false.
-    ! Energy table initialization.
-    self%energyRadiusOuterMinimum                      =+huge(0.0d0)
-    self%energyRadiusOuterMaximum                      =-huge(0.0d0)
-    self%energyLengthResolutionMinimum                 =+huge(0.0d0)
-    self%energyLengthResolutionMaximum                 =-huge(0.0d0)
-    self%energyTableInitialized                        =.false.
+    self%dimensionless                             =.false.
+    self%lengthResolutionScalefreePrevious         =-huge(0.0d0)
+    self%massEnclosedMassPrevious                  =-huge(0.0d0)
+    self%massEnclosedRadiusPrevious                =-huge(0.0d0)
+    self%potentialPrevious                         =-huge(0.0d0)
+    self%potentialRadiusPrevious                   =-huge(0.0d0)
+    self%lengthResolutionScaleFreePotentialPrevious=-huge(0.0d0)
+    self%concentrationPotentialTerm                =-huge(0.0d0)
+    self%densityRadiusPrevious                     =-huge(0.0d0)
+    self%densityPrevious                           =-huge(0.0d0)
+    self%densityNormalizationPrevious              =-huge(0.0d0)
+    self%radiusEnclosingDensityDensityPrevious     =-huge(0.0d0)
+    self%radiusEnclosingDensityPrevious            =-huge(0.0d0)
+    self%radiusEnclosingMassMassPrevious           =-huge(0.0d0)
+    self%radiusEnclosingMassPrevious               =-huge(0.0d0)
+    self%energyPrevious                            =+huge(0.0d0)
     ! Construct profile quantities.
-    radiusScaleFree               =+    radiusVirial/radiusScale
-    self%lengthResolutionScaleFree=+lengthResolution/radiusScale
-    self%densityNormalization     =+mass/4.0d0/Pi/radiusScale**3/(log(1.0d0+radiusScaleFree)-radiusScaleFree/(1.0d0+radiusScaleFree))
+    radiusScaleFree                                =+    radiusVirial/radiusScale
+    self%lengthResolutionScaleFree                 =+lengthResolution/radiusScale
+    self%densityNormalization                      =+mass/4.0d0/Pi/radiusScale**3/(log(1.0d0+radiusScaleFree)-radiusScaleFree/(1.0d0+radiusScaleFree))
     return
   end function sphericalFiniteResolutionNFWConstructorInternal
 
@@ -628,13 +623,13 @@ contains
        ! Ensure table is sufficiently extensive.
        call self%radiusEnclosingMassTabulate(massScaleFree,self%lengthResolutionScaleFree)
        ! Interpolate to get the scale free radius enclosing the scale free mass.
-       call self%radiusEnclosingMassTableLengthResolutionInterpolator%linearFactors(self%lengthResolutionScaleFree,jLengthResolution(0),hLengthResolution)
+       call radiusEnclosingMassTableLengthResolutionInterpolator%linearFactors(self%lengthResolutionScaleFree,jLengthResolution(0),hLengthResolution)
        jLengthResolution(1)=jLengthResolution(0)+1
        self%radiusEnclosingMassPrevious=0.0d0
        do iLengthResolution=0,1
-          self%radiusEnclosingMassPrevious=+self%radiusEnclosingMassPrevious                                                                                                               &
-               &                           +self%radiusEnclosingMassTableMassInterpolator%interpolate(massScaleFree,self%radiusEnclosingMassTable(:,jLengthResolution(iLengthResolution))) &
-               &                           *                                                                                                        hLengthResolution(iLengthResolution)
+          self%radiusEnclosingMassPrevious=+self%radiusEnclosingMassPrevious                                                                                                     &
+               &                           +radiusEnclosingMassTableMassInterpolator%interpolate(massScaleFree,radiusEnclosingMassTable(:,jLengthResolution(iLengthResolution))) &
+               &                           *                                                                                              hLengthResolution(iLengthResolution)
        end do
        self%radiusEnclosingMassPrevious=+self%radiusEnclosingMassPrevious &
             &                           *self%radiusScale
@@ -661,16 +656,16 @@ contains
     
     do i=1,2
        retabulate=.false.
-       if (.not.self%radiusEnclosingMassTableInitialized) then
+       if (.not.radiusEnclosingMassTableInitialized) then
           retabulate=.true.
-       else if (                                                                    &
-            &    mass             < self%radiusEnclosingMassMassMinimum             &
-            &   .or.                                                                &
-            &    mass             > self%radiusEnclosingMassMassMaximum             &
-            &   .or.                                                                &
-            &    lengthResolution < self%radiusEnclosingMassLengthResolutionMinimum &
-            &   .or.                                                                &
-            &    lengthResolution > self%radiusEnclosingMassLengthResolutionMaximum &
+       else if (                                                               &
+            &    mass             < radiusEnclosingMassMassMinimum             &
+            &   .or.                                                           &
+            &    mass             > radiusEnclosingMassMassMaximum             &
+            &   .or.                                                           &
+            &    lengthResolution < radiusEnclosingMassLengthResolutionMinimum &
+            &   .or.                                                           &
+            &    lengthResolution > radiusEnclosingMassLengthResolutionMaximum &
             &  ) then
           retabulate=.true.
        end if
@@ -679,23 +674,23 @@ contains
     end do
     if (retabulate) then
        ! Decide how many points to tabulate and allocate table arrays.
-       self%radiusEnclosingMassMassMinimum               =min(0.5d0*mass            ,self%radiusEnclosingMassMassMinimum            )
-       self%radiusEnclosingMassMassMaximum               =max(2.0d0*mass            ,self%radiusEnclosingMassMassMaximum            )
-       self%radiusEnclosingMassLengthResolutionMinimum   =min(0.5d0*lengthResolution,self%radiusEnclosingMassLengthResolutionMinimum)
-       self%radiusEnclosingMassLengthResolutionMaximum   =max(2.0d0*lengthResolution,self%radiusEnclosingMassLengthResolutionMaximum)
-       self%radiusEnclosingMassTableMassCount            =int(log10(self%radiusEnclosingMassMassMaximum            /self%radiusEnclosingMassMassMinimum            )*dble(radiusEnclosingMassTableMassPointsPerDecade            ))+1
-       self%radiusEnclosingMassTableLengthResolutionCount=int(log10(self%radiusEnclosingMassLengthResolutionMaximum/self%radiusEnclosingMassLengthResolutionMinimum)*dble(radiusEnclosingMassTableLengthResolutionPointsPerDecade))+1
-       if (allocated(self%radiusEnclosingMassTableMass)) then
-          deallocate(self%radiusEnclosingMassTableLengthResolution)
-          deallocate(self%radiusEnclosingMassTableMass            )
-          deallocate(self%radiusEnclosingMassTable                )
+       radiusEnclosingMassMassMinimum               =min(0.5d0*mass            ,radiusEnclosingMassMassMinimum            )
+       radiusEnclosingMassMassMaximum               =max(2.0d0*mass            ,radiusEnclosingMassMassMaximum            )
+       radiusEnclosingMassLengthResolutionMinimum   =min(0.5d0*lengthResolution,radiusEnclosingMassLengthResolutionMinimum)
+       radiusEnclosingMassLengthResolutionMaximum   =max(2.0d0*lengthResolution,radiusEnclosingMassLengthResolutionMaximum)
+       radiusEnclosingMassTableMassCount            =int(log10(radiusEnclosingMassMassMaximum            /radiusEnclosingMassMassMinimum            )*dble(radiusEnclosingMassTableMassPointsPerDecade            ))+1
+       radiusEnclosingMassTableLengthResolutionCount=int(log10(radiusEnclosingMassLengthResolutionMaximum/radiusEnclosingMassLengthResolutionMinimum)*dble(radiusEnclosingMassTableLengthResolutionPointsPerDecade))+1
+       if (allocated(radiusEnclosingMassTableMass)) then
+          deallocate(radiusEnclosingMassTableLengthResolution)
+          deallocate(radiusEnclosingMassTableMass            )
+          deallocate(radiusEnclosingMassTable                )
        end if
-       allocate(self%radiusEnclosingMassTableLengthResolution(                                       self%radiusEnclosingMassTableLengthResolutionCount))
-       allocate(self%radiusEnclosingMassTableMass            (self%radiusEnclosingMassTableMassCount                                                   ))
-       allocate(self%radiusEnclosingMassTable                (self%radiusEnclosingMassTableMassCount,self%radiusEnclosingMassTableLengthResolutionCount))
+       allocate(radiusEnclosingMassTableLengthResolution(                                       radiusEnclosingMassTableLengthResolutionCount))
+       allocate(radiusEnclosingMassTableMass            (radiusEnclosingMassTableMassCount                                                   ))
+       allocate(radiusEnclosingMassTable                (radiusEnclosingMassTableMassCount,radiusEnclosingMassTableLengthResolutionCount))
        ! Create a range of radii and core radii.
-       self%radiusEnclosingMassTableMass            =Make_Range(self%radiusEnclosingMassMassMinimum            ,self%radiusEnclosingMassMassMaximum            ,self%radiusEnclosingMassTableMassCount            ,rangeType=rangeTypeLogarithmic)
-       self%radiusEnclosingMassTableLengthResolution=Make_Range(self%radiusEnclosingMassLengthResolutionMinimum,self%radiusEnclosingMassLengthResolutionMaximum,self%radiusEnclosingMassTableLengthResolutionCount,rangeType=rangeTypeLogarithmic)
+       radiusEnclosingMassTableMass            =Make_Range(radiusEnclosingMassMassMinimum            ,radiusEnclosingMassMassMaximum            ,radiusEnclosingMassTableMassCount            ,rangeType=rangeTypeLogarithmic)
+       radiusEnclosingMassTableLengthResolution=Make_Range(radiusEnclosingMassLengthResolutionMinimum,radiusEnclosingMassLengthResolutionMaximum,radiusEnclosingMassTableLengthResolutionCount,rangeType=rangeTypeLogarithmic)
        ! Initialize our root finder.
        finder=rootFinder(                                                             &
             &            rootFunction                 =rootMass                     , &
@@ -709,28 +704,28 @@ contains
             &           )
        ! Loop over mass and core radius and populate tables.
        self_ => self
-       do iLengthResolution=1,self%radiusEnclosingMassTableLengthResolutionCount
+       do iLengthResolution=1,radiusEnclosingMassTableLengthResolutionCount
           iLengthResolution_=iLengthResolution
-          do iMass=1,self%radiusEnclosingMassTableMassCount
+          do iMass=1,radiusEnclosingMassTableMassCount
              iMass_=iMass
              ! Check that the root condition is satisfied at infinitely large radius. If it is not, then no radius encloses the
              ! required mass. Simply set the radius to an infinitely large value in such case.
              if (rootMass(radius=huge(0.0d0)) < 0.0d0) then
-                self%radiusEnclosingMassTable(iMass,iLengthResolution)=huge(0.0d0)
+                radiusEnclosingMassTable(iMass,iLengthResolution)=huge(0.0d0)
              else
-                self%radiusEnclosingMassTable(iMass,iLengthResolution)=finder%find(rootGuess=1.0d0)
+                radiusEnclosingMassTable(iMass,iLengthResolution)=finder%find(rootGuess=1.0d0)
              end if
           end do
        end do
        ! Build interpolators.
-       if (allocated(self%radiusEnclosingMassTableLengthResolutionInterpolator)) deallocate(self%radiusEnclosingMassTableLengthResolutionInterpolator)
-       if (allocated(self%radiusEnclosingMassTableMassInterpolator            )) deallocate(self%radiusEnclosingMassTableMassInterpolator            )
-       allocate(self%radiusEnclosingMassTableLengthResolutionInterpolator)
-       allocate(self%radiusEnclosingMassTableMassInterpolator            )
-       self%radiusEnclosingMassTableLengthResolutionInterpolator=interpolator(self%radiusEnclosingMassTableLengthResolution)
-       self%radiusEnclosingMassTableMassInterpolator            =interpolator(self%radiusEnclosingMassTableMass            )
+       if (allocated(radiusEnclosingMassTableLengthResolutionInterpolator)) deallocate(radiusEnclosingMassTableLengthResolutionInterpolator)
+       if (allocated(radiusEnclosingMassTableMassInterpolator            )) deallocate(radiusEnclosingMassTableMassInterpolator            )
+       allocate(radiusEnclosingMassTableLengthResolutionInterpolator)
+       allocate(radiusEnclosingMassTableMassInterpolator            )
+       radiusEnclosingMassTableLengthResolutionInterpolator=interpolator(radiusEnclosingMassTableLengthResolution)
+       radiusEnclosingMassTableMassInterpolator            =interpolator(radiusEnclosingMassTableMass            )
        ! Specify that tabulation has been made.
-       self%radiusEnclosingMassTableInitialized=.true.
+       radiusEnclosingMassTableInitialized=.true.
        call self%storeMassTable()
     end if
     return
@@ -743,8 +738,8 @@ contains
     implicit none
     double precision, intent(in   ) :: radius
 
-    rootMass=+self_%massEnclosedScaleFree       (radius,self_%radiusEnclosingMassTableLengthResolution(iLengthResolution_)) &
-         &   -self_%radiusEnclosingMassTableMass(                                                      iMass_             )
+    rootMass=+self_%massEnclosedScaleFree       (radius,radiusEnclosingMassTableLengthResolution(iLengthResolution_)) &
+         &   -      radiusEnclosingMassTableMass(                                                iMass_             )
     return
   end function rootMass
 
@@ -764,20 +759,20 @@ contains
     type (hdf5Object                                  )                :: file
     type (varying_string                              )                :: fileName
 
-    fileName=inputPath(pathTypeDataDynamic)                   // &
-         &   'darkMatter/'                                    // &
-         &   self%objectType      (                          )// &
-         &   'Mass_'                                          // &
-         &   self%hashedDescriptor(includeSourceDigest=.true.)// &
+    fileName=inputPath(pathTypeDataDynamic)// &
+         &   'darkMatter/'                 // &
+         &   self%objectType(             )// &
+         &   '_mass_'                      // &
+         &   self%suffix    (             )// &
          &   '.hdf5'
     call Directory_Make(char(File_Path(char(fileName))))
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock(char(fileName),fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
     file=hdf5Object(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
-    call file%writeDataset(self%radiusEnclosingMassTableLengthResolution,'lengthResolution')
-    call file%writeDataset(self%radiusEnclosingMassTableMass            ,'mass'            )
-    call file%writeDataset(self%radiusEnclosingMassTable                ,'radius'          )
+    call file%writeDataset(radiusEnclosingMassTableLengthResolution,'lengthResolution')
+    call file%writeDataset(radiusEnclosingMassTableMass            ,'mass'            )
+    call file%writeDataset(radiusEnclosingMassTable                ,'radius'          )
     !$ call hdf5Access%unset()
     call File_Unlock(fileLock)
     return
@@ -798,41 +793,41 @@ contains
     type (hdf5Object                                  )                :: file
     type (varying_string                              )                :: fileName
 
-    fileName=inputPath(pathTypeDataDynamic)                   // &
-         &   'darkMatter/'                                    // &
-         &   self%objectType      (                          )// &
-         &   'Mass_'                                          // &
-         &   self%hashedDescriptor(includeSourceDigest=.true.)// &
+    fileName=inputPath(pathTypeDataDynamic)// &
+         &   'darkMatter/'                 // &
+         &   self%objectType(             )// &
+         &   '_mass_'                      // &
+         &   self%suffix    (             )// &
          &   '.hdf5'
     if (File_Exists(fileName)) then
-       if (allocated(self%radiusEnclosingMassTableMass)) then
-          deallocate(self%radiusEnclosingMassTableLengthResolution)
-          deallocate(self%radiusEnclosingMassTableMass            )
-          deallocate(self%radiusEnclosingMassTable                )
+       if (allocated(radiusEnclosingMassTableMass)) then
+          deallocate(radiusEnclosingMassTableLengthResolution)
+          deallocate(radiusEnclosingMassTableMass            )
+          deallocate(radiusEnclosingMassTable                )
        end if
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
        file=hdf5Object(char(fileName))
-       call file%readDataset('lengthResolution',self%radiusEnclosingMassTableLengthResolution)
-       call file%readDataset('mass'            ,self%radiusEnclosingMassTableMass            )
-       call file%readDataset('radius'          ,self%radiusEnclosingMassTable                )
+       call file%readDataset('lengthResolution',radiusEnclosingMassTableLengthResolution)
+       call file%readDataset('mass'            ,radiusEnclosingMassTableMass            )
+       call file%readDataset('radius'          ,radiusEnclosingMassTable                )
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
-       self%radiusEnclosingMassTableMassCount            =size(self%radiusEnclosingMassTableMass            )
-       self%radiusEnclosingMassTableLengthResolutionCount=size(self%radiusEnclosingMassTableLengthResolution)
-       self%radiusEnclosingMassMassMinimum               =self%radiusEnclosingMassTableMass            (                                                 1)
-       self%radiusEnclosingMassMassMaximum               =self%radiusEnclosingMassTableMass            (self%radiusEnclosingMassTableMassCount            )
-       self%radiusEnclosingMassLengthResolutionMinimum   =self%radiusEnclosingMassTableLengthResolution(                                                 1)
-       self%radiusEnclosingMassLengthResolutionMaximum   =self%radiusEnclosingMassTableLengthResolution(self%radiusEnclosingMassTableLengthResolutionCount)
-       if (allocated(self%radiusEnclosingMassTableLengthResolutionInterpolator)) deallocate(self%radiusEnclosingMassTableLengthResolutionInterpolator)
-       if (allocated(self%radiusEnclosingMassTableMassInterpolator            )) deallocate(self%radiusEnclosingMassTableMassInterpolator            )
-       allocate(self%radiusEnclosingMassTableLengthResolutionInterpolator)
-       allocate(self%radiusEnclosingMassTableMassInterpolator            )
-       self%radiusEnclosingMassTableLengthResolutionInterpolator=interpolator(self%radiusEnclosingMassTableLengthResolution)
-       self%radiusEnclosingMassTableMassInterpolator            =interpolator(self%radiusEnclosingMassTableMass            )
-       self%radiusEnclosingMassTableInitialized                 =.true.
-    end if    
+       radiusEnclosingMassTableMassCount            =size(radiusEnclosingMassTableMass            )
+       radiusEnclosingMassTableLengthResolutionCount=size(radiusEnclosingMassTableLengthResolution)
+       radiusEnclosingMassMassMinimum               =radiusEnclosingMassTableMass            (                                            1)
+       radiusEnclosingMassMassMaximum               =radiusEnclosingMassTableMass            (radiusEnclosingMassTableMassCount            )
+       radiusEnclosingMassLengthResolutionMinimum   =radiusEnclosingMassTableLengthResolution(                                            1)
+       radiusEnclosingMassLengthResolutionMaximum   =radiusEnclosingMassTableLengthResolution(radiusEnclosingMassTableLengthResolutionCount)
+       if (allocated(radiusEnclosingMassTableLengthResolutionInterpolator)) deallocate(radiusEnclosingMassTableLengthResolutionInterpolator)
+       if (allocated(radiusEnclosingMassTableMassInterpolator            )) deallocate(radiusEnclosingMassTableMassInterpolator            )
+       allocate(radiusEnclosingMassTableLengthResolutionInterpolator)
+       allocate(radiusEnclosingMassTableMassInterpolator            )
+       radiusEnclosingMassTableLengthResolutionInterpolator=interpolator(radiusEnclosingMassTableLengthResolution)
+       radiusEnclosingMassTableMassInterpolator            =interpolator(radiusEnclosingMassTableMass            )
+       radiusEnclosingMassTableInitialized                 =.true.
+    end if
     return
   end subroutine sphericalFiniteResolutionNFWRestoreMassTable
 
@@ -875,13 +870,13 @@ contains
           ! Ensure table is sufficiently extensive.
           call self%radiusEnclosingDensityTabulate(densityScaleFree,self%lengthResolutionScaleFree)
           ! Interpolate to get the scale free radius enclosing the scale free density.
-          call self%radiusEnclosingDensityTableLengthResolutionInterpolator%linearFactors(self%lengthResolutionScaleFree,jLengthResolution(0),hLengthResolution)
+          call radiusEnclosingDensityTableLengthResolutionInterpolator%linearFactors(self%lengthResolutionScaleFree,jLengthResolution(0),hLengthResolution)
           jLengthResolution(1)=jLengthResolution(0)+1
           self%radiusEnclosingDensityPrevious=0.0d0
           do iLengthResolution=0,1
-             self%radiusEnclosingDensityPrevious=+self%radiusEnclosingDensityPrevious                                                                                                                        &
-                  &                              +self%radiusEnclosingDensityTableDensityInterpolator%interpolate(densityScaleFree,self%radiusEnclosingDensityTable(:,jLengthResolution(iLengthResolution))) &
-                  &                              *                                                                                                                    hLengthResolution(iLengthResolution)
+             self%radiusEnclosingDensityPrevious=+self%radiusEnclosingDensityPrevious                                                                                                              &
+                  &                              +radiusEnclosingDensityTableDensityInterpolator%interpolate(densityScaleFree,radiusEnclosingDensityTable(:,jLengthResolution(iLengthResolution))) &
+                  &                              *                                                                                                          hLengthResolution(iLengthResolution)
          end do
           self%radiusEnclosingDensityPrevious=+self%radiusEnclosingDensityPrevious &
                &                              *self%radiusScale
@@ -909,16 +904,16 @@ contains
 
     do i=1,2
        retabulate=.false.
-       if (.not.self%radiusEnclosingDensityTableInitialized) then
+       if (.not.radiusEnclosingDensityTableInitialized) then
           retabulate=.true.
-       else if (                                                                       &
-            &    density          < self%radiusEnclosingDensityDensityMinimum          &
-            &   .or.                                                                   &
-            &    density          > self%radiusEnclosingDensityDensityMaximum          &
-            &   .or.                                                                   &
-            &    lengthResolution < self%radiusEnclosingDensityLengthResolutionMinimum &
-            &   .or.                                                                   &
-            &    lengthResolution > self%radiusEnclosingDensityLengthResolutionMaximum &
+       else if (                                                                  &
+            &    density          < radiusEnclosingDensityDensityMinimum          &
+            &   .or.                                                              &
+            &    density          > radiusEnclosingDensityDensityMaximum          &
+            &   .or.                                                              &
+            &    lengthResolution < radiusEnclosingDensityLengthResolutionMinimum &
+            &   .or.                                                              &
+            &    lengthResolution > radiusEnclosingDensityLengthResolutionMaximum &
             &  ) then
           retabulate=.true.
        end if
@@ -927,23 +922,23 @@ contains
     end do
     if (retabulate) then
        ! Decide how many points to tabulate and allocate table arrays.
-       self%radiusEnclosingDensityDensityMinimum            =min(0.5d0*density         ,self%radiusEnclosingDensityDensityMinimum         )
-       self%radiusEnclosingDensityDensityMaximum            =max(2.0d0*density         ,self%radiusEnclosingDensityDensityMaximum         )
-       self%radiusEnclosingDensityLengthResolutionMinimum   =min(0.5d0*lengthResolution,self%radiusEnclosingDensityLengthResolutionMinimum)
-       self%radiusEnclosingDensityLengthResolutionMaximum   =max(2.0d0*lengthResolution,self%radiusEnclosingDensityLengthResolutionMaximum)
-       self%radiusEnclosingDensityTableDensityCount         =int(log10(self%radiusEnclosingDensityDensityMaximum         /self%radiusEnclosingDensityDensityMinimum         )*dble(radiusEnclosingDensityTableDensityPointsPerDecade         ))+1
-       self%radiusEnclosingDensityTableLengthResolutionCount=int(log10(self%radiusEnclosingDensityLengthResolutionMaximum/self%radiusEnclosingDensityLengthResolutionMinimum)*dble(radiusEnclosingDensityTableLengthResolutionPointsPerDecade))+1
-       if (allocated(self%radiusEnclosingDensityTableDensity)) then
-          deallocate(self%radiusEnclosingDensityTableLengthResolution)
-          deallocate(self%radiusEnclosingDensityTableDensity         )
-          deallocate(self%radiusEnclosingDensityTable                )
+       radiusEnclosingDensityDensityMinimum            =min(0.5d0*density         ,radiusEnclosingDensityDensityMinimum         )
+       radiusEnclosingDensityDensityMaximum            =max(2.0d0*density         ,radiusEnclosingDensityDensityMaximum         )
+       radiusEnclosingDensityLengthResolutionMinimum   =min(0.5d0*lengthResolution,radiusEnclosingDensityLengthResolutionMinimum)
+       radiusEnclosingDensityLengthResolutionMaximum   =max(2.0d0*lengthResolution,radiusEnclosingDensityLengthResolutionMaximum)
+       radiusEnclosingDensityTableDensityCount         =int(log10(radiusEnclosingDensityDensityMaximum         /radiusEnclosingDensityDensityMinimum         )*dble(radiusEnclosingDensityTableDensityPointsPerDecade         ))+1
+       radiusEnclosingDensityTableLengthResolutionCount=int(log10(radiusEnclosingDensityLengthResolutionMaximum/radiusEnclosingDensityLengthResolutionMinimum)*dble(radiusEnclosingDensityTableLengthResolutionPointsPerDecade))+1
+       if (allocated(radiusEnclosingDensityTableDensity)) then
+          deallocate(radiusEnclosingDensityTableLengthResolution)
+          deallocate(radiusEnclosingDensityTableDensity         )
+          deallocate(radiusEnclosingDensityTable                )
        end if
-       allocate(self%radiusEnclosingDensityTableLengthResolution(                                             self%radiusEnclosingDensityTableLengthResolutionCount))
-       allocate(self%radiusEnclosingDensityTableDensity         (self%radiusEnclosingDensityTableDensityCount                                                      ))
-       allocate(self%radiusEnclosingDensityTable                (self%radiusEnclosingDensityTabledensityCount,self%radiusEnclosingDensityTableLengthResolutionCount))
+       allocate(radiusEnclosingDensityTableLengthResolution(                                             radiusEnclosingDensityTableLengthResolutionCount))
+       allocate(radiusEnclosingDensityTableDensity         (radiusEnclosingDensityTableDensityCount                                                      ))
+       allocate(radiusEnclosingDensityTable                (radiusEnclosingDensityTabledensityCount,radiusEnclosingDensityTableLengthResolutionCount))
        ! Create a range of radii and core radii.
-       self%radiusEnclosingDensityTableDensity         =Make_Range(self%radiusEnclosingDensityDensityMinimum         ,self%radiusEnclosingDensityDensityMaximum         ,self%radiusEnclosingDensityTableDensityCount         ,rangeType=rangeTypeLogarithmic)
-       self%radiusEnclosingDensityTableLengthResolution=Make_Range(self%radiusEnclosingDensityLengthResolutionMinimum,self%radiusEnclosingDensityLengthResolutionMaximum,self%radiusEnclosingDensityTableLengthResolutionCount,rangeType=rangeTypeLogarithmic)
+       radiusEnclosingDensityTableDensity         =Make_Range(radiusEnclosingDensityDensityMinimum         ,radiusEnclosingDensityDensityMaximum         ,radiusEnclosingDensityTableDensityCount         ,rangeType=rangeTypeLogarithmic)
+       radiusEnclosingDensityTableLengthResolution=Make_Range(radiusEnclosingDensityLengthResolutionMinimum,radiusEnclosingDensityLengthResolutionMaximum,radiusEnclosingDensityTableLengthResolutionCount,rangeType=rangeTypeLogarithmic)
        ! Initialize our root finder.
        finder=rootFinder(                                                             &
             &            rootFunction                 =rootDensity                  , &
@@ -957,27 +952,27 @@ contains
             &           )
        ! Loop over density and core radius and populate tables.
        self_ => self
-       do iLengthResolution=1,self%radiusEnclosingDensityTableLengthResolutionCount
+       do iLengthResolution=1,radiusEnclosingDensityTableLengthResolutionCount
           iLengthResolution_=iLengthResolution
-          do iDensity=1,self%radiusEnclosingDensityTableDensityCount
+          do iDensity=1,radiusEnclosingDensityTableDensityCount
              iDensity_=iDensity
-             if (self%radiusEnclosingDensityTableDensity(iDensity) > 1.0d0/self%radiusEnclosingDensityTableLengthResolution(iLengthResolution)) then
+             if (radiusEnclosingDensityTableDensity(iDensity) > 1.0d0/radiusEnclosingDensityTableLengthResolution(iLengthResolution)) then
                 ! Density exceeds the maximum density in the profile - so set zero radius.
-                self%radiusEnclosingDensityTable(iDensity,iLengthResolution)=0.0d0
+                radiusEnclosingDensityTable(iDensity,iLengthResolution)=0.0d0
              else
-                self%radiusEnclosingDensityTable(iDensity,iLengthResolution)=finder%find(rootGuess=1.0d0)
+                radiusEnclosingDensityTable(iDensity,iLengthResolution)=finder%find(rootGuess=1.0d0)
              end if
           end do
        end do
        ! Build interpolators.
-       if (allocated(self%radiusEnclosingDensityTableLengthResolutionInterpolator)) deallocate(self%radiusEnclosingDensityTableLengthResolutionInterpolator)
-       if (allocated(self%radiusEnclosingDensityTableDensityInterpolator         )) deallocate(self%radiusEnclosingDensityTableDensityInterpolator         )
-       allocate(self%radiusEnclosingDensityTableLengthResolutionInterpolator)
-       allocate(self%radiusEnclosingDensityTableDensityInterpolator         )
-       self%radiusEnclosingDensityTableLengthResolutionInterpolator=interpolator(self%radiusEnclosingDensityTableLengthResolution)
-       self%radiusEnclosingDensityTableDensityInterpolator         =interpolator(self%radiusEnclosingDensityTableDensity         )
+       if (allocated(radiusEnclosingDensityTableLengthResolutionInterpolator)) deallocate(radiusEnclosingDensityTableLengthResolutionInterpolator)
+       if (allocated(radiusEnclosingDensityTableDensityInterpolator         )) deallocate(radiusEnclosingDensityTableDensityInterpolator         )
+       allocate(radiusEnclosingDensityTableLengthResolutionInterpolator)
+       allocate(radiusEnclosingDensityTableDensityInterpolator         )
+       radiusEnclosingDensityTableLengthResolutionInterpolator=interpolator(radiusEnclosingDensityTableLengthResolution)
+       radiusEnclosingDensityTableDensityInterpolator         =interpolator(radiusEnclosingDensityTableDensity         )
        ! Specify that tabulation has been made.
-       self%radiusEnclosingDensityTableInitialized=.true.
+       radiusEnclosingDensityTableInitialized=.true.
        call self%storeDensityTable()
     end if
     return
@@ -991,12 +986,12 @@ contains
     implicit none
     double precision, intent(in   ) :: radius
 
-    rootDensity=+3.0d0                                                                                                                     &
-         &      *self_%massEnclosedScaleFree             (radius,self_%radiusEnclosingDensityTableLengthResolution(iLengthResolution_))    &
-         &      /4.0d0                                                                                                                     &
-         &      /Pi                                                                                                                        &
-         &      /                                         radius                                                                       **3 &
-         &      -self_%radiusEnclosingDensityTableDensity(                                                         iDensity_          )
+    rootDensity=+3.0d0                                                                                                               &
+         &      *self_%massEnclosedScaleFree             (radius,radiusEnclosingDensityTableLengthResolution(iLengthResolution_))    &
+         &      /4.0d0                                                                                                               &
+         &      /Pi                                                                                                                  &
+         &      /                                         radius                                                                 **3 &
+         &      -      radiusEnclosingDensityTableDensity(                                                   iDensity_          )
     return
   end function rootDensity
 
@@ -1016,20 +1011,20 @@ contains
     type (hdf5Object                                  )                :: file
     type (varying_string                              )                :: fileName
 
-    fileName=inputPath(pathTypeDataDynamic)                   // &
-         &   'darkMatter/'                                    // &
-         &   self%objectType      (                          )// &
-         &   'Density_'                                       // &
-         &   self%hashedDescriptor(includeSourceDigest=.true.)// &
+    fileName=inputPath(pathTypeDataDynamic)// &
+         &   'darkMatter/'                 // &
+         &   self%objectType(             )// &
+         &   '_density_'                   // &
+         &   self%suffix    (             )// &
          &   '.hdf5'
     call Directory_Make(char(File_Path(char(fileName))))
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock(char(fileName),fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
     file=hdf5Object(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
-    call file%writeDataset(self%radiusEnclosingDensityTableLengthResolution,'lengthResolution')
-    call file%writeDataset(self%radiusEnclosingDensityTableDensity         ,'density'         )
-    call file%writeDataset(self%radiusEnclosingDensityTable                ,'radius'          )
+    call file%writeDataset(radiusEnclosingDensityTableLengthResolution,'lengthResolution')
+    call file%writeDataset(radiusEnclosingDensityTableDensity         ,'density'         )
+    call file%writeDataset(radiusEnclosingDensityTable                ,'radius'          )
     !$ call hdf5Access%unset()
     call File_Unlock(fileLock)
     return
@@ -1050,40 +1045,40 @@ contains
     type (hdf5Object                                  )                :: file
     type (varying_string                              )                :: fileName
 
-    fileName=inputPath(pathTypeDataDynamic)                   // &
-         &   'darkMatter/'                                    // &
-         &   self%objectType      (                          )// &
-         &   'Density_'                                       // &
-         &   self%hashedDescriptor(includeSourceDigest=.true.)// &
+    fileName=inputPath(pathTypeDataDynamic)// &
+         &   'darkMatter/'                 // &
+         &   self%objectType(             )// &
+         &   '_density_'                   // &
+         &   self%suffix    (             )// &
          &   '.hdf5'
     if (File_Exists(fileName)) then
-       if (allocated(self%radiusEnclosingDensityTableDensity)) then
-          deallocate(self%radiusEnclosingDensityTableLengthResolution)
-          deallocate(self%radiusEnclosingDensityTableDensity   )
-          deallocate(self%radiusEnclosingDensityTable          )
+       if (allocated(radiusEnclosingDensityTableDensity)) then
+          deallocate(radiusEnclosingDensityTableLengthResolution)
+          deallocate(radiusEnclosingDensityTableDensity   )
+          deallocate(radiusEnclosingDensityTable          )
        end if
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
        file=hdf5Object(char(fileName))
-       call file%readDataset('lengthResolution',self%radiusEnclosingDensityTableLengthResolution)
-       call file%readDataset('density'   ,self%radiusEnclosingDensityTableDensity   )
-       call file%readDataset('radius'    ,self%radiusEnclosingDensityTable          )
+       call file%readDataset('lengthResolution',radiusEnclosingDensityTableLengthResolution)
+       call file%readDataset('density'         ,radiusEnclosingDensityTableDensity   )
+       call file%readDataset('radius'          ,radiusEnclosingDensityTable          )
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
-       self%radiusEnclosingDensityTableDensityCount         =size(self%radiusEnclosingDensityTableDensity         )
-       self%radiusEnclosingDensityTableLengthResolutionCount=size(self%radiusEnclosingDensityTableLengthResolution)
-       self%radiusEnclosingDensityDensityMinimum            =self%radiusEnclosingDensityTableDensity         (                                                    1)
-       self%radiusEnclosingDensityDensityMaximum            =self%radiusEnclosingDensityTableDensity         (self%radiusEnclosingDensityTableDensityCount         )
-       self%radiusEnclosingDensityLengthResolutionMinimum   =self%radiusEnclosingDensityTableLengthResolution(                                                    1)
-       self%radiusEnclosingDensityLengthResolutionMaximum   =self%radiusEnclosingDensityTableLengthResolution(self%radiusEnclosingDensityTableLengthResolutionCount)
-       if (allocated(self%radiusEnclosingDensityTableLengthResolutionInterpolator)) deallocate(self%radiusEnclosingDensityTableLengthResolutionInterpolator)
-       if (allocated(self%radiusEnclosingDensityTableDensityInterpolator         )) deallocate(self%radiusEnclosingDensityTableDensityInterpolator         )
-       allocate(self%radiusEnclosingDensityTableLengthResolutionInterpolator)
-       allocate(self%radiusEnclosingDensityTableDensityInterpolator         )
-       self%radiusEnclosingDensityTableLengthResolutionInterpolator=interpolator(self%radiusEnclosingDensityTableLengthResolution)
-       self%radiusEnclosingDensityTableDensityInterpolator         =interpolator(self%radiusEnclosingDensityTableDensity         )
-       self%radiusEnclosingDensityTableInitialized                 =.true.
+       radiusEnclosingDensityTableDensityCount         =size(radiusEnclosingDensityTableDensity         )
+       radiusEnclosingDensityTableLengthResolutionCount=size(radiusEnclosingDensityTableLengthResolution)
+       radiusEnclosingDensityDensityMinimum            =radiusEnclosingDensityTableDensity         (                                               1)
+       radiusEnclosingDensityDensityMaximum            =radiusEnclosingDensityTableDensity         (radiusEnclosingDensityTableDensityCount         )
+       radiusEnclosingDensityLengthResolutionMinimum   =radiusEnclosingDensityTableLengthResolution(                                               1)
+       radiusEnclosingDensityLengthResolutionMaximum   =radiusEnclosingDensityTableLengthResolution(radiusEnclosingDensityTableLengthResolutionCount)
+       if (allocated(radiusEnclosingDensityTableLengthResolutionInterpolator)) deallocate(radiusEnclosingDensityTableLengthResolutionInterpolator)
+       if (allocated(radiusEnclosingDensityTableDensityInterpolator         )) deallocate(radiusEnclosingDensityTableDensityInterpolator         )
+       allocate(radiusEnclosingDensityTableLengthResolutionInterpolator)
+       allocate(radiusEnclosingDensityTableDensityInterpolator         )
+       radiusEnclosingDensityTableLengthResolutionInterpolator=interpolator(radiusEnclosingDensityTableLengthResolution)
+       radiusEnclosingDensityTableDensityInterpolator         =interpolator(radiusEnclosingDensityTableDensity         )
+       radiusEnclosingDensityTableInitialized                 =.true.
     end if    
     return
   end subroutine sphericalFiniteResolutionNFWRestoreDensityTable
@@ -1105,13 +1100,13 @@ contains
        ! Ensure table is sufficiently extensive.
        call self%energyTabulate(self%lengthResolutionScaleFree,radiusOuter/self%radiusScale)
        ! Interpolate to get the scale free energy.
-       call self%energyTableLengthResolutionInterpolator%linearFactors(self%lengthResolutionScaleFree,jLengthResolution(0),hLengthResolution)
+       call energyTableLengthResolutionInterpolator%linearFactors(self%lengthResolutionScaleFree,jLengthResolution(0),hLengthResolution)
        jLengthResolution(1)=jLengthResolution(0)+1
        self%energyPrevious=0.0d0
        do iLengthResolution=0,1
-          self%energyPrevious=+self%energyPrevious                                                                                                                        &
-               &              +self%energyTableRadiusOuterInterpolator%interpolate(radiusOuter/self%radiusScale,self%energyTable(:,jLengthResolution(iLengthResolution))) &
-               &              *                                                                                                    hLengthResolution(iLengthResolution)
+          self%energyPrevious=+self%energyPrevious                                                                                                              &
+               &              +energyTableRadiusOuterInterpolator%interpolate(radiusOuter/self%radiusScale,energyTable(:,jLengthResolution(iLengthResolution))) &
+               &              *                                                                                          hLengthResolution(iLengthResolution)
        end do
        self%energyPrevious=+self             %energyPrevious          &
             &              *gravitationalConstant_internal            &
@@ -1143,16 +1138,16 @@ contains
 
     do i=1,2
        retabulate=.false.
-       if (.not.self%energyTableInitialized) then
+       if (.not.energyTableInitialized) then
           retabulate=.true.
-       else if (                                                       &
-            &    radiusOuter      < self%energyRadiusOuterMinimum      &
-            &   .or.                                                   &
-            &    radiusOuter      > self%energyRadiusOuterMaximum      &
-            &   .or.                                                   &
-            &    lengthResolution < self%energyLengthResolutionMinimum &
-            &   .or.                                                   &
-            &    lengthResolution > self%energyLengthResolutionMaximum &
+       else if (                                                  &
+            &    radiusOuter      < energyRadiusOuterMinimum      &
+            &   .or.                                              &
+            &    radiusOuter      > energyRadiusOuterMaximum      &
+            &   .or.                                              &
+            &    lengthResolution < energyLengthResolutionMinimum &
+            &   .or.                                              &
+            &    lengthResolution > energyLengthResolutionMaximum &
             &  ) then
           retabulate=.true.
        end if
@@ -1161,60 +1156,60 @@ contains
     end do
     if (retabulate) then
        ! Decide how many points to tabulate and allocate table arrays.
-       self%energyRadiusOuterMinimum        =min(0.5d0*radiusOuter     ,self%energyRadiusOuterMinimum     )
-       self%energyRadiusOuterMaximum        =max(2.0d0*radiusOuter     ,self%energyRadiusOuterMaximum     )
-       self%energyLengthResolutionMinimum   =min(0.5d0*lengthResolution,self%energyLengthResolutionMinimum)
-       self%energyLengthResolutionMaximum   =max(2.0d0*lengthResolution,self%energyLengthResolutionMaximum)
-       self%energyTableRadiusOuterCount     =int(log10(self%energyRadiusOuterMaximum     /self%energyRadiusOuterMinimum     )*dble(energyTableRadiusOuterPointsPerDecade     ))+1
-       self%energyTableLengthResolutionCount=int(log10(self%energyLengthResolutionMaximum/self%energyLengthResolutionMinimum)*dble(energyTableLengthResolutionPointsPerDecade))+1
-       if (allocated(self%energyTableRadiusOuter)) then
-          deallocate(self%energyTableLengthResolution)
-          deallocate(self%energyTableRadiusOuter     )
-          deallocate(self%energyTable                )
+       energyRadiusOuterMinimum        =min(0.5d0*radiusOuter     ,energyRadiusOuterMinimum     )
+       energyRadiusOuterMaximum        =max(2.0d0*radiusOuter     ,energyRadiusOuterMaximum     )
+       energyLengthResolutionMinimum   =min(0.5d0*lengthResolution,energyLengthResolutionMinimum)
+       energyLengthResolutionMaximum   =max(2.0d0*lengthResolution,energyLengthResolutionMaximum)
+       energyTableRadiusOuterCount     =int(log10(energyRadiusOuterMaximum     /energyRadiusOuterMinimum     )*dble(energyTableRadiusOuterPointsPerDecade     ))+1
+       energyTableLengthResolutionCount=int(log10(energyLengthResolutionMaximum/energyLengthResolutionMinimum)*dble(energyTableLengthResolutionPointsPerDecade))+1
+       if (allocated(energyTableRadiusOuter)) then
+          deallocate(energyTableLengthResolution)
+          deallocate(energyTableRadiusOuter     )
+          deallocate(energyTable                )
        end if
-       allocate(self%energyTableLengthResolution(                                 self%energyTableLengthResolutionCount))
-       allocate(self%energyTableRadiusOuter     (self%energyTableRadiusOuterCount                                      ))
-       allocate(self%energyTable                (self%energyTableradiusOuterCount,self%energyTableLengthResolutionCount))
+       allocate(energyTableLengthResolution(                                 energyTableLengthResolutionCount))
+       allocate(energyTableRadiusOuter     (energyTableRadiusOuterCount                                      ))
+       allocate(energyTable                (energyTableradiusOuterCount,energyTableLengthResolutionCount))
        ! Create a range of radii and core radii.
-       self%energyTableRadiusOuter     =Make_Range(self%energyRadiusOuterMinimum     ,self%energyRadiusOuterMaximum     ,self%energyTableRadiusOuterCount     ,rangeType=rangeTypeLogarithmic)
-       self%energyTableLengthResolution=Make_Range(self%energyLengthResolutionMinimum,self%energyLengthResolutionMaximum,self%energyTableLengthResolutionCount,rangeType=rangeTypeLogarithmic)
+       energyTableRadiusOuter     =Make_Range(energyRadiusOuterMinimum     ,energyRadiusOuterMaximum     ,energyTableRadiusOuterCount     ,rangeType=rangeTypeLogarithmic)
+       energyTableLengthResolution=Make_Range(energyLengthResolutionMinimum,energyLengthResolutionMaximum,energyTableLengthResolutionCount,rangeType=rangeTypeLogarithmic)
        ! Initialize integrators.
        integratorPotential=integrator(integrandEnergyPotential,toleranceRelative=1.0d-3)
        integratorKinetic  =integrator(integrandEnergyKinetic  ,toleranceRelative=1.0d-3)
        integratorPressure =integrator(integrandPseudoPressure ,toleranceRelative=1.0d-3)
        ! Loop over radiusOuter and core radius and populate tables.
        self_ => self
-       do iLengthResolution=1,self%energyTableLengthResolutionCount
+       do iLengthResolution=1,energyTableLengthResolutionCount
           iLengthResolution_=iLengthResolution
-          do iRadiusOuter=1,self%energyTableRadiusOuterCount
-             radiusOuter_                                    =self%energyTableRadiusOuter(iRadiusOuter)
+          do iRadiusOuter=1,energyTableRadiusOuterCount
+             radiusOuter_                                    =energyTableRadiusOuter(iRadiusOuter)
              energyPotential                                 =+integratorPotential%integrate(       0.0d0,                 radiusOuter_)
              energyKinetic                                   =+integratorKinetic  %integrate(       0.0d0,                 radiusOuter_)
              pseudoPressure                                  =+integratorPressure %integrate(radiusOuter_,multiplierRadius*radiusOuter_)
-             self%energyTable(iRadiusOuter,iLengthResolution)=-0.5d0                                                                                             &
-                  &                                           *(                                                                                                 &
-                  &                                             +energyPotential                                                                                 &
-                  &                                             +self%massEnclosedScaleFree(radiusOuter_,self%energyTableLengthResolution(iLengthResolution))**2 &
-                  &                                             /radiusOuter_                                                                                    &
-                  &                                            )                                                                                                 &
-                  &                                           +2.0d0                                                                                             &
-                  &                                           *Pi                                                                                                &
-                  &                                           *(                                                                                                 &
-                  &                                             +radiusOuter_                                                                                **3 &
-                  &                                             *pseudoPressure                                                                                  &
-                  &                                             +energyKinetic                                                                                   &
+             energyTable(iRadiusOuter,iLengthResolution)=-0.5d0                                                                                             &
+                  &                                           *(                                                                                            &
+                  &                                             +energyPotential                                                                            &
+                  &                                             +self%massEnclosedScaleFree(radiusOuter_,energyTableLengthResolution(iLengthResolution))**2 &
+                  &                                             /radiusOuter_                                                                               &
+                  &                                            )                                                                                            &
+                  &                                           +2.0d0                                                                                        &
+                  &                                           *Pi                                                                                           &
+                  &                                           *(                                                                                            &
+                  &                                             +radiusOuter_                                                                           **3 &
+                  &                                             *pseudoPressure                                                                             &
+                  &                                             +energyKinetic                                                                              &
                   &                                            )
             end do
        end do
        ! Build interpolators.
-       if (allocated(self%energyTableLengthResolutionInterpolator)) deallocate(self%energyTableLengthResolutionInterpolator)
-       if (allocated(self%energyTableRadiusOuterInterpolator     )) deallocate(self%energyTableRadiusOuterInterpolator     )
-       allocate(self%energyTableLengthResolutionInterpolator)
-       allocate(self%energyTableRadiusOuterInterpolator     )
-       self%energyTableLengthResolutionInterpolator=interpolator(self%energyTableLengthResolution)
-       self%energyTableRadiusOuterInterpolator     =interpolator(self%energyTableRadiusOuter     )
+       if (allocated(energyTableLengthResolutionInterpolator)) deallocate(energyTableLengthResolutionInterpolator)
+       if (allocated(energyTableRadiusOuterInterpolator     )) deallocate(energyTableRadiusOuterInterpolator     )
+       allocate(energyTableLengthResolutionInterpolator)
+       allocate(energyTableRadiusOuterInterpolator     )
+       energyTableLengthResolutionInterpolator=interpolator(energyTableLengthResolution)
+       energyTableRadiusOuterInterpolator     =interpolator(energyTableRadiusOuter     )
        ! Specify that tabulation has been made.
-       self%energyTableInitialized=.true.
+       energyTableInitialized=.true.
        call self%storeEnergyTable()
     end if
     return
@@ -1228,9 +1223,9 @@ contains
     double precision, intent(in   ) :: radius
     
     if (radius > 0.0d0) then
-       integrandEnergyPotential=(                                                                                           &
-            &                    +self_%massEnclosedScaleFree(radius,self_%energyTableLengthResolution(iLengthResolution_)) &
-            &                    /                            radius                                                        &
+       integrandEnergyPotential=(                                                                                     &
+            &                    +self_%massEnclosedScaleFree(radius,energyTableLengthResolution(iLengthResolution_)) &
+            &                    /                            radius                                                  &
             &                   )**2
     else
        integrandEnergyPotential=+0.0d0
@@ -1246,8 +1241,8 @@ contains
     double precision, intent(in   ) :: radius
     
     if (radius > 0.0d0) then
-       integrandEnergyKinetic=+self_%massEnclosedScaleFree(radius,self_%energyTableLengthResolution(iLengthResolution_)) &
-            &                 *self_%densityScaleFree     (radius,self_%energyTableLengthResolution(iLengthResolution_)) &
+       integrandEnergyKinetic=+self_%massEnclosedScaleFree(radius,energyTableLengthResolution(iLengthResolution_)) &
+            &                 *self_%densityScaleFree     (radius,energyTableLengthResolution(iLengthResolution_)) &
             &                 *                            radius
     else
        integrandEnergyKinetic=+0.0d0
@@ -1263,9 +1258,9 @@ contains
     double precision, intent(in   ) :: radius
     
     if (radius > 0.0d0) then
-       integrandPseudoPressure=+self_%massEnclosedScaleFree(radius,self_%energyTableLengthResolution(iLengthResolution_))    &
-            &                  *self_%densityScaleFree     (radius,self_%energyTableLengthResolution(iLengthResolution_))    &
-            &                  /                            radius                                                       **2
+       integrandPseudoPressure=+self_%massEnclosedScaleFree(radius,energyTableLengthResolution(iLengthResolution_))    &
+            &                  *self_%densityScaleFree     (radius,energyTableLengthResolution(iLengthResolution_))    &
+            &                  /                            radius                                                 **2
     else
        integrandPseudoPressure=+0.0d0
     end if
@@ -1301,20 +1296,20 @@ contains
     type (hdf5Object                                  )                :: file
     type (varying_string                              )                :: fileName
 
-    fileName=inputPath(pathTypeDataDynamic)                   // &
-         &   'darkMatter/'                                    // &
-         &   self%objectType      (                          )// &
-         &   'Energy_'                                        // &
-         &   self%hashedDescriptor(includeSourceDigest=.true.)// &
+    fileName=inputPath(pathTypeDataDynamic)// &
+         &   'darkMatter/'                 // &
+         &   self%objectType(             )// &
+         &   '_energy_'                    // &
+         &   self%suffix    (             )// &
          &   '.hdf5'
     call Directory_Make(char(File_Path(char(fileName))))
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock(char(fileName),fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
     file=hdf5Object(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
-    call file%writeDataset(self%energyTableLengthResolution,'lengthResolution')
-    call file%writeDataset(self%energyTableRadiusOuter     ,'radiusOuter'     )
-    call file%writeDataset(self%energyTable                ,'energy'          )
+    call file%writeDataset(energyTableLengthResolution,'lengthResolution')
+    call file%writeDataset(energyTableRadiusOuter     ,'radiusOuter'     )
+    call file%writeDataset(energyTable                ,'energy'          )
     !$ call hdf5Access%unset()
     call File_Unlock(fileLock)
     return
@@ -1335,40 +1330,54 @@ contains
     type (hdf5Object                                  )                :: file
     type (varying_string                              )                :: fileName
 
-    fileName=inputPath(pathTypeDataDynamic)                   // &
-         &   'darkMatter/'                                    // &
-         &   self%objectType      (                          )// &
-         &   'Energy_'                                        // &
-         &   self%hashedDescriptor(includeSourceDigest=.true.)// &
+    fileName=inputPath(pathTypeDataDynamic)// &
+         &   'darkMatter/'                 // &
+         &   self%objectType(             )// &
+         &   '_energy_'                    // &
+         &   self%suffix    (             )// &
          &   '.hdf5'
     if (File_Exists(fileName)) then
-       if (allocated(self%energyTableRadiusOuter)) then
-          deallocate(self%energyTableLengthResolution   )
-          deallocate(self%energyTableRadiusOuter)
-          deallocate(self%energyTable             )
+       if (allocated(energyTableRadiusOuter)) then
+          deallocate(energyTableLengthResolution   )
+          deallocate(energyTableRadiusOuter)
+          deallocate(energyTable             )
        end if
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
        file=hdf5Object(char(fileName))
-       call file%readDataset('lengthResolution',self%energyTableLengthResolution)
-       call file%readDataset('radiusOuter'     ,self%energyTableRadiusOuter     )
-       call file%readDataset('energy'          ,self%energyTable                )
+       call file%readDataset('lengthResolution',energyTableLengthResolution)
+       call file%readDataset('radiusOuter'     ,energyTableRadiusOuter     )
+       call file%readDataset('energy'          ,energyTable                )
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
-       self%energyTableRadiusOuterCount     =size(self%energyTableRadiusOuter      )
-       self%energyTableLengthResolutionCount=size(self%energyTableLengthResolution)
-       self%energyRadiusOuterMinimum        =self%energyTableRadiusOuter     (                                    1)
-       self%energyRadiusOuterMaximum        =self%energyTableRadiusOuter     (self%energyTableRadiusOuterCount     )
-       self%energyLengthResolutionMinimum   =self%energyTableLengthResolution(                                    1)
-       self%energyLengthResolutionMaximum   =self%energyTableLengthResolution(self%energyTableLengthResolutionCount)
-       if (allocated(self%energyTableLengthResolutionInterpolator)) deallocate(self%energyTableLengthResolutionInterpolator)
-       if (allocated(self%energyTableRadiusOuterInterpolator     )) deallocate(self%energyTableRadiusOuterInterpolator     )
-       allocate(self%energyTableLengthResolutionInterpolator)
-       allocate(self%energyTableRadiusOuterInterpolator     )
-       self%energyTableLengthResolutionInterpolator=interpolator(self%energyTableLengthResolution)
-       self%energyTableRadiusOuterInterpolator     =interpolator(self%energyTableRadiusOuter     )
-       self%energyTableInitialized                 =.true.
+       energyTableRadiusOuterCount     =size(energyTableRadiusOuter      )
+       energyTableLengthResolutionCount=size(energyTableLengthResolution)
+       energyRadiusOuterMinimum        =energyTableRadiusOuter     (                               1)
+       energyRadiusOuterMaximum        =energyTableRadiusOuter     (energyTableRadiusOuterCount     )
+       energyLengthResolutionMinimum   =energyTableLengthResolution(                               1)
+       energyLengthResolutionMaximum   =energyTableLengthResolution(energyTableLengthResolutionCount)
+       if (allocated(energyTableLengthResolutionInterpolator)) deallocate(energyTableLengthResolutionInterpolator)
+       if (allocated(energyTableRadiusOuterInterpolator     )) deallocate(energyTableRadiusOuterInterpolator     )
+       allocate(energyTableLengthResolutionInterpolator)
+       allocate(energyTableRadiusOuterInterpolator     )
+       energyTableLengthResolutionInterpolator=interpolator(energyTableLengthResolution)
+       energyTableRadiusOuterInterpolator     =interpolator(energyTableRadiusOuter     )
+       energyTableInitialized                 =.true.
     end if    
     return
   end subroutine sphericalFiniteResolutionNFWRestoreEnergyTable
+
+  function finiteResolutionNFWSuffix(self) result(suffix)
+    !!{
+    Return a suffix for tabulated file names.
+    !!}
+    use :: String_Handling, only : String_C_To_Fortran
+    implicit none
+    type (varying_string                              )                :: suffix
+    class(massDistributionSphericalFiniteResolutionNFW), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    suffix=String_C_To_Fortran(massDistributionFiniteResolutionNFWSourceDigest)
+    return
+  end function finiteResolutionNFWSuffix

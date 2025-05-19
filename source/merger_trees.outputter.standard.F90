@@ -311,10 +311,11 @@ contains
              end if
           end if
           ! Store the start position and length of the node data for this tree, along with its volume weight.
-          call self%outputGroups(indexOutput)%hdf5Group%writeDataset([currentTree%index]       ,"mergerTreeIndex"     ,"Index of each merger tree."                                  ,appendTo=.true.)
-          call self%outputGroups(indexOutput)%hdf5Group%writeDataset(referenceStart            ,"mergerTreeStartIndex","Index in nodeData datasets at which each merger tree begins.",appendTo=.true.)
-          call self%outputGroups(indexOutput)%hdf5Group%writeDataset(referenceLength           ,"mergerTreeCount"     ,"Number of nodes in nodeData datasets for each merger tree."  ,appendTo=.true.)
-          call self%outputGroups(indexOutput)%hdf5Group%writeDataset([currentTree%volumeWeight],"mergerTreeWeight"    ,"Number density of each tree [Mpc⁻³]."                        ,appendTo=.true.)
+          call self%outputGroups(indexOutput)%hdf5Group%writeDataset([currentTree%index]                        ,"mergerTreeIndex"     ,"Index of each merger tree."                                  ,appendTo=.true.)
+          call self%outputGroups(indexOutput)%hdf5Group%writeDataset(referenceStart                             ,"mergerTreeStartIndex","Index in nodeData datasets at which each merger tree begins.",appendTo=.true.)
+          call self%outputGroups(indexOutput)%hdf5Group%writeDataset(referenceLength                            ,"mergerTreeCount"     ,"Number of nodes in nodeData datasets for each merger tree."  ,appendTo=.true.)
+          call self%outputGroups(indexOutput)%hdf5Group%writeDataset([currentTree%volumeWeight                 ],"mergerTreeWeight"    ,"Number density of each tree [Mpc⁻³]."                        ,appendTo=.true.)
+          call self%outputGroups(indexOutput)%hdf5Group%writeDataset([currentTree%randomNumberGenerator_%seed()],"mergerTreeSeed"      ,"Random number seed of each merger tree."                     ,appendTo=.true.)
           !$ call hdf5Access%unset()
           if (treeLock%ownedByThread()) call treeLock%unset()
        end if

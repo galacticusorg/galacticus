@@ -169,7 +169,7 @@ contains
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                    , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersClass                   , cosmologyParametersSimple
-    use :: Galactic_Filters                      , only : filterList                                 , galacticFilterAll                              , galacticFilterHaloIsolated                  , galacticFilterStellarMass
+    use :: Galactic_Filters                      , only : filterList                                 , galacticFilterAll                              , galacticFilterHaloIsolated, galacticFilterStellarMass
     use :: Error                                 , only : Error_Report
     use :: Input_Paths                           , only : inputPath                                  , pathTypeDataStatic
     use :: Geometry_Surveys                      , only : surveyGeometryFullSky
@@ -182,8 +182,8 @@ contains
     use :: Numerical_Ranges                      , only : Make_Range                                 , rangeTypeLinear
     use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelPoisson
     use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorIdentity
-    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10    , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorFilterHighPass, outputAnalysisPropertyOperatorLog10, &
-          &                                               outputAnalysisPropertyOperatorSequence     , outputAnalysisPropertyOperatorSystmtcPolynomial, propertyOperatorList
+    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10    , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, propertyOperatorList      , outputAnalysisPropertyOperatorLog10, &
+          &                                               outputAnalysisPropertyOperatorSequence     , outputAnalysisPropertyOperatorSystmtcPolynomial, 
     use :: Output_Analysis_Utilities             , only : Output_Analysis_Output_Weight_Survey_Volume
     use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorProperty
     use :: String_Handling                       , only : operator(//)
@@ -221,7 +221,6 @@ contains
          &                                                                                                   outputAnalysisWeightPropertyOperatorNormalized_
     type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc     ), pointer                       :: outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_
     type            (outputAnalysisPropertyOperatorSystmtcPolynomial     ), pointer                       :: outputAnalysisWeightPropertyOperatorSystmtcPolynomial_       , outputAnalysisPropertyOperatorSystmtcPolynomial_
-    type            (outputAnalysisPropertyOperatorFilterHighPass        ), pointer                       :: outputAnalysisWeightPropertyOperatorFilterHighPass_          , outputAnalysisWeightPropertyOperatorFilterHighPassNormalized_
     type            (nodePropertyExtractorMassHalo                       ), pointer                       :: nodePropertyExtractor_
     type            (nodePropertyExtractorMassStellar                    ), pointer                       :: outputAnalysisWeightPropertyExtractor_
     type            (propertyOperatorList                                ), pointer                       :: propertyOperators_                                           , propertyOperatorsMassHalo_                                          , &
@@ -232,10 +231,11 @@ contains
     type            (surveyGeometryFullSky                               ), pointer                       :: surveyGeometry_
     double precision                                                      , parameter                     :: errorPolynomialZeroPoint                              =11.3d0, errorPolynomialMassHaloZeroPoint                             =12.0d0
     double precision                                                      , parameter                     :: covarianceLarge                                       = 1.0d4
+    double precision                                                      , parameter                     :: massStellarLimit                                      = 1.0d0 ! A minimal stellar mass to consider (to avoid attempting to analyze galaxies with non-positive masses).
     integer         (c_size_t                                            )                                :: iBin
-    double precision                                                                                      :: massStellarLimit                                              , redshiftMinimum                                                   , &
+    double precision                                                                                      :: widthFilter                                                   , redshiftMinimum                                                   , &
          &                                                                                                   redshiftMaximum                                               , massHaloMinimum                                                   , &
-         &                                                                                                   massHaloMaximum                                               , widthFilter
+         &                                                                                                   massHaloMaximum
     type            (varying_string                                      )                                :: analysisLabel                                                 , weightPropertyLabel                                               , &
          &                                                                                                   weightPropertyDescription                                     , groupRedshiftName
     type            (hdf5Object                                          )                                :: fileData                                                      , groupRedshift
@@ -248,17 +248,14 @@ contains
     ! Construct survey geometry.
     select case (redshiftInterval)
     case (1)
-       redshiftMinimum = 0.22d0
-       redshiftMaximum = 0.48d0
-       massStellarLimit=10.00d0**8.7d0
+       redshiftMinimum=0.22d0
+       redshiftMaximum=0.48d0
     case (2)
-       redshiftMinimum = 0.48d0
-       redshiftMaximum = 0.74d0
-       massStellarLimit=10.00d0**9.3d0
+       redshiftMinimum=0.48d0
+       redshiftMaximum=0.74d0
     case (3)
-       redshiftMinimum = 0.74d0
-       redshiftMaximum = 1.00d0
-       massStellarLimit=10.00d0**9.8d0
+       redshiftMinimum=0.74d0
+       redshiftMaximum=1.00d0
     case default
        call Error_Report('redshiftInterval ∈ {1,2,3}'//{introspection:location})
     end select
@@ -362,9 +359,9 @@ contains
     filters_                        %filter_ => galacticFilterHaloIsolated_
     filters_                   %next%filter_ => galacticFilterStellarMass_
     !![
-    <referenceConstruct object="galacticFilterStellarMass_"  constructor="galacticFilterStellarMass  (massThreshold=1.0d7   )"/>
-    <referenceConstruct object="galacticFilterHaloIsolated_" constructor="galacticFilterHaloIsolated (                      )"/>
-    <referenceConstruct object="galacticFilterAll_"          constructor="galacticFilterAll          (              filters_)"/>
+    <referenceConstruct object="galacticFilterStellarMass_"  constructor="galacticFilterStellarMass  (massThreshold=massStellarLimit)"/>
+    <referenceConstruct object="galacticFilterHaloIsolated_" constructor="galacticFilterHaloIsolated (                              )"/>
+    <referenceConstruct object="galacticFilterAll_"          constructor="galacticFilterAll          (              filters_        )"/>
     !!]
     ! Build identity distribution operator.
     allocate   (outputAnalysisDistributionOperator_                          )
@@ -388,15 +385,7 @@ contains
     !![
     <referenceConstruct object="outputAnalysisPropertyOperator_"                               constructor="outputAnalysisPropertyOperatorSequence                (propertyOperatorsMassHalo_                                                                                                    )"/>
     !!]    
-    ! Build a sequence (log10, polynomial systematic, anti-log10, cosmological luminosity distance, high-pass filter) of weight property operators.
-    allocate   (outputAnalysisWeightPropertyOperatorFilterHighPassNormalized_)
-    !![
-    <referenceConstruct object="outputAnalysisWeightPropertyOperatorFilterHighPassNormalized_" constructor="outputAnalysisPropertyOperatorFilterHighPass          (log10(massStellarLimit),widthFilter,normalized=.true.                                                                         )"/>
-    !!]
-    allocate   (outputAnalysisWeightPropertyOperatorFilterHighPass_          )
-    !![
-    <referenceConstruct object="outputAnalysisWeightPropertyOperatorFilterHighPass_"           constructor="outputAnalysisPropertyOperatorFilterHighPass          (log10(massStellarLimit),widthFilter                                                                                           )"/>
-    !!]
+    ! Build a sequence (log10, polynomial systematic, anti-log10, cosmological luminosity distance) of weight property operators.
     allocate   (outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_       )
     !![
     <referenceConstruct object="outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_"        constructor="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc       (cosmologyFunctions_     ,cosmologyFunctionsData              ,outputTimes_                                                    )"/>
@@ -417,28 +406,26 @@ contains
     !![
     <referenceConstruct object="outputAnalysisWeightPropertyOperatorAntiLog10_"                constructor="outputAnalysisPropertyOperatorAntiLog10               (                                                                                                                              )"/>
     !!]
-    allocate       (propertyOperators_                                        )
-    allocate       (propertyOperators_          %next                         )
-    allocate       (propertyOperators_          %next%next                    )
-    allocate       (propertyOperators_          %next%next%next               )
-    allocate       (propertyOperators_          %next%next%next%next          )
-    allocate       (propertyOperatorsNormalized_                              )
-    allocate       (propertyOperatorsNormalized_%next                         )
-    allocate       (propertyOperatorsNormalized_%next%next                    )
-    allocate       (propertyOperatorsNormalized_%next%next%next               )
-    allocate       (propertyOperatorsNormalized_%next%next%next%next          )
-    allocate       (propertyOperatorsNormalized_%next%next%next%next%next     )
-    propertyOperators_                                   %operator_ => outputAnalysisWeightPropertyOperatorLog10_
-    propertyOperators_          %next                    %operator_ => outputAnalysisWeightPropertyOperatorSystmtcPolynomial_
-    propertyOperators_          %next%next               %operator_ => outputAnalysisWeightPropertyOperatorAntiLog10_
-    propertyOperators_          %next%next%next          %operator_ => outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_
-    propertyOperators_          %next%next%next%next     %operator_ => outputAnalysisWeightPropertyOperatorLog10Second_
-    propertyOperatorsNormalized_                         %operator_ => outputAnalysisWeightPropertyOperatorLog10_
-    propertyOperatorsNormalized_%next                    %operator_ => outputAnalysisWeightPropertyOperatorSystmtcPolynomial_
-    propertyOperatorsNormalized_%next%next               %operator_ => outputAnalysisWeightPropertyOperatorAntiLog10_
-    propertyOperatorsNormalized_%next%next%next          %operator_ => outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_
-    propertyOperatorsNormalized_%next%next%next%next     %operator_ => outputAnalysisWeightPropertyOperatorLog10Second_
-    propertyOperatorsNormalized_%next%next%next%next%next%operator_ => outputAnalysisWeightPropertyOperatorFilterHighPassNormalized_
+    allocate(propertyOperators_                              )
+    allocate(propertyOperators_          %next               )
+    allocate(propertyOperators_          %next%next          )
+    allocate(propertyOperators_          %next%next%next     )
+    allocate(propertyOperators_          %next%next%next%next)
+    allocate(propertyOperatorsNormalized_                    )
+    allocate(propertyOperatorsNormalized_%next               )
+    allocate(propertyOperatorsNormalized_%next%next          )
+    allocate(propertyOperatorsNormalized_%next%next%next     )
+    allocate(propertyOperatorsNormalized_%next%next%next%next)
+    propertyOperators_                              %operator_ => outputAnalysisWeightPropertyOperatorLog10_
+    propertyOperators_          %next               %operator_ => outputAnalysisWeightPropertyOperatorSystmtcPolynomial_
+    propertyOperators_          %next%next          %operator_ => outputAnalysisWeightPropertyOperatorAntiLog10_
+    propertyOperators_          %next%next%next     %operator_ => outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_
+    propertyOperators_          %next%next%next%next%operator_ => outputAnalysisWeightPropertyOperatorLog10Second_
+    propertyOperatorsNormalized_                    %operator_ => outputAnalysisWeightPropertyOperatorLog10_
+    propertyOperatorsNormalized_%next               %operator_ => outputAnalysisWeightPropertyOperatorSystmtcPolynomial_
+    propertyOperatorsNormalized_%next%next          %operator_ => outputAnalysisWeightPropertyOperatorAntiLog10_
+    propertyOperatorsNormalized_%next%next%next     %operator_ => outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_
+    propertyOperatorsNormalized_%next%next%next%next%operator_ => outputAnalysisWeightPropertyOperatorLog10Second_
     ! Create a stellar mass weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                          )
     !![
@@ -590,8 +577,6 @@ contains
     <objectDestructor name="outputAnalysisPropertyOperatorSystmtcPolynomial_"             />
     <objectDestructor name="outputAnalysisPropertyOperator_"                              />
     <objectDestructor name="outputAnalysisWeightPropertyOperatorNormalized_"              />
-    <objectDestructor name="outputAnalysisWeightPropertyOperatorFilterHighPass_"          />
-    <objectDestructor name="outputAnalysisWeightPropertyOperatorFilterHighPassNormalized_"/>
     <objectDestructor name="outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_"       />
     <objectDestructor name="outputAnalysisWeightPropertyOperatorSystmtcPolynomial_"       />
     <objectDestructor name="outputAnalysisWeightPropertyOperatorLog10_"                   />

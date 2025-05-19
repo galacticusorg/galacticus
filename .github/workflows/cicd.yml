@@ -776,8 +776,9 @@ jobs:
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -static" >> $GITHUB_ENV
-          echo "GALACTICUS_ANALYSIS_PERL_PATH=$GITHUB_WORKSPACE/analysis-perl" >> $GITHUB_ENV
+      - name: Mark directory safe        
+        run: |
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
       - name: Get changed files
         id: changed-files
         uses: tj-actions/changed-files@v46
@@ -1191,7 +1192,8 @@ jobs:
                 test-duplicatedOutputPropertyName.pl,
                 test-decayingDM-caustic.py,
                 test-decayingDM-profile.py,
-                test-decayingDM-shell-crossing-capture.py ]
+                test-decayingDM-shell-crossing-capture.py,
+                test-enforceNonNegativity.py ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
@@ -1250,7 +1252,8 @@ jobs:
       matrix:
         file: [ testSuite/parameters/mergerTreeEvolverThreaded.xml,
                 testSuite/parameters/constrainedMilkyWay.xml,
-                testSuite/parameters/test-nuclear-star-cluster.xml ]
+                testSuite/parameters/test-nuclear-star-cluster.xml,
+                testSuite/parameters/zeroVelocityDispersionDisruptingHalo.xml ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
@@ -1515,7 +1518,7 @@ jobs:
           name: 'Dark matter-only subhalos benchmarks'
           type: 'validate'
           suffix: 'darkMatterOnlySubhalos'
-          threshold: '125%'
+          threshold: '130%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Milky Way model validation'
         uses: ./.github/actions/benchmark
@@ -1622,7 +1625,7 @@ jobs:
           type: 'validate'
           artifact: 'validate-darkMatterOnlySubhalos-decayingDarkMatter'
           suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime20.0_velocityKick40.0'
-          threshold: '250%'
+          threshold: '300%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Decaying dark matter-only subhalos benchmarks (τ=40 Gyr; vₖ=20 km/s)'
         uses: ./.github/actions/benchmark

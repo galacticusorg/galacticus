@@ -219,7 +219,7 @@ contains
           &                                                                                    ionicFraction                           , massFractionPrimordial, &
           &                                                                                    massFilteringVarianceInitial
     !![
-    <constructorAssign variables="timeMinimum, timeMaximum ,timeCountPerDecade, *cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *cosmologicalMassVariance_, *outputTimes_, *gauntFactor_, *atomicCrossSectionIonizationPhoto_, *atomicIonizationPotential_, *atomicRecombinationRateDielectronic_, *atomicRecombinationRateRadiative_, *atomicRecombinationRateRadiative_, *atomicRecombinationRateRadiativeCooling_, *atomicIonizationRateCollisional_, *atomicExcitationRateCollisional_, *intergalacticMediumState_, *radiationField_"/>
+    <constructorAssign variables="timeMinimum, timeMaximum ,timeCountPerDecade, *cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *cosmologicalMassVariance_, *outputTimes_, *gauntFactor_, *atomicCrossSectionIonizationPhoto_, *atomicIonizationPotential_, *atomicRecombinationRateDielectronic_, *atomicRecombinationRateRadiative_, *atomicRecombinationRateRadiativeCooling_, *atomicIonizationRateCollisional_, *atomicExcitationRateCollisional_, *intergalacticMediumState_, *radiationField_"/>
     !!]
 
     ! Get a RecFast intergalactic medium object for setting initial conditions.

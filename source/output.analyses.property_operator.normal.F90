@@ -19,12 +19,15 @@
 
   !!{
   Implements a property operator class in which the property value is replaced with an integral over a
-  normal distribution between given limits, using the property value at the mean of the distribution.
+  normal distribution between given limits, using the property value as the mean of the distribution.
   !!}
 
   !![
   <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorNormal">
-   <description>A property operator class in which the property value is replaced with an integral over a normal distribution between given limits, using the property value at the mean of the distribution.</description>
+    <description>
+      A property operator class in which the property value is replaced with an integral over a normal distribution between given
+      limits, using the property value as the mean of the distribution.
+    </description>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorNormal

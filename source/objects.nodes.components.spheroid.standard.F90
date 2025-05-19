@@ -57,41 +57,41 @@ module Node_Component_Spheroid_Standard
       <name>massStellar</name>
       <type>double</type>
       <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true"/>
       <output unitsInSI="massSolar" comment="Mass of stars in the standard spheroid."/>
     </property>
     <property>
       <name>massStellarFormed</name>
       <type>double</type>
       <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
     </property>
     <property>
       <name>abundancesStellar</name>
       <type>abundances</type>
       <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true" />
       <output unitsInSI="massSolar" comment="Mass of metals in the stellar phase of the standard spheroid."/>
     </property>
     <property>
       <name>massGas</name>
       <type>double</type>
       <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true"/>
       <output unitsInSI="massSolar" comment="Mass of gas in the standard spheroid."/>
     </property>
     <property>
       <name>abundancesGas</name>
       <type>abundances</type>
       <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true" />
       <output unitsInSI="massSolar" comment="Mass of metals in the gas phase of the standard spheroid."/>
     </property>
     <property>
       <name>angularMomentum</name>
       <type>double</type>
       <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true"/>
       <output unitsInSI="massSolar*megaParsec*kilo" comment="Angular momentum of the standard spheroid."/>
     </property>
     <property>
@@ -119,7 +119,7 @@ module Node_Component_Spheroid_Standard
       <name>luminositiesStellar</name>
       <type>stellarLuminosities</type>
       <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true" />
       <output unitsInSI="luminosityZeroPointAB" comment="Luminosity of spheroid stars."/>
     </property>
     <property>
@@ -132,7 +132,7 @@ module Node_Component_Spheroid_Standard
       <name>starFormationHistory</name>
       <type>history</type>
       <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" isDeferred="rate" createIfNeeded="true" />
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" isDeferred="rate" createIfNeeded="true" isNonNegative="true" />
     </property>
     <property>
       <name>massGasSink</name>
@@ -1274,35 +1274,23 @@ contains
     spheroid => node%spheroid()
     select type (spheroid)
     class is (nodeComponentSpheroidStandard)
-       ! Determine the plausibility of the current spheroid.
-       if      (spheroid%angularMomentum()                    <                  0.0d0) &
-            & node%isPhysicallyPlausible=.false.
-       if      (spheroid%massStellar    ()+spheroid%massGas() <  -toleranceAbsoluteMass) then
-          node%isPhysicallyPlausible=.false.
-       else if (spheroid%massStellar    ()+spheroid%massGas() >=                 0.0d0) then
-          if      (                                                                     &
-               &   spheroid%angularMomentum() < 0.0d0                                   &
-               &  ) then
+       if (spheroid%massStellar()+spheroid%massGas() >= 0.0d0 .and. spheroid%angularMomentum() > 0.0d0) then
+          angularMomentumScale=(                                           &
+               &                 spheroid%massStellar()                    &
+               &                +spheroid%massGas    ()                    &
+               &               )                                           &
+               &               * darkMatterHaloScale_%radiusVirial  (node) &
+               &               * darkMatterHaloScale_%velocityVirial(node)
+          if     (                                                                          &
+               &   spheroid%angularMomentum() > angularMomentumMaximum*angularMomentumScale &
+               &  .or.                                                                      &
+               &   spheroid%angularMomentum() < angularMomentumMinimum*angularMomentumScale &
+               & ) then
+             ! Ignore spheroids with angular momenta greatly exceeding that which would be expected if they had a radius
+             ! comparable to the virial radius of their halo.
              node%isPhysicallyPlausible=.false.
-          else
-             angularMomentumScale=(                                           &
-                  &                 spheroid%massStellar()                    &
-                  &                +spheroid%massGas    ()                    &
-                  &               )                                           &
-                  &               * darkMatterHaloScale_%radiusVirial  (node) &
-                  &               * darkMatterHaloScale_%velocityVirial(node)
-             if     (                                                                          &
-                  &   spheroid%angularMomentum() > angularMomentumMaximum*angularMomentumScale &
-                  &  .or.                                                                      &
-                  &   spheroid%angularMomentum() < angularMomentumMinimum*angularMomentumScale &
-                  & ) then
-                ! Ignore spheroids with angular momenta greatly exceeding that which would be expected if they had a radius
-                ! comparable to the virial radius of their halo.
-                node%isPhysicallyPlausible=.false.
-             end if
           end if
        end if
-
     end select
     return
   end subroutine Node_Component_Spheroid_Standard_Radius_Solver_Plausibility

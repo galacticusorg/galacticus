@@ -26,6 +26,7 @@
   use            :: Merger_Tree_Operators          , only : mergerTreeOperatorClass
   use            :: Merger_Tree_Outputters         , only : mergerTreeOutputter        , mergerTreeOutputterClass
   use            :: Merger_Trees_Evolve            , only : mergerTreeEvolver          , mergerTreeEvolverClass
+  use            :: Merger_Tree_Seeds              , only : mergerTreeSeedsClass
   use            :: Nodes_Operators                , only : nodeOperatorClass
   use            :: Numerical_Random_Numbers       , only : randomNumberGeneratorClass
   use            :: Output_Times                   , only : outputTimesClass
@@ -65,6 +66,7 @@
      class           (outputTimesClass           ), pointer :: outputTimes_                  => null()
      class           (universeOperatorClass      ), pointer :: universeOperator_             => null()
      class           (randomNumberGeneratorClass ), pointer :: randomNumberGenerator_        => null()
+     class           (mergerTreeSeedsClass       ), pointer :: mergerTreeSeeds_              => null()
      ! Pointer to the parameters for this task.
      type            (inputParameters            ), pointer :: parameters                    => null()
      logical                                                :: initialized                   =  .false., nodeComponentsInitialized=.false.
@@ -127,6 +129,7 @@ contains
     class           (mergerTreeOutputterClass   ), pointer               :: mergerTreeOutputter_
     class           (mergerTreeInitializorClass ), pointer               :: mergerTreeInitializor_
     class           (randomNumberGeneratorClass ), pointer               :: randomNumberGenerator_
+    class           (mergerTreeSeedsClass       ), pointer               :: mergerTreeSeeds_
     type            (inputParameters            ), pointer               :: parametersRoot
     logical                                                              :: evolveForestsInParallel, suspendToRAM
     integer         (kind_int8                  )                        :: walltimeMaximum        , timeIntervalCheckpoint
@@ -208,12 +211,13 @@ contains
     <objectBuilder class="mergerTreeEvolver"      name="mergerTreeEvolver_"      source="parameters"/>
     <objectBuilder class="mergerTreeOutputter"    name="mergerTreeOutputter_"    source="parameters"/>
     <objectBuilder class="mergerTreeInitializor"  name="mergerTreeInitializor_"  source="parameters"/>
-    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_"  source="parameters"/>
+    <objectBuilder class="randomNumberGenerator"  name="randomNumberGenerator_"  source="parameters"/>
+    <objectBuilder class="mergerTreeSeeds"        name="mergerTreeSeeds_"        source="parameters"/>
     !!]
     if (associated(parametersRoot)) then
-       self=taskEvolveForests(evolveForestsInParallel,countForestsMaximum,walltimeMaximum,suspendToRAM,suspendPath,timeIntervalCheckpoint,fileNameCheckpoint,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,parametersRoot)
+       self=taskEvolveForests(evolveForestsInParallel,countForestsMaximum,walltimeMaximum,suspendToRAM,suspendPath,timeIntervalCheckpoint,fileNameCheckpoint,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,mergerTreeSeeds_,parametersRoot)
     else
-       self=taskEvolveForests(evolveForestsInParallel,countForestsMaximum,walltimeMaximum,suspendToRAM,suspendPath,timeIntervalCheckpoint,fileNameCheckpoint,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,parameters    )
+       self=taskEvolveForests(evolveForestsInParallel,countForestsMaximum,walltimeMaximum,suspendToRAM,suspendPath,timeIntervalCheckpoint,fileNameCheckpoint,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,mergerTreeSeeds_,parameters    )
     end if
     self%nodeComponentsInitialized=.true.
     !![
@@ -228,11 +232,12 @@ contains
     <objectDestructor name="mergerTreeOutputter_"   />
     <objectDestructor name="mergerTreeInitializor_" />
     <objectDestructor name="randomNumberGenerator_" />
+    <objectDestructor name="mergerTreeSeeds_"       />
     !!]
     return
   end function evolveForestsConstructorParameters
 
-  function evolveForestsConstructorInternal(evolveForestsInParallel,countForestsMaximum,walltimeMaximum,suspendToRAM,suspendPath,timeIntervalCheckpoint,fileNameCheckpoint,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,parameters) result(self)
+  function evolveForestsConstructorInternal(evolveForestsInParallel,countForestsMaximum,walltimeMaximum,suspendToRAM,suspendPath,timeIntervalCheckpoint,fileNameCheckpoint,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,mergerTreeSeeds_,parameters) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily evolveForests} task class.
     !!}
@@ -254,11 +259,12 @@ contains
     class           (mergerTreeOutputterClass   ), intent(in   ), target :: mergerTreeOutputter_
     class           (mergerTreeInitializorClass ), intent(in   ), target :: mergerTreeInitializor_
     class           (randomNumberGeneratorClass ), intent(in   ), target :: randomNumberGenerator_
+    class           (mergerTreeSeedsClass       ), intent(in   ), target :: mergerTreeSeeds_
     type            (inputParameters            ), intent(in   ), target :: parameters
     integer         (c_size_t                   )                        :: i
     double precision                                                     :: timeStepMinimum
     !![
-    <constructorAssign variables="evolveForestsInParallel, countForestsMaximum, walltimeMaximum, suspendToRAM, suspendPath, timeIntervalCheckpoint, fileNameCheckpoint, *mergerTreeConstructor_, *mergerTreeOperator_, *nodeOperator_, *evolveForestsWorkShare_, *outputTimes_, *universeOperator_, *mergerTreeEvolver_, *mergerTreeOutputter_, *mergerTreeInitializor_, *randomNumberGenerator_"/>
+    <constructorAssign variables="evolveForestsInParallel, countForestsMaximum, walltimeMaximum, suspendToRAM, suspendPath, timeIntervalCheckpoint, fileNameCheckpoint, *mergerTreeConstructor_, *mergerTreeOperator_, *nodeOperator_, *evolveForestsWorkShare_, *outputTimes_, *universeOperator_, *mergerTreeEvolver_, *mergerTreeOutputter_, *mergerTreeInitializor_, *randomNumberGenerator_, *mergerTreeSeeds_"/>
     !!]
 
     self%parameters  => parameters
@@ -389,6 +395,7 @@ contains
     <objectDestructor name="self%mergerTreeOutputter_"   />
     <objectDestructor name="self%mergerTreeInitializor_" />
     <objectDestructor name="self%randomNumberGenerator_" />
+    <objectDestructor name="self%mergerTreeSeeds_"       />
     !!]
     if (stateStoreEventGlobal  %isAttached(self,evolveForestsStateStore  )) call stateStoreEventGlobal  %detach(self,evolveForestsStateStore  )
     if (stateRestoreEventGlobal%isAttached(self,evolveForestsStateRestore)) call stateRestoreEventGlobal%detach(self,evolveForestsStateRestore)
@@ -554,7 +561,7 @@ contains
              tree => null()
           else
              allocate(tree)
-             call mergerTreeStateFromFile(tree,char(self%fileNameCheckpoint),self%randomNumberGenerator_,deleteAfterRead=.false.)
+             call mergerTreeStateFromFile(tree,char(self%fileNameCheckpoint),self%randomNumberGenerator_,self%mergerTreeSeeds_,deleteAfterRead=.false.)
              checkpointRestored=.true.
           end if
        else
@@ -971,7 +978,7 @@ contains
        ! Generate the file name.
        fileName=self%suspendPath//'/suspendedTree_'//tree%index
        ! Read the tree from file.
-       call mergerTreeStateFromFile(tree,char(fileName),self%randomNumberGenerator_,deleteAfterRead=.true.)
+       call mergerTreeStateFromFile(tree,char(fileName),self%randomNumberGenerator_,self%mergerTreeSeeds_,deleteAfterRead=.true.)
     end if
     return
   end subroutine evolveForestsResumeTree

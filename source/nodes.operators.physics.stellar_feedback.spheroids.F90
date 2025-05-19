@@ -113,7 +113,7 @@ contains
   
   subroutine stellarFeedbackSpheroidsDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
     !!{
-    Perform star formation in a spheroid.
+    Perform feedback from stars in a spheroid.
     !!}
     use :: Abundances_Structure          , only : abundances         , zeroAbundances
     use :: Galacticus_Nodes              , only : propertyInactive   , nodeComponentSpheroid, nodeComponentHotHalo

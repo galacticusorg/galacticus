@@ -51,13 +51,13 @@ class SLURMManager(QueueManager):
             self.options[option]  = config.find(option).text
         for option in 'jobMaximum', 'waitOnSubmit', 'waitOnActive':
             self.options[option]  = int(config.find(option).text)
-        if args.waitOnSubmit is not None:
+        if args.partition    is not None:
             self.options['partition'   ] = args.partition
-        if args.waitOnSubmit is not None:
+        if args.jobMaximum   is not None:
             self.options['jobMaximum'  ] = args.jobMaximum
         if args.waitOnSubmit is not None:
             self.options['waitOnSubmit'] = args.waitOnSubmit
-        if args.waitOnSubmit is not None:
+        if args.waitOnActive is not None:
             self.options['waitOnActive'] = args.waitOnActive
             
     def submitJobs(self,jobs):
@@ -72,6 +72,7 @@ class SLURMManager(QueueManager):
             "cpusPerTask":     "cpus-per-task"  ,
             "memoryPerThread": "mem-per-cpu"    ,
             "memory":          "mem"            ,
+            "walltime":        "time"           ,
             "logOutput":       "output"         ,
             "logError":        "error"
             }

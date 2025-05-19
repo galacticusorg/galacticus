@@ -18,7 +18,7 @@ my $apiToken = $ARGV[0];
 # Construct a curl object.
 my $curl = WWW::Curl::Easy->new();
 $curl->setopt(CURLOPT_HEADER,1);
-$curl->setopt(CURLOPT_HTTPHEADER, ['Authorization: Bearer:'.$apiToken]);
+$curl->setopt(CURLOPT_HTTPHEADER, ['Authorization: Bearer '.$apiToken]);
 
 # First read in all bibliography entries in their raw form. This will allow us to re-output the entirely unchanged if there is no
 # need to update.
@@ -83,7 +83,7 @@ while ( my $entry = Text::BibTeX::Entry->new($bibliography) ) {
 		unless ( defined($identifier) );
 	    # We have an identifier for an arXiv reference. Pull the ADS record for this identifier.
 	    $curl->setopt(CURLOPT_URL, 'https://api.adsabs.harvard.edu/v1/export/bibtex');
-	    $curl->setopt(CURLOPT_HTTPHEADER, ['Authorization: Bearer:'.$apiToken,"Content-Type: application/json"]);
+	    $curl->setopt(CURLOPT_HTTPHEADER, ['Authorization: Bearer '.$apiToken,"Content-Type: application/json"]);
 	    my $response_body;
 	    $curl->setopt(CURLOPT_WRITEDATA,\$response_body);
 	    $curl->setopt(CURLOPT_POST, 1);
@@ -102,20 +102,23 @@ while ( my $entry = Text::BibTeX::Entry->new($bibliography) ) {
 		}
 		close($response);
 		my $bibtexEntry = decode_json($json);
-		# If the returned record is something other than an arXiv reference, update to this new record.
-		unless ( 
-		    $bibtexEntry->{'export'} =~ m/^\s*adsurl\s*=\s*\{https:\/\/ui\.adsabs\.harvard\.edu\/abs\/\d+arXiv[\d\.]+[A-Z]\}/m
-		    ||
-		    $bibtexEntry->{'export'} =~ m/^\s*adsurl\s*=\s*\{https:\/\/ui\.adsabs\.harvard\.edu\/abs\/\d+astro\.ph\.\d+[A-Z]\}/m
+		if (
+		    exists ($bibtexEntry->{'export'})
+		    &&
+		    defined($bibtexEntry->{'export'})
 		    ) {
-		    # Replace the BibTeX key of this record with the original key - we do not want to have to re-write references
-		    # in all of our documentation.
-		    ++$countUpdated;
-		    my $key = $entry->key();
-		    ($entryText = $bibtexEntry->{'export'}) =~ s/^\@ARTICLE\{.*,/\@article\{$key,/;
-
-		    print $entryText."\n";
-
+		    # If the returned record is something other than an arXiv reference, update to this new record.
+		    unless ( 
+			$bibtexEntry->{'export'} =~ m/^\s*adsurl\s*=\s*\{https:\/\/ui\.adsabs\.harvard\.edu\/abs\/\d+arXiv[\d\.]+[A-Z]\}/m
+			||
+			$bibtexEntry->{'export'} =~ m/^\s*adsurl\s*=\s*\{https:\/\/ui\.adsabs\.harvard\.edu\/abs\/\d+astro\.ph\.\d+[A-Z]\}/m
+			) {
+			# Replace the BibTeX key of this record with the original key - we do not want to have to re-write references
+			# in all of our documentation.
+			++$countUpdated;
+			my $key = $entry->key();
+			($entryText = $bibtexEntry->{'export'}) =~ s/^\@ARTICLE\{.*,/\@article\{$key,/;
+		    }
 		}
 	    } else {
 		die("Failed to retrieve record identifier '".$identifier."': ".$retcode." ".$curl->strerror($retcode)." ".$curl->errbuf);

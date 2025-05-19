@@ -298,7 +298,7 @@ contains
     !!}
     implicit none
     class(galacticStructureSolverFixed), intent(inout) :: self
-    type (treeNode                     ), intent(inout) :: node
+    type (treeNode                    ), intent(inout) :: node
     !$GLC attributes unused :: self, node
 
     return

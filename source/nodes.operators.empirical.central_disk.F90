@@ -79,12 +79,12 @@ contains
     <inputParameter>
       <name>angularMomentumSpecificFinal</name>
       <source>parameters</source>
-      <description>The final specific pseudo-angular momentum of the disk galaxy.</description>
+      <description>The final specific angular momentum of the disk galaxy.</description>
     </inputParameter>
     <inputParameter>
       <name>rateAngularMomentumSpecificSpecific</name>
       <source>parameters</source>
-      <description>The specific growth rate of the specific pseudo-angular momentum of the disk galaxy.</description>
+      <description>The specific growth rate of the specific angular momentum of the disk galaxy.</description>
     </inputParameter>
     !!]
     self=nodeOperatorEmpiricalCentralDisk(massStellarFinal,rateStarFormationSpecific,angularMomentumSpecificFinal,rateAngularMomentumSpecificSpecific)

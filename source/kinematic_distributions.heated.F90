@@ -23,7 +23,7 @@
 
   !![
   <kinematicsDistribution name="kinematicsDistributionHeated">
-   <description>An heated kinematic distribution class masses.</description>
+   <description>A heated kinematic distribution class masses.</description>
   </kinematicsDistribution>
   !!]
   type, public, extends(kinematicsDistributionClass) :: kinematicsDistributionHeated
@@ -161,9 +161,12 @@ contains
              ! Use the approximate solution for velocity dispersion.
              radius                        =+coordinates              %rSpherical                                                                    (                                                                                                          )
              radiusInitial                 =+massDistributionEmbedding%radiusInitial                                                                 (radius                                                                                                    )
-             if (radius > 0.0d0 .and. radiusInitial == 0.0d0) then
-                ! If no solution was found, assume a destroyed profile and return a zero velocity dispersion.
-                velocityDispersion=0.0d0
+             if (radius == radiusInitial .or. (radius > 0.0d0 .and. radiusInitial == 0.0d0)) then
+                ! No change in radius (either there is no heating, or solution failed - as can happen in profiles that are very
+                ! close to destruction), or no solution was found. In such cases return the velocity dispersion of the unheated
+                ! profile.
+                coordinatesInitial         = [radius,0.0d0,0.0d0]
+                velocityDispersion         =+massDistributionEmbedding%massDistribution_      %kinematicsDistribution_%velocityDispersion1D          (coordinatesInitial,massDistributionEmbedding%massDistribution_,massDistributionEmbedding%massDistribution_)
                 return
              end if
              coordinatesInitial            = [radiusInitial,0.0d0,0.0d0]
@@ -171,6 +174,8 @@ contains
              velocityDispersionSquare      =+massDistributionEmbedding%massDistribution_       %kinematicsDistribution_%velocityDispersion1D         (coordinatesInitial,massDistributionEmbedding%massDistribution_,massDistributionEmbedding%massDistribution_)**2 &
                   &                         -2.0d0/3.0d0*energySpecific
              velocityDispersion            =+sqrt(max(0.0d0,velocityDispersionSquare))
+             if (velocityDispersion <= 0.0d0) &
+                  & velocityDispersion     =+massDistributionEmbedding%massDistribution_       %kinematicsDistribution_%velocityDispersion1D         (coordinatesInitial,massDistributionEmbedding%massDistribution_,massDistributionEmbedding%massDistribution_)
           else
              ! Use a numerical solution.
              velocityDispersion            =+self                                                                      %velocityDispersion1DNumerical(coordinates       ,massDistributionEmbedding                  ,massDistributionEmbedding                  )

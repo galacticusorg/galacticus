@@ -143,7 +143,7 @@ contains
     logical                                    , intent(in   )         :: isCosmological      , setParticleType
     class           (cosmologyParametersClass ), intent(in   ), target :: cosmologyParameters_
     !![
-    <constructorAssign variables="fileName, label, particleType, lengthSoftening, unitMassInSI, unitLengthInSI, unitVelocityInSI, unitLengthInSI, isCosmological, setParticleType, *cosmologyParameters_"/>
+    <constructorAssign variables="fileName, label, particleType, lengthSoftening, unitMassInSI, unitLengthInSI, unitVelocityInSI, isCosmological, setParticleType, *cosmologyParameters_"/>
     !!]
 
     return

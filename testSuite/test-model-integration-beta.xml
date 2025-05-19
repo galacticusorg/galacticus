@@ -82,6 +82,7 @@
   <componentSpin value="scalar"/>
 
   <!-- Merger tree construction -->
+  <mergerTreeSeeds value="random"/>
   <mergerTreeConstructor value="build"/>
   <mergerTreeBuilder value="cole2000">
     <accretionLimit value="0.1"/>
