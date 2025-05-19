@@ -288,7 +288,7 @@ contains
     termBaryons3                    =+sin(wavenumber*st) &
          &                           /   (wavenumber*st)
     self%transferFunctionBaryons    =+(termBaryons1+termBaryons2)*termBaryons3
-    ! Evaluate derivatives of functons.
+    ! Evaluate derivatives of functions.
     DwavenumberScaleFree            =+1.0d0                   &
          &                           /self%wavenumberEquality &
          &                           /13.41d0
@@ -316,7 +316,7 @@ contains
     
     double precision function DT0(C,DC,beta)
       !!{
-      Evaluate derivatices of the $T_0$ factors.
+      Evaluate derivatives of the $T_0$ factors.
       !!}
       implicit none
       double precision, intent(in   ) :: C, DC, beta

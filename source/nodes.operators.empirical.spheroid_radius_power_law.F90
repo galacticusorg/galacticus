@@ -33,7 +33,7 @@
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSpheroidRadiusPowerLaw
      !!{
-     Implements a power law prescription for the stellar mass--stellar radius relation of spheroids. Specificially:
+     Implements a power law prescription for the stellar mass--stellar radius relation of spheroids. Specifically:
      \begin{equation}
        r_\mathrm{s} = \beta \left( \frac{M_\star}{M_\odot} \right)^\alpha, 
      \end{equation}

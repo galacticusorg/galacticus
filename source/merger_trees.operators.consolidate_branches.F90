@@ -123,7 +123,7 @@ contains
        do while (treeWalker%next(node))
           ! Ignore nodes that have children.
           if (associated(node%firstChild)) cycle
-          ! Walk up the branch until sufficient growth in mass or time has occured.
+          ! Walk up the branch until sufficient growth in mass or time has occurred.
           nodeBase       => node
           nodeDescendant => node
           basic          => nodeBase%basic()

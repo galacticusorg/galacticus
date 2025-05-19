@@ -43,7 +43,7 @@
   !!]
   type, extends(darkMatterHaloMassAccretionHistoryClass) :: darkMatterHaloMassAccretionHistoryZhao2009
      !!{
-     A dark matter halo mass accretion historiy class using the \cite{zhao_accurate_2009} algorithm.
+     A dark matter halo mass accretion history class using the \cite{zhao_accurate_2009} algorithm.
      !!}
      private
      class(criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()

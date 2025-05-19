@@ -185,7 +185,7 @@ contains
     top-hat real-space and sharp $k$-space window functions. The top-hat radius is $r_\mathrm{th}$, while the $k$-space
     cut-off wavenumber is $k_\mathrm{s}=a/r_\mathrm{s}$, where $a=${\normalfont \ttfamily [normalization]}. The two radii are
     chosen such that $r_\mathrm{th}^2 + r_\mathrm{s}^2 = (3 M / 4 \pi \bar{rho})^{1/3}$ and $r_\mathrm{s}=\beta r_{\mathrm
-    th}$ where $\beta=${\normalfont \ttfamily [pradiiRatio]}.
+    th}$ where $\beta=${\normalfont \ttfamily [radiiRatio]}.
     !!}
     implicit none
     class           (powerSpectrumWindowFunctionTopHatSharpKHybrid), intent(inout) :: self

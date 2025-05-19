@@ -147,7 +147,7 @@ contains
          &  .or.                                &
          &   radiusNuclearStarCluster  <= 0.0d0 &
          & ) then
-       ! Unphysical nclear star cluster, so return zero rate.
+       ! Unphysical nuclear star cluster, so return zero rate.
        krumholz2009Rate=0.0d0
        return
     else 

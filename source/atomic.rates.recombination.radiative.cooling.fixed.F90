@@ -25,7 +25,10 @@
   
   !![
   <atomicRecombinationRateRadiativeCooling name="atomicRecombinationRateRadiativeCoolingFixed">
-   <description>Atomic radiative cooling rateswhich are a fixed multiple of the recombination rate,  $\beta = \gamma \alpha$ where $\alpha$ is the corresponding radiative recombination coefficient and $\gamma$ is a parameter.</description>
+    <description>
+    Atomic radiative cooling rates which are a fixed multiple of the recombination rate,  $\beta = \gamma \alpha$
+    where $\alpha$ is the corresponding radiative recombination coefficient and $\gamma$ is a parameter.
+    </description>
   </atomicRecombinationRateRadiativeCooling>
   !!]
   type, extends(atomicRecombinationRateRadiativeCoolingClass) :: atomicRecombinationRateRadiativeCoolingFixed
