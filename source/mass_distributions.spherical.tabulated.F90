@@ -88,15 +88,15 @@
      !!{
      Object used to store individual mass distribution tabulations.
      !!}
-     type            (enumerationQuantityType)                                 :: quantity
-     logical                                                                   :: logTransform         , isNegative
-     double precision                                                          :: radiusMinimum        , radiusMaximum    , &
-          &                                                                       radiusInverseStep
-     double precision                          , allocatable, dimension(:    ) :: parametersMinimum    , parametersMaximum, &
-          &                                                                       parametersInverseStep
-     integer         (c_size_t                )                                :: radiusCountPer
-     integer         (c_size_t                ), allocatable, dimension(:    ) :: parametersCountPer
-     double precision                          , allocatable, dimension(:,:,:) :: table
+     type            (enumerationQuantityType)                                   :: quantity
+     logical                                                                     :: logTransform         , isNegative
+     double precision                                                            :: radiusMinimum        , radiusMaximum    , &
+          &                                                                         radiusInverseStep
+     double precision                          , allocatable, dimension(:      ) :: parametersMinimum    , parametersMaximum, &
+          &                                                                         parametersInverseStep
+     integer         (c_size_t                )                                  :: radiusCountPer
+     integer         (c_size_t                ), allocatable, dimension(:      ) :: parametersCountPer
+     double precision                          , allocatable, dimension(:,:,:,:) :: table
   end type massDistributionTabulation
 
   type :: massDistributionContainer
@@ -515,9 +515,11 @@ contains
           if (allocated(tabulation%table)) deallocate(tabulation%table)
           select case(size(countParameters))
           case (1)
-             allocate(tabulation%table(countRadii,countParameters(1),1                 ))
+             allocate(tabulation%table(countRadii,countParameters(1),1                 ,1                 ))
           case (2)
-             allocate(tabulation%table(countRadii,countParameters(1),countParameters(2)))
+             allocate(tabulation%table(countRadii,countParameters(1),countParameters(2),1                 ))
+          case (3)
+             allocate(tabulation%table(countRadii,countParameters(1),countParameters(2),countParameters(3)))
           case default
              call Error_Report('rank not supported'//{introspection:location})
           end select
@@ -625,9 +627,11 @@ contains
                 ! Store the quantity.
                 select case(size(countParameters))
                 case (1)
-                   tabulation%table(iRadius,iParameters(1),1             )=quantity_
+                   tabulation%table(iRadius,iParameters(1),1             ,1             )=quantity_
                 case (2)
-                   tabulation%table(iRadius,iParameters(1),iParameters(2))=quantity_
+                   tabulation%table(iRadius,iParameters(1),iParameters(2),1             )=quantity_
+                case (3)
+                   tabulation%table(iRadius,iParameters(1),iParameters(2),iParameters(3))=quantity_
                 case default
                    call Error_Report('rank not supported'//{introspection:location})
                 end select
@@ -688,7 +692,7 @@ contains
     type            (multiCounter                      )                                :: counter
 
     ! Compute interpolating factors.
-    allocate(hParameters(2,size(parameters)))
+    allocate(hParameters(3,size(parameters)))
     hRadius    (2  )=log(radiusScaled/tabulation%radiusMinimum    )*tabulation%radiusInverseStep    +1_c_size_t
     hParameters(2,:)=log(parameters  /tabulation%parametersMinimum)*tabulation%parametersInverseStep+1_c_size_t
     iRadius         =int(hRadius    (2  ),kind=c_size_t)
@@ -709,6 +713,7 @@ contains
                   &       +tabulation %table(                                           &
                   &                          iRadius       +jRadius       -1_c_size_t,  &
                   &                          iParameters(1)+jParameters(1)-1_c_size_t,  &
+                  &                                                        1_c_size_t,  &
                   &                                                        1_c_size_t   &
                   &                         )                                           &
                   &       *hRadius          (                                           &
@@ -727,7 +732,8 @@ contains
                   &       +tabulation %table(                                           &
                   &                          iRadius       +jRadius       -1_c_size_t,  &
                   &                          iParameters(1)+jParameters(1)-1_c_size_t,  &
-                  &                          iParameters(2)+jParameters(2)-1_c_size_t   &
+                  &                          iParameters(2)+jParameters(2)-1_c_size_t,  &
+                  &                                                        1_c_size_t   &
                   &                         )                                           &
                   &       *hRadius          (                                           &
                   &                                         jRadius                     &
@@ -737,6 +743,31 @@ contains
                   &                         )                                           &
                   &       *hParameters      (                                           &
                   &                                         jParameters(2)           ,2 &
+                  &                         )
+          end do
+       end do
+    case (3)
+       do while (counter%increment())
+          jParameters=counter%states()
+          do jRadius=1,2
+             interpolated=+interpolated                                                 &
+                  &       +tabulation %table(                                           &
+                  &                          iRadius       +jRadius       -1_c_size_t,  &
+                  &                          iParameters(1)+jParameters(1)-1_c_size_t,  &
+                  &                          iParameters(2)+jParameters(2)-1_c_size_t,  &
+                  &                          iParameters(3)+jParameters(3)-1_c_size_t   &
+                  &                         )                                           &
+                  &       *hRadius          (                                           &
+                  &                                         jRadius                     &
+                  &                         )                                           &
+                  &       *hParameters      (                                           &
+                  &                                         jParameters(1)           ,1 &
+                  &                         )                                           &
+                  &       *hParameters      (                                           &
+                  &                                         jParameters(2)           ,2 &
+                  &                         )                                           &
+                  &       *hParameters      (                                           &
+                  &                                         jParameters(3)           ,3 &
                   &                         )
           end do
        end do
