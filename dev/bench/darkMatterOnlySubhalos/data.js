@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1747612254259,
+  "lastUpdate": 1747726355033,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "id": "46ebfeaaf77256c59f6ba60eed92254b348b8861",
-          "message": "fix: Reset calculations to avoid accessing deallocated nodes\n\nThis occurs when processing merger trees from file as, in some instances, we make copies of nodes to work on, which means that their unique ID can be the same as on a previous call, even though the node is actually a different node and the prior node no longer exists.",
-          "timestamp": "2024-08-06T16:03:57Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/46ebfeaaf77256c59f6ba60eed92254b348b8861"
-        },
-        "date": 1723012754361,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 54.462,
-            "unit": "seconds",
-            "range": 0.0702822879532483
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8732,6 +8704,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": "24300.10047372952",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "87cbc4366056960c88c6817ef67722ddc95c04f7",
+          "message": "Merge pull request #846 from galacticusorg/feat3dTabulatedMassDistribution\n\nExpand the tabulated spherical mass distribution class to support up to 3 parameters",
+          "timestamp": "2025-05-19T21:32:35Z",
+          "tree_id": "f9c8f4657612dc96e0fae40fe23a472d0256350f",
+          "url": "https://github.com/galacticusorg/galacticus/commit/87cbc4366056960c88c6817ef67722ddc95c04f7"
+        },
+        "date": 1747726352413,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 58.238,
+            "unit": "seconds",
+            "range": 0.0715513801400336
           }
         ]
       }
