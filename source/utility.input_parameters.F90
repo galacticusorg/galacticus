@@ -126,8 +126,8 @@ module Input_Parameters
      type   (node           ), pointer         :: rootNode               => null()
      type   (hdf5Object     )                  :: outputParameters                 , outputParametersContainer
      type   (inputParameter ), pointer, public :: parameters             => null()
-     type   (inputParameters), pointer, public :: parent                 => null()
-     logical                                   :: outputParametersCopied =  .false., outputParametersTemporary=.false., &
+     type   (inputParameters), pointer, public :: parent                 => null() , original                  => null()
+     logical                                   :: outputParametersCopied =  .false., outputParametersTemporary = .false., &
           &                                       isNull                 =  .false.
      type   (integerHash    ), allocatable     :: warnedDefaults
      type   (ompLock        ), pointer         :: lock                   => null()
@@ -285,7 +285,7 @@ contains
          &                                    getImplementation()             , &
          &                                    qualifiedName      ="parameters", &
          &                                    docType            =null()        &
-         &                                   )
+         &                                 )
     self%rootNode       => getDocumentElement(self%document)
     call setLiveNodeLists(self%document,.false.)
     !$omp end critical (FoX_DOM_Access)
@@ -513,14 +513,14 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily inputParameters} class from an existing parameters object.
     !!}
-    use :: ISO_Varying_String, only : char
     implicit none
-    type (inputParameters)                :: self
-    type (inputParameters), intent(in   ) :: parameters
+    type(inputParameters)                :: self
+    type(inputParameters), intent(in   ) :: parameters
 
-    self               =  inputParameters(parameters%rootNode  ,noOutput=.true.,noBuild=.true.)
-    self%parameters    =>                 parameters%parameters
-    self%parent        =>                 parameters%parent
+    self            =  inputParameters(parameters%rootNode  ,noOutput=.true.,noBuild=.true.)
+    self%parameters =>                 parameters%parameters
+    self%parent     =>                 parameters%parent
+    self%original   =>                 parameters%original       
     if (allocated(parameters%warnedDefaults)) then
        if (allocated(self%warnedDefaults)) deallocate(self%warnedDefaults)
        allocate(self%warnedDefaults)
@@ -536,7 +536,7 @@ contains
 
   function inputParametersConstructorNode(parametersNode,allowedParameterNames,outputParametersGroup,noOutput,noBuild,fileName) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily inputParameters} class from an FoX node.
+    Constructor for the {\normalfont \ttfamily inputParameters} class from a FoX node.
     !!}
     use            :: Display           , only : displayGreen                     , displayMessage  , displayMagenta  , displayReset  , &
          &                                       verbosityLevelSilent
@@ -586,12 +586,12 @@ contains
     allocate(self%warnedDefaults)
     allocate(self%lock          )
     self%isNull         =  .false.
-    self%rootNode       =>                  parametersNode
-    self%parent         => null            (              )
-    self%warnedDefaults =  integerHash     (              )
-    self%lock           =  ompLock         (              )
+    self%rootNode       =>             parametersNode
+    self%parent         => null       (              )
+    self%warnedDefaults =  integerHash(              )
+    self%lock           =  ompLock    (              )
     !$omp critical (FoX_DOM_Access)
-    self%document       => getOwnerDocument(parametersNode)
+    self%document         => getOwnerDocument(parametersNode)
     call setLiveNodeLists(self%document,.false.)
     !$omp end critical (FoX_DOM_Access)
     if (.not.noBuild_) then
@@ -1170,7 +1170,8 @@ contains
     !!{
     Reset objects associated with this parameter and any sub-parameters.
     !!}
-    use    :: FoX_DOM, only : destroy
+    use :: iso_varying_string, only : char
+    use    :: FoX_DOM, only : destroy, getNodeName
     !$ use :: OMP_Lib, only : OMP_Get_Thread_Num, OMP_Get_Level, OMP_In_Parallel
     implicit none
     class  (inputParameter), intent(inout), target   :: self
@@ -1771,16 +1772,20 @@ contains
     allocate(parameterNames(countNames))
     call String_Split_Words(parameterNames,parameterPath,":")
     parameterName  =  parameterNames(countNames)
-    rootParameters => self
     subParameters  => null          (          )
     if (trim(parameterNames(1)) /= "." .and. trim(parameterNames(1)) /= "..") then
-       ! Path is absolute - move to the root parameter.
-       do while (associated(rootParameters%parent))
-          rootParameters => rootParameters%parent
-       end do
+       ! Path is absolute - start from the original parameters.
+       if (associated(self%original)) then
+          rootParameters => self%original
+       else
+          rootParameters => self
+       end if
+    else
+       ! Path is relative - simply start from the current parameter.
+       rootParameters => self
     end if
     do i=1,countNames-1
-       if (trim(parameterNames(i)) == ".") then
+       if      (trim(parameterNames(i)) == "." ) then
           ! Self - no need to move.
           if (i == 1) then
              allocate(subParameters)
@@ -1791,11 +1796,11 @@ contains
           if (i == 1) then
              if (.not.associated(rootParameters%parent)) call Error_Report('no parent parameter exists'//{introspection:location})
              allocate(subParameters)
-             subParameters=inputParameters(rootParameters%parent)
+             subParameters    =inputParameters(rootParameters%parent)
           else
              if (.not.associated( subParameters%parent)) call Error_Report('no parent parameter exists'//{introspection:location})
              allocate(subParametersNext)
-             subParametersNext=inputParameters(subParameters%parent)
+             subParametersNext=inputParameters(subParameters %parent)
              deallocate(subParameters)
              subParameters => subParametersNext
           end if
@@ -1853,15 +1858,20 @@ contains
        else
           inputParametersSubParameters=inputParameters()
        end if
-       copyCount                               =  1
+       copyCount                                  =  1
     else
-       copyCount                               =  self%copiesCount(parameterName        ,requireValue=requireValue                          )
-       parameterNode                           => self%node       (parameterName        ,requireValue=requireValue,copyInstance=copyInstance)
+       copyCount                                  =  self%copiesCount(parameterName        ,requireValue=requireValue                          )
+       parameterNode                              => self%node       (parameterName        ,requireValue=requireValue,copyInstance=copyInstance)
        if (associated(parameterNode%referenced)) parameterNode => parameterNode%referenced
-       inputParametersSubParameters            =  inputParameters (parameterNode%content,noOutput    =.true.      ,noBuild     =.true.      )
-       inputParametersSubParameters%parameters => parameterNode
+       inputParametersSubParameters               =  inputParameters (parameterNode%content,noOutput    =.true.      ,noBuild     =.true.      )
+       inputParametersSubParameters%parameters    => parameterNode
     end if
-    inputParametersSubParameters%parent        => self
+    inputParametersSubParameters%parent           => self
+    if (associated(self%original)) then
+       inputParametersSubParameters%original => self%original
+    else
+       inputParametersSubParameters%original => self
+    end if
     !$ call hdf5Access%set()
     if (self%outputParameters%isOpen()) then
        groupName=parameterName
