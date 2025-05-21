@@ -37,7 +37,7 @@ Implements a filter which passes only nodes that are hosted in a merger tree.
 
   interface galacticFilterTreeHosted
      !!{
-     Constructors for the {\normalfont \ttfamily treeHosted} galactic filter class.
+     Constructors for the \refClass{galacticFilterTreeHosted} galactic filter class.
      !!}
      module procedure treeHostedConstructorParameters
   end interface galacticFilterTreeHosted
@@ -46,7 +46,7 @@ contains
 
   function treeHostedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily treeHosted} galactic filter class which takes a parameter set as input.
+    Constructor for the \refClass{galacticFilterTreeHosted} galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

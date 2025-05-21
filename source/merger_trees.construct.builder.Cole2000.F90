@@ -144,7 +144,7 @@
 
   interface mergerTreeBuilderCole2000
      !!{
-     Constructors for the {\normalfont \ttfamily cole2000} merger tree builder class.
+     Constructors for the \refClass{mergerTreeBuilderCole2000} merger tree builder class.
      !!}
      module procedure cole2000ConstructorParameters
      module procedure cole2000ConstructorInternal
@@ -322,7 +322,7 @@ contains
 
   subroutine cole2000Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily cole2000} merger tree builder class.
+    Destructor for the \refClass{mergerTreeBuilderCole2000} merger tree builder class.
     !!}
     implicit none
     type   (mergerTreeBuilderCole2000), intent(inout) :: self

@@ -44,7 +44,7 @@
 
   interface atomicCrossSectionIonizationPhotoVerner
      !!{
-     Constructors for the {\normalfont \ttfamily verner} atomic photoionization cross-section class.
+     Constructors for the \refClass{atomicCrossSectionIonizationPhotoVerner} atomic photoionization cross-section class.
      !!}
      module procedure vernerConstructorParameters
   end interface atomicCrossSectionIonizationPhotoVerner
@@ -1947,7 +1947,7 @@ contains
 
   function vernerConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily verner} atomic photoionization cross-section class which builds the object from a parameter set.
+    Constructor for the \refClass{atomicCrossSectionIonizationPhotoVerner} atomic photoionization cross-section class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

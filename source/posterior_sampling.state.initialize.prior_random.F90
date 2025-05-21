@@ -39,7 +39,7 @@
 
   interface posteriorSampleStateInitializePriorRandom
      !!{
-     Constructors for the {\normalfont \ttfamily priorRandom} posterior sampling state initialization class.
+     Constructors for the \refClass{posteriorSampleStateInitializePriorRandom} posterior sampling state initialization class.
      !!}
      module procedure priorRandomConstructorParameters
   end interface posteriorSampleStateInitializePriorRandom
@@ -48,7 +48,7 @@ contains
 
   function priorRandomConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily priorRandom} posterior sampling state initialization class.
+    Constructor for the \refClass{posteriorSampleStateInitializePriorRandom} posterior sampling state initialization class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

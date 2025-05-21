@@ -80,7 +80,7 @@
 
   interface posteriorSampleSimulationTemperedDffrntlEvltn
      !!{
-     Constructors for the {\normalfont \ttfamily temperedDifferentialEvolution} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleSimulationTemperedDffrntlEvltn} posterior sampling convergence class.
      !!}
      module procedure temperedDifferentialEvolutionConstructorParameters
      module procedure temperedDifferentialEvolutionConstructorInternal
@@ -90,7 +90,7 @@ contains
 
   function temperedDifferentialEvolutionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily temperedDifferentialEvolution} posterior sampling simulation class which builds the object from a
+    Constructor for the \refClass{posteriorSampleSimulationTemperedDffrntlEvltn} posterior sampling simulation class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters

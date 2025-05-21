@@ -46,7 +46,7 @@ algorithm of \cite{peacock_non-linear_1996}.
 
   interface powerSpectrumNonlinearPeacockDodds1996
      !!{
-     Constructors for the {\normalfont \ttfamily PeacockDodds1996} nonlinear power spectrum class.
+     Constructors for the \refClass{powerSpectrumNonlinearPeacockDodds1996} nonlinear power spectrum class.
      !!}
      module procedure peacockDodds1996ConstructorParameters
      module procedure peacockDodds1996ConstructorInternal
@@ -83,7 +83,7 @@ contains
 
   function peacockDodds1996ConstructorInternal(cosmologyFunctions_,powerSpectrum_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily PeacockDodds1996} nonlinear power spectrum class.
+    Internal constructor for the \refClass{powerSpectrumNonlinearPeacockDodds1996} nonlinear power spectrum class.
     !!}
     implicit none
     type (powerSpectrumNonlinearPeacockDodds1996)                        :: self
@@ -101,7 +101,7 @@ contains
 
   subroutine peacockDodds1996Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily PeacockDodds1996} nonlinear power spectrum class.
+    Destructor for the \refClass{powerSpectrumNonlinearPeacockDodds1996} nonlinear power spectrum class.
     !!}
     implicit none
     type(powerSpectrumNonlinearPeacockDodds1996), intent(inout) :: self

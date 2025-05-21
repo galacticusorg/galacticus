@@ -72,7 +72,7 @@
   
   interface massDistributionNFW
      !!{
-     Constructors for the {\normalfont \ttfamily nfw} mass distribution class.
+     Constructors for the \refClass{massDistributionNFW} mass distribution class.
      !!}
      module procedure massDistributionNFWConstructorParameters
      module procedure massDistributionNFWConstructorInternal
@@ -102,7 +102,7 @@ contains
 
   function massDistributionNFWConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily nfw} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionNFW} mass distribution class which builds the object from a parameter
     set.
     !!}
      use :: Input_Parameters          , only : inputParameter                , inputParameters

@@ -99,7 +99,7 @@
   
   interface massDistributionBurkert
      !!{
-     Constructors for the {\normalfont \ttfamily burkert} mass distribution class.
+     Constructors for the \refClass{massDistributionBurkert} mass distribution class.
      !!}
      module procedure massDistributionBurkertConstructorParameters
      module procedure massDistributionBurkertConstructorInternal
@@ -112,7 +112,7 @@ contains
 
   function massDistributionBurkertConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily burkert} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionBurkert} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters

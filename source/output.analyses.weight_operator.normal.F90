@@ -51,7 +51,7 @@ Implements a weight operator class in which the weight is multiplied by an integ
 
   interface outputAnalysisWeightOperatorNormal
      !!{
-     Constructors for the {\normalfont \ttfamily normal} output analysis class.
+     Constructors for the \refClass{outputAnalysisWeightOperatorNormal} output analysis class.
      !!}
      module procedure normalConstructorParameters
      module procedure normalConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function normalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily normal} output analysis weight operator class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisWeightOperatorNormal} output analysis weight operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -104,7 +104,7 @@ contains
 
   function normalConstructorInternal(rangeLower,rangeUpper,rootVariance_,nodePropertyExtractor_,outputAnalysisPropertyOperator_) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily normal} output analysis distribution operator class.
+    Internal constructor for the \refClass{outputAnalysisWeightOperatorNormal} output analysis distribution operator class.
     !!}
     use :: Error                   , only : Error_Report
     use :: Node_Property_Extractors, only : nodePropertyExtractorClass, nodePropertyExtractorScalar
@@ -129,7 +129,7 @@ contains
 
   subroutine normalDestructor(self)
     !!{
-    Destructor for  the {\normalfont \ttfamily normal} output analysis weight operator class.
+    Destructor for the \refClass{outputAnalysisWeightOperatorNormal} output analysis weight operator class.
     !!}
     type(outputAnalysisWeightOperatorNormal), intent(inout) :: self
 

@@ -49,7 +49,7 @@
 
   interface virialOrbitIsotropic
      !!{
-     Constructors for the {\normalfont \ttfamily isotropic} virial orbit class.
+     Constructors for the \refClass{virialOrbitIsotropic} virial orbit class.
      !!}
      module procedure isotropicConstructorParameters
      module procedure isotropicConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function isotropicConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily isotropic} satellite virial orbit class which takes a parameter set as input.
+    Constructor for the \refClass{virialOrbitIsotropic} satellite virial orbit class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -80,7 +80,7 @@ contains
 
   function isotropicConstructorInternal(virialOrbit_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily isotropic} virial orbits class.
+    Internal constructor for the \refClass{virialOrbitIsotropic} virial orbits class.
     !!}
     implicit none
     type (virialOrbitIsotropic)                        :: self
@@ -94,7 +94,7 @@ contains
 
   subroutine isotropicDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily isotropic} virial orbits class.
+    Destructor for the \refClass{virialOrbitIsotropic} virial orbits class.
     !!}
     implicit none
     type(virialOrbitIsotropic), intent(inout) :: self

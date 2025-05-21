@@ -46,7 +46,7 @@
   
   interface blackHoleCGMHeatingJetPower
      !!{
-     Constructors for the {\normalfont \ttfamily jetPower} black hole winds class.
+     Constructors for the \refClass{blackHoleCGMHeatingJetPower} black hole winds class.
      !!}
      module procedure jetPowerConstructorParameters
      module procedure jetPowerConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function jetPowerConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily jetPower} black hole winds class which takes a parameter list as input.
+    Constructor for the \refClass{blackHoleCGMHeatingJetPower} black hole winds class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -87,7 +87,7 @@ contains
 
   function jetPowerConstructorInternal(efficiencyRadioMode,blackHoleAccretionRate_,accretionDisks_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily jetPower} node operator class.
+    Internal constructor for the \refClass{blackHoleCGMHeatingJetPower} node operator class.
     !!}
     implicit none
     type            (blackHoleCGMHeatingJetPower)                        :: self

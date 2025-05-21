@@ -302,7 +302,7 @@ sub Migrate {
     # Search for duplicated parameters.
     my %duplicates =
 	(
-	 mergerTreeOperatorMethod => "sequence"
+	 mergerTreeOperator => "sequence"
 	);
     for my $parameter ( $parameters->getChildrenByTagName("*") ) {
 	my $nodeName = $parameter->nodeName();
@@ -550,6 +550,40 @@ sub modelParameterXPath {
 	    $value =~ s/::/\//g;                               # Translate the old `::` separator to XPath standard `/`.
 	    $value =~ s/([\[\{])(\d+)([\]\}])/$1.($2+1).$3/ge; # Increment indices to XPath standard 1-indexing.
 	    $nameNode->setAttribute('value',$value);	    
+	}
+    }
+}
+
+sub methodSuffixRemove {
+    # Special handling to remove the `Method` suffic from parameter names.
+    my $input      = shift();
+    my $parameters = shift();
+    # Iterate over all parameters.
+    print "   translate special - remove Method suffixes\n";
+    foreach my $parameter ( $parameters->findnodes("//*")->get_nodelist() ) {
+	my $nodeName = $parameter->nodeName();
+	# Skip cases where the method suffix persists.
+	next
+	    if
+	    (
+	     $nodeName eq "readSubhaloAngularMomentaMethod"
+	     ||
+	     $nodeName eq "subhaloAngularMomentaMethod"
+	     ||
+	     $nodeName eq "diskRadiusSolverCole2000Method"
+	     ||
+	     $nodeName eq "duttonMaccio2014DensityContrastMethod"
+	     ||
+	     $nodeName eq "duttonMaccio2014DensityProfileMethod"
+	    );
+	# Translate names.
+	if ( $nodeName =~ m/^treeNodeMethod(.*)$/ ) {
+	    my $componentName = $1;
+	    $nodeName = "component".$componentName;
+	    $parameter->setNodeName($nodeName);
+	} elsif ( $nodeName =~ m/^(.*)Method$/ ) {
+	    my $parameterName = $1;
+	    $parameter->setNodeName($parameterName);
 	}
     }
 }

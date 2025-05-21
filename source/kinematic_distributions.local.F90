@@ -45,7 +45,7 @@
 
   interface kinematicsDistributionLocal
      !!{
-     Constructors for the {\normalfont \ttfamily local} kinematic distribution class.
+     Constructors for the \refClass{kinematicsDistributionLocal} kinematic distribution class.
      !!}
      module procedure localConstructorParameters
      module procedure localConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function localConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily isothermal} kinematic distribution class which builds the object from a parameter
+    Constructor for the \refClass{kinematicsDistributionLocal} kinematic distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -81,7 +81,7 @@ contains
   
   function localConstructorInternal(alpha) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily local} kinematics distribution class.
+    Constructor for the \refClass{kinematicsDistributionLocal} kinematics distribution class.
     !!}
     implicit none
     type            (kinematicsDistributionLocal)                :: self

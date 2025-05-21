@@ -85,7 +85,7 @@
 
   interface virialOrbitJiang2014
      !!{
-     Constructors for the {\normalfont \ttfamily jiang2014} virial orbit class.
+     Constructors for the \refClass{virialOrbitJiang2014} virial orbit class.
      !!}
      module procedure jiang2014ConstructorParameters
      module procedure jiang2014ConstructorInternal
@@ -102,7 +102,7 @@ contains
 
   function jiang2014ConstructorParameters(parameters) result(self)
     !!{
-    Generic constructor for the {\normalfont \ttfamily jiang2014} virial orbits class.
+    Internal constructor for the \refClass{virialOrbitJiang2014} virial orbits class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -211,7 +211,7 @@ contains
 
   function jiang2014ConstructorInternal(bRatioLow,bRatioIntermediate,bRatioHigh,gammaRatioLow,gammaRatioIntermediate,gammaRatioHigh,sigmaRatioLow,sigmaRatioIntermediate,sigmaRatioHigh,muRatioLow,muRatioIntermediate,muRatioHigh,darkMatterHaloScale_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily jiang2014} virial orbits class.
+    Internal constructor for the \refClass{virialOrbitJiang2014} virial orbits class.
     !!}
     use :: Numerical_Integration   , only : GSL_Integ_Gauss61           , integrator
     use :: Root_Finder             , only : rangeExpandMultiplicative   , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
@@ -446,7 +446,7 @@ contains
 
   subroutine jiang2014Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily jiang2014} virial orbits class.
+    Destructor for the \refClass{virialOrbitJiang2014} virial orbits class.
     !!}
     implicit none
     type(virialOrbitJiang2014), intent(inout) :: self

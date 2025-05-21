@@ -49,7 +49,7 @@
   
   interface nodeOperatorStarFormationNuclearStarClusters
      !!{
-     Constructors for the {\normalfont \ttfamily starFormationNuclearStarClusters} node operator class.
+     Constructors for the \refClass{nodeOperatorStarFormationNuclearStarClusters} node operator class.
      !!}
      module procedure starFormationNuclearStarClustersConstructorParameters
      module procedure starFormationNuclearStarClustersConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function starFormationNuclearStarClustersConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily starFormation} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorStarFormationNuclearStarClusters} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -93,7 +93,7 @@ contains
 
   function starFormationNuclearStarClustersConstructorInternal(luminositiesStellarInactive,starFormationRateNuclearStarClusters_,stellarPopulationProperties_,starFormationHistory_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily starFormationNSC} node operator class.
+    Internal constructor for the \refClass{nodeOperatorStarFormationNuclearStarClusters} node operator class.
     !!}
     implicit none
     type   (nodeOperatorStarFormationNuclearStarClusters)                        :: self
@@ -110,7 +110,7 @@ contains
 
   subroutine starFormationNuclearStarClustersDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily starFormationNuclearStarClusters} node operator class.
+    Destructor for the \refClass{nodeOperatorStarFormationNuclearStarClusters} node operator class.
     !!}
     implicit none
     type(nodeOperatorStarFormationNuclearStarClusters), intent(inout) :: self

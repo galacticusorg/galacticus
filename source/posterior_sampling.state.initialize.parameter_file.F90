@@ -44,7 +44,7 @@
 
   interface posteriorSampleStateInitializeParameterFile
      !!{
-     Constructors for the {\normalfont \ttfamily parameterFile} posterior sampling state initialization class.
+     Constructors for the \refClass{posteriorSampleStateInitializeParameterFile} posterior sampling state initialization class.
      !!}
      module procedure parameterFileConstructorParameters
      module procedure parameterFileConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function parameterFileConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily parameterFile} posterior sampling state initialization class.
+    Constructor for the \refClass{posteriorSampleStateInitializeParameterFile} posterior sampling state initialization class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function parameterFileConstructorInternal(fileName) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily parameterFile} posterior sampling state initialization class.
+    Constructor for the \refClass{posteriorSampleStateInitializeParameterFile} posterior sampling state initialization class.
     !!}
     implicit none
     type(posteriorSampleStateInitializeParameterFile)                :: self

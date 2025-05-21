@@ -51,7 +51,7 @@ Implements an N-body data importer for IRATE files.
 
   interface nbodyImporterIRATE
      !!{
-     Constructors for the {\normalfont \ttfamily irate} N-body importer class.
+     Constructors for the \refClass{nbodyImporterIRATE} N-body importer class.
      !!}
      module procedure irateConstructorParameters
      module procedure irateConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function irateConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily irate} N-body importer class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyImporterIRATE} N-body importer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -116,7 +116,7 @@ contains
 
   function irateConstructorInternal(fileName,label,snapshot,properties,cosmologyParameters_,cosmologyFunctions_) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily irate} N-body importer class.
+    Internal constructor for the \refClass{nbodyImporterIRATE} N-body importer class.
     !!}
     implicit none
     type   (nbodyImporterIRATE      )                              :: self
@@ -135,7 +135,7 @@ contains
 
   subroutine irateDestructor(self)
     !!{
-    Destructor for {\normalfont \ttfamily irate} importer class.
+    Destructor for the \refClass{nbodyImporterIRATE} importer class.
     !!}
     implicit none
     type(nbodyImporterIRATE), intent(inout) :: self

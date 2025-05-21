@@ -45,7 +45,7 @@
 
   interface atomicRecombinationRateRadiativeComputed
      !!{
-     Constructors for the {\normalfont \ttfamily computed} atomic radiative recombination class.
+     Constructors for the \refClass{atomicRecombinationRateRadiativeComputed} atomic radiative recombination class.
      !!}
      module procedure computedConstructorParameters
      module procedure computedConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function computedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily computed} atomic radiative recombination class which takes a parameter set as input.
+    Constructor for the \refClass{atomicRecombinationRateRadiativeComputed} atomic radiative recombination class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -80,7 +80,7 @@ contains
 
   function computedConstructorInternal(atomicCrossSectionIonizationPhoto_,atomicIonizationPotential_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily computed} atomic radiative recombination class.
+    Internal constructor for the \refClass{atomicRecombinationRateRadiativeComputed} atomic radiative recombination class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -96,7 +96,7 @@ contains
 
   subroutine computedDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily computed} recombination recombination class.
+    Destructor for the \refClass{atomicRecombinationRateRadiativeComputed} recombination recombination class.
     !!}
     implicit none
     type(atomicRecombinationRateRadiativeComputed), intent(inout) :: self

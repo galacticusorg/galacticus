@@ -39,7 +39,7 @@
 
   interface chemicalReactionRateZero
      !!{
-     Constructors for the {\normalfont \ttfamily zero} chemical reaction rates class.
+     Constructors for the \refClass{chemicalReactionRateZero} chemical reaction rates class.
      !!}
      module procedure zeroConstructorParameters
   end interface chemicalReactionRateZero
@@ -48,7 +48,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily zero} chemical reaction rates class which takes a parameter set as
+    Constructor for the \refClass{chemicalReactionRateZero} chemical reaction rates class which takes a parameter set as
     input.
     !!}
     use :: Input_Parameters, only : inputParameters

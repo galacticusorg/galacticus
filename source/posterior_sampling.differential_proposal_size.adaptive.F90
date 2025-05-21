@@ -60,7 +60,7 @@
 
   interface posteriorSampleDffrntlEvltnProposalSizeAdaptive
      !!{
-     Constructors for the {\normalfont \ttfamily adaptive} posterior sampling differential evolution random jump class.
+     Constructors for the \refClass{posteriorSampleDffrntlEvltnProposalSizeAdaptive} posterior sampling differential evolution random jump class.
      !!}
      module procedure adaptiveConstructorParameters
      module procedure adaptiveConstructorInternal
@@ -70,7 +70,7 @@ contains
 
   function adaptiveConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily adaptive} posterior sampling differential evolution random jump class which
+    Constructor for the \refClass{posteriorSampleDffrntlEvltnProposalSizeAdaptive} posterior sampling differential evolution random jump class which
     builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -160,7 +160,7 @@ contains
 
   function adaptiveConstructorInternal(logFileName,gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate,appendLog,restoreFromLog,flushLog) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily adaptive} differential evolution proposal size class.
+    Constructor for the \refClass{posteriorSampleDffrntlEvltnProposalSizeAdaptive} differential evolution proposal size class.
     !!}
     use :: MPI_Utilities, only : mpiSelf, mpiBarrier
     implicit none

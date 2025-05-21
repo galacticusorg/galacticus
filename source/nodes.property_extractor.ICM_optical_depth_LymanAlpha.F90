@@ -47,7 +47,7 @@
 
   interface nodePropertyExtractorICMOpticalDepthLymanAlpha
      !!{
-     Constructors for the {\normalfont \ttfamily icmOpticalDepthLymanAlpha} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorICMOpticalDepthLymanAlpha} output analysis class.
      !!}
      module procedure icmOpticalDepthLymanAlphaConstructorParameters
      module procedure icmOpticalDepthLymanAlphaConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function icmOpticalDepthLymanAlphaConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily icmOpticalDepthLymanAlpha} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorICMOpticalDepthLymanAlpha} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -81,7 +81,7 @@ contains
 
   function icmOpticalDepthLymanAlphaConstructorInternal(cosmologyFunctions_,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily icmOpticalDepthLymanAlpha} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorICMOpticalDepthLymanAlpha} property extractor class.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     implicit none
@@ -99,7 +99,7 @@ contains
 
   subroutine icmOpticalDepthLymanAlphaDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily icmOpticalDepthLymanAlpha} property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorICMOpticalDepthLymanAlpha} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorICMOpticalDepthLymanAlpha), intent(inout) :: self

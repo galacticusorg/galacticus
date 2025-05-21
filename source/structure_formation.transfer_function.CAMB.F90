@@ -120,7 +120,7 @@ contains
 
   function cambConstructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,transferFunctionType,redshift,cambCountPerDecade) result(self)
     !!{
-    Internal constructor for the \href{http://camb.info}{\normalfont \scshape CAMB} transfer function class.
+    Internal constructor for the \refClass{transferFunctionCAMB} transfer function class.
     !!}
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleCDM

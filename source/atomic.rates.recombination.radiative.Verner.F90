@@ -38,7 +38,7 @@
 
   interface atomicRecombinationRateRadiativeVerner1996
      !!{
-     Constructors for the {\normalfont \ttfamily verner1996} atomic radiative recombination class.
+     Constructors for the \refClass{atomicRecombinationRateRadiativeVerner1996} atomic radiative recombination class.
      !!}
      module procedure verner1996ConstructorParameters
   end interface atomicRecombinationRateRadiativeVerner1996
@@ -547,7 +547,7 @@ contains
 
   function verner1996ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily verner1996} atomic radiative recombination class which takes a parameter set as input.
+    Constructor for the \refClass{atomicRecombinationRateRadiativeVerner1996} atomic radiative recombination class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

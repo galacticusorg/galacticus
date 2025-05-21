@@ -50,7 +50,7 @@
 
   interface outputAnalysisLocalGroupMassMetallicityRelation
      !!{
-     Constructors for the {\normalfont \ttfamily localGroupMassMetallicityRelation} output analysis class.
+     Constructors for the \refClass{outputAnalysisLocalGroupMassMetallicityRelation} output analysis class.
      !!}
      module procedure localGroupMassMetallicityRelationConstructorParameters
      module procedure localGroupMassMetallicityRelationConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function localGroupMassMetallicityRelationConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily localGroupMassMetallicityRelation} output analysis class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisLocalGroupMassMetallicityRelation} output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters            , only : inputParameter               , inputParameters
     use :: Output_Times                , only : outputTimes                  , outputTimesClass
@@ -156,7 +156,7 @@ contains
 
   function localGroupMassMetallicityRelationConstructorInternal(outputTimes_,positionType,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,metallicitySystematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily localGroupMassMetallicityRelation} output analysis class for internal use.
+    Constructor for the \refClass{outputAnalysisLocalGroupMassMetallicityRelation} output analysis class for internal use.
     !!}
     use :: Atomic_Data                             , only : Atomic_Number
     use :: Abundances_Structure                    , only : Abundances_Index_From_Name
@@ -495,7 +495,7 @@ contains
 
   subroutine localGroupMassMetallicityRelationDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily localGroupMassMetallicityRelation} output analysis class.
+    Destructor for the \refClass{outputAnalysisLocalGroupMassMetallicityRelation} output analysis class.
     !!}
     implicit none
     type(outputAnalysisLocalGroupMassMetallicityRelation), intent(inout) :: self

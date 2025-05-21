@@ -34,7 +34,7 @@
 
   interface taskBuildToolCloudy
      !!{
-     Constructors for the {\normalfont \ttfamily buildToolCloudy} task.
+     Constructors for the \refClass{taskBuildToolCloudy} task.
      !!}
      module procedure buildToolCloudyParameters
   end interface taskBuildToolCloudy
@@ -43,7 +43,7 @@ contains
 
   function buildToolCloudyParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily buildToolCloudy} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskBuildToolCloudy} task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

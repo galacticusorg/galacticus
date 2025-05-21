@@ -44,7 +44,7 @@
 
   interface initialMassFunctionBaugh2005TopHeavy
      !!{
-     Constructors for the {\normalfont \ttfamily baugh2005TopHeavy} initial mass function class.
+     Constructors for the \refClass{initialMassFunctionBaugh2005TopHeavy} initial mass function class.
      !!}
      module procedure baugh2005TopHeavyConstructorParameters
      module procedure baugh2005TopHeavyConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function baugh2005TopHeavyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily baugh2005TopHeavy} initial mass function class which takes a parameter list as input.
+    Constructor for the \refClass{initialMassFunctionBaugh2005TopHeavy} initial mass function class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -70,7 +70,7 @@ contains
 
   function baugh2005TopHeavyConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily baugh2005TopHeavy} initial mass function.
+    Internal constructor for the \refClass{initialMassFunctionBaugh2005TopHeavy} initial mass function.
     !!}
     implicit none
     type(initialMassFunctionBaugh2005TopHeavy):: self

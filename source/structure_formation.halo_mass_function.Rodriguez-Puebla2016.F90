@@ -41,7 +41,7 @@
 
   interface haloMassFunctionRodriguezPuebla2016
      !!{
-     Constructors for the {\normalfont \ttfamily rodriguezPuebla2016} halo mass function class.
+     Constructors for the \refClass{haloMassFunctionRodriguezPuebla2016} halo mass function class.
      !!}
      module procedure rodriguezPuebla2016ConstructorParameters
      module procedure rodriguezPuebla2016ConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function rodriguezPuebla2016ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily rodriguezPuebla2016} halo mass function class which takes a parameter set as input.
+    Constructor for the \refClass{haloMassFunctionRodriguezPuebla2016} halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -87,7 +87,7 @@ contains
 
   function rodriguezPuebla2016ConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,linearGrowth_,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily rodriguezPuebla2016} halo mass function class.
+    Internal constructor for the \refClass{haloMassFunctionRodriguezPuebla2016} halo mass function class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -107,7 +107,7 @@ contains
 
   subroutine rodriguezPuebla2016Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily rodriguezPuebla2016} halo mass function class.
+    Destructor for the \refClass{haloMassFunctionRodriguezPuebla2016} halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionRodriguezPuebla2016), intent(inout) :: self

@@ -47,7 +47,7 @@
 
   interface initialMassFunctionMillerScalo1979
      !!{
-     Constructors for the {\normalfont \ttfamily millerScalo1979} initial mass function class.
+     Constructors for the \refClass{initialMassFunctionMillerScalo1979} initial mass function class.
      !!}
      module procedure millerScalo1979ConstructorParameters
      module procedure millerScalo1979ConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function millerScalo1979ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily millerScalo1979} initial mass function class which takes a parameter list as input.
+    Constructor for the \refClass{initialMassFunctionMillerScalo1979} initial mass function class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -73,7 +73,7 @@ contains
 
   function millerScalo1979ConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily millerScalo1979} initial mass function.
+    Internal constructor for the \refClass{initialMassFunctionMillerScalo1979} initial mass function.
     !!}
     implicit none
     type(initialMassFunctionMillerScalo1979):: self

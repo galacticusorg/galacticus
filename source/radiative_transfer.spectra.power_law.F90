@@ -43,7 +43,7 @@
   
   interface radiativeTransferSpectrumPowerLaw
      !!{
-     Constructors for the {\normalfont \ttfamily powerLaw} radiative transfer spectrum class.
+     Constructors for the \refClass{radiativeTransferSpectrumPowerLaw} radiative transfer spectrum class.
      !!}
      module procedure powerLawConstructorParameters
      module procedure powerLawConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function powerLawConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily powerLaw} radiative transfer spectrum class which takes a parameter set as
+    Constructor for the \refClass{radiativeTransferSpectrumPowerLaw} radiative transfer spectrum class which takes a parameter set as
     input.
     !!}
     use :: Input_Parameters, only : inputParameters, inputParameter
@@ -94,7 +94,7 @@ contains
 
   function powerLawConstructorInternal(wavelengthMinimum,wavelengthMaximum,exponent,normalization) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily powerLaw} radiative transfer photon packet class.
+    Internal constructor for the \refClass{radiativeTransferSpectrumPowerLaw} radiative transfer photon packet class.
     !!}
     implicit none
     type            (radiativeTransferSpectrumPowerLaw)                :: self

@@ -49,7 +49,7 @@ Implements an N-body data importer for Gadget binary files.
 
   interface nbodyImporterGadgetBinary
      !!{
-     Constructors for the {\normalfont \ttfamily gadgetBinary} N-body importer class.
+     Constructors for the \refClass{nbodyImporterGadgetBinary} N-body importer class.
      !!}
      module procedure gadgetBinaryConstructorParameters
      module procedure gadgetBinaryConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function gadgetBinaryConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily gadgetBinary} N-body importer class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyImporterGadgetBinary} N-body importer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -132,7 +132,7 @@ contains
 
   function gadgetBinaryConstructorInternal(fileName,label,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI,isCosmological,setParticleType,cosmologyParameters_) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily gadgetBinary} N-body importer class.
+    Internal constructor for the \refClass{nbodyImporterGadgetBinary} N-body importer class.
     !!}
     implicit none
     type            (nbodyImporterGadgetBinary)                        :: self
@@ -143,7 +143,7 @@ contains
     logical                                    , intent(in   )         :: isCosmological      , setParticleType
     class           (cosmologyParametersClass ), intent(in   ), target :: cosmologyParameters_
     !![
-    <constructorAssign variables="fileName, label, particleType, lengthSoftening, unitMassInSI, unitLengthInSI, unitVelocityInSI, unitLengthInSI, isCosmological, setParticleType, *cosmologyParameters_"/>
+    <constructorAssign variables="fileName, label, particleType, lengthSoftening, unitMassInSI, unitLengthInSI, unitVelocityInSI, isCosmological, setParticleType, *cosmologyParameters_"/>
     !!]
 
     return

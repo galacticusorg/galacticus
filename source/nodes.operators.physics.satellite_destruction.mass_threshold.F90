@@ -45,7 +45,7 @@
   
   interface nodeOperatorSatelliteDestructionMassThreshold
      !!{
-     Constructors for the {\normalfont \ttfamily satelliteDestructionMassThreshold} node operator class.
+     Constructors for the \refClass{nodeOperatorSatelliteDestructionMassThreshold} node operator class.
      !!}
      module procedure satelliteDestructionMassThresholdConstructorParameters
      module procedure satelliteDestructionMassThresholdConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function satelliteDestructionMassThresholdConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily satelliteDestructionMassThreshold} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorSatelliteDestructionMassThreshold} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -97,7 +97,7 @@ contains
 
   function satelliteDestructionMassThresholdConstructorInternal(massDestructionAbsolute,massDestructionMassInfallFraction,massDestructionMassTreeFraction) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily satelliteDestructionMassThreshold} node operator class.
+    Internal constructor for the \refClass{nodeOperatorSatelliteDestructionMassThreshold} node operator class.
     !!}
     implicit none
     type            (nodeOperatorSatelliteDestructionMassThreshold)                :: self

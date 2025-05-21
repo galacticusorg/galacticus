@@ -52,7 +52,7 @@ Implements an N-body data operator which filters out particles based on a proper
 
   interface nbodyOperatorFilterProperties
      !!{
-     Constructors for the {\normalfont \ttfamily filterProperties} N-body operator class.
+     Constructors for the \refClass{nbodyOperatorFilterProperties} N-body operator class.
      !!}
      module procedure filterPropertiesConstructorParameters
      module procedure filterPropertiesConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function filterPropertiesConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily filterProperties} N-body operator class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyOperatorFilterProperties} N-body operator class which takes a parameter set as input.
     !!}
     use :: Error                , only : Error_Report
     use :: Input_Parameters     , only : inputParameters
@@ -142,7 +142,7 @@ contains
 
   function filterPropertiesConstructorInternal(propertyRanges) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily filterProperties} N-body operator class.
+    Internal constructor for the \refClass{nbodyOperatorFilterProperties} N-body operator class.
     !!}
     use :: Error                , only : Error_Report
     use :: NBody_Simulation_Data, only : propertyTypeInteger, propertyTypeReal

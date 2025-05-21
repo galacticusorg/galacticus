@@ -38,7 +38,7 @@ Implements a merger tree evolve profiler that does nothing.
 
   interface mergerTreeEvolveProfilerNull
      !!{
-     Constructors for the {\normalfont \ttfamily null} merger tree evolve profiler class.
+     Constructors for the \refClass{mergerTreeEvolveProfilerNull} merger tree evolve profiler class.
      !!}
      module procedure nullConstructorParameters
   end interface mergerTreeEvolveProfilerNull
@@ -47,7 +47,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily null} merger tree evolve profiler class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeEvolveProfilerNull} merger tree evolve profiler class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

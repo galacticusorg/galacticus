@@ -46,7 +46,7 @@ Implements a radiusCooling property extractor class.
 
   interface nodePropertyExtractorRadiusCooling
      !!{
-     Constructors for the {\normalfont \ttfamily radiusCooling} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusCooling} output analysis class.
      !!}
      module procedure radiusCoolingConstructorParameters
      module procedure radiusCoolingConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function radiusCoolingConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily radiusCooling} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorRadiusCooling} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function radiusCoolingConstructorInternal(coolingRadius_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily radiusCooling} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorRadiusCooling} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorRadiusCooling)                        :: self
@@ -91,7 +91,7 @@ contains
 
   subroutine radiusCoolingDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily radiusCooling} property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorRadiusCooling} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRadiusCooling), intent(inout) :: self

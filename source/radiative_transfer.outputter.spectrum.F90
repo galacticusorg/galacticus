@@ -50,7 +50,7 @@
 
   interface radiativeTransferOutputterSpectrum
      !!{
-     Constructors for the {\normalfont \ttfamily spectrum} radiative transfer outputter class.
+     Constructors for the \refClass{radiativeTransferOutputterSpectrum} radiative transfer outputter class.
      !!}
      module procedure spectrumConstructorParameters
      module procedure spectrumConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function spectrumConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily spectrum} radiative transfer outputter class which takes a parameter set as
+    Constructor for the \refClass{radiativeTransferOutputterSpectrum} radiative transfer outputter class which takes a parameter set as
     input.
     !!}
     use :: Input_Parameters        , only : inputParameters
@@ -119,7 +119,7 @@ contains
 
   function spectrumConstructorInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,thetaMinimum,thetaMaximum,countThetas) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily spectrum} radiative transfer outputter class.
+    Internal constructor for the \refClass{radiativeTransferOutputterSpectrum} radiative transfer outputter class.
     !!}
     use :: Numerical_Constants_Math    , only : Pi
     use :: Numerical_Constants_Physical, only : plancksConstant  , speedLight

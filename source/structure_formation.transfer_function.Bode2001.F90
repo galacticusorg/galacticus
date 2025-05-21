@@ -83,7 +83,7 @@ Implements a transfer function class based on the thermal \gls{wdm} modifier of 
 
   interface transferFunctionBode2001
      !!{
-     Constructors for the {\normalfont \ttfamily bode2001} transfer function class.
+     Constructors for the \refClass{transferFunctionBode2001} transfer function class.
      !!}
      module procedure bode2001ConstructorParameters
      module procedure bode2001ConstructorInternal
@@ -93,7 +93,7 @@ contains
 
   function bode2001ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily bode2001} transfer function class which takes a parameter set as input.
+    Constructor for the \refClass{transferFunctionBode2001} transfer function class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
@@ -165,7 +165,7 @@ contains
 
   function bode2001ConstructorInternal(transferFunctionCDM,scaleCutOffModel,epsilon,eta,nu,time,cosmologyParameters_,darkMatterParticle_,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily bode2001} transfer function class.
+    Internal constructor for the \refClass{transferFunctionBode2001} transfer function class.
     !!}
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleWDMThermal
@@ -284,7 +284,7 @@ contains
 
   subroutine bode2001Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily bode2001} transfer function class.
+    Destructor for the \refClass{transferFunctionBode2001} transfer function class.
     !!}
     implicit none
     type(transferFunctionBode2001), intent(inout) :: self

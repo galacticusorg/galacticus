@@ -41,7 +41,7 @@ Implements a galactic high-pass filter for total stellar mass.
 
   interface galacticFilterStellarMass
      !!{
-     Constructors for the {\normalfont \ttfamily stellarMass} galactic filter class.
+     Constructors for the \refClass{galacticFilterStellarMass} galactic filter class.
      !!}
      module procedure stellarMassConstructorParameters
      module procedure stellarMassConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function stellarMassConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily stellarMass} galactic filter class which takes a parameter set as input.
+    Constructor for the \refClass{galacticFilterStellarMass} galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,7 +75,7 @@ contains
 
   function stellarMassConstructorInternal(massThreshold) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily stellarMass} galactic filter class.
+    Internal constructor for the \refClass{galacticFilterStellarMass} galactic filter class.
     !!}
     implicit none
     type            (galacticFilterStellarMass)                :: self

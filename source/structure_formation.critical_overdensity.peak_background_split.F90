@@ -44,7 +44,7 @@ Implements an peak-background split critical overdensity class.
 
   interface criticalOverdensityPeakBackgroundSplit
      !!{
-     Constructors for the {\normalfont \ttfamily peakBackgroundSplit} critical overdensity class.
+     Constructors for the \refClass{criticalOverdensityPeakBackgroundSplit} critical overdensity class.
      !!}
      module procedure peakBackgroundSplitConstructorParameters
      module procedure peakBackgroundSplitConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function peakBackgroundSplitConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily peakBackgroundSplit} critical overdensity class which takes a parameter set as input.
+    Constructor for the \refClass{criticalOverdensityPeakBackgroundSplit} critical overdensity class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -88,7 +88,7 @@ contains
 
   function peakBackgroundSplitConstructorInternal(criticalOverdensity_,haloEnvironment_,cosmologyFunctions_,cosmologicalMassVariance_,linearGrowth_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily peakBackgroundSplit} critical overdensity class.
+    Internal constructor for the \refClass{criticalOverdensityPeakBackgroundSplit} critical overdensity class.
     !!}
     implicit none
     type (criticalOverdensityPeakBackgroundSplit)                        :: self
@@ -106,7 +106,7 @@ contains
 
   subroutine peakBackgroundSplitDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily peakBackgroundSplit} critical overdensity class.
+    Destructor for the \refClass{criticalOverdensityPeakBackgroundSplit} critical overdensity class.
     !!}
     implicit none
     type(criticalOverdensityPeakBackgroundSplit), intent(inout) :: self

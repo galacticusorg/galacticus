@@ -37,7 +37,7 @@ Implements a filter which passes only isolated halos.
 
   interface galacticFilterHaloIsolated
      !!{
-     Constructors for the {\normalfont \ttfamily haloIsolated} galactic filter class.
+     Constructors for the \refClass{galacticFilterHaloIsolated} galactic filter class.
      !!}
      module procedure haloIsolatedConstructorParameters
   end interface galacticFilterHaloIsolated
@@ -46,7 +46,7 @@ contains
 
   function haloIsolatedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily haloIsolated} galactic filter class which takes a parameter set as input.
+    Constructor for the \refClass{galacticFilterHaloIsolated} galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

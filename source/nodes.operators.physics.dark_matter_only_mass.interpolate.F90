@@ -44,7 +44,7 @@
   
   interface nodeOperatorDMOInterpolate
      !!{
-     Constructors for the {\normalfont \ttfamily dmoInterpolate} node operator class.
+     Constructors for the \refClass{nodeOperatorDMOInterpolate} node operator class.
      !!}
      module procedure dmoInterpolateConstructorParameters
      module procedure dmoInterpolateConstructorInternal
@@ -54,7 +54,7 @@ contains
   
   function dmoInterpolateConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily dmoInterpolate} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorDMOInterpolate} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -70,7 +70,7 @@ contains
 
   function dmoInterpolateConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily dmoInterpolate} node operator class.
+    Internal constructor for the \refClass{nodeOperatorDMOInterpolate} node operator class.
     !!}
     implicit none
     type(nodeOperatorDMOInterpolate) :: self

@@ -88,7 +88,7 @@
 
   interface blackHoleBinarySeparationGrowthRateStandard
      !!{
-     Constructors for the {\normalfont \ttfamily standard} black hole binary recoil class.
+     Constructors for the \refClass{blackHoleBinarySeparationGrowthRateStandard} black hole binary recoil class.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -98,7 +98,7 @@ contains
 
   function standardConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily standard} black hole binary separation growth rate class which takes a parameter
+    Constructor for the \refClass{blackHoleBinarySeparationGrowthRateStandard} black hole binary separation growth rate class which takes a parameter
     set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -135,7 +135,7 @@ contains
 
   function standardConstructorInternal(stellarDensityChangeBinaryMotion,computeVelocityDispersion,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily standard} black hole binary separation growth class.
+    Internal constructor for the \refClass{blackHoleBinarySeparationGrowthRateStandard} black hole binary separation growth class.
     !!}
     implicit none
     type   (blackHoleBinarySeparationGrowthRateStandard)                        :: self
@@ -150,7 +150,7 @@ contains
 
   subroutine standardDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily standard} black hole binary separation growth class.
+    Destructor for the \refClass{blackHoleBinarySeparationGrowthRateStandard} black hole binary separation growth class.
     !!}
     implicit none
     type(blackHoleBinarySeparationGrowthRateStandard), intent(inout) :: self

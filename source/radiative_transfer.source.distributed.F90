@@ -47,7 +47,7 @@
 
   interface radiativeTransferSourceDistributed
      !!{
-     Constructors for the {\normalfont \ttfamily distributed} radiative transfer source class.
+     Constructors for the \refClass{radiativeTransferSourceDistributed} radiative transfer source class.
      !!}
      module procedure distributedConstructorParameters
      module procedure distributedConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function distributedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily distributed} radiative transfer source class which takes a parameter set as
+    Constructor for the \refClass{radiativeTransferSourceDistributed} radiative transfer source class which takes a parameter set as
     input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -99,7 +99,7 @@ contains
 
   function distributedConstructorInternal(position,label,massDistribution_,radiativeTransferSpectrum_,randomNumberGenerator_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily distributed} radiative transfer source class.
+    Internal constructor for the \refClass{radiativeTransferSourceDistributed} radiative transfer source class.
     !!}
     implicit none
     type            (radiativeTransferSourceDistributed)                              :: self
@@ -117,7 +117,7 @@ contains
 
   subroutine distributedDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily distributed} radiative transfer source class.
+    Destructor for the \refClass{radiativeTransferSourceDistributed} radiative transfer source class.
     !!}
     implicit none
     type(radiativeTransferSourceDistributed), intent(inout) :: self

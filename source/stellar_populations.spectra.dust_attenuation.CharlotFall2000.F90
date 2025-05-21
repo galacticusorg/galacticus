@@ -39,7 +39,7 @@
 
   interface stellarSpectraDustAttenuationCharlotFall2000
      !!{
-     Constructors for the {\normalfont \ttfamily charlotFall2000} stellar spectra dust attenuation class.
+     Constructors for the \refClass{stellarSpectraDustAttenuationCharlotFall2000} stellar spectra dust attenuation class.
      !!}
      module procedure charlotFall2000ConstructorParameters
      module procedure charlotFall2000ConstructorInternal
@@ -92,7 +92,7 @@ contains
 
   function charlotFall2000ConstructorInternal(opacityExponent,birthCloudLifetime,opticalDepthISM,opticalDepthBirthClouds) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily charlotFall2000} stellar spectra dust attenuation class.
+    Constructor for the \refClass{stellarSpectraDustAttenuationCharlotFall2000} stellar spectra dust attenuation class.
     !!}
     implicit none
     type            (stellarSpectraDustAttenuationCharlotFall2000)                :: self

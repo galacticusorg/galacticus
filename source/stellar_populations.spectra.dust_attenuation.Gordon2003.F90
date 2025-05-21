@@ -37,7 +37,7 @@
 
   interface stellarSpectraDustAttenuationGordon2003
      !!{
-     Constructors for the {\normalfont \ttfamily gordon2003} stellar spectra dust attenuation class.
+     Constructors for the \refClass{stellarSpectraDustAttenuationGordon2003} stellar spectra dust attenuation class.
      !!}
      module procedure gordon2003ConstructorParameters
      module procedure gordon2003ConstructorInternal
@@ -84,7 +84,7 @@ contains
 
   function gordon2003ConstructorInternal(sample) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily gordon2003} stellar spectra dust attenuation class.
+    Constructor for the \refClass{stellarSpectraDustAttenuationGordon2003} stellar spectra dust attenuation class.
     !!}
     use :: Error       , only : Error_Report
     use :: Table_Labels, only : extrapolationTypeExtrapolate

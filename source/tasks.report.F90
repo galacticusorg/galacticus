@@ -34,7 +34,7 @@
 
   interface taskReport
      !!{
-     Constructors for the {\normalfont \ttfamily report} task.
+     Constructors for the \refClass{taskReport} task.
      !!}
      module procedure reportParameters
   end interface taskReport
@@ -43,7 +43,7 @@ contains
 
   function reportParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily report} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskReport} task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

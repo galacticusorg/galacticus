@@ -113,7 +113,7 @@ contains
 
   function classCDMConstructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,redshift,countPerDecade) result(self)
     !!{
-    Internal constructor for the \href{http://class-code.net}{\normalfont \scshape CLASSCDM} transfer function class.
+    Internal constructor for the \refClass{transferFunctionCLASSCDM} transfer function class.
     !!}
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleCDM

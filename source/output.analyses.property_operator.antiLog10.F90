@@ -37,7 +37,7 @@ Implements an anti-$\log_{10}()$ output analysis property operator class.
 
   interface outputAnalysisPropertyOperatorAntiLog10
      !!{
-     Constructors for the {\normalfont \ttfamily antiLog10} output analysis class.
+     Constructors for the \refClass{outputAnalysisPropertyOperatorAntiLog10} output analysis class.
      !!}
      module procedure antiLog10ConstructorParameters
   end interface outputAnalysisPropertyOperatorAntiLog10
@@ -46,7 +46,7 @@ contains
 
   function antiLog10ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily antiLog10} output analysis property operator class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisPropertyOperatorAntiLog10} output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

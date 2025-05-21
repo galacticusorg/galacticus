@@ -37,7 +37,7 @@ Implements a subsampling weight operator class.
 
   interface outputAnalysisWeightOperatorSubsampling
      !!{
-     Constructors for the {\normalfont \ttfamily subsampling} output analysis class.
+     Constructors for the \refClass{outputAnalysisWeightOperatorSubsampling} output analysis class.
      !!}
      module procedure subsamplingConstructorParameters
   end interface outputAnalysisWeightOperatorSubsampling
@@ -46,7 +46,7 @@ contains
 
   function subsamplingConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily subsampling} output analysis weight operator class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisWeightOperatorSubsampling} output analysis weight operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

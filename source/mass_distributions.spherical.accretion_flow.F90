@@ -60,7 +60,7 @@
 
   interface massDistributionSphericalAccretionFlow
      !!{
-     Constructors for the {\normalfont \ttfamily sphericalAccretionFlow} mass distribution class.
+     Constructors for the \refClass{massDistributionSphericalAccretionFlow} mass distribution class.
      !!}
      module procedure sphericalAccretionFlowConstructorParameters
      module procedure sphericalAccretionFlowConstructorInternal
@@ -70,7 +70,7 @@ contains
 
   function sphericalAccretionFlowConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sphericalAccretionFlow} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionSphericalAccretionFlow} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameters
@@ -130,7 +130,7 @@ contains
   
   function sphericalAccretionFlowConstructorInternal(radiusTransition,nonAnalyticSolver,massDistribution_,massDistributionAccretionFlow_,componentType,massType) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily sphericalAccretionFlow} mass distribution class.
+    Constructor for the \refClass{massDistributionSphericalAccretionFlow} mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalAccretionFlow)                          :: self
@@ -149,7 +149,7 @@ contains
 
   subroutine sphericalAccretionFlowDestructor(self)
     !!{
-    Destructor for the abstract {\normalfont \ttfamily massDistributionSphericalAccretionFlow} class.
+    Destructor for the abstract \refClass{massDistributionSphericalAccretionFlow} class.
     !!}
     implicit none
     type(massDistributionSphericalAccretionFlow), intent(inout) :: self

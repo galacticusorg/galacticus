@@ -46,7 +46,7 @@
 
   interface nodePropertyExtractorNodeMajorMergerRecentCount
      !!{
-     Constructors for the {\normalfont \ttfamily nodeMajorMergerRecentCount} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorNodeMajorMergerRecentCount} output analysis class.
      !!}
      module procedure nodeMajorMergerRecentCountConstructorParameters
      module procedure nodeMajorMergerRecentCountConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function nodeMajorMergerRecentCountConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily nodeMajorMergerRecentCount} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorNodeMajorMergerRecentCount} node property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function nodeMajorMergerRecentCountConstructorInternal(outputTimes_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily nodeMajorMergerRecentCount} node property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorNodeMajorMergerRecentCount} node property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorNodeMajorMergerRecentCount)                        :: self
@@ -94,7 +94,7 @@ contains
 
   subroutine nodeMajorMergerRecentCountDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily nodeMajorMergerRecentCount} node operator class.
+    Destructor for the \refClass{nodePropertyExtractorNodeMajorMergerRecentCount} node operator class.
     !!}
     implicit none
     type(nodePropertyExtractorNodeMajorMergerRecentCount), intent(inout) :: self

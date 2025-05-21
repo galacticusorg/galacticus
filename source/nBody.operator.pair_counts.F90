@@ -46,7 +46,7 @@ Implements an N-body data operator which computes pair counts in bins of separat
 
   interface nbodyOperatorPairCounts
      !!{
-     Constructors for the {\normalfont \ttfamily pairCounts} N-body operator class.
+     Constructors for the \refClass{nbodyOperatorPairCounts} N-body operator class.
      !!}
      module procedure pairCountsConstructorParameters
      module procedure pairCountsConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function pairCountsConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily pairCounts} N-body operator class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyOperatorPairCounts} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -120,7 +120,7 @@ contains
 
   function pairCountsConstructorInternal(separationMinimum,separationMaximum,separationCount,crossCount,includeUnbootstrapped,bootstrapSampleCount,bootstrapSampleRate,randomNumberGenerator_) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily pairCounts} N-body operator class.
+    Internal constructor for the \refClass{nbodyOperatorPairCounts} N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorPairCounts)                           :: self
@@ -138,7 +138,7 @@ contains
 
   subroutine pairCountsDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily pairCounts} N-body operator class.
+    Destructor for the \refClass{nbodyOperatorPairCounts} N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorPairCounts), intent(inout) :: self

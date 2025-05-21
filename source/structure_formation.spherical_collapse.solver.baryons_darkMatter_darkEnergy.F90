@@ -43,7 +43,7 @@
 
   interface sphericalCollapseSolverBaryonsDarkMatterDarkEnergy
      !!{
-     Constructors for the {\normalfont \ttfamily baryonsDarkMatterDarkEnergy} spherical collapse solver class.
+     Constructors for the \refClass{sphericalCollapseSolverBaryonsDarkMatterDarkEnergy} spherical collapse solver class.
      !!}
      module procedure baryonsDarkMatterDarkEnergyConstructorParameters
      module procedure baryonsDarkMatterDarkEnergyConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function baryonsDarkMatterDarkEnergyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily baryonsDarkMatterDarkEnergy} spherical collapse solver class that takes a parameter set as
+    Constructor for the \refClass{sphericalCollapseSolverBaryonsDarkMatterDarkEnergy} spherical collapse solver class that takes a parameter set as
     input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -103,7 +103,7 @@ contains
 
   function baryonsDarkMatterDarkEnergyConstructorInternal(baryonsCluster,tablePointsPerOctave,energyFixedAt,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily baryonsDarkMatterDarkEnergy} spherical collapse solver class.
+    Internal constructor for the \refClass{sphericalCollapseSolverBaryonsDarkMatterDarkEnergy} spherical collapse solver class.
     !!}
     use :: Error             , only : Error_Report
     use :: Input_Paths       , only : inputPath                      , pathTypeDataDynamic
@@ -159,7 +159,7 @@ contains
 
   subroutine baryonsDarkMatterDarkEnergyDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily baryonsDarkMatterDarkEnergy} spherical collapse solver class.
+    Destructor for the \refClass{sphericalCollapseSolverBaryonsDarkMatterDarkEnergy} spherical collapse solver class.
     !!}
     implicit none
     type(sphericalCollapseSolverBaryonsDarkMatterDarkEnergy), intent(inout) :: self

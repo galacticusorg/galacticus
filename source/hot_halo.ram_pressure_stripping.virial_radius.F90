@@ -44,7 +44,7 @@
 
   interface hotHaloRamPressureStrippingVirialRadius
      !!{
-     Constructors for the {\normalfont \ttfamily virialRadius} hot halo ram pressure stripping class.
+     Constructors for the \refClass{hotHaloRamPressureStrippingVirialRadius} hot halo ram pressure stripping class.
      !!}
      module procedure virialRadiusConstructorParameters
      module procedure virialRadiusConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function virialRadiusConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily virialRadius} hot halo ram pressure stripping class which builds the object from a parameter set.
+    Constructor for the \refClass{hotHaloRamPressureStrippingVirialRadius} hot halo ram pressure stripping class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,7 +75,7 @@ contains
 
   function virialRadiusConstructorInternal(darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily virialRadius} hot halo ram pressure stripping class.
+    Internal constructor for the \refClass{hotHaloRamPressureStrippingVirialRadius} hot halo ram pressure stripping class.
     !!}
     implicit none
     type (hotHaloRamPressureStrippingVirialRadius)                        :: self
@@ -89,7 +89,7 @@ contains
 
   subroutine virialRadiusDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily virialRadius} hot halo ram pressure stripping class.
+    Destructor for the \refClass{hotHaloRamPressureStrippingVirialRadius} hot halo ram pressure stripping class.
     !!}
     implicit none
     type(hotHaloRamPressureStrippingVirialRadius), intent(inout) :: self

@@ -38,7 +38,7 @@
   
   interface nodeOperatorMassAccretionHistory
      !!{
-     Constructors for the {\normalfont \ttfamily massAccretionHistory} node operator class.
+     Constructors for the \refClass{nodeOperatorMassAccretionHistory} node operator class.
      !!}
      module procedure massAccretionHistoryConstructorParameters
      module procedure massAccretionHistoryConstructorInternal
@@ -48,7 +48,7 @@ contains
 
   function massAccretionHistoryConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily massAccretionHistory} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorMassAccretionHistory} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -64,7 +64,7 @@ contains
 
   function massAccretionHistoryConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily massAccretionHistory} node operator class.
+    Internal constructor for the \refClass{nodeOperatorMassAccretionHistory} node operator class.
     !!}
     use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none

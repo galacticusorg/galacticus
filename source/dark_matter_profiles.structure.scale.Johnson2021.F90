@@ -55,7 +55,7 @@
   
   interface darkMatterProfileScaleRadiusJohnson2021
      !!{
-     Constructors for the {\normalfont \ttfamily darkMatterProfileScaleJohnson2021} node operator class.
+     Constructors for the \refClass{darkMatterProfileScaleRadiusJohnson2021} node operator class.
      !!}
      module procedure darkMatterProfileScaleJohnson2021ConstructorParameters
      module procedure darkMatterProfileScaleJohnson2021ConstructorInternal
@@ -72,7 +72,7 @@ contains
   
   function darkMatterProfileScaleJohnson2021ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily randomWalk} dark matter profile scale radius class which
+    Constructor for the \refClass{darkMatterProfileScaleRadiusJohnson2021} dark matter profile scale radius class which
     takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -129,7 +129,7 @@ contains
 
   function darkMatterProfileScaleJohnson2021ConstructorInternal(massExponent,energyBoost,unresolvedEnergy,darkMatterProfileScaleRadius_,darkMatterHaloScale_,darkMatterProfileDMO_,virialOrbit_,mergerTreeMassResolution_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily randomWalk} dark matter profile scale radius class.
+    Internal constructor for the \refClass{darkMatterProfileScaleRadiusJohnson2021} dark matter profile scale radius class.
     !!}
     implicit none
     type            (darkMatterProfileScaleRadiusJohnson2021)                        :: self
@@ -149,7 +149,7 @@ contains
 
   subroutine darkMatterProfileScaleJohnson2021Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily randomWalk} dark matter halo profile scale radius class.
+    Destructor for the \refClass{darkMatterProfileScaleRadiusJohnson2021} dark matter halo profile scale radius class.
     !!}
     implicit none
     type(darkMatterProfileScaleRadiusJohnson2021), intent(inout) :: self

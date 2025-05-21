@@ -44,7 +44,7 @@
   
   interface blackHoleWindSimple
      !!{
-     Constructors for the {\normalfont \ttfamily simple} black hole winds class.
+     Constructors for the \refClass{blackHoleWindSimple} black hole winds class.
      !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function simpleConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily simple} black hole winds class which takes a parameter list as input.
+    Constructor for the \refClass{blackHoleWindSimple} black hole winds class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -82,7 +82,7 @@ contains
 
   function simpleConstructorInternal(efficiencyWind,blackHoleAccretionRate_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily simple} node operator class.
+    Internal constructor for the \refClass{blackHoleWindSimple} node operator class.
     !!}
     implicit none
     type            (blackHoleWindSimple        )                        :: self

@@ -58,7 +58,7 @@
 
   interface satelliteTidalStrippingRadiusKing1962
      !!{
-     Constructors for the {\normalfont \ttfamily king1962} satellite tidal stripping class.
+     Constructors for the \refClass{satelliteTidalStrippingRadiusKing1962} satellite tidal stripping class.
      !!}
      module procedure king1962ConstructorParameters
      module procedure king1962ConstructorInternal
@@ -68,7 +68,7 @@ contains
 
   function king1962ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily king1962} satellite tidal stripping class which builds the object from a parameter set.
+    Constructor for the \refClass{satelliteTidalStrippingRadiusKing1962} satellite tidal stripping class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -106,7 +106,7 @@ contains
 
   function king1962ConstructorInternal(efficiencyCentrifugal,applyPreInfall,cosmologyParameters_,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily king1962} satellite tidal stripping class.
+    Internal constructor for the \refClass{satelliteTidalStrippingRadiusKing1962} satellite tidal stripping class.
     !!}
     implicit none
     type            (satelliteTidalStrippingRadiusKing1962)                        :: self
@@ -129,7 +129,7 @@ contains
 
   subroutine king1962Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily king1962} satellite tidal stripping class.
+    Destructor for the \refClass{satelliteTidalStrippingRadiusKing1962} satellite tidal stripping class.
     !!}
     implicit none
     type(satelliteTidalStrippingRadiusKing1962), intent(inout) :: self

@@ -42,7 +42,7 @@ mass scale.
 
   interface haloMassFunctionEnvironmental
      !!{
-     Constructors for the {\normalfont \ttfamily environmental} halo mass function class.
+     Constructors for the \refClass{haloMassFunctionEnvironmental} halo mass function class.
      !!}
      module procedure environmentalConstructorParameters
      module procedure environmentalConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function environmentalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily environmental} halo mass function class which takes a parameter set as
+    Constructor for the \refClass{haloMassFunctionEnvironmental} halo mass function class which takes a parameter set as
     input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -82,7 +82,7 @@ contains
 
   function environmentalConstructorInternal(haloMassFunctionConditioned_,haloMassFunctionUnconditioned_,haloEnvironment_,cosmologyParameters_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily environmental} halo mass function class.
+    Internal constructor for the \refClass{haloMassFunctionEnvironmental} halo mass function class.
     !!}
     implicit none
     type (haloMassFunctionEnvironmental)                        :: self

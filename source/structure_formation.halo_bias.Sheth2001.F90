@@ -44,7 +44,7 @@
 
   interface darkMatterHaloBiasSheth2001
      !!{
-     Constructors for the {\normalfont \ttfamily sheth2001} dark matter halo bias class.
+     Constructors for the \refClass{darkMatterHaloBiasSheth2001} dark matter halo bias class.
      !!}
      module procedure sheth2001ConstructorParameters
      module procedure sheth2001ConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function sheth2001ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sheth2001} dark matter halo mass bias which builds the object from a parameter set.
+    Constructor for the \refClass{darkMatterHaloBiasSheth2001} dark matter halo mass bias which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function sheth2001ConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily sheth2001} dark matter halo bias class.
+    Internal constructor for the \refClass{darkMatterHaloBiasSheth2001} dark matter halo bias class.
     !!}
     implicit none
     type (darkMatterHaloBiasSheth2001  )                        :: self
@@ -93,7 +93,7 @@ contains
 
   subroutine sheth2001Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily sheth2001} dark matter halo bias class.
+    Destructor for the \refClass{darkMatterHaloBiasSheth2001} dark matter halo bias class.
     !!}
     implicit none
     type(darkMatterHaloBiasSheth2001), intent(inout) :: self

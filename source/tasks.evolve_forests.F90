@@ -93,7 +93,7 @@
 
   interface taskEvolveForests
      !!{
-     Constructors for the {\normalfont \ttfamily evolveForests} task.
+     Constructors for the \refClass{taskEvolveForests} task.
      !!}
      module procedure evolveForestsConstructorParameters
      module procedure evolveForestsConstructorInternal
@@ -112,7 +112,7 @@ contains
 
   function evolveForestsConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily evolveForests} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskEvolveForests} task class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     use :: Node_Components , only : Node_Components_Initialize
@@ -239,7 +239,7 @@ contains
 
   function evolveForestsConstructorInternal(evolveForestsInParallel,countForestsMaximum,walltimeMaximum,suspendToRAM,suspendPath,timeIntervalCheckpoint,fileNameCheckpoint,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,mergerTreeSeeds_,parameters) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily evolveForests} task class.
+    Internal constructor for the \refClass{taskEvolveForests} task class.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: Error        , only : Error_Report
@@ -375,7 +375,7 @@ contains
 
   subroutine evolveForestsDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily evolveForests} task class.
+    Destructor for the \refClass{taskEvolveForests} task class.
     !!}
     use :: Events_Hooks    , only : stateRestoreEventGlobal     , stateStoreEventGlobal
     use :: Node_Components , only : Node_Components_Uninitialize

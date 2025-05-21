@@ -69,7 +69,7 @@
 
   interface computationalDomainCartesian3D
      !!{
-     Constructors for the {\normalfont \ttfamily cartesian3D} computational domain.
+     Constructors for the \refClass{computationalDomainCartesian3D} computational domain.
      !!}
      module procedure cartesian3DConstructorParameters
      module procedure cartesian3DConstructorInternal
@@ -94,7 +94,7 @@ contains
 
   function cartesian3DConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily cartesian3D} computational domain class which takes a parameter set as input.
+    Constructor for the \refClass{computationalDomainCartesian3D} computational domain class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -169,7 +169,7 @@ contains
 
   function cartesian3DConstructorInternal(boundaries,countCells,convergencePercentile,convergenceThreshold,convergenceRatioThreshold,radiativeTransferMatter_,radiativeTransferConvergence_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily cartesian3D} computational domain class which takes a parameter set as input.
+    Constructor for the \refClass{computationalDomainCartesian3D} computational domain class which takes a parameter set as input.
     !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLinear
     implicit none
@@ -202,7 +202,7 @@ contains
 
   subroutine cartesian3DDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily cartesian3D} computational domain class.
+    Destructor for the \refClass{computationalDomainCartesian3D} computational domain class.
     !!}
     implicit none
     type(computationalDomainCartesian3D), intent(inout) :: self

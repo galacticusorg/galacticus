@@ -50,7 +50,7 @@
 
   interface darkMatterHaloBiasTinker2010
      !!{
-     Constructors for the {\normalfont \ttfamily tinker2010} dark matter halo bias class.
+     Constructors for the \refClass{darkMatterHaloBiasTinker2010} dark matter halo bias class.
      !!}
      module procedure tinker2010ConstructorParameters
      module procedure tinker2010ConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function tinker2010ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily tinker2010} dark matter halo mass bias which builds the object from a parameter set.
+    Constructor for the \refClass{darkMatterHaloBiasTinker2010} dark matter halo mass bias which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -87,7 +87,7 @@ contains
 
   function tinker2010ConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_,virialDensityContrast_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily tinker2010} dark matter halo bias class.
+    Internal constructor for the \refClass{darkMatterHaloBiasTinker2010} dark matter halo bias class.
     !!}
     implicit none
     type (darkMatterHaloBiasTinker2010 )                        :: self
@@ -105,7 +105,7 @@ contains
 
   subroutine tinker2010Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily tinker2010} dark matter halo bias class.
+    Destructor for the \refClass{darkMatterHaloBiasTinker2010} dark matter halo bias class.
     !!}
     implicit none
     type(darkMatterHaloBiasTinker2010), intent(inout) :: self

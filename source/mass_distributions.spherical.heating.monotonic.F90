@@ -55,6 +55,7 @@
        <method description="Root function used in finding the radius of shell crossing."       method="radiusShellCrossingRoot"   />
      </methods>
      !!]
+     final     ::                                   monotonicDestructor
      procedure :: specificEnergy                 => monotonicSpecificEnergy
      procedure :: specificEnergyGradient         => monotonicSpecificEnergyGradient
      procedure :: specificEnergyIsEveryWhereZero => monotonicSpecificEnergyIsEverywhereZero
@@ -65,7 +66,7 @@
 
   interface massDistributionHeatingMonotonic
      !!{
-     Constructors for the {\normalfont \ttfamily monotonic} mass distribution class.
+     Constructors for the \refClass{massDistributionHeatingMonotonic} mass distribution class.
      !!}
      module procedure monotonicConstructorParameters
      module procedure monotonicConstructorInternal
@@ -80,7 +81,7 @@ contains
 
   function monotonicConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily monotonic} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionHeatingMonotonic} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -102,7 +103,7 @@ contains
   
   function monotonicConstructorInternal(massDistributionHeating_) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily monotonic} mass distribution heating class.
+    Constructor for the \refClass{massDistributionHeatingMonotonic} mass distribution heating class.
     !!}
     implicit none
     type            (massDistributionHeatingMonotonic)                        :: self
@@ -126,7 +127,7 @@ contains
 
   subroutine monotonicDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily monotonic} mass distribution heating class.
+    Destructor for the \refClass{massDistributionHeatingMonotonic} mass distribution heating class.
     !!}
     implicit none
     type(massDistributionHeatingMonotonic), intent(inout) :: self

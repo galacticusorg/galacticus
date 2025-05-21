@@ -44,7 +44,7 @@ Implements a filter that passes nodes only if they exist at an output time.
 
   interface galacticFilterOutputTimes
      !!{
-     Constructors for the {\normalfont \ttfamily outputTimes} galactic filter class.
+     Constructors for the \refClass{galacticFilterOutputTimes} galactic filter class.
      !!}
      module procedure outputTimesConstructorParameters
      module procedure outputTimesConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function outputTimesConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily outputTimes} galactic filter class which takes a parameter set as input.
+    Constructor for the \refClass{galacticFilterOutputTimes} galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -82,7 +82,7 @@ contains
 
   function outputTimesConstructorInternal(toleranceRelative,outputTimes_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily outputTimes} galactic filter class.
+    Internal constructor for the \refClass{galacticFilterOutputTimes} galactic filter class.
     !!}
     implicit none
     type            (galacticFilterOutputTimes)                        :: self
@@ -97,7 +97,7 @@ contains
 
   subroutine outputTimesDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily outputTimes} galactic filter class.
+    Destructor for the \refClass{galacticFilterOutputTimes} galactic filter class.
     !!}
     implicit none
     type(galacticFilterOutputTimes), intent(inout) :: self

@@ -47,7 +47,7 @@
   
   interface nodePropertyExtractorStarFormationHistoryTimes
      !!{
-     Constructors for the {\normalfont \ttfamily starFormationHistoryTimes} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorStarFormationHistoryTimes} output analysis class.
      !!}
      module procedure starFormationHistoryTimesConstructorParameters
      module procedure starFormationHistoryTimesConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function starFormationHistoryTimesConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily starFormationHistoryTimes} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorStarFormationHistoryTimes} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode
@@ -85,7 +85,7 @@ contains
 
   function starFormationHistoryTimesConstructorInternal(component,starFormationHistory_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily starFormationHistoryTimes} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorStarFormationHistoryTimes} property extractor class.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNuclearStarCluster
     use :: Error                     , only : Error_Report
@@ -109,7 +109,7 @@ contains
 
   subroutine starFormationHistoryTimesDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily starFormationHistoryTime} property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorStarFormationHistoryTimes} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorStarFormationHistoryTimes), intent(inout) :: self

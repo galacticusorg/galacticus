@@ -108,7 +108,7 @@
 
   interface starFormationRateSurfaceDensityDisksBlitz2006
      !!{
-     Constructors for the {\normalfont \ttfamily blitz2006} star formation surface density rate in disks class.
+     Constructors for the \refClass{starFormationRateSurfaceDensityDisksBlitz2006} star formation surface density rate in disks class.
      !!}
      module procedure blitz2006ConstructorParameters
      module procedure blitz2006ConstructorInternal
@@ -123,7 +123,7 @@ contains
 
   function blitz2006ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily blitz2006} star formation surface density rate in disks class which takes a parameter set as input.
+    Constructor for the \refClass{starFormationRateSurfaceDensityDisksBlitz2006} star formation surface density rate in disks class which takes a parameter set as input.
     !!}
     implicit none
     type            (starFormationRateSurfaceDensityDisksBlitz2006)                :: self
@@ -206,7 +206,7 @@ contains
 
   function blitz2006ConstructorInternal(velocityDispersionDiskGas,heightToRadialScaleDisk,surfaceDensityCritical,surfaceDensityExponent,starFormationFrequencyNormalization,pressureCharacteristic,pressureExponent,assumeMonotonicSurfaceDensity,useTabulation) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily blitz2006} star formation surface density rate from disks class.
+    Internal constructor for the \refClass{starFormationRateSurfaceDensityDisksBlitz2006} star formation surface density rate from disks class.
     !!}
     use :: Error                           , only : Error_Report
     use :: Input_Paths                     , only : inputPath                , pathTypeDataDynamic

@@ -74,7 +74,7 @@
 
   interface mergerRemnantSizeCovington2008
      !!{
-     Constructors for the {\normalfont \ttfamily covington2008} merger remnant size class.
+     Constructors for the \refClass{mergerRemnantSizeCovington2008} merger remnant size class.
      !!}
      module procedure covington2008ConstructorParameters
      module procedure covington2008ConstructorInternal
@@ -84,7 +84,7 @@ contains
 
   function covington2008ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily covington2008} merger remnant size class which takes a parameter list as input.
+    Constructor for the \refClass{mergerRemnantSizeCovington2008} merger remnant size class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -122,7 +122,7 @@ contains
 
   function covington2008ConstructorInternal(energyOrbital, efficiencyRadiative,darkMatterHaloScale_,mergerProgenitorProperties_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily covington2008} merger remnant size class.
+    Internal constructor for the \refClass{mergerRemnantSizeCovington2008} merger remnant size class.
     !!}
     implicit none
     type            (mergerRemnantSizeCovington2008 )                        :: self
@@ -152,7 +152,7 @@ contains
 
   subroutine covington2008Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily covington2008} merger remnant size class.
+    Destructor for the \refClass{mergerRemnantSizeCovington2008} merger remnant size class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent
     implicit none

@@ -83,7 +83,7 @@
 
   interface darkMatterHaloScaleVirialDensityContrastDefinition
      !!{
-     Constructors for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class.
+     Constructors for the \refClass{darkMatterHaloScaleVirialDensityContrastDefinition} dark matter halo scales class.
      !!}
      module procedure virialDensityContrastDefinitionParameters
      module procedure virialDensityContrastDefinitionInternal
@@ -95,7 +95,7 @@ contains
 
   recursive function virialDensityContrastDefinitionParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class which takes a parameter set as input.
+    Constructor for the \refClass{darkMatterHaloScaleVirialDensityContrastDefinition} dark matter halo scales class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -162,11 +162,11 @@ contains
 
   subroutine virialDensityContrastDefinitionDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class.
+    Destructor for the \refClass{darkMatterHaloScaleVirialDensityContrastDefinition} dark matter halo scales class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none
-    type (darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
+    type(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
 
     !![
     <objectDestructor name="self%cosmologyParameters_"  />

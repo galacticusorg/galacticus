@@ -84,7 +84,7 @@ Implements a normally-distributed halo environment.
 
   interface haloEnvironmentNormal
      !!{
-     Constructors for the {\normalfont \ttfamily normal} halo environment class.
+     Constructors for the \refClass{haloEnvironmentNormal} halo environment class.
      !!}
      module procedure normalConstructorParameters
      module procedure normalConstructorInternal
@@ -94,7 +94,7 @@ contains
 
   function normalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily normal} halo environment class which takes a parameter set as input.
+    Constructor for the \refClass{haloEnvironmentNormal} halo environment class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -152,7 +152,7 @@ contains
 
   function normalConstructorInternal(time,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,linearGrowth_,criticalOverdensity_,radiusEnvironment,massEnvironment) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily normal} halo mass function class.
+    Internal constructor for the \refClass{haloEnvironmentNormal} halo mass function class.
     !!}
     use :: Error_Functions         , only : Error_Function
     use :: Numerical_Constants_Math, only : Pi
@@ -249,7 +249,7 @@ contains
 
   subroutine normalDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily normal} halo mass function class.
+    Destructor for the \refClass{haloEnvironmentNormal} halo mass function class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none

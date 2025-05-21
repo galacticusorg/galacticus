@@ -53,7 +53,7 @@
 
   interface sphericalCollapseSolverCllsnlssMttrDarkEnergy
      !!{
-     Constructors for the {\normalfont \ttfamily cllsnlssMttrDarkEnergy} spherical collapse solver class.
+     Constructors for the \refClass{sphericalCollapseSolverCllsnlssMttrDarkEnergy} spherical collapse solver class.
      !!}
      module procedure cllsnlssMttrDarkEnergyConstructorParameters
      module procedure cllsnlssMttrDarkEnergyConstructorInternal
@@ -74,7 +74,7 @@ contains
 
   function cllsnlssMttrDarkEnergyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily cllsnlssMttrDarkEnergy} spherical collapse solver class that takes a parameter set as
+    Constructor for the \refClass{sphericalCollapseSolverCllsnlssMttrDarkEnergy} spherical collapse solver class that takes a parameter set as
     input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -106,7 +106,7 @@ contains
 
   function cllsnlssMttrDarkEnergyConstructorInternal(energyFixedAt,cosmologyFunctions_,linearGrowth_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily cllsnlssMttrDarkEnergy} spherical collapse solver class.
+    Internal constructor for the \refClass{sphericalCollapseSolverCllsnlssMttrDarkEnergy} spherical collapse solver class.
     !!}
     use :: Error             , only : Error_Report
     use :: Input_Paths       , only : inputPath   , pathTypeDataDynamic

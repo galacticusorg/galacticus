@@ -64,7 +64,7 @@ Implements a merger tree branching probability class using the algorithm of \cit
 
   interface mergerTreeBranchingProbabilityFakhouri2010
      !!{
-     Constructors for the {\normalfont \ttfamily fakhouri2010} merger tree builder class.
+     Constructors for the \refClass{mergerTreeBranchingProbabilityFakhouri2010} merger tree builder class.
      !!}
      module procedure fakhouri2010ConstructorParameters
      module procedure fakhouri2010ConstructorInternal
@@ -74,7 +74,7 @@ contains
 
   function fakhouri2010ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily fakhouri2010} merger tree branching probability class which reads parameters from a provided
+    Constructor for the \refClass{mergerTreeBranchingProbabilityFakhouri2010} merger tree branching probability class which reads parameters from a provided
     parameter list.
     !!}
     implicit none
@@ -172,7 +172,7 @@ contains
 
   function fakhouri2010ConstructorInternal(alpha,beta,gamma,eta,A,xiBar,B,mu,nu,cosmologyFunctions_,cosmologicalMassVariance_,criticalOverdensity_,haloEnvironment_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily fakhouri2010} merger tree branching probability class.
+    Internal constructor for the \refClass{mergerTreeBranchingProbabilityFakhouri2010} merger tree branching probability class.
     !!}
     implicit none
     type            (mergerTreeBranchingProbabilityFakhouri2010)                        :: self

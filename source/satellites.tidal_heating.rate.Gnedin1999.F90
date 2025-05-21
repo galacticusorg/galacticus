@@ -69,7 +69,7 @@ contains
 
   function gnedin1999ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily gnedin1999} satellite tidal heating rate class which builds the object from a parameter set.
+    Constructor for the \refClass{satelliteTidalHeatingRateGnedin1999} satellite tidal heating rate class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -106,7 +106,7 @@ contains
 
   function gnedin1999ConstructorInternal(epsilon,gamma,cosmologyParameters_,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily gnedin1999} satellite tidal heating rate class.
+    Internal constructor for the \refClass{satelliteTidalHeatingRateGnedin1999} satellite tidal heating rate class.
     !!}
     implicit none
     type            (satelliteTidalHeatingRateGnedin1999)                        :: self

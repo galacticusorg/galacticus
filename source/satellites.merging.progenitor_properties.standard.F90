@@ -64,7 +64,7 @@
 
   interface mergerProgenitorPropertiesStandard
      !!{
-     Constructors for the {\normalfont \ttfamily standard} merger progenitor properties class.
+     Constructors for the \refClass{mergerProgenitorPropertiesStandard} merger progenitor properties class.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -74,7 +74,7 @@ contains
 
   function standardConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily standard} merger progenitor properties class which takes a parameter list as input.
+    Constructor for the \refClass{mergerProgenitorPropertiesStandard} merger progenitor properties class which takes a parameter list as input.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Error           , only : Error_Report            , Component_List
@@ -138,7 +138,7 @@ contains
 
  function standardConstructorInternal(mergerMassMovements_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily standard} merger progenitor properties class.
+    Internal constructor for the \refClass{mergerProgenitorPropertiesStandard} merger progenitor properties class.
     !!}
     implicit none
     type (mergerProgenitorPropertiesStandard)                        :: self
@@ -152,7 +152,7 @@ contains
 
   subroutine standardDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily standard} merger progenitor properties class.
+    Destructor for the \refClass{mergerProgenitorPropertiesStandard} merger progenitor properties class.
     !!}
     implicit none
     type(mergerProgenitorPropertiesStandard), intent(inout) :: self

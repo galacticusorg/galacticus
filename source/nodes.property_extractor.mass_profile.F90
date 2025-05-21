@@ -59,7 +59,7 @@
 
   interface nodePropertyExtractorMassProfile
      !!{
-     Constructors for the {\normalfont \ttfamily massProfile} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMassProfile} output analysis class.
      !!}
      module procedure massProfileConstructorParameters
      module procedure massProfileConstructorInternal
@@ -69,7 +69,7 @@ contains
 
   function massProfileConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily massProfile} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorMassProfile} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -106,7 +106,7 @@ contains
 
   function massProfileConstructorInternal(radiusSpecifiers,includeRadii,darkMatterHaloScale_,cosmologyParameters_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily massProfile} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorMassProfile} property extractor class.
     !!}
     use :: Galactic_Structure_Radii_Definitions, only : Galactic_Structure_Radii_Definition_Decode
     implicit none
@@ -146,7 +146,7 @@ contains
 
   subroutine massProfileDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily massProfile} property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorMassProfile} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorMassProfile), intent(inout) :: self

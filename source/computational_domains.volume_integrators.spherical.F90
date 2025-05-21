@@ -36,7 +36,7 @@
 
   interface computationalDomainVolumeIntegratorSpherical
      !!{
-     Constructors for the {\normalfont \ttfamily spherical} computational domain.
+     Constructors for the \refClass{computationalDomainVolumeIntegratorSpherical} computational domain.
      !!}
      module procedure sphericalConstructorParameters
      module procedure sphericalConstructorInternal
@@ -46,7 +46,7 @@ contains
 
   function sphericalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily spherical} computational domain volume integrator class which takes a
+    Constructor for the \refClass{computationalDomainVolumeIntegratorSpherical} computational domain volume integrator class which takes a
     parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -72,7 +72,7 @@ contains
   
   function sphericalConstructorInternal(boundaries) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily spherical} computational domain volume integrator class.
+    Internal constructor for the \refClass{computationalDomainVolumeIntegratorSpherical} computational domain volume integrator class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

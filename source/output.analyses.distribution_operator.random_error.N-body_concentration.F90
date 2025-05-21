@@ -44,7 +44,7 @@
 
   interface outputAnalysisDistributionOperatorRndmErrNbdyCnc
      !!{
-     Constructors for the {\normalfont \ttfamily randomErrorNbdyCnc} output analysis distribution operator class.
+     Constructors for the \refClass{outputAnalysisDistributionOperatorRndmErrNbdyCnc} output analysis distribution operator class.
      !!}
      module procedure randomErrorNbdyCncConstructorParameters
      module procedure randomErrorNbdyCncConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function randomErrorNbdyCncConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily randomErrorNbdyCnc} output analysis distribution operator class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisDistributionOperatorRndmErrNbdyCnc} output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -93,7 +93,7 @@ contains
 
   function randomErrorNbdyCncConstructorInternal(a,b,massParticle,nodePropertyExtractor_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily randomErrorNbdyCnc} output analysis distribution operator class.
+    Internal constructor for the \refClass{outputAnalysisDistributionOperatorRndmErrNbdyCnc} output analysis distribution operator class.
     !!}
     use :: Error                   , only : Error_Report
     use :: Node_Property_Extractors, only : nodePropertyExtractorClass, nodePropertyExtractorScalar
@@ -117,7 +117,7 @@ contains
 
   subroutine randomErrorNbdyCncDestructor(self)
     !!{
-    Destructor for  the {\normalfont \ttfamily nbodyConcentration} output analysis distribution operator class.
+    Destructor for the \refClass{outputAnalysisDistributionOperatorRndmErrNbdyCnc} output analysis distribution operator class.
     !!}
     type(outputAnalysisDistributionOperatorRndmErrNbdyCnc), intent(inout) :: self
 

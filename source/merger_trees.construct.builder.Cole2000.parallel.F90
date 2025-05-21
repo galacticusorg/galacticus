@@ -42,7 +42,7 @@
 
   interface mergerTreeBuilderCole2000Parallel
      !!{
-     Constructors for the {\normalfont \ttfamily cole2000Parallel} merger tree builder class.
+     Constructors for the \refClass{mergerTreeBuilderCole2000Parallel} merger tree builder class.
      !!}
      module procedure cole2000ParallelConstructorParameters
      module procedure cole2000ParallelConstructorInternal

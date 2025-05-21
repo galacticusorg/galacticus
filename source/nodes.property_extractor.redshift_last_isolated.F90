@@ -44,7 +44,7 @@ Implements a property extractor class that extracts the redshift at which a \gls
 
   interface nodePropertyExtractorRedshiftLastIsolated
      !!{
-     Constructors for the {\normalfont \ttfamily redshiftLastIsolated} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRedshiftLastIsolated} output analysis class.
      !!}
      module procedure redshiftLastIsolatedConstructorParameters
      module procedure redshiftLastIsolatedConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function redshiftLastIsolatedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily redshiftLastIsolated} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorRedshiftLastIsolated} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,7 +75,7 @@ contains
 
   function redshiftLastIsolatedConstructorInternal(cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily redshiftLastIsolated} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorRedshiftLastIsolated} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorRedshiftLastIsolated)                        :: self
@@ -89,7 +89,7 @@ contains
 
   subroutine redshiftLastIsolatedDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily redshiftLastIsolated} property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorRedshiftLastIsolated} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRedshiftLastIsolated), intent(inout) :: self

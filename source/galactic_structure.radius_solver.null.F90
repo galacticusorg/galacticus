@@ -39,7 +39,7 @@
 
   interface galacticStructureSolverNull
      !!{
-     Constructors for the {\normalfont \ttfamily null} galactic structure solver class.
+     Constructors for the \refClass{galacticStructureSolverNull} galactic structure solver class.
      !!}
      module procedure nullConstructorParameters
   end interface galacticStructureSolverNull
@@ -48,7 +48,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily null} galactic structure solver class which takes a
+    Constructor for the \refClass{galacticStructureSolverNull} galactic structure solver class which takes a
     parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -81,7 +81,7 @@ contains
 
   subroutine nullDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily null} galactic structure solver class.
+    Destructor for the \refClass{galacticStructureSolverNull} galactic structure solver class.
     !!}
     use :: Events_Hooks, only : nodePromotionEvent, postEvolveEvent, preDerivativeEvent, satelliteMergerEvent
     implicit none

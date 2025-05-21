@@ -76,7 +76,7 @@
 
   interface mergerTreeConstructorBuild
      !!{
-     Constructors for the {\normalfont \ttfamily build} merger tree constructor class.
+     Constructors for the \refClass{mergerTreeConstructorBuild} merger tree constructor class.
      !!}
      module procedure buildConstructorParameters
      module procedure buildConstructorInternal
@@ -86,7 +86,7 @@ contains
 
   function buildConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily augment} merger tree operator class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeConstructorBuild} merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
@@ -209,7 +209,7 @@ contains
 
   subroutine buildDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily build} merger tree constructor class.
+    Destructor for the \refClass{mergerTreeConstructorBuild} merger tree constructor class.
     !!}
     implicit none
     type(mergerTreeConstructorBuild), intent(inout) :: self

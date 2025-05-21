@@ -40,7 +40,7 @@
 
   interface darkMatterProfileAccelerator
      !!{
-     Constructors for the {\normalfont \ttfamily accelerator} non-dark-matter-only dark matter halo profile class.
+     Constructors for the \refClass{darkMatterProfileAccelerator} non-dark-matter-only dark matter halo profile class.
      !!}
      module procedure acceleratorConstructorParameters
      module procedure acceleratorConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function acceleratorConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily accelerator} non-dark-matter-only dark matter halo profile class which takes
+    Constructor for the \refClass{darkMatterProfileAccelerator} non-dark-matter-only dark matter halo profile class which takes
     a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -85,7 +85,7 @@ contains
 
   function acceleratorConstructorInternal(toleranceRelative,factorRadiusMaximum,darkMatterProfile_) result(self)
     !!{
-    Generic constructor for the {\normalfont \ttfamily accelerator} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileAccelerator} dark matter profile class.
     !!}
     implicit none
     type            (darkMatterProfileAccelerator)                        :: self
@@ -100,7 +100,7 @@ contains
 
   subroutine acceleratorDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily accelerator} dark matter halo profile class.
+    Destructor for the \refClass{darkMatterProfileAccelerator} dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileAccelerator), intent(inout) :: self

@@ -55,7 +55,7 @@
 
   interface darkMatterProfileShapeBrown2021
      !!{
-     Constructors for the {\normalfont \ttfamily brown2021} dark matter halo profile shape class.
+     Constructors for the \refClass{darkMatterProfileShapeBrown2021} dark matter halo profile shape class.
      !!}
      module procedure brown2021ConstructorParameters
      module procedure brown2021ConstructorInternal
@@ -90,7 +90,7 @@ contains
 
   function brown2021ConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily brown2021} dark matter halo profile
+    Constructor for the \refClass{darkMatterProfileShapeBrown2021} dark matter halo profile
     shape class.
     !!}
     implicit none
@@ -106,7 +106,7 @@ contains
 
   subroutine brown2021Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily brown2021} dark matter halo profile shape class.
+    Destructor for the \refClass{darkMatterProfileShapeBrown2021} dark matter halo profile shape class.
     !!}
     implicit none
     type(darkMatterProfileShapeBrown2021), intent(inout) :: self

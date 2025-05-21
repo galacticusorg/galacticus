@@ -42,7 +42,7 @@ Implements an N-body data importer which imports using multiple other importers.
 
   interface nbodyImporterMultiple
      !!{
-     Constructors for the {\normalfont \ttfamily multiple} N-body importer class.
+     Constructors for the \refClass{nbodyImporterMultiple} N-body importer class.
      !!}
      module procedure multipleConstructorParameters
      module procedure multipleConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function multipleConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily multiple} N-body importer class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyImporterMultiple} N-body importer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -87,7 +87,7 @@ contains
 
   function multipleConstructorInternal(importers) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily multiple} N-body importer class.
+    Internal constructor for the \refClass{nbodyImporterMultiple} N-body importer class.
     !!}
     implicit none
     type(nbodyImporterMultiple)                        :: self
@@ -111,7 +111,7 @@ contains
 
   subroutine multipleDestructor(self)
     !!{
-    Destructor for {\normalfont \ttfamily multiple} importer class.
+    Destructor for the \refClass{nbodyImporterMultiple} importer class.
     !!}
     implicit none
     type(nbodyImporterMultiple), intent(inout) :: self

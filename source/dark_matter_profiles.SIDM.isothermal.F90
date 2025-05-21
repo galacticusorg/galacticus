@@ -46,7 +46,7 @@
 
   interface darkMatterProfileSIDMIsothermal
      !!{
-     Constructors for the {\normalfont \ttfamily sidmIsothermal} dark matter halo profile class.
+     Constructors for the \refClass{darkMatterProfileSIDMIsothermal} dark matter halo profile class.
      !!}
      module procedure sidmIsothermalConstructorParameters
      module procedure sidmIsothermalConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function sidmIsothermalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sidmIsothermal} dark matter halo profile class which takes a parameter set as input.
+    Constructor for the \refClass{darkMatterProfileSIDMIsothermal} dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -80,7 +80,7 @@ contains
 
   function sidmIsothermalConstructorInternal(darkMatterProfile_,darkMatterParticle_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily sidmIsothermal} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileSIDMIsothermal} dark matter profile class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
     implicit none
@@ -103,7 +103,7 @@ contains
 
   subroutine sidmIsothermalDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily sidmIsothermal} dark matter halo profile class.
+    Destructor for the \refClass{darkMatterProfileSIDMIsothermal} dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileSIDMIsothermal), intent(inout) :: self

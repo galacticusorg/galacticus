@@ -51,7 +51,7 @@
 
   interface starFormationTimescaleDynamicalTime
      !!{
-     Constructors for the {\normalfont \ttfamily dynamicalTime} timescale for star formation class.
+     Constructors for the \refClass{starFormationTimescaleDynamicalTime} timescale for star formation class.
      !!}
      module procedure dynamicalTimeConstructorParameters
      module procedure dynamicalTimeConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function dynamicalTimeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily dynamicalTime} timescale for star formation class which takes a parameter set as
+    Constructor for the \refClass{starFormationTimescaleDynamicalTime} timescale for star formation class which takes a parameter set as
     input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -100,7 +100,7 @@ contains
 
   function dynamicalTimeConstructorInternal(efficiency,exponentVelocity,timescaleMinimum) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily dynamicalTime} timescale for star formation class.
+    Internal constructor for the \refClass{starFormationTimescaleDynamicalTime} timescale for star formation class.
     !!}
     use :: Galacticus_Nodes, only : defaultDiskComponent, defaultSpheroidComponent, defaultNSCComponent
     implicit none

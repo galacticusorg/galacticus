@@ -52,7 +52,7 @@ An implementation of the hot halo outflow reincorporation class in which impleme
 
   interface hotHaloOutflowReincorporationHenriques2013
      !!{
-     Constructors for the {\normalfont \ttfamily henriques2013} hot halo outflow reincorporation class.
+     Constructors for the \refClass{hotHaloOutflowReincorporationHenriques2013} hot halo outflow reincorporation class.
      !!}
      module procedure henriques2013ConstructorParameters
      module procedure henriques2013ConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function henriques2013ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily henriques2013} hot halo outflow reincorporation class which takes a parameter set
+    Constructor for the \refClass{hotHaloOutflowReincorporationHenriques2013} hot halo outflow reincorporation class which takes a parameter set
     as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -126,7 +126,7 @@ contains
 
   subroutine henriques2013Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily henriques2013} hot halo outflow reincorporation class.
+    Destructor for the \refClass{hotHaloOutflowReincorporationHenriques2013} hot halo outflow reincorporation class.
     !!}
     implicit none
     type(hotHaloOutflowReincorporationHenriques2013), intent(inout) :: self

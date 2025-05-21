@@ -46,7 +46,7 @@ Implements a cooling rate property extractor class.
 
   interface nodePropertyExtractorVelocityMaximum
      !!{
-     Constructors for the {\normalfont \ttfamily velocityMaximum} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorVelocityMaximum} output analysis class.
      !!}
      module procedure velocityMaximumConstructorParameters
      module procedure velocityMaximumConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function velocityMaximumConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily velocityMaximum} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorVelocityMaximum} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -84,7 +84,7 @@ contains
 
   function velocityMaximumConstructorInternal(propertyName,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily velocityMaximum} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorVelocityMaximum} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorVelocityMaximum)                        :: self
@@ -99,7 +99,7 @@ contains
 
   subroutine velocityMaximumDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily velocityMaximum} property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorVelocityMaximum} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorVelocityMaximum), intent(inout) :: self

@@ -75,7 +75,7 @@ Implements a merger tree build controller class which builds constrained trees.
   
   interface mergerTreeBuildControllerConstrained
      !!{
-     Constructors for the {\normalfont \ttfamily constrained} merger tree build controller class.
+     Constructors for the \refClass{mergerTreeBuildControllerConstrained} merger tree build controller class.
      !!}
      module procedure constrainedConstructorParameters
      module procedure constrainedConstructorInternal
@@ -85,7 +85,7 @@ contains
 
   function constrainedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily constrained} merger tree build controller class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeBuildControllerConstrained} merger tree build controller class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
 
@@ -210,7 +210,7 @@ contains
 
   function constrainedConstructorInternal(criticalOverdensityConstrained,varianceConstrained,constructionOption,label,labelDescription,mergerTreeBranchingProbabilityUnconstrained_,mergerTreeBranchingProbabilityConstrained_,cosmologyFunctions_,linearGrowth_,criticalOverdensity_,cosmologicalMassVariance_,mergerTreeMassResolution_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily constrained} merger tree build controller class.
+    Internal constructor for the \refClass{mergerTreeBuildControllerConstrained} merger tree build controller class.
     !!}
     use :: Nodes_Labels, only : nodeLabelRegister
     implicit none
@@ -251,7 +251,7 @@ contains
 
   subroutine constrainedDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily constrained} merger tree build controller class.
+    Destructor for the \refClass{mergerTreeBuildControllerConstrained} merger tree build controller class.
     !!}
     implicit none
     type(mergerTreeBuildControllerConstrained), intent(inout) :: self

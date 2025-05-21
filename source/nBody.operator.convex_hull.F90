@@ -41,7 +41,7 @@ Implements an N-body data operator which constructs the convex hull of the parti
 
   interface nbodyOperatorConvexHull
      !!{
-     Constructors for the {\normalfont \ttfamily convexHull} N-body operator class.
+     Constructors for the \refClass{nbodyOperatorConvexHull} N-body operator class.
      !!}
      module procedure convexHullConstructorParameters
      module procedure convexHullConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function convexHullConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily convexHull} N-body operator class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyOperatorConvexHull} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

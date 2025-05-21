@@ -48,7 +48,7 @@ Implements a merger tree branching probability class using the algorithm of \cit
 
   interface mergerTreeBranchingProbabilityPCHPlus
      !!{
-     Constructors for the {\normalfont \ttfamily pchPlus} merger tree builder class.
+     Constructors for the \refClass{mergerTreeBranchingProbabilityPCHPlus} merger tree builder class.
      !!}
      module procedure pchPlusConstructorParameters
      module procedure pchPlusConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function pchPlusConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily pchPlus} merger tree branching probability class which reads parameters from a provided
+    Constructor for the \refClass{mergerTreeBranchingProbabilityPCHPlus} merger tree branching probability class which reads parameters from a provided
     parameter list.
     !!}
     implicit none
@@ -159,7 +159,7 @@ contains
 
   function pchPlusConstructorInternal(G0,gamma1,gamma2,gamma3,gamma4,gamma5,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,tolerateRoundOffErrors,cosmologicalMassVariance_,criticalOverdensity_,linearGrowth_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily pchPlus} merger tree branching probability class.
+    Internal constructor for the \refClass{mergerTreeBranchingProbabilityPCHPlus} merger tree branching probability class.
     !!}
     use :: Error, only : Error_Report
     implicit none

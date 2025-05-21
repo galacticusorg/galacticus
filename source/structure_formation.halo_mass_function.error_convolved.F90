@@ -49,7 +49,7 @@ with a mass-dependent error.
 
   interface haloMassFunctionErrorConvolved
      !!{
-     Constructors for the {\normalfont \ttfamily errorConvolved} halo mass function class.
+     Constructors for the \refClass{haloMassFunctionErrorConvolved} halo mass function class.
      !!}
      module procedure errorConvolvedConstructorParameters
      module procedure errorConvolvedConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function errorConvolvedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily errorConvolved} halo mass function class which takes a parameter set as input.
+    Constructor for the \refClass{haloMassFunctionErrorConvolved} halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -112,7 +112,7 @@ contains
 
   function errorConvolvedConstructorInternal(massFunctionIntrinsic,cosmologyParameters_,nbodyHaloMassError_,errorFractionalMaximum,toleranceRelative,tolerateIntegrationFailure) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily errorConvolved} halo mass function class.
+    Internal constructor for the \refClass{haloMassFunctionErrorConvolved} halo mass function class.
     !!}
     implicit none
     type            (haloMassFunctionErrorConvolved)                        :: self
@@ -130,7 +130,7 @@ contains
 
   subroutine errorConvolvedDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily errorConvolved} halo mass function class.
+    Destructor for the \refClass{haloMassFunctionErrorConvolved} halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionErrorConvolved), intent(inout) :: self

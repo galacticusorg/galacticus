@@ -37,7 +37,7 @@
 
   interface stellarSpectraDustAttenuationZero
      !!{
-     Constructors for the {\normalfont \ttfamily zero} stellar spectra dust attenuation class.
+     Constructors for the \refClass{stellarSpectraDustAttenuationZero} stellar spectra dust attenuation class.
      !!}
      module procedure zeroConstructorParameters
   end interface stellarSpectraDustAttenuationZero

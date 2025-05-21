@@ -149,7 +149,7 @@
 
   interface powerSpectrumPrimordialTransferredFile
      !!{
-     Constructors for the {\normalfont \ttfamily file} transferred primordial power spectrum class.
+     Constructors for the \refClass{powerSpectrumPrimordialTransferredFile} transferred primordial power spectrum class.
      !!}
      module procedure fileConstructorParameters
      module procedure fileConstructorInternal
@@ -162,7 +162,7 @@ contains
 
   function fileConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily file} transferred primordial power spectrum class which takes a
+    Constructor for the \refClass{powerSpectrumPrimordialTransferredFile} transferred primordial power spectrum class which takes a
     parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -191,7 +191,7 @@ contains
 
   function fileConstructorInternal(fileName,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily file} transferred primordial power spectrum class.
+    Internal constructor for the \refClass{powerSpectrumPrimordialTransferredFile} transferred primordial power spectrum class.
     !!}
     implicit none
     type (powerSpectrumPrimordialTransferredFile)                        :: self

@@ -64,7 +64,7 @@
 
   interface powerSpectrumPrimordialPiecewisePowerLaw
      !!{
-     Constructors for the {\normalfont \ttfamily piecewisePowerLaw} primordial power spectrum class.
+     Constructors for the \refClass{powerSpectrumPrimordialPiecewisePowerLaw} primordial power spectrum class.
      !!}
      module procedure piecewisePowerLawConstructorParameters
      module procedure piecewisePowerLawConstructorInternal
@@ -74,7 +74,7 @@ contains
 
   function piecewisePowerLawConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily piecewisePowerLaw} primordial power spectrum class which takes a parameter set as input.
+    Constructor for the \refClass{powerSpectrumPrimordialPiecewisePowerLaw} primordial power spectrum class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -140,7 +140,7 @@ contains
 
   function piecewisePowerLawConstructorInternal(index_,running,runningRunning,wavenumberReference) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily piecewisePowerLaw} primordial power spectrum class.
+    Internal constructor for the \refClass{powerSpectrumPrimordialPiecewisePowerLaw} primordial power spectrum class.
     !!}
     use :: Error, only : Error_Report
     implicit none

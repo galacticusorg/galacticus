@@ -42,7 +42,7 @@
 
   interface darkMatterProfileHeatingMonotonicWeak
      !!{
-     Constructors for the {\normalfont \ttfamily monotonicWeak} dark matter profile heating class.
+     Constructors for the \refClass{darkMatterProfileHeatingMonotonicWeak} dark matter profile heating class.
      !!}
      module procedure monotonicWeakConstructorParameters
      module procedure monotonicWeakConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function monotonicWeakConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily monotonicWeak} dark matter profile heating class which takes a parameter set as input.
+    Constructor for the \refClass{darkMatterProfileHeatingMonotonicWeak} dark matter profile heating class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -94,7 +94,7 @@ contains
 
   subroutine monotonicWeakDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily monotonicWeak} dark matter profile heating class.
+    Destructor for the \refClass{darkMatterProfileHeatingMonotonicWeak} dark matter profile heating class.
     !!}
     implicit none
     type(darkMatterProfileHeatingMonotonicWeak), intent(inout) :: self

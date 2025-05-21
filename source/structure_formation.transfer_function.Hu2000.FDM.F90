@@ -52,7 +52,7 @@
 
   interface transferFunctionHu2000FDM
      !!{
-     Constructors for the {\normalfont \ttfamily hu2000} transfer function class.
+     Constructors for the \refClass{transferFunctionHu2000FDM} transfer function class.
      !!}
      module procedure hu2000FDMConstructorParameters
      module procedure hu2000FDMConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function hu2000FDMConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily hu2000} transfer function class which takes a parameter set as input.
+    Constructor for the \refClass{transferFunctionHu2000FDM} transfer function class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
@@ -105,7 +105,7 @@ contains
   
   function hu2000FDMConstructorInternal(transferFunctionCDM,time,cosmologyParameters_,cosmologyFunctions_,darkMatterParticle_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily hu2000} transfer function class.
+    Internal constructor for the \refClass{transferFunctionHu2000FDM} transfer function class.
     !!}
     use :: Cosmology_Parameters        , only : hubbleUnitsLittleH
     use :: Error                       , only : Error_Report
@@ -141,7 +141,7 @@ contains
 
   subroutine hu2000FDMDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily hu2000} transfer function class.
+    Destructor for the \refClass{transferFunctionHu2000FDM} transfer function class.
     !!}
     implicit none
     type(transferFunctionHu2000FDM), intent(inout) :: self

@@ -40,7 +40,7 @@ Implements a merger tree filter which passes if the tree matches the given index
 
   interface mergerTreeFilterTreeIndex
      !!{
-     Constructors for the {\normalfont \ttfamily treeIndex} merger tree filter class.
+     Constructors for the \refClass{mergerTreeFilterTreeIndex} merger tree filter class.
      !!}
      module procedure treeIndexConstructorParameters
      module procedure treeIndexConstructorInternal
@@ -50,7 +50,7 @@ contains
   
   function treeIndexConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily treeIndex} merger tree filter class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeFilterTreeIndex} merger tree filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -74,7 +74,7 @@ contains
 
   function treeIndexConstructorInternal(mergerTreeIndex) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily treeIndex} merger tree filter class.
+    Internal constructor for the \refClass{mergerTreeFilterTreeIndex} merger tree filter class.
     !!}
     implicit none
     type   (mergerTreeFilterTreeIndex)                :: self

@@ -57,7 +57,7 @@
 
   interface posteriorSampleStateCorrelation
      !!{
-     Constructors for the {\normalfont \ttfamily correlation} posterior sampling state class.
+     Constructors for the \refClass{posteriorSampleStateCorrelation} posterior sampling state class.
      !!}
      module procedure correlationConstructorParameters
      module procedure correlationConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function correlationConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily correlation} posterior sampling state class which builds the object from a
+    Constructor for the \refClass{posteriorSampleStateCorrelation} posterior sampling state class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -93,7 +93,7 @@ contains
 
   function correlationConstructorInternal(acceptedStateCount) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily correlation} posterior sampling state class which builds the object from a
+    Constructor for the \refClass{posteriorSampleStateCorrelation} posterior sampling state class which builds the object from a
     parameter set.
     !!}
     use :: MPI_Utilities, only : mpiSelf

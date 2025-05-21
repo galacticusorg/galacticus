@@ -51,7 +51,7 @@
 
   interface outputAnalysisQuiescentFraction
      !!{
-     Constructors for the {\normalfont \ttfamily quiescentFraction} output analysis class.
+     Constructors for the \refClass{outputAnalysisQuiescentFraction} output analysis class.
      !!}
      module procedure quiescentFractionConstructorParameters
      module procedure quiescentFractionConstructorFile
@@ -62,7 +62,7 @@ contains
 
   function quiescentFractionConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily quiescentFraction} output analysis class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisQuiescentFraction} output analysis class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -251,7 +251,7 @@ contains
 
   function quiescentFractionConstructorFile(fileName,label,comment,starFormationRateSpecificQuiescentLogarithmic,starFormationRateSpecificLogarithmicError,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily quiescentFraction} output analysis class which reads all required properties from file.
+    Constructor for the \refClass{outputAnalysisQuiescentFraction} output analysis class which reads all required properties from file.
     !!}
     use :: IO_HDF5       , only : hdf5Object
     use :: HDF5_Access   , only : hdf5Access
@@ -294,7 +294,7 @@ contains
 
   function quiescentFractionConstructorInternal(label,comment,massesStellar,starFormationRateSpecificQuiescentLogarithmic,starFormationRateSpecificLogarithmicError,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_,targetLabel,meanValueTarget,meanCovarianceTarget) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily quiescentFraction} output analysis class.
+    Internal constructor for the \refClass{outputAnalysisQuiescentFraction} output analysis class.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass
     use :: Galactic_Filters                      , only : galacticFilterClass

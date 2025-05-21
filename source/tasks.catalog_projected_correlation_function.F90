@@ -66,7 +66,7 @@
 
   interface taskCatalogProjectedCorrelationFunction
      !!{
-     Constructors for the {\normalfont \ttfamily catalogProjectedCorrelationFunction} task.
+     Constructors for the \refClass{taskCatalogProjectedCorrelationFunction} task.
      !!}
      module procedure catalogProjectedCorrelationFunctionConstructorParameters
      module procedure catalogProjectedCorrelationFunctionConstructorInternal
@@ -76,7 +76,7 @@ contains
 
   function catalogProjectedCorrelationFunctionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily catalogProjectedCorrelationFunction} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskCatalogProjectedCorrelationFunction} task class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes        , only : nodeClassHierarchyInitialize
     use :: Input_Parameters        , only : inputParameter              , inputParameters
@@ -226,7 +226,7 @@ contains
 
   function catalogProjectedCorrelationFunctionConstructorInternal(galaxyCatalogFileName,massMinimum,massMaximum,separationCount,separationMinimum, separationMaximum, separationRadialMaximum,widthBuffer,origin,vectorRotation,angleRotation,randomSampleCountNumber,randomSampleCountType,halfIntegral,cosmologyParameters_,cosmologyFunctions_,surveyGeometry_,randomNumberGenerator_,parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily catalogProjectedCorrelationFunction} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskCatalogProjectedCorrelationFunction} task class which takes a parameter set as input.
     !!}
     use :: String_Handling, only : operator(//)
     implicit none
@@ -264,7 +264,7 @@ contains
 
   subroutine catalogProjectedCorrelationFunctionDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily catalogProjectedCorrelationFunction} task class.
+    Destructor for the \refClass{taskCatalogProjectedCorrelationFunction} task class.
     !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none

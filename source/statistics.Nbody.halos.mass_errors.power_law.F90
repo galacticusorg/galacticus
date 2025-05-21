@@ -42,7 +42,7 @@ errors are a power-law in halo mass.
 
   interface nbodyHaloMassErrorPowerLaw
      !!{
-     Constructors for the {\normalfont \ttfamily powerLaw} N-body halo mass error class.
+     Constructors for the \refClass{nbodyHaloMassErrorPowerLaw} N-body halo mass error class.
      !!}
      module procedure nbodyHaloMassErrorPowerLawParameters
      module procedure nbodyHaloMassErrorPowerLawInternal
@@ -55,7 +55,7 @@ contains
 
   function nbodyHaloMassErrorPowerLawParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily powerLaw} N-body halo mass error class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyHaloMassErrorPowerLaw} N-body halo mass error class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -99,7 +99,7 @@ contains
 
   function nbodyHaloMassErrorPowerLawInternal(normalization,exponent,fractionalErrorHighMass) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily powerLaw} N-body halo mass error class.
+    Internal constructor for the \refClass{nbodyHaloMassErrorPowerLaw} N-body halo mass error class.
     !!}
     implicit none
     type            (nbodyHaloMassErrorPowerLaw)                :: self

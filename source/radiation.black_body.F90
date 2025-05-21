@@ -47,7 +47,7 @@
 
   interface radiationFieldBlackBody
      !!{
-     Constructors for the {\normalfont \ttfamily blackBody} radiation field class.
+     Constructors for the \refClass{radiationFieldBlackBody} radiation field class.
      !!}
      module procedure blackBodyConstructorParameters
      module procedure blackBodyConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function blackBodyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily blackBody} radiation field class which takes a parameter list as input.
+    Constructor for the \refClass{radiationFieldBlackBody} radiation field class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -82,7 +82,7 @@ contains
 
   function blackBodyConstructorInternal(temperature_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily blackBody} radiation field class.
+    Internal constructor for the \refClass{radiationFieldBlackBody} radiation field class.
     !!}
     implicit none
     type            (radiationFieldBlackBody)                :: self

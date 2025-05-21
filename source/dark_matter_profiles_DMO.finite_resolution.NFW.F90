@@ -40,12 +40,13 @@
      private
      class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
+     final     ::        finiteResolutionNFWDestructor
      procedure :: get => finiteResolutionNFWGet
   end type darkMatterProfileDMOFiniteResolutionNFW
 
   interface darkMatterProfileDMOFiniteResolutionNFW
      !!{
-     Constructors for the {\normalfont \ttfamily finiteResolutionNFW} dark matter halo profile class.
+     Constructors for the \refClass{darkMatterProfileDMOFiniteResolutionNFW} dark matter halo profile class.
      !!}
      module procedure finiteResolutionNFWConstructorParameters
      module procedure finiteResolutionNFWConstructorInternal
@@ -104,7 +105,7 @@ contains
 
   function finiteResolutionNFWConstructorInternal(lengthResolution,massResolution,resolutionIsComoving,nonAnalyticSolver,darkMatterHaloScale_,cosmologyFunctions_) result(self)
     !!{
-    Generic constructor for the {\normalfont \ttfamily finiteResolutionNFW} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOFiniteResolutionNFW} dark matter profile class.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversEncode
     implicit none
@@ -134,6 +135,19 @@ contains
     end select    
     return
   end function finiteResolutionNFWConstructorInternal
+  
+  subroutine finiteResolutionNFWDestructor(self)
+    !!{
+    Destructor for the \refClass{darkMatterProfileDMOFiniteResolutionNFW} dark matter halo profile class.
+    !!}
+    implicit none
+    type(darkMatterProfileDMOFiniteResolutionNFW), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_"/>
+    !!]
+    return
+  end subroutine finiteResolutionNFWDestructor
 
   function finiteResolutionNFWGet(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{

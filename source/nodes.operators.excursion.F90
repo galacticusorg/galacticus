@@ -48,7 +48,7 @@
   
   interface nodeOperatorExcursion
      !!{
-     Constructors for the {\normalfont \ttfamily excursion} node operator class.
+     Constructors for the \refClass{nodeOperatorExcursion} node operator class.
      !!}
      module procedure excursionConstructorParameters
      module procedure excursionConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function excursionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily excursion} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorExcursion} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -88,7 +88,7 @@ contains
 
   function excursionConstructorInternal(cosmologyFunctions_,cosmologicalMassVariance_,criticalOverdensity_,linearGrowth_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily excursion} node operator class.
+    Internal constructor for the \refClass{nodeOperatorExcursion} node operator class.
     !!}
     use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none

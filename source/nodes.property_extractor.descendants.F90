@@ -56,7 +56,7 @@ Implements an ISM mass output analysis property extractor class.
 
   interface nodePropertyExtractorDescendants
      !!{
-     Constructors for the {\normalfont \ttfamily descendants} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorDescendants} output analysis class.
      !!}
      module procedure descendantsConstructorParameters
      module procedure descendantsConstructorInternal
@@ -66,7 +66,7 @@ contains
 
   function descendantsConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily descendants} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorDescendants} node property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -87,7 +87,7 @@ contains
 
   function descendantsConstructorInternal(outputTimes_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily descendants} node property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorDescendants} node property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorDescendants)                        :: self
@@ -101,7 +101,7 @@ contains
 
   subroutine descendantsDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily descendants} property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorDescendants} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorDescendants), intent(inout) :: self

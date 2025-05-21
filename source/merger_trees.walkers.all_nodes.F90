@@ -52,7 +52,7 @@
 
   interface mergerTreeWalkerAllNodes
      !!{
-     Constructors for the {\normalfont \ttfamily allNodes} merger tree walker class.
+     Constructors for the \refClass{mergerTreeWalkerAllNodes} merger tree walker class.
      !!}
      module procedure allNodesParameters
      module procedure allNodesInternal
@@ -62,7 +62,7 @@ contains
 
   function allNodesParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily allNodes} merger tree walker class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeWalkerAllNodes} merger tree walker class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameters
@@ -77,7 +77,7 @@ contains
 
   function allNodesInternal(tree,spanForest) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily allNodes} merger tree walker class.
+    Internal constructor for the \refClass{mergerTreeWalkerAllNodes} merger tree walker class.
     !!}
     implicit none
     type   (mergerTreeWalkerAllNodes)                          :: self

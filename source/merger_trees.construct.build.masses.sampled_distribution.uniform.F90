@@ -45,7 +45,7 @@ contains
 
   function sampledDistributionUniformConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sampledDistributionUniform} merger tree masses class which takes a parameter set
+    Constructor for the \refClass{mergerTreeBuildMassesSampledDistributionUniform} merger tree masses class which takes a parameter set
     as input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -62,7 +62,7 @@ contains
 
   function sampledDistributionUniformConstructorInternal(massTreeMinimum,massTreeMaximum,treesPerDecade,mergerTreeBuildMassDistribution_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily sampledDistributionUniform} merger tree masses class.
+    Internal constructor for the \refClass{mergerTreeBuildMassesSampledDistributionUniform} merger tree masses class.
     !!}
     implicit none
     type            (mergerTreeBuildMassesSampledDistributionUniform)                        :: self
@@ -78,7 +78,7 @@ contains
 
   subroutine sampledDistributionUniformDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily sampledDistributionUniform} merger tree masses class.
+    Destructor for the \refClass{mergerTreeBuildMassesSampledDistributionUniform} merger tree masses class.
     !!}
     implicit none
     type(mergerTreeBuildMassesSampledDistributionUniform), intent(inout) :: self

@@ -77,7 +77,7 @@
 
   interface massDistributionSphericalHeatedMonotonic
      !!{
-     Constructors for the {\normalfont \ttfamily sphericalHeatedMonotonic} mass distribution class.
+     Constructors for the \refClass{massDistributionSphericalHeatedMonotonic} mass distribution class.
      !!}
      module procedure sphericalHeatedMonotonicConstructorParameters
      module procedure sphericalHeatedMonotonicConstructorInternal
@@ -87,7 +87,7 @@ contains
 
   function sphericalHeatedMonotonicConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sphericalHeatedMonotonic} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionSphericalHeatedMonotonic} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameters
@@ -144,7 +144,7 @@ contains
   
   function sphericalHeatedMonotonicConstructorInternal(radiusVirial,nonAnalyticSolver,massDistribution_,massDistributionHeating_,componentType,massType) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily sphericalHeatedMonotonic} mass distribution class.
+    Constructor for the \refClass{massDistributionSphericalHeatedMonotonic} mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalHeatedMonotonic)                          :: self
@@ -170,7 +170,7 @@ contains
 
   subroutine sphericalHeatedMonotonicDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily sphericalHeatedMonotonic} mass distribution class.
+    Destructor for the \refClass{massDistributionSphericalHeatedMonotonic} mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalHeatedMonotonic), intent(inout) :: self

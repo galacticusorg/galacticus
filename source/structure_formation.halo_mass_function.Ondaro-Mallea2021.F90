@@ -72,7 +72,7 @@ primordial power spectra and structure growth rates.
 
   interface haloMassFunctionOndaroMallea2021
      !!{
-     Constructors for the {\normalfont \ttfamily ondaroMallea2021} halo mass function class.
+     Constructors for the \refClass{haloMassFunctionOndaroMallea2021} halo mass function class.
      !!}
      module procedure ondaroMallea2021ConstructorParameters
      module procedure ondaroMallea2021ConstructorInternal
@@ -87,7 +87,7 @@ contains
 
   function ondaroMallea2021ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily ondaroMallea2021} halo mass function class which takes a parameter set as input.
+    Constructor for the \refClass{haloMassFunctionOndaroMallea2021} halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -133,7 +133,7 @@ contains
 
   function ondaroMallea2021ConstructorInternal(coefficientsN,coefficientsA,cosmologyParameters_,cosmologicalMassVariance_,linearGrowth_,haloMassFunction_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily ondaroMallea2021} halo mass function class.
+    Internal constructor for the \refClass{haloMassFunctionOndaroMallea2021} halo mass function class.
     !!}
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectPositive, rangeExpandSignExpectNegative
     implicit none
@@ -162,7 +162,7 @@ contains
 
   subroutine ondaroMallea2021Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily ondaroMallea2021} halo mass function class.
+    Destructor for the \refClass{haloMassFunctionOndaroMallea2021} halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionOndaroMallea2021), intent(inout) :: self

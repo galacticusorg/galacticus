@@ -37,7 +37,7 @@ Implements an N-body data operator which computes the convex hull volume of the 
 
   interface nbodyOperatorConvexHullVolume
      !!{
-     Constructors for the {\normalfont \ttfamily convexHullVolume} N-body operator class.
+     Constructors for the \refClass{nbodyOperatorConvexHullVolume} N-body operator class.
      !!}
      module procedure convexHullVolumeConstructorParameters
   end interface nbodyOperatorConvexHullVolume
@@ -46,7 +46,7 @@ contains
 
   function convexHullVolumeConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily convexHullVolume} N-body operator class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyOperatorConvexHullVolume} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

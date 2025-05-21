@@ -66,7 +66,7 @@
 
   interface outputAnalysisLocalGroupStellarMassFunction
      !!{
-     Constructors for the {\normalfont \ttfamily localGroupStellarMassFunction} output analysis class.
+     Constructors for the \refClass{outputAnalysisLocalGroupStellarMassFunction} output analysis class.
      !!}
      module procedure localGroupStellarMassFunctionConstructorParameters
      module procedure localGroupStellarMassFunctionConstructorInternal
@@ -76,7 +76,7 @@ contains
 
   function localGroupStellarMassFunctionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily localGroupStellarMassFunction} output analysis class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisLocalGroupStellarMassFunction} output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters            , only : inputParameter               , inputParameters
     use :: Output_Times                , only : outputTimes                  , outputTimesClass
@@ -185,7 +185,7 @@ contains
 
   function localGroupStellarMassFunctionConstructorInternal(outputTimes_,positionType,negativeBinomialScatterFractional,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,logLikelihoodZero) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily localGroupStellarMassFunction} output analysis class for internal use.
+    Constructor for the \refClass{outputAnalysisLocalGroupStellarMassFunction} output analysis class for internal use.
     !!}
     use :: Galactic_Filters                        , only : filterList                                         , galacticFilterAll                  , galacticFilterHaloIsolated            , galacticFilterHaloNotIsolated                  , &
           &                                                 galacticFilterHostMassRange                        , galacticFilterSurveyGeometry       , enumerationPositionTypeType
@@ -509,7 +509,7 @@ contains
 
   subroutine localGroupStellarMassFunctionDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily localGroupStellarMassFunction} output analysis class.
+    Destructor for the \refClass{outputAnalysisLocalGroupStellarMassFunction} output analysis class.
     !!}
     implicit none
     type(outputAnalysisLocalGroupStellarMassFunction), intent(inout) :: self

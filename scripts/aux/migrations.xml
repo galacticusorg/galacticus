@@ -234,6 +234,9 @@
   <migration commit="c71d2291b119918574bc006255028c62430b554b">
     <translation function="modelParameterXPath"/>
   </migration>
+  <migration commit="f483d9caf532e5f33cdbe46aad53d076316ec394">
+    <translation function="methodSuffixRemove"/>
+  </migration>
 
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />

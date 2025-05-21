@@ -44,7 +44,7 @@
 
   interface outputAnalysisPropertyOperatorNormal
      !!{
-     Constructors for the {\normalfont \ttfamily normal} output analysis class.
+     Constructors for the \refClass{outputAnalysisPropertyOperatorNormal} output analysis class.
      !!}
      module procedure normalConstructorParameters
      module procedure normalConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function normalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily normal} output analysis property operator class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisPropertyOperatorNormal} output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -103,7 +103,7 @@ contains
 
   function normalConstructorInternal(rangeLower,rangeUpper,extentLower,extentUpper,rootVariance) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily normal} output analysis distribution operator class.
+    Internal constructor for the \refClass{outputAnalysisPropertyOperatorNormal} output analysis distribution operator class.
     !!}
     implicit none
     type            (outputAnalysisPropertyOperatorNormal)                :: self

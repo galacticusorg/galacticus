@@ -46,7 +46,7 @@
 
   interface massFunctionIncompletenessSurfaceBrightness
      !!{
-     Constructors for the {\normalfont \ttfamily surfaceBrightness} incompleteness class.
+     Constructors for the \refClass{massFunctionIncompletenessSurfaceBrightness} incompleteness class.
      !!}
      module procedure surfaceBrightnessConstructorParameters
      module procedure surfaceBrightnessConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function surfaceBrightnessConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily surfaceBrightness} incompleteness class which takes a parameter set as input.
+    Constructor for the \refClass{massFunctionIncompletenessSurfaceBrightness} incompleteness class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -102,7 +102,7 @@ contains
 
   function surfaceBrightnessConstructorInternal(limit,zeroPoint,slope,offset,scatter) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily surfaceBrightness} incompleteness class.
+    Internal constructor for the \refClass{massFunctionIncompletenessSurfaceBrightness} incompleteness class.
     !!}
     implicit none
     type            (massFunctionIncompletenessSurfaceBrightness)                :: self

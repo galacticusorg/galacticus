@@ -77,7 +77,7 @@
 
   interface mergerTreeConstructorStateRestored
      !!{
-     Constructors for the {\normalfont \ttfamily stateRestored} merger tree constructor class.
+     Constructors for the \refClass{mergerTreeConstructorStateRestored} merger tree constructor class.
      !!}
      module procedure stateRestoredConstructorParameters
      module procedure stateRestoredConstructorInternal
@@ -87,7 +87,7 @@ contains
 
   function stateRestoredConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily stateRestored} merger tree operator class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeConstructorStateRestored} merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -118,7 +118,7 @@ contains
 
   function stateRestoredConstructorInternal(fileName,randomNumberGenerator_,mergerTreeSeeds_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily stateRestored} merger tree operator class.
+    Internal constructor for the \refClass{mergerTreeConstructorStateRestored} merger tree operator class.
     !!}
     implicit none
     type (mergerTreeConstructorStateRestored)                        :: self
@@ -134,7 +134,7 @@ contains
 
   subroutine stateRestoredDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily stateRestored} merger tree constructor class.
+    Destructor for the \refClass{mergerTreeConstructorStateRestored} merger tree constructor class.
     !!}
     implicit none
     type(mergerTreeConstructorStateRestored), intent(inout) :: self

@@ -46,7 +46,7 @@ Implements an N-body data operator which computes merger rates of halos.
 
   interface nbodyOperatorMergerRates
      !!{
-     Constructors for the {\normalfont \ttfamily mergerRates} N-body operator class.
+     Constructors for the \refClass{nbodyOperatorMergerRates} N-body operator class.
      !!}
      module procedure mergerRatesConstructorParameters
      module procedure mergerRatesConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function mergerRatesConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily mergerRates} N-body operator class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyOperatorMergerRates} N-body operator class which takes a parameter set as input.
     !!}
     use :: ISO_Varying_String, only : operator(/=)
     use :: Input_Parameters  , only : inputParameters
@@ -126,7 +126,7 @@ contains
 
   function mergerRatesConstructorInternal(indexSnapshot,massMinimum,massMaximum,massHostMinimum,massHostMaximum,missingHostIsFatal,alwaysIsolatedOnly,suffix,cosmologyFunctions_) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily mergerRates} N-body operator class.
+    Internal constructor for the \refClass{nbodyOperatorMergerRates} N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorMergerRates)                        :: self
@@ -145,7 +145,7 @@ contains
 
   subroutine mergerRatesDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily mergerRates} N-body operator class.
+    Destructor for the \refClass{nbodyOperatorMergerRates} N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorMergerRates), intent(inout) :: self

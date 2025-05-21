@@ -56,7 +56,7 @@
 
   interface outputTimesList
      !!{
-     Constructors for the {\normalfont \ttfamily list} output times class.
+     Constructors for the \refClass{outputTimesList} output times class.
      !!}
      module procedure listConstructorParameters
      module procedure listConstructorInternal
@@ -66,7 +66,7 @@ contains
 
   function listConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily list} output times class which takes a parameter set as input.
+    Constructor for the \refClass{outputTimesList} output times class which takes a parameter set as input.
     !!}
     use :: Input_Parameters , only : inputParameter, inputParameters
     use :: Sorting          , only : sort
@@ -136,7 +136,7 @@ contains
 
   function listConstructorInternal(times,cosmologyFunctions_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily list} output times class which takes a parameter set as input.
+    Constructor for the \refClass{outputTimesList} output times class which takes a parameter set as input.
     !!}
     implicit none
     type            (outputTimesList        )                              :: self
@@ -155,7 +155,7 @@ contains
 
   subroutine listDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily list} output times class.
+    Destructor for the \refClass{outputTimesList} output times class.
     !!}
     implicit none
     type(outputTimesList), intent(inout) :: self

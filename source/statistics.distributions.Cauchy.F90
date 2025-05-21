@@ -50,7 +50,7 @@
 
   interface distributionFunction1DCauchy
      !!{
-     Constructors for the {\normalfont \ttfamily cauchy} 1D distribution function class.
+     Constructors for the \refClass{distributionFunction1DCauchy} 1D distribution function class.
      !!}
      module procedure cauchyConstructorParameters
      module procedure cauchyConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function cauchyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily cauchy} 1D distribution function class which builds
+    Constructor for the \refClass{distributionFunction1DCauchy} 1D distribution function class which builds
     the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -94,7 +94,7 @@ contains
 
   function cauchyConstructorInternal(median,scale,randomNumberGenerator_) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily cauchy} 1D distribution function class.
+    Constructor for the \refClass{distributionFunction1DCauchy} 1D distribution function class.
     !!}
     type            (distributionFunction1DCauchy)                                  :: self
     double precision                              , intent(in   )                   :: median                , scale
@@ -108,7 +108,7 @@ contains
 
   function cauchyConstructorProbability(median,limit,probability,randomNumberGenerator_) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily cauchy} 1D distribution function class.
+    Constructor for the \refClass{distributionFunction1DCauchy} 1D distribution function class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     type            (distributionFunction1DCauchy)                :: self

@@ -49,7 +49,7 @@
 
   interface massDistributionCloudOverdensities
      !!{
-     Constructors for the {\normalfont \ttfamily cloudOverdensities} mass distribution class.
+     Constructors for the \refClass{massDistributionCloudOverdensities} mass distribution class.
      !!}
      module procedure cloudOverdensitiesConstructorParameters
      module procedure cloudOverdensitiesConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function cloudOverdensitiesConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily cloudOverdensities} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionCloudOverdensities} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
@@ -128,7 +128,7 @@ contains
   
   function cloudOverdensitiesConstructorInternal(radius,densityContrast,volumeFillingFactor,radiusBoundary,massDistribution_,randomNumberGenerator_,dimensionless,componentType,massType) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily cloudOverdensities} mass distribution class.
+    Constructor for the \refClass{massDistributionCloudOverdensities} mass distribution class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     use :: Sorting                 , only : sortIndex, sortByIndex
@@ -198,7 +198,7 @@ contains
   
   subroutine cloudOverdensitiesDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily cloudOverdensities} mass distribution class.
+    Destructor for the \refClass{massDistributionCloudOverdensities} mass distribution class.
     !!}
     implicit none
     type(massDistributionCloudOverdensities), intent(inout) :: self

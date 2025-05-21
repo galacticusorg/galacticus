@@ -39,7 +39,7 @@
 
   interface kinematicsDistributionZhao1996
      !!{
-     Constructors for the {\normalfont \ttfamily zhao1996} kinematic distribution class.
+     Constructors for the \refClass{kinematicsDistributionZhao1996} kinematic distribution class.
      !!}
      module procedure zhao1996ConstructorParameters
      module procedure zhao1996ConstructorInternal
@@ -49,7 +49,7 @@ contains
 
   function zhao1996ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily zhao1996} kinematic distribution class which builds the object from a parameter
+    Constructor for the \refClass{kinematicsDistributionZhao1996} kinematic distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -66,7 +66,7 @@ contains
 
   function zhao1996ConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily zhao1996} kinematic distribution class.
+    Internal constructor for the \refClass{kinematicsDistributionZhao1996} kinematic distribution class.
     !!}
     implicit none
     type(kinematicsDistributionZhao1996) :: self

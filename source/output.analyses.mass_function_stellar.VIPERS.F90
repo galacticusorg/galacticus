@@ -65,7 +65,7 @@ Implements a stellar mass function output analysis class for the VIPERS survey o
 
   interface outputAnalysisMassFunctionStellarVIPERS
      !!{
-     Constructors for the {\normalfont \ttfamily massFunctionStellarVIPERS} output analysis class.
+     Constructors for the \refClass{outputAnalysisMassFunctionStellarVIPERS} output analysis class.
      !!}
      module procedure massFunctionStellarVIPERSConstructorParameters
      module procedure massFunctionStellarVIPERSConstructorInternal
@@ -75,7 +75,7 @@ contains
 
   function massFunctionStellarVIPERSConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily massFunctionStellarVIPERS} output analysis class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisMassFunctionStellarVIPERS} output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -181,7 +181,7 @@ contains
 
   function massFunctionStellarVIPERSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily massFunctionStellarVIPERS} output analysis class for internal use.
+    Constructor for the \refClass{outputAnalysisMassFunctionStellarVIPERS} output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -350,7 +350,7 @@ contains
 
   subroutine massFunctionStellarVIPERSDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily massFunctionStellarVIPERS} output analysis class.
+    Destructor for the \refClass{outputAnalysisMassFunctionStellarVIPERS} output analysis class.
     !!}
     implicit none
     type(outputAnalysisMassFunctionStellarVIPERS), intent(inout) :: self

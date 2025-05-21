@@ -54,7 +54,7 @@
   
   interface nodeOperatorSatelliteMergingTime
      !!{
-     Constructors for the {\normalfont \ttfamily satelliteMergingTime} node operator class.
+     Constructors for the \refClass{nodeOperatorSatelliteMergingTime} node operator class.
      !!}
      module procedure satelliteMergingTimeConstructorParameters
      module procedure satelliteMergingTimeConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function satelliteMergingTimeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily satelliteMergingTime} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorSatelliteMergingTime} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -95,7 +95,7 @@ contains
 
   function satelliteMergingTimeConstructorInternal(resetOnHaloFormation,virialOrbit_,satelliteMergingTimescales_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily satelliteMergingTime} node operator class.
+    Internal constructor for the \refClass{nodeOperatorSatelliteMergingTime} node operator class.
     !!}
     implicit none
     type   (nodeOperatorSatelliteMergingTime)                        :: self
@@ -124,7 +124,7 @@ contains
 
   subroutine satelliteMergingTimeDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily satelliteMergingTime} node operator class.
+    Destructor for the \refClass{nodeOperatorSatelliteMergingTime} node operator class.
     !!}
     use :: Events_Hooks, only : satelliteHostChangeEvent, haloFormationEvent
     implicit none

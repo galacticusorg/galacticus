@@ -54,7 +54,7 @@
 
   interface darkMatterProfileDMOSIDMCoreNFW
      !!{
-     Constructors for the {\normalfont \ttfamily sidmCoreNFW} dark matter halo profile class.
+     Constructors for the \refClass{darkMatterProfileDMOSIDMCoreNFW} dark matter halo profile class.
      !!}
      module procedure sidmCoreNFWConstructorParameters
      module procedure sidmCoreNFWConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function sidmCoreNFWConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sidmCoreNFW} dark matter halo profile class which takes a parameter set as input.
+    Constructor for the \refClass{darkMatterProfileDMOSIDMCoreNFW} dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -96,7 +96,7 @@ contains
 
   function sidmCoreNFWConstructorInternal(factorRadiusCore,darkMatterHaloScale_,darkMatterParticle_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily sidmCoreNFW} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOSIDMCoreNFW} dark matter profile class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
     implicit none
@@ -135,7 +135,7 @@ contains
 
   subroutine sidmCoreNFWDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily sidmCoreNFW} dark matter halo profile class.
+    Destructor for the \refClass{darkMatterProfileDMOSIDMCoreNFW} dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOSIDMCoreNFW), intent(inout) :: self

@@ -38,7 +38,7 @@
 
   interface nbodyHaloMassErrorFriendsOfFriends
      !!{
-     Constructors for the {\normalfont \ttfamily friendsOfFriends} N-body halo mass error class.
+     Constructors for the \refClass{nbodyHaloMassErrorFriendsOfFriends} N-body halo mass error class.
      !!}
      module procedure nbodyHaloMassErrorFriendsOfFriendsParameters
      module procedure nbodyHaloMassErrorFriendsOfFriendsInternal
@@ -48,7 +48,7 @@ contains
 
   function nbodyHaloMassErrorFriendsOfFriendsParameters(parameters)
     !!{
-    Constructor for the {\normalfont \ttfamily friendsOfFriends} N-body halo mass error class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyHaloMassErrorFriendsOfFriends} N-body halo mass error class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -74,7 +74,7 @@ contains
 
   function nbodyHaloMassErrorFriendsOfFriendsInternal(massParticle)
     !!{
-    Internal constructor for the {\normalfont \ttfamily friendsOfFriends} N-body halo mass error class.
+    Internal constructor for the \refClass{nbodyHaloMassErrorFriendsOfFriends} N-body halo mass error class.
     !!}
     implicit none
     type            (nbodyHaloMassErrorFriendsOfFriends)                :: nbodyHaloMassErrorFriendsOfFriendsInternal

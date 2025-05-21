@@ -54,7 +54,7 @@
 
   interface coolingFunctionCMBCompton
      !!{
-     Constructors for the {\normalfont \ttfamily cmbCompton} cooling function class.
+     Constructors for the \refClass{coolingFunctionCMBCompton} cooling function class.
      !!}
      module procedure cmbComptonConstructorParameters
      module procedure cmbComptonConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function cmbComptonConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily cmbCompton} cooling function class which takes a parameter set as input.
+    Constructor for the \refClass{coolingFunctionCMBCompton} cooling function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -85,7 +85,7 @@ contains
 
   function cmbComptonConstructorInternal(chemicalState_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily cmbCompton} cooling function class.
+    Internal constructor for the \refClass{coolingFunctionCMBCompton} cooling function class.
     !!}
     implicit none
     type (coolingFunctionCMBCompton)                        :: self
@@ -99,7 +99,7 @@ contains
 
   subroutine cmbComptonDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily cmbCompton} cooling function class.
+    Destructor for the \refClass{coolingFunctionCMBCompton} cooling function class.
     !!}
     implicit none
     type(coolingFunctionCMBCompton), intent(inout) :: self

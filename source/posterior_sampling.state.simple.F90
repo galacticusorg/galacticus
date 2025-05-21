@@ -58,7 +58,7 @@
 
   interface posteriorSampleStateSimple
      !!{
-     Constructors for the {\normalfont \ttfamily simple} posterior sampling state class.
+     Constructors for the \refClass{posteriorSampleStateSimple} posterior sampling state class.
      !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
@@ -68,7 +68,7 @@ contains
 
   function simpleConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily simple} posterior sampling state class which builds the object from a
+    Constructor for the \refClass{posteriorSampleStateSimple} posterior sampling state class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -94,7 +94,7 @@ contains
 
   function simpleConstructorInternal(acceptedStateCount) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily simple} posterior sampling state class which builds the object from a
+    Constructor for the \refClass{posteriorSampleStateSimple} posterior sampling state class which builds the object from a
     parameter set.
     !!}
     use :: MPI_Utilities, only : mpiSelf

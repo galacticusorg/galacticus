@@ -46,7 +46,7 @@ contamination by particles of non-preferred type is below a specified level.
 
   interface nbodyOperatorFilterUncontaminatedSphere
      !!{
-     Constructors for the {\normalfont \ttfamily filterUncontaminatedSphere} N-body operator class.
+     Constructors for the \refClass{nbodyOperatorFilterUncontaminatedSphere} N-body operator class.
      !!}
      module procedure filterUncontaminatedSphereConstructorParameters
      module procedure filterUncontaminatedSphereConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function filterUncontaminatedSphereConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily filterUncontaminatedSphere} N-body operator class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyOperatorFilterUncontaminatedSphere} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -98,7 +98,7 @@ contains
 
   function filterUncontaminatedSphereConstructorInternal(point,fractionContamination,particleType,massWeighted) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily filterUncontaminatedSphere} N-body operator class.
+    Internal constructor for the \refClass{nbodyOperatorFilterUncontaminatedSphere} N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorFilterUncontaminatedSphere)                              :: self

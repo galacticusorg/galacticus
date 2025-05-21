@@ -58,7 +58,7 @@
 
   interface mergerMassMovementsSimple
      !!{
-     Constructors for the {\normalfont \ttfamily simple} merger mass movements class.
+     Constructors for the \refClass{mergerMassMovementsSimple} merger mass movements class.
      !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
@@ -68,7 +68,7 @@ contains
 
   function simpleConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily simple} merger mass movements class which takes a parameter list as input.
+    Constructor for the \refClass{mergerMassMovementsSimple} merger mass movements class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -106,7 +106,7 @@ contains
 
   function simpleConstructorInternal(massRatioMajorMerger,destinationGasMinorMerger,destinationStarsMinorMerger) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily simple} merger mass movements class.
+    Internal constructor for the \refClass{mergerMassMovementsSimple} merger mass movements class.
     !!}
     implicit none
     type            (mergerMassMovementsSimple       )                        :: self
@@ -141,7 +141,7 @@ contains
 
   subroutine simpleDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily simple} satellite merger mass movements class
+    Destructor for the \refClass{mergerMassMovementsSimple} satellite merger mass movements class
     !!}
     use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent
     implicit none

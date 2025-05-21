@@ -51,7 +51,7 @@
   
   interface nodeOperatorSatelliteMergingRadiusTrigger
      !!{
-     Constructors for the {\normalfont \ttfamily satelliteMergingRadiusTrigger} node operator class.
+     Constructors for the \refClass{nodeOperatorSatelliteMergingRadiusTrigger} node operator class.
      !!}
      module procedure satelliteMergingRadiusTriggerConstructorParameters
      module procedure satelliteMergingRadiusTriggerConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function satelliteMergingRadiusTriggerConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily satelliteMergingRadiusTrigger} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorSatelliteMergingRadiusTrigger} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -106,7 +106,7 @@ contains
 
   function satelliteMergingRadiusTriggerConstructorInternal(radiusVirialFraction,recordMergedSubhaloProperties,recordFirstLevelOnly,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily satelliteMergingRadiusTrigger} node operator class.
+    Internal constructor for the \refClass{nodeOperatorSatelliteMergingRadiusTrigger} node operator class.
     !!}
     use :: Kepler_Orbits, only : keplerOrbitTimeInitial     , keplerOrbitMassSatellite, keplerOrbitMassHost, keplerOrbitRadius, &
          &                       keplerOrbitRadiusPericenter, keplerOrbitTimeCurrent
@@ -135,7 +135,7 @@ contains
   
   subroutine satelliteMergingRadiusTriggerDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily satelliteMergingRadiusTrigger} node operator class.
+    Destructor for the \refClass{nodeOperatorSatelliteMergingRadiusTrigger} node operator class.
     !!}
     implicit none
     type(nodeOperatorSatelliteMergingRadiusTrigger), intent(inout) :: self

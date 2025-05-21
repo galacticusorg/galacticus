@@ -40,7 +40,7 @@
 
   interface distributionFunction1DNegativeExponential
      !!{
-     Constructors for the {\normalfont \ttfamily negativeExponential} 1D distribution function class.
+     Constructors for the \refClass{distributionFunction1DNegativeExponential} 1D distribution function class.
      !!}
      module procedure negativeExponentialConstructorParameters
      module procedure negativeExponentialConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function negativeExponentialConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily negativeExponential} 1D distribution function class which builds
+    Constructor for the \refClass{distributionFunction1DNegativeExponential} 1D distribution function class which builds
     the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -78,7 +78,7 @@ contains
 
   function negativeExponentialConstructorInternal(rate,randomNumberGenerator_) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily negativeExponential} 1D distribution function class.
+    Constructor for the \refClass{distributionFunction1DNegativeExponential} 1D distribution function class.
     !!}
     type            (distributionFunction1DNegativeExponential)                                  :: self
     double precision                                           , intent(in   )                   :: rate

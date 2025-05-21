@@ -57,7 +57,7 @@
 
   interface posteriorSampleSimulationGrid
      !!{
-     Constructors for the {\normalfont \ttfamily grid} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleSimulationGrid} posterior sampling convergence class.
      !!}
      module procedure gridConstructorParameters
      module procedure gridConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function gridConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily grid} posterior sampling simulation class which builds the object from a
+    Constructor for the \refClass{posteriorSampleSimulationGrid} posterior sampling simulation class which builds the object from a
     parameter set.
     !!}
     use :: Display         , only : displayMessage      , displayVerbosity      , verbosityLevelInfo

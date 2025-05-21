@@ -102,7 +102,7 @@
 
   interface posteriorSampleSimulationDifferentialEvolution
      !!{
-     Constructors for the {\normalfont \ttfamily differentialEvolution} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleSimulationDifferentialEvolution} posterior sampling convergence class.
      !!}
      module procedure differentialEvolutionConstructorParameters
      module procedure differentialEvolutionConstructorInternal
@@ -112,7 +112,7 @@ contains
 
   function differentialEvolutionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily differentialEvolution} posterior sampling simulation class which builds the object from a
+    Constructor for the \refClass{posteriorSampleSimulationDifferentialEvolution} posterior sampling simulation class which builds the object from a
     parameter set.
     !!}
     use :: Display         , only : displayMessage      , displayVerbosity      , verbosityLevelInfo

@@ -43,7 +43,7 @@
 
   interface starFormationTimescaleLowerLimited
      !!{
-     Constructors for the {\normalfont \ttfamily lowerLimited} timescale for star formation class.
+     Constructors for the \refClass{starFormationTimescaleLowerLimited} timescale for star formation class.
      !!}
      module procedure lowerLimitedConstructorParameters
      module procedure lowerLimitedConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function lowerLimitedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily lowerLimited} timescale for star formation class which takes a parameter set as
+    Constructor for the \refClass{starFormationTimescaleLowerLimited} timescale for star formation class which takes a parameter set as
     input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -82,7 +82,7 @@ contains
 
   function lowerLimitedConstructorInternal(timescaleMinimum,starFormationTimescale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily lowerLimited} timescale for star formation class.
+    Internal constructor for the \refClass{starFormationTimescaleLowerLimited} timescale for star formation class.
     !!}
     use :: Galacticus_Nodes, only : defaultDiskComponent, defaultSpheroidComponent
     implicit none

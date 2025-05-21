@@ -49,7 +49,7 @@
 
   interface cosmologicalMassVarianceScaled
      !!{
-     Constructors for the {\normalfont \ttfamily scaled} cosmological mass variance class.
+     Constructors for the \refClass{cosmologicalMassVarianceScaled} cosmological mass variance class.
      !!}
      module procedure scaledConstructorParameters
      module procedure scaledConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function scaledConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily scaled} cosmological mass variance class which takes a parameter set as input.
+    Constructor for the \refClass{cosmologicalMassVarianceScaled} cosmological mass variance class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     use :: Error           , only : Error_Report
@@ -88,7 +88,7 @@ contains
 
   function scaledConstructorInternal(scale,cosmologicalMassVariance_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily scaled} linear growth class.
+    Internal constructor for the \refClass{cosmologicalMassVarianceScaled} linear growth class.
     !!}
     implicit none
     type            (cosmologicalMassVarianceScaled)                        :: self
@@ -104,7 +104,7 @@ contains
 
   subroutine scaledDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily scaled} linear growth class.
+    Destructor for the \refClass{cosmologicalMassVarianceScaled} linear growth class.
     !!}
     implicit none
     type   (cosmologicalMassVarianceScaled), intent(inout) :: self

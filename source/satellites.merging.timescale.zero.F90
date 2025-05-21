@@ -39,7 +39,7 @@
 
   interface satelliteMergingTimescalesZero
      !!{
-     Constructors for the {\normalfont \ttfamily zero} satellite merging timescale class.
+     Constructors for the \refClass{satelliteMergingTimescalesZero} satellite merging timescale class.
      !!}
      module procedure zeroConstructorParameters
   end interface satelliteMergingTimescalesZero

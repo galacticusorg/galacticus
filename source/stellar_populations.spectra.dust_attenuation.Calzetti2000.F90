@@ -37,7 +37,7 @@
 
   interface stellarSpectraDustAttenuationCalzetti2000
      !!{
-     Constructors for the {\normalfont \ttfamily calzetti2000} stellar spectra dust attenuation class.
+     Constructors for the \refClass{stellarSpectraDustAttenuationCalzetti2000} stellar spectra dust attenuation class.
      !!}
      module procedure calzetti2000ConstructorParameters
   end interface stellarSpectraDustAttenuationCalzetti2000
@@ -46,7 +46,7 @@ contains
 
   function calzetti2000ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily calzetti2000} stellar spectra dust attenuation class which takes a parameter set
+    Constructor for the \refClass{stellarSpectraDustAttenuationCalzetti2000} stellar spectra dust attenuation class which takes a parameter set
     as input.
     !!}
     use :: Input_Parameters, only : inputParameters

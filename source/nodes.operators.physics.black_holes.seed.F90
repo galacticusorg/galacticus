@@ -46,7 +46,7 @@
   
   interface nodeOperatorBlackHolesSeed
      !!{
-     Constructors for the {\normalfont \ttfamily blackHolesSeed} node operator class.
+     Constructors for the \refClass{nodeOperatorBlackHolesSeed} node operator class.
      !!}
      module procedure blackHolesSeedConstructorParameters
      module procedure blackHolesSeedConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function blackHolesSeedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily starFormation} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorBlackHolesSeed} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -82,7 +82,7 @@ contains
 
   function blackHolesSeedConstructorInternal(blackHoleSeeds_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily blackHolesSeed} node operator class.
+    Internal constructor for the \refClass{nodeOperatorBlackHolesSeed} node operator class.
     !!}
     implicit none
     type (nodeOperatorBlackHolesSeed)                        :: self
@@ -111,7 +111,7 @@ contains
 
   subroutine blackHolesSeedDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily blackHolesSeed} node operator class.
+    Destructor for the \refClass{nodeOperatorBlackHolesSeed} node operator class.
     !!}
     use :: Events_Hooks, only : blackHoleMergerEvent
     implicit none

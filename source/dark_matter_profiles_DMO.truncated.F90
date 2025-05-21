@@ -47,7 +47,7 @@
 
   interface darkMatterProfileDMOTruncated
      !!{
-     Constructors for the {\normalfont \ttfamily truncated} dark matter halo profile class.
+     Constructors for the \refClass{darkMatterProfileDMOTruncated} dark matter halo profile class.
      !!}
      module procedure truncatedConstructorParameters
      module procedure truncatedConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function truncatedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily truncated} dark matter halo profile class which takes a parameter set as input.
+    Constructor for the \refClass{darkMatterProfileDMOTruncated} dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters  , only : inputParameters
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversEncode
@@ -102,7 +102,7 @@ contains
 
   function truncatedConstructorInternal(radiusFractionalTruncateMinimum,radiusFractionalTruncateMaximum,nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily truncated} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOTruncated} dark matter profile class.
     !!}
     use :: Error             , only : Error_Report
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversIsValid
@@ -123,7 +123,7 @@ contains
 
   subroutine truncatedDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily truncated} dark matter halo profile class.
+    Destructor for the \refClass{darkMatterProfileDMOTruncated} dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOTruncated), intent(inout) :: self

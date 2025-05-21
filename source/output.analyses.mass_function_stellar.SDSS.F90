@@ -69,7 +69,7 @@ Implements a stellar mass function output analysis class.
 
   interface outputAnalysisMassFunctionStellarSDSS
      !!{
-     Constructors for the {\normalfont \ttfamily massFunctionStellarSDSS} output analysis class.
+     Constructors for the \refClass{outputAnalysisMassFunctionStellarSDSS} output analysis class.
      !!}
      module procedure massFunctionStellarSDSSConstructorParameters
      module procedure massFunctionStellarSDSSConstructorInternal
@@ -79,7 +79,7 @@ contains
 
   function massFunctionStellarSDSSConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily massFunctionStellarSDSS} output analysis class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisMassFunctionStellarSDSS} output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -179,7 +179,7 @@ contains
 
   function massFunctionStellarSDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily massFunctionStellarSDSS} output analysis class for internal use.
+    Constructor for the \refClass{outputAnalysisMassFunctionStellarSDSS} output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -328,7 +328,7 @@ contains
 
   subroutine massFunctionStellarSDSSDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily massFunctionStellarSDSS} output analysis class.
+    Destructor for the \refClass{outputAnalysisMassFunctionStellarSDSS} output analysis class.
     !!}
     implicit none
     type(outputAnalysisMassFunctionStellarSDSS), intent(inout) :: self

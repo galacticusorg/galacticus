@@ -41,7 +41,7 @@
 
   interface posteriorSampleConvergenceAlways
      !!{
-     Constructors for the {\normalfont \ttfamily always} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleConvergenceAlways} posterior sampling convergence class.
      !!}
      module procedure alwaysConstructorParameters
   end interface posteriorSampleConvergenceAlways
@@ -50,7 +50,7 @@ contains
 
   function alwaysConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily always} merger tree halo mass function sampling class which builds the object from a parameter set.
+    Constructor for the \refClass{posteriorSampleConvergenceAlways} merger tree halo mass function sampling class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

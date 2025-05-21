@@ -65,7 +65,7 @@ Implements a fixed halo environment.
 
   interface haloEnvironmentFixed
      !!{
-     Constructors for the {\normalfont \ttfamily fixed} halo environment class.
+     Constructors for the \refClass{haloEnvironmentFixed} halo environment class.
      !!}
      module procedure fixedHEConstructorParameters
      module procedure fixedHEConstructorInternal
@@ -75,7 +75,7 @@ contains
 
   function fixedHEConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily fixed} halo environment class which takes a parameter set as input.
+    Constructor for the \refClass{haloEnvironmentFixed} halo environment class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -120,7 +120,7 @@ contains
 
   function fixedHEConstructorInternal(cosmologyFunctions_,linearGrowth_,overdensity,radiusEnvironment,massEnvironment) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily fixed} halo mass function class.
+    Internal constructor for the \refClass{haloEnvironmentFixed} halo mass function class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -164,7 +164,7 @@ contains
 
   subroutine fixedHEDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily fixed} halo mass function class.
+    Destructor for the \refClass{haloEnvironmentFixed} halo mass function class.
     !!}
     implicit none
     type(haloEnvironmentFixed), intent(inout) :: self

@@ -111,7 +111,7 @@
 
   interface darkMatterProfileConcentrationKlypin2015
      !!{
-     Constructors for the {\normalfont \ttfamily klypin2015} dark matter halo profile concentration class.
+     Constructors for the \refClass{darkMatterProfileConcentrationKlypin2015} dark matter halo profile concentration class.
      !!}
      module procedure klypin2015ConstructorParameters
      module procedure klypin2015ConstructorInternal
@@ -156,7 +156,7 @@ contains
 
   function klypin2015ConstructorInternal(sample,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily klypin2015} dark matter halo profile concentration class.
+    Constructor for the \refClass{darkMatterProfileConcentrationKlypin2015} dark matter halo profile concentration class.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     use :: Table_Labels           , only : extrapolationTypeFix
@@ -717,7 +717,7 @@ contains
 
   subroutine klypin2015Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily klypin2015} dark matter halo profile concentration class.
+    Destructor for the \refClass{darkMatterProfileConcentrationKlypin2015} dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationKlypin2015), intent(inout) :: self

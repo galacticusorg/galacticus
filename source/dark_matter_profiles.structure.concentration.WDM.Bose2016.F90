@@ -59,7 +59,7 @@
 
   interface darkMatterProfileConcentrationWDMBose2016
      !!{
-     Constructors for the {\normalfont \ttfamily WDM} dark matter halo profile concentration
+     Constructors for the \refClass{darkMatterProfileConcentrationWDMBose2016} dark matter halo profile concentration
      class.
      !!}
      module procedure wdmBose2016ConstructorParameters
@@ -97,7 +97,7 @@ contains
 
   function wdmBose2016ConstructorInternal(cdmConcentration,transferFunction_,cosmologyFunctions_) result(self)
     !!{
-    Generic constructor for the {\normalfont \ttfamily wdmBose2016} dark matter halo concentration class.
+    Internal constructor for the \refClass{darkMatterProfileConcentrationWDMBose2016} dark matter halo concentration class.
     !!}
     implicit none
     type (darkMatterProfileConcentrationWDMBose2016)                        :: self
@@ -113,7 +113,7 @@ contains
 
   subroutine wdmBose2016Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily wdmBose2016} dark matter halo profile concentration class.
+    Destructor for the \refClass{darkMatterProfileConcentrationWDMBose2016} dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationWDMBose2016), intent(inout) :: self

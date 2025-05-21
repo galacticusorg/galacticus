@@ -50,7 +50,7 @@ Implements an intracluster medium cooling power in band property extractor class
 
   interface nodePropertyExtractorICMCoolingPowerInBand
      !!{
-     Constructors for the {\normalfont \ttfamily icmCoolingPowerInBand} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorICMCoolingPowerInBand} output analysis class.
      !!}
      module procedure icmCoolingPowerInBandConstructorParameters
      module procedure icmCoolingPowerInBandConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function icmCoolingPowerInBandConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily icmCoolingPowerInBand} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorICMCoolingPowerInBand} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -105,7 +105,7 @@ contains
 
   function icmCoolingPowerInBandConstructorInternal(energyLow,energyHigh,label,cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily icmCoolingPowerInBand} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorICMCoolingPowerInBand} property extractor class.
     !!}
     implicit none
     type            (nodePropertyExtractorICMCoolingPowerInBand)                        :: self
@@ -123,7 +123,7 @@ contains
 
   subroutine icmCoolingPowerInBandDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily icmCoolingPowerInBand} property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorICMCoolingPowerInBand} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorICMCoolingPowerInBand), intent(inout) :: self

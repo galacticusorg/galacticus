@@ -71,7 +71,7 @@
 
   interface satelliteTidalStrippingZentner2005
      !!{
-     Constructors for the {\normalfont \ttfamily zentner2005} satellite tidal stripping class.
+     Constructors for the \refClass{satelliteTidalStrippingZentner2005} satellite tidal stripping class.
      !!}
      module procedure zentner2005ConstructorParameters
      module procedure zentner2005ConstructorInternal
@@ -81,7 +81,7 @@ contains
 
   function zentner2005ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily zentner2005} satellite tidal stripping class which builds the object from a parameter set.
+    Constructor for the \refClass{satelliteTidalStrippingZentner2005} satellite tidal stripping class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -119,7 +119,7 @@ contains
 
   function zentner2005ConstructorInternal(efficiency,useDynamicalTimeScale,satelliteTidalStrippingRadius_,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily zentner2005} satellite tidal stripping class.
+    Internal constructor for the \refClass{satelliteTidalStrippingZentner2005} satellite tidal stripping class.
     !!}
     implicit none
     type            (satelliteTidalStrippingZentner2005)                        :: self
@@ -136,7 +136,7 @@ contains
 
   subroutine zentner2005Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily zentner2005} satellite tidal stripping class.
+    Destructor for the \refClass{satelliteTidalStrippingZentner2005} satellite tidal stripping class.
     !!}
     implicit none
     type(satelliteTidalStrippingZentner2005), intent(inout) :: self

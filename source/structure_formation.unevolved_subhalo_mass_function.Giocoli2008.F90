@@ -39,7 +39,7 @@ Implements a \cite{giocoli_population_2008} unevolved dark matter subhalo mass f
 
   interface unevolvedSubhaloMassFunctionGiocoli2008
      !!{
-     Constructors for the {\normalfont \ttfamily giocoli2008} halo mass function class.
+     Constructors for the \refClass{unevolvedSubhaloMassFunctionGiocoli2008} halo mass function class.
      !!}
      module procedure giocoli2008ConstructorParameters
      module procedure giocoli2008ConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function giocoli2008ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily giocoli2008} halo mass function class which takes a parameter set as input.
+    Constructor for the \refClass{unevolvedSubhaloMassFunctionGiocoli2008} halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -85,7 +85,7 @@ contains
 
   function giocoli2008ConstructorInternal(normalization,exponent) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily giocoli2008} halo mass function class.
+    Internal constructor for the \refClass{unevolvedSubhaloMassFunctionGiocoli2008} halo mass function class.
     !!}
     implicit none
     type            (unevolvedSubhaloMassFunctionGiocoli2008)                :: self

@@ -56,7 +56,7 @@ systematic errors arising in the friends-of-friends halo finding algorithm.
 
   interface haloMassFunctionFofBias
      !!{
-     Constructors for the {\normalfont \ttfamily fofBias} halo mass function class.
+     Constructors for the \refClass{haloMassFunctionFofBias} halo mass function class.
      !!}
      module procedure fofBiasConstructorParameters
      module procedure fofBiasConstructorInternal
@@ -66,7 +66,7 @@ contains
 
   function fofBiasConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily fofBias} halo mass function class which takes a parameter set as input.
+    Constructor for the \refClass{haloMassFunctionFofBias} halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -124,7 +124,7 @@ contains
 
   function fofBiasConstructorInternal(massFunctionIntrinsic,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,massParticle,linkingLength,linkingLengthIsComoving,massInfiniteToMassSharpEdge) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily fofBias} halo mass function class.
+    Internal constructor for the \refClass{haloMassFunctionFofBias} halo mass function class.
     !!}
     implicit none
     type            (haloMassFunctionFofBias  )                        :: self
@@ -145,7 +145,7 @@ contains
 
   subroutine fofBiasDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily fofBias} halo mass function class.
+    Destructor for the \refClass{haloMassFunctionFofBias} halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionFofBias), intent(inout) :: self

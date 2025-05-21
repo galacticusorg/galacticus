@@ -48,7 +48,7 @@ Implements an intracluster medium X-ray luminosity-weighted temperature property
 
   interface nodePropertyExtractorICMXRayTemperature
      !!{
-     Constructors for the {\normalfont \ttfamily icmXRayTemperature} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorICMXRayTemperature} output analysis class.
      !!}
      module procedure icmXRayTemperatureConstructorParameters
      module procedure icmXRayTemperatureConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function icmXRayTemperatureConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily icmXRayTemperature} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorICMXRayTemperature} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -85,7 +85,7 @@ contains
 
   function icmXRayTemperatureConstructorInternal(cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily icmXRayTemperature} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorICMXRayTemperature} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorICMXRayTemperature)                        :: self
@@ -101,7 +101,7 @@ contains
 
   subroutine icmXRayTemperatureDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily icmXRayTemperature} property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorICMXRayTemperature} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorICMXRayTemperature), intent(inout) :: self

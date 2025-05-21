@@ -39,7 +39,7 @@ Implements merger tree index property extractor class.
 
   interface nodePropertyExtractorIndicesTree
      !!{
-     Constructors for the {\normalfont \ttfamily indicesTree} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorIndicesTree} output analysis class.
      !!}
      module procedure indicesTreeConstructorParameters
   end interface nodePropertyExtractorIndicesTree
@@ -48,7 +48,7 @@ contains
 
   function indicesTreeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily indicesTree} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorIndicesTree} node property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

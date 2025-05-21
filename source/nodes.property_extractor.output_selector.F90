@@ -52,7 +52,7 @@
 
   interface nodePropertyExtractorOutputSelector
      !!{
-     Constructors for the {\normalfont \ttfamily outputSelector} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorOutputSelector} output extractor class.
      !!}
      module procedure outputSelectorConstructorParameters
      module procedure outputSelectorConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function outputSelectorConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily outputSelector} output extractor property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorOutputSelector} output extractor property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -104,7 +104,7 @@ contains
 
   function outputSelectorConstructorInternal(extractors,outputTimes_,toleranceRelative) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily outputSelector} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorOutputSelector} output extractor property extractor class.
     !!}
     implicit none
     type            (nodePropertyExtractorOutputSelector)                         :: self
@@ -130,7 +130,7 @@ contains
 
   subroutine outputSelectorDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily outputSelector} output extractor property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorOutputSelector} output extractor property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorOutputSelector), intent(inout) :: self
