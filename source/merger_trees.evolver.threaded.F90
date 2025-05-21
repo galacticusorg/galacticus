@@ -202,6 +202,8 @@ contains
 
     self%deadlockHeadNode   => null()
     self%workersInitialized =  .false.
+    self%timeHostPrevious   =  -huge(0.0d0)
+    self%timeStepHost       =  -huge(0.0d0)
     !![
     <addMetaProperty component="basic" name="timeEvolve" id="self%timeEvolveID" isCreator="yes"/>
     !!]
