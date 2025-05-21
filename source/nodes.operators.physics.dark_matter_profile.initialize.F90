@@ -39,7 +39,7 @@
   
   interface nodeOperatorDarkMatterProfileInitialize
      !!{
-     Constructors for the {\normalfont \ttfamily darkMatterProfileInitialize} node operator class.
+     Constructors for the \refClass{nodeOperatorDarkMatterProfileInitialize} node operator class.
      !!}
      module procedure darkMatterProfileInitializeConstructorParameters
   end interface nodeOperatorDarkMatterProfileInitialize
@@ -48,7 +48,7 @@ contains
   
   function darkMatterProfileInitializeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily darkMatterProfileInitialize} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorDarkMatterProfileInitialize} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

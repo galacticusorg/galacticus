@@ -80,7 +80,7 @@
 
   interface mergerTreeOutputterHaloFourierProfiles
      !!{
-     Constructors for the {\normalfont \ttfamily haloFourierProfiles} merger tree outputter.
+     Constructors for the \refClass{mergerTreeOutputterHaloFourierProfiles} merger tree outputter.
      !!}
      module procedure haloFourierProfilesConstructorParameters
      module procedure haloFourierProfilesConstructorInternal
@@ -90,7 +90,7 @@ contains
   
   function haloFourierProfilesConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily haloFourierProfiles} merger tree outputter class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeOutputterHaloFourierProfiles} merger tree outputter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -140,7 +140,7 @@ contains
 
   function haloFourierProfilesConstructorInternal(wavenumberPointsPerDecade,wavenumberMinimum,wavenumberMaximum,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticFilter_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily haloFourierProfiles} merger tree outputter class.
+    Internal constructor for the \refClass{mergerTreeOutputterHaloFourierProfiles} merger tree outputter class.
     !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLogarithmic
     implicit none
@@ -164,7 +164,7 @@ contains
 
   subroutine haloFourierProfilesDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily haloFourierProfiles} merger tree outputter class.
+    Destructor for the \refClass{mergerTreeOutputterHaloFourierProfiles} merger tree outputter class.
     !!}
     implicit none
     type(mergerTreeOutputterHaloFourierProfiles), intent(inout) :: self

@@ -41,7 +41,7 @@
   
   interface nodeOperatorBlackHolesCGMHeating
      !!{
-     Constructors for the {\normalfont \ttfamily blackHolesCGMHeating} node operator class.
+     Constructors for the \refClass{nodeOperatorBlackHolesCGMHeating} node operator class.
      !!}
      module procedure blackHolesCGMHeatingConstructorParameters
      module procedure blackHolesCGMHeatingConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function blackHolesCGMHeatingConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily starFormation} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorBlackHolesCGMHeating} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -72,7 +72,7 @@ contains
 
   function blackHolesCGMHeatingConstructorInternal(blackHoleCGMHeating_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily blackHolesCGMHeating} node operator class.
+    Internal constructor for the \refClass{nodeOperatorBlackHolesCGMHeating} node operator class.
     !!}
     implicit none
     type (nodeOperatorBlackHolesCGMHeating)                        :: self
@@ -86,7 +86,7 @@ contains
 
   subroutine blackHolesCGMHeatingDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily blackHolesCGMHeating} node operator class.
+    Destructor for the \refClass{nodeOperatorBlackHolesCGMHeating} node operator class.
     !!}
     implicit none
     type(nodeOperatorBlackHolesCGMHeating), intent(inout) :: self

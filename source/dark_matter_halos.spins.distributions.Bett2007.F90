@@ -52,7 +52,7 @@
 
   interface haloSpinDistributionBett2007
      !!{
-     Constructors for the {\normalfont \ttfamily bett2007} dark matter halo spin
+     Constructors for the \refClass{haloSpinDistributionBett2007} dark matter halo spin
      distribution class.
      !!}
      module procedure bett2007ConstructorParameters
@@ -68,7 +68,7 @@ contains
 
   function bett2007ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily bett2007} dark matter halo spin
+    Constructor for the \refClass{haloSpinDistributionBett2007} dark matter halo spin
     distribution class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -106,7 +106,7 @@ contains
 
   function bett2007ConstructorInternal(lambda0,alpha,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily bett2007} dark matter halo spin
+    Internal constructor for the \refClass{haloSpinDistributionBett2007} dark matter halo spin
     distribution class.
     !!}
     use :: Gamma_Functions, only : Gamma_Function      , Gamma_Function_Incomplete_Complementary
@@ -175,7 +175,7 @@ contains
 
   subroutine bett2007Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily bett2007} dark matter halo spin
+    Destructor for the \refClass{haloSpinDistributionBett2007} dark matter halo spin
     distribution class.
     !!}
     implicit none

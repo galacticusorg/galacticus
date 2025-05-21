@@ -82,7 +82,7 @@
 
   interface massDistributionSphericalSIDMIsothermalBaryons
      !!{
-     Constructors for the {\normalfont \ttfamily sphericalSIDMIsothermalBaryons} mass distribution class.
+     Constructors for the \refClass{massDistributionSphericalSIDMIsothermalBaryons} mass distribution class.
      !!}
      module procedure sphericalSIDMIsothermalBaryonsConstructorParameters
      module procedure sphericalSIDMIsothermalBaryonsConstructorInternal
@@ -103,7 +103,7 @@ contains
 
   function sphericalSIDMIsothermalBaryonsConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sidmIsothermal} mass distribution class which takes a parameter set as input.
+    Constructor for the \refClass{massDistributionSphericalSIDMIsothermalBaryons} mass distribution class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -165,7 +165,7 @@ contains
 
   function sphericalSIDMIsothermalBaryonsConstructorInternal(timeAge,nonAnalyticSolver,massDistribution_,massDistributionBaryonic,darkMatterParticle_,initializationFunction,initializationSelf,initializationArgument,componentType,massType) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily sidmIsothermal} mass distribution class.
+    Internal constructor for the \refClass{massDistributionSphericalSIDMIsothermalBaryons} mass distribution class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
     implicit none
@@ -198,7 +198,7 @@ contains
 
   subroutine sphericalSIDMIsothermalBaryonsDestructor(self)
     !!{
-    Destructor for the abstract {\normalfont \ttfamily massDistributionSphericalSIDMIsothermalBaryons} class.
+    Destructor for the abstract \refClass{massDistributionSphericalSIDMIsothermalBaryons} class.
     !!}
     implicit none
     type(massDistributionSphericalSIDMIsothermalBaryons), intent(inout) :: self

@@ -59,7 +59,7 @@
 
   interface tidalStrippingSimple
      !!{
-     Constructors for the {\normalfont \ttfamily simple} model of tidal stripping class.
+     Constructors for the \refClass{tidalStrippingSimple} model of tidal stripping class.
      !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
@@ -69,7 +69,7 @@ contains
 
   function simpleConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily simple} tidal stripping class which takes a parameter set as input.
+    Constructor for the \refClass{tidalStrippingSimple} tidal stripping class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -103,7 +103,7 @@ contains
 
   function simpleConstructorInternal(rateFractionalMaximum,beta,satelliteTidalField_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily simple} model of tidal stripping class.
+    Internal constructor for the \refClass{tidalStrippingSimple} model of tidal stripping class.
     !!}
     implicit none
     type            (tidalStrippingSimple    )                        :: self
@@ -118,7 +118,7 @@ contains
 
   subroutine simpleDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily simple} model of tidal stripping class.
+    Destructor for the \refClass{tidalStrippingSimple} model of tidal stripping class.
     !!}
     implicit none
     type(tidalStrippingSimple), intent(inout) :: self

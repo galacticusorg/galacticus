@@ -40,7 +40,7 @@ Implements a merger tree weight property extractor class.
 
   interface nodePropertyExtractorTreeWeight
      !!{
-     Constructors for the {\normalfont \ttfamily treeWeight} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorTreeWeight} output analysis class.
      !!}
      module procedure treeWeightConstructorParameters
   end interface nodePropertyExtractorTreeWeight
@@ -49,7 +49,7 @@ contains
 
   function treeWeightConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily treeWeight} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorTreeWeight} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

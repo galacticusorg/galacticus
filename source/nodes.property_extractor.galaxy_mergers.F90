@@ -36,7 +36,7 @@
 
   interface nodePropertyExtractorGalaxyMergers
      !!{
-     Constructors for the {\normalfont \ttfamily galaxyMergers} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorGalaxyMergers} output extractor class.
      !!}
      module procedure galaxyMergersConstructorParameters
      module procedure galaxyMergersConstructorInternal
@@ -46,7 +46,7 @@ contains
 
   function galaxyMergersConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily galaxyMergers} output extractor property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorGalaxyMergers} output extractor property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -62,7 +62,7 @@ contains
 
   function galaxyMergersConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily galaxyMergers} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorGalaxyMergers} output extractor property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorGalaxyMergers) :: self

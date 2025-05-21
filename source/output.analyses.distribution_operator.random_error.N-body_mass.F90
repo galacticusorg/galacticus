@@ -42,7 +42,7 @@
 
   interface outputAnalysisDistributionOperatorRndmErrNbodyMass
      !!{
-     Constructors for the {\normalfont \ttfamily randomErrorNbodyMass} output analysis distribution operator class.
+     Constructors for the \refClass{outputAnalysisDistributionOperatorRndmErrNbodyMass} output analysis distribution operator class.
      !!}
      module procedure randomErrorNbodyMassConstructorParameters
      module procedure randomErrorNbodyMassConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function randomErrorNbodyMassConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily randomErrorNbodyMass} output analysis distribution operator class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisDistributionOperatorRndmErrNbodyMass} output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -73,7 +73,7 @@ contains
 
   function randomErrorNbodyMassConstructorInternal(nbodyHaloMassError_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily randomErrorNbodyMass} output analysis distribution operator class.
+    Internal constructor for the \refClass{outputAnalysisDistributionOperatorRndmErrNbodyMass} output analysis distribution operator class.
     !!}
     implicit none
     type (outputAnalysisDistributionOperatorRndmErrNbodyMass)                        :: self
@@ -87,7 +87,7 @@ contains
 
   subroutine randomErrorNbodyMassDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily randomErrorNbodyMass} output analysis distribution operator class.
+    Destructor for the \refClass{outputAnalysisDistributionOperatorRndmErrNbodyMass} output analysis distribution operator class.
     !!}
     implicit none
     type(outputAnalysisDistributionOperatorRndmErrNbodyMass), intent(inout) :: self

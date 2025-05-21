@@ -52,7 +52,7 @@
 
   interface powerSpectrumWindowFunctionTopHatSmoothed
      !!{
-     Constructors for the {\normalfont \ttfamily topHatSmoothed} power spectrum window function class.
+     Constructors for the \refClass{powerSpectrumWindowFunctionTopHatSmoothed} power spectrum window function class.
      !!}
      module procedure topHatSmoothedConstructorParameters
      module procedure topHatSmoothedConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function topHatSmoothedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily topHatSmoothed} power spectrum window function class which takes a parameter set as input.
+    Constructor for the \refClass{powerSpectrumWindowFunctionTopHatSmoothed} power spectrum window function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -91,7 +91,7 @@ contains
 
   function topHatSmoothedConstructorInternal(cosmologyParameters_,sigma) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily topHatSmoothed} power spectrum window function class.
+    Internal constructor for the \refClass{powerSpectrumWindowFunctionTopHatSmoothed} power spectrum window function class.
     !!}
     implicit none
     type            (powerSpectrumWindowFunctionTopHatSmoothed)                        :: self
@@ -106,7 +106,7 @@ contains
 
   subroutine topHatSmoothedDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily topHatSmoothed} power spectrum window function class.
+    Destructor for the \refClass{powerSpectrumWindowFunctionTopHatSmoothed} power spectrum window function class.
     !!}
     implicit none
     type(powerSpectrumWindowFunctionTopHatSmoothed), intent(inout) :: self

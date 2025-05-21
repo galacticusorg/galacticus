@@ -41,7 +41,7 @@
 
   interface nodePropertyExtractorHierarchy
      !!{
-     Constructors for the {\normalfont \ttfamily hierarchy} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorHierarchy} output extractor class.
      !!}
      module procedure hierarchyConstructorParameters
      module procedure hierarchyConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function hierarchyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily hierarchy} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorHierarchy} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -67,7 +67,7 @@ contains
 
   function hierarchyConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily hierarchy} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorHierarchy} output extractor property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorHierarchy) :: self

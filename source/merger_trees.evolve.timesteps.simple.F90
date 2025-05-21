@@ -49,7 +49,7 @@
 
   interface mergerTreeEvolveTimestepSimple
      !!{
-     Constructors for the {\normalfont \ttfamily simple} merger tree evolution timestep class.
+     Constructors for the \refClass{mergerTreeEvolveTimestepSimple} merger tree evolution timestep class.
      !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function simpleConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily simple} merger tree evolution timestep class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeEvolveTimestepSimple} merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -93,7 +93,7 @@ contains
 
   function simpleConstructorInternal(timeStepAbsolute,timeStepRelative,cosmologyFunctions_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily simple} merger tree evolution timestep class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeEvolveTimestepSimple} merger tree evolution timestep class which takes a parameter set as input.
     !!}
     implicit none
     type            (mergerTreeEvolveTimestepSimple)                        :: self
@@ -108,7 +108,7 @@ contains
 
   subroutine simpleDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily simple} merger tree evolution timestep class.
+    Destructor for the \refClass{mergerTreeEvolveTimestepSimple} merger tree evolution timestep class.
     !!}
     implicit none
     type(mergerTreeEvolveTimestepSimple), intent(inout) :: self

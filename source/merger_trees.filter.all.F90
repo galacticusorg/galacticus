@@ -50,7 +50,7 @@ contains
 
   function allConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily all} merger tree filter class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeFilterAll} merger tree filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -81,7 +81,7 @@ contains
 
   function allConstructorInternal(filters) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily all} filter class.
+    Internal constructor for the \refClass{mergerTreeFilterAll} filter class.
     !!}
     implicit none
     type(mergerTreeFilterAll)                        :: self

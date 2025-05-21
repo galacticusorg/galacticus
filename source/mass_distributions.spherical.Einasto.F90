@@ -80,7 +80,7 @@
   
   interface massDistributionEinasto
      !!{
-     Constructors for the {\normalfont \ttfamily einasto} mass distribution class.
+     Constructors for the \refClass{massDistributionEinasto} mass distribution class.
      !!}
      module procedure massDistributionEinastoConstructorParameters
      module procedure massDistributionEinastoConstructorInternal
@@ -90,7 +90,7 @@ contains
 
   function massDistributionEinastoConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily einasto} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionEinasto} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters

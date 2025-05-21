@@ -58,7 +58,7 @@ Implements the ETHOS \citep{cyr-racine_ethoseffective_2016} transfer function, u
 
   interface transferFunctionETHOSDM
      !!{
-     Constructors for the {\normalfont \ttfamily ETHOS} transfer function class.
+     Constructors for the \refClass{transferFunctionETHOSDM} transfer function class.
      !!}
      module procedure ETHOSDMConstructorParameters
      module procedure ETHOSDMConstructorInternal
@@ -73,7 +73,7 @@ contains
   
   function ETHOSDMConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily ETHOS} transfer function class which takes a parameter set as input.
+    Constructor for the \refClass{transferFunctionETHOSDM} transfer function class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
@@ -165,7 +165,7 @@ contains
   
   function ETHOSDMConstructorInternal(transferFunctionCDM,alpha,beta,gamma,sigma,tau,kPeak,hPeak,h2,time,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily ETHOS} transfer function class.
+    Internal constructor for the \refClass{transferFunctionETHOSDM} transfer function class.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
     use :: Error               , only : Error_Report
@@ -189,7 +189,7 @@ contains
 
   subroutine ETHOSDMDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily ETHOS} transfer function class.
+    Destructor for the \refClass{transferFunctionETHOSDM} transfer function class.
     !!}
     implicit none
     type(transferFunctionETHOSDM), intent(inout) :: self

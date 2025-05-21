@@ -82,7 +82,7 @@
 
   interface virialOrbitWetzel2010
      !!{
-     Constructors for the {\normalfont \ttfamily wetzel2010} virial orbit class.
+     Constructors for the \refClass{virialOrbitWetzel2010} virial orbit class.
      !!}
      module procedure wetzel2010ConstructorParameters
      module procedure wetzel2010ConstructorInternal
@@ -109,7 +109,7 @@ contains
 
   function wetzel2010ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily wetzel2010} virial orbits class which takes a parameter set as input.
+    Constructor for the \refClass{virialOrbitWetzel2010} virial orbits class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -146,7 +146,7 @@ contains
 
   function wetzel2010ConstructorInternal(darkMatterHaloScale_,cosmologyFunctions_,criticalOverdensity_,cosmologyParameters_,virialDensityContrast_,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily wetzel2010} virial orbits class.
+    Internal constructor for the \refClass{virialOrbitWetzel2010} virial orbits class.
     !!}
     use :: Hypergeometric_Functions, only : Hypergeometric_1F1
     implicit none
@@ -209,7 +209,7 @@ contains
 
   subroutine wetzel2010Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily wetzel2010} virial orbits class.
+    Destructor for the \refClass{virialOrbitWetzel2010} virial orbits class.
     !!}
     implicit none
     type(virialOrbitWetzel2010), intent(inout) :: self

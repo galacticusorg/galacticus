@@ -36,7 +36,7 @@ Implements a null node operator class.
 
   interface nodeOperatorNull
      !!{
-     Constructors for the {\normalfont \ttfamily null} node operator class.
+     Constructors for the \refClass{nodeOperatorNull} node operator class.
      !!}
      module procedure nullConstructorParameters
   end interface nodeOperatorNull
@@ -45,7 +45,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily null} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorNull} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

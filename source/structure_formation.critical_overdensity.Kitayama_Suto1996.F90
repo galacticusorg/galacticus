@@ -53,7 +53,7 @@
 
   interface criticalOverdensityKitayamaSuto1996
      !!{
-     Constructors for the {\normalfont \ttfamily kitayamaSuto1996} critical overdensity class.
+     Constructors for the \refClass{criticalOverdensityKitayamaSuto1996} critical overdensity class.
      !!}
      module procedure kitayamaSuto1996ConstructorParameters
      module procedure kitayamaSuto1996ConstructorInternal
@@ -63,7 +63,7 @@ contains
 
   function kitayamaSuto1996ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily kitayamaSuto1996} critical overdensity class
+    Constructor for the \refClass{criticalOverdensityKitayamaSuto1996} critical overdensity class
     which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
@@ -95,7 +95,7 @@ contains
 
   function kitayamaSuto1996ConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily kitayamaSuto1996} critical overdensity class.
+    Internal constructor for the \refClass{criticalOverdensityKitayamaSuto1996} critical overdensity class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleCDM, darkMatterParticleClass
     use :: Error                , only : Error_Report
@@ -122,7 +122,7 @@ contains
 
   subroutine kitayamaSuto1996Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily kitayamaSuto1996} critical overdensity class.
+    Destructor for the \refClass{criticalOverdensityKitayamaSuto1996} critical overdensity class.
     !!}
     implicit none
     type(criticalOverdensityKitayamaSuto1996), intent(inout) :: self

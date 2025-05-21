@@ -80,7 +80,7 @@
 
   interface posteriorSampleLikelihoodMassFunction
      !!{
-     Constructors for the {\normalfont \ttfamily massFunction} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleLikelihoodMassFunction} posterior sampling convergence class.
      !!}
      module procedure massFunctionConstructorParameters
      module procedure massFunctionConstructorInternal
@@ -90,7 +90,7 @@ contains
 
   function massFunctionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily massFunction} posterior sampling convergence class which builds the object from a
+    Constructor for the \refClass{posteriorSampleLikelihoodMassFunction} posterior sampling convergence class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -163,7 +163,7 @@ contains
 
   function massFunctionConstructorInternal(haloMassMinimum,haloMassMaximum,redshiftMinimum,redshiftMaximum,useSurveyLimits,massFunctionFileName,modelSurfaceBrightness,surfaceBrightnessLimit,cosmologyFunctions_,haloMassFunction_,surveyGeometry_) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily massFunction} posterior sampling likelihood class.
+    Constructor for the \refClass{posteriorSampleLikelihoodMassFunction} posterior sampling likelihood class.
     !!}
     use :: Display          , only : displayMessage, displayMagenta    , displayReset
     use :: Input_Paths      , only : inputPath     , pathTypeDataStatic
@@ -254,7 +254,7 @@ contains
 
   subroutine massFunctionDestructor(self)
     !!{
-    Destructor for {\normalfont \ttfamily massFunction} posterior sampling likelihood class.
+    Destructor for the \refClass{posteriorSampleLikelihoodMassFunction} posterior sampling likelihood class.
     !!}
     implicit none
     type(posteriorSampleLikelihoodMassFunction), intent(inout) :: self

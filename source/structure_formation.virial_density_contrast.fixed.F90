@@ -64,7 +64,7 @@
 
   interface virialDensityContrastFixed
      !!{
-     Constructors for the {\normalfont \ttfamily fixed} dark matter halo virial density contrast class.
+     Constructors for the \refClass{virialDensityContrastFixed} dark matter halo virial density contrast class.
      !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
@@ -74,7 +74,7 @@ contains
 
   function fixedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily fixed} dark matter halo virial density contrast class that takes a parameter set as input.
+    Constructor for the \refClass{virialDensityContrastFixed} dark matter halo virial density contrast class that takes a parameter set as input.
     !!}
     use :: ISO_Varying_String, only : var_str       , varying_string
     use :: Input_Parameters  , only : inputParameter, inputParameters
@@ -119,7 +119,7 @@ contains
 
   function fixedConstructorInternal(densityContrastValue,densityType,turnAroundOverVirialRadius,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily fixed} dark matter halo virial density contrast class.
+    Constructor for the \refClass{virialDensityContrastFixed} dark matter halo virial density contrast class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -138,7 +138,7 @@ contains
 
   subroutine fixedDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily fixed} virial density contrast class.
+    Destructor for the \refClass{virialDensityContrastFixed} virial density contrast class.
     !!}
     implicit none
     type(virialDensityContrastFixed), intent(inout) :: self

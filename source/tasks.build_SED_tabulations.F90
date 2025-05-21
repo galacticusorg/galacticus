@@ -48,7 +48,7 @@
 
   interface taskBuildSEDTabulations
      !!{
-     Constructors for the {\normalfont \ttfamily buildSEDTabulations} task.
+     Constructors for the \refClass{taskBuildSEDTabulations} task.
      !!}
      module procedure buildSEDTabulationsParameters
      module procedure buildSEDTabulationsInternal
@@ -58,7 +58,7 @@ contains
 
   function buildSEDTabulationsParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily buildSEDTabulations} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskBuildSEDTabulations} task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
@@ -102,7 +102,7 @@ contains
 
   function buildSEDTabulationsInternal(nodePropertyExtractor_,starFormationHistory_,outputTimes_,parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily buildSEDTabulations} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskBuildSEDTabulations} task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -121,7 +121,7 @@ contains
 
   subroutine buildSEDDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily buildSEDTabulations} task class.
+    Destructor for the \refClass{taskBuildSEDTabulations} task class.
     !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none

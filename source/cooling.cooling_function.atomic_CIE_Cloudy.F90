@@ -57,7 +57,7 @@
 
   interface coolingFunctionAtomicCIECloudy
      !!{
-     Constructors for the ``atomic CIE Cloudy'' cooling function class.
+     Constructors for the \refClass{coolingFunctionAtomicCIECloudy} cooling function class.
      !!}
      module procedure atomicCIECloudyConstructorParameters
      module procedure atomicCIECloudyConstructorInternal
@@ -80,7 +80,7 @@ contains
 
   function atomicCIECloudyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``atomic CIE Cloudy'' cooling function class which takes a parameter set as input.
+    Constructor for the \refClass{coolingFunctionAtomicCIECloudy} cooling function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -96,7 +96,7 @@ contains
 
   function atomicCIECloudyConstructorInternal() result(self)
     !!{
-    Internal constructor for the ``atomic CIE Cloudy'' cooling function class.
+    Internal constructor for the \refClass{coolingFunctionAtomicCIECloudy} cooling function class.
     !!}
     implicit none
     type(coolingFunctionAtomicCIECloudy) :: self

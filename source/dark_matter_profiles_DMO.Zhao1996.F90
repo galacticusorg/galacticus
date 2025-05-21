@@ -53,7 +53,7 @@
 
   interface darkMatterProfileDMOZhao1996
      !!{
-     Constructors for the {\normalfont \ttfamily zhao1996} dark matter halo profile class.
+     Constructors for the \refClass{darkMatterProfileDMOZhao1996} dark matter halo profile class.
      !!}
      module procedure zhao1996ConstructorParameters
      module procedure zhao1996ConstructorInternal
@@ -101,7 +101,7 @@ contains
 
   function zhao1996ConstructorInternal(alpha,beta,gamma,darkMatterHaloScale_) result(self)
     !!{
-    Generic constructor for the {\normalfont \ttfamily zhao1996} dark matter halo profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOZhao1996} dark matter halo profile class.
     !!}
     implicit none
     type            (darkMatterProfileDMOZhao1996)                        :: self
@@ -181,7 +181,7 @@ contains
 
   subroutine zhao1996Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily zhao1996} dark matter halo profile class.
+    Destructor for the \refClass{darkMatterProfileDMOZhao1996} dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOZhao1996), intent(inout) :: self

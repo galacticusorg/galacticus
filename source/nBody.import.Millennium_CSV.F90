@@ -47,7 +47,7 @@ Implements an N-body data importer for Millennium database CSV files.
 
   interface nbodyImporterMillenniumCSV
      !!{
-     Constructors for the {\normalfont \ttfamily millenniumCSV} N-body importer class.
+     Constructors for the \refClass{nbodyImporterMillenniumCSV} N-body importer class.
      !!}
      module procedure millenniumCSVConstructorParameters
      module procedure millenniumCSVConstructorInternal
@@ -68,7 +68,7 @@ contains
 
   function millenniumCSVConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily millenniumCSV} N-body importer class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyImporterMillenniumCSV} N-body importer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -111,7 +111,7 @@ contains
 
   function millenniumCSVConstructorInternal(fileName,label,time,cosmologyParameters_,cosmologyFunctions_) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily millenniumCSV} N-body importer class.
+    Internal constructor for the \refClass{nbodyImporterMillenniumCSV} N-body importer class.
     !!}
     implicit none
     type            (nbodyImporterMillenniumCSV)                        :: self
@@ -129,7 +129,7 @@ contains
 
   subroutine millenniumCSVDestructor(self)
     !!{
-    Destructor for {\normalfont \ttfamily millenniumCSV} importer class.
+    Destructor for the \refClass{nbodyImporterMillenniumCSV} importer class.
     !!}
     implicit none
     type(nbodyImporterMillenniumCSV), intent(inout) :: self

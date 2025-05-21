@@ -40,7 +40,7 @@
 
   interface posteriorSamplesPriorGrid
      !!{
-     Constructors for the {\normalfont \ttfamily priorGrid} posterior sampling state initialization class.
+     Constructors for the \refClass{posteriorSamplesPriorGrid} posterior sampling state initialization class.
      !!}
      module procedure priorGridConstructorParameters
      module procedure priorGridConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function priorGridConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily priorGrid} posterior sampling state initialization class.
+    Constructor for the \refClass{posteriorSamplesPriorGrid} posterior sampling state initialization class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -74,7 +74,7 @@ contains
 
   function priorGridConstructorInternal(countGrid) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily priorGrid} posterior sampling state initialization class.
+    Constructor for the \refClass{posteriorSamplesPriorGrid} posterior sampling state initialization class.
     !!}
     implicit none
     type   (posteriorSamplesPriorGrid)                :: self

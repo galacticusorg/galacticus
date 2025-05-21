@@ -38,7 +38,7 @@
 
   interface operatorUnaryIdentity
      !!{
-     Constructors for the {\normalfont \ttfamily identity} 1D distribution function class.
+     Constructors for the \refClass{operatorUnaryIdentity} 1D distribution function class.
      !!}
      module procedure identityConstructorParameters
   end interface operatorUnaryIdentity
@@ -47,7 +47,7 @@ contains
 
   function identityConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily identity} 1D distribution function class which builds the object from a parameter
+    Constructor for the \refClass{operatorUnaryIdentity} 1D distribution function class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameters

@@ -74,7 +74,7 @@
 
   interface haloMassFunctionTinker2008
      !!{
-     Constructors for the {\normalfont \ttfamily tinker2008} halo mass function class.
+     Constructors for the \refClass{haloMassFunctionTinker2008} halo mass function class.
      !!}
      module procedure tinker2008ConstructorParameters
      module procedure tinker2008ConstructorInternal
@@ -84,7 +84,7 @@ contains
 
   function tinker2008ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily tinker2008} halo mass function class which takes a parameter set as input.
+    Constructor for the \refClass{haloMassFunctionTinker2008} halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -124,7 +124,7 @@ contains
 
   function tinker2008ConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,linearGrowth_,cosmologyFunctions_,virialDensityContrast_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily tinker2008} halo mass function class.
+    Internal constructor for the \refClass{haloMassFunctionTinker2008} halo mass function class.
     !!}
     use :: File_Utilities    , only : File_Exists
     use :: FoX_DOM           , only : destroy                     , node                             , parseFile
@@ -177,7 +177,7 @@ contains
 
   subroutine tinker2008Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily tinker2008} halo mass function class.
+    Destructor for the \refClass{haloMassFunctionTinker2008} halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionTinker2008), intent(inout) :: self

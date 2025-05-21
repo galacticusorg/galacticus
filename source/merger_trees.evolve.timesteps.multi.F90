@@ -53,7 +53,7 @@
 
   interface mergerTreeEvolveTimestepMulti
      !!{
-     Constructors for the {\normalfont \ttfamily multi} mergerTreeEvolveTimestep.
+     Constructors for the \refClass{mergerTreeEvolveTimestepMulti} mergerTreeEvolveTimestep.
      !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
@@ -63,7 +63,7 @@ contains
 
   function multiConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily multi} merger tree evolution timestep class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeEvolveTimestepMulti} merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -94,7 +94,7 @@ contains
 
   function multiConstructorInternal(mergerTreeEvolveTimesteps) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily multi} merger tree evolution timestep class.
+    Internal constructor for the \refClass{mergerTreeEvolveTimestepMulti} merger tree evolution timestep class.
     !!}
     implicit none
     type(mergerTreeEvolveTimestepMulti    )                        :: self
@@ -114,7 +114,7 @@ contains
 
   subroutine multiDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily multi} merger tree evolution timestep class.
+    Destructor for the \refClass{mergerTreeEvolveTimestepMulti} merger tree evolution timestep class.
     !!}
     implicit none
     type(mergerTreeEvolveTimestepMulti    ), intent(inout) :: self

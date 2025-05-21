@@ -57,7 +57,7 @@
 
   interface accretionDiskSpectraFile
      !!{
-     Constructors for the {\normalfont \ttfamily file} accretion disk spectra class.
+     Constructors for the \refClass{accretionDiskSpectraFile} accretion disk spectra class.
      !!}
      module procedure fileConstructorParameters
      module procedure fileConstructorInternal
@@ -70,7 +70,7 @@ contains
 
   function fileConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily file} accretion disk spectra class which takes a parameter set as input.
+    Constructor for the \refClass{accretionDiskSpectraFile} accretion disk spectra class which takes a parameter set as input.
     !!}
     implicit none
     type (accretionDiskSpectraFile   )                :: self
@@ -99,7 +99,7 @@ contains
 
   function fileConstructorInternal(fileName,blackHoleAccretionRate_,accretionDisks_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily file} accretion disk spectra class.
+    Internal constructor for the \refClass{accretionDiskSpectraFile} accretion disk spectra class.
     !!}
     implicit none
     type     (accretionDiskSpectraFile   )                        :: self

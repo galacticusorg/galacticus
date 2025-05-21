@@ -50,7 +50,7 @@
 
   interface nodePropertyExtractorBlackHoleSeedingVergara2023
      !!{
-     Constructors for the {\normalfont \ttfamily blackHoleSeedingVergara2023} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorBlackHoleSeedingVergara2023} output analysis class.
      !!}
      module procedure blackHoleSeedingVergara2023ConstructorParameters
      module procedure blackHoleSeedingVergara2023ConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function blackHoleSeedingVergara2023ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily blackHoleSeedingVergara2023} property extractor class.
+    Constructor for the \refClass{nodePropertyExtractorBlackHoleSeedingVergara2023} property extractor class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -76,7 +76,7 @@ contains
 
   function blackHoleSeedingVergara2023ConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily blackHoleSeedingVergara2023} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorBlackHoleSeedingVergara2023} property extractor class.
     !!}
     implicit none
     type          (nodePropertyExtractorBlackHoleSeedingVergara2023) :: self

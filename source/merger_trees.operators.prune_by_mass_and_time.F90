@@ -95,7 +95,7 @@ contains
 
   subroutine pruneByMassAndTimeDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily list} output times class.
+    Destructor for the \refClass{mergerTreeOperatorPruneByMassAndTime} output times class.
     !!}
     implicit none
     type(mergerTreeOperatorPruneByMassAndTime), intent(inout) :: self

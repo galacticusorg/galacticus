@@ -40,7 +40,7 @@
 
   interface nodePropertyExtractorGalaxyMergerTreePhysical
      !!{
-     Constructors for the {\normalfont \ttfamily galaxyMergerTreePhysical} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorGalaxyMergerTreePhysical} output extractor class.
      !!}
      module procedure galaxyMergerTreePhysicalConstructorParameters
      module procedure galaxyMergerTreePhysicalConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function galaxyMergerTreePhysicalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily galaxyMergerTreePhysical} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorGalaxyMergerTreePhysical} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,7 +66,7 @@ contains
 
   function galaxyMergerTreePhysicalConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily galaxyMergerTreePhysical} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorGalaxyMergerTreePhysical} output extractor property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorGalaxyMergerTreePhysical) :: self

@@ -44,7 +44,7 @@ contains
 
   subroutine tabulatedDestructor(self)
     !!{
-    Destructor for the ``tabulated'' stellar spectra dust attenuation class.
+    Destructor for the \refClass{stellarSpectraDustAttenuationTabulated} stellar spectra dust attenuation class.
     !!}
     implicit none
     type(stellarSpectraDustAttenuationTabulated), intent(inout) :: self

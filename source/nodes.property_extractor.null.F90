@@ -37,7 +37,7 @@ Implements a null output analysis class.
 
   interface nodePropertyExtractorNull
      !!{
-     Constructors for the {\normalfont \ttfamily null} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorNull} output analysis class.
      !!}
      module procedure nullConstructorParameters
   end interface nodePropertyExtractorNull
@@ -46,7 +46,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily null} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorNull} output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

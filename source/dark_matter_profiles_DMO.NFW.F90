@@ -47,7 +47,7 @@
 
   interface darkMatterProfileDMONFW
      !!{
-     Constructors for the {\normalfont \ttfamily nfw} dark matter halo profile class.
+     Constructors for the \refClass{darkMatterProfileDMONFW} dark matter halo profile class.
      !!}
      module procedure nfwConstructorParameters
      module procedure nfwConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function nfwConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily nfw} dark matter halo profile class which takes a parameter set as input.
+    Constructor for the \refClass{darkMatterProfileDMONFW} dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -85,7 +85,7 @@ contains
 
   function nfwConstructorInternal(velocityDispersionUseSeriesExpansion,darkMatterHaloScale_) result(self)
     !!{
-    Generic constructor for the {\normalfont \ttfamily nfw} dark matter halo profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMONFW} dark matter halo profile class.
     !!}
     use :: Error           , only : Component_List                   , Error_Report
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
@@ -113,7 +113,7 @@ contains
 
   subroutine nfwDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily nfw} dark matter halo profile class.
+    Destructor for the \refClass{darkMatterProfileDMONFW} dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMONFW), intent(inout) :: self

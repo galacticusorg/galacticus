@@ -134,7 +134,7 @@ contains
 
   function sussingConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree importer which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeImporterSussing} format \citep{srisawat_sussing_2013} merger tree importer which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -236,7 +236,7 @@ contains
 
   function sussingConstructorInternal(fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption,cosmologyParameters_,cosmologyFunctions_,randomNumberGenerator_) result(self)
     !!{
-    Internal constructor for the ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree importer class.
+    Internal constructor for the \refClass{mergerTreeImporterSussing} format \citep{srisawat_sussing_2013} merger tree importer class.
     !!}
     implicit none
     type            (mergerTreeImporterSussing         )                              :: self

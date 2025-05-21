@@ -43,7 +43,7 @@
 
   interface accretionHaloBertschinger
      !!{
-     Constructors for the {\normalfont \ttfamily bertschinger} halo accretion class.
+     Constructors for the \refClass{accretionHaloBertschinger} halo accretion class.
      !!}
      module procedure bertschingerConstructorParameters
      module procedure bertschingerConstructorInternal
@@ -70,7 +70,7 @@ contains
 
   function bertschingerConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily bertschinger} halo accretion class.
+    Internal constructor for the \refClass{accretionHaloBertschinger} halo accretion class.
     !!}
     implicit none
     type            (accretionHaloBertschinger    )                        :: self
@@ -93,7 +93,7 @@ contains
 
   subroutine bertschingerDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily bertschinger} halo accretion class.
+    Destructor for the \refClass{accretionHaloBertschinger} halo accretion class.
     !!}
     implicit none
     type(accretionHaloBertschinger), intent(inout) :: self

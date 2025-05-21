@@ -63,7 +63,7 @@
 
   interface massDistributionHeatingTidal
      !!{
-     Constructors for the {\normalfont \ttfamily tidal} mass distribution class.
+     Constructors for the \refClass{massDistributionHeatingTidal} mass distribution class.
      !!}
      module procedure tidalConstructorParameters
      module procedure tidalConstructorInternal
@@ -73,7 +73,7 @@ contains
 
   function tidalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily tidal} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionHeatingTidal} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -124,7 +124,7 @@ contains
   
   function tidalConstructorInternal(heatSpecificNormalized,coefficientSecondOrder0,coefficientSecondOrder1,coefficientSecondOrder2,correlationVelocityRadius) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily tidal} mass distribution heating class.
+    Constructor for the \refClass{massDistributionHeatingTidal} mass distribution heating class.
     !!}
     implicit none
     type             (massDistributionHeatingTidal)                :: self

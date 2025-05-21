@@ -46,7 +46,7 @@
 
   interface massDistributionHernquist
      !!{
-     Constructors for the {\normalfont \ttfamily hernquist} mass distribution class.
+     Constructors for the \refClass{massDistributionHernquist} mass distribution class.
      !!}
      module procedure hernquistConstructorParameters
      module procedure hernquistConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function hernquistConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily hernquist} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionHernquist} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters

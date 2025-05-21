@@ -85,7 +85,7 @@
   
   interface nodeOperatorEmpiricalGalaxyUniverseMachine
      !!{
-     Constructors for the {\normalfont \ttfamily empiricalGalaxyUniverseMachine} {\normalfont \ttfamily nodeOperator} class.
+     Constructors for the \refClass{nodeOperatorEmpiricalGalaxyUniverseMachine} class.
      !!}
      module procedure empiricalGalaxyUniverseMachineConstructorParameters
      module procedure empiricalGalaxyUniverseMachineConstructorInternal
@@ -95,7 +95,7 @@ contains
 
   function empiricalGalaxyUniverseMachineConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily empiricalGalaxyUniverseMachine} {\normalfont \ttfamily nodeOperator} class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorEmpiricalGalaxyUniverseMachine} class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -320,7 +320,7 @@ contains
          &                                                   cosmologyParameters_,cosmologyFunctions_ ,virialDensityContrast_            &
          &                                                  ) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily empiricalGalaxyUniverseMachine} {\normalfont \ttfamily nodeOperator} class.
+    Internal constructor for the \refClass{nodeOperatorEmpiricalGalaxyUniverseMachine} class.
     !!}
     use :: Error               , only : Error_Report
     use :: Numerical_Comparison, only : Values_Agree
@@ -359,7 +359,7 @@ contains
 
   subroutine empiricalGalaxyUniverseMachineDestructor(self)    
     !!{
-    Destructor for the {\normalfont \ttfamily empiricalGalaxyUniverseMachine} {\normalfont \ttfamily nodeOperator} class.
+    Destructor for the \refClass{nodeOperatorEmpiricalGalaxyUniverseMachine} class.
     !!}
     implicit none
     type(nodeOperatorEmpiricalGalaxyUniverseMachine), intent(inout) :: self

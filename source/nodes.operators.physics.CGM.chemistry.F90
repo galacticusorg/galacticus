@@ -95,7 +95,7 @@
 
   interface nodeOperatorCGMChemistry
      !!{
-     Constructors for the {\normalfont \ttfamily cgmChemistry} node operator class.
+     Constructors for the \refClass{nodeOperatorCGMChemistry} node operator class.
      !!}
      module procedure cgmChemistryConstructorParameters
      module procedure cgmChemistryConstructorInternal
@@ -122,7 +122,7 @@ contains
 
   function cgmChemistryConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily cgmChemistry} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorCGMChemistry} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     use :: Radiation_Fields, only : radiationFieldNull
@@ -182,7 +182,7 @@ contains
 
   function cgmChemistryConstructorInternal(fractionTimescaleEquilibrium,atomicIonizationRateCollisional_,atomicRecombinationRateRadiative_,atomicCrossSectionIonizationPhoto_,chemicalReactionRate_,darkMatterHaloScale_,cosmologyFunctions_,radiation_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily cgmChemistry} node operator class.
+    Internal constructor for the \refClass{nodeOperatorCGMChemistry} node operator class.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index, Chemicals_Property_Count
     implicit none
@@ -217,7 +217,7 @@ contains
   
   subroutine cgmChemistryDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily cgmChemistry} node operator class.
+    Destructor for the \refClass{nodeOperatorCGMChemistry} node operator class.
     !!}
     implicit none
     type(nodeOperatorCGMChemistry), intent(inout) :: self

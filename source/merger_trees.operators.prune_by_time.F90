@@ -114,7 +114,7 @@ contains
 
   subroutine pruneByTimeDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily pruneByTime} merger tree operator class.
+    Destructor for the \refClass{mergerTreeOperatorPruneByTime} merger tree operator class.
     !!}
     implicit none
     type(mergerTreeOperatorPruneByTime), intent(inout) :: self

@@ -103,7 +103,7 @@
 
   interface massDistributionSphericalFiniteResolutionNFW
      !!{
-     Constructors for the {\normalfont \ttfamily sphericalFiniteResolutionNFW} mass distribution class.
+     Constructors for the \refClass{massDistributionSphericalFiniteResolutionNFW} mass distribution class.
      !!}
      module procedure sphericalFiniteResolutionNFWConstructorParameters
      module procedure sphericalFiniteResolutionNFWConstructorInternal
@@ -165,7 +165,7 @@ contains
 
   function sphericalFiniteResolutionNFWConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sphericalFiniteResolutionNFW} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionSphericalFiniteResolutionNFW} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameters
@@ -220,7 +220,7 @@ contains
   
   function sphericalFiniteResolutionNFWConstructorInternal(lengthResolution,radiusScale,radiusVirial,mass,componentType,massType) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily sphericalFiniteResolutionNFW} mass distribution class.
+    Constructor for the \refClass{massDistributionSphericalFiniteResolutionNFW} mass distribution class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

@@ -40,7 +40,7 @@
 
   interface outputAnalysisBlackHoleBulgeRelation
      !!{
-     Constructors for the {\normalfont \ttfamily blackHoleBulgeRelation} output analysis class.
+     Constructors for the \refClass{outputAnalysisBlackHoleBulgeRelation} output analysis class.
      !!}
      module procedure blackHoleBulgeRelationConstructorParameters
      module procedure blackHoleBulgeRelationConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function blackHoleBulgeRelationConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily blackHoleBulgeRelation} output analysis class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisBlackHoleBulgeRelation} output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
     use :: Input_Parameters   , only : inputParameter    , inputParameters
@@ -110,7 +110,7 @@ contains
 
   function blackHoleBulgeRelationConstructorInternal(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily blackHoleBulgeRelation} output analysis class for internal use.
+    Constructor for the \refClass{outputAnalysisBlackHoleBulgeRelation} output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                            , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -347,7 +347,7 @@ contains
 
   subroutine blackHoleBulgeRelationDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily blackHoleBulgeRelation} output analysis class.
+    Destructor for the \refClass{outputAnalysisBlackHoleBulgeRelation} output analysis class.
     !!}
     implicit none
     type(outputAnalysisBlackHoleBulgeRelation), intent(inout) :: self

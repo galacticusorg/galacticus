@@ -57,7 +57,7 @@
   
   interface nodeOperatorStarFormationRateInterOutput
      !!{
-     Constructors for the {\normalfont \ttfamily starFormationRateInterOutput} node operator class.
+     Constructors for the \refClass{nodeOperatorStarFormationRateInterOutput} node operator class.
      !!}
      module procedure starFormationRateInterOutputConstructorParameters
      module procedure starFormationRateInterOutputConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function starFormationRateInterOutputConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily starFormationRateInterOutput} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorStarFormationRateInterOutput} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -100,7 +100,7 @@ contains
 
   function starFormationRateInterOutputConstructorInternal(outputTimes_,mergerMassMovements_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily starFormationRateInterOutput} node operator class.
+    Internal constructor for the \refClass{nodeOperatorStarFormationRateInterOutput} node operator class.
     !!}
     implicit none
     type (nodeOperatorStarFormationRateInterOutput )                        :: self
@@ -125,7 +125,7 @@ contains
 
   subroutine starFormationRateInterOutputDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily starFormationRateInterOutput} node operator class.
+    Destructor for the \refClass{nodeOperatorStarFormationRateInterOutput} node operator class.
     !!}
     implicit none
     type(nodeOperatorStarFormationRateInterOutput), intent(inout) :: self

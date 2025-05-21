@@ -44,7 +44,7 @@
 
   interface blackHoleAccretionRateSpheroidTracking
      !!{
-     Constructors for the {\normalfont \ttfamily spheroidTracking} black hole accretion rate class.
+     Constructors for the \refClass{blackHoleAccretionRateSpheroidTracking} black hole accretion rate class.
      !!}
      module procedure spheroidTrackingConstructorParameters
      module procedure spheroidTrackingConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function spheroidTrackingConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily spheroidTracking} black hole accretion rate class which takes a parameter list as input.
+    Constructor for the \refClass{blackHoleAccretionRateSpheroidTracking} black hole accretion rate class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -82,7 +82,7 @@ contains
 
   function spheroidTrackingConstructorInternal(growthRatioToStellarSpheroid,starFormationRateSpheroids_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily spheroidTracking} node operator class.
+    Internal constructor for the \refClass{blackHoleAccretionRateSpheroidTracking} node operator class.
     !!}
     implicit none
     type            (blackHoleAccretionRateSpheroidTracking)                        :: self

@@ -55,7 +55,7 @@ Implements a concentration output analysis property extractor class.
 
   interface nodePropertyExtractorConcentration
      !!{
-     Constructors for the {\normalfont \ttfamily concentration} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorConcentration} output analysis class.
      !!}
      module procedure concentrationConstructorParameters
      module procedure concentrationConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function concentrationConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily concentration} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorConcentration} output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -104,7 +104,7 @@ contains
 
   function concentrationConstructorInternal(useLastIsolatedTime,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily concentration} output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorConcentration} output analysis property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorConcentration)                        :: self
@@ -122,7 +122,7 @@ contains
 
   subroutine concentrationDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily concentration} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorConcentration} output analysis property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorConcentration), intent(inout) :: self

@@ -45,7 +45,7 @@
 
   interface posteriorSampleStoppingCriterionCorrelationLength
      !!{
-     Constructors for the {\normalfont \ttfamily correlationLength} posterior sampling stopping criterion class.
+     Constructors for the \refClass{posteriorSampleStoppingCriterionCorrelationLength} posterior sampling stopping criterion class.
      !!}
      module procedure correlationLengthConstructorParameters
      module procedure correlationLengthConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function correlationLengthConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily correlationLength} posterior sampling stopping class which builds the object from a parameter set.
+    Constructor for the \refClass{posteriorSampleStoppingCriterionCorrelationLength} posterior sampling stopping class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -82,7 +82,7 @@ contains
 
   function correlationLengthConstructorInternal(stopAfterCount,posteriorSampleConvergence_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily correlationLength} posterior sampling stopping class.
+    Internal constructor for the \refClass{posteriorSampleStoppingCriterionCorrelationLength} posterior sampling stopping class.
     !!}
     implicit none
     type   (posteriorSampleStoppingCriterionCorrelationLength)                        :: self
@@ -97,7 +97,7 @@ contains
 
   subroutine correlationLengthDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily correlationLength} posterior sampling stopping class.
+    Destructor for the \refClass{posteriorSampleStoppingCriterionCorrelationLength} posterior sampling stopping class.
     !!}
     implicit none
     type(posteriorSampleStoppingCriterionCorrelationLength), intent(inout) :: self

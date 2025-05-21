@@ -46,7 +46,7 @@ Implements an output analysis property extractor class that extracts a property 
 
   interface nodePropertyExtractorDescendantNode
      !!{
-     Constructors for the {\normalfont \ttfamily descendantNode} node property extractor class.
+     Constructors for the \refClass{nodePropertyExtractorDescendantNode} node property extractor class.
      !!}
      module procedure descendantNodeConstructorParameters
      module procedure descendantNodeConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function descendantNodeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily descendantNode} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorDescendantNode} node property extractor class which takes a parameter set as input.
     !!}
     use :: Error              , only : Error_Report
     use :: Input_Parameters   , only : inputParameters
@@ -92,7 +92,7 @@ contains
 
   function descendantNodeConstructorInternal(timeDescendant,cosmologyFunctions_,nodePropertyExtractor_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily descendantNode} node property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorDescendantNode} node property extractor class.
     !!}
     implicit none
     type            (nodePropertyExtractorDescendantNode)                        :: self
@@ -109,7 +109,7 @@ contains
   
   subroutine descendantNodeDestructor(self)
     !!{
-    Destructor for  the {\normalfont \ttfamily descendantNode} node property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorDescendantNode} node property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorDescendantNode), intent(inout) :: self

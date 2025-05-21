@@ -52,7 +52,7 @@ Implements an output analysis property extractor class that extracts the Einstei
 
   interface nodePropertyExtractorRadiusEinstein
      !!{
-     Constructors for the {\normalfont \ttfamily radiusEinstein} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusEinstein} output analysis class.
      !!}
      module procedure radiusEinsteinConstructorParameters
      module procedure radiusEinsteinConstructorInternal
@@ -69,7 +69,7 @@ contains
 
   function radiusEinsteinConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily radiusEinstein} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorRadiusEinstein} node property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -103,7 +103,7 @@ contains
 
   function radiusEinsteinConstructorInternal(timeSource,cosmologyFunctions_,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily radiusEinstein} node property extractor.
+    Internal constructor for the \refClass{nodePropertyExtractorRadiusEinstein} node property extractor.
     !!}
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
@@ -140,7 +140,7 @@ contains
 
   subroutine radiusEinsteinDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily radiusEinstein} node property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorRadiusEinstein} node property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRadiusEinstein), intent(inout) :: self

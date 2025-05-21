@@ -47,7 +47,7 @@
 
   interface massDistributionBetaProfile
      !!{
-     Constructors for the {\normalfont \ttfamily betaProfile} mass distribution class.
+     Constructors for the \refClass{massDistributionBetaProfile} mass distribution class.
      !!}
      module procedure betaProfileConstructorParameters
      module procedure betaProfileConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function betaProfileConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily betaProfile} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionBetaProfile} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
@@ -143,7 +143,7 @@ contains
 
   function betaProfileConstructorInternal(beta,densityNormalization,mass,outerRadius,coreRadius,dimensionless,truncateAtOuterRadius,componentType,massType) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily betaProfile} convergence class.
+    Constructor for the \refClass{massDistributionBetaProfile} convergence class.
     !!}
     use :: Display                 , only : displayIndent      , displayMessage, displayUnindent, displayVerbosity, &
           &                                 verbosityLevelDebug

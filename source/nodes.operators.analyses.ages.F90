@@ -57,7 +57,7 @@
   
   interface nodeOperatorAgesStellarMassWeighted
      !!{
-     Constructors for the {\normalfont \ttfamily agesStellarMassWeighted} node operator class.
+     Constructors for the \refClass{nodeOperatorAgesStellarMassWeighted} node operator class.
      !!}
      module procedure agesStellarMassWeightedConstructorParameters
      module procedure agesStellarMassWeightedConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function agesStellarMassWeightedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily agesStellarMassWeighted} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorAgesStellarMassWeighted} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -97,7 +97,7 @@ contains
 
   function agesStellarMassWeightedConstructorInternal(starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_,mergerMassMovements_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily agesStellarMassWeighted} node operator class.
+    Internal constructor for the \refClass{nodeOperatorAgesStellarMassWeighted} node operator class.
     !!}
     implicit none
     type (nodeOperatorAgesStellarMassWeighted      )                        :: self
@@ -122,7 +122,7 @@ contains
 
   subroutine agesStellarMassWeightedDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily agesStellarMassWeighted} node operator class.
+    Destructor for the \refClass{nodeOperatorAgesStellarMassWeighted} node operator class.
     !!}
     implicit none
     type(nodeOperatorAgesStellarMassWeighted), intent(inout) :: self

@@ -40,7 +40,7 @@
 
   interface stellarPopulationSpectraPostprocessorLycSuppress
      !!{
-     Constructors for the {\normalfont \ttfamily lycSuppress} stellar population spectra postprocessor class.
+     Constructors for the \refClass{stellarPopulationSpectraPostprocessorLycSuppress} stellar population spectra postprocessor class.
      !!}
      module procedure lycSuppressConstructorParameters
   end interface stellarPopulationSpectraPostprocessorLycSuppress
@@ -49,7 +49,7 @@ contains
 
   function lycSuppressConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily lycSuppress} stellar population spectra postprocessor class which takes a
+    Constructor for the \refClass{stellarPopulationSpectraPostprocessorLycSuppress} stellar population spectra postprocessor class which takes a
     parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters

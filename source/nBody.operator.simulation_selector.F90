@@ -40,7 +40,7 @@ Implements an N-body data operator which applies some other operator to a select
 
   interface nbodyOperatorSimulationSelector
      !!{
-     Constructors for the {\normalfont \ttfamily simulationSelector} N-body operator class.
+     Constructors for the \refClass{nbodyOperatorSimulationSelector} N-body operator class.
      !!}
      module procedure simulationSelectorConstructorParameters
      module procedure simulationSelectorConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function simulationSelectorConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily simulationSelector} N-body operator class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyOperatorSimulationSelector} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function simulationSelectorConstructorInternal(indexSimulation,nbodyOperator_) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily simulationSelector} N-body operator class.
+    Internal constructor for the \refClass{nbodyOperatorSimulationSelector} N-body operator class.
     !!}
     implicit none
     type   (nbodyOperatorSimulationSelector)                        :: self
@@ -92,7 +92,7 @@ contains
 
   subroutine simulationSelectorDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily simulationSelector} N-body operator class.
+    Destructor for the \refClass{nbodyOperatorSimulationSelector} N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorSimulationSelector), intent(inout) :: self

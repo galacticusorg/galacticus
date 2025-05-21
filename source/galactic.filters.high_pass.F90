@@ -42,7 +42,7 @@ Implements a high-pass filter on any node property.
 
   interface galacticFilterHighPass
      !!{
-     Constructors for the {\normalfont \ttfamily highPass} galactic filter class.
+     Constructors for the \refClass{galacticFilterHighPass} galactic filter class.
      !!}
      module procedure highPassConstructorParameters
      module procedure highPassConstructorInternal
@@ -52,7 +52,7 @@ contains
   
   function highPassConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily highPass} galactic filter class which takes a parameter set as input.
+    Constructor for the \refClass{galacticFilterHighPass} galactic filter class which takes a parameter set as input.
     !!}
     use :: Error                   , only : Error_Report
     use :: Input_Parameters        , only : inputParameter            , inputParameters
@@ -86,7 +86,7 @@ contains
 
   function highPassConstructorInternal(threshold,nodePropertyExtractor_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily highPass} galactic filter class.
+    Internal constructor for the \refClass{galacticFilterHighPass} galactic filter class.
     !!}
     implicit none
     type            (galacticFilterHighPass     )                        :: self
@@ -101,7 +101,7 @@ contains
 
   subroutine highPassDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily highPass} galactic filter class.
+    Destructor for the \refClass{galacticFilterHighPass} galactic filter class.
     !!}
     implicit none
     type(galacticFilterHighPass), intent(inout) :: self

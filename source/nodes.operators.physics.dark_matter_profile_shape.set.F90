@@ -44,7 +44,7 @@
   
   interface nodeOperatorDarkMatterProfileShapeSet
      !!{
-     Constructors for the {\normalfont \ttfamily darkMatterProfileShapeSet} node operator class.
+     Constructors for the \refClass{nodeOperatorDarkMatterProfileShapeSet} node operator class.
      !!}
      module procedure darkMatterProfileShapeSetConstructorParameters
      module procedure darkMatterProfileShapeSetConstructorInternal
@@ -54,7 +54,7 @@ contains
   
   function darkMatterProfileShapeSetConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily darkMatterProfileShapeSet} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorDarkMatterProfileShapeSet} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -75,7 +75,7 @@ contains
 
   function darkMatterProfileShapeSetConstructorInternal(darkMatterProfileShape_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily darkMatterProfileShapeSet} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorDarkMatterProfileShapeSet} node operator class which takes a parameter set as input.
     !!}
     implicit none
     type (nodeOperatorDarkMatterProfileShapeSet)                        :: self
@@ -89,7 +89,7 @@ contains
 
   subroutine darkMatterProfileShapeSetConstructorDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily darkMatterProfileShapeSet} node operator class.
+    Destructor for the \refClass{nodeOperatorDarkMatterProfileShapeSet} node operator class.
     !!}
     implicit none
     type(nodeOperatorDarkMatterProfileShapeSet), intent(inout) :: self

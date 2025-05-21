@@ -59,7 +59,7 @@
   
   interface blackHoleSeedsVergara2023
      !!{
-     Constructors for the {\normalfont \ttfamily vergara2023} black hole seeds class.
+     Constructors for the \refClass{blackHoleSeedsVergara2023} black hole seeds class.
      !!}
      module procedure vergara2023ConstructorParameters
      module procedure vergara2023ConstructorInternal
@@ -69,7 +69,7 @@ contains
 
   function vergara2023ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily vergara2023} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{blackHoleSeedsVergara2023} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -123,7 +123,7 @@ contains
   
   function vergara2023ConstructorInternal(massSingleStar, radiusSingleStar, massEfficiency, radiusEfficiency, massThreshold,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily vergara2023} node operator class.
+    Internal constructor for the \refClass{blackHoleSeedsVergara2023} node operator class.
     !!}
     implicit none
     type            (blackHoleSeedsVergara2023)                        :: self
@@ -153,7 +153,7 @@ contains
 
   subroutine vergara2023Destructor(self)
       !!{
-      Destructor for the {\normalfont \ttfamily vergara2023} black hole seeds class.
+      Destructor for the \refClass{blackHoleSeedsVergara2023} black hole seeds class.
       !!}
       implicit none 
       type(blackHoleSeedsVergara2023), intent(inout) :: self

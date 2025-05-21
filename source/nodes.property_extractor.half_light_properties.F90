@@ -46,7 +46,7 @@ Implements a half-light radii property extractor class.
 
   interface nodePropertyExtractorRadiiHalfLightProperties
      !!{
-     Constructors for the {\normalfont \ttfamily radiiHalfLightProperties} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiiHalfLightProperties} output analysis class.
      !!}
      module procedure radiiHalfLightPropertiesConstructorParameters
   end interface nodePropertyExtractorRadiiHalfLightProperties
@@ -55,7 +55,7 @@ contains
 
   function radiiHalfLightPropertiesConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily radiiHalfLightProperties} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorRadiiHalfLightProperties} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

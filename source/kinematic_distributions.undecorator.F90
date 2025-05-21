@@ -39,7 +39,7 @@
 
   interface kinematicsDistributionUndecorator
      !!{
-     Constructors for the {\normalfont \ttfamily undecorator} kinematic distribution class.
+     Constructors for the \refClass{kinematicsDistributionUndecorator} kinematic distribution class.
      !!}
      module procedure undecoratorConstructorParameters
      module procedure undecoratorConstructorInternal
@@ -49,7 +49,7 @@ contains
 
   function undecoratorConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily undecorator} kinematic distribution class which builds the object from a parameter
+    Constructor for the \refClass{kinematicsDistributionUndecorator} kinematic distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -70,7 +70,7 @@ contains
 
   function undecoratorConstructorInternal(kinematicsDistribution_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily undecorator} kinematic distribution class.
+    Internal constructor for the \refClass{kinematicsDistributionUndecorator} kinematic distribution class.
     !!}
     implicit none
     type (kinematicsDistributionUndecorator)                        :: self
@@ -84,7 +84,7 @@ contains
   
   subroutine undecoratorDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily undecorator} kinematic distribution class.
+    Destructor for the \refClass{kinematicsDistributionUndecorator} kinematic distribution class.
     !!}
     implicit none
     type(kinematicsDistributionUndecorator), intent(inout) :: self

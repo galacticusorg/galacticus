@@ -45,7 +45,7 @@
 
   interface darkMatterProfileDarkMatterOnly
      !!{
-     Constructors for the {\normalfont \ttfamily darkMatterOnly} non-dark-matter-only dark matter halo profile class.
+     Constructors for the \refClass{darkMatterProfileDarkMatterOnly} non-dark-matter-only dark matter halo profile class.
      !!}
      module procedure darkMatterOnlyConstructorParameters
      module procedure darkMatterOnlyConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function darkMatterOnlyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily darkMatterOnly} non-dark-matter-only dark matter halo profile class which takes
+    Constructor for the \refClass{darkMatterProfileDarkMatterOnly} non-dark-matter-only dark matter halo profile class which takes
     a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -90,7 +90,7 @@ contains
 
   function darkMatterOnlyConstructorInternal(chandrasekharIntegralComputeVelocityDispersion,cosmologyParameters_,darkMatterProfileDMO_) result(self)
     !!{
-    Generic constructor for the {\normalfont \ttfamily darkMatterOnly} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDarkMatterOnly} dark matter profile class.
     !!}
     implicit none
     type   (darkMatterProfileDarkMatterOnly)                        :: self
@@ -110,7 +110,7 @@ contains
 
   subroutine darkMatterOnlyDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily darkMatterOnly} dark matter halo profile class.
+    Destructor for the \refClass{darkMatterProfileDarkMatterOnly} dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDarkMatterOnly), intent(inout) :: self

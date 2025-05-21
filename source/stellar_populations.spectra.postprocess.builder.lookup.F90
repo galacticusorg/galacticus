@@ -47,7 +47,7 @@
 
   interface stellarPopulationSpectraPostprocessorBuilderLookup
      !!{
-     Constructors for the {\normalfont \ttfamily lookup} stellar population spectra postprocessor builder class.
+     Constructors for the \refClass{stellarPopulationSpectraPostprocessorBuilderLookup} stellar population spectra postprocessor builder class.
      !!}
      module procedure lookupConstructorParameters
      module procedure lookupConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function lookupConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily lookup} stellar population spectra postprocessor builder class which takes a
+    Constructor for the \refClass{stellarPopulationSpectraPostprocessorBuilderLookup} stellar population spectra postprocessor builder class which takes a
     parameter list as input.
     !!}
     use :: Error           , only : Error_Report
@@ -105,7 +105,7 @@ contains
 
   function lookupConstructorInternal(names,postprocessors) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily lookup} stellar population spectra postprocessor builder.
+    Internal constructor for the \refClass{stellarPopulationSpectraPostprocessorBuilderLookup} stellar population spectra postprocessor builder.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -128,7 +128,7 @@ contains
 
   subroutine lookupDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily lookup} stellar population spectra postprocessor builder.
+    Destructor for the \refClass{stellarPopulationSpectraPostprocessorBuilderLookup} stellar population spectra postprocessor builder.
     !!}
     implicit none
     type   (stellarPopulationSpectraPostprocessorBuilderLookup), intent(inout) :: self

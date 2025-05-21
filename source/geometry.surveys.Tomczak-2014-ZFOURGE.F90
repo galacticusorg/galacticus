@@ -121,7 +121,7 @@ contains
 
   function tomczak2014ZFOURGEConstructorInternal(redshiftBin,cosmologyFunctions_) result(self)
     !!{
-    Generic constructor for the \cite{tomczak_galaxy_2014} mass function class.
+    Internal constructor for the \cite{tomczak_galaxy_2014} mass function class.
     !!}
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
     use :: Error                      , only : Error_Report
@@ -178,7 +178,7 @@ contains
 
   subroutine tomczak2014ZFOURGEDestructor(self)
     !!{
-    Destructor for the ``tomczak2014ZFOURGE'' survey geometry class.
+    Destructor for the \refClass{surveyGeometryTomczak2014ZFOURGE} survey geometry class.
     !!}
     implicit none
     type(surveyGeometryTomczak2014ZFOURGE), intent(inout) :: self

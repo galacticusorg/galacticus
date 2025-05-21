@@ -45,7 +45,7 @@
 
   interface darkMatterHaloMassAccretionHistoryMergerTreeBranching
      !!{
-     Constructors for the {\normalfont \ttfamily mergerTreeBranching} dark matter halo mass accretion history class.
+     Constructors for the \refClass{darkMatterHaloMassAccretionHistoryMergerTreeBranching} dark matter halo mass accretion history class.
      !!}
      module procedure mergerTreeBranchingConstructorParameters
      module procedure mergerTreeBranchingConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function mergerTreeBranchingConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily mergerTreeBranching} dark matter halo mass accretion history class which takes a
+    Constructor for the \refClass{darkMatterHaloMassAccretionHistoryMergerTreeBranching} dark matter halo mass accretion history class which takes a
     parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -83,7 +83,7 @@ contains
 
   function mergerTreeBranchingConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_,mergerTreeBranchingProbability_) result(self)
     !!{
-    Generic constructor for the {\normalfont \ttfamily mergerTreeBranching} dark matter halo mass accretion history class.
+    Internal constructor for the \refClass{darkMatterHaloMassAccretionHistoryMergerTreeBranching} dark matter halo mass accretion history class.
     !!}
     implicit none
     type (darkMatterHaloMassAccretionHistoryMergerTreeBranching)                        :: self
@@ -99,7 +99,7 @@ contains
 
   subroutine mergerTreeBranchingDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily mergerTreeBranching} dark matter halo mass accretion history class.
+    Destructor for the \refClass{darkMatterHaloMassAccretionHistoryMergerTreeBranching} dark matter halo mass accretion history class.
     !!}
     implicit none
     type(darkMatterHaloMassAccretionHistoryMergerTreeBranching), intent(inout) :: self

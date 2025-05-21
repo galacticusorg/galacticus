@@ -55,7 +55,7 @@
 
   interface massDistributionPatejLoeb2015
      !!{
-     Constructors for the {\normalfont \ttfamily patejLoeb2015} mass distribution class.
+     Constructors for the \refClass{massDistributionPatejLoeb2015} mass distribution class.
      !!}
      module procedure patejLoeb2015ConstructorParameters
      module procedure patejLoeb2015ConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function patejLoeb2015ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily patejLoeb2015} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionPatejLoeb2015} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
@@ -140,7 +140,7 @@ contains
 
   function patejLoeb2015ConstructorInternal(gamma,massDistribution_,densityNormalization,mass,radiusOuter,radiusShock,truncateAtOuterRadius,componentType,massType) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily patejLoeb2015} mass distribution class.
+    Constructor for the \refClass{massDistributionPatejLoeb2015} mass distribution class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -185,7 +185,7 @@ contains
 
   subroutine patejLoeb2015Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily patejLoeb2015} mass distribution class.
+    Destructor for the \refClass{massDistributionPatejLoeb2015} mass distribution class.
     !!}
     type(massDistributionPatejLoeb2015), intent(inout) :: self
     implicit none

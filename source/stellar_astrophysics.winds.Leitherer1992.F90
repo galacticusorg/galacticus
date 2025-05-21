@@ -46,7 +46,7 @@
 
   interface stellarWindsLeitherer1992
      !!{
-     Constructors for the {\normalfont \ttfamily leitherer1992} stellar winds class.
+     Constructors for the \refClass{stellarWindsLeitherer1992} stellar winds class.
      !!}
      module procedure leitherer1992ConstructorParameters
      module procedure leitherer1992ConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function leitherer1992ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily leitherer1992} stellar winds class which takes a parameter list as input.
+    Constructor for the \refClass{stellarWindsLeitherer1992} stellar winds class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -80,7 +80,7 @@ contains
 
   function leitherer1992ConstructorInternal(stellarTracks_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily leitherer1992} stellar winds class.
+    Internal constructor for the \refClass{stellarWindsLeitherer1992} stellar winds class.
     !!}
     implicit none
     type (stellarWindsLeitherer1992)                        :: self
@@ -94,7 +94,7 @@ contains
 
   subroutine leitherer1992Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily leitherer1992} stellar winds class.
+    Destructor for the \refClass{stellarWindsLeitherer1992} stellar winds class.
     !!}
     implicit none
     type(stellarWindsLeitherer1992), intent(inout) :: self

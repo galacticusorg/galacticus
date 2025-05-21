@@ -37,7 +37,7 @@
 
   interface mergerTreeNodeMergerMultiLevelHierarchy
      !!{
-     Constructors for the {\normalfont \ttfamily multiLevelHierarchy} node merger class.
+     Constructors for the \refClass{mergerTreeNodeMergerMultiLevelHierarchy} node merger class.
      !!}
      module procedure multiLevelHierarchyConstructorParameters
   end interface mergerTreeNodeMergerMultiLevelHierarchy
@@ -46,7 +46,7 @@ contains
 
   function multiLevelHierarchyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily multiLevelHierarchy} node merger class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeNodeMergerMultiLevelHierarchy} node merger class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

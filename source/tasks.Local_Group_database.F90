@@ -34,7 +34,7 @@
 
   interface taskLocalGroupDatabase
      !!{
-     Constructors for the {\normalfont \ttfamily localGroupDatabase} task.
+     Constructors for the \refClass{taskLocalGroupDatabase} task.
      !!}
      module procedure localGroupDatabaseParameters
   end interface taskLocalGroupDatabase
@@ -43,7 +43,7 @@ contains
 
   function localGroupDatabaseParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily localGroupDatabase} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskLocalGroupDatabase} task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

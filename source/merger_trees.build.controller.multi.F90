@@ -52,7 +52,7 @@ Implements a merger tree build controller class which applies multiple other con
 
   interface mergerTreeBuildControllerMulti
      !!{
-     Constructors for the ``multi'' merger tree build controller class.
+     Constructors for the \refClass{mergerTreeBuildControllerMulti} merger tree build controller class.
      !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function multiConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``multi'' merger tree build controller class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeBuildControllerMulti} merger tree build controller class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -93,7 +93,7 @@ contains
 
   function multiConstructorInternal(controllers) result(self)
     !!{
-    Internal constructor for the ``multi'' merger tree build controller class.
+    Internal constructor for the \refClass{mergerTreeBuildControllerMulti} merger tree build controller class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -115,7 +115,7 @@ contains
 
   subroutine multiDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily multi} merger tree build controller class.
+    Destructor for the \refClass{mergerTreeBuildControllerMulti} merger tree build controller class.
     !!}
     implicit none
     type(mergerTreeBuildControllerMulti), intent(inout) :: self

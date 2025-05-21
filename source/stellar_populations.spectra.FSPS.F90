@@ -106,7 +106,7 @@ contains
 
   subroutine fspsDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily FSPS} stellar population class.
+    Destructor for the \refClass{stellarPopulationSpectraFSPS} stellar population class.
     !!}
     implicit none
     type(stellarPopulationSpectraFSPS), intent(inout) :: self

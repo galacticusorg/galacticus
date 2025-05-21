@@ -157,7 +157,7 @@
 
   interface mergerTreeConstructorFullySpecified
      !!{
-     Constructors for the {\normalfont \ttfamily fullySpecified} merger tree constructor class.
+     Constructors for the \refClass{mergerTreeConstructorFullySpecified} merger tree constructor class.
      !!}
      module procedure fullySpecifiedConstructorParameters
      module procedure fullySpecifiedConstructorInternal
@@ -167,7 +167,7 @@ contains
 
   function fullySpecifiedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily fullySpecified} merger tree operator class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeConstructorFullySpecified} merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -197,7 +197,7 @@ contains
 
   function fullySpecifiedConstructorInternal(fileName,randomNumberGenerator_,mergerTreeSeeds_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily fullySpecified} merger tree operator class.
+    Internal constructor for the \refClass{mergerTreeConstructorFullySpecified} merger tree operator class.
     !!}
     use :: FoX_DOM           , only : parseFile
     use :: Error             , only : Error_Report
@@ -241,7 +241,7 @@ contains
 
   subroutine fullySpecifiedDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily fullySpecified} merger tree constructor class.
+    Destructor for the \refClass{mergerTreeConstructorFullySpecified} merger tree constructor class.
     !!}
     use :: FoX_DOM, only : destroy
     implicit none

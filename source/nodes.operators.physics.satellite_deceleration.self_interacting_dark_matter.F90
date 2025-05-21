@@ -41,7 +41,7 @@
   
   interface nodeOperatorSatelliteDecelerationSIDM
      !!{
-     Constructors for the {\normalfont \ttfamily satelliteDecelerationSIDM} node operator class.
+     Constructors for the \refClass{nodeOperatorSatelliteDecelerationSIDM} node operator class.
      !!}
      module procedure satelliteDecelerationSIDMConstructorParameters
      module procedure satelliteDecelerationSIDMConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function satelliteDecelerationSIDMConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily satelliteDecelerationSIDM} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorSatelliteDecelerationSIDM} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -72,7 +72,7 @@ contains
 
   function satelliteDecelerationSIDMConstructorInternal(satelliteDecelerationSIDM_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily satelliteDecelerationSIDM} node operator class.
+    Internal constructor for the \refClass{nodeOperatorSatelliteDecelerationSIDM} node operator class.
     !!}
     implicit none
     type (nodeOperatorSatelliteDecelerationSIDM)                        :: self
@@ -86,7 +86,7 @@ contains
 
   subroutine satelliteDecelerationSIDMDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily satelliteDecelerationSIDM} node operator class.
+    Destructor for the \refClass{nodeOperatorSatelliteDecelerationSIDM} node operator class.
     !!}
     implicit none
     type(nodeOperatorSatelliteDecelerationSIDM), intent(inout) :: self

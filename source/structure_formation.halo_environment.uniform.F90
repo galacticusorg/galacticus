@@ -45,7 +45,7 @@ Implements a uniform halo environment.
 
   interface haloEnvironmentUniform
      !!{
-     Constructors for the {\normalfont \ttfamily uniform} halo environment class.
+     Constructors for the \refClass{haloEnvironmentUniform} halo environment class.
      !!}
      module procedure uniformConstructorParameters
   end interface haloEnvironmentUniform
@@ -54,7 +54,7 @@ contains
 
   function uniformConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily uniform} halo environment class which takes a parameter set as input.
+    Constructor for the \refClass{haloEnvironmentUniform} halo environment class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

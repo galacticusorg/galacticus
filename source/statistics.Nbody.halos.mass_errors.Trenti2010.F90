@@ -44,7 +44,7 @@ Implements an N-body dark matter halo mass error class using the model of \cite{
 
   interface nbodyHaloMassErrorTrenti2010
      !!{
-     Constructors for the {\normalfont \ttfamily trenti2010} N-body halo mass error class.
+     Constructors for the \refClass{nbodyHaloMassErrorTrenti2010} N-body halo mass error class.
      !!}
      module procedure nbodyHaloMassErrorTrenti2010Parameters
      module procedure nbodyHaloMassErrorTrenti2010Internal
@@ -54,7 +54,7 @@ contains
 
   function nbodyHaloMassErrorTrenti2010Parameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily trenti2010} N-body halo mass error class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyHaloMassErrorTrenti2010} N-body halo mass error class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -105,7 +105,7 @@ contains
 
   function nbodyHaloMassErrorTrenti2010Internal(massParticle,correlationNormalization,correlationMassExponent,correlationRedshiftExponent,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily trenti2010} N-body halo mass error class. \cite{trenti_how_2010} report
+    Internal constructor for the \refClass{nbodyHaloMassErrorTrenti2010} N-body halo mass error class. \cite{trenti_how_2010} report
     a normalization of the fractional error in particle number of 0.15 at $N=1000$ particles. Since this is based on
     comparisons of halos in simulations differing in number of particles by a factor $8$ this actually overestimates the
     normalization by a factor $\sqrt{5/4}$. Therefore, we use a normalization of $0.135$ here.
@@ -149,7 +149,7 @@ contains
 
   subroutine trenti2010Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily trenti2010} N-body statistics class.
+    Destructor for the \refClass{nbodyHaloMassErrorTrenti2010} N-body statistics class.
     !!}
     implicit none
     type(nbodyHaloMassErrorTrenti2010), intent(inout) :: self

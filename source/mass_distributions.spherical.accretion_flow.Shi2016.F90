@@ -83,7 +83,7 @@
 
   interface massDistributionShi2016
      !!{
-     Constructors for the {\normalfont \ttfamily shi2016} mass distribution class.
+     Constructors for the \refClass{massDistributionShi2016} mass distribution class.
      !!}
      module procedure massDistributionShi2016ConstructorParameters
      module procedure massDistributionShi2016ConstructorInternal
@@ -103,7 +103,7 @@ contains
 
   function massDistributionShi2016ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily shi2016} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionShi2016} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
@@ -190,7 +190,7 @@ contains
 
   subroutine shi2016Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily shi2016} accretion flow mass distribution class.
+    Destructor for the \refClass{massDistributionShi2016} accretion flow mass distribution class.
     !!}
     implicit none
     type(massDistributionShi2016), intent(inout) :: self

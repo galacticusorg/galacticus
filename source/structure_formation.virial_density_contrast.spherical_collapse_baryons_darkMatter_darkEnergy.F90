@@ -74,7 +74,7 @@
 
   interface virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy
      !!{
-     Constructors for the {\normalfont \ttfamily sphericalCollapseBrynsDrkMttrDrkEnrgy} dark matter halo virial density contrast class.
+     Constructors for the \refClass{virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy} dark matter halo virial density contrast class.
      !!}
      module procedure sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorParameters
      module procedure sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorInternal
@@ -84,7 +84,7 @@ contains
 
   function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sphericalCollapseBrynsDrkMttrDrkEnrgy} dark matter halo virial density contrast class that takes a parameter set as input.
+    Constructor for the \refClass{virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy} dark matter halo virial density contrast class that takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameter                                , inputParameters
     use :: Spherical_Collapse_Solvers, only : enumerationCllsnlssMttrDarkEnergyFixedAtEncode
@@ -135,7 +135,7 @@ contains
 
   function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorInternal(tableStore,tablePointsPerOctave,energyFixedAt,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumFilteringMass_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily sphericalCollapseBrynsDrkMttrDrkEnrgy} dark matter halo virial density contrast class.
+    Internal constructor for the \refClass{virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy} dark matter halo virial density contrast class.
     !!}
     implicit none
     type   (virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy)                        :: self
@@ -161,7 +161,7 @@ contains
 
   subroutine sphericalCollapseBrynsDrkMttrDrkEnrgyDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily sphericalCollapseBrynsDrkMttrDrkEnrgy} dark matter halo virial density contrast class.
+    Destructor for the \refClass{virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy} dark matter halo virial density contrast class.
     !!}
     implicit none
     type (virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy), intent(inout) :: self

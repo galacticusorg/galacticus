@@ -35,7 +35,7 @@
 
   interface mergerTreeEvolveTimestepStarFormationHistory
      !!{
-     Constructors for the {\normalfont \ttfamily starFormationHistory} merger tree evolution timestep class.
+     Constructors for the \refClass{mergerTreeEvolveTimestepStarFormationHistory} merger tree evolution timestep class.
      !!}
      module procedure starFormationHistoryConstructorParameters
   end interface mergerTreeEvolveTimestepStarFormationHistory
@@ -44,7 +44,7 @@ contains
 
   function starFormationHistoryConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily starFormationHistory} merger tree evolution timestep class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeEvolveTimestepStarFormationHistory} merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

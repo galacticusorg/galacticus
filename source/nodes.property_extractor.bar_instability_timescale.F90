@@ -44,7 +44,7 @@ Implements a property extractor class for bar instability timescales.
 
   interface nodePropertyExtractorTimescaleBarInstability
      !!{
-     Constructors for the {\normalfont \ttfamily timescaleBarInstability} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorTimescaleBarInstability} output analysis class.
      !!}
      module procedure timescaleBarInstabilityConstructorParameters
      module procedure timescaleBarInstabilityConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function timescaleBarInstabilityConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily timescaleBarInstability} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorTimescaleBarInstability} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,7 +75,7 @@ contains
 
   function timescaleBarInstabilityConstructorInternal(galacticDynamicsBarInstability_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily timescaleBarInstability} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorTimescaleBarInstability} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorTimescaleBarInstability)                        :: self
@@ -89,7 +89,7 @@ contains
 
   subroutine timescaleBarInstabilityDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily timescaleBarInstability} property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorTimescaleBarInstability} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorTimescaleBarInstability), intent(inout) :: self

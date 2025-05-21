@@ -42,7 +42,7 @@
   
   interface nodeOperatorSatelliteTidalMassLoss
      !!{
-     Constructors for the {\normalfont \ttfamily satelliteTidalStripping} node operator class.
+     Constructors for the \refClass{nodeOperatorSatelliteTidalMassLoss} node operator class.
      !!}
      module procedure satelliteTidalStrippingConstructorParameters
      module procedure satelliteTidalStrippingConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function satelliteTidalStrippingConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily satelliteTidalStripping} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorSatelliteTidalMassLoss} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -80,7 +80,7 @@ contains
 
   function satelliteTidalStrippingConstructorInternal(applyPreInfall,satelliteTidalStripping_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily satelliteTidalStripping} node operator class.
+    Internal constructor for the \refClass{nodeOperatorSatelliteTidalMassLoss} node operator class.
     !!}
     implicit none
     type   (nodeOperatorSatelliteTidalMassLoss)                        :: self
@@ -95,7 +95,7 @@ contains
 
   subroutine satelliteTidalStrippingDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily satelliteTidalStripping} node operator class.
+    Destructor for the \refClass{nodeOperatorSatelliteTidalMassLoss} node operator class.
     !!}
     implicit none
     type(nodeOperatorSatelliteTidalMassLoss), intent(inout) :: self

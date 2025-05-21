@@ -58,7 +58,7 @@
 
   interface randomNumberGeneratorGSL
      !!{
-     Constructors for the {\normalfont \ttfamily gsl} merger tree evolve profiler class.
+     Constructors for the \refClass{randomNumberGeneratorGSL} merger tree evolve profiler class.
      !!}
      module procedure gslConstructorParameters
      module procedure gslConstructorInternal
@@ -201,7 +201,7 @@ contains
   
   function gslConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily gsl} random number generator class which takes a parameter set as input.
+    Constructor for the \refClass{randomNumberGeneratorGSL} random number generator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -239,7 +239,7 @@ contains
 
   function gslConstructorInternal(seed_,ompThreadOffset,mpiRankOffset) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily gsl} random number generator class.
+    Internal constructor for the \refClass{randomNumberGeneratorGSL} random number generator class.
     !!}
 #ifdef USEMPI
     use    :: MPI_F08, only : MPI_Comm_Rank     , MPI_Comm_World
@@ -285,7 +285,7 @@ contains
   
   subroutine gslDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily gsl} random number generator class.
+    Destructor for the \refClass{randomNumberGeneratorGSL} random number generator class.
     !!}
     implicit none
     type(randomNumberGeneratorGSL), intent(inout) :: self

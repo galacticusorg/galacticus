@@ -49,7 +49,7 @@ Implements a galactic high-pass filter for halo mass under a given definition.
 
   interface galacticFilterHaloMass
      !!{
-     Constructors for the {\normalfont \ttfamily haloMass} galactic filter class.
+     Constructors for the \refClass{galacticFilterHaloMass} galactic filter class.
      !!}
      module procedure haloMassConstructorParameters
      module procedure haloMassConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function haloMassConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily haloMass} galactic filter class which takes a parameter set as input.
+    Constructor for the \refClass{galacticFilterHaloMass} galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -95,7 +95,7 @@ contains
 
   function haloMassConstructorInternal(massThreshold,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily haloMass} galactic filter class.
+    Internal constructor for the \refClass{galacticFilterHaloMass} galactic filter class.
     !!}
     implicit none
     type            (galacticFilterHaloMass    )                        :: self
@@ -112,7 +112,7 @@ contains
 
   subroutine haloMassDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily haloMass} galactic filter class.
+    Destructor for the \refClass{galacticFilterHaloMass} galactic filter class.
     !!}
     implicit none
     type(galacticFilterHaloMass), intent(inout) :: self

@@ -50,7 +50,7 @@
 
   interface darkMatterProfileDMOTruncatedExponential
      !!{
-     Constructors for the {\normalfont \ttfamily exponentially truncated} dark matter halo profile class.
+     Constructors for the \refClass{darkMatterProfileDMOTruncatedExponential} dark matter halo profile class.
      !!}
      module procedure truncatedExponentialConstructorParameters
      module procedure truncatedExponentialConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function truncatedExponentialConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily exponentially truncated} dark matter halo profile class which takes a parameter set as input.
+    Constructor for the \refClass{darkMatterProfileDMOTruncatedExponential} dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversEncode
     use :: Input_Parameters  , only : inputParameter                     , inputParameters
@@ -99,7 +99,7 @@ contains
 
   function truncatedExponentialConstructorInternal(radiusFractionalDecay,nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily exponentially truncated} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOTruncatedExponential} dark matter profile class.
     !!}
     use :: Error             , only : Error_Report
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversIsValid
@@ -120,7 +120,7 @@ contains
 
   subroutine truncatedExponentialDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily exponentially truncated} dark matter halo profile class.
+    Destructor for the \refClass{darkMatterProfileDMOTruncatedExponential} dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOTruncatedExponential), intent(inout) :: self

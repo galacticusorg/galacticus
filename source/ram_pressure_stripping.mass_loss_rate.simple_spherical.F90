@@ -58,7 +58,7 @@
 
   interface ramPressureStrippingSimpleSpherical
      !!{
-     Constructors for the {\normalfont \ttfamily simpleSpherical} model of ram pressure stripping of spheroids class.
+     Constructors for the \refClass{ramPressureStrippingSimpleSpherical} model of ram pressure stripping of spheroids class.
      !!}
      module procedure simpleSphericalConstructorParameters
      module procedure simpleSphericalConstructorInternal
@@ -68,7 +68,7 @@ contains
 
   function simpleSphericalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily simpleSpherical} timescale for star formation feedback in spheroids class which
+    Constructor for the \refClass{ramPressureStrippingSimpleSpherical} timescale for star formation feedback in spheroids class which
     takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -103,7 +103,7 @@ contains
 
   function simpleSphericalConstructorInternal(rateFractionalMaximum,beta,hotHaloRamPressureForce_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily simpleSpherical} model of ram pressure stripping of spheroids class.
+    Internal constructor for the \refClass{ramPressureStrippingSimpleSpherical} model of ram pressure stripping of spheroids class.
     !!}
     implicit none
     type            (ramPressureStrippingSimpleSpherical)                        :: self
@@ -118,7 +118,7 @@ contains
 
   subroutine simpleSphericalDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily simpleSpherical} model of ram pressure stripping of spheroids class.
+    Destructor for the \refClass{ramPressureStrippingSimpleSpherical} model of ram pressure stripping of spheroids class.
     !!}
     implicit none
     type(ramPressureStrippingSimpleSpherical), intent(inout) :: self

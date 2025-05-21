@@ -150,7 +150,7 @@
 
   interface geometryLightconeSquare
      !!{
-     Constructors for the {\normalfont \ttfamily square} dark matter halo spin distribution class.
+     Constructors for the \refClass{geometryLightconeSquare} dark matter halo spin distribution class.
      !!}
      module procedure squareConstructorParameters
      module procedure squareConstructorInternal
@@ -172,7 +172,7 @@ contains
 
   function squareConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily square} lightcone geometry distribution class which takes a parameter list as
+    Constructor for the \refClass{geometryLightconeSquare} lightcone geometry distribution class which takes a parameter list as
     input.
     !!}
     use :: Cosmology_Parameters            , only : cosmologyParameters   , cosmologyParametersClass, hubbleUnitsLittleH
@@ -286,7 +286,7 @@ contains
 
   function squareConstructorInternal(origin,unitVector,angularSize,lengthReplication,timeEvolvesAlongLightcone,cosmologyParameters_,cosmologyFunctions_,outputTimes_,nodeOperator_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily square} lightcone geometry distribution class.
+    Internal constructor for the \refClass{geometryLightconeSquare} lightcone geometry distribution class.
     !!}
     use :: Error                           , only : Error_Report
     use :: ISO_Varying_String              , only : var_str         , varying_string
@@ -448,7 +448,7 @@ contains
 
   subroutine squareDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily square} lightcone geometry distribution class.
+    Destructor for the \refClass{geometryLightconeSquare} lightcone geometry distribution class.
     !!}
     use :: Functions_Global, only : nodeOperatorDestruct_
     implicit none

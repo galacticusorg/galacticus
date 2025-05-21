@@ -61,7 +61,7 @@
 
   interface nodePropertyExtractorProjectedMass
      !!{
-     Constructors for the {\normalfont \ttfamily projectedMass} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorProjectedMass} output analysis class.
      !!}
      module procedure projectedMassConstructorParameters
      module procedure projectedMassConstructorInternal
@@ -75,7 +75,7 @@ contains
 
   function projectedMassConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily projectedMass} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorProjectedMass} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -110,7 +110,7 @@ contains
 
   function projectedMassConstructorInternal(radiusSpecifiers,includeRadii,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily projectedMass} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorProjectedMass} property extractor class.
     !!}
     use :: Galactic_Structure_Radii_Definitions, only : Galactic_Structure_Radii_Definition_Decode
     implicit none
@@ -144,7 +144,7 @@ contains
 
   subroutine projectedMassDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily projectedMass} property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorProjectedMass} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorProjectedMass), intent(inout) :: self

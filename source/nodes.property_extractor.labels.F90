@@ -37,7 +37,7 @@
 
   interface nodePropertyExtractorLabels
      !!{
-     Constructors for the {\normalfont \ttfamily labels} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorLabels} output extractor class.
      !!}
      module procedure labelsConstructorParameters
   end interface nodePropertyExtractorLabels
@@ -46,7 +46,7 @@ contains
 
   function labelsConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily labels} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorLabels} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

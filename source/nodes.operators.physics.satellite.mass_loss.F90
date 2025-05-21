@@ -52,7 +52,7 @@
   
   interface nodeOperatorSatelliteMassLoss
      !!{
-     Constructors for the {\normalfont \ttfamily satelliteMassLoss} node operator class.
+     Constructors for the \refClass{nodeOperatorSatelliteMassLoss} node operator class.
      !!}
      module procedure satelliteMassLossConstructorParameters
      module procedure satelliteMassLossConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function satelliteMassLossConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily satelliteMassLoss} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorSatelliteMassLoss} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -90,7 +90,7 @@ contains
 
   function satelliteMassLossConstructorInternal(massBoundIsInactive,darkMatterHaloMassLossRate_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily satelliteMassLoss} node operator class.
+    Internal constructor for the \refClass{nodeOperatorSatelliteMassLoss} node operator class.
     !!}
     implicit none
     type   (nodeOperatorSatelliteMassLoss  )                        :: self
@@ -117,7 +117,7 @@ contains
 
   subroutine satelliteMassLossDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily satelliteMassLoss} node operator class.
+    Destructor for the \refClass{nodeOperatorSatelliteMassLoss} node operator class.
     !!}
     use :: Events_Hooks, only : subhaloPromotionEvent
     implicit none

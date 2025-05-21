@@ -105,7 +105,7 @@ contains
 
   subroutine laceyCole1993Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily laceyCole1993} satellite merging timescale class.
+    Destructor for the \refClass{satelliteMergingTimescalesLaceyCole1993} satellite merging timescale class.
     !!}
     implicit none
     type(satelliteMergingTimescalesLaceyCole1993), intent(inout) :: self

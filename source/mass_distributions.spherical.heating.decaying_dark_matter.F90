@@ -66,7 +66,7 @@
 
   interface massDistributionHeatingDecayingDarkMatter
      !!{
-     Constructors for the {\normalfont \ttfamily decayingDarkMatter} mass distribution class.
+     Constructors for the \refClass{massDistributionHeatingDecayingDarkMatter} mass distribution class.
      !!}
      module procedure decayingDarkMatterConstructorParameters
      module procedure decayingDarkMatterConstructorInternal
@@ -76,7 +76,7 @@ contains
 
   function decayingDarkMatterConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily decayingDarkMatter} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionHeatingDecayingDarkMatter} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -123,7 +123,7 @@ contains
   
   function decayingDarkMatterConstructorInternal(radiusEscape,time,gamma,includeKickHeating,darkMatterParticle_) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily decayingDarkMatter} heating class.
+    Constructor for the \refClass{massDistributionHeatingDecayingDarkMatter} heating class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleDecayingDarkMatter
     use :: Error                , only : Error_Report
@@ -159,7 +159,7 @@ contains
 
   subroutine decayingDarkMatterDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily decayingDarkMatter} dark matter profile heating class.
+    Destructor for the \refClass{massDistributionHeatingDecayingDarkMatter} dark matter profile heating class.
     !!}
     implicit none
     type(massDistributionHeatingDecayingDarkMatter), intent(inout) :: self

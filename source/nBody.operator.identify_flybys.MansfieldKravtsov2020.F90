@@ -38,7 +38,7 @@ Implements an N-body data operator which identifies flyby halos following the al
 
   interface nbodyOperatorIdentifyFlybysMansfieldKravtsov2020
      !!{
-     Constructors for the {\normalfont \ttfamily identifyFlybysMansfieldKravtsov2020} N-body operator class.
+     Constructors for the \refClass{nbodyOperatorIdentifyFlybysMansfieldKravtsov2020} N-body operator class.
      !!}
      module procedure identifyFlybysMansfieldKravtsov2020ConstructorParameters
      module procedure identifyFlybysMansfieldKravtsov2020ConstructorInternal
@@ -48,7 +48,7 @@ contains
 
   function identifyFlybysMansfieldKravtsov2020ConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily identifyFlybysMansfieldKravtsov2020} N-body operator class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyOperatorIdentifyFlybysMansfieldKravtsov2020} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -72,7 +72,7 @@ contains
 
   function identifyFlybysMansfieldKravtsov2020ConstructorInternal(missingHostsAreFatal) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily identifyFlybysMansfieldKravtsov2020} N-body operator class.
+    Internal constructor for the \refClass{nbodyOperatorIdentifyFlybysMansfieldKravtsov2020} N-body operator class.
     !!}
     implicit none
     type   (nbodyOperatorIdentifyFlybysMansfieldKravtsov2020)                :: self

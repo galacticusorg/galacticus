@@ -40,7 +40,7 @@
 
   interface stellarPopulationSpectraPostprocessorInoue2014
      !!{
-     Constructors for the {\normalfont \ttfamily inoue2014} stellar population spectra postprocessor class.
+     Constructors for the \refClass{stellarPopulationSpectraPostprocessorInoue2014} stellar population spectra postprocessor class.
      !!}
      module procedure inoue2014ConstructorParameters
   end interface stellarPopulationSpectraPostprocessorInoue2014
@@ -139,7 +139,7 @@ contains
 
   function inoue2014ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily inoue2014} stellar population spectra postprocessor class which takes a
+    Constructor for the \refClass{stellarPopulationSpectraPostprocessorInoue2014} stellar population spectra postprocessor class which takes a
     parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters

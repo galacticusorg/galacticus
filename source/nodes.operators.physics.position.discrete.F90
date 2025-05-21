@@ -39,7 +39,7 @@
   
   interface nodeOperatorPositionDiscrete
      !!{
-     Constructors for the {\normalfont \ttfamily positionDiscrete} node operator class.
+     Constructors for the \refClass{nodeOperatorPositionDiscrete} node operator class.
      !!}
      module procedure positionDiscreteConstructorParameters
   end interface nodeOperatorPositionDiscrete
@@ -48,7 +48,7 @@ contains
   
   function positionDiscreteConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily positionDiscrete} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorPositionDiscrete} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

@@ -49,7 +49,7 @@
 
   interface coolingFunctionSummation
      !!{
-     Constructors for the {\normalfont \ttfamily summation} cooling function class.
+     Constructors for the \refClass{coolingFunctionSummation} cooling function class.
      !!}
      module procedure summationConstructorParameters
      module procedure summationConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function summationConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily summation} cooling function class which takes a parameter set as input.
+    Constructor for the \refClass{coolingFunctionSummation} cooling function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -89,7 +89,7 @@ contains
 
   function summationConstructorInternal(coolants) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily summation} cooling function class.
+    Internal constructor for the \refClass{coolingFunctionSummation} cooling function class.
     !!}
     implicit none
     type(coolingFunctionSummation)                        :: self
@@ -109,7 +109,7 @@ contains
 
   subroutine summationDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily summation} cooling function class.
+    Destructor for the \refClass{coolingFunctionSummation} cooling function class.
     !!}
     implicit none
     type(coolingFunctionSummation), intent(inout) :: self

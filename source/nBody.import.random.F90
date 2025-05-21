@@ -45,7 +45,7 @@ Implements an N-body data importer which generates random points.
 
   interface nbodyImporterRandom
      !!{
-     Constructors for the {\normalfont \ttfamily random} N-body importer class.
+     Constructors for the \refClass{nbodyImporterRandom} N-body importer class.
      !!}
      module procedure randomConstructorParameters
      module procedure randomConstructorInternal
@@ -55,7 +55,7 @@ contains
   
   function randomConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily random} N-body importer class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyImporterRandom} N-body importer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -99,7 +99,7 @@ contains
 
   function randomConstructorInternal(countPoints,xRange,yRange,zRange,randomNumberGenerator_) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily random} N-body importer class.
+    Internal constructor for the \refClass{nbodyImporterRandom} N-body importer class.
     !!}
     implicit none
     type            (nbodyImporterRandom       )                              :: self
@@ -116,7 +116,7 @@ contains
 
   subroutine randomDestructor(self)
     !!{
-    Destructor for {\normalfont \ttfamily random} importer class.
+    Destructor for the \refClass{nbodyImporterRandom} importer class.
     !!}
     implicit none
     type(nbodyImporterRandom), intent(inout) :: self

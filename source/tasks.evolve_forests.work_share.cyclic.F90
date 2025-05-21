@@ -39,7 +39,7 @@
 
   interface evolveForestsWorkShareCyclic
      !!{
-     Constructors for the {\normalfont \ttfamily cyclic} forest evolution work sharing class.
+     Constructors for the \refClass{evolveForestsWorkShareCyclic} forest evolution work sharing class.
      !!}
      module procedure cyclicConstructorParameters
      module procedure cyclicConstructorInternal
@@ -49,7 +49,7 @@ contains
 
   function cyclicConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily cyclic} forest evolution work sharing class which takes a parameter set as
+    Constructor for the \refClass{evolveForestsWorkShareCyclic} forest evolution work sharing class which takes a parameter set as
     input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -66,7 +66,7 @@ contains
 
   function cyclicConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily cyclic} forest evolution work sharing class.
+    Internal constructor for the \refClass{evolveForestsWorkShareCyclic} forest evolution work sharing class.
     !!}
     implicit none
     type(evolveForestsWorkShareCyclic) :: self
@@ -79,7 +79,7 @@ contains
 
   subroutine cyclicDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily cyclic} forest evolution work sharing class.
+    Destructor for the \refClass{evolveForestsWorkShareCyclic} forest evolution work sharing class.
     !!}
     implicit none
     type(evolveForestsWorkShareCyclic), intent(inout) :: self

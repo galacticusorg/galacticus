@@ -53,7 +53,7 @@
 
   interface starFormationRateDisksIntgrtdSurfaceDensity
      !!{
-     Constructors for the {\normalfont \ttfamily intgrtdSurfaceDensity} star formation rate in disks class.
+     Constructors for the \refClass{starFormationRateDisksIntgrtdSurfaceDensity} star formation rate in disks class.
      !!}
      module procedure intgrtdSurfaceDensityConstructorParameters
      module procedure intgrtdSurfaceDensityConstructorInternal
@@ -68,7 +68,7 @@ contains
 
   function intgrtdSurfaceDensityConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily intgrtdSurfaceDensity} star formation rate in disks class which takes a
+    Constructor for the \refClass{starFormationRateDisksIntgrtdSurfaceDensity} star formation rate in disks class which takes a
     parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -97,7 +97,7 @@ contains
 
   function intgrtdSurfaceDensityConstructorInternal(tolerance,starFormationRateSurfaceDensityDisks_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily intgrtdSurfaceDensity} star formation rate in disks class.
+    Internal constructor for the \refClass{starFormationRateDisksIntgrtdSurfaceDensity} star formation rate in disks class.
     !!}
     use :: Numerical_Integration, only : GSL_Integ_Gauss15
     implicit none
@@ -117,7 +117,7 @@ contains
 
   subroutine intgrtdSurfaceDensityDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily intgrtdSurfaceDensity} star formation rate in disks class.
+    Destructor for the \refClass{starFormationRateDisksIntgrtdSurfaceDensity} star formation rate in disks class.
     !!}
     implicit none
     type(starFormationRateDisksIntgrtdSurfaceDensity), intent(inout) :: self

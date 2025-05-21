@@ -41,7 +41,7 @@ Implements a conversion of ISM mass to HI mass analysis property operator class.
 
   interface outputAnalysisPropertyOperatorHIMass
      !!{
-     Constructors for the {\normalfont \ttfamily hiMass} output analysis class.
+     Constructors for the \refClass{outputAnalysisPropertyOperatorHIMass} output analysis class.
      !!}
      module procedure hiMassConstructorParameters
      module procedure hiMassConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function hiMassConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily hiMass} output analysis property operator class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisPropertyOperatorHIMass} output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -73,7 +73,7 @@ contains
 
   function hiMassConstructorInternal(outputAnalysisMolecularRatio_) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily hiMass} output analysis distribution operator class.
+    Internal constructor for the \refClass{outputAnalysisPropertyOperatorHIMass} output analysis distribution operator class.
     !!}
     implicit none
     type (outputAnalysisPropertyOperatorHIMass)                        :: self
@@ -87,7 +87,7 @@ contains
 
   subroutine hiMassDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily hiMass} output analysis distribution operator class.
+    Destructor for the \refClass{outputAnalysisPropertyOperatorHIMass} output analysis distribution operator class.
     !!}
     implicit none
     type (outputAnalysisPropertyOperatorHIMass), intent(inout) :: self

@@ -41,7 +41,7 @@
 
   interface kinematicsDistributionHeated
      !!{
-     Constructors for the {\normalfont \ttfamily heated} kinematic distribution class.
+     Constructors for the \refClass{kinematicsDistributionHeated} kinematic distribution class.
      !!}
      module procedure heatedConstructorParameters
      module procedure heatedConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function heatedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily isothermal} kinematic distribution class which builds the object from a parameter
+    Constructor for the \refClass{kinematicsDistributionHeated} kinematic distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -110,7 +110,7 @@ contains
   
   function heatedConstructorInternal(nonAnalyticSolver,velocityDispersionApproximate,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily heated} kinematics distribution class.
+    Constructor for the \refClass{kinematicsDistributionHeated} kinematics distribution class.
     !!}
     implicit none
     type            (kinematicsDistributionHeated     )                :: self

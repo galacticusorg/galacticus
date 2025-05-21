@@ -42,7 +42,7 @@
 
   interface nodePropertyExtractorPresetNamedIntegers
      !!{
-     Constructors for the {\normalfont \ttfamily presetNamedIntegers} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorPresetNamedIntegers} output extractor class.
      !!}
      module procedure presetNamedIntegersConstructorParameters
      module procedure presetNamedIntegersConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function presetNamedIntegersConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily presetNamedIntegers} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorPresetNamedIntegers} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function presetNamedIntegersConstructorInternal(presetnames) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily presetNamedIntegers} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorPresetNamedIntegers} output extractor property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorPresetNamedIntegers)                              :: self

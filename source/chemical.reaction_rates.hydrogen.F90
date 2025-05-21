@@ -104,7 +104,7 @@
 
   interface chemicalReactionRateHydrogenNetwork
      !!{
-     Constructors for the {\normalfont \ttfamily hydrogenNetwork} chemical reaction rates class.
+     Constructors for the \refClass{chemicalReactionRateHydrogenNetwork} chemical reaction rates class.
      !!}
      module procedure hydrogenNetworkConstructorParameters
      module procedure hydrogenNetworkConstructorInternal
@@ -126,7 +126,7 @@ contains
 
   function hydrogenNetworkConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily hydrogenNetwork} chemical reaction rates class which takes a parameter set as
+    Constructor for the \refClass{chemicalReactionRateHydrogenNetwork} chemical reaction rates class which takes a parameter set as
     input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -171,7 +171,7 @@ contains
 
   function hydrogenNetworkConstructorInternal(fast,includeSelfShielding,atomicIonizationRateCollisional_,atomicRecombinationRateRadiative_,atomicCrossSectionIonizationPhoto_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily hydrogenNetwork} chemical reaction rates class which takes a parameter set as
+    Constructor for the \refClass{chemicalReactionRateHydrogenNetwork} chemical reaction rates class which takes a parameter set as
     input.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
@@ -199,7 +199,7 @@ contains
 
   subroutine hydrogenNetworkDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily hydrogenNetwork} chemical reaction rates class.
+    Destructor for the \refClass{chemicalReactionRateHydrogenNetwork} chemical reaction rates class.
     !!}
     implicit none
     type(chemicalReactionRateHydrogenNetwork), intent(inout) :: self

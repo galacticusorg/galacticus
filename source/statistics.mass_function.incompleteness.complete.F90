@@ -39,7 +39,7 @@
 
   interface massFunctionIncompletenessComplete
      !!{
-     Constructors for the {\normalfont \ttfamily complete} incompleteness class.
+     Constructors for the \refClass{massFunctionIncompletenessComplete} incompleteness class.
      !!}
      module procedure completeConstructorParameters
   end interface massFunctionIncompletenessComplete
@@ -48,7 +48,7 @@ contains
 
   function completeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily complete} incompleteness class which takes a parameter set as input.
+    Constructor for the \refClass{massFunctionIncompletenessComplete} incompleteness class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

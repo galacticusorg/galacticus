@@ -48,7 +48,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily zero} satellite tidal heating rate class which builds the object from a parameter set.
+    Constructor for the \refClass{satelliteTidalHeatingRateZero} satellite tidal heating rate class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

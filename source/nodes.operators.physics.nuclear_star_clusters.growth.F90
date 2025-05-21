@@ -46,7 +46,7 @@
   
   interface nodeOperatorNuclearStarClusterGrowth
      !!{
-     Constructors for the {\normalfont \ttfamily gasMassRateNSC} node operator class.
+     Constructors for the \refClass{nodeOperatorNuclearStarClusterGrowth} node operator class.
      !!}
      module procedure nuclearStarClusterGrowthConstructorParameters
      module procedure nuclearStarClusterGrowthConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function nuclearStarClusterGrowthConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily gasMassRateNSC} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorNuclearStarClusterGrowth} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
   
   function nuclearStarClusterGrowthConstructorInternal(nuclearStarClusterGrowthRates_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily NuclearStarClusterGrowth} node operator class.
+    Internal constructor for the \refClass{nodeOperatorNuclearStarClusterGrowth} node operator class.
     !!}
     implicit none
     type (nodeOperatorNuclearStarClusterGrowth)                        :: self
@@ -91,7 +91,7 @@ contains
   
   subroutine nuclearStarClusterGrowthDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily NuclearStarClusterGrowth} node operator class.
+    Destructor for the \refClass{nodeOperatorNuclearStarClusterGrowth} node operator class.
     !!}
     implicit none
     type(nodeOperatorNuclearStarClusterGrowth), intent(inout) :: self

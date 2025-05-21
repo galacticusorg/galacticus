@@ -49,7 +49,7 @@
 
   interface radiativeTransferOutputterMulti
      !!{
-     Constructors for the {\normalfont \ttfamily multi} radiative transfer outputter class.
+     Constructors for the \refClass{radiativeTransferOutputterMulti} radiative transfer outputter class.
      !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function multiConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily multi} radiative transfer outputter class which takes a parameter set as input.
+    Constructor for the \refClass{radiativeTransferOutputterMulti} radiative transfer outputter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -90,7 +90,7 @@ contains
 
   function multiConstructorInternal(outputters) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily multi} analysis class.
+    Internal constructor for the \refClass{radiativeTransferOutputterMulti} analysis class.
     !!}
     implicit none
     type(radiativeTransferOutputterMulti)                        :: self
@@ -110,7 +110,7 @@ contains
 
   subroutine multiDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily multi} analysis class.
+    Destructor for the \refClass{radiativeTransferOutputterMulti} analysis class.
     !!}
     implicit none
     type(radiativeTransferOutputterMulti), intent(inout) :: self

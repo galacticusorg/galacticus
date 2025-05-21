@@ -50,7 +50,7 @@
 
   interface posteriorSampleLikelihoodGalaxyPopulation
      !!{
-     Constructors for the {\normalfont \ttfamily galaxyPopulation} posterior sampling likelihood class.
+     Constructors for the \refClass{posteriorSampleLikelihoodGalaxyPopulation} posterior sampling likelihood class.
      !!}
      module procedure galaxyPopulationConstructorParameters
      module procedure galaxyPopulationConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function galaxyPopulationConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily galaxyPopulation} posterior sampling likelihood class which builds the object
+    Constructor for the \refClass{posteriorSampleLikelihoodGalaxyPopulation} posterior sampling likelihood class which builds the object
     from a parameter set.
     !!}
     use :: Display         , only : displayVerbosity, enumerationVerbosityLevelDecode, enumerationVerbosityLevelEncode
@@ -165,7 +165,7 @@ contains
 
   function galaxyPopulationConstructorInternal(parametersModel,baseParametersFileName,randomize,outputAnalyses,setOutputGroup,reportEvaluationTimes,collaborativeMPI,reportFileName,reportState,evolveForestsVerbosity,failedParametersFileName,changeParametersFileNames) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily galaxyPopulation} posterior sampling likelihood class.
+    Constructor for the \refClass{posteriorSampleLikelihoodGalaxyPopulation} posterior sampling likelihood class.
     !!}
     use :: Error  , only : Error_Report
     use :: Display, only : displayGreen, displayReset
@@ -189,7 +189,7 @@ contains
 
   subroutine galaxyPopulationDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily galaxyPopulation} posterior sampling likelihood class.
+    Destructor for the \refClass{posteriorSampleLikelihoodGalaxyPopulation} posterior sampling likelihood class.
     !!}
     implicit none
     type(posteriorSampleLikelihoodGalaxyPopulation), intent(inout) :: self

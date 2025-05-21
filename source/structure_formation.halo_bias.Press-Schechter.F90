@@ -45,7 +45,7 @@
 
   interface darkMatterHaloBiasPressSchechter
      !!{
-     Constructors for the {\normalfont \ttfamily pressSchechter} dark matter halo bias class.
+     Constructors for the \refClass{darkMatterHaloBiasPressSchechter} dark matter halo bias class.
      !!}
      module procedure pressSchechterConstructorParameters
      module procedure pressSchechterConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function pressSchechterConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily pressSchechter} dark matter halo mass bias which builds the object from a parameter set.
+    Constructor for the \refClass{darkMatterHaloBiasPressSchechter} dark matter halo mass bias which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,7 +79,7 @@ contains
 
   function pressSchechterConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily pressSchechter} dark matter halo bias class.
+    Internal constructor for the \refClass{darkMatterHaloBiasPressSchechter} dark matter halo bias class.
     !!}
     implicit none
     type (darkMatterHaloBiasPressSchechter)                        :: self
@@ -94,7 +94,7 @@ contains
 
   subroutine pressSchechterDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily pressSchechter} dark matter halo bias class.
+    Destructor for the \refClass{darkMatterHaloBiasPressSchechter} dark matter halo bias class.
     !!}
     implicit none
     type(darkMatterHaloBiasPressSchechter), intent(inout) :: self

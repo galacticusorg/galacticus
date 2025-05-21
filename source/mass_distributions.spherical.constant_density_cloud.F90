@@ -43,7 +43,7 @@
 
   interface massDistributionConstantDensityCloud
      !!{
-     Constructors for the {\normalfont \ttfamily constantDensityCloud} mass distribution class.
+     Constructors for the \refClass{massDistributionConstantDensityCloud} mass distribution class.
      !!}
      module procedure constantDensityCloudConstructorParameters
      module procedure constantDensityCloudConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function constantDensityCloudConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily constantDensityCloud} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionConstantDensityCloud} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
@@ -98,7 +98,7 @@ contains
   
   function constantDensityCloudConstructorInternal(mass,radius,componentType,massType) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily constantDensityCloud} convergence class.
+    Constructor for the \refClass{massDistributionConstantDensityCloud} convergence class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

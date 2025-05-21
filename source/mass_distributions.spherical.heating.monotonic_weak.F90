@@ -66,7 +66,7 @@
 
   interface massDistributionHeatingMonotonicWeak
      !!{
-     Constructors for the {\normalfont \ttfamily monotonicWeak} mass distribution class.
+     Constructors for the \refClass{massDistributionHeatingMonotonicWeak} mass distribution class.
      !!}
      module procedure monotonicWeakConstructorParameters
      module procedure monotonicWeakConstructorInternal
@@ -76,7 +76,7 @@ contains
 
   function monotonicWeakConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily monotonicWeak} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionHeatingMonotonicWeak} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -105,7 +105,7 @@ contains
   
   function monotonicWeakConstructorInternal(toleranceShellCrossing,massDistributionHeating_) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily monotonicWeak} mass distribution heating class.
+    Constructor for the \refClass{massDistributionHeatingMonotonicWeak} mass distribution heating class.
     !!}
     implicit none
     type            (massDistributionHeatingMonotonicWeak)                        :: self

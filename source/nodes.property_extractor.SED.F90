@@ -90,7 +90,7 @@
   
   interface nodePropertyExtractorSED
      !!{
-     Constructors for the {\normalfont \ttfamily sed} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorSED} output analysis class.
      !!}
      module procedure sedConstructorParameters
      module procedure sedConstructorInternal
@@ -100,7 +100,7 @@ contains
 
   function sedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sed} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorSED} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters              , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options    , only : enumerationComponentTypeEncode
@@ -173,7 +173,7 @@ contains
 
   function sedConstructorInternal(component,frame,wavelengthMinimum,wavelengthMaximum,resolution,toleranceRelative,stellarPopulationSpectra_,stellarPopulationSpectraPostprocessor_,starFormationHistory_,outputTimes_,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily sed} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorSED} property extractor class.
     !!}
     use :: Atomic_Data                     , only : Abundance_Pattern_Lookup
     use :: Galactic_Structure_Options      , only : componentTypeDisk       , componentTypeSpheroid, componentTypeNuclearStarCluster
@@ -217,7 +217,7 @@ contains
 
   subroutine sedDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily sed} property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorSED} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSED), intent(inout) :: self

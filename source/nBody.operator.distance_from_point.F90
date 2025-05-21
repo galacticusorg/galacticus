@@ -38,7 +38,7 @@ Implements an N-body data operator which computes the distance of each particle 
 
   interface nbodyOperatorDistanceFromPoint
      !!{
-     Constructors for the {\normalfont \ttfamily distanceFromPoint} N-body operator class.
+     Constructors for the \refClass{nbodyOperatorDistanceFromPoint} N-body operator class.
      !!}
      module procedure distanceFromPointConstructorParameters
      module procedure distanceFromPointConstructorInternal
@@ -48,7 +48,7 @@ contains
 
   function distanceFromPointConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily distanceFromPoint} N-body operator class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyOperatorDistanceFromPoint} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -72,7 +72,7 @@ contains
 
   function distanceFromPointConstructorInternal(point) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily distanceFromPoint} N-body operator class.
+    Internal constructor for the \refClass{nbodyOperatorDistanceFromPoint} N-body operator class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

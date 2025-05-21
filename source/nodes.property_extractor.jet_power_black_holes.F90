@@ -45,7 +45,7 @@
 
   interface nodePropertyExtractorJetPowerBlackHoles
      !!{
-     Constructors for the {\normalfont \ttfamily jetPowerBlackHoles} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorJetPowerBlackHoles} output extractor class.
      !!}
      module procedure jetPowerBlackHolesConstructorParameters
      module procedure jetPowerBlackHolesConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function jetPowerBlackHolesConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily jetPowerBlackHoles} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorJetPowerBlackHoles} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,7 +79,7 @@ contains
 
   function jetPowerBlackHolesConstructorInternal(blackHoleAccretionRate_,accretionDisks_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily jetPowerBlackHoles} node operator class.
+    Internal constructor for the \refClass{nodePropertyExtractorJetPowerBlackHoles} node operator class.
     !!}
     implicit none
     type (nodePropertyExtractorJetPowerBlackHoles)                        :: self

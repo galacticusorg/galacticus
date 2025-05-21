@@ -42,7 +42,7 @@
 
   interface kinematicsDistributionSIDMIsothermal
      !!{
-     Constructors for the {\normalfont \ttfamily sidmIsothermal} kinematic distribution class.
+     Constructors for the \refClass{kinematicsDistributionSIDMIsothermal} kinematic distribution class.
      !!}
      module procedure sidmIsothermalConstructorParameters
      module procedure sidmIsothermalConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function sidmIsothermalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sidmIsothermal} kinematic distribution class which builds the object from a parameter
+    Constructor for the \refClass{kinematicsDistributionSIDMIsothermal} kinematic distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -69,7 +69,7 @@ contains
 
   function sidmIsothermalConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily sidmIsothermal} kinematic distribution class.
+    Internal constructor for the \refClass{kinematicsDistributionSIDMIsothermal} kinematic distribution class.
     !!}
     implicit none
     type(kinematicsDistributionSIDMIsothermal) :: self

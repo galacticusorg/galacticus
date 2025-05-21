@@ -54,7 +54,7 @@
 
   interface stellarFeedbackStandard
      !!{
-     Constructors for the {\normalfont \ttfamily standard} stellar feedback class.
+     Constructors for the \refClass{stellarFeedbackStandard} stellar feedback class.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -69,7 +69,7 @@ contains
 
   function standardConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily standard} stellar feedback class which takes a parameter list as input.
+    Constructor for the \refClass{stellarFeedbackStandard} stellar feedback class which takes a parameter list as input.
     !!}
     use :: Input_Parameters                , only : inputParameter, inputParameters
     use :: Numerical_Constants_Astronomical, only : massSolar
@@ -119,7 +119,7 @@ contains
 
   function standardConstructorInternal(initialMassForSupernovaeTypeII,supernovaEnergy,supernovaeTypeIa_,supernovaePopulationIII_,stellarWinds_,stellarAstrophysics_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily standard} stellar feedback class which takes a parameter list as input.
+    Constructor for the \refClass{stellarFeedbackStandard} stellar feedback class which takes a parameter list as input.
     !!}
     implicit none
     type            (stellarFeedbackStandard     )                        :: self
@@ -137,7 +137,7 @@ contains
 
   subroutine standardDestructor(self)
    !!{
-   Destructor for the {\normalfont \ttfamily standard} stellar feedback class.
+   Destructor for the \refClass{stellarFeedbackStandard} stellar feedback class.
    !!}
     implicit none
     type(stellarFeedbackStandard), intent(inout) :: self

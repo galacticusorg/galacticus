@@ -48,7 +48,7 @@ contains
 
   function sampledDistributionPseudoRandomConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sampledDistributionPseudoRandom} merger tree masses class which takes a parameter set
+    Constructor for the \refClass{mergerTreeBuildMassesSampledDistributionPseudoRandom} merger tree masses class which takes a parameter set
     as input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -66,7 +66,7 @@ contains
 
   function sampledDistributionPseudoRandomConstructorInternal(massTreeMinimum,massTreeMaximum,treesPerDecade,mergerTreeBuildMassDistribution_,randomNumberGenerator_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily sampledDistributionPseudoRandom} merger tree masses class.
+    Internal constructor for the \refClass{mergerTreeBuildMassesSampledDistributionPseudoRandom} merger tree masses class.
     !!}
     implicit none
     type            (mergerTreeBuildMassesSampledDistributionPseudoRandom)                        :: self
@@ -83,7 +83,7 @@ contains
 
   subroutine sampledDistributionPseudoRandomDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily sampledDistributionPseudoRandom} merger tree masses class.
+    Destructor for the \refClass{mergerTreeBuildMassesSampledDistributionPseudoRandom} merger tree masses class.
     !!}
     implicit none
     type(mergerTreeBuildMassesSampledDistributionPseudoRandom), intent(inout) :: self

@@ -86,7 +86,7 @@
 
   interface mergerRemnantSizeCole2000
      !!{
-     Constructors for the {\normalfont \ttfamily cole2000} merger remnant size class.
+     Constructors for the \refClass{mergerRemnantSizeCole2000} merger remnant size class.
      !!}
      module procedure cole2000ConstructorParameters
      module procedure cole2000ConstructorInternal
@@ -96,7 +96,7 @@ contains
 
   function cole2000ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily cole2000} merger remnant size class which takes a parameter list as input.
+    Constructor for the \refClass{mergerRemnantSizeCole2000} merger remnant size class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -131,7 +131,7 @@ contains
 
   function cole2000ConstructorInternal(energyOrbital,ignoreUnphysicalConditions,mergerProgenitorProperties_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily cole2000} merger remnant size class.
+    Internal constructor for the \refClass{mergerRemnantSizeCole2000} merger remnant size class.
     !!}
     implicit none
     type            (mergerRemnantSizeCole2000      )                        :: self
@@ -164,7 +164,7 @@ contains
 
   subroutine cole2000Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily cole2000} merger remnant size class.
+    Destructor for the \refClass{mergerRemnantSizeCole2000} merger remnant size class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent
     implicit none

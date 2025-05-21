@@ -60,7 +60,7 @@
 
   interface massDistributionSphericalTruncatedExponential
      !!{
-     Constructors for the {\normalfont \ttfamily sphericalTruncatedExponential} mass distribution class.
+     Constructors for the \refClass{massDistributionSphericalTruncatedExponential} mass distribution class.
      !!}
      module procedure sphericalTruncatedExponentialConstructorParameters
      module procedure sphericalTruncatedExponentialConstructorInternal
@@ -70,7 +70,7 @@ contains
 
   function sphericalTruncatedExponentialConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sphericalTruncatedExponential} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionSphericalTruncatedExponential} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameters
@@ -129,7 +129,7 @@ contains
   
   function sphericalTruncatedExponentialConstructorInternal(radiusTruncateMinimum,radiusTruncateDecay,nonAnalyticSolver,massDistribution_,componentType,massType) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily sphericalTruncatedExponential} mass distribution class.
+    Constructor for the \refClass{massDistributionSphericalTruncatedExponential} mass distribution class.
     !!}
     use :: Coordinates    , only : coordinateSpherical                   , assignment(=)
     use :: Gamma_Functions, only : Gamma_Function_Incomplete_Unnormalized
@@ -176,7 +176,7 @@ contains
 
   subroutine sphericalTruncatedExponentialDestructor(self)
     !!{
-    Destructor for the abstract {\normalfont \ttfamily massDistributionSphericalTruncatedExponential} class.
+    Destructor for the abstract \refClass{massDistributionSphericalTruncatedExponential} class.
     !!}
     implicit none
     type(massDistributionSphericalTruncatedExponential), intent(inout) :: self

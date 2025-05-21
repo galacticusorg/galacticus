@@ -55,7 +55,7 @@
 
   interface variogramSpherical
      !!{
-     Constructors for the {\normalfont \ttfamily gaussianRegression} posterior sampling likelihood class.
+     Constructors for the \refClass{variogramSpherical} posterior sampling likelihood class.
      !!}
      module procedure sphericalConstructorParameters
      module procedure sphericalConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function sphericalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily spherical} variogram class which builds the object from a parameter set.
+    Constructor for the \refClass{variogramSpherical} variogram class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -100,7 +100,7 @@ contains
 
   function sphericalConstructorInternal(variogramFitOption,assumeZeroVarianceAtZeroLag) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily spherical} variogram class.
+    Constructor for the \refClass{variogramSpherical} variogram class.
     !!}
     implicit none
     type   (variogramSpherical               )                :: self

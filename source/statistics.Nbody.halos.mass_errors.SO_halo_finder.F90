@@ -47,7 +47,7 @@ implements a model for errors in spherical overdensity halo finders.
 
   interface nbodyHaloMassErrorSOHaloFinder
      !!{
-     Constructors for the {\normalfont \ttfamily soHaloFinder} N-body halo mass error class.
+     Constructors for the \refClass{nbodyHaloMassErrorSOHaloFinder} N-body halo mass error class.
      !!}
      module procedure soHaloFinderParameters
      module procedure soHaloFinderInternal
@@ -57,7 +57,7 @@ contains
 
   function soHaloFinderParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily soHaloFinder} N-body halo mass error class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyHaloMassErrorSOHaloFinder} N-body halo mass error class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -88,7 +88,7 @@ contains
 
   function soHaloFinderInternal(darkMatterHaloScale_,darkMatterProfileDMO_,massParticle) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily soHaloFinder} N-body halo mass error class.
+    Internal constructor for the \refClass{nbodyHaloMassErrorSOHaloFinder} N-body halo mass error class.
     !!}
     implicit none
     type            (nbodyHaloMassErrorSOHaloFinder)                        :: self
@@ -104,7 +104,7 @@ contains
 
   subroutine soHaloFinderDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily soHaloFinder} N-body halo mass error class.
+    Destructor for the \refClass{nbodyHaloMassErrorSOHaloFinder} N-body halo mass error class.
     !!}
     implicit none
     type(nbodyHaloMassErrorSOHaloFinder), intent(inout) :: self

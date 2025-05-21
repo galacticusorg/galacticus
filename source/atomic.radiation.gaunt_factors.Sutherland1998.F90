@@ -41,7 +41,7 @@
 
   interface gauntFactorSutherland1998
      !!{
-     Constructors for the {\normalfont \ttfamily sutherland1998} gaunt factor class.
+     Constructors for the \refClass{gauntFactorSutherland1998} gaunt factor class.
      !!}
      module procedure sutherland1998ConstructorParameters
      module procedure sutherland1998ConstructorInternal
@@ -119,7 +119,7 @@ contains
 
   function sutherland1998ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sutherland1998} gaunt factor class which takes a parameter set as input.
+    Constructor for the \refClass{gauntFactorSutherland1998} gaunt factor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -140,7 +140,7 @@ contains
 
   function sutherland1998ConstructorInternal(atomicIonizationPotential_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily sutherland1998} gaunt factor class.
+    Internal constructor for the \refClass{gauntFactorSutherland1998} gaunt factor class.
     !!}
     implicit none
     type (gauntFactorSutherland1998     )                        :: self
@@ -154,7 +154,7 @@ contains
 
   subroutine sutherland1998Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily sutherland1998} gaunt factor class.
+    Destructor for the \refClass{gauntFactorSutherland1998} gaunt factor class.
     !!}
     implicit none
     type(gauntFactorSutherland1998), intent(inout) :: self

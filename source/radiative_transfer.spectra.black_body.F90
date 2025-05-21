@@ -36,7 +36,7 @@
   
   interface radiativeTransferSpectrumBlackBody
      !!{
-     Constructors for the {\normalfont \ttfamily blackBody} radiative transfer spectrum class.
+     Constructors for the \refClass{radiativeTransferSpectrumBlackBody} radiative transfer spectrum class.
      !!}
      module procedure blackBodyConstructorParameters
      module procedure blackBodyConstructorInternal
@@ -46,7 +46,7 @@ contains
 
   function blackBodyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily blackBody} radiative transfer spectrum class which takes a parameter set as
+    Constructor for the \refClass{radiativeTransferSpectrumBlackBody} radiative transfer spectrum class which takes a parameter set as
     input.
     !!}
     use :: Input_Parameters, only : inputParameters, inputParameter
@@ -78,7 +78,7 @@ contains
 
   function blackBodyConstructorInternal(temperature,luminosityBolometric) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily blackBody} radiative transfer photon packet class.
+    Internal constructor for the \refClass{radiativeTransferSpectrumBlackBody} radiative transfer photon packet class.
     !!}
     use :: Thermodynamics_Radiation, only : Blackbody_Radiance
     implicit none

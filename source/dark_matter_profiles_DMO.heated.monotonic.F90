@@ -48,7 +48,7 @@
 
   interface darkMatterProfileDMOHeatedMonotonic
      !!{
-     Constructors for the {\normalfont \ttfamily heated} dark matter halo profile class.
+     Constructors for the \refClass{darkMatterProfileDMOHeatedMonotonic} dark matter halo profile class.
      !!}
      module procedure heatedMonotonicConstructorParameters
      module procedure heatedMonotonicConstructorInternal
@@ -106,7 +106,7 @@ contains
 
   function heatedMonotonicConstructorInternal(nonAnalyticSolver,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_) result(self)
     !!{
-    Generic constructor for the {\normalfont \ttfamily heatedMonotonic} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOHeatedMonotonic} dark matter profile class.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversIsValid
     use :: Error             , only : Error_Report
@@ -128,7 +128,7 @@ contains
 
   subroutine heatedMonotonicDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily heatedMonotonic} dark matter halo profile class.
+    Destructor for the \refClass{darkMatterProfileDMOHeatedMonotonic} dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOHeatedMonotonic), intent(inout) :: self

@@ -63,7 +63,7 @@ contains
 
   function betaProfileConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the null {\normalfont \ttfamily betaProfile} hot halo mass distributionclass which builds the object from a
+    Constructor for the \refClass{hotHaloMassDistributionBetaProfile} hot halo mass distributionclass which builds the object from a
     parameter set.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
@@ -122,7 +122,7 @@ contains
 
   function betaProfileConstructorInternal(beta,hotHaloMassDistributionCoreRadius_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily betaProfile} hot halo mass distribution class.
+    Internal constructor for the \refClass{hotHaloMassDistributionBetaProfile} hot halo mass distribution class.
     !!}
     implicit none
     type            (hotHaloMassDistributionBetaProfile    )                        :: self
@@ -137,7 +137,7 @@ contains
 
   subroutine betaProfileDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily betaProfile} hot halo mass distribution class.
+    Destructor for the \refClass{hotHaloMassDistributionBetaProfile} hot halo mass distribution class.
     !!}
     implicit none
     type(hotHaloMassDistributionBetaProfile), intent(inout) :: self

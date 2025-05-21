@@ -60,7 +60,7 @@
 
   interface massDistributionSphericalTruncated
      !!{
-     Constructors for the {\normalfont \ttfamily sphericalTruncated} mass distribution class.
+     Constructors for the \refClass{massDistributionSphericalTruncated} mass distribution class.
      !!}
      module procedure sphericalTruncatedConstructorParameters
      module procedure sphericalTruncatedConstructorInternal
@@ -70,7 +70,7 @@ contains
 
   function sphericalTruncatedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sphericalTruncated} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionSphericalTruncated} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameters
@@ -129,7 +129,7 @@ contains
   
   function sphericalTruncatedConstructorInternal(radiusTruncateMinimum,radiusTruncateMaximum,nonAnalyticSolver,massDistribution_,componentType,massType) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily sphericalTruncated} mass distribution class.
+    Constructor for the \refClass{massDistributionSphericalTruncated} mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalTruncated)                          :: self
@@ -150,7 +150,7 @@ contains
 
   subroutine sphericalTruncatedDestructor(self)
     !!{
-    Destructor for the abstract {\normalfont \ttfamily massDistributionSphericalTruncated} class.
+    Destructor for the abstract \refClass{massDistributionSphericalTruncated} class.
     !!}
     implicit none
     type(massDistributionSphericalTruncated), intent(inout) :: self

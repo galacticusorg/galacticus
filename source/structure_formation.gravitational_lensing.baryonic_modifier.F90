@@ -56,7 +56,7 @@ Implements the gravitational lensing distribution by modifying another distribut
 
   interface gravitationalLensingBaryonicModifier
      !!{
-     Constructors for the {\normalfont \ttfamily baryonicModifier} gravitational lensing class.
+     Constructors for the \refClass{gravitationalLensingBaryonicModifier} gravitational lensing class.
      !!}
      module procedure baryonicModifierConstructorParameters
      module procedure baryonicModifierConstructorInternal
@@ -102,7 +102,7 @@ contains
 
   function baryonicModifierConstructorInternal(gravitationalLensing_,alpha,beta) result(self)
     !!{
-    Generic constructor for the {\normalfont \ttfamily baryonicModifier} gravitational lensing class.
+    Internal constructor for the \refClass{gravitationalLensingBaryonicModifier} gravitational lensing class.
     !!}
     implicit none
     type            (gravitationalLensingBaryonicModifier)                        :: self
@@ -120,7 +120,7 @@ contains
 
   subroutine baryonicModifierDestructor(self)
     !!{
-    Destructor for the ``baryonic modifier'' gravitational lensing class.
+    Destructor for the \refClass{gravitationalLensingBaryonicModifier} gravitational lensing class.
     !!}
     implicit none
     type(gravitationalLensingBaryonicModifier), intent(inout) :: self
@@ -196,7 +196,7 @@ contains
 
     double precision function magnificationTransition(magnification)
       !!{
-      Root finding function used in the ``baryonic modifier'' gravitational lensing class.
+      Root finding function used in the \refClass{gravitationalLensingBaryonicModifier} gravitational lensing class.
       !!}
       implicit none
       double precision, intent(in   ) :: magnification

@@ -62,7 +62,7 @@ algorithm of \cite{smith_stable_2003}.
 
   interface powerSpectrumNonlinearSmith2003
      !!{
-     Constructors for the {\normalfont \ttfamily Smith2003} nonlinear power spectrum class.
+     Constructors for the \refClass{powerSpectrumNonlinearSmith2003} nonlinear power spectrum class.
      !!}
      module procedure smith2003ConstructorParameters
      module procedure smith2003ConstructorInternal
@@ -126,7 +126,7 @@ contains
 
   function smith2003ConstructorInternal(includePeacockCorrection,includeQuasiLinearPower,includeHaloPower,cosmologyParameters_,cosmologyFunctions_,powerSpectrum_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily Smith2003} nonlinear power spectrum class.
+    Internal constructor for the \refClass{powerSpectrumNonlinearSmith2003} nonlinear power spectrum class.
     !!}
     implicit none
     type   (powerSpectrumNonlinearSmith2003)                        :: self
@@ -145,7 +145,7 @@ contains
 
   subroutine smith2003Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily Smith2003} nonlinear power spectrum class.
+    Destructor for the \refClass{powerSpectrumNonlinearSmith2003} nonlinear power spectrum class.
     !!}
     implicit none
     type(powerSpectrumNonlinearSmith2003), intent(inout) :: self

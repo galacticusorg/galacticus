@@ -45,7 +45,7 @@
   
   interface nodeOperatorNodeFormationTimeMassFraction
      !!{
-     Constructors for the {\normalfont \ttfamily nodeFormationTimeMassFraction} node operator class.
+     Constructors for the \refClass{nodeOperatorNodeFormationTimeMassFraction} node operator class.
      !!}
      module procedure nodeFormationTimeMassFractionConstructorParameters
      module procedure nodeFormationTimeMassFractionConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function nodeFormationTimeMassFractionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily nodeFormationTimeMassFraction} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorNodeFormationTimeMassFraction} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -90,7 +90,7 @@ contains
 
   function nodeFormationTimeMassFractionConstructorInternal(fractionMassFormation,assumeMonotonicGrowth,darkMatterHaloMassAccretionHistory_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily nodeFormationTimeMassFraction} node operator class.
+    Internal constructor for the \refClass{nodeOperatorNodeFormationTimeMassFraction} node operator class.
     !!}
     implicit none
     type            (nodeOperatorNodeFormationTimeMassFraction)                        :: self
@@ -109,7 +109,7 @@ contains
 
   subroutine nodeFormationTimeMassFractionDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily nodeFormationTimeMassFraction} node operator class.
+    Destructor for the \refClass{nodeOperatorNodeFormationTimeMassFraction} node operator class.
     !!}
     implicit none
     type(nodeOperatorNodeFormationTimeMassFraction), intent(inout) :: self

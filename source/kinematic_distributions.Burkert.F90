@@ -37,7 +37,7 @@
 
   interface kinematicsDistributionBurkert
      !!{
-     Constructors for the {\normalfont \ttfamily burkert} kinematic distribution class.
+     Constructors for the \refClass{kinematicsDistributionBurkert} kinematic distribution class.
      !!}
      module procedure burkertConstructorParameters
      module procedure burkertConstructorInternal
@@ -47,7 +47,7 @@ contains
 
   function burkertConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily burkert} kinematic distribution class which builds the object from a parameter
+    Constructor for the \refClass{kinematicsDistributionBurkert} kinematic distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -64,7 +64,7 @@ contains
 
   function burkertConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily burkert} kinematic distribution class.
+    Internal constructor for the \refClass{kinematicsDistributionBurkert} kinematic distribution class.
     !!}
     implicit none
     type   (kinematicsDistributionBurkert)                :: self

@@ -68,7 +68,7 @@
 
   interface darkMatterProfileConcentrationGao2008
      !!{
-     Constructors for the {\normalfont \ttfamily gao2008} dark matter halo profile concentration class.
+     Constructors for the \refClass{darkMatterProfileConcentrationGao2008} dark matter halo profile concentration class.
      !!}
      module procedure gao2008ConstructorParameters
      module procedure gao2008ConstructorInternal
@@ -78,7 +78,7 @@ contains
 
   function gao2008ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily gao2008} dark matter halo profile concentration class which takes a parameter
+    Constructor for the \refClass{darkMatterProfileConcentrationGao2008} dark matter halo profile concentration class which takes a parameter
     list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -110,7 +110,7 @@ contains
 
   function gao2008ConstructorInternal(scatter,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily gao2008} dark matter halo profile concentration class.
+    Internal constructor for the \refClass{darkMatterProfileConcentrationGao2008} dark matter halo profile concentration class.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
@@ -163,7 +163,7 @@ contains
 
   subroutine gao2008Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily gao2008} dark matter halo profile concentration class.
+    Destructor for the \refClass{darkMatterProfileConcentrationGao2008} dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationGao2008), intent(inout) :: self

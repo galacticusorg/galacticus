@@ -39,7 +39,7 @@ Implements an inverting filter.
 
   interface galacticFilterNot
      !!{
-     Constructors for the {\normalfont \ttfamily not} galactic filter class.
+     Constructors for the \refClass{galacticFilterNot} galactic filter class.
      !!}
      module procedure notConstructorParameters
      module procedure notConstructorInternal
@@ -49,7 +49,7 @@ contains
 
   function notConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily not} galactic filter class which takes a parameter set as input.
+    Constructor for the \refClass{galacticFilterNot} galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -70,7 +70,7 @@ contains
 
   function notConstructorInternal(galacticFilter_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily not} galactic filter class.
+    Internal constructor for the \refClass{galacticFilterNot} galactic filter class.
     !!}
     implicit none
     type (galacticFilterNot  )                        :: self
@@ -84,7 +84,7 @@ contains
 
   subroutine notDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily not} galactic filter class.
+    Destructor for the \refClass{galacticFilterNot} galactic filter class.
     !!}
     implicit none
     type(galacticFilterNot), intent(inout) :: self

@@ -79,7 +79,7 @@
 
   interface virialOrbitLi2020
      !!{
-     Constructors for the {\normalfont \ttfamily li2020} virial orbit class.
+     Constructors for the \refClass{virialOrbitLi2020} virial orbit class.
      !!}
      module procedure li2020ConstructorParameters
      module procedure li2020ConstructorInternal
@@ -89,7 +89,7 @@ contains
 
   function li2020ConstructorParameters(parameters) result(self)
     !!{
-    Generic constructor for the {\normalfont \ttfamily li2020} virial orbits class.
+    Internal constructor for the \refClass{virialOrbitLi2020} virial orbits class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -210,7 +210,7 @@ contains
 
   function li2020ConstructorInternal(mu1,mu2,sigma1,a0,a1,a2,a3,b1,b2,c,propagateOrbits,darkMatterHaloScale_,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,virialDensityContrast_,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily li2020} virial orbits class.
+    Internal constructor for the \refClass{virialOrbitLi2020} virial orbits class.
     !!}
     implicit none
     type            (virialOrbitLi2020            )                             :: self
@@ -249,7 +249,7 @@ contains
 
   subroutine li2020Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily li2020} virial orbits class.
+    Destructor for the \refClass{virialOrbitLi2020} virial orbits class.
     !!}
     implicit none
     type(virialOrbitLi2020), intent(inout) :: self

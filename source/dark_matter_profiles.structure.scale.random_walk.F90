@@ -63,7 +63,7 @@
   
   interface darkMatterProfileScaleRadiusRandomWalk
      !!{
-     Constructors for the {\normalfont \ttfamily darkMatterProfileScaleRandomWalk} node operator class.
+     Constructors for the \refClass{darkMatterProfileScaleRadiusRandomWalk} node operator class.
      !!}
      module procedure darkMatterProfileScaleRandomWalkConstructorParameters
      module procedure darkMatterProfileScaleRandomWalkConstructorInternal
@@ -80,7 +80,7 @@ contains
   
   function darkMatterProfileScaleRandomWalkConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily randomWalk} dark matter profile scale radius class which
+    Constructor for the \refClass{darkMatterProfileScaleRadiusRandomWalk} dark matter profile scale radius class which
     takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -115,7 +115,7 @@ contains
 
   function darkMatterProfileScaleRandomWalkConstructorInternal(energyVarianceSpecific,darkMatterProfileScaleRadius_,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily randomWalk} dark matter profile scale radius class.
+    Internal constructor for the \refClass{darkMatterProfileScaleRadiusRandomWalk} dark matter profile scale radius class.
     !!}
     implicit none
     type            (darkMatterProfileScaleRadiusRandomWalk)                        :: self
@@ -132,7 +132,7 @@ contains
 
   subroutine darkMatterProfileScaleRandomWalkDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily randomWalk} dark matter halo profile scale radius class.
+    Destructor for the \refClass{darkMatterProfileScaleRadiusRandomWalk} dark matter halo profile scale radius class.
     !!}
     implicit none
     type(darkMatterProfileScaleRadiusRandomWalk), intent(inout) :: self

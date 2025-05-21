@@ -87,7 +87,7 @@
 
   interface darkMatterHaloMassAccretionHistoryHearin2021Stochastic
      !!{
-     Constructors for the {\normalfont \ttfamily hearin2021Stochastic} dark matter halo mass accretion history class.
+     Constructors for the \refClass{darkMatterHaloMassAccretionHistoryHearin2021Stochastic} dark matter halo mass accretion history class.
      !!}
      module procedure hearin2021StochasticConstructorParameters
      module procedure hearin2021StochasticConstructorInternal
@@ -219,7 +219,7 @@ contains
 
   function hearin2021StochasticConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily hearin2021Stochastic} dark matter halo mass accretion history class which takes a parameter
+    Constructor for the \refClass{darkMatterHaloMassAccretionHistoryHearin2021Stochastic} dark matter halo mass accretion history class which takes a parameter
     set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -597,7 +597,7 @@ contains
 
   function hearin2021StochasticConstructorInternal(rateRollOver,fractionLateLow,fractionLateHigh,means,cholesky) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily hearin2021Stochastic} dark matter halo mass accretion history class.
+    Internal constructor for the \refClass{darkMatterHaloMassAccretionHistoryHearin2021Stochastic} dark matter halo mass accretion history class.
     !!}
     implicit none
     type            (darkMatterHaloMassAccretionHistoryHearin2021Stochastic)                                    :: self

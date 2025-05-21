@@ -51,7 +51,7 @@
 
   interface haloSpinDistributionLogNormal
      !!{
-     Constructors for the {\normalfont \ttfamily logNormal} dark matter halo spin
+     Constructors for the \refClass{haloSpinDistributionLogNormal} dark matter halo spin
      distribution class.
      !!}
      module procedure logNormalConstructorParameters
@@ -62,7 +62,7 @@ contains
 
   function logNormalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily logNormal} dark matter halo spin
+    Constructor for the \refClass{haloSpinDistributionLogNormal} dark matter halo spin
     distribution class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -102,7 +102,7 @@ contains
 
   function logNormalConstructorInternal(median,sigma,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily logNormal} dark matter halo spin
+    Internal constructor for the \refClass{haloSpinDistributionLogNormal} dark matter halo spin
     distribution class.
     !!}
     implicit none
@@ -118,7 +118,7 @@ contains
 
   subroutine lognormalDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily lognormal} dark matter halo spin
+    Destructor for the \refClass{haloSpinDistributionLogNormal} dark matter halo spin
     distribution class.
     !!}
     implicit none

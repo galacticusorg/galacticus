@@ -51,7 +51,7 @@
   
   interface nodeOperatorDarkMatterProfileShapeInterpolate
      !!{
-     Constructors for the {\normalfont \ttfamily dmpShapeInterpolate} node operator class.
+     Constructors for the \refClass{nodeOperatorDarkMatterProfileShapeInterpolate} node operator class.
      !!}
      module procedure dmpShapeInterpolateConstructorParameters
      module procedure dmpShapeInterpolateConstructorInternal
@@ -61,7 +61,7 @@ contains
   
   function dmpShapeInterpolateConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily darkMatterProfileShapeInterpolate} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorDarkMatterProfileShapeInterpolate} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -82,7 +82,7 @@ contains
 
   function dmpShapeInterpolateConstructorInternal(darkMatterProfileShape_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily darkMatterProfileShapeInterpolate} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorDarkMatterProfileShapeInterpolate} node operator class which takes a parameter set as input.
     !!}
     implicit none
     type (nodeOperatorDarkMatterProfileShapeInterpolate)                        :: self
@@ -99,7 +99,7 @@ contains
 
   subroutine dmpShapeInterpolateConstructorDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily darkMatterProfileShapeInterpolate} dark matter halo profile shape parameter class.
+    Destructor for the \refClass{nodeOperatorDarkMatterProfileShapeInterpolate} dark matter halo profile shape parameter class.
     !!}
     implicit none
     type(nodeOperatorDarkMatterProfileShapeInterpolate), intent(inout) :: self

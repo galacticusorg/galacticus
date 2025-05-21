@@ -65,7 +65,7 @@ Implements a stellar mass function output analysis class for the PRIMUS survey o
 
   interface outputAnalysisMassFunctionStellarPRIMUS
      !!{
-     Constructors for the {\normalfont \ttfamily massFunctionStellarPRIMUS} output analysis class.
+     Constructors for the \refClass{outputAnalysisMassFunctionStellarPRIMUS} output analysis class.
      !!}
      module procedure massFunctionStellarPRIMUSConstructorParameters
      module procedure massFunctionStellarPRIMUSConstructorInternal
@@ -75,7 +75,7 @@ contains
 
   function massFunctionStellarPRIMUSConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily massFunctionStellarPRIMUS} output analysis class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisMassFunctionStellarPRIMUS} output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -181,7 +181,7 @@ contains
 
   function massFunctionStellarPRIMUSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily massFunctionStellarPRIMUS} output analysis class for internal use.
+    Constructor for the \refClass{outputAnalysisMassFunctionStellarPRIMUS} output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -372,7 +372,7 @@ contains
 
   subroutine massFunctionStellarPRIMUSDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily massFunctionStellarPRIMUS} output analysis class.
+    Destructor for the \refClass{outputAnalysisMassFunctionStellarPRIMUS} output analysis class.
     !!}
     implicit none
     type(outputAnalysisMassFunctionStellarPRIMUS), intent(inout) :: self

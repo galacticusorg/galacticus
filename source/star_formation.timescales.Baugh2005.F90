@@ -51,7 +51,7 @@
 
   interface starFormationTimescaleBaugh2005
      !!{
-     Constructors for the {\normalfont \ttfamily baugh2005} timescale for star formation class.
+     Constructors for the \refClass{starFormationTimescaleBaugh2005} timescale for star formation class.
      !!}
      module procedure baugh2005ConstructorParameters
      module procedure baugh2005ConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function baugh2005ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily baugh2005} timescale for star formation class which takes a parameter set as
+    Constructor for the \refClass{starFormationTimescaleBaugh2005} timescale for star formation class which takes a parameter set as
     input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -109,7 +109,7 @@ contains
 
   function baugh2005ConstructorInternal(timescale,exponentVelocity,exponentExpansionFactor,velocityNormalization,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily baugh2005} timescale for star formation class.
+    Internal constructor for the \refClass{starFormationTimescaleBaugh2005} timescale for star formation class.
     !!}
     implicit none
     type            (starFormationTimescaleBaugh2005)                        :: self
@@ -126,7 +126,7 @@ contains
 
   subroutine baugh2005Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily baugh2005} timescale for star formation class.
+    Destructor for the \refClass{starFormationTimescaleBaugh2005} timescale for star formation class.
     !!}
     implicit none
     type(starFormationTimescaleBaugh2005), intent(inout) :: self

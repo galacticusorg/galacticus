@@ -45,7 +45,7 @@
 
   interface starFormationRateDisksTimescale
      !!{
-     Constructors for the {\normalfont \ttfamily timescale} star formation rate in disks class.
+     Constructors for the \refClass{starFormationRateDisksTimescale} star formation rate in disks class.
      !!}
      module procedure timescaleConstructorParameters
      module procedure timescaleConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function timescaleConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily timescale} star formation rate in disks class which takes a
+    Constructor for the \refClass{starFormationRateDisksTimescale} star formation rate in disks class which takes a
     parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -80,7 +80,7 @@ contains
 
   function timescaleConstructorInternal(starFormationActiveMass_,starFormationTimescale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily timescale} star formation rate in disks class.
+    Internal constructor for the \refClass{starFormationRateDisksTimescale} star formation rate in disks class.
     !!}
     implicit none
     type (starFormationRateDisksTimescale)                        :: self
@@ -95,7 +95,7 @@ contains
 
   subroutine timescaleDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily timescale} star formation rate in disks class.
+    Destructor for the \refClass{starFormationRateDisksTimescale} star formation rate in disks class.
     !!}
     implicit none
     type(starFormationRateDisksTimescale), intent(inout) :: self

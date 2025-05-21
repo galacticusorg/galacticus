@@ -52,7 +52,7 @@
 
   interface distributionFunction1DUniform
      !!{
-     Constructors for the {\normalfont \ttfamily uniform} 1D distribution function class.
+     Constructors for the \refClass{distributionFunction1DUniform} 1D distribution function class.
      !!}
      module procedure uniformConstructorParameters
      module procedure uniformConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function uniformConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily uniform} 1D distribution function class which builds the object from a parameter
+    Constructor for the \refClass{distributionFunction1DUniform} 1D distribution function class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -95,7 +95,7 @@ contains
 
   function uniformConstructorInternal(limitLower,limitUpper,randomNumberGenerator_) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily uniform} 1D distribution function class.
+    Constructor for the \refClass{distributionFunction1DUniform} 1D distribution function class.
     !!}
     type            (distributionFunction1DUniform)                                  :: self
     double precision                               , intent(in   )                   :: limitLower            , limitUpper

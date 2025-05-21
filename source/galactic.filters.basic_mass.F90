@@ -41,7 +41,7 @@ Implements a galactic high-pass filter for the default ``basic'' halo mass.
 
   interface galacticFilterBasicMass
      !!{
-     Constructors for the {\normalfont \ttfamily basicMass} galactic filter class.
+     Constructors for the \refClass{galacticFilterBasicMass} galactic filter class.
      !!}
      module procedure basicMassConstructorParameters
      module procedure basicMassConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function basicMassConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily basicMass} galactic filter class which takes a parameter set as input.
+    Constructor for the \refClass{galacticFilterBasicMass} galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,7 +75,7 @@ contains
 
   function basicMassConstructorInternal(massThreshold) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily basicMass} galactic filter class.
+    Internal constructor for the \refClass{galacticFilterBasicMass} galactic filter class.
     !!}
     implicit none
     type            (galacticFilterBasicMass)                :: self

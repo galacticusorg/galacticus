@@ -50,7 +50,7 @@
   
   interface nodeOperatorStarFormationDisks
      !!{
-     Constructors for the {\normalfont \ttfamily starFormationDisks} node operator class.
+     Constructors for the \refClass{nodeOperatorStarFormationDisks} node operator class.
      !!}
      module procedure starFormationDisksConstructorParameters
      module procedure starFormationDisksConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function starFormationDisksConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily starFormation} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorStarFormationDisks} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -94,7 +94,7 @@ contains
 
   function starFormationDisksConstructorInternal(luminositiesStellarInactive,starFormationRateDisks_,stellarPopulationProperties_,starFormationHistory_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily starFormationDisks} node operator class.
+    Internal constructor for the \refClass{nodeOperatorStarFormationDisks} node operator class.
     !!}
     implicit none
     type   (nodeOperatorStarFormationDisks  )                        :: self
@@ -114,7 +114,7 @@ contains
 
   subroutine starFormationDisksDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily starFormationDisks} node operator class.
+    Destructor for the \refClass{nodeOperatorStarFormationDisks} node operator class.
     !!}
     implicit none
     type(nodeOperatorStarFormationDisks), intent(inout) :: self

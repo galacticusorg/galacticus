@@ -55,7 +55,7 @@ Implements a virial radius output analysis property extractor class.
 
   interface nodePropertyExtractorRadiusVirial
      !!{
-     Constructors for the {\normalfont \ttfamily radiusVirial} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusVirial} output analysis class.
      !!}
      module procedure radiusVirialConstructorParameters
      module procedure radiusVirialConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function radiusVirialConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily radiusVirial} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorRadiusVirial} output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -104,7 +104,7 @@ contains
 
   function radiusVirialConstructorInternal(useLastIsolatedTime,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily radiusVirial} output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorRadiusVirial} output analysis property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorRadiusVirial)                        :: self
@@ -122,7 +122,7 @@ contains
 
   subroutine radiusVirialDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily mass} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorRadiusVirial} output analysis property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRadiusVirial), intent(inout) :: self

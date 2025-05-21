@@ -42,7 +42,7 @@ Implements a stellar mass function output analysis class.
 
   interface outputAnalysisLuminosityFunctionMonteroDorta2009SDSS
      !!{
-     Constructors for the {\normalfont \ttfamily luminosityFunctionMonteroDorta2009SDSS} output analysis class.
+     Constructors for the \refClass{outputAnalysisLuminosityFunctionMonteroDorta2009SDSS} output analysis class.
      !!}
      module procedure luminosityFunctionMonteroDorta2009SDSSConstructorParameters
      module procedure luminosityFunctionMonteroDorta2009SDSSConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function luminosityFunctionMonteroDorta2009SDSSConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily luminosityFunctionMonteroDorta2009SDSS} output analysis class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisLuminosityFunctionMonteroDorta2009SDSS} output analysis class which takes a parameter set as input.
     !!}
     use :: Gravitational_Lensing, only : gravitationalLensing, gravitationalLensingClass
     use :: Input_Parameters     , only : inputParameter      , inputParameters
@@ -162,7 +162,7 @@ contains
 
   function luminosityFunctionMonteroDorta2009SDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,band) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily luminosityFunctionMonteroDorta2009SDSS} output analysis class for internal use.
+    Constructor for the \refClass{outputAnalysisLuminosityFunctionMonteroDorta2009SDSS} output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -331,7 +331,7 @@ contains
 
   subroutine luminosityFunctionMonteroDorta2009SDSSDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily luminosityFunctionMonteroDorta2009SDSS} output analysis class.
+    Destructor for the \refClass{outputAnalysisLuminosityFunctionMonteroDorta2009SDSS} output analysis class.
     !!}
     implicit none
     type(outputAnalysisLuminosityFunctionMonteroDorta2009SDSS), intent(inout) :: self

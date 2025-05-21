@@ -54,7 +54,7 @@ Implements a merger tree build controller class which follows branches only if t
 
   interface mergerTreeBuildControllerMassTimeWindow
      !!{
-     Constructors for the {\normalfont \ttfamily massTimeWindow} merger tree build controller class.
+     Constructors for the \refClass{mergerTreeBuildControllerMassTimeWindow} merger tree build controller class.
      !!}
      module procedure massTimeWindowConstructorParameters
      module procedure massTimeWindowConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function massTimeWindowConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily massTimeWindow} merger tree build controller class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeBuildControllerMassTimeWindow} merger tree build controller class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     use :: Error, only : Error_Report
@@ -119,7 +119,7 @@ contains
 
   function massTimeWindowConstructorInternal(timeMinimum_,massMinimum,cosmologyFunctions_,mergerTreeBranchingProbability_,criticalOverdensity_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily massTimeWindow} merger tree build controller class .
+    Internal constructor for the \refClass{mergerTreeBuildControllerMassTimeWindow} merger tree build controller class .
     !!}
     implicit none
     type (mergerTreeBuildControllerMassTimeWindow  )                        :: self
@@ -137,7 +137,7 @@ contains
 
   subroutine massTimeWindowDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily massTimeWindow} merger tree build controller class.
+    Destructor for the \refClass{mergerTreeBuildControllerMassTimeWindow} merger tree build controller class.
     !!}
     implicit none
     type(mergerTreeBuildControllerMassTimeWindow), intent(inout) :: self

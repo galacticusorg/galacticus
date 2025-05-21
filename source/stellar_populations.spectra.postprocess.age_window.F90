@@ -79,7 +79,7 @@ contains
 
   function ageWindowConstructorInternal(ageMinimum,ageMaximum) result(self)
     !!{
-    Generic constructor for the {\normalfont \ttfamily ageWindow} spectrum postprocessor class.
+    Internal constructor for the \refClass{stellarPopulationSpectraPostprocessorAgeWindow} spectrum postprocessor class.
     !!}
     implicit none
     type            (stellarPopulationSpectraPostprocessorAgeWindow)                :: self

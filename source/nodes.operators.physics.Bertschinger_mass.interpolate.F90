@@ -56,7 +56,7 @@
   
   interface nodeOperatorBertschingerMass
      !!{
-     Constructors for the {\normalfont \ttfamily bertschingerMass} node operator class.
+     Constructors for the \refClass{nodeOperatorBertschingerMass} node operator class.
      !!}
      module procedure bertschingerMassConstructorParameters
      module procedure bertschingerMassConstructorInternal
@@ -66,7 +66,7 @@ contains
   
   function bertschingerMassConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily bertschingerMass} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorBertschingerMass} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -93,7 +93,7 @@ contains
 
   function bertschingerMassConstructorInternal(cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily bertschingerMass} node operator class.
+    Internal constructor for the \refClass{nodeOperatorBertschingerMass} node operator class.
     !!}
     implicit none
     type (nodeOperatorBertschingerMass)                        :: self
@@ -114,7 +114,7 @@ contains
 
   subroutine bertschingerMassDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily bertschingerMass} node operator class.
+    Destructor for the \refClass{nodeOperatorBertschingerMass} node operator class.
     !!}
     implicit none
     type(nodeOperatorBertschingerMass), intent(inout) :: self

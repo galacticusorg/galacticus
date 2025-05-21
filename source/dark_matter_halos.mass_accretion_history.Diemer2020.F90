@@ -45,7 +45,7 @@
 
   interface darkMatterHaloMassAccretionHistoryDiemer2020
      !!{
-     Constructors for the {\normalfont \ttfamily diemer2020} dark matter halo mass accretion history class.
+     Constructors for the \refClass{darkMatterHaloMassAccretionHistoryDiemer2020} dark matter halo mass accretion history class.
      !!}
      module procedure diemer2020ConstructorParameters
      module procedure diemer2020ConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function diemer2020ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily diemer2020} dark matter halo mass accretion history class which takes a
+    Constructor for the \refClass{darkMatterHaloMassAccretionHistoryDiemer2020} dark matter halo mass accretion history class which takes a
     parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -83,7 +83,7 @@ contains
 
   function diemer2020ConstructorInternal(cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !!{
-    Generic constructor for the {\normalfont \ttfamily diemer2020} dark matter halo mass accretion history class.
+    Internal constructor for the \refClass{darkMatterHaloMassAccretionHistoryDiemer2020} dark matter halo mass accretion history class.
     !!}
     implicit none
     type (darkMatterHaloMassAccretionHistoryDiemer2020)                        :: self
@@ -99,7 +99,7 @@ contains
 
   subroutine diemer2020Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily diemer2020} dark matter halo mass accretion history class.
+    Destructor for the \refClass{darkMatterHaloMassAccretionHistoryDiemer2020} dark matter halo mass accretion history class.
     !!}
     implicit none
     type(darkMatterHaloMassAccretionHistoryDiemer2020), intent(inout) :: self

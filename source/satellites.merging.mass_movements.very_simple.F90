@@ -47,7 +47,7 @@
 
   interface mergerMassMovementsVerySimple
      !!{
-     Constructors for the {\normalfont \ttfamily verySimple} merger mass movements class.
+     Constructors for the \refClass{mergerMassMovementsVerySimple} merger mass movements class.
      !!}
      module procedure verySimpleConstructorParameters
      module procedure verySimpleConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function verySimpleConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily verySimple} merger mass movements class which takes a parameter list as input.
+    Constructor for the \refClass{mergerMassMovementsVerySimple} merger mass movements class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -82,7 +82,7 @@ contains
 
   function verySimpleConstructorInternal(massRatioMajorMerger) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily verySimple} merger mass movements.
+    Internal constructor for the \refClass{mergerMassMovementsVerySimple} merger mass movements.
     !!}
     implicit none
     type            (mergerMassMovementsVerySimple)                :: self
@@ -112,7 +112,7 @@ contains
 
   subroutine verySimpleDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily verySimple} dark matter halo profile class.
+    Destructor for the \refClass{mergerMassMovementsVerySimple} dark matter halo profile class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent
     implicit none

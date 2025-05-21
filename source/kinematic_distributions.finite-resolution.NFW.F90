@@ -50,7 +50,7 @@
 
   interface kinematicsDistributionFiniteResolutionNFW
      !!{
-     Constructors for the {\normalfont \ttfamily nfw} kinematic distribution class.
+     Constructors for the \refClass{kinematicsDistributionFiniteResolutionNFW} kinematic distribution class.
      !!}
      module procedure finiteResolutionNFWConstructorParameters
      module procedure finiteResolutionNFWConstructorInternal
@@ -79,7 +79,7 @@ contains
 
   function finiteResolutionNFWConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily finiteResolutionNFW} kinematic distribution class which builds the object from a parameter
+    Constructor for the \refClass{kinematicsDistributionFiniteResolutionNFW} kinematic distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -96,7 +96,7 @@ contains
 
   function finiteResolutionNFWConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily finiteResolutionNFW} kinematic distribution class.
+    Internal constructor for the \refClass{kinematicsDistributionFiniteResolutionNFW} kinematic distribution class.
     !!}
     implicit none
     type(kinematicsDistributionFiniteResolutionNFW) :: self

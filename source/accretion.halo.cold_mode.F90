@@ -94,7 +94,7 @@
 
   interface accretionHaloColdMode
      !!{
-     Constructors for the {\normalfont \ttfamily coldMode} halo accretion class.
+     Constructors for the \refClass{accretionHaloColdMode} halo accretion class.
      !!}
      module procedure coldModeConstructorParameters
      module procedure coldModeConstructorInternal
@@ -138,7 +138,7 @@ contains
 
   function coldModeConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,thresholdStabilityShock,widthTransitionStabilityShock,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_,coolingFunction_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily coldMode} halo accretion class.
+    Internal constructor for the \refClass{accretionHaloColdMode} halo accretion class.
     !!}
     implicit none
     type            (accretionHaloColdMode        )                        :: self
@@ -187,7 +187,7 @@ contains
 
   subroutine coldModeDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily coldMode} halo accretion class.
+    Destructor for the \refClass{accretionHaloColdMode} halo accretion class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none

@@ -45,7 +45,7 @@ Implements a node property extractor class for halo environment.
 
   interface nodePropertyExtractorHaloEnvironment
      !!{
-     Constructors for the {\normalfont \ttfamily haloEnvironment} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorHaloEnvironment} output analysis class.
      !!}
      module procedure haloEnvironmentConstructorParameters
      module procedure haloEnvironmentConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function haloEnvironmentConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily haloEnvironment} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorHaloEnvironment} node property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -76,7 +76,7 @@ contains
 
   function haloEnvironmentConstructorInternal(haloEnvironment_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily haloEnvironment} output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorHaloEnvironment} output analysis property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorHaloEnvironment)                        :: self
@@ -90,7 +90,7 @@ contains
 
   subroutine haloEnvironmentDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily haloEnvironment} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorHaloEnvironment} output analysis property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorHaloEnvironment), intent(inout) :: self

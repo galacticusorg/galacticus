@@ -37,7 +37,7 @@ An implementation of the hot halo outflow reincorporation class which gives zero
 
   interface hotHaloOutflowReincorporationZero
      !!{
-     Constructors for the {\normalfont \ttfamily zero} hot halo outflow reincorporation class.
+     Constructors for the \refClass{hotHaloOutflowReincorporationZero} hot halo outflow reincorporation class.
      !!}
      module procedure zeroConstructorParameters
   end interface hotHaloOutflowReincorporationZero

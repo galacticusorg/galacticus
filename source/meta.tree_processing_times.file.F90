@@ -57,7 +57,7 @@ Implements a merger tree processing time estimator using a polynomial relation r
 
   interface metaTreeProcessingTimeFile
      !!{
-     Constructors for the {\normalfont \ttfamily file} merger tree processing time estimator.
+     Constructors for the \refClass{metaTreeProcessingTimeFile} merger tree processing time estimator.
      !!}
      module procedure fileConstructorParameters
      module procedure fileConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function fileConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily file} merger tree processing time estimator class which takes a parameter set as input.
+    Constructor for the \refClass{metaTreeProcessingTimeFile} merger tree processing time estimator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -91,7 +91,7 @@ contains
 
   function fileConstructorInternal(fileName) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily file} merger tree processing time estimator class.
+    Internal constructor for the \refClass{metaTreeProcessingTimeFile} merger tree processing time estimator class.
     !!}
     use :: FoX_DOM           , only : node                 , parseFile
     use :: Error             , only : Error_Report

@@ -41,7 +41,7 @@
 
   interface mergerTreeInitializorStandard
      !!{
-     Constructors for the {\normalfont \ttfamily standard} merger tree initializer.
+     Constructors for the \refClass{mergerTreeInitializorStandard} merger tree initializer.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function standardConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily standard} merger tree initializer class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeInitializorStandard} merger tree initializer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -73,7 +73,7 @@ contains
 
    function standardConstructorInternal(nodeOperator_) result(self)
      !!{
-     Internal constructor for the {\normalfont \ttfamily standard} merger tree initializer class.
+     Internal constructor for the \refClass{mergerTreeInitializorStandard} merger tree initializer class.
      !!}
      implicit none
      type (mergerTreeInitializorStandard)                        :: self
@@ -87,7 +87,7 @@ contains
 
   subroutine standardDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily standard} merger tree initializer class.
+    Destructor for the \refClass{mergerTreeInitializorStandard} merger tree initializer class.
     !!}
     implicit none
     type(mergerTreeInitializorStandard), intent(inout) :: self

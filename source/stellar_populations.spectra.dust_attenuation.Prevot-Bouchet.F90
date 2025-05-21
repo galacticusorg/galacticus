@@ -37,7 +37,7 @@
 
   interface stellarSpectraDustAttenuationPrevotBouchet
      !!{
-     Constructors for the {\normalfont \ttfamily prevotBouchet} stellar spectra dust attenuation class.
+     Constructors for the \refClass{stellarSpectraDustAttenuationPrevotBouchet} stellar spectra dust attenuation class.
      !!}
      module procedure prevotBouchetConstructorParameters
      module procedure prevotBouchetConstructorInternal
@@ -47,7 +47,7 @@ contains
 
   function prevotBouchetConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily prevotBouchet} stellar spectra dust attenuation class which takes a parameter set as input.
+    Constructor for the \refClass{stellarSpectraDustAttenuationPrevotBouchet} stellar spectra dust attenuation class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -73,7 +73,7 @@ contains
 
   function prevotBouchetConstructorInternal(Rv) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily prevotBouchet} stellar spectra dust attenuation class. Data read directly from Table~3 of \cite{bouchet_visible_1985}.
+    Constructor for the \refClass{stellarSpectraDustAttenuationPrevotBouchet} stellar spectra dust attenuation class. Data read directly from Table~3 of \cite{bouchet_visible_1985}.
     !!}
     use :: Error       , only : Error_Report
     use :: Table_Labels, only : extrapolationTypeExtrapolate
