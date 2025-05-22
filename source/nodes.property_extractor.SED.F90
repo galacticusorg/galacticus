@@ -342,8 +342,8 @@ contains
     double precision                          , dimension(:,:,:), target  , allocatable :: sedTemplate
     double precision                          , dimension(  :,:)          , allocatable :: masses
     type            (history                 )                                          :: starFormationHistory
-    integer         (c_size_t                )                                          :: countTemplates
-    integer                                                                             :: indexTemplate       , iWavelength
+    integer         (c_size_t                )                                          :: countTemplates      , indexTemplate
+    integer                                                                             :: iWavelength
     !$GLC attributes unused :: instance
 
     allocate(sedExtract(self%size(time),1))
@@ -368,7 +368,7 @@ contains
        sedTemplate_ => self%templates(indexTemplate)%sed
     else
        ! Stored templates can not be used, get the templates for this specific case, and point to them.
-       sedTemplate  =  self%luminosityMean(time,node,starFormationHistory)
+       sedTemplate  =  self%luminosityMean(time,node,indexTemplate,starFormationHistory)
        sedTemplate_ => sedTemplate
     end if
     masses=self%starFormationHistory_%masses(node,starFormationHistory,allowTruncation=.false.)
@@ -546,7 +546,7 @@ contains
     return
   end function sedIndexTemplateTime
 
-  integer function sedIndexTemplateNode(self,node,starFormationHistory,countTemplates) result(indexTemplate)
+  function sedIndexTemplateNode(self,node,starFormationHistory,countTemplates) result(indexTemplate)
     !!{
     Find the index of the template SEDs to use, and also compute the template.
     !!}
@@ -563,6 +563,7 @@ contains
     use :: Stellar_Luminosities_Structure, only : frameRest
     use :: Input_Paths                   , only : inputPath                    , pathTypeDataDynamic
     implicit none
+    integer  (c_size_t                )                :: indexTemplate
     class    (nodePropertyExtractorSED), intent(inout) :: self
     type     (treeNode                ), intent(inout) :: node
     type     (history                 ), intent(in   ) :: starFormationHistory
@@ -606,13 +607,13 @@ contains
     if (.not.allocated(self%templates)) allocate(self%templates(countTemplates))
     if (.not.allocated(self%templates(indexTemplate)%sed)) then
        ! Construct the file name.
-       fileName=inputPath(pathTypeDataDynamic)                              // &
-            &        'stellarPopulations/'                                  // &
-            &        self%objectType             (                         )// &
-            &        '_'                                                    // &
-            &        self%historyHashedDescriptor(node,starFormationHistory)// &
-            &        '_'                                                    // &
-            &        indexTemplate                                          // &
+       fileName=inputPath(pathTypeDataDynamic)                                          // &
+            &        'stellarPopulations/'                                              // &
+            &        self%objectType             (                                     )// &
+            &        '_'                                                                // &
+            &        self%historyHashedDescriptor(node,indexOutput,starFormationHistory)// &
+            &        '_'                                                                // &
+            &        indexTemplate                                                      // &
             &        '.hdf5'
        ! Check if the templates can be retrieved from file.
        !! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
@@ -635,8 +636,8 @@ contains
           !$ call hdf5Access%unset()
        end if
        if (.not.allocated(self%templates(indexTemplate)%sed)) then
-          basic                              => node%basic         (                                                         )
-          self %templates(indexTemplate)%sed =  self%luminosityMean(basic%time(),node,starFormationHistory,parallelize=.true.)
+          basic                              => node%basic         (                                                                       )
+          self %templates(indexTemplate)%sed =  self%luminosityMean(basic%time(),node,indexTemplate,starFormationHistory,parallelize=.true.)
           if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixed) then
              call displayMessage("storing SED tabulation to file '"                                        //fileName//"'",verbosityLevelWorking)
           else
@@ -656,7 +657,7 @@ contains
     return
   end function sedIndexTemplateNode
 
-  double precision function sedLuminosityMean(self,time,node,starFormationHistory,parallelize)
+  double precision function sedLuminosityMean(self,time,node,indexOutput,starFormationHistory,parallelize)
     !!{
     Compute the mean luminosity of the stellar population in each bin of the star formation history.
     !!}
@@ -677,6 +678,7 @@ contains
     class           (nodePropertyExtractorSED                  ), intent(inout)                 :: self
     double precision                                            , intent(in   )                 :: time
     type            (treeNode                                  ), intent(inout)                 :: node
+    integer         (c_size_t                                  ), intent(in   )                 :: indexOutput
     type            (history                                   ), intent(in   )                 :: starFormationHistory
     logical                                                     , intent(in   )   , optional    :: parallelize
     class           (stellarPopulationSpectraClass             ), pointer         , save        :: stellarPopulationSpectra_
@@ -709,8 +711,8 @@ contains
     <optionalArgument name="parallelize" defaultsTo=".false." />
     !!]
 
-    times =self%starFormationHistory_%times (node=node,starFormationHistory=starFormationHistory,allowTruncation=.false.,timeStart=timeStart)
-    masses=self%starFormationHistory_%masses(node=node,starFormationHistory=starFormationHistory,allowTruncation=.false.                    )
+    times =self%starFormationHistory_%times (node=node,indexOutput=indexOutput,starFormationHistory=starFormationHistory,allowTruncation=.false.,timeStart=timeStart)
+    masses=self%starFormationHistory_%masses(node=node                        ,starFormationHistory=starFormationHistory,allowTruncation=.false.                    )
     allocate(sedLuminosityMean(self%size(time),size(masses,dim=1),size(masses,dim=2)))
     select case (self%frame%ID)
     case (frameRest    %ID)
@@ -955,7 +957,7 @@ contains
 
   end function sedLuminosityMean
 
-  function sedHistoryHashedDescriptor(self,node,starFormationHistory)  
+  function sedHistoryHashedDescriptor(self,node,indexOutput,starFormationHistory)  
     !!{
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
@@ -971,6 +973,7 @@ contains
     type            (varying_string          )                              :: sedHistoryHashedDescriptor
     class           (nodePropertyExtractorSED), intent(in   )               :: self
     type            (treeNode                ), intent(inout)               :: node
+    integer         (c_size_t                ), intent(in   )               :: indexOutput
     type            (history                 ), intent(in   )               :: starFormationHistory
     double precision                          , allocatable  , dimension(:) :: times
     character       (len=18                  )                              :: parameterLabel
@@ -1019,7 +1022,7 @@ contains
     ! Times are only added if ages are not fixed. For fixed ages, the history is the same (for our purposes) always.
     if (self%starFormationHistory_%ageDistribution() /= starFormationHistoryAgesFixed) then
        values=""
-       times =self %starFormationHistory_%times(node=node,starFormationHistory=starFormationHistory)
+       times =self %starFormationHistory_%times(node=node,indexOutput=indexOutput,starFormationHistory=starFormationHistory)
        do i=1,size(times)
           !$omp critical(gfortranInternalIO)
           write (parameterLabel,'(e17.10)') times(i)
