@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "b44451e6d32083a887c5d4fe16ceeb3aedf17589",
-        "message": "Merge pull request #848 from galacticusorg/featUnifiedConstructorDescriptions\n\nUnify the descriptions of class constructors and descriptors\n",
-        "timestamp": "2025-05-21 04:46:14+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/b44451e6d32083a887c5d4fe16ceeb3aedf17589"
+        "id": "fb7f9d529d45b8eed4cb4410546f7d7b01432001",
+        "message": "Merge pull request #851 from galacticusorg/fixSEDOutputIndex\n\nPass the ouptut index to the `starFormationHistory` class from the `nodePropertyExtractorSED` class\n",
+        "timestamp": "2025-05-23 05:20:26+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/fb7f9d529d45b8eed4cb4410546f7d7b01432001"
     },
     "results": [
         {
