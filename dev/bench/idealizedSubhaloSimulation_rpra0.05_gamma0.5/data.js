@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1747825948221,
+  "lastUpdate": 1748001277661,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.05; γ=0.5)": [
@@ -7106,6 +7106,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/b44451e6d32083a887c5d4fe16ceeb3aedf17589"
         },
         "date": 1747825947352,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteBoundMass",
+            "value": "23.52198968649276",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "7.8966458137161695",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteVelocityMaximum",
+            "value": "9.849579530895452",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "fb7f9d529d45b8eed4cb4410546f7d7b01432001",
+          "message": "Merge pull request #851 from galacticusorg/fixSEDOutputIndex\n\nPass the ouptut index to the `starFormationHistory` class from the `nodePropertyExtractorSED` class",
+          "timestamp": "2025-05-23T05:20:26Z",
+          "tree_id": "9fbbd3637207e913e078a3958e84891dc1b425c9",
+          "url": "https://github.com/galacticusorg/galacticus/commit/fb7f9d529d45b8eed4cb4410546f7d7b01432001"
+        },
+        "date": 1748001276333,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
