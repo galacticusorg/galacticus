@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1747825928467,
+  "lastUpdate": 1748001247163,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@obs.carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@obs.carnegiescience.edu"
-          },
-          "id": "b99e1c4372cba25e21475eb2b8e958dcfcb40cc7",
-          "message": "fix: Ignore warnings about executable stacks in static builds",
-          "timestamp": "2024-08-08T17:24:03Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/b99e1c4372cba25e21475eb2b8e958dcfcb40cc7"
-        },
-        "date": 1723178770278,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 52.841,
-            "unit": "seconds",
-            "range": 0.0422244005279384
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8740,6 +8712,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": "21909.803333240237",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "fb7f9d529d45b8eed4cb4410546f7d7b01432001",
+          "message": "Merge pull request #851 from galacticusorg/fixSEDOutputIndex\n\nPass the ouptut index to the `starFormationHistory` class from the `nodePropertyExtractorSED` class",
+          "timestamp": "2025-05-23T05:20:26Z",
+          "tree_id": "9fbbd3637207e913e078a3958e84891dc1b425c9",
+          "url": "https://github.com/galacticusorg/galacticus/commit/fb7f9d529d45b8eed4cb4410546f7d7b01432001"
+        },
+        "date": 1748001243648,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 58.493,
+            "unit": "seconds",
+            "range": 0.0472451055655614
           }
         ]
       }
