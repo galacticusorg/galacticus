@@ -945,7 +945,7 @@ contains
     return
   end function sphericalSurfaceDensity
 
-  function sphericalChandrasekharIntegral(self,massDistributionEmbedding,massDistributionPerturber,massPerturber,coordinates,velocity)
+  function sphericalChandrasekharIntegral(self,massDistributionEmbedding,massDistributionPerturber,massPerturber,coordinates,velocity) result(integral)
     !!{
     Compute the Chandrasekhar integral at the specified {\normalfont \ttfamily coordinates} in a spherical mass distribution.
     !!}
@@ -955,7 +955,7 @@ contains
     use :: Ideal_Gases_Thermodynamics, only : Ideal_Gas_Sound_Speed
     use :: Error                     , only : Error_Report
     implicit none
-    double precision                              , dimension(3)  :: sphericalChandrasekharIntegral
+    double precision                              , dimension(3)  :: integral
     class           (massDistributionSpherical   ), intent(inout) :: self
     class           (massDistributionClass       ), intent(inout) :: massDistributionEmbedding            , massDistributionPerturber
     double precision                              , intent(in   ) :: massPerturber
@@ -965,10 +965,10 @@ contains
     type            (coordinateCartesian         )                :: velocityCartesian
     double precision                                              :: radius                               , velocity_                , &
          &                                                           density                              , velocityDispersion       , &
-         &                                                           xV
+         &                                                           factorSuppressionExtendedMass        , xV
     !$GLC attributes unused :: massDistributionPerturber, massPerturber
     
-    sphericalChandrasekharIntegral=0.0d0
+    integral =0.0d0
     velocity_=velocity%rSpherical()
     if (velocity_ <= 0.0d0) return
     radius =coordinates%rSpherical(           )
@@ -981,26 +981,33 @@ contains
        velocityDispersion=                      self%kinematicsDistribution_%velocityDispersion1D(coordinates,self,massDistributionEmbedding)
     end if
     if (velocityDispersion > 0.0d0) then    
-       xV                         =+velocity_             &
-            &                      /velocityDispersion    &
-            &                      /sqrt(2.0d0)
+       xV             =+velocity_             &
+            &          /velocityDispersion    &
+            &          /sqrt(2.0d0)
     else
-       xV                         =+huge(0.0d0)
+       xV             =+huge(0.0d0)
     end if
-    velocityCartesian             = velocity
-    velocityCartesian_            = velocityCartesian
-    sphericalChandrasekharIntegral=-density               &
-         &                         *velocityCartesian_    &
-         &                         /velocity_         **3
-    if (Xv <= XvMaximum)                                                  &
-         & sphericalChandrasekharIntegral=+sphericalChandrasekharIntegral &
-         &                                *(                              &
-         &                                  +erf ( xV   )                 &
-         &                                  -2.0d0                        &
-         &                                  *      xV                     &
-         &                                  *exp (-xV**2)                 &
-         &                                  /sqrt( Pi   )                 &
-         &                                 )
+    velocityCartesian = velocity
+    velocityCartesian_= velocityCartesian
+    integral          =-density               &
+         &             *velocityCartesian_    &
+         &             /velocity_         **3
+    if (Xv <= XvMaximum)                      &
+         & integral   =+integral              &
+         &             *(                     &
+         &               +erf ( xV   )        &
+         &               -2.0d0               &
+         &               *      xV            &
+         &               *exp (-xV**2)        &
+         &               /sqrt( Pi   )        &
+         &              )
+    ! Compute suppression factor due to satellite being an extended mass distribution. This is largely untested - it is meant to
+    ! simply avoid extremely large accelerations for subhalo close to the center of its host when that subhalo is much more
+    ! extended than the host.
+    factorSuppressionExtendedMass=min(1.0d0,massDistributionPerturber%massEnclosedBySphere(radius)/massPerturber)
+    ! Evaluate the integral.
+    integral=+integral                      &
+         &   *factorSuppressionExtendedMass
     return
   end function sphericalChandrasekharIntegral
 
