@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1747825989092,
+  "lastUpdate": 1748001320415,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=40 km/s)": [
@@ -1797,6 +1797,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
             "value": "28.64735571513164",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "fb7f9d529d45b8eed4cb4410546f7d7b01432001",
+          "message": "Merge pull request #851 from galacticusorg/fixSEDOutputIndex\n\nPass the ouptut index to the `starFormationHistory` class from the `nodePropertyExtractorSED` class",
+          "timestamp": "2025-05-23T05:20:26Z",
+          "tree_id": "9fbbd3637207e913e078a3958e84891dc1b425c9",
+          "url": "https://github.com/galacticusorg/galacticus/commit/fb7f9d529d45b8eed4cb4410546f7d7b01432001"
+        },
+        "date": 1748001319458,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": "6.06017125825591",
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": "11.42569534512556",
             "unit": "-logℒ"
           }
         ]
