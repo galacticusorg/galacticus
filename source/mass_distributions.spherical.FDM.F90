@@ -85,31 +85,31 @@ contains
       <inputParameter>
          <name>radiusScale</name>
          <defaultValue>1.0d0</defaultValue>
-         <description>The scale radius of the Soliton and NFW profile (r_s).</description>
+         <description>The scale radius of the Soliton and NFW profile.</description>
          <source>parameters</source>
       </inputParameter>
       <inputParameter>
          <name>radiusCore</name>
          <defaultValue>1.0d0</defaultValue>
-         <description>The soliton core radius (r_c).</description>
+         <description>The soliton core radius.</description>
          <source>parameters</source>
       </inputParameter>
       <inputParameter>
          <name>radiusSol</name>
          <defaultValue>1.0d0</defaultValue>
-         <description>The soliton transition radius (r_sol).</description>
+         <description>The soliton transition radius.</description>
          <source>parameters</source>
       </inputParameter>
       <inputParameter>
          <name>solitonCentralDensity</name>
          <defaultValue>1.0d0</defaultValue>
-         <description>The central density of the soliton (rho_0).</description>
+         <description>The central density of the soliton.</description>
          <source>parameters</source>
       </inputParameter>
       <inputParameter>
          <name>concentration</name>
          <defaultValue>1.0d0</defaultValue>
-         <description>The concentration parameter for the NFW profile.</description>
+         <description>The concentration for the NFW profile.</description>
          <source>parameters</source>
       </inputParameter>
       <inputParameter>
