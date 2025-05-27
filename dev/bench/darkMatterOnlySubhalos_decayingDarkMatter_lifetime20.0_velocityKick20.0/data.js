@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1748001315468,
+  "lastUpdate": 1748381979336,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=20 km/s)": [
@@ -1831,6 +1831,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
             "value": "3.312880935418579",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ab0b8bbbb169cc0e0f79078b2e57eb9c43233e4d",
+          "message": "Merge pull request #852 from galacticusorg/fixSphericalChandrasekharIntegral\n\nReduce the Chandrasekhar integral (for dynamical friction) in spherical systems to account for the finite size of the perturber",
+          "timestamp": "2025-05-27T15:04:54Z",
+          "tree_id": "c617b9c338d143fd7f616f8669c15c2bb393a9c1",
+          "url": "https://github.com/galacticusorg/galacticus/commit/ab0b8bbbb169cc0e0f79078b2e57eb9c43233e4d"
+        },
+        "date": 1748381978308,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - mass function",
+            "value": "3.2910539549314892",
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
+            "value": "6.00295749792908",
             "unit": "-logℒ"
           }
         ]
