@@ -1,4 +1,5 @@
 <parameters formatVersion="2" version="0.9.4">
+  <lastModified revision="62e8c7bed4251e4aa284c0e228b8aba474a7cc0c" time="2025-05-27T17:55:23"/>
   <componentBasic value="standard" />
   <componentBlackHole value="null" />
   <componentDarkMatterProfile value="scale" />

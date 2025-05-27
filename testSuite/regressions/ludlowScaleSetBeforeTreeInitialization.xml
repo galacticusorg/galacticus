@@ -4,7 +4,7 @@
      initialization. Previously, this lead to a bug in which the Ludlow model entered into an infinite recursion. -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
+  <lastModified revision="62e8c7bed4251e4aa284c0e228b8aba474a7cc0c" time="2025-05-27T17:56:25"/>
   <!-- Component selection -->
   <componentBasic value="standard"/>
   <componentBlackHole value="null">

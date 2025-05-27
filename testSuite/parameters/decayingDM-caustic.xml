@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Test model used to check for the lack of (numerically-challenging to integrate) caustics in decaying dark matter density profiles -->
 <parameters>
+  <lastModified revision="62e8c7bed4251e4aa284c0e228b8aba474a7cc0c" time="2025-05-27T18:24:40"/>
+  <lastModified/>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
 
@@ -13,24 +15,44 @@
 
   <!-- Component selection -->
   <componentBasic value="standard"/>
-  <componentBlackHole value="null"/>
+  <componentBlackHole value="null">
+    <heatsHotHalo value="true"/>
+    <mass value="100"/>
+    <efficiencyWind value="0.0024"/>
+    <efficiencyWindScalesWithEfficiencyRadiative value="true"/>
+    <bondiHoyleAccretionEnhancementHotHalo value="6.0"/>
+    <bondiHoyleAccretionEnhancementSpheroid value="5.0"/>
+    <bondiHoyleAccretionTemperatureSpheroid value="100"/>
+    <bondiHoyleAccretionHotModeOnly value="true"/>
+  </componentBlackHole>
   <componentDarkMatterProfile value="scale"/>
-  <componentDisk value="null"/>
+  <componentDisk value="null">
+    <massDistributionDisk value="null"/>
+    <toleranceAbsoluteMass value="1.0e-6"/>
+  </componentDisk>
   <!--
   <diskMassDistribution value="exponentialDisk">
     <dimensionless value="true"/>
   </diskMassDistribution>
   -->
-  <diskMassDistribution value="null"/>
-  <componentHotHalo value="null"/>
+  <componentHotHalo value="null">
+    <fractionLossAngularMomentum value="0.3"/>
+    <starveSatellites value="false"/>
+    <efficiencyStrippingOutflow value="0.1"/>
+    <trackStrippedGas value="true"/>
+  </componentHotHalo>
   <componentSatellite value="orbiting"/>
-  <componentSpheroid value="null"/>
+  <componentSpheroid value="null">
+    <massDistributionSpheroid value="null"/>
+    <ratioAngularMomentumScaleRadius value="0.5"/>
+    <efficiencyEnergeticOutflow value="1.0e-2"/>
+    <toleranceAbsoluteMass value="1.0e-6"/>
+  </componentSpheroid>
   <!--
   <spheroidMassDistribution value="hernquist">
     <dimensionless value="true"/>
   </spheroidMassDistribution>
   -->
-  <spheroidMassDistribution value="null"/>
   <componentSpin value="null"/>
   <componentMergingStatistics value="standard"/>
 
@@ -220,7 +242,6 @@
   <hotHaloMassDistributionCoreRadius value="virialFraction">
     <coreRadiusOverVirialRadius value="0.3"/>
   </hotHaloMassDistributionCoreRadius>
-  <hotHaloAngularMomentumLossFraction value="0.3"/>
   <coolingSpecificAngularMomentum value="constantRotation">
     <sourceAngularMomentumSpecificMean value="hotGas"/>
     <sourceNormalizationRotation value="hotGas"/>
@@ -237,15 +258,10 @@
   <coolingTimeAvailable value="whiteFrenk1991">
     <ageFactor value="0"/>
   </coolingTimeAvailable>
-  <starveSatellites value="false"/>
-
   <!-- Hot halo ram pressure stripping options -->
   <hotHaloRamPressureStripping value="font2008"/>
   <hotHaloRamPressureForce value="font2008"/>
   <hotHaloRamPressureTimescale value="ramPressureAcceleration"/>
-  <hotHaloOutflowStrippingEfficiency value="0.1"/>
-  <hotHaloTrackStrippedGas value="true"/>
-
   <!-- Galaxy ram pressure stripping options -->
   <ramPressureStrippingDisks value="null"/>
   <ramPressureStrippingSpheroids value="null"/>
@@ -257,8 +273,6 @@
 
   <!-- Galactic structure solver options -->
   <galacticStructureSolver value="simple"/>
-
-  <spheroidAngularMomentumAtScaleRadius value="0.5"/>
 
   <!-- Galactic disk dynamics options -->
   <galacticDynamicsBarInstability value="efstathiou1982">
@@ -291,8 +305,6 @@
 
   <!-- AGN feedback options -->
   <hotHaloExcessHeatDrivesOutflow value="true"/>
-  <blackHoleHeatsHotHalo value="true"/>
-
   <!-- Supernovae feedback options -->
   <starFormationFeedbackDisks value="powerLaw">
     <velocityCharacteristic value="250.0"/>
@@ -320,14 +332,6 @@
 
   <!-- Black hole options -->
   <blackHoleBinaryMergers value="rezzolla2008"/>
-  <blackHoleSeedMass value="100"/>
-  <blackHoleWindEfficiency value="0.0024"/>
-  <blackHoleWindEfficiencyScalesWithRadiativeEfficiency value="true"/>
-  <bondiHoyleAccretionEnhancementHotHalo value="6.0"/>
-  <bondiHoyleAccretionEnhancementSpheroid value="5.0"/>
-  <bondiHoyleAccretionTemperatureSpheroid value="100"/>
-  <bondiHoyleAccretionHotModeOnly value="true"/>
-
   <!-- Satellite orbit options -->
   <satelliteOrbitStoreOrbitalParameters value="true"/>
 
@@ -344,17 +348,12 @@
   <mergerRemnantSize value="null"/>
 
   <!-- Spheroid options -->
-  <spheroidEnergeticOutflowMassRate value="1.0e-2"/>
-
   <!-- Numerical tolerances -->
   <mergerTreeNodeEvolver value="standard">
     <odeToleranceAbsolute value="0.01"  />
     <odeToleranceRelative value="0.01"  />
     <reuseODEStepSize value="false" />
   </mergerTreeNodeEvolver>
-
-  <diskMassToleranceAbsolute value="1.0e-6"/>
-  <spheroidMassToleranceAbsolute value="1.0e-6"/>
 
   <mergerTreeEvolver value="standard" >
     <timestepHostAbsolute value="1.00"/>

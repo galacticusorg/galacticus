@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Model used to test that adaptive SFHs all have the same lengths -->
-
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
+  <lastModified revision="62e8c7bed4251e4aa284c0e228b8aba474a7cc0c" time="2025-05-27T17:56:29"/>
   <!-- Task and work control -->
   <task value="evolveForests">
     <walltimeMaximum value="-1"/> 
@@ -384,7 +383,7 @@
       <stellarFeedbackOutflows value="rateLimit">
         <timescaleOutflowFractionalMinimum value="0.0127606668366045"/>
         <stellarFeedbackOutflows value="powerLaw">
-          <velocityCharacteristic value="160.019897613397"/><!--160.019897613397-->
+          <velocityCharacteristic value="160.019897613397"/>
           <exponent value="1.7561921242039"/>
         </stellarFeedbackOutflows>
         
@@ -396,7 +395,7 @@
         <timescaleOutflowFractionalMinimum value="0.103745531708515"/>
         <stellarFeedbackOutflows value="powerLaw">
           <velocityCharacteristic value="151.06489745284"/>
-          <exponent value="0.33561921242039"/><!--0.23561921242039-->
+          <exponent value="0.33561921242039"/>
         </stellarFeedbackOutflows>
         
       </stellarFeedbackOutflows>

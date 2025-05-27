@@ -2,7 +2,7 @@
 <!-- Parameter file for bug #1066052: "Crash due to zero-size spheroids" test case -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
+  <lastModified revision="62e8c7bed4251e4aa284c0e228b8aba474a7cc0c" time="2025-05-27T17:56:56"/>
   <verbosityLevel value="working"/>
   <mergerRemnantSize value="cole2000"/>
   <mergerTreeConstructor value="read">

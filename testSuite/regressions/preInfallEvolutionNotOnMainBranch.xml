@@ -19,12 +19,12 @@
   <componentBlackHole value="standard"/>
   <componentDarkMatterProfile value="scale"/>
   <componentDisk value="standard">
-  <massDistributionDisk value="exponentialDisk">
-    <dimensionless value="true"/>
-  </massDistributionDisk>
+    <massDistributionDisk value="exponentialDisk">
+      <dimensionless value="true"/>
+    </massDistributionDisk>
   </componentDisk>
   <componentHotHalo value="standard">
-  <fractionLossAngularMomentum value="0.3"/>
+    <fractionLossAngularMomentum value="0.3"/>
     <starveSatellites value="false"/>
     <efficiencyStrippingOutflow value="0.1"/>
     <trackStrippedGas value="true"/>
@@ -40,16 +40,13 @@
   <componentSpin value="vector"/>
   <!-- Intergalactic background radiation -->
   <radiationFieldIntergalacticBackground value="summation">
-
-  <radiationField value="cosmicMicrowaveBackground"/>
-
-  <radiationField value="summation">
     <radiationField value="cosmicMicrowaveBackground"/>
-    <radiationField value="intergalacticBackgroundFile">
-      <fileName value="%DATASTATICPATH%/radiation/Cosmic_Background_Radiation_FG20.hdf5"/>
-   </radiationField>
-  </radiationField>
-
+    <radiationField value="summation">
+      <radiationField value="cosmicMicrowaveBackground"/>
+      <radiationField value="intergalacticBackgroundFile">
+	<fileName value="%DATASTATICPATH%/radiation/Cosmic_Background_Radiation_FG20.hdf5"/>
+      </radiationField>
+    </radiationField>
   </radiationFieldIntergalacticBackground>
 
   <!-- Dark matter particle type -->
