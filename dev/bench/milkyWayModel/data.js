@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1748001262299,
+  "lastUpdate": 1748381926400,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abensonca@gmail.com"
-          },
-          "committer": {
-            "name": "GitHub",
-            "username": "web-flow",
-            "email": "noreply@github.com"
-          },
-          "id": "3471c3c51b838ed00dabb5e422ea6d0800c59891",
-          "message": "feat: Report on IRATE revision used",
-          "timestamp": "2024-08-09T05:01:48Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/3471c3c51b838ed00dabb5e422ea6d0800c59891"
-        },
-        "date": 1723202366369,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 462.675,
-            "unit": "seconds",
-            "range": 0.271154015284145
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10664,6 +10636,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": "13.759327819279166",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ab0b8bbbb169cc0e0f79078b2e57eb9c43233e4d",
+          "message": "Merge pull request #852 from galacticusorg/fixSphericalChandrasekharIntegral\n\nReduce the Chandrasekhar integral (for dynamical friction) in spherical systems to account for the finite size of the perturber",
+          "timestamp": "2025-05-27T15:04:54Z",
+          "tree_id": "c617b9c338d143fd7f616f8669c15c2bb393a9c1",
+          "url": "https://github.com/galacticusorg/galacticus/commit/ab0b8bbbb169cc0e0f79078b2e57eb9c43233e4d"
+        },
+        "date": 1748381925446,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 90.319,
+            "unit": "seconds",
+            "range": 0.262085673015449
           }
         ]
       }
