@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1748001277661,
+  "lastUpdate": 1748381947770,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.05; γ=0.5)": [
@@ -7160,6 +7160,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteVelocityMaximum",
             "value": "9.849579530895452",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ab0b8bbbb169cc0e0f79078b2e57eb9c43233e4d",
+          "message": "Merge pull request #852 from galacticusorg/fixSphericalChandrasekharIntegral\n\nReduce the Chandrasekhar integral (for dynamical friction) in spherical systems to account for the finite size of the perturber",
+          "timestamp": "2025-05-27T15:04:54Z",
+          "tree_id": "c617b9c338d143fd7f616f8669c15c2bb393a9c1",
+          "url": "https://github.com/galacticusorg/galacticus/commit/ab0b8bbbb169cc0e0f79078b2e57eb9c43233e4d"
+        },
+        "date": 1748381946752,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteBoundMass",
+            "value": "23.380596202549825",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "8.011134813288699",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteVelocityMaximum",
+            "value": "10.110599762171006",
             "unit": "-logℒ"
           }
         ]
