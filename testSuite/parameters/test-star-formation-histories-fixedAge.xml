@@ -5,14 +5,14 @@
   <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5" time="2025-02-05T00:25:15"/>
 
   <!-- Include required parameters -->
-  <xi:include href="../../parameters/reference/simulationUNIT.xml"                xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="../../parameters/reference/darkMatterParticleCDM.xml"         xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="../../parameters/reference/cosmologyUNIT.xml"                 xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="../../parameters/reference/powerSpectrumUNIT.xml"             xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="../../parameters/reference/structureFormation.xml"            xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="../../parameters/reference/darkMatterHalosProfile.xml"        xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="../../parameters/reference/darkMatterHalosStructureNBody.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="../../parameters/reference/evolutionGalaxyFormationNBody.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/simulationUNIT.xml"                xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/darkMatterParticleCDM.xml"         xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/cosmologyUNIT.xml"                 xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/powerSpectrumUNIT.xml"             xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/structureFormation.xml"            xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/darkMatterHalosProfile.xml"        xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/darkMatterHalosStructureNBody.xml" xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/evolutionGalaxyFormationNBody.xml" xpointer="xpointer(parameters/*)" />
 
   <!-- Set verbosity to standard level. -->
   <verbosityLevel value="standard"/>

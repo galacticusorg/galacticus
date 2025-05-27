@@ -10,9 +10,9 @@
   </outputTimes>
 
   <!-- Include MDPL cosmology and mass function parameters -->
-  <xi:include href="haloMassFunctionParameters.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="simulation_SMDPL.xml"           xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="cosmology_MDPL.xml"             xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="haloMassFunction_MDPL.xml"      xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="haloMassFunctionParameters.xml" xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="simulation_SMDPL.xml"           xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="cosmology_MDPL.xml"             xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="haloMassFunction_MDPL.xml"      xpointer="xpointer(parameters/*)" />
 
 </parameters>

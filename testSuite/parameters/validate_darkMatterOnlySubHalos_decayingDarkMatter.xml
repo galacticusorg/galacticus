@@ -8,10 +8,10 @@
   <verbosityLevel value="standard"/>
 
   <!-- Include required parameters -->
-  <xi:include href="../../../parameters/reference/cosmologyWMAP9DarkMatterOnly.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="../../../parameters/reference/powerSpectrumWMAP9.xml"           xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="../../../parameters/reference/structureFormation.xml"           xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="../../../parameters/reference/mergerTrees.xml"                  xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../../parameters/reference/cosmologyWMAP9DarkMatterOnly.xml" xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../../parameters/reference/powerSpectrumWMAP9.xml"           xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../../parameters/reference/structureFormation.xml"           xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../../parameters/reference/mergerTrees.xml"                  xpointer="xpointer(parameters/*)" />
 
   <!-- Random number generation -->
   <randomNumberGenerator value="GSL">

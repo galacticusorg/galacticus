@@ -12,7 +12,7 @@
          work. -->
     <a value="0.077"/>
     <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt" >
-      <xi:include href="darkMatterParticleCDM.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="darkMatterParticleCDM.xml" xpointer="xpointer(parameters/*)" />
     </criticalOverdensity>
   </criticalOverdensity>
   <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
@@ -27,7 +27,7 @@
     <radiusEnvironment value="=5.0/([cosmologyParameters::HubbleConstant]/100.0)"/>
     <redshift          value=" 0.0"                                              />
     <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt" >
-      <xi:include href="darkMatterParticleCDM.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="darkMatterParticleCDM.xml" xpointer="xpointer(parameters/*)" />
     </criticalOverdensity>
   </haloEnvironment>
 

@@ -6,13 +6,13 @@
   <verbosityLevel value="working"/>
 
   <!-- Include cosmological parameters -->
-  <xi:include href="validate_baryonicSuppression_cosmology.xml"       xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="validate_baryonicSuppression_cosmology.xml"       xpointer="xpointer(parameters/*)" />
 
   <!-- Include merger tree parameters -->
-  <xi:include href="validate_baryonicSuppression_mergerTrees.xml"     xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="validate_baryonicSuppression_mergerTrees.xml"     xpointer="xpointer(parameters/*)" />
 
   <!-- Include baryonic physics parameters -->
-  <xi:include href="validate_baryonicSuppression_baryonicPhysics.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="validate_baryonicSuppression_baryonicPhysics.xml" xpointer="xpointer(parameters/*)" />
 
   <!-- Random number generation -->
   <randomNumberGenerator value="GSL">
