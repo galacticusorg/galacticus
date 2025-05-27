@@ -171,8 +171,7 @@
     <mergerTreeOutputter value="standard"/>
   </mergerTreeOutputter>
   <outputTimes value="list">
-    <times>
-      <value>
+    <times value="
          1.0
          4.519608728790173
          8.039217457580346
@@ -184,8 +183,7 @@
          28.86659282176137
          32.38620155055154
          35.80602755764921
-      </value>
-    </times>
+	 "/>
   </outputTimes>
 
   <relativeModelUncertainty value="0.0608844"/>

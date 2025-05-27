@@ -30,6 +30,9 @@ my %options =
 # Parse options.
 my %optionsDefined = &Galacticus::Options::Parse_Options(\@ARGV,\%options);
 
+# Write starting message.
+print "Translating file: ".$inputFileName."\n";
+
 # Parse the input file.
 my $parser     = XML::LibXML->new();
 my $input      = $parser->parse_file($inputFileName);
@@ -44,10 +47,10 @@ if ( $input->findnodes('parameters') ) {
     if ( $parameterGrid->findnodes('parameters') ) {
 	@parameterSets = $parameterGrid->findnodes('parameters');
     } else {
-	die('can not find parameters')
+	die('can not find <parameters>')
     }
 } else {
-    die('can not find parameters')
+    die('can not find <parameters> in file `'.$inputFileName.'`')
 }
 
 # Find the ancestry of the given file. We find the hash at which is was last modified, the current HEAD hash, and then find the
@@ -114,9 +117,6 @@ my @ancestry;
 # Read migration rules.
 my $xml        = new XML::Simple();
 my $migrations = $xml->XMLin("scripts/aux/migrations.xml");
-
-# Write starting message.
-print "Translating file: ".$inputFileName."\n";
 
 # Iterate over parameter sets.
 foreach my $parameters ( @parameterSets ) {
@@ -357,16 +357,20 @@ sub blackHoleSeedMass {
     my $input      = shift();
     my $parameters = shift();
     # Look for "componentBlackHole" parameters.
+    my $doTranslate = 0;
     my $massSeed = 100.0; # This was the default value, to be used if no value was explicitly set.
     my $componentBlackHole;
     foreach my $node ( $parameters->findnodes("//componentBlackHole[\@value='simple' or \@value='standard' or \@value='nonCentral']/massSeed[\@value]")->get_nodelist() ) {
 	print "   translate special '//componentBlackHole[\@value]/massSeed[\@value]'\n";
+	$doTranslate        = 1;
 	$componentBlackHole = $node->parentNode;
 	# Extract the seed mass.
 	$massSeed = $node->getAttribute('value');
 	# Delete this node.
 	$node->parentNode->removeChild($node);
     }
+    return
+	unless ( $doTranslate );
     # Find nodeOperators.
     my @nodeOperators = $parameters->findnodes("//nodeOperator[\@value='multi']")->get_nodelist();
     die("can not find any `nodeOperator[\@value='multi']` into which to insert a black hole seed operator")
@@ -423,8 +427,10 @@ sub blackHolePhysics {
     # Look for "componentBlackHole" parameters.
     my $componentProperties;
     my $componentNode;
+    my $doTranslate = 0;
     foreach my $node ( $parameters->findnodes("//componentBlackHole[\@value='simple' or \@value='standard' or \@value='nonCentral']")->get_nodelist() ) {
 	print "   translate special '//componentBlackHole[\@value]'\n";
+	$doTranslate   = 1;
 	$componentNode = $node;
 	# Extract the type of component.
 	my $componentType = $node->getAttribute('value');
@@ -446,6 +452,8 @@ sub blackHolePhysics {
 	    }
 	}
     }
+    return
+	unless ( $doTranslate );
     # Find nodeOperators.
     my @nodeOperators = $parameters->findnodes("//nodeOperator[\@value='multi']")->get_nodelist();
     die("can not find any `nodeOperator[\@value='multi']` into which to insert a black hole seed operator")

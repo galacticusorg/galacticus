@@ -396,9 +396,7 @@
   
   <outputFileName value="testSuite/outputs/heatingMonotonicWeakShellCrossingRadiusRoot.hdf5"/>
   <outputTimes value="list">
-    <redshifts>
-      <value>0.0 0.5 1.0 2.0 5.0</value>
-    </redshifts>
+    <redshifts value="0.0 0.5 1.0 2.0 5.0"/>
   </outputTimes>
 
 </parameters>

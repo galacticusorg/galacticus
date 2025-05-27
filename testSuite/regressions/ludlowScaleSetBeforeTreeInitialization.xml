@@ -365,8 +365,6 @@
   <outputFileName value="testSuite/outputs/regressions/ludlowScaleSetBeforeTreeInitialization.hdf5"/>
   <!-- Merger trees -->
   <outputTimes value="list">
-    <redshifts>
-      <value>0.0</value>
-    </redshifts>
+    <redshifts value="0.0"/>
   </outputTimes>
 </parameters>

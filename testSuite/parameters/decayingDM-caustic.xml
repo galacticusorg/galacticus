@@ -463,9 +463,7 @@
 
   <outputFileName value="testSuite/outputs/decayingDM-caustic.hdf5"/>
   <outputTimes value="list">
-    <redshifts>
-      <value>0.0</value>
-    </redshifts>
+    <redshifts value="0.0"/>
   </outputTimes>
 
 </parameters>
