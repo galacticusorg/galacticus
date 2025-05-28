@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Regression test for segfault resulting from extension of output buffers when rank-1 or rank-2 varlen outputs are used -->
 <!-- 14-December-2024                                  0                                                                   -->
-
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
+  <lastModified revision="62e8c7bed4251e4aa284c0e228b8aba474a7cc0c" time="2025-05-27T17:56:21"/>
   <!-- Task and work control -->
   <task value="evolveForests">
     <walltimeMaximum value="-1"/> 
@@ -362,7 +361,7 @@
       <stellarFeedbackOutflows value="rateLimit">
         <timescaleOutflowFractionalMinimum value="0.0127606668366045"/>
         <stellarFeedbackOutflows value="powerLaw">
-          <velocityCharacteristic value="160.019897613397"/><!--160.019897613397-->
+          <velocityCharacteristic value="160.019897613397"/>
           <exponent value="1.7561921242039"/>
         </stellarFeedbackOutflows>        
       </stellarFeedbackOutflows>

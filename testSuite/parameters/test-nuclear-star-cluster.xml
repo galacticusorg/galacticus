@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--Parameters for testing nuclear star cluster component -->
 <parameters>
+  <lastModified revision="62e8c7bed4251e4aa284c0e228b8aba474a7cc0c" time="2025-05-27T17:56:35"/>
+  <lastModified/>
   <formatVersion>2</formatVersion>
   <!-- Specify tasks to perform -->
   <task value="evolveForests"/>
@@ -191,6 +193,19 @@
       <massEfficiency   value="0.5" />
       <massThreshold    value="100"/>
   </blackHoleSeeds>
+  <blackHoleCGMHeating value="jetPower">
+    <efficiencyRadioMode value="1.0"/>
+  </blackHoleCGMHeating>
+  <blackHoleWind value="ciotti2009">
+    <efficiencyWind value="2.4e-3"/>
+    <efficiencyWindScalesWithEfficiencyRadiative value="false"/>
+  </blackHoleWind>
+  <blackHoleAccretionRate value="standard">
+    <bondiHoyleAccretionEnhancementSpheroid value="5.0e0"/>
+    <bondiHoyleAccretionEnhancementHotHalo value="6.0e0"/>
+    <bondiHoyleAccretionHotModeOnly value="true"/>
+    <bondiHoyleAccretionTemperatureSpheroid value="1.0e2"/>
+  </blackHoleAccretionRate>
 
   <!-- Numerical tolerances -->
   <mergerTreeNodeEvolver value="standard">
@@ -263,15 +278,18 @@
       </stellarFeedbackOutflows>
     </nodeOperator>
     <nodeOperator value="agesStellarMassWeighted"/>
-    <!-- Black hole seed formation -->
+    <!-- Black hole physics -->
     <nodeOperator value="blackHolesSeed"/>
+    <nodeOperator value="blackHolesAccretion"/>
+    <nodeOperator value="blackHolesWinds"/>
+    <nodeOperator value="blackHolesCGMHeating"/>
     <!-- Bar instability in galactic disks -->
     <nodeOperator value="barInstability">
       <galacticDynamicsBarInstability value="efstathiou1982">
-  <stabilityThresholdGaseous value="0.7"/>
-  <stabilityThresholdStellar value="1.1"/>
+	<stabilityThresholdGaseous value="0.7"/>
+	<stabilityThresholdStellar value="1.1"/>
       </galacticDynamicsBarInstability>
-    </nodeOperator>
+    </nodeOperator>    
   </nodeOperator>
-
+  
 </parameters>

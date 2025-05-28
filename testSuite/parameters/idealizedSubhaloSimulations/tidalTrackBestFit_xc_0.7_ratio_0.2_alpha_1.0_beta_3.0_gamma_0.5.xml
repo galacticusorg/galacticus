@@ -2,7 +2,7 @@
 <!-- Orbiting subhalo model described in Du et al. (2024) -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
+  <lastModified revision="62e8c7bed4251e4aa284c0e228b8aba474a7cc0c" time="2025-05-27T17:57:04"/>
 
   <!-- Random number generation -->
   <randomNumberGenerator value="GSL">
@@ -177,8 +177,7 @@
     <mergerTreeOutputter value="standard"/>
   </mergerTreeOutputter>
   <outputTimes value="list">
-    <times>
-      <value>
+    <times value="
          1.0
          4.519608728790173
          8.039217457580346
@@ -190,8 +189,7 @@
          28.86659282176137
          32.28641882885904
          35.80602755764921
-      </value>
-    </times>
+	 "/>
   </outputTimes>
 
   <relativeModelUncertainty value="0.138774"/>
