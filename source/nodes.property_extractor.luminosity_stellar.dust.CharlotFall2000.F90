@@ -255,27 +255,35 @@ contains
     luminositySpheroid             =                          luminositiesStellar%luminosity         (self%luminosityIndex      (i))
     luminositySpheroidRecent       =                          luminositiesStellar%luminosity         (self%luminosityRecentIndex(i))
     ! Compute surface densities of metals in units of M☉/pc².
-    if (disk%radius() > 0.0d0) then
-       densitySurfaceMetalsDisk    =+metallicityDisk     &
-            &                            * disk    %massGas() &
-            &                            /2.0d0               &
-            &                            /Pi                  &
-            &                            /(                   &
-            &                             +mega               &
-            &                             *disk    %radius () &
-            &                            )**2
+    if     (                            &
+         &   disk    %radius () > 0.0d0 &
+         &  .and.                       &
+         &   disk    %massGas() > 0.0d0 &
+         & ) then
+       densitySurfaceMetalsDisk    =+metallicityDisk      &
+            &                       *  disk    %massGas() &
+            &                       /2.0d0                &
+            &                       /Pi                   &
+            &                       /(                    &
+            &                         +mega               &
+            &                         *disk    %radius () &
+            &                        )**2
     else
        densitySurfaceMetalsDisk    =+0.0d0
     end if
-    if (spheroid%radius() > 0.0d0) then
-       densitySurfaceMetalsSpheroid=+metallicitySpheroid &
-            &                            * spheroid%massGas() &
-            &                            /2.0d0               &
-            &                            /Pi                  &
-            &                            /(                   &
-            &                             +mega               &
-            &                             *spheroid%radius()  &
-            &                            )**2
+    if     (                            &
+         &   spheroid%radius () > 0.0d0 &
+         &  .and.                       &
+         &   spheroid%massGas() > 0.0d0 &
+         & ) then
+       densitySurfaceMetalsSpheroid=+metallicitySpheroid  &
+            &                       *  spheroid%massGas() &
+            &                       /2.0d0                &
+            &                       /Pi                   &
+            &                       /(                    &
+            &                         +mega               &
+            &                         *spheroid%radius () &
+            &                        )**2
     else
        densitySurfaceMetalsSpheroid=+0.0d0
     end if
