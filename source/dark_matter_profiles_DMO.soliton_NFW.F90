@@ -36,7 +36,7 @@
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOSolitonNFW
      !!{
-     A dark matter halo profile class implementing \gls[fdm} dark matter halos.
+     A dark matter halo profile class implementing \gls{fdm} dark matter halos.
      !!}
      private
      double precision                                      :: massParticle
