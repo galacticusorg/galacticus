@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@carnegiescience.edu"
         },
-        "id": "ab0b8bbbb169cc0e0f79078b2e57eb9c43233e4d",
-        "message": "Merge pull request #852 from galacticusorg/fixSphericalChandrasekharIntegral\n\nReduce the Chandrasekhar integral (for dynamical friction) in spherical systems to account for the finite size of the perturber\n",
-        "timestamp": "2025-05-27 15:04:54+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/ab0b8bbbb169cc0e0f79078b2e57eb9c43233e4d"
+        "id": "56900677a415e3dd389615616223a30e08341e18",
+        "message": "fix: Catch negative gas masses\n\nAvoids having negative optical depths which could lead to overflow.\n",
+        "timestamp": "2025-05-30 08:08:13-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/56900677a415e3dd389615616223a30e08341e18"
     },
     "results": [
         {
