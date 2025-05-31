@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1748643297588,
+  "lastUpdate": 1748686937297,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.05; γ=1.0)": [
@@ -7223,6 +7223,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/56900677a415e3dd389615616223a30e08341e18"
         },
         "date": 1748643296272,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteBoundMass",
+            "value": "69.36737238164966",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "39.245724709232604",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteVelocityMaximum",
+            "value": "32.2364954240548",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "41585dc7934be50e16dfec39838d4e32413e1600",
+          "message": "Merge pull request #853 from yzhaoastro/add-soliton-nfw\n\nImplement FDM profile based on Chowdhury2021",
+          "timestamp": "2025-05-31T03:52:55Z",
+          "tree_id": "be8a17c7f568bd1d75faef40527acd7a384b3ae8",
+          "url": "https://github.com/galacticusorg/galacticus/commit/41585dc7934be50e16dfec39838d4e32413e1600"
+        },
+        "date": 1748686935958,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
