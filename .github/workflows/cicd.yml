@@ -983,6 +983,7 @@ jobs:
                       tests.dark_matter_profiles.generic.exe,
                       tests.dark_matter_profiles.finite_resolution.exe,
                       tests.dark_matter_profiles.Zhao1996.exe,
+                      tests.dark_matter_profiles.fuzzy_dark_matter.exe,
                       tests.decaying_dark_matter.exe,
                       tests.spectra.postprocess.Inoue2014.exe,
                       tests.recombination_computed.exe,
