@@ -4,12 +4,12 @@ window.PONOSV_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "56900677a415e3dd389615616223a30e08341e18",
-        "message": "fix: Catch negative gas masses\n\nAvoids having negative optical depths which could lead to overflow.\n",
-        "timestamp": "2025-05-30 08:08:13-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/56900677a415e3dd389615616223a30e08341e18"
+        "id": "41585dc7934be50e16dfec39838d4e32413e1600",
+        "message": "Merge pull request #853 from yzhaoastro/add-soliton-nfw\n\nImplement FDM profile based on Chowdhury2021\n",
+        "timestamp": "2025-05-31 03:52:55+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/41585dc7934be50e16dfec39838d4e32413e1600"
     },
     "surfaceDensity": {
         "percentageBelow": 35.71428571428571,
