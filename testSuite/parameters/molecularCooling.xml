@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Simple model with molecular cooling, used to test that molecular physics is correctly solved for. -->
 <parameters>
-  <lastModified revision="5d35e297995992e13d3819baf4c9ebf55bf90202" time="2025-04-04T14:42:38"/>
+  <lastModified revision="62e8c7bed4251e4aa284c0e228b8aba474a7cc0c" time="2025-05-27T17:56:33"/>
   <lastModified/>
   <formatVersion>2</formatVersion>
 
