@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1748686942102,
+  "lastUpdate": 1748910461940,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.0)": [
@@ -7151,6 +7151,43 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/41585dc7934be50e16dfec39838d4e32413e1600"
         },
         "date": 1748686940874,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteBoundMass",
+            "value": "13.93162972497932",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "6.553741456976611",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteVelocityMaximum",
+            "value": "5.001018843020751",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "0adc1b35040118e0f6803adbcd581bfddc03c357",
+          "message": "feat: Improve galaxy merger tree plots\n\nIncludes a color bar and size scale.",
+          "timestamp": "2025-06-02T14:32:30Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0adc1b35040118e0f6803adbcd581bfddc03c357"
+        },
+        "date": 1748910461247,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
