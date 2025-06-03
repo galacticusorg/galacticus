@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@carnegiescience.edu"
         },
-        "id": "41585dc7934be50e16dfec39838d4e32413e1600",
-        "message": "Merge pull request #853 from yzhaoastro/add-soliton-nfw\n\nImplement FDM profile based on Chowdhury2021\n",
-        "timestamp": "2025-05-31 03:52:55+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/41585dc7934be50e16dfec39838d4e32413e1600"
+        "id": "0adc1b35040118e0f6803adbcd581bfddc03c357",
+        "message": "feat: Improve galaxy merger tree plots\n\nIncludes a color bar and size scale.\n",
+        "timestamp": "2025-06-02 07:32:30-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/0adc1b35040118e0f6803adbcd581bfddc03c357"
     },
     "results": [
         {
