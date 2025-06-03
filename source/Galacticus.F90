@@ -34,7 +34,7 @@ program Galacticus
   use    :: Error                     , only : Error_Handler_Register           , Error_Report         , errorStatusSuccess
   use    :: Error_Utilities           , only : Error_Wait_Set_From_Parameters
   use    :: Output_HDF5_Open          , only : Output_HDF5_Close_File           , Output_HDF5_Open_File, Output_HDF5_Completion_Status
-  use    :: ISO_Varying_String        , only : assignment(=)                    , varying_string
+  use    :: ISO_Varying_String        , only : assignment(=)                    , varying_string       , var_str
   use    :: Input_Parameters          , only : inputParameter                   , inputParameters
 #ifdef USEMPI
   use    :: MPI_F08                   , only : MPI_Comm_World                   , MPI_Thread_Multiple  , MPI_Thread_Single
@@ -53,7 +53,8 @@ program Galacticus
   type     (varying_string           )                            :: parameterFile
   type     (varying_string           ), allocatable, dimension(:) :: changeFiles
   type     (inputParameters          )                            :: parameters
-  logical                                                         :: outputFileIsRequired      , dryRun
+  logical                                                         :: outputFileIsRequired      , dryRun          , &
+       &                                                             outputParameters
   integer                                                         :: i                         , countChangeFiles
 
   ! Initialize MPI.
@@ -91,13 +92,22 @@ program Galacticus
      end do
   end if
   ! Parse any options.
-  dryRun=.false.
+  dryRun          =.false.
+  outputParameters=.false.
   if (Command_Argument_Count() > 1) then
-     do i=2+countChangeFiles,Command_Argument_Count()
+     i=1+countChangeFiles
+     do while (i < Command_Argument_Count())
+        i=i+1
         call Get_Command_Argument(i,option)
         select case (trim(option))
-        case ('--dry-run')
-           dryRun=.true.
+        case ('--dry-run'                    )
+           dryRun          =.true.
+        case ('--output-processed-parameters')
+           outputParameters=.true.
+           i=i+1
+           if (i > Command_Argument_Count()) call usageError()
+           call Get_Command_Argument(i,parameterFileCharacter)
+           if (parameterFileCharacter(1:1) == "-") call usageError()
         case default
            call usageError(option=trim(option))
         end select
@@ -105,6 +115,8 @@ program Galacticus
   end if
   ! Open the parameter file.
   parameters=inputParameters(parameterFile,changeFiles=changeFiles)
+  ! Output the processed parameter file.
+  if (outputParameters) call parameters%serializeToXML(var_str(trim(parameterFileCharacter)))
   ! Tell OpenMP that nested parallelism is allowed.
   !$ call OMP_Set_Nested(.true.)
   ! Initialize event hooks.
@@ -163,8 +175,9 @@ contains
 
     message=""
     if (present(option)) message="unknown option `"//option//"`"//char(10)
-    message=message//"Usage: Galacticus.exe <parameterFile> [<changeFile1>...<changeFileN> options...]"//char(10)//char(10)
-    message=message//"  --dry-run   do not perform any task, just parse the parameter file and exit"
+    message=message//"Usage: Galacticus.exe <parameterFile> [<changeFile1>...<changeFileN> options...]"                            //char(10)//char(10)
+    message=message//"  --dry-run                                  do not perform any task, just parse the parameter file and exit"//char(10)
+    message=message//"  --output-processed-parameters <filename>   output the processed parameters to the named file"
     call Error_Report(message)
     return
   end subroutine usageError
