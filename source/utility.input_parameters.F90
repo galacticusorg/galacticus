@@ -372,12 +372,8 @@ contains
          &                                                               newNode              , changeSiblingNode, &
          &                                                               targetNode           , clonedNode
     integer                                                           :: errorStatus          , i                , &
-         &                                                               j                    , k                , &
-         &                                                               exceptionCode
-    type     (DOMException   )                                        :: exception
-    type     (varying_string )                                        :: errorMessage         , fileNameFailed
-    logical                                                           :: parseSuccess         , isException      , &
-         &                                                               append
+         &                                                               j                    , k
+    logical                                                           :: append
     type     (varying_string )                                        :: changePath           , targetPath       , &
          &                                                               valueUpdated
     character(len=32         )                                        :: changeType
