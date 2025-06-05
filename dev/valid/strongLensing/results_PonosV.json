@@ -4,21 +4,21 @@ window.PONOSV_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "0adc1b35040118e0f6803adbcd581bfddc03c357",
-        "message": "feat: Improve galaxy merger tree plots\n\nIncludes a color bar and size scale.\n",
-        "timestamp": "2025-06-02 07:32:30-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/0adc1b35040118e0f6803adbcd581bfddc03c357"
+        "id": "c82cd8d961c222107301b114219410391efe83b7",
+        "message": "Merge pull request #856 from galacticusorg/featReplaceWith\n\n Add new options for parameter change files\n",
+        "timestamp": "2025-06-05 14:36:21+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/c82cd8d961c222107301b114219410391efe83b7"
     },
     "surfaceDensity": {
-        "percentageBelow": 35.71428571428571,
-        "percentageAbove": 64.28571428571429,
+        "percentageBelow": 28.57142857142857,
+        "percentageAbove": 71.42857142857143,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 53.84615384615385,
-        "percentageAbove": 46.15384615384615,
+        "percentageBelow": 50.0,
+        "percentageAbove": 50.0,
         "target": 0.85
     }
 }

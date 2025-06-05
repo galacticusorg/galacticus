@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "0adc1b35040118e0f6803adbcd581bfddc03c357",
-        "message": "feat: Improve galaxy merger tree plots\n\nIncludes a color bar and size scale.\n",
-        "timestamp": "2025-06-02 07:32:30-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/0adc1b35040118e0f6803adbcd581bfddc03c357"
+        "id": "c82cd8d961c222107301b114219410391efe83b7",
+        "message": "Merge pull request #856 from galacticusorg/featReplaceWith\n\n Add new options for parameter change files\n",
+        "timestamp": "2025-06-05 14:36:21+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/c82cd8d961c222107301b114219410391efe83b7"
     },
     "results": [
         {
