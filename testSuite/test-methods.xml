@@ -51,12 +51,12 @@
       <mergerTreeOutputter value="standard"/>
       <mergerTreeOutputter value="haloFourierProfiles"/>
     </mergerTreeOutputter>
-    <nodePropertyExtract value="multi">
-      <nodePropertyExtract value="haloBias"/>
-      <nodePropertyExtract value="indicesHost">
+    <nodePropertyExtractor value="multi">
+      <nodePropertyExtractor value="haloBias"/>
+      <nodePropertyExtractor value="indicesHost">
   	<topLevel value="true"/>
-      </nodePropertyExtract>
-    </nodePropertyExtract>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
     <darkMatterHaloBias value="sheth2001"/>
     <darkMatterHaloBias value="pressSchechter"/>
     <darkMatterHaloBias value="tinker2010"/>
@@ -132,7 +132,7 @@
     <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
     <darkMatterProfile value="darkMatterOnly"/>
     <galacticStructureSolver value="equilibrium">
-      <galacticStructureRadiiInitial value="gnedin2004" parameterLevel="top"/>
+      <darkMatterProfile value="adiabaticGnedin2004" parameterLevel="top"/>
     </galacticStructureSolver>
     <galacticStructureSolver value="simple"/>
     <galacticStructureSolver value="linear"/>
@@ -981,6 +981,9 @@
       <!-- Halo spins -->
       <nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
       <nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
+      <!-- Satellite evolution -->
+      <nodeOperator value="satelliteMergingTime"/>
+      <nodeOperator value="satelliteMassLoss"   />
       <!-- Star formation -->
       <nodeOperator value="starFormationDisks" iterable="no"/>
       <nodeOperator value="starFormationSpheroids" iterable="no"/>
@@ -1025,6 +1028,9 @@
       <!-- Halo spins -->
       <nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
       <nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
+      <!-- Satellite evolution -->
+      <nodeOperator value="satelliteMergingTime"/>
+      <nodeOperator value="satelliteMassLoss"   />
       <!-- Star formation -->
       <nodeOperator value="starFormationDisks" iterable="no"/>
       <nodeOperator value="starFormationSpheroids" iterable="no"/>
