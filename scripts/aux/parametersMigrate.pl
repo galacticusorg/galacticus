@@ -153,8 +153,9 @@ sub Migrate {
 	}
     }
     ## Update the last modified metadata.
-    $elementLastModified->setAttribute('revision',$hashHead);
-    $elementLastModified->setAttribute('time'    ,DateTime->now());
+    my $timeStamp = exists($options{'timeStamp'}) ? $options{'timeStamp'} : DateTime->now();
+    $elementLastModified->setAttribute('revision',$hashHead );
+    $elementLastModified->setAttribute('time'    ,$timeStamp);
 
     ## Find the ancestry.
     my @ancestry;
