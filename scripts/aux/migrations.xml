@@ -237,6 +237,11 @@
   <migration commit="f483d9caf532e5f33cdbe46aad53d076316ec394">
     <translation function="methodSuffixRemove"/>
   </migration>
+  <migration commit="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15">
+    <translation xpath="//stellarFeedbackOutflows[@value]">
+      <value old="creasey2012" new="creasey2013"/>
+    </translation>
+  </migration>
 
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />
