@@ -2,7 +2,7 @@
 # Uses Docker multi-stage build to build Galacticus.
 
 ARG TAG=latest
-FROM ghcr.io/galacticusorg/buildenv:${TAG} as build
+FROM ghcr.io/galacticusorg/buildenv:${TAG} AS build
 ARG REPO=galacticusorg/galacticus
 ARG BRANCH=master
 
