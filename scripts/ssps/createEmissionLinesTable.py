@@ -403,6 +403,14 @@ def generateJobSSP(grid,args):
     iMetallicity           = grid['counter'][1]
     iLogHydrogenLuminosity = grid['counter'][2]
     iLogHydrogenDensity    = grid['counter'][3]
+
+    iAge = 43
+    iMetallicity = 8
+    iLogHydrogenDensity = 2
+    iLogHydrogenLuminosity = 0
+    print(grid['ages'][iAge],grid['logMetallicities'][iMetallicity],grid['logHydrogenLuminosities'][iLogHydrogenLuminosity],grid['logHydrogenDensities'][iLogHydrogenDensity])
+
+    
     # If this is a rerun, load line data and status.
     if args.rerun:
         if not 'rerunStatusRead' in grid:
@@ -545,6 +553,7 @@ def generateJobSSP(grid,args):
  	"indices":      	( iAge, iMetallicity, iLogHydrogenLuminosity, iLogHydrogenDensity ),
         "command":              "cd "+args.workspace+"; ulimit -c 0\n"+cloudyPath+"/source/cloudy.exe < "+cloudyScriptFileName+"\n"+"if [ $? != 0 ]; then\necho CLOUDY FAILED\nfi\n"
     }
+    sys.exit()
     ## Push job to job list.
     if not 'jobs' in grid:
         grid['jobs'] = []
@@ -806,6 +815,7 @@ def outputSSP(grid,args):
     # Add useful metadata.
     tableFile.attrs['time'       ] = str(datetime.datetime.now())
     tableFile.attrs['gitRevision'] = grid['gitRevision']
+    tableFile.attrs['commandLine'] = grid['commandLine']
     # Write parameter grid points and attributes.
     datasetAge                          = tableFile.create_dataset('age'                       ,data=      grid['ages'                   ])
     datasetMetallicity                  = tableFile.create_dataset('metallicity'               ,data=10.0**grid['logMetallicities'       ])
@@ -853,6 +863,7 @@ def outputAGN(grid,args):
     # Add useful metadata.
     tableFile.attrs['time'       ] = str(datetime.datetime.now())
     tableFile.attrs['gitRevision'] = grid['gitRevision']
+    tableFile.attrs['commandLine'] = grid['commandLine']
     # Write parameter grid points and attributes.
     datasetSpectralIndex       = tableFile.create_dataset('spectralIndex'      ,data=      grid['spectralIndices'        ])
     datasetMetallicity         = tableFile.create_dataset('metallicity'        ,data=10.0**grid['logMetallicities'       ])
@@ -1188,6 +1199,9 @@ establishGrid(grid,args)
 repo                = Repo(os.environ['GALACTICUS_EXEC_PATH'])
 lastRevision        = repo.head.object.hexsha
 grid['gitRevision'] = lastRevision
+
+# Add the command line arguments for possible output.
+grid['commandLine'] = " ".join(sys.argv)
 
 # Initialize the line luminosity tables.
 dimensions       = list(map(lambda x: grid[x].size,grid['iterables']))
