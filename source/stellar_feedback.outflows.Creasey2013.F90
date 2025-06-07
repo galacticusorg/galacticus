@@ -164,6 +164,12 @@ contains
          &                                                                 massStellar
     type            (integrator                        )                :: integrator_
 
+    ! Nothing to do if no energy input.
+    if (rateEnergyInput <= 0.0d0) then
+       rateOutflowEjective =0.0d0
+       rateOutflowExpulsive=0.0d0
+       return
+    end if
     ! Get the disk properties.
     select type (component)
     class is (nodeComponentDisk    )
