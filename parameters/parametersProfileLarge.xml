@@ -3,7 +3,7 @@
 <!-- 30-October-2011                          -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="62e8c7bed4251e4aa284c0e228b8aba474a7cc0c" time="2025-05-27T17:54:10"/>
+  <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:02:52"/>
 
   <!-- Component selection -->
   <componentBasic value="standard"/>

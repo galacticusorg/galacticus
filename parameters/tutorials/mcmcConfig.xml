@@ -2,7 +2,7 @@
 <parameters>
   <!-- Parameters for tutorial on constraining Galacticus parameters - https://github.com/galacticusorg/galacticus/wiki/Tutorial%3A-Constraining-Galacticus-Parameters -->
   <formatVersion>2</formatVersion>
-  <lastModified revision="62e8c7bed4251e4aa284c0e228b8aba474a7cc0c" time="2025-05-27T17:54:18"/>
+  <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:02:59"/>
 
   <verbosityLevel value="standard"/>
 
