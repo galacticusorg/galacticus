@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "c82cd8d961c222107301b114219410391efe83b7",
-        "message": "Merge pull request #856 from galacticusorg/featReplaceWith\n\n Add new options for parameter change files\n",
-        "timestamp": "2025-06-05 14:36:21+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/c82cd8d961c222107301b114219410391efe83b7"
+        "id": "0bbebfa537baba1f793f8b0698531b9c69f62663",
+        "message": "fix: Match case in keywords in `Dockerfile` to avoid warnings\n",
+        "timestamp": "2025-06-06 10:27:18-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/0bbebfa537baba1f793f8b0698531b9c69f62663"
     },
     "results": [
         {
