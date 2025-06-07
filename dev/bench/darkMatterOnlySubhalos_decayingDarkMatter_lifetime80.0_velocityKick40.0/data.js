@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1749158194734,
+  "lastUpdate": 1749268568444,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=80 Gyr; vₖ=40 km/s)": [
@@ -1999,6 +1999,38 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
             "value": "31.779229306933285",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "id": "0bbebfa537baba1f793f8b0698531b9c69f62663",
+          "message": "fix: Match case in keywords in `Dockerfile` to avoid warnings",
+          "timestamp": "2025-06-06T17:27:18Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0bbebfa537baba1f793f8b0698531b9c69f62663"
+        },
+        "date": 1749268567939,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": "30.062699855048667",
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": "42.87256882554147",
             "unit": "-logℒ"
           }
         ]
