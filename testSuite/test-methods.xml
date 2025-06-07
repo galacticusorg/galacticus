@@ -982,8 +982,8 @@
       <nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
       <nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
       <!-- Satellite evolution -->
-      <nodeOperator value="satelliteMergingTime"/>
-      <nodeOperator value="satelliteMassLoss"   />
+      <nodeOperator value="satelliteMergingTime" iterable="no"/>
+      <nodeOperator value="satelliteMassLoss"    iterable="no"/>
       <!-- Star formation -->
       <nodeOperator value="starFormationDisks" iterable="no"/>
       <nodeOperator value="starFormationSpheroids" iterable="no"/>
@@ -1029,8 +1029,8 @@
       <nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
       <nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
       <!-- Satellite evolution -->
-      <nodeOperator value="satelliteMergingTime"/>
-      <nodeOperator value="satelliteMassLoss"   />
+      <nodeOperator value="satelliteMergingTime" iterable="no"/>
+      <nodeOperator value="satelliteMassLoss"    iterable="no"/>
       <!-- Star formation -->
       <nodeOperator value="starFormationDisks" iterable="no"/>
       <nodeOperator value="starFormationSpheroids" iterable="no"/>
