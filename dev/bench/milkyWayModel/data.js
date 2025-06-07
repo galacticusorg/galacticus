@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1749158135238,
+  "lastUpdate": 1749268504706,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "d6740de4a2affcc39ca24dc580f8a5ae40a23fa9",
-          "message": "Merge pull request #668 from galacticusorg/fixLightconeMinimumTime\n\nEnforce minimum time in lightcone output",
-          "timestamp": "2024-08-17T00:00:53Z",
-          "tree_id": "2616da78ca47018a07a0d7c1bc5b625ff3e3e154",
-          "url": "https://github.com/galacticusorg/galacticus/commit/d6740de4a2affcc39ca24dc580f8a5ae40a23fa9"
-        },
-        "date": 1723875970750,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 413.491,
-            "unit": "seconds",
-            "range": 3.78893453361273
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10672,6 +10642,34 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": "14.831088834824657",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "id": "0bbebfa537baba1f793f8b0698531b9c69f62663",
+          "message": "fix: Match case in keywords in `Dockerfile` to avoid warnings",
+          "timestamp": "2025-06-06T17:27:18Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0bbebfa537baba1f793f8b0698531b9c69f62663"
+        },
+        "date": 1749268504268,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 90.971,
+            "unit": "seconds",
+            "range": 0.122347456042148
           }
         ]
       }
