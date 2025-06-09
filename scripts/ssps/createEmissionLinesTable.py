@@ -302,7 +302,7 @@ def linesParse(job):
             linesFile.close()
         if badFile:
             if attempt == attemptsMaximum-1:
-                print("FAIL [unable to find Cloudy output lines file]: "+label+" see ".job['logFileName'])
+                print("FAIL [unable to find Cloudy output lines file]: "+label+" see "+job['logFileName'])
                 if grid['lineData']['status'][indices] == 0:
                     grid['lineData']['status'][indices] = 3
             else:
