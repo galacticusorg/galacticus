@@ -403,14 +403,6 @@ def generateJobSSP(grid,args):
     iMetallicity           = grid['counter'][1]
     iLogHydrogenLuminosity = grid['counter'][2]
     iLogHydrogenDensity    = grid['counter'][3]
-
-    iAge = 43
-    iMetallicity = 8
-    iLogHydrogenDensity = 2
-    iLogHydrogenLuminosity = 0
-    print(grid['ages'][iAge],grid['logMetallicities'][iMetallicity],grid['logHydrogenLuminosities'][iLogHydrogenLuminosity],grid['logHydrogenDensities'][iLogHydrogenDensity])
-
-    
     # If this is a rerun, load line data and status.
     if args.rerun:
         if not 'rerunStatusRead' in grid:
@@ -553,7 +545,6 @@ def generateJobSSP(grid,args):
  	"indices":      	( iAge, iMetallicity, iLogHydrogenLuminosity, iLogHydrogenDensity ),
         "command":              "cd "+args.workspace+"; ulimit -c 0\n"+cloudyPath+"/source/cloudy.exe < "+cloudyScriptFileName+"\n"+"if [ $? != 0 ]; then\necho CLOUDY FAILED\nfi\n"
     }
-    sys.exit()
     ## Push job to job list.
     if not 'jobs' in grid:
         grid['jobs'] = []
