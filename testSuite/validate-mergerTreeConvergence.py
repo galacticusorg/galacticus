@@ -28,7 +28,7 @@ from num2tex import num2tex
 #
 # The validation is typically run as:
 #
-#  ./convergence.py --outputPath /scratch/mergerTreeConvergence --jobMaximum 10 --waitOnSubmit 1 --waitOnActive 30
+#  ./testSuite/validate-mergerTreeConvergence.py --outputPath /scratch/mergerTreeConvergence --jobMaximum 10 --waitOnSubmit 1 --waitOnActive 30
 #
 # where the first option controls the directory to which results will be output and the other (optional) arguments are passed to
 # the queue manager.
@@ -48,7 +48,7 @@ def restricted_int(x):
     return x
 
 # Parse command line arguments.
-parser = argparse.ArgumentParser(prog='convergence.py',description='Compute convergence in the progenitor mass function.')
+parser = argparse.ArgumentParser(prog='validate-mergerTreeConvergence.py',description='Compute convergence in the progenitor mass function.')
 parser.add_argument('--outputPath'  ,action='store',default="."        ,help='the path to which data should be written'               )
 parser.add_argument('--partition'   ,action='store'                    ,help='the partition to which to submit jobs'                  )
 parser.add_argument('--jobMaximum'  ,action='store',type=restricted_int,help='the maximum number of active jobs to allow'             )
