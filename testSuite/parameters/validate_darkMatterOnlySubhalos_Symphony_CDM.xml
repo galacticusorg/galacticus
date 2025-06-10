@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Dark matter subhalo evolution model -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
+
+  <verbosityLevel value="standard"/>
+
+  <!-- Include required parameters -->
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../..//parameters/reference/darkMatterParticleCDM.xml"       xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../..//parameters/reference/cosmologyDarkMatterOnly.xml"     xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../..//parameters/reference/powerSpectrum.xml"               xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../..//parameters/reference/structureFormation.xml"          xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../..//parameters/reference/darkMatterHalosProfile.xml"      xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../..//parameters/reference/darkMatterHalosTidalHeating.xml" xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../..//parameters/reference/darkMatterHalosStructure.xml"    xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../..//parameters/reference/subhaloOrbits.xml"               xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../..//parameters/reference/mergerTrees.xml"                 xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../..//parameters/reference/evolutionDarkMatterOnly.xml"     xpointer="xpointer(parameters/*)" />
+
+  <!-- Random number generation -->
+  <randomNumberGenerator value="GSL">
+    <seed value="8122"/>
+  </randomNumberGenerator>
+
+  <!-- Task -->
+  <task                   value="evolveForests"/>
+  <evolveForestsWorkShare value="cyclic"       />
+
+  <!-- Merger tree building options -->
+  <mergerTreeBuildMasses value="replicate">
+    <replicationCount value="4"/>
+    <mergerTreeBuildMasses value="readHDF5">
+      <fileName value="%DATASTATICPATH%/darkMatter/hostHaloMasses_Symphony_MilkyWay_resolutionX1_CDM.hdf5"/>
+    </mergerTreeBuildMasses>
+  </mergerTreeBuildMasses>
+
+  <!-- Halo mass resolution -->
+  <mergerTreeMassResolution value="fixed">
+    <massResolution value="3.0e7"/>
+  </mergerTreeMassResolution>
+
+  <!-- Output options -->
+  <outputFileName value="testSuite/outputs/validate_darkMatterOnlySubhalos_Symphony_CDM.hdf5"/>
+  <mergerTreeOutputter value="analyzer"/>
+  <outputTimes value="list">
+    <redshifts value="0.0"/>
+  </outputTimes>
+  <outputAnalysis value="multi">
+    <outputAnalysis value="subhaloMassFunction">
+      <fileName                          value="%DATASTATICPATH%/darkMatter/subhaloDistributions_Symphony_MilkyWay_resolutionX1_CDM_z0.000.hdf5"/>
+      <negativeBinomialScatterFractional value="0.18"                                                                                           /> <!-- Boylan-Kolchin et al. (2010) -->
+      <virialDensityContrastDefinition   value="bryanNorman1998"                                                                                />
+      <redshift                          value="0.0"                                                                                            />
+    </outputAnalysis>
+    <outputAnalysis value="subhaloRadialDistribution">
+      <fileName                          value="%DATASTATICPATH%/darkMatter/subhaloDistributions_Symphony_MilkyWay_resolutionX1_CDM_z0.000.hdf5"/>
+      <negativeBinomialScatterFractional value="0.18"                                                                                           /> <!-- Boylan-Kolchin et al. (2010) -->
+      <virialDensityContrastDefinition   value="bryanNorman1998"                                                                                />
+      <redshift                          value="0.0"                                                                                            />
+    </outputAnalysis>
+    <outputAnalysis value="subhaloVMaxVsMass">
+      <fileName                          value="%DATASTATICPATH%/darkMatter/subhaloDistributions_Symphony_MilkyWay_resolutionX1_CDM_z0.000.hdf5"/>
+      <virialDensityContrastDefinition   value="bryanNorman1998"                                                                                />
+      <redshift                          value="0.0"                                                                                            />
+    </outputAnalysis>
+  </outputAnalysis>
+
+</parameters>

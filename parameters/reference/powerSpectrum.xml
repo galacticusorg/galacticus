@@ -11,12 +11,12 @@
     <toleranceTopHat                   value="3.0e-4"/>
     <nonMonotonicIsFatal               value="false" />
     <monotonicInterpolation            value="true"  />
-    <powerSpectrumWindowFunction value="topHat"/>
   </cosmologicalMassVariance>
   <transferFunction                   value="CAMB"     >
     <redshift value="100.0"/>
     <!-- Include cosmological model explicitly here so that baryons are included in the transfer function even for dark matter-only models. -->
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="cosmology.xml" xpointer="xpointer(parameters/*)" />
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="cosmology.xml"             xpointer="xpointer(parameters/*)" />
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="darkMatterParticleCDM.xml" xpointer="xpointer(parameters/*)" />
   </transferFunction>
   <powerSpectrumPrimordial            value="powerLaw" >
     <index               value="0.9649"/> <!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
@@ -24,5 +24,6 @@
     <running             value="0.0000"/> <!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
   </powerSpectrumPrimordial>
   <powerSpectrumPrimordialTransferred value="simple"  />
+  <powerSpectrumWindowFunction value="topHat"/>
 
 </parameters>

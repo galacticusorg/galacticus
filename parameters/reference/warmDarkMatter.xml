@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A set of changes to modify CDM reference parameter files to use a warm dark matter particle. -->
+<changes>
+
+  <!-- The Diemer & Joyce (2019; http://adsabs.harvard.edu/abs/2019ApJ...871..168D) concentration model makes use of the peak
+       height parameter and the effective slope of the power spectrum as determined from sigma(M). Their model was calibrated in
+       CDM using a top-hat window function. In a warm dark matter model, we want to use a sharp-k window function (to avoid the
+       formation of spurious halos below the truncation scale). When we apply the Schneider et al. (2015;
+       http://adsabs.harvard.edu/abs/2015MNRAS.451.3117S) concentration model, we supply a reference CDM universe with which to
+       match halo formation epochs, and then compute the corresponding CDM concentration. When matching formation epochs (which
+       depend on peak height and sigma(M)) we must use a sharp-k window function also to ensure that these converge to the CDM
+       solution for large warm dark matter particle mass. *However*, when we then compute the concentration in this CDM reference
+       model, we must use a top-hat window function again since that is what the Diemer & Joyce model is calibrated to.
+
+       Therefore, we first copy in the CDM power spectrum, window function, critical overdensity, and cosmological mass variance
+       classes to the Diemer & Joyce concentration model. This ensures that these will remain unchanged at their CDM form as we
+       modify other parameters. -->
+  <!-- First append empty instances of these to the Dimer & Joyce concentration model. -->
+  <change type="append" path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileConcentration">
+    <cosmologicalMassVariance/>
+  </change>
+  <change type="append" path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileConcentration">
+    <criticalOverdensity/>
+  </change>
+  <change type="append" path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileConcentration">
+    <powerSpectrumPrimordial/>
+  </change>
+  <change type="append" path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileConcentration">
+    <powerSpectrumPrimordialTransferred/>
+  </change>
+  <change type="append" path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileConcentration">
+    <powerSpectrumWindowFunction/>
+  </change>
+  <change type="append" path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileConcentration">
+    <transferFunction/>
+  </change>
+  <!-- Now replace those empty instances with copies of the original CDM choices. -->
+  <change   type="replaceWith"
+	    path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileConcentration/cosmologicalMassVariance"
+	  target="cosmologicalMassVariance" />
+  <change   type="replaceWith"
+	    path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileConcentration/criticalOverdensity"
+	  target="criticalOverdensity" />
+  <change   type="replaceWith"
+	    path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileConcentration/powerSpectrumPrimordial"
+	  target="powerSpectrumPrimordial" />
+  <change   type="replaceWith"
+	    path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileConcentration/powerSpectrumPrimordialTransferred"
+	  target="powerSpectrumPrimordialTransferred" />
+  <change   type="replaceWith"
+	    path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileConcentration/powerSpectrumWindowFunction"
+	  target="powerSpectrumWindowFunction" />
+  <change   type="replaceWith"
+	    path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileConcentration/transferFunction"
+	  target="transferFunction" />
+
+  <!-- Use a sharp-k window function to avoid spurious halos forming below the cut-off scale. -->
+  <change type="replace" path="powerSpectrumWindowFunction">
+    <powerSpectrumWindowFunction value="sharpKSpace">
+      <normalization value="2.5"/> <!-- Taken from Benson et al. (2013; https://ui.adsabs.harvard.edu/abs/2013MNRAS.428.1774B) - chosen to ensure a match to the location of the turnover in WDM mass functions. -->
+    </powerSpectrumWindowFunction>    
+  </change>
+
+  <!-- Scale the cosmological mass variance to ensure no change (approximately) in sigma(M) on large scales as a result of the
+       change in the window function. -->
+  <change type="encapsulate" path="cosmologicalMassVariance">
+    <cosmologicalMassVariance value="scaled">
+      <scale value="0.689"/>
+    </cosmologicalMassVariance>
+  </change>
+  
+  <!-- Change the concentration model to use one appropriate for WDM -->
+  <!-- First, copy the existing concentration model into a temporary location so that we can later use it in our reference
+       model. -->
+  <change type="append" path="">
+    <concentrationTmp>
+      <darkMatterProfileConcentration/>
+    </concentrationTmp>
+  </change>
+  <change   type="replaceWith"
+	    path="concentrationTmp/darkMatterProfileConcentration"
+	  target="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileConcentration" />
+  <!-- Next, replace the original concentration model with that of Schneider et al. (2015;
+       http://adsabs.harvard.edu/abs/2015MNRAS.451.3117S) which computes concentrations for power spectra with cut-offs based on
+       matching to a CDM concentration model with the same formation redshift. -->
+  <change type="replace" path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileConcentration">
+    <darkMatterProfileConcentration value="schneider2015" >
+      <!-- Define a reference CDM universe - the Schneider algorithm works by finding halos with the same formation epoch in this
+           reference universe .-->
+      <reference>
+	<!-- Insert place-holder parameters here - we will later copy in the originals of these from the original parameter
+	     set. -->
+	<darkMatterParticle                />
+	<darkMatterProfileConcentration    />
+	<criticalOverdensity               />
+	<cosmologicalMassVariance          />
+	<powerSpectrumPrimordial           />
+	<powerSpectrumPrimordialTransferred/>
+	<powerSpectrumWindowFunction       />
+	<transferFunction                  />
+      </reference>
+    </darkMatterProfileConcentration>
+  </change>
+  <!-- Copy back in our temporary copy of the original concentration model. -->
+  <change type  ="replaceWith"
+	  path  ="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileConcentration/reference/darkMatterProfileConcentration"
+	  target="concentrationTmp/darkMatterProfileConcentration"                                                                                                                   />
+  <!-- Copy in all parameters required for the reference universe to be used by the Schneider concentration model. -->
+  <change type  ="replaceWith"
+	  path  ="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileConcentration/reference/darkMatterParticle"
+	  target="darkMatterParticle"                                                                                                                                                />
+  <change type  ="replaceWith"
+	  path  ="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileConcentration/reference/criticalOverdensity"
+	  target="criticalOverdensity"                                                                                                                                               />
+  <change type  ="replaceWith"
+	  path  ="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileConcentration/reference/cosmologicalMassVariance"
+	  target="cosmologicalMassVariance"                                                                                                                                          />
+  <change type  ="replaceWith"
+	  path  ="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileConcentration/reference/powerSpectrumPrimordial"
+	  target="powerSpectrumPrimordial"                                                                                                                                           />
+  <change type  ="replaceWith"
+	  path  ="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileConcentration/reference/powerSpectrumPrimordialTransferred"
+	  target="powerSpectrumPrimordialTransferred"                                                                                                                                />
+  <change type  ="replaceWith"
+	  path  ="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileConcentration/reference/powerSpectrumWindowFunction"
+	  target="powerSpectrumWindowFunction"                                                                                                                                       />
+  <change type  ="replaceWith"
+	  path  ="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileConcentration/reference/transferFunction"
+	  target="transferFunction"                                                                                                                                                  />
+  <!-- Remove the temporary copy of the original concentration model. -->
+  <change type="remove" path="concentrationTmp"/>
+  
+  <!-- Change the dark matter particle to a WDM particle -->
+  <change type="replace" path="darkMatterParticle">
+    <darkMatterParticle value="WDMThermal">
+      <degreesOfFreedomEffective value="1.5"/> <!-- Fiducial value from Bode et al. (2001;  http://adsabs.harvard.edu/abs/2001ApJ...556...93B).                                           -->
+      <mass                      value="6.1"/> <!-- Chosen to match the 10:1 posterior odds ratio limit from Keeley et al. (2024; https://ui.adsabs.harvard.edu/abs/2024MNRAS.535.1652K). -->
+    </darkMatterParticle>
+  </change>
+
+  <!-- Wrap the transfer function in one appropriate for warm dark matter. Specifically, the transfer function of Bode et
+       al. (2001; http://adsabs.harvard.edu/abs/2001ApJ...556...93B) along with the fit to the cut-off scale from Vogel &
+       Abazajian (2022; https://ui.adsabs.harvard.edu/abs/2023PhRvD.108d3520V) is used. -->
+  <change type="encapsulate" path="transferFunction">
+    <transferFunction value="bode2001">
+      <scaleCutOffModel value="vogel23SpinHalf"/>
+      <epsilon          value="1.000"          />
+      <eta              value="5.000"          />
+      <nu               value="1.049"          />
+    </transferFunction>
+  </change>
+  
+</changes>
