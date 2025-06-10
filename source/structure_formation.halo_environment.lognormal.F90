@@ -54,7 +54,9 @@ Implements a log-normal halo environment.
      procedure :: pdf                           => logNormalPDF
      procedure :: cdf                           => logNormalCDF
      procedure :: overdensityLinearSet          => logNormalOverdensityLinearSet
-  end type haloEnvironmentLogNormal
+     procedure :: isNodeDependent               => logNormalIsNodeDependent
+     procedure :: isTreeDependent               => logNormalIsTreeDependent
+   end type haloEnvironmentLogNormal
 
   interface haloEnvironmentLogNormal
      !!{
@@ -320,3 +322,26 @@ contains
     return
   end subroutine logNormalOverdensityLinearSet
 
+  logical function logNormalIsNodeDependent(self)
+    !!{
+    Return false as the environment is not dependent on the node.
+    !!}
+    implicit none
+    class(haloEnvironmentLogNormal), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    logNormalIsNodeDependent=.false.
+    return
+  end function logNormalIsNodeDependent
+
+  logical function logNormalIsTreeDependent(self)
+    !!{
+    Return false as the environment is dependent on the tree.
+    !!}
+    implicit none
+    class(haloEnvironmentLogNormal), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    logNormalIsTreeDependent=.true.
+    return
+  end function logNormalIsTreeDependent

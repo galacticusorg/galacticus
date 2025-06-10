@@ -49,6 +49,7 @@
      procedure :: gradientMass    => kitayamaSuto1996GradientMass
      procedure :: isMassDependent => kitayamaSuto1996IsMassDependent
      procedure :: isNodeDependent => kitayamaSuto1996IsNodeDependent
+     procedure :: isTreeDependent => kitayamaSuto1996IsTreeDependent
   end type criticalOverdensityKitayamaSuto1996
 
   interface criticalOverdensityKitayamaSuto1996
@@ -221,3 +222,15 @@ contains
     kitayamaSuto1996IsNodeDependent=.false.
     return
   end function kitayamaSuto1996IsNodeDependent
+
+  logical function kitayamaSuto1996IsTreeDependent(self)
+    !!{
+    Return whether the critical overdensity is tree dependent.
+    !!}
+    implicit none
+    class(criticalOverdensityKitayamaSuto1996), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    kitayamaSuto1996IsTreeDependent=.false.
+    return
+  end function kitayamaSuto1996IsTreeDependent

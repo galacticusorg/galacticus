@@ -68,6 +68,7 @@
      procedure :: retabulate      => sphericalCollapseBrynsDrkMttrDrkEnrgyRetabulate
      procedure :: isMassDependent => sphericalCollapseBrynsDrkMttrDrkEnrgyIsMassDependent
      procedure :: isNodeDependent => sphericalCollapseBrynsDrkMttrDrkEnrgyIsNodeDependent
+     procedure :: isTreeDependent => sphericalCollapseBrynsDrkMttrDrkEnrgyIsTreeDependent
   end type criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy
 
   interface criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy
@@ -350,3 +351,15 @@ contains
     sphericalCollapseBrynsDrkMttrDrkEnrgyIsNodeDependent=.false.
     return
   end function sphericalCollapseBrynsDrkMttrDrkEnrgyIsNodeDependent
+
+  logical function sphericalCollapseBrynsDrkMttrDrkEnrgyIsTreeDependent(self)
+    !!{
+    Return whether the critical overdensity is tree dependent.
+    !!}
+    implicit none
+    class(criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    sphericalCollapseBrynsDrkMttrDrkEnrgyIsTreeDependent=.false.
+    return
+  end function sphericalCollapseBrynsDrkMttrDrkEnrgyIsTreeDependent
