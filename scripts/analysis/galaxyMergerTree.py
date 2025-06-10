@@ -24,7 +24,7 @@ for property in propertyNames:
     properties[property] = properties[property][indexCentral]
 
 # Generate a color map to color nodes by their star formation rate.
-colorMap    = mpl.colormaps['coolwarm']
+colorMap    = mpl.colormaps['coolwarm_r']
 countColors = 100
 colors      = colorMap(np.linspace(1,0,countColors))
 
