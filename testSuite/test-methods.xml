@@ -24,7 +24,7 @@
   </slurm>
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:34"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <accretionDisks value="switched">
       <accretionDisksADAF value="ADAF"/>
       <accretionDisksShakuraSunyaev value="shakuraSunyaev"/>
@@ -35,14 +35,14 @@
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:34"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <galacticDynamicsBarInstability value="efstathiou1982"/>
     <galacticDynamicsBarInstability value="stable"/>
     <galacticDynamicsBarInstability value="efstathiou1982Tidal"/>
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <task value="multi">
       <task value="evolveForests"/>
       <task value="powerSpectra"/>
@@ -63,7 +63,7 @@
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <darkMatterProfileDMO value="NFW"/>
     <darkMatterProfileDMO value="isothermal"/>
     <darkMatterProfileDMO value="einasto">
@@ -129,7 +129,7 @@
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <darkMatterProfile value="darkMatterOnly"/>
     <galacticStructureSolver value="equilibrium">
       <darkMatterProfile value="adiabaticGnedin2004" parameterLevel="top"/>
@@ -140,7 +140,7 @@
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <haloMassFunction value="shethTormen"/>
     <haloMassFunction value="tinker2008"/>
     <haloMassFunction value="tinker2008Generic"/>
@@ -151,14 +151,14 @@
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <haloSpinDistribution value="bett2007"/>
     <haloSpinDistribution value="logNormal"/>
     <haloSpinDistribution value="deltaFunction"/>
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <chemicalState value="atomicCIECloudy"/>
     <chemicalState value="CIEFile">
       <fileName value="%DATASTATICPATH%/chemicalState/chemical_state_Atomic_CIE_Cloudy.hdf5"/>
@@ -168,7 +168,7 @@
   <!-- Tree construction methods -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <mergerTreeConstructor value="build">
       <redshiftBase value="0.0"/>
       <mergerTreeBuilder value="excursionSetSimulator">
@@ -483,7 +483,7 @@
   
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <satelliteMergingTimescales value="boylanKolchin2008"/>
     <satelliteMergingTimescales value="laceyCole1993"/>
     <satelliteMergingTimescales value="jiang2008"/>
@@ -495,7 +495,7 @@
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <!-- Use fairly strict limits on the outflow timescales to avoid unstable evolution. -->
     <diskOutflowTimescaleMinimum value="0.1"/>
     <spheroidOutflowTimescaleMinimum value="0.1"/>
@@ -504,12 +504,12 @@
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <stellarPopulationSpectra value="FSPS"/>
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <outputTimes value="list">
       <redshifts value="0.0 0.1"/>
     </outputTimes>
@@ -526,7 +526,7 @@
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <transferFunction value="file">
       <fileName value="%DATASTATICPATH%/largeScaleStructure/transferFunctionMillenniumSimulation.hdf5"/>
       <cosmologyParameters value="simple" parameterLevel="top">
@@ -557,7 +557,7 @@
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
     <virialDensityContrast value="bryanNorman1998"/>
     <virialDensityContrast value="fixed"/>
@@ -565,7 +565,7 @@
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <virialOrbit value="benson2005"/>
     <virialOrbit value="wetzel2010"/>
     <virialOrbit value="jiang2014"/>
@@ -578,7 +578,7 @@
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <starFormationRateDisks value="timescale">
       <starFormationTimescale value="dynamicalTime"/>
       <starFormationTimescale value="baugh2005"/>
@@ -598,13 +598,13 @@
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <mergerRemnantSize value="cole2000"/>
     <mergerRemnantSize value="covington2008"/>
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <darkMatterProfileConcentration value="gao2008"/>
     <darkMatterProfileConcentration value="zhao2009"/>
     <darkMatterProfileConcentration value="munozCuartas2011"/>
@@ -618,7 +618,7 @@
   <!-- Schneider 2015 concentration method -->
   <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+  <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <darkMatterProfileConcentration value="schneider2015">
       <reference value="" ignoreWarnings="true">
   	<criticalOverdensity value="fixed">
@@ -655,7 +655,7 @@
   <!-- Molecular hydrogen network and cooling. -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <chemicalReactionRate value="hydrogenNetwork">
       <fast value="true"/>
     </chemicalReactionRate>
@@ -673,7 +673,7 @@
   <!-- Black hole binary methods. -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <componentBlackHole value="nonCentral"/>
     <blackHoleAccretionRate value="standard">
       <bondiHoyleAccretionEnhancementSpheroid value="5.0e0"/>
@@ -708,7 +708,7 @@
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <componentBlackHole value="standard">
     <outputData value="true"/>
     <nodePropertyExtractor value="multi" parameterLevel="top">
@@ -727,7 +727,7 @@
   <!-- Cooling rate methods. -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <coolingRate value="whiteFrenk1991"/>
     <coolingRate value="cole2000">
       <coolingTimeAvailable value="whiteFrenk1991" parameterLevel="top"/>
@@ -790,7 +790,7 @@
   <!-- Spheroid comopnents. -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <componentSpheroid value="standard">
       <massDistributionSpheroid value="hernquist">
 	<dimensionless value="true"/>
@@ -805,7 +805,7 @@
   <!-- Black hole components. -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <componentBlackHole value="standard"/>
     <componentBlackHole value="simple">
       <blackHoleAccretionRate value="spheroidTracking" parameterLevel="top">
@@ -823,7 +823,7 @@
   <!-- Infall and freefall radii. -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <coolingInfallRadius value="coolingRadius"/>
     <coolingInfallRadius value="coolingFreefall">
       <freefallRadius value="darkMatterHalo"/>
@@ -882,7 +882,7 @@
   <!-- Cooling time available. -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <coolingTimeAvailable value="whiteFrenk1991"/>
     <coolingTimeAvailable value="formationTime">
       <nodeOperator value="multi" parameterLevel="top">
@@ -939,7 +939,7 @@
   <!-- Cooling specific angular momentum. -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <coolingSpecificAngularMomentum value="mean"/>
     <coolingSpecificAngularMomentum value="constantRotation">
       <sourceAngularMomentumSpecificMean value="hotGas">
@@ -953,7 +953,7 @@
   <!-- Subhalo mass loss rates. -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <darkMatterHaloMassLossRate value="zero"/>
     <darkMatterHaloMassLossRate value="vanDenBosch"/>
   </parameters>
@@ -961,7 +961,7 @@
   <!-- Merger mass movements. -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <mergerMassMovements value="simple"/>
     <mergerMassMovements value="baugh2005"/>
   </parameters>
@@ -969,7 +969,7 @@
   <!-- Star formation feedback. -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <nodeOperator value="multi">
       <!-- Cosmological epoch -->
       <nodeOperator value="cosmicTime" iterable="no"/>
@@ -1066,7 +1066,7 @@
   <!-- Expulsive feedback. -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <starFormationExpulsiveFeedbackDisks value="zero"/>
     <starFormationExpulsiveFeedbackDisks value="superWind">
       <starFormationExpulsiveFeedbackSpheroids value="zero" parameterLevel="top"/>
@@ -1077,7 +1077,7 @@
   <!-- Test different IMFs -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <stellarPopulationSelector value="fixed">
       <imfSelectionFixed value="Baugh2005TopHeavy" parameterLevel="top"/>
       <imfSelectionFixed value="Chabrier" parameterLevel="top"/>
@@ -1104,7 +1104,7 @@
   <!-- Hot halo density profile -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <hotHaloMassDistribution value="ricotti2000"/>
     <hotHaloMassDistribution value="betaProfile">
       <hotHaloMassDistributionCoreRadius value="virialFraction"/>
@@ -1115,7 +1115,7 @@
   <!-- Output bar instability properties -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <nodePropertyExtractor value="multi">
       <nodePropertyExtractor value="adiabaticRatioOrbitalDisk" iterable="no"/>
       <nodePropertyExtractor value="timescaleBarInstability" iterable="no"/>
@@ -1125,7 +1125,7 @@
   <!-- Output density contrasts -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <nodePropertyExtractor value="densityContrasts">
       <densityContrasts value="200 500"/>
     </nodePropertyExtractor>
@@ -1134,7 +1134,7 @@
   <!-- Output half-light radii -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <outputTimes value="list">
       <redshifts value="0.0 0.1"/>
     </outputTimes>
@@ -1147,14 +1147,14 @@
   <!-- Output main branch -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <nodePropertyExtractor value="mainBranchStatus"/>
   </parameters>
 
   <!-- Output star formation rates -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <nodePropertyExtractor value="multi">
       <nodePropertyExtractor value="starFormationRate">
   	<component value="disk"/>
@@ -1168,21 +1168,21 @@
   <!-- Output star formation histories -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <starFormationHistory value="metallicitySplit"/>
   </parameters>
 
   <!-- Output virial quantities -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <nodePropertyExtractor value="virialProperties"/>
   </parameters>
   
   <!-- Output descendant indices -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <nodePropertyExtractor value="descendants"/>
     <componentSatellite value="standard"/>
   </parameters>
@@ -1190,14 +1190,14 @@
   <!-- Output most massive progenitors -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <nodePropertyExtractor value="mostMassiveProgenitor"/>
   </parameters>
   
   <!-- Calculation of luminosities -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <outputTimes value="list">
       <redshifts value="0.0 0.1"/>
     </outputTimes>
@@ -1212,7 +1212,7 @@
   <!-- Calculation of luminosities at all output redshifts -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <luminosityFilter value="RGO_I SDSS_g SDSS_r SDSS_i"/>
     <luminosityType value="rest observed observed observed"/>
     <luminosityRedshift value="all all all all"/>
@@ -1224,7 +1224,7 @@
   <!-- Calculation of luminosities with top-hat filters -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <luminosityFilter value="fixedResolutionTopHat_2000_10 fixedResolutionTopHat_4000_5 fixedResolutionTopHat_6000_3 fixedResolutionTopHat_7000_2"/>
     <luminosityType value="rest rest rest rest"/>
     <luminosityRedshift value="0.0 0.0 0.0 0.0"/>
@@ -1236,7 +1236,7 @@
   <!-- Calculation of luminosities with array of top-hat filters -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <luminosityFilter value="fixedResolutionTopHat_2000_7000_10"/>
     <luminosityType value="rest"/>
     <luminosityRedshift value="0.0"/>
@@ -1248,7 +1248,7 @@
   <!-- Black hole wind efficiencies -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <componentBlackHole value="standard">
       <efficiencyWindScalesWithEfficiencyRadiative value="false"/>
       <efficiencyWindScalesWithEfficiencyRadiative value="true"/>
@@ -1258,7 +1258,7 @@
   <!-- Hot halo ram pressure forces -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <hotHaloRamPressureForce value="font2008"/>
     <hotHaloRamPressureForce value="zero"/>
   </parameters>
@@ -1266,7 +1266,7 @@
   <!-- Hot halo ram pressure mass loss rates -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <hotHaloRamPressureForce value="font2008"/>
     <hotHaloRamPressureTimescale value="haloDynamicalTime"/>
     <hotHaloRamPressureTimescale value="ramPressureAcceleration"/>
@@ -1275,7 +1275,7 @@
   <!-- Disk and spheroid ram pressure mass loss rates -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <nodeOperator value="multi">
       <!-- Cosmological epoch -->
       <nodeOperator value="cosmicTime" iterable="no"/>
@@ -1330,7 +1330,7 @@
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <nodeOperator value="multi">
       <!-- Cosmological epoch -->
       <nodeOperator value="cosmicTime" iterable="no"/>
@@ -1386,7 +1386,7 @@
   <!-- Disk and spheroid tidal mass loss rates -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <nodeOperator value="multi">
       <!-- Cosmological epoch -->
       <nodeOperator value="cosmicTime" iterable="no"/>
@@ -1441,7 +1441,7 @@
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <nodeOperator value="multi">
       <!-- Cosmological epoch -->
       <nodeOperator value="cosmicTime" iterable="no"/>
@@ -1499,7 +1499,7 @@
   <!-- Power spectrum window function methods -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <powerSpectrumWindowFunction value="topHat"/>
     <powerSpectrumWindowFunction value="sharpKSpace">
       <normalization value="2.5"/>
@@ -1520,7 +1520,7 @@
   <!-- Power spectrum normalization methods -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <cosmologicalMassVariance value="filteredPower">
       <sigma_8 value="0.807"/>
     </cosmologicalMassVariance>
@@ -1532,7 +1532,7 @@
   <!-- Dark energy cosmology -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <cosmologyFunctions value="matterDarkEnergy">
       <darkEnergyEquationOfStateW0 value="-0.8"/>
       <darkEnergyEquationOfStateW1 value="0.0"/>
@@ -1546,7 +1546,7 @@
   <!-- Intergalactic medium state and internal background calculation -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <backgroundRadiationCompute value="true"/>
     <intergalacticMediumState value="recFast"/>
     <intergalacticMediumState value="file">
@@ -1558,7 +1558,7 @@
   <!-- Hot halo options -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <componentHotHalo value="standard"/>
     <componentHotHalo value="verySimple">
       <coolingRate value="simple" parameterLevel="top"/>
@@ -1610,7 +1610,7 @@
   <!-- Internal IGM evolution -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <!-- IGM evolver -->
     <intergalacticMediumState value="internal"/>
     <universeOperator value="intergalacticMediumStateEvolve">
@@ -1639,7 +1639,7 @@
   <!-- Merger tree branching algorithms -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <mergerTreeBranchingProbability value="parkinsonColeHelly">
       <G0 value="+0.57"/>
       <gamma1 value="+0.38"/>
@@ -1658,7 +1658,7 @@
   <!-- Detailed satellite orbits -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <mergerTreeBuildMasses value="sampledDistributionUniform">
       <treesPerDecade value="4"/>
       <massTreeMinimum value="1.0e12"/>
@@ -1775,7 +1775,7 @@
   <!-- Merger tree augmenting -->
   <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+  <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <accretionHalo value="zero"/>
     <darkMatterProfileDMO value="isothermal"/>
     <darkMatterProfileConcentration value="fixed">
@@ -1871,7 +1871,7 @@
   <!-- Merger tree regridding -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <accretionHalo value="zero"/>
     <darkMatterProfileDMO value="isothermal"/>
     <darkMatterProfileConcentration value="fixed">
@@ -1927,7 +1927,7 @@
   <!-- Merger tree conditional mass function -->
   <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+  <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <accretionHalo value="zero"/>
     <darkMatterProfileDMO value="isothermal"/>
     <hotHaloMassDistribution value="null"/>
@@ -1986,7 +1986,7 @@
   <!-- Merger tree information content -->
   <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+  <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <accretionHalo value="zero"/>
     <darkMatterProfileDMO value="isothermal"/>
     <hotHaloMassDistribution value="null"/>
@@ -2034,7 +2034,7 @@
   <!-- Merger tree profiler -->
   <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+  <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <accretionHalo value="zero"/>
     <darkMatterProfileDMO value="isothermal"/>
     <hotHaloMassDistribution value="null"/>
@@ -2085,7 +2085,7 @@
   <!-- Merger tree prune by mass -->
   <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+  <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <accretionHalo value="zero"/>
     <darkMatterProfileDMO value="isothermal"/>
     <hotHaloMassDistribution value="null"/>
@@ -2135,7 +2135,7 @@
   <!-- Merger tree prune by hierarchy -->
   <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+  <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <accretionHalo value="zero"/>
     <darkMatterProfileDMO value="isothermal"/>
     <hotHaloMassDistribution value="null"/>
@@ -2185,7 +2185,7 @@
   <!-- Merger tree prune by time -->
   <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+  <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <accretionHalo value="zero"/>
     <darkMatterProfileDMO value="isothermal"/>
     <hotHaloMassDistribution value="null"/>
@@ -2235,7 +2235,7 @@
   <!-- Merger tree particulate -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <accretionHalo value="zero"/>
     <darkMatterProfileDMO value="isothermal"/>
     <hotHaloMassDistribution value="null"/>
@@ -2290,7 +2290,7 @@
   <!-- Merger tree dump-to-GraphViz -->
   <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:35"/>
+  <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <accretionHalo value="zero"/>
     <darkMatterProfileDMO value="isothermal"/>
     <hotHaloMassDistribution value="null"/>
@@ -2340,7 +2340,7 @@
   <!-- Merger tree perturb masses -->
   <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:36"/>
+  <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <accretionHalo value="zero"/>
     <darkMatterProfileDMO value="isothermal"/>
     <darkMatterProfileScaleRadius value="zero"/>
@@ -2406,7 +2406,7 @@
   <!-- Merger tree monotonize mass growth -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:36"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <accretionHalo value="zero"/>
     <darkMatterProfileDMO value="isothermal"/>
     <darkMatterProfileScaleRadius value="zero"/>
@@ -2468,7 +2468,7 @@
   <!-- Merger tree output root masses -->
   <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:36"/>
+  <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <accretionHalo value="zero"/>
     <darkMatterProfileDMO value="isothermal"/>
     <darkMatterProfileScaleRadius value="zero"/>
@@ -2535,7 +2535,7 @@
   <!-- WDM model -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:36"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <nodeOperator value="multi">
       <!-- Cosmological epoch -->
       <nodeOperator value="cosmicTime" iterable="no"/>
@@ -2704,7 +2704,7 @@
   <!-- Power spectrum calculation -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:36"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <task value="powerSpectra">
       <wavenumberMinimum value="1.0e-3"/>
       <wavenumberMaximum value="1.0e+3"/>
@@ -2726,7 +2726,7 @@
   <!-- Broadband luminosity tabulation -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:36"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <task value="buildBroadbandLuminosityTabulations"/>
     <outputTimes value="list">
       <redshifts value="0.0 1.0"/>
@@ -2739,7 +2739,7 @@
   <!-- Assign positions to subhalos -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:36"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <componentPosition value="cartesian"/>
     <nodeOperator value="multi">
       <!-- Cosmological epoch -->
@@ -2794,7 +2794,7 @@
   <!-- Output time options -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:36"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <outputTimes value="list">
       <redshifts value="0.0 0.2 0.4"/>
     </outputTimes>

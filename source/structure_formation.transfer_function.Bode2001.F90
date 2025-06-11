@@ -34,8 +34,8 @@ Implements a transfer function class based on the thermal \gls{wdm} modifier of 
    <entry label="bode2001"              />
    <entry label="barkana2001"           />
    <entry label="viel05"                />
-   <entry label="vogel22SpinHalf"       />
-   <entry label="vogel22SpinThreeHalves"/>
+   <entry label="vogel23SpinHalf"       />
+   <entry label="vogel23SpinThreeHalves"/>
   </enumeration>
   !!]
 
@@ -118,7 +118,7 @@ contains
       <name>scaleCutOffModel</name>
       <source>parameters</source>
       <defaultValue>var_str('barkana2001')</defaultValue>
-      <description>The model to use to compute the cut-off scale, either ``{\normalfont \ttfamily bode2001}'' to use the fitting function given by equation~A9 of \cite{bode_halo_2001}, ``{\normalfont \ttfamily barkana2001}'' to use the fitting function given by equation~(4) of \cite{barkana_constraints_2001}, ``{\normalfont \ttfamily viel05}'' to use the fitting function given by equation~(7) of \cite{viel_constraining_2005}, or ``{\normalfont \ttfamily vogel22spinHalf}'' or ``{\normalfont \ttfamily vogel22spinThreeHalves}'' to use the fitting function given by equation~(9) of \cite{vogel_entering_2022} for spin-1/2 or spin-3/2 particles respectively.</description>
+      <description>The model to use to compute the cut-off scale, either ``{\normalfont \ttfamily bode2001}'' to use the fitting function given by equation~A9 of \cite{bode_halo_2001}, ``{\normalfont \ttfamily barkana2001}'' to use the fitting function given by equation~(4) of \cite{barkana_constraints_2001}, ``{\normalfont \ttfamily viel05}'' to use the fitting function given by equation~(7) of \cite{viel_constraining_2005}, or ``{\normalfont \ttfamily vogel23spinHalf}'' or ``{\normalfont \ttfamily vogel23spinThreeHalves}'' to use the fitting function given by equation~(9) of \cite{vogel_entering_2023} for spin-1/2 or spin-3/2 particles respectively.</description>
     </inputParameter>
     <inputParameter>
       <name>epsilon</name>
@@ -239,8 +239,8 @@ contains
                &           /  self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)           &
                &           /(particle%mass                     ()/            massReference)**1.11d0
 
-       case (scaleCutOffModelVogel22SpinHalf       %ID)
-          ! This uses equation (9) from Vogel & Azabajian (2022; https://ui.adsabs.harvard.edu/abs/2022arXiv221010753V) with parameters for spin-1/2 particles.
+       case (scaleCutOffModelVogel23SpinHalf       %ID)
+          ! This uses equation (9) from Vogel & Azabajian (2023; https://ui.adsabs.harvard.edu/abs/2023PhRvD.108d3520V) with parameters for spin-1/2 particles.
           self%scaleCutOff=+0.0437d0                                                                  &
                &           *(                                                                         &
                &             +(                                                                       &
@@ -256,8 +256,8 @@ contains
                &            )**2.012d0                                                                &
                &           /    self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)          &
                &           /(particle%mass                     ()/            massReference)**1.188d0
-       case (scaleCutOffModelVogel22SpinThreeHalves%ID)
-          ! This uses equation (9) from Vogel & Azabajian (2022; https://ui.adsabs.harvard.edu/abs/2022arXiv221010753V) with parameters for spin-3/2 particles.
+       case (scaleCutOffModelVogel23SpinThreeHalves%ID)
+          ! This uses equation (9) from Vogel & Azabajian (2023; https://ui.adsabs.harvard.edu/abs/2023PhRvD.108d3520V) with parameters for spin-3/2 particles.
           self%scaleCutOff=+0.0345d0                                                                  &
                &           *(                                                                         &
                &             +(                                                                       &

@@ -15,7 +15,7 @@
 
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15" time="2025-06-06T15:04:58"/>
+    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
 
     <!-- Component selection -->
     <componentBasic value="standard"/>
