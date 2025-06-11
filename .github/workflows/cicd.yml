@@ -1446,28 +1446,28 @@ jobs:
           source virtualenv/bin/activate
       - name: Install Python packages
         run: |
-          ${GITHUB_WORKSPACE}/virtualenv/pip3 install --upgrade pip
-          ${GITHUB_WORKSPACE}/virtualenv/pip3 install --upgrade TensorFlow tensorflow_probability tf_keras matplotlib scipy lenstronomy tqdm colossus mcfit
+          ${GITHUB_WORKSPACE}/virtualenv/bin/pip3 install --upgrade pip
+          ${GITHUB_WORKSPACE}/virtualenv/bin/pip3 install --upgrade TensorFlow tensorflow_probability tf_keras matplotlib scipy lenstronomy tqdm colossus mcfit
       - name: Install Samana
         run: |
           git clone https://github.com/dangilman/samana.git
           cd samana
-          ${GITHUB_WORKSPACE}/virtualenv/python3 setup.py install
+          ${GITHUB_WORKSPACE}/virtualenv/bin/python3 setup.py install
           cd -
       - name: Install pyHalo
         run: |
           git clone https://github.com/dangilman/pyHalo.git
           cd pyHalo
-          ${GITHUB_WORKSPACE}/virtualenv/python3 setup.py install
+          ${GITHUB_WORKSPACE}/virtualenv/bin/python3 setup.py install
           cd -
       - name: Generate training data
         run: |
           mkdir -p testSuite/outputs/emulation-subhalos
           ./Galacticus.exe testSuite/parameters/emulation-lensSubhalos.xml
       - name: Train the emulator
-        run: ${GITHUB_WORKSPACE}/virtualenv/python3 scripts/emulation/emulatorSubhalosTraining.py testSuite/outputs/emulation-lensSubhalos.hdf5 --outputDirectory testSuite/outputs/emulation-subhalos
+        run: ${GITHUB_WORKSPACE}/virtualenv/bin/python3 scripts/emulation/emulatorSubhalosTraining.py testSuite/outputs/emulation-lensSubhalos.hdf5 --outputDirectory testSuite/outputs/emulation-subhalos
       - name: Perform a test inference
-        run: ${GITHUB_WORKSPACE}/virtualenv/python3 scripts/emulation/emulatorSubhaloQuadLensingInference.py --outputDirectory testSuite/outputs/emulation-subhalos
+        run: ${GITHUB_WORKSPACE}/virtualenv/bin/python3 scripts/emulation/emulatorSubhaloQuadLensingInference.py --outputDirectory testSuite/outputs/emulation-subhalos
       - name: Upload plots
         uses: actions/upload-artifact@v4
         with:
