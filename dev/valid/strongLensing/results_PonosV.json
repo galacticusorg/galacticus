@@ -4,12 +4,12 @@ window.PONOSV_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@obs.carnegiescience.edu"
+            "email": "abenson@carnegiescience.edu"
         },
-        "id": "0bbebfa537baba1f793f8b0698531b9c69f62663",
-        "message": "fix: Match case in keywords in `Dockerfile` to avoid warnings\n",
-        "timestamp": "2025-06-06 10:27:18-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/0bbebfa537baba1f793f8b0698531b9c69f62663"
+        "id": "86090c048fff80b04a7e4470889e0a2b3830a8a9",
+        "message": "fix: Correct the name of the output directory\n",
+        "timestamp": "2025-06-10 09:11:56-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/86090c048fff80b04a7e4470889e0a2b3830a8a9"
     },
     "surfaceDensity": {
         "percentageBelow": 35.71428571428571,
@@ -17,8 +17,8 @@ window.PONOSV_DATA = {
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 53.84615384615385,
-        "percentageAbove": 46.15384615384615,
+        "percentageBelow": 58.333333333333336,
+        "percentageAbove": 41.666666666666664,
         "target": 0.85
     }
 }
