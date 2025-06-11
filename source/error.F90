@@ -66,7 +66,18 @@ module Error
   integer, parameter, public :: errorStatusMaxIterations=GSL_eMaxIter ! Maximum iterations exceeded.
   integer, parameter, public :: errorStatusXCPU         =1025         ! CPU time limit exceeded.
   integer, parameter, public :: errorStatusNotExist     =1026         ! Entity does not exist.
-
+  
+  !![
+  <constant variable="Kernel_EACCES"       kernelSymbol="EACCES"       kernelHeader="errno" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html" description="Error code for permission denied."             group="Kernel"/>
+  <constant variable="Kernel_ELOOP"        kernelSymbol="ELOOP"        kernelHeader="errno" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html" description="Error code for loop exists in symbolic links." group="Kernel"/>
+  <constant variable="Kernel_EMLINK"       kernelSymbol="EMLINK"       kernelHeader="errno" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html" description="Error code for too many links."                group="Kernel"/>
+  <constant variable="Kernel_ENAMETOOLONG" kernelSymbol="ENAMETOOLONG" kernelHeader="errno" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html" description="Error code for name too long."                 group="Kernel"/>
+  <constant variable="Kernel_ENOENT"       kernelSymbol="ENOENT"       kernelHeader="errno" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html" description="Error code for non-existant directory."        group="Kernel"/>
+  <constant variable="Kernel_ENOSPC"       kernelSymbol="ENOSPC"       kernelHeader="errno" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html" description="Error code for no space on file system."       group="Kernel"/>
+  <constant variable="Kernel_ENOTDIR"      kernelSymbol="ENOTDIR"      kernelHeader="errno" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html" description="Error code for not a directory."               group="Kernel"/>
+  <constant variable="Kernel_EROFS"        kernelSymbol="EROFS"        kernelHeader="errno" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html" description="Error code for read only file system."         group="Kernel"/>
+  !!]
+  
   ! Time to wait after errors under MPI.
   integer                    :: errorWaitTime          =86400
 
