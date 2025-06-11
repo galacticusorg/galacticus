@@ -591,7 +591,7 @@ contains
           collapseTimeRoot=globalSelf%criticalOverdensityTarget-globalSelf                          %value       (time=time                     ,node=globalSelf%node) &
                &                                               /globalSelf%linearGrowth_            %value       (time=time                                          )
        else
-          collapseTimeRoot=globalSelf%criticalOverdensityTarget-globalSelf                          %value       (time=time                                          ) &
+          collapseTimeRoot=globalSelf%criticalOverdensityTarget-globalSelf                          %value       (time=time                     ,node=globalSelf%node) &
                &                                               /globalSelf%linearGrowth_            %value       (time=time                                          )
        end if
     end if
