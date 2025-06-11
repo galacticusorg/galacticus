@@ -389,19 +389,19 @@ contains
     updateResult=.false.
     if (criticalOverdensity /= self%criticalOverdensityPrevious) updateResult=.true.
     if (self%massPresent) then
-       if (mass                     /= self%massPrevious) updateResult=.true.
+       if (mass                              /= self%massPrevious) updateResult=.true.
     else
-       if (-huge(0.0d0)             /= self%massPrevious) updateResult=.true.
+       if (-huge(0.0d0)                      /= self%massPrevious) updateResult=.true.
     end if
     if (self%nodePresent) then
-       if (node         %uniqueID() /= self%lastUniqueID) updateResult=.true.
+       if (node                  %uniqueID() /= self%lastUniqueID) updateResult=.true.
     else
-       if (-1_kind_int8             /= self%lastUniqueID) updateResult=.true.
+       if (-1_kind_int8                      /= self%lastUniqueID) updateResult=.true.
     end if
     if (self%treePresent) then
-       if (node%hostTree%index      /= self%lastTreeID  ) updateResult=.true.
+       if (node%hostTree%nodeBase%uniqueID() /= self%lastTreeID  ) updateResult=.true.
     else
-       if (-1_kind_int8             /= self%lastTreeID  ) updateResult=.true.
+       if (-1_kind_int8                      /= self%lastTreeID  ) updateResult=.true.
     end if
      ! Recompute memoized value if necessary.
     if (updateResult) then
@@ -466,11 +466,11 @@ contains
           ! There is no dependency on mass, or the node. If there is dependency on the tree, then, if the tree differs from the
           ! previously seen case we must destroy the previously made table, as our tree has changed.
           if (self%treePresent) then
-             if (node%hostTree%index /= self%lastTreeID) then
+             if (node%hostTree%nodeBase%uniqueID() /= self%lastTreeID) then
                 self%collapseThresholdInitialized=.false.
                 call self%collapseThreshold%destroy()
              end if
-             self%lastTreeID  =node%hostTree%index
+             self%lastTreeID  =node%hostTree%nodeBase%uniqueID()
           else
              self%lastTreeID  =-1_kind_int8
           end if
@@ -624,8 +624,8 @@ contains
     integer(kind_int8               ), intent(in   ) :: uniqueID
     !$GLC attributes unused :: node
 
-    self%lastUniqueID=              uniqueID
-    self%lastTreeID  =node%hostTree%index
+    self%lastUniqueID=                       uniqueID
+    self%lastTreeID  =node%hostTree%nodeBase%uniqueID()
     return
   end subroutine criticalOverdensityCalculationReset
 
