@@ -15,7 +15,7 @@
        Therefore, we first copy in the CDM power spectrum, window function, critical overdensity, and cosmological mass variance
        classes to the Diemer & Joyce concentration model. This ensures that these will remain unchanged at their CDM form as we
        modify other parameters. -->
-  <!-- First append empty instances of these to the Dimer & Joyce concentration model. -->
+  <!-- First append empty instances of these to the Diemer & Joyce concentration model. -->
   <change type="append" path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileConcentration">
     <cosmologicalMassVariance/>
   </change>
