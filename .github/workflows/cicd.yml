@@ -1431,11 +1431,6 @@ jobs:
         with:
           repository: galacticusorg/datasets
           path: datasets
-      - name: Check out repository emulation
-        uses: actions/checkout@v4      
-        with:
-          repository: galacticusorg/emulation
-          path: emulation
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
