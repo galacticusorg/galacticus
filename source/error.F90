@@ -749,37 +749,30 @@ contains
     !!{
     Return the command line used to run this model.
     !!}
-    use :: ISO_Varying_String, only : varying_string, assignment(=), operator(//)
+    use :: ISO_Varying_String, only : varying_string, assignment(=)
     implicit none
     type   (varying_string) :: commandLine
     integer                 :: length     , statusLength, &
-         &                     i          , statusGet
+         &                     statusGet
 
-    commandLine=""
-    do i=0,1
-       call Get_Command_Argument(i,length=length,status=statusLength)
-       if (i > 0) commandLine=commandLine//" "
-       commandLine=commandLine//commandLineArgumentUnlimited(i,length,statusGet)
-       if (statusLength /= 0 .or. statusGet /= 0) then
-          commandLine="????????"
-          return
-       end if
-    end do
+    call Get_Command(length=length,status=statusLength)
+    commandLine=commandLineUnlimited(length,statusGet)
+    if (statusLength /= 0 .or. statusGet /= 0) commandLine="????????"
     return
   end function commandLine
 
-  function commandLineArgumentUnlimited(number,length,status) result(argument)
+  function commandLineUnlimited(length,status) result(argument)
     !!{
-    Get a command line argument of unlimited length.
+    Get the full command line of unlimited length.
     !!}
     implicit none
-    integer              , intent(in   ) :: number  , length
+    integer              , intent(in   ) :: length
     integer              , intent(  out) :: status
     character(len=length)                :: argument
 
-    call Get_Command_Argument(number,value=argument,status=status)
+    call Get_Command(command=argument,status=status)
     return
-  end function commandLineArgumentUnlimited
+  end function commandLineUnlimited
 
   subroutine signalHandlerRegister(handler)
     !!{
