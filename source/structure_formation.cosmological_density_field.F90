@@ -624,8 +624,11 @@ contains
     integer(kind_int8               ), intent(in   ) :: uniqueID
     !$GLC attributes unused :: node
 
-    self%lastUniqueID=                       uniqueID
-    self%lastTreeID  =node%hostTree%nodeBase%uniqueID()
+    self%lastUniqueID=uniqueID
+    self%lastTreeID  =-1_kind_int8
+    if (associated(node%hostTree)) then
+       if (associated(node%hostTree%nodeBase)) self%lastTreeID=node%hostTree%nodeBase%uniqueID()
+    end if
     return
   end subroutine criticalOverdensityCalculationReset
 
