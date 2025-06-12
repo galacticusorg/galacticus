@@ -1467,6 +1467,7 @@ jobs:
       - name: Generate training data
         run: |
           mkdir -p testSuite/outputs/emulation-subhalos
+          chmod u=wrx ./Galacticus.exe
           ./Galacticus.exe testSuite/parameters/emulation-lensSubhalos.xml
       - name: Train the emulator
         run: ${GITHUB_WORKSPACE}/virtualenv/bin/python3 scripts/emulation/emulatorSubhalosTraining.py testSuite/outputs/emulation-subhalos/emulation-lensSubhalos.hdf5 --outputDirectory testSuite/outputs/emulation-subhalos
