@@ -829,7 +829,7 @@ jobs:
       runPath: ./testSuite
       cacheData: 0
       uploadFile: ./testSuite/outputs/*.json
-      uploadName: validate-darkMatterOnlySubhalos-Symphony
+      uploadName: validate-darkMatterOnlySubhalosSymphonyMilkyWay
     secrets: inherit
   Validate-Milky-Way-Model:
     needs: Build-Executable-Linux
