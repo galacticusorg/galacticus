@@ -1469,7 +1469,7 @@ jobs:
           mkdir -p testSuite/outputs/emulation-subhalos
           ./Galacticus.exe testSuite/parameters/emulation-lensSubhalos.xml
       - name: Train the emulator
-        run: ${GITHUB_WORKSPACE}/virtualenv/bin/python3 scripts/emulation/emulatorSubhalosTraining.py testSuite/outputs/emulation-lensSubhalos.hdf5 --outputDirectory testSuite/outputs/emulation-subhalos
+        run: ${GITHUB_WORKSPACE}/virtualenv/bin/python3 scripts/emulation/emulatorSubhalosTraining.py testSuite/outputs/emulation-subhalos/emulation-lensSubhalos.hdf5 --outputDirectory testSuite/outputs/emulation-subhalos
       - name: Perform a test inference
         run: ${GITHUB_WORKSPACE}/virtualenv/bin/python3 scripts/emulation/emulatorSubhaloQuadLensingInference.py --outputDirectory testSuite/outputs/emulation-subhalos
       - name: Upload plots
