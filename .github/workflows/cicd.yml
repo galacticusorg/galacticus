@@ -831,6 +831,18 @@ jobs:
       uploadFile: ./testSuite/outputs/*.json
       uploadName: validate-darkMatterOnlySubhalosSymphonyMilkyWay
     secrets: inherit
+  Validate-Dark-Matter-Only-Subhalos-COZMICWDM3keV:
+    needs: Build-Executable-DMO-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-darkMatterOnlySubhalos-COZMIC:WDM:3keV.py
+      artifact: galacticus-exec-dmo
+      runPath: ./testSuite
+      cacheData: 0
+      uploadFile: ./testSuite/outputs/*.json
+      uploadName: validate-darkMatterOnlySubhalosCOZMICWDM3keVMilkyWay
+    secrets: inherit
   Validate-Milky-Way-Model:
     needs: Build-Executable-Linux
     uses: ./.github/workflows/testModel.yml
@@ -1505,7 +1517,7 @@ jobs:
   # Validate, deploy and update
   Validate:
     runs-on: ubuntu-latest
-    needs: [ Benchmark-Dark-Matter-Only-Subhalos, Benchmark-Milky-Way-Model, Validate-Dark-Matter-Only-Subhalos, Validate-Dark-Matter-Only-Subhalos-Symphony, Validate-Milky-Way-Model, Validate-PonosV, Validate-Baryonic-Suppression, Validate-Idealized-Subhalo-Simulations, Validate-Decaying-Dark-Matter-Only-Subhalos ]
+    needs: [ Benchmark-Dark-Matter-Only-Subhalos, Benchmark-Milky-Way-Model, Validate-Dark-Matter-Only-Subhalos, Validate-Dark-Matter-Only-Subhalos-Symphony, Validate-Dark-Matter-Only-Subhalos-COZMICWDM3keV, Validate-Milky-Way-Model, Validate-PonosV, Validate-Baryonic-Suppression, Validate-Idealized-Subhalo-Simulations, Validate-Decaying-Dark-Matter-Only-Subhalos ]
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
