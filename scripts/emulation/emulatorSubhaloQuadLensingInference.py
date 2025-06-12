@@ -55,7 +55,6 @@ def emulator_data(emulator = emulator, minArray = minArray, maxArray = maxArray,
         xt         = norm_transform_inv(x, minArray, maxArray, -1, 1)
         filter     = (xt[:,0] > np.log10(2.0*massResolution/massTree)) & (xt[:,2] <= 0.0) & (xt[:,2] > -xt[:,0]+np.log10(massResolution/massTree)) & (xt[:,3] >= redshiftTree) & (xt[:,2] < np.log10(1e9/(massTree*10**xt[:,0])))
         data       = np.vstack((data,xt[filter]))
-        increment += 1
     if len(data) < countSubhalo:
         sys.exit('failed to generate sufficient subhalos')
     # Truncate the number of subhalos to the required number.
@@ -95,7 +94,7 @@ kwargs_sample_realization['log_mlow'                 ] = ['FIXED',  6.0         
 kwargs_sample_realization['log_mhigh'                ] = ['FIXED',  9.0         ]
 kwargs_sample_realization['sigma_sub'                ] = ['FIXED',  0.0         ]
 kwargs_sample_realization['log_mc'                   ] = ['FIXED',  4.0         ]
-kwargs_sample_realization['emulator_input'           ] = ['FIXED', emulator_data]
+kwargs_sample_realization['emulator_data_function'   ] = ['FIXED', emulator_data]
 
 # Source options.
 kwargs_sample_source      = {'source_size_pc': ['FIXED', 5]}
