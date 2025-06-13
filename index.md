@@ -11,6 +11,8 @@ Here you can find:
 
 * Benchmark and validation metrics for:
     * [Dark matter-only subhalos](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalos/)
+    * [Dark matter-only subhalos (Symphony Milky Way)](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosSymphonyMilkyWay/)
+    * [Dark matter-only subhalos (COZMIC Milky Way WDM 3keV)](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWay/)
     * Decaying dark matter-only subhalos (see [Nadler & Benson (2025)](https://ui.adsabs.harvard.edu/abs/2025arXiv250112636N) for details)
 	    * [τ=10 Gyr; vₖ=20 km/s](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalos_decayingDarkMatter_lifetime10.0_velocityKick20.0/index.html)
 	    * [τ=20 Gyr; vₖ=20 km/s](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalos_decayingDarkMatter_lifetime20.0_velocityKick20.0/index.html)
