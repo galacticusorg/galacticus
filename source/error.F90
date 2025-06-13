@@ -169,7 +169,7 @@ contains
        call Sleep(errorWaitTime)
     end if
 #endif
-    call  Abort()
+    call  Exit(1)
 #endif
     return
   end subroutine Error_Report_Char
@@ -303,7 +303,7 @@ contains
     call Flush      (output_unit)
     call Flush      ( error_unit)
 #ifdef UNCLEANEXIT
-    call Exit(1)
+    call Exit(2)
 #else
 #ifdef USEMPI
     call MPI_Initialized(flag,error)
@@ -317,7 +317,7 @@ contains
        call Sleep(errorWaitTime)
     end if
 #endif
-    call Abort()
+    call Exit(2)
 #endif
     return
   end subroutine Signal_Handler_SIGINT
@@ -361,7 +361,7 @@ contains
     call Flush      (output_unit)
     call Flush      ( error_unit)
 #ifdef UNCLEANEXIT
-    call Exit(1)
+    call Exit(11)
 #else
 #ifdef USEMPI
     call MPI_Initialized(flag,error)
@@ -375,7 +375,7 @@ contains
        call Sleep(errorWaitTime)
     end if
 #endif
-    call Abort()
+    call Exit(11)
 #endif
     return
   end subroutine Signal_Handler_SIGSEGV
@@ -419,7 +419,7 @@ contains
     call Flush      (output_unit)
     call Flush      ( error_unit)
 #ifdef UNCLEANEXIT
-    call Exit(1)
+    call Exit(8)
 #else
 #ifdef USEMPI
     call MPI_Initialized(flag,error)
@@ -433,7 +433,7 @@ contains
        call Sleep(errorWaitTime)
     end if
 #endif
-    call Abort()
+    call Exit(8)
 #endif
     return
   end subroutine Signal_Handler_SIGFPE
@@ -477,7 +477,7 @@ contains
     call Flush      (output_unit)
     call Flush      ( error_unit)
 #ifdef UNCLEANEXIT
-    call Exit(1)
+    call Exit(7)
 #else
 #ifdef USEMPI
     call MPI_Initialized(flag,error)
@@ -491,7 +491,7 @@ contains
        call Sleep(errorWaitTime)
     end if
 #endif
-    call Abort()
+    call Exit(7)
 #endif
     return
   end subroutine Signal_Handler_SIGBUS
@@ -535,7 +535,7 @@ contains
     call Flush      (output_unit)
     call Flush      ( error_unit)
 #ifdef UNCLEANEXIT
-    call Exit(1)
+    call Exit(4)
 #else
 #ifdef USEMPI
     call MPI_Initialized(flag,error)
@@ -549,7 +549,7 @@ contains
        call Sleep(errorWaitTime)
     end if
 #endif
-    call Abort()
+    call Exit(4)
 #endif
     return
   end subroutine Signal_Handler_SIGILL
@@ -636,7 +636,7 @@ contains
           call Sleep(errorWaitTime)
        end if
 #endif
-       call Abort()
+       call Exit(1)
 #endif
     else
        errorStatusGSL=errorNumber
