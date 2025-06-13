@@ -40,6 +40,7 @@ Implements an peak-background split critical overdensity class.
      procedure :: gradientMass    => peakBackgroundSplitGradientMass
      procedure :: isMassDependent => peakBackgroundSplitIsMassDependent
      procedure :: isNodeDependent => peakBackgroundSplitIsNodeDependent
+     procedure :: isTreeDependent => peakBackgroundSplitIsTreeDependent
   end type criticalOverdensityPeakBackgroundSplit
 
   interface criticalOverdensityPeakBackgroundSplit
@@ -191,8 +192,19 @@ contains
     !!}
     implicit none
     class(criticalOverdensityPeakBackgroundSplit), intent(inout) :: self
-    !$GLC attributes unused :: self
 
-    peakBackgroundSplitIsNodeDependent=.true.
+    peakBackgroundSplitIsNodeDependent=self%haloEnvironment_%isNodeDependent()
     return
   end function peakBackgroundSplitIsNodeDependent
+
+  logical function peakBackgroundSplitIsTreeDependent(self)
+    !!{
+    Return whether the critical overdensity is tree dependent.
+    !!}
+    implicit none
+    class(criticalOverdensityPeakBackgroundSplit), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    peakBackgroundSplitIsTreeDependent=self%haloEnvironment_%isTreeDependent()
+    return
+  end function peakBackgroundSplitIsTreeDependent

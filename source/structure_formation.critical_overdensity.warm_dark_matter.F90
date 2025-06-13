@@ -71,6 +71,7 @@ Implements a critical overdensity for collapse the \gls{wdm} modifier of \cite{b
      procedure :: gradientMass    => barkana2001WDMGradientMass
      procedure :: isMassDependent => barkana2001WDMIsMassDependent
      procedure :: isNodeDependent => barkana2001WDMIsNodeDependent
+     procedure :: isTreeDependent => barkana2001WDMIsTreeDependent
   end type criticalOverdensityBarkana2001WDM
 
   interface criticalOverdensityBarkana2001WDM
@@ -455,3 +456,15 @@ contains
     barkana2001WDMIsNodeDependent=.false.
     return
   end function barkana2001WDMIsNodeDependent
+
+  logical function barkana2001WDMIsTreeDependent(self)
+    !!{
+    Return whether the critical overdensity is tree dependent.
+    !!}
+    implicit none
+    class(criticalOverdensityBarkana2001WDM), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    barkana2001WDMIsTreeDependent=.false.
+    return
+  end function barkana2001WDMIsTreeDependent

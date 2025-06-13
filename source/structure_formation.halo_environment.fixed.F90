@@ -61,6 +61,8 @@ Implements a fixed halo environment.
      procedure :: cdf                           => fixedHECDF
      procedure :: overdensityLinearSet          => fixedHEOverdensityLinearSet
      procedure :: overdensityIsSettable         => fixedHEOverdensityIsSettable
+     procedure :: isNodeDependent               => fixedHEIsNodeDependent
+     procedure :: isTreeDependent               => fixedHEIsTreeDependent
   end type haloEnvironmentFixed
 
   interface haloEnvironmentFixed
@@ -192,9 +194,9 @@ contains
 
     fixedHEOverdensityLinear=self%overdensity
     if (.not.presentDay_) then
-       basic                  =>  node                               %basic(                 )
+       basic                    =>  node                                 %basic(                 )
        fixedHEOverdensityLinear = +fixedHEOverdensityLinear                                        &
-            &                    *self                 %linearGrowth_%value(time=basic%time())
+            &                      *self                   %linearGrowth_%value(time=basic%time())
     end if
     return
   end function fixedHEOverdensityLinear
@@ -209,11 +211,11 @@ contains
     type (treeNode            ), intent(inout) :: node
     class(nodeComponentBasic  ), pointer       :: basic
 
-    basic                              =>  node%basic()
+    basic                                =>  node%basic()
     fixedHEOverdensityLinearGradientTime =  +self%overdensityLinear(node)                                                      &
-         &                                *self%linearGrowth_      %logarithmicDerivativeExpansionFactor( time=basic%time()) &
-         &                                *self%cosmologyFunctions_%expansionRate                       (                    &
-         &                                 self%cosmologyFunctions_%expansionFactor                      (     basic%time()) &
+         &                                  *self%linearGrowth_      %logarithmicDerivativeExpansionFactor( time=basic%time()) &
+         &                                  *self%cosmologyFunctions_%expansionRate                       (                    &
+         &                                   self%cosmologyFunctions_%expansionFactor                      (     basic%time()) &
          &                                                                                              )
     return
   end function fixedHEOverdensityLinearGradientTime
@@ -234,7 +236,7 @@ contains
        self%linearToNonLinearInitialized=.true.
     end if
     ! Find the nonlinear overdensity.
-    basic                     => node                  %basic      (                                         )
+    basic                       => node                  %basic      (                                         )
     fixedHEOverdensityNonLinear =  self%linearToNonLinear%interpolate(self%overdensityLinear(node),basic%time())
     return
   end function fixedHEOverdensityNonLinear
@@ -329,3 +331,27 @@ contains
     fixedHEOverdensityIsSettable=.false.
     return
   end function fixedHEOverdensityIsSettable
+
+  logical function fixedHEIsNodeDependent(self)
+    !!{
+    Return false as the environment is not dependent on the node.
+    !!}
+    implicit none
+    class(haloEnvironmentFixed), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    fixedHEIsNodeDependent=.false.
+    return
+  end function fixedHEIsNodeDependent
+
+  logical function fixedHEIsTreeDependent(self)
+    !!{
+    Return false as the environment is not dependent on the tree.
+    !!}
+    implicit none
+    class(haloEnvironmentFixed), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    fixedHEIsTreeDependent=.false.
+    return
+  end function fixedHEIsTreeDependent

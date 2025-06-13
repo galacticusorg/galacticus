@@ -66,6 +66,7 @@
      procedure :: gradientMass    => marsh2016FDMGradientMass
      procedure :: isMassDependent => marsh2016FDMIsMassDependent
      procedure :: isNodeDependent => marsh2016FDMIsNodeDependent
+     procedure :: isTreeDependent => marsh2016FDMIsTreeDependent
   end type criticalOverdensityMarsh2016FDM
 
   interface criticalOverdensityMarsh2016FDM
@@ -421,3 +422,15 @@ contains
     marsh2016FDMIsNodeDependent=.false.
     return
   end function marsh2016FDMIsNodeDependent
+
+  logical function marsh2016FDMIsTreeDependent(self)
+    !!{
+    Return whether the critical overdensity is tree dependent.
+    !!}
+    implicit none
+    class(criticalOverdensityMarsh2016FDM), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    marsh2016FDMIsTreeDependent=.false.
+    return
+  end function marsh2016FDMIsTreeDependent

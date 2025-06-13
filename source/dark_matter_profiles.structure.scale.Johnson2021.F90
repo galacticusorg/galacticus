@@ -372,12 +372,18 @@ contains
             &               +1.0d0                                             &
             &               +self%energyBoost                                  &
             &              )
-       ! Convert energy back to scale radius.
-       self_               => self
-       node_               => node
-       darkMatterProfile_  => darkMatterProfile
-       radiusScaleOriginal =  darkMatterProfile%scale(                          )
-       radiusScale         =  finder           %find (rootGuess=radiusScaleChild)
+       ! Check for positive energy.
+       if (energyTotal >= 0.0d0) then
+          ! Energy is positive - the model has failed - simply assume no change in the scale radius.
+          radiusScale         =  radiusScaleChild
+       else
+          ! Convert energy back to scale radius.
+          self_               => self
+          node_               => node
+          darkMatterProfile_  => darkMatterProfile
+          radiusScaleOriginal =  darkMatterProfile%scale(                          )
+          radiusScale         =  finder           %find (rootGuess=radiusScaleChild)
+       end if
        call darkMatterProfile%scaleSet(radiusScaleOriginal)       
        call Calculations_Reset(node)
     end if

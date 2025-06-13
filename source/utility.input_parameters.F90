@@ -352,7 +352,8 @@ contains
     use :: FoX_dom           , only : node                             , getAttribute, setAttribute          , getParentNode, &
          &                            removeChild                      , getNodeName , hasAttribute          , appendChild  , &
          &                            importNode                       , insertBefore, getNextSibling        , destroy      , &
-         &                            getExceptionCode                 , inException , DOMException          , cloneNode
+         &                            getExceptionCode                 , inException , DOMException          , cloneNode    , &
+         &                            getNodeType                      , ELEMENT_NODE
     use :: Error             , only : Error_Report
     use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Parse   , XML_Get_Child_Elements, xmlNodeList  , &
          &                            XML_Path_Exists
@@ -515,6 +516,23 @@ contains
                 changeNodeParent => getParentNode(                            changeNode            )
                 clonedNode       => insertBefore (changeNodeParent,clonedNode,changeNode            )
                 changeNode       => removeChild  (changeNodeParent           ,changeNode            )
+             case ("encapsulate")
+                ! Encapsulate the identified node within the provided content.
+                !! First insert all new content before the change node.
+                changeNodeParent => getParentNode(changeNode)
+                call XML_Get_Child_Elements(childNode,newNodes)
+                clonedNode => null()
+                do k=0,size(newNodes)-1
+                   newNode      => newNodes(k)%element
+                   importedNode => importNode(doc,newNode,deep=.true.)
+                   importedNode => insertBefore(changeNodeParent,importedNode,changeNode)
+                   ! Keep a pointer to the first node of the new content - this is where the change node will be encapsulated.
+                   if (.not.associated(clonedNode) .and. getNodeType(importedNode) == ELEMENT_NODE) clonedNode => importedNode
+                end do
+                ! Remove the change node from the document.
+                changeNode => removeChild(changeNodeParent,changeNode)
+                ! Reinsert the change node into the encapsulating node.
+                changeNode => appendChild(clonedNode      ,changeNode)
              case default
                 call Error_Report("unknown change type `"//trim(changeType)//"`"//{introspection:location})
              end select
@@ -2136,6 +2154,7 @@ contains
                    else if (isDouble .and. haveDefault) then
                       ! The parameter does not exist, but a default value is available - use that default.
                       read (defaultValue,*) workValueDouble
+                      deallocate(parentParameters)
                    else
                       !$omp critical (FoX_DOM_Access)
                       expression=getTextContent(valueElement)
