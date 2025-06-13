@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1749640978467,
+  "lastUpdate": 1749849850594,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=40 km/s)": [
@@ -2065,6 +2065,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
             "value": "49.22366740744682",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2ed9c725d1edc2d4c81c928f4446657c0d3b6817",
+          "message": "Merge pull request #861 from galacticusorg/featWarmDarkMatterReferenceModel\n\nAdd a warm dark matter reference model",
+          "timestamp": "2025-06-13T14:50:15Z",
+          "tree_id": "6e4a0692f24d94ae523045e2920e86e03c2dd808",
+          "url": "https://github.com/galacticusorg/galacticus/commit/2ed9c725d1edc2d4c81c928f4446657c0d3b6817"
+        },
+        "date": 1749849849903,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": "5.222813843791548",
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": "7.2275417266713",
             "unit": "-logℒ"
           }
         ]
