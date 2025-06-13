@@ -1711,11 +1711,15 @@ jobs:
         run: |
           git checkout gh-pages
           mkdir -p dev/valid/darkMatterOnlySubhalos
+          mkdir -p dev/valid/darkMatterOnlySubhalosSymphonyMilkyWay
+          mkdir -p dev/valid/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWay
           mkdir -p dev/valid/milkyWayModel
           mkdir -p dev/valid/strongLensing
           mkdir -p dev/valid/idealizedSubhaloSimulations
           mkdir -p dev/valid/darkMatterOnlySubhalosDecayingDarkMatter
           mv results_darkMatterOnlySubhalos.json                      dev/valid/darkMatterOnlySubhalos/results.json
+          mv results_darkMatterOnlySubhalosSymphonyMilkyWay.json      dev/valid/darkMatterOnlySubhalosSymphonyMilkyWay/results.json
+          mv results_darkMatterOnlySubhalosCOZMICWDM3keVMilkyWay.json dev/valid/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWay/results.json
           mv results_milkyWayModel.json                               dev/valid/milkyWayModel/results.json
           mv results_PonosV.json                                      dev/valid/strongLensing/results_PonosV.json
           mv results_baryonicSuppression.json                         dev/valid/baryonicSuppression/results_baryonicSuppression.json
@@ -1723,7 +1727,7 @@ jobs:
           mv results_darkMatterOnlySubhalos_decayingDarkMatter_*.json dev/valid/darkMatterOnlySubhalosDecayingDarkMatter/
           git config --local user.email "github@users.noreply.github.com"
           git config --local user.name "github-action-validate"
-          git add dev/valid/darkMatterOnlySubhalos/results.json dev/valid/milkyWayModel/results.json dev/valid/strongLensing/results_PonosV.json dev/valid/baryonicSuppression/results_baryonicSuppression.json dev/valid/idealizedSubhaloSimulations/results_idealizedSubhaloSimulation_*.json dev/valid/darkMatterOnlySubhalosDecayingDarkMatter/results_darkMatterOnlySubhalos_decayingDarkMatter_*.json
+          git add dev/valid/darkMatterOnlySubhalos/results.json dev/valid/darkMatterOnlySubhalosSymphonyMilkyWay/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWay/results.json dev/valid/milkyWayModel/results.json dev/valid/strongLensing/results_PonosV.json dev/valid/baryonicSuppression/results_baryonicSuppression.json dev/valid/idealizedSubhaloSimulations/results_idealizedSubhaloSimulation_*.json dev/valid/darkMatterOnlySubhalosDecayingDarkMatter/results_darkMatterOnlySubhalos_decayingDarkMatter_*.json
           git commit -m "Update validation results"
           git push --set-upstream origin gh-pages
           git checkout -
