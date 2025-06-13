@@ -4,21 +4,21 @@ window.PONOSV_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "86090c048fff80b04a7e4470889e0a2b3830a8a9",
-        "message": "fix: Correct the name of the output directory\n",
-        "timestamp": "2025-06-10 09:11:56-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/86090c048fff80b04a7e4470889e0a2b3830a8a9"
+        "id": "2ed9c725d1edc2d4c81c928f4446657c0d3b6817",
+        "message": "Merge pull request #861 from galacticusorg/featWarmDarkMatterReferenceModel\n\nAdd a warm dark matter reference model\n",
+        "timestamp": "2025-06-13 14:50:15+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/2ed9c725d1edc2d4c81c928f4446657c0d3b6817"
     },
     "surfaceDensity": {
-        "percentageBelow": 35.71428571428571,
-        "percentageAbove": 64.28571428571429,
+        "percentageBelow": 39.285714285714285,
+        "percentageAbove": 60.714285714285715,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 58.333333333333336,
-        "percentageAbove": 41.666666666666664,
+        "percentageBelow": 50.0,
+        "percentageAbove": 50.0,
         "target": 0.85
     }
 }
