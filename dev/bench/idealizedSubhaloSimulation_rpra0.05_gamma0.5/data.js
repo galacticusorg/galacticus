@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1749640937182,
+  "lastUpdate": 1749849816466,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.05; γ=0.5)": [
@@ -7414,6 +7414,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/86090c048fff80b04a7e4470889e0a2b3830a8a9"
         },
         "date": 1749640935871,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteBoundMass",
+            "value": "23.380596202549825",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "8.011134813288699",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteVelocityMaximum",
+            "value": "10.110599762171006",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2ed9c725d1edc2d4c81c928f4446657c0d3b6817",
+          "message": "Merge pull request #861 from galacticusorg/featWarmDarkMatterReferenceModel\n\nAdd a warm dark matter reference model",
+          "timestamp": "2025-06-13T14:50:15Z",
+          "tree_id": "6e4a0692f24d94ae523045e2920e86e03c2dd808",
+          "url": "https://github.com/galacticusorg/galacticus/commit/2ed9c725d1edc2d4c81c928f4446657c0d3b6817"
+        },
+        "date": 1749849815535,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
