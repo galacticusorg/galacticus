@@ -1,45 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1749849783276,
+  "lastUpdate": 1749849791206,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "id": "bb3c2a18f0f2980abc79f64c2b5efa7ef2fc8463",
-          "message": "fix: Catch floating point overflows",
-          "timestamp": "2024-08-20T23:39:44Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/bb3c2a18f0f2980abc79f64c2b5efa7ef2fc8463"
-        },
-        "date": 1724237991409,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 16.8704508507171,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 8.74915258679825,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 20975.0222765143,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8750,6 +8713,45 @@ window.BENCHMARK_DATA = {
             "value": 59.544,
             "unit": "seconds",
             "range": 0.124380062710681
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2ed9c725d1edc2d4c81c928f4446657c0d3b6817",
+          "message": "Merge pull request #861 from galacticusorg/featWarmDarkMatterReferenceModel\n\nAdd a warm dark matter reference model",
+          "timestamp": "2025-06-13T14:50:15Z",
+          "tree_id": "6e4a0692f24d94ae523045e2920e86e03c2dd808",
+          "url": "https://github.com/galacticusorg/galacticus/commit/2ed9c725d1edc2d4c81c928f4446657c0d3b6817"
+        },
+        "date": 1749849790316,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": "17.217025252149117",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": "9.326386218723853",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": "21804.038544466053",
+            "unit": "-logℒ"
           }
         ]
       }
