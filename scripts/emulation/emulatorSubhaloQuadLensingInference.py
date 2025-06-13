@@ -83,7 +83,7 @@ from samana.Data.Mocks.baseline_smooth_mock import BaselineSmoothMockModel
 from samana.Data.Mocks.baseline_smooth_mock import BaselineSmoothMock
 data_class        = BaselineSmoothMock()
 model             = BaselineSmoothMockModel
-preset_model_name = 'DMEmulator'
+preset_model_name = 'JointLOSWithEmulator'
 
 # Sample options.
 kwargs_sample_realization = {}
@@ -93,8 +93,8 @@ kwargs_sample_realization['cone_opening_angle_arcsec'] = ['FIXED',  8.0         
 kwargs_sample_realization['log_mlow'                 ] = ['FIXED',  6.0         ]
 kwargs_sample_realization['log_mhigh'                ] = ['FIXED',  9.0         ]
 kwargs_sample_realization['sigma_sub'                ] = ['FIXED',  0.0         ]
-kwargs_sample_realization['log_mc'                   ] = ['FIXED',  4.0         ]
 kwargs_sample_realization['emulator_data_function'   ] = ['FIXED', emulator_data]
+kwargs_sample_realization['preset_model_name_LOS'    ] = ['FIXED', 'CDM']
 
 # Source options.
 kwargs_sample_source      = {'source_size_pc': ['FIXED', 5]}
