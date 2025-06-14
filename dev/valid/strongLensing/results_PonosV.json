@@ -4,16 +4,16 @@ window.PONOSV_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "2ed9c725d1edc2d4c81c928f4446657c0d3b6817",
-        "message": "Merge pull request #861 from galacticusorg/featWarmDarkMatterReferenceModel\n\nAdd a warm dark matter reference model\n",
-        "timestamp": "2025-06-13 14:50:15+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/2ed9c725d1edc2d4c81c928f4446657c0d3b6817"
+        "id": "9d5f6d76cd33bf6562f77e1fa9f4c0ce1be0f03c",
+        "message": "fix: Add deployment of Symphony and COZMIC validation data\n",
+        "timestamp": "2025-06-13 14:58:19-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/9d5f6d76cd33bf6562f77e1fa9f4c0ce1be0f03c"
     },
     "surfaceDensity": {
-        "percentageBelow": 39.285714285714285,
-        "percentageAbove": 60.714285714285715,
+        "percentageBelow": 42.857142857142854,
+        "percentageAbove": 57.142857142857146,
         "target": 0.006
     },
     "slope": {

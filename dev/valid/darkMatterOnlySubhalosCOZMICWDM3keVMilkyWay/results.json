@@ -1,0 +1,269 @@
+window.ANALYSES_DATA = {
+    "repoUrl": "https://github.com/galacticusorg/galacticus",
+    "parameterFile": "testSuite/parameters/validate_darkMatterOnlySubhalos_COZMIC_WDM:3keV.xml",
+    "commit": {
+        "author": {
+            "name": "Andrew Benson",
+            "email": "abenson@obs.carnegiescience.edu"
+        },
+        "id": "9d5f6d76cd33bf6562f77e1fa9f4c0ce1be0f03c",
+        "message": "fix: Add deployment of Symphony and COZMIC validation data\n",
+        "timestamp": "2025-06-13 14:58:19-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/9d5f6d76cd33bf6562f77e1fa9f4c0ce1be0f03c"
+    },
+    "results": [
+        {
+            "attributes": {
+                "name": "subhaloMassFunction",
+                "xAxisLabel": "M_sub/M_host",
+                "yAxisLabel": "N(M_sub/M_host)",
+                "xAxisIsLog": "1",
+                "yAxisIsLog": "1",
+                "targetLabel": "COZMIC (Nadler et al. 2023)",
+                "comment": "Analysis of subhalo mass functions",
+                "description": "Subhalo mass function",
+                "logLikelihood": "2.025991175887029",
+                "type": "function1D",
+                "xDataset": "massRatio",
+                "yCovariance": "massFunctionCovariance",
+                "yCovarianceTarget": "massFunctionCovarianceTarget",
+                "yDataset": "massFunction",
+                "yDatasetTarget": "massFunctionTarget"
+            },
+            "data": {
+                "xDataset": [
+                    0.0003548133892335753,
+                    0.0007079457843841374,
+                    0.001412537544622754,
+                    0.002818382931264452,
+                    0.005623413251903491,
+                    0.01122018454301963,
+                    0.022387211385683378,
+                    0.04466835921509626,
+                    0.0891250938133745,
+                    0.1778279410038921,
+                    0.3548133892335753,
+                    0.7079457843841377
+                ],
+                "yDataset": [
+                    12.25,
+                    6.372222222222222,
+                    3.7444444444444445,
+                    2.2222222222222223,
+                    1.1833333333333333,
+                    0.6722222222222223,
+                    0.3111111111111111,
+                    0.25,
+                    0.08333333333333333,
+                    0.03888888888888889,
+                    0.022222222222222223,
+                    0.0
+                ],
+                "yDatasetTarget": [
+                    10.0,
+                    4.333333333333333,
+                    3.3333333333333335,
+                    2.0,
+                    1.0,
+                    1.0,
+                    1.3333333333333333,
+                    0.0,
+                    0.0,
+                    0.3333333333333333,
+                    0.0,
+                    0.0
+                ],
+                "yError": [
+                    0.2608745973749755,
+                    0.18815215802084556,
+                    0.14423061095274634,
+                    0.1111111111111111,
+                    0.0810806639962579,
+                    0.06111111111111111,
+                    0.041573970964154904,
+                    0.037267799624996496,
+                    0.02151657414559676,
+                    0.014698618394803282,
+                    0.011111111111111112,
+                    0.0
+                ],
+                "yErrorTarget": [
+                    1.8257418583505538,
+                    1.2018504251546631,
+                    1.0540925533894598,
+                    0.8164965809277259,
+                    0.5773502691896257,
+                    0.5773502691896257,
+                    0.6666666666666666,
+                    0.0,
+                    0.0,
+                    0.3333333333333333,
+                    0.0,
+                    0.0
+                ]
+            }
+        },
+        {
+            "attributes": {
+                "name": "subhaloRadialDistribution",
+                "xAxisLabel": "R_sub/R_vir,host",
+                "yAxisLabel": "N(R_sub/R_vir,host)",
+                "xAxisIsLog": "1",
+                "yAxisIsLog": "1",
+                "targetLabel": "COZMIC (Nadler et al. 2023)",
+                "comment": "Analysis of subhalo mass functions",
+                "description": "Subhalo radial distribution",
+                "logLikelihood": "3.2126917573507026",
+                "type": "function1D",
+                "xDataset": "radiusFractional",
+                "yCovariance": "radialDistributionCovariance",
+                "yCovarianceTarget": "radialDistributionCovarianceTarget",
+                "yDataset": "radialDistribution",
+                "yDatasetTarget": "radialDistributionTarget"
+            },
+            "data": {
+                "xDataset": [
+                    0.012589254117941675,
+                    0.0199526231496888,
+                    0.03162277660168379,
+                    0.05011872336272725,
+                    0.07943282347242814,
+                    0.12589254117941676,
+                    0.19952623149688797,
+                    0.3162277660168378,
+                    0.5011872336272722,
+                    0.7943282347242815
+                ],
+                "yDataset": [
+                    0.0,
+                    0.005555555555555556,
+                    0.011111111111111112,
+                    0.05555555555555555,
+                    0.17777777777777778,
+                    0.5055555555555555,
+                    1.5611111111111111,
+                    4.211111111111111,
+                    8.411111111111111,
+                    13.261111111111111
+                ],
+                "yDatasetTarget": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.3333333333333333,
+                    2.3333333333333335,
+                    4.0,
+                    5.333333333333333,
+                    12.333333333333334
+                ],
+                "yError": [
+                    0.0,
+                    0.005555555555555556,
+                    0.007856742013183862,
+                    0.017568209223157664,
+                    0.03142696805273545,
+                    0.052996622300941425,
+                    0.0931280811902234,
+                    0.15295444331040225,
+                    0.2161675162038191,
+                    0.2714274111179135
+                ],
+                "yErrorTarget": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.3333333333333333,
+                    0.8819171036881969,
+                    1.1547005383792515,
+                    1.3333333333333333,
+                    2.0275875100994063
+                ]
+            }
+        },
+        {
+            "attributes": {
+                "name": "subhaloVelocityMaximumMean",
+                "xAxisLabel": "M_bound/M_☉",
+                "yAxisLabel": "⟨ V_max ⟩ / km s⁻¹",
+                "xAxisIsLog": "1",
+                "yAxisIsLog": "1",
+                "targetLabel": "COZMIC (Nadler et al. 2023)",
+                "comment": "Subhalo mean maximum velocity vs. bound mass relation",
+                "description": "Subhalo mean maximum velocity vs. bound mass relation",
+                "logLikelihood": "-107.2239729644056",
+                "type": "function1D",
+                "xDataset": "massBound",
+                "yCovariance": "velocityMaximumMeanCovariance",
+                "yCovarianceTarget": "velocityMaximumMeanCovarianceTarget",
+                "yDataset": "velocityMaximumMean",
+                "yDatasetTarget": "velocityMaximumMeanTarget"
+            },
+            "data": {
+                "xDataset": [
+                    421696503.42858225,
+                    749894209.3324559,
+                    1333521432.163324,
+                    2371373705.6616554,
+                    4216965034.2858224,
+                    7498942093.324558,
+                    13335214321.63324,
+                    23713737056.616554,
+                    42169650342.85822,
+                    74989420933.24559
+                ],
+                "yDataset": [
+                    17.66378237878106,
+                    20.005745290130562,
+                    22.814434958329805,
+                    27.045080703543817,
+                    30.68094463605548,
+                    36.602391378824976,
+                    43.64901455201168,
+                    53.33496672718349,
+                    65.5136292845979,
+                    76.38458811608807
+                ],
+                "yDatasetTarget": [
+                    15.987391304347826,
+                    20.513846153846153,
+                    20.542857142857144,
+                    26.601111111111113,
+                    34.2475,
+                    33.0,
+                    42.42,
+                    55.15333333333333,
+                    58.24,
+                    0.0
+                ],
+                "yError": [
+                    0.15399772645803278,
+                    0.22732261180001812,
+                    0.29955926668661476,
+                    0.46119434878381793,
+                    0.4499664131045513,
+                    0.6602737216355083,
+                    1.3274140224975892,
+                    1.8100802502420619,
+                    3.5970840534030546,
+                    5.221363915498956
+                ],
+                "yErrorTarget": [
+                    3.2990605009662857,
+                    5.645856416395676,
+                    7.681788694765067,
+                    8.738122026111212,
+                    17.05904543783151,
+                    32.49615361854384,
+                    24.214123059808625,
+                    31.553645677727253,
+                    57.73783508237904,
+                    0.0
+                ]
+            }
+        }
+    ]
+}
