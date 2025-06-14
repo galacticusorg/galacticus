@@ -13,7 +13,7 @@
     <!-- Use a 'filter' constructor here. It will default to an 'always' filter (making it inactive), but this allows models to
          impose a filter if they wish to do so. -->
     <mergerTreeConstructor value="build">
-      <redshiftBase value="0.0"/>
+      <redshiftBase value="=[mergerTreeRedshiftBase|0.0]"/>
     </mergerTreeConstructor>
   </mergerTreeConstructor>
   <mergerTreeBuilder     value="cole2000">

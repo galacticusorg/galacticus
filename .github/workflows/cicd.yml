@@ -1438,6 +1438,71 @@ jobs:
       runPath: ./testSuite
       options: --mpi 1
     secrets: inherit
+  ## Emulation
+  Emulation-Subhalos:
+    runs-on: ubuntu-latest
+    container: ghcr.io/galacticusorg/buildenv:latest
+    needs: Build-Executable-DMO-Linux
+    steps:
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+      - name: Check out repository datasets
+        uses: actions/checkout@v4      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "PYTHONPATH=$GITHUB_WORKSPACE/python" >> $GITHUB_ENV
+      - name: Download executables
+        uses: actions/download-artifact@v4
+        with:
+          name: galacticus-exec-dmo
+      - name: Install Python
+        run: |
+          apt -y update && apt -y upgrade
+          apt -y install python3-full python3-dev python3-pip python3-venv
+      - name: Create VirtualEnv
+        run: |
+          python3 -m venv virtualenv
+          source virtualenv/bin/activate
+      - name: Install Python packages
+        run: |
+          ${GITHUB_WORKSPACE}/virtualenv/bin/pip3 install --upgrade pip
+          ${GITHUB_WORKSPACE}/virtualenv/bin/pip3 install --upgrade TensorFlow tensorflow_probability tf_keras matplotlib scipy lenstronomy tqdm colossus mcfit
+      - name: Install Samana
+        run: |
+          git clone https://github.com/dangilman/samana.git
+          cd samana
+          ${GITHUB_WORKSPACE}/virtualenv/bin/python3 setup.py install
+          cd -
+      - name: Install pyHalo
+        run: |
+          git clone https://github.com/dangilman/pyHalo.git
+          cd pyHalo
+          ${GITHUB_WORKSPACE}/virtualenv/bin/python3 setup.py install
+          cd -
+      - name: Generate training data
+        run: |
+          mkdir -p testSuite/outputs/emulation-subhalos
+          chmod u=wrx ./Galacticus.exe
+          ./Galacticus.exe testSuite/parameters/emulation-lensSubhalos.xml
+      - name: Train the emulator
+        run: ${GITHUB_WORKSPACE}/virtualenv/bin/python3 scripts/emulation/emulatorSubhalosTraining.py testSuite/outputs/emulation-subhalos/emulation-lensSubhalos.hdf5 --outputDirectory testSuite/outputs/emulation-subhalos
+      - name: Perform a test inference
+        run: ${GITHUB_WORKSPACE}/virtualenv/bin/python3 scripts/emulation/emulatorSubhaloQuadLensingInference.py --outputDirectory testSuite/outputs/emulation-subhalos
+      - name: Upload plots
+        uses: actions/upload-artifact@v4
+        with:
+          name: emulation-subhalos
+          path: ./testSuite/outputs/emulation-subhalos/*.pdf
+      - run: echo "This job's status is ${{ job.status }}."
   ## Python Interface
   Python-Interface:
     runs-on: ubuntu-latest
