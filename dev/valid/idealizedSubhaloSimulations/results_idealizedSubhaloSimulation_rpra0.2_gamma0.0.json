@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@obs.carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "9d5f6d76cd33bf6562f77e1fa9f4c0ce1be0f03c",
-        "message": "fix: Add deployment of Symphony and COZMIC validation data\n",
-        "timestamp": "2025-06-13 14:58:19-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/9d5f6d76cd33bf6562f77e1fa9f4c0ce1be0f03c"
+        "id": "16de0ee7a704b1230d3a80206dc19c2b54a896a3",
+        "message": "Merge pull request #862 from galacticusorg/featSubhaloEmulation\n\nAdd a subhalo emulation test workflow\n",
+        "timestamp": "2025-06-14 16:25:58+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/16de0ee7a704b1230d3a80206dc19c2b54a896a3"
     },
     "results": [
         {
