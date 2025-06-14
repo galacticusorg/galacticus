@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1749849820714,
+  "lastUpdate": 1749888123043,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.05; γ=1.0)": [
@@ -7453,6 +7453,43 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/2ed9c725d1edc2d4c81c928f4446657c0d3b6817"
         },
         "date": 1749849819731,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteBoundMass",
+            "value": "69.36737238164966",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "39.245724709232604",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteVelocityMaximum",
+            "value": "32.2364954240548",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "id": "9d5f6d76cd33bf6562f77e1fa9f4c0ce1be0f03c",
+          "message": "fix: Add deployment of Symphony and COZMIC validation data",
+          "timestamp": "2025-06-13T21:58:19Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/9d5f6d76cd33bf6562f77e1fa9f4c0ce1be0f03c"
+        },
+        "date": 1749888122296,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
