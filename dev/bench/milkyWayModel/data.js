@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1749941884795,
+  "lastUpdate": 1750112111596,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "4d83f520a8373a33758a45123027f40c7588eca0",
-          "message": "Merge pull request #674 from galacticusorg/featOutputTimeFilter\n\nAdd functionality for working with output times",
-          "timestamp": "2024-08-23T02:08:10Z",
-          "tree_id": "a6a1fbca6be4be9b04c5e667194193b615d1dd38",
-          "url": "https://github.com/galacticusorg/galacticus/commit/4d83f520a8373a33758a45123027f40c7588eca0"
-        },
-        "date": 1724402091654,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 410.238,
-            "unit": "seconds",
-            "range": 0.523927094172586
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10668,6 +10638,34 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": "14.76879227964819",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "id": "8019c746f2c4d0d64f1b99550960f9fb7c4e9e06",
+          "message": "fix: Use our deploy app for updating tags\n\nThis should avoid problems when trying to update the tag on a commit that has changes to the workflow file.",
+          "timestamp": "2025-06-16T15:29:27Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/8019c746f2c4d0d64f1b99550960f9fb7c4e9e06"
+        },
+        "date": 1750112110689,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 89.435,
+            "unit": "seconds",
+            "range": 0.106670052028975
           }
         ]
       }
