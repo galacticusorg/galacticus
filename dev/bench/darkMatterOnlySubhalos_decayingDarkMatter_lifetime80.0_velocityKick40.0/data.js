@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1749941955243,
+  "lastUpdate": 1750112212581,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=80 Gyr; vₖ=40 km/s)": [
@@ -2165,6 +2165,38 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
             "value": "35.1833730353518",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "id": "8019c746f2c4d0d64f1b99550960f9fb7c4e9e06",
+          "message": "fix: Use our deploy app for updating tags\n\nThis should avoid problems when trying to update the tag on a commit that has changes to the workflow file.",
+          "timestamp": "2025-06-16T15:29:27Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/8019c746f2c4d0d64f1b99550960f9fb7c4e9e06"
+        },
+        "date": 1750112211254,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": "30.54447319082348",
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": "43.08171085225684",
             "unit": "-logℒ"
           }
         ]
