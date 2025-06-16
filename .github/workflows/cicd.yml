@@ -1952,13 +1952,21 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
     needs: Deploy
+    env: 
+      appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
+      - uses: tibdex/github-app-token@v2
+        if: ${{ env.appid != '' }}
+        id: generate-token
+        with:
+          app_id: ${{ secrets.DEPLOY_APP_ID }}
+          private_key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
       - name: Update tag
         run: |
           git tag -f bleeding-edge
           git push origin -f bleeding-edge
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
       - run: echo "This job's status is ${{ job.status }}."
