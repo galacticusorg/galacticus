@@ -14,7 +14,7 @@ except FileExistsError:
     pass
 
 # Run the validation model COZMIC WDM 3keV.
-status = subprocess.run("cd ..; ./Galacticus.exe testSuite/parameters/validate_darkMatterOnlySubhalos_Symphony_CDM.xml parameters/reference/changeSymphony.xml parameters/reference/warmDarkMatter.xml testSuite/parameters/validate_darkMatterOnlySubhalos_COZMIC_WDM:3keV.xml",shell=True)
+status = subprocess.run("cd ..; ./Galacticus.exe testSuite/parameters/validate_darkMatterOnlySubhalos_Symphony_CDM.xml parameters/reference/changeSymphony.xml parameters/reference/powerSpectraSuppressed.xml parameters/reference/warmDarkMatter.xml testSuite/parameters/validate_darkMatterOnlySubhalos_COZMIC_WDM:3keV.xml",shell=True)
 if status.returncode != 0:
     print("FAILED: dark matter-only subhalos validation model (WDM 3keV) failed to run")
     sys.exit()
