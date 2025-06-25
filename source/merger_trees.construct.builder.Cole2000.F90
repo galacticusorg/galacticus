@@ -954,7 +954,7 @@ contains
     basic_          => nodeTip                                           %basic         (                                                                 )
     ! Compute the collapse time.
     timeOfCollapse_ =  self_  %workers(numberWorker)%criticalOverdensity_%timeOfCollapse(criticalOverdensity=basic_%time(),mass=basic_%mass(),node=nodeTip)
-   call basic_%timeSet(timeOfCollapse_)
+    call basic_%timeSet(timeOfCollapse_)
     return
   end subroutine cole2000ConvertTimeNode
       

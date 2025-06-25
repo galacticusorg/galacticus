@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Dark matter subhalo evolution model -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
+
+  <verbosityLevel value="working"/>
+
+  <!-- Include required parameters -->
+  <xi:include href="../../parameters/reference/darkMatterParticleCDM.xml"       xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="../../parameters/reference/cosmologyDarkMatterOnly.xml"     xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="../../parameters/reference/powerSpectrum.xml"               xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="../../parameters/reference/structureFormation.xml"          xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="../../parameters/reference/darkMatterHalosProfile.xml"      xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="../../parameters/reference/darkMatterHalosTidalHeating.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="../../parameters/reference/darkMatterHalosStructure.xml"    xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="../../parameters/reference/subhaloOrbits.xml"               xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="../../parameters/reference/mergerTrees.xml"                 xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="../../parameters/reference/evolutionDarkMatterOnly.xml"     xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+  <!-- Random number generation -->
+  <randomNumberGenerator value="GSL">
+    <seed value="8122"/>
+  </randomNumberGenerator>
+
+  <!-- Task -->
+  <task                   value="evolveForests"/>
+  <evolveForestsWorkShare value="cyclic"       />
+
+  <!-- Tree masses and resolution -->
+  <mergerTreeRedshiftBase value="0.5"/>
+  <mergerTreeBuildMasses value="fixedMass">
+    <massTree  value="1.995e13"/>
+    <treeCount value="64"       />
+  </mergerTreeBuildMasses>
+  <mergerTreeMassResolution value="fixed">
+    <massResolution value="1.0e8"/>
+  </mergerTreeMassResolution>
+
+  <!-- Output options -->
+  <outputFileName value="testSuite/outputs/emulation-subhalos/emulation-lensSubhalos.hdf5"/>
+  <mergerTreeOutputter value="standard">
+    <outputReferences value="false"/>
+    <galacticFilter value="intervalPass">
+      <nodePropertyExtractor value="radiusOrbitalProjected"/>
+      <thresholdLow value="0.0"/>
+      <thresholdHigh value="20.0e-3"/>
+    </galacticFilter>
+  </mergerTreeOutputter>
+  <outputTimes value="list">
+    <redshifts value="0.5"/>
+  </outputTimes>
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="nodeIndices"           />
+    <nodePropertyExtractor value="virialProperties"      />
+    <nodePropertyExtractor value="tidallyTruncatedNFWFit"/>
+    <nodePropertyExtractor value="indicesTree"           />
+    <nodePropertyExtractor value="redshiftLastIsolated"  />
+    <nodePropertyExtractor value="positionOrbital"       />
+    <!-- Output halo properties under a virial definition consistent with that used by pyHalo -->
+    <nodePropertyExtractor value="massHalo">
+      <useLastIsolatedTime value="true"/>
+      <darkMatterProfileDMO value="NFW"/>
+      <virialDensityContrastDefinition value="fixed">
+        <densityType value="critical"/>
+        <densityContrastValue value="200.0"/>
+        <turnAroundOverVirialRadius value="2.0"/>
+      </virialDensityContrastDefinition>
+    </nodePropertyExtractor>
+    <nodePropertyExtractor value="concentration">
+      <useLastIsolatedTime value="true"/>
+      <darkMatterProfileDMO value="NFW"/>
+      <virialDensityContrastDefinition value="fixed">
+        <densityType value="critical"/>
+        <densityContrastValue value="200.0"/>
+        <turnAroundOverVirialRadius value="2.0"/>
+      </virialDensityContrastDefinition>
+    </nodePropertyExtractor>
+  </nodePropertyExtractor>
+
+</parameters>

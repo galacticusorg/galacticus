@@ -103,6 +103,13 @@ class SLURMManager(QueueManager):
                         jobIDsToRemove.append(jobID)
                 for jobID in jobIDsToRemove:
                     print(f'Job "{activeJobs[jobID]["label"]}" has finished')
+                    scontrol = subprocess.run(['scontrol', 'show', 'job', jobID, '--json'], capture_output=True, text=True)
+                    if scontrol.returncode == 0:
+                        # Parse the JSON output from scontrol
+                        jobData = json.loads(scontrol.stdout)
+                        activeJobs[jobID]['exitStatus'] = jobData['jobs'][0]['exit_code']['return_code']['number']
+                    else:
+                        activeJobs[jobID]['exitStatus'] = -1
                     if 'onCompletion' in activeJobs[jobID]:
                         activeJobs[jobID]['onCompletion'](activeJobs[jobID])
                     del activeJobs[jobID]

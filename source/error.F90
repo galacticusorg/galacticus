@@ -66,7 +66,18 @@ module Error
   integer, parameter, public :: errorStatusMaxIterations=GSL_eMaxIter ! Maximum iterations exceeded.
   integer, parameter, public :: errorStatusXCPU         =1025         ! CPU time limit exceeded.
   integer, parameter, public :: errorStatusNotExist     =1026         ! Entity does not exist.
-
+  
+  !![
+  <constant variable="Kernel_EACCES"       kernelSymbol="EACCES"       kernelHeader="errno" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html" description="Error code for permission denied."             group="Kernel"/>
+  <constant variable="Kernel_ELOOP"        kernelSymbol="ELOOP"        kernelHeader="errno" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html" description="Error code for loop exists in symbolic links." group="Kernel"/>
+  <constant variable="Kernel_EMLINK"       kernelSymbol="EMLINK"       kernelHeader="errno" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html" description="Error code for too many links."                group="Kernel"/>
+  <constant variable="Kernel_ENAMETOOLONG" kernelSymbol="ENAMETOOLONG" kernelHeader="errno" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html" description="Error code for name too long."                 group="Kernel"/>
+  <constant variable="Kernel_ENOENT"       kernelSymbol="ENOENT"       kernelHeader="errno" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html" description="Error code for non-existant directory."        group="Kernel"/>
+  <constant variable="Kernel_ENOSPC"       kernelSymbol="ENOSPC"       kernelHeader="errno" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html" description="Error code for no space on file system."       group="Kernel"/>
+  <constant variable="Kernel_ENOTDIR"      kernelSymbol="ENOTDIR"      kernelHeader="errno" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html" description="Error code for not a directory."               group="Kernel"/>
+  <constant variable="Kernel_EROFS"        kernelSymbol="EROFS"        kernelHeader="errno" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html" description="Error code for read only file system."         group="Kernel"/>
+  !!]
+  
   ! Time to wait after errors under MPI.
   integer                    :: errorWaitTime          =86400
 
@@ -169,7 +180,7 @@ contains
        call Sleep(errorWaitTime)
     end if
 #endif
-    call  Abort()
+    call  Exit(1)
 #endif
     return
   end subroutine Error_Report_Char
@@ -303,7 +314,7 @@ contains
     call Flush      (output_unit)
     call Flush      ( error_unit)
 #ifdef UNCLEANEXIT
-    call Exit(1)
+    call Exit(2)
 #else
 #ifdef USEMPI
     call MPI_Initialized(flag,error)
@@ -317,7 +328,7 @@ contains
        call Sleep(errorWaitTime)
     end if
 #endif
-    call Abort()
+    call Exit(2)
 #endif
     return
   end subroutine Signal_Handler_SIGINT
@@ -361,7 +372,7 @@ contains
     call Flush      (output_unit)
     call Flush      ( error_unit)
 #ifdef UNCLEANEXIT
-    call Exit(1)
+    call Exit(11)
 #else
 #ifdef USEMPI
     call MPI_Initialized(flag,error)
@@ -375,7 +386,7 @@ contains
        call Sleep(errorWaitTime)
     end if
 #endif
-    call Abort()
+    call Exit(11)
 #endif
     return
   end subroutine Signal_Handler_SIGSEGV
@@ -419,7 +430,7 @@ contains
     call Flush      (output_unit)
     call Flush      ( error_unit)
 #ifdef UNCLEANEXIT
-    call Exit(1)
+    call Exit(8)
 #else
 #ifdef USEMPI
     call MPI_Initialized(flag,error)
@@ -433,7 +444,7 @@ contains
        call Sleep(errorWaitTime)
     end if
 #endif
-    call Abort()
+    call Exit(8)
 #endif
     return
   end subroutine Signal_Handler_SIGFPE
@@ -477,7 +488,7 @@ contains
     call Flush      (output_unit)
     call Flush      ( error_unit)
 #ifdef UNCLEANEXIT
-    call Exit(1)
+    call Exit(7)
 #else
 #ifdef USEMPI
     call MPI_Initialized(flag,error)
@@ -491,7 +502,7 @@ contains
        call Sleep(errorWaitTime)
     end if
 #endif
-    call Abort()
+    call Exit(7)
 #endif
     return
   end subroutine Signal_Handler_SIGBUS
@@ -535,7 +546,7 @@ contains
     call Flush      (output_unit)
     call Flush      ( error_unit)
 #ifdef UNCLEANEXIT
-    call Exit(1)
+    call Exit(4)
 #else
 #ifdef USEMPI
     call MPI_Initialized(flag,error)
@@ -549,7 +560,7 @@ contains
        call Sleep(errorWaitTime)
     end if
 #endif
-    call Abort()
+    call Exit(4)
 #endif
     return
   end subroutine Signal_Handler_SIGILL
@@ -636,7 +647,7 @@ contains
           call Sleep(errorWaitTime)
        end if
 #endif
-       call Abort()
+       call Exit(1)
 #endif
     else
        errorStatusGSL=errorNumber
@@ -749,37 +760,30 @@ contains
     !!{
     Return the command line used to run this model.
     !!}
-    use :: ISO_Varying_String, only : varying_string, assignment(=), operator(//)
+    use :: ISO_Varying_String, only : varying_string, assignment(=)
     implicit none
     type   (varying_string) :: commandLine
     integer                 :: length     , statusLength, &
-         &                     i          , statusGet
+         &                     statusGet
 
-    commandLine=""
-    do i=0,1
-       call Get_Command_Argument(i,length=length,status=statusLength)
-       if (i > 0) commandLine=commandLine//" "
-       commandLine=commandLine//commandLineArgumentUnlimited(i,length,statusGet)
-       if (statusLength /= 0 .or. statusGet /= 0) then
-          commandLine="????????"
-          return
-       end if
-    end do
+    call Get_Command(length=length,status=statusLength)
+    commandLine=commandLineUnlimited(length,statusGet)
+    if (statusLength /= 0 .or. statusGet /= 0) commandLine="????????"
     return
   end function commandLine
 
-  function commandLineArgumentUnlimited(number,length,status) result(argument)
+  function commandLineUnlimited(length,status) result(argument)
     !!{
-    Get a command line argument of unlimited length.
+    Get the full command line of unlimited length.
     !!}
     implicit none
-    integer              , intent(in   ) :: number  , length
+    integer              , intent(in   ) :: length
     integer              , intent(  out) :: status
     character(len=length)                :: argument
 
-    call Get_Command_Argument(number,value=argument,status=status)
+    call Get_Command(command=argument,status=status)
     return
-  end function commandLineArgumentUnlimited
+  end function commandLineUnlimited
 
   subroutine signalHandlerRegister(handler)
     !!{

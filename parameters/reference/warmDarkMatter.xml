@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A set of changes to modify CDM reference parameter files to use a warm dark matter particle. -->
+<changes>
+
+  <!-- Change the dark matter particle to a WDM particle -->
+  <change type="replace" path="darkMatterParticle">
+    <darkMatterParticle value="WDMThermal">
+      <degreesOfFreedomEffective value="1.5"/> <!-- Fiducial value from Bode et al. (2001;  http://adsabs.harvard.edu/abs/2001ApJ...556...93B).                                           -->
+      <mass                      value="6.1"/> <!-- Chosen to match the 10:1 posterior odds ratio limit from Keeley et al. (2024; https://ui.adsabs.harvard.edu/abs/2024MNRAS.535.1652K). -->
+    </darkMatterParticle>
+  </change>
+
+  <!-- Wrap the transfer function in one appropriate for warm dark matter. Specifically, the transfer function of Bode et
+       al. (2001; http://adsabs.harvard.edu/abs/2001ApJ...556...93B) along with the fit to the cut-off scale from Vogel &
+       Abazajian (2022; https://ui.adsabs.harvard.edu/abs/2023PhRvD.108d3520V) is used. -->
+  <change type="encapsulate" path="transferFunction">
+    <transferFunction value="bode2001">
+      <scaleCutOffModel value="vogel23SpinHalf"/>
+      <epsilon          value="1.000"          />
+      <eta              value="5.000"          />
+      <nu               value="1.049"          />
+    </transferFunction>
+  </change>
+  
+</changes>

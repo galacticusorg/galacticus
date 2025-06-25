@@ -2,7 +2,7 @@
 <!-- Reference subhalo orbits model -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="62e8c7bed4251e4aa284c0e228b8aba474a7cc0c" time="2025-05-27T17:54:14"/>
+  <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
 
   <!-- Merger tree building options --> 
   <mergerTreeSeeds value="random">
@@ -13,7 +13,7 @@
     <!-- Use a 'filter' constructor here. It will default to an 'always' filter (making it inactive), but this allows models to
          impose a filter if they wish to do so. -->
     <mergerTreeConstructor value="build">
-      <redshiftBase value="0.0"/>
+      <redshiftBase value="=[mergerTreeRedshiftBase|0.0]"/>
     </mergerTreeConstructor>
   </mergerTreeConstructor>
   <mergerTreeBuilder     value="cole2000">

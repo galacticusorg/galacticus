@@ -39,7 +39,7 @@ module Cosmological_Density_Field
    <descriptiveName>Critical Overdensity</descriptiveName>
    <description>Object providing critical overdensities.</description>
    <default>sphericalCollapseClsnlssMttrCsmlgclCnstnt</default>
-   <data>integer         (kind_int8                    )              :: lastUniqueID                =  -1_kind_int8                                          </data>
+   <data>integer         (kind_int8                    )              :: lastUniqueID                =  -1_kind_int8, lastTreeID                 =-1_kind_int8</data>
    <data>double precision                                             :: criticalOverdensityTarget                  , mass                                    </data>
    <data>double precision                                             :: time                                       , timeNow                    =-huge(0.0d0)</data>
    <data>double precision                                             :: timeOfCollapsePrevious      =  -huge(0.0d0), criticalOverdensityPrevious=-huge(0.0d0)</data>
@@ -49,8 +49,9 @@ module Cosmological_Density_Field
    <data>logical                                                      :: collapseThresholdInitialized=.false.                                                 </data>
    <data>type            (treeNode                     ), pointer     :: node                                                                                 </data>
    <data>logical                                                      :: massPresent                                , nodePresent                             </data>
+   <data>logical                                                      :: treePresent                                                                          </data>
    <data>logical                                                      :: dependenciesInitialized     =  .false.     , isMassDependent_                        </data>
-   <data>logical                                                      :: isNodeDependent_                                                                     </data>
+   <data>logical                                                      :: isNodeDependent_                           , isTreeDependent_                        </data>
    <data>class           (cosmologyFunctionsClass      ), pointer     :: cosmologyFunctions_         => null()                                                </data>
    <data>class           (linearGrowthClass            ), pointer     :: linearGrowth_               => null()                                                </data>
    <data>class           (cosmologicalMassVarianceClass), pointer     :: cosmologicalMassVariance_   => null()                                                </data>
@@ -144,7 +145,12 @@ module Cosmological_Density_Field
     <pass>yes</pass>
    </method>
    <method name="isNodeDependent" >
-    <description>Return true if the critical overdensity is dependent on the {\normalfont \ttfamily node} object.</description>
+    <description>Return true if the critical overdensity is dependent on the {\normalfont \ttfamily node} object (not just the {\normalfont \ttfamily node\%hostTree} object).</description>
+    <type>logical</type>
+    <pass>yes</pass>
+   </method>
+   <method name="isTreeDependent" >
+    <description>Return true if the critical overdensity is dependent on the {\normalfont \ttfamily node\%hostTree} object.</description>
     <type>logical</type>
     <pass>yes</pass>
    </method>
@@ -261,6 +267,24 @@ module Cosmological_Density_Field
       haloEnvironmentVolumeFractionOccupied=1.0d0
     </code>
    </method>
+   <method name="isNodeDependent" >
+    <description>Return true if the environment is node dependent (but false if the only dependency on the node is via its host tree).</description>
+    <type>logical</type>
+    <pass>yes</pass>
+    <code>
+      !$GLC attributes unused :: self
+      haloEnvironmentIsNodeDependent=.true.
+    </code>
+   </method>
+   <method name="isTreeDependent" >
+    <description>Return true if the environment is tree dependent.</description>
+    <type>logical</type>
+    <pass>yes</pass>
+    <code>
+      !$GLC attributes unused :: self
+      haloEnvironmentIsTreeDependent=.true.
+    </code>
+   </method>
   </functionClass>
   !!]
 
@@ -363,27 +387,34 @@ contains
     if (present(status)) status=errorStatusSuccess    
     ! Determine dependencies.
     if (.not.self%dependenciesInitialized) then
-       self%isMassDependent_=self%isMassDependent() .or. self%cosmologicalMassVariance_%growthIsMassDependent()
-       self%isNodeDependent_=self%isNodeDependent()
+       self%isMassDependent_       =self%isMassDependent() .or. self%cosmologicalMassVariance_%growthIsMassDependent()
+       self%isNodeDependent_       =self%isNodeDependent()
+       self%isTreeDependent_       =self%isTreeDependent()
        self%dependenciesInitialized=.true.
     end if
     ! Determine which arguments are present and not ignorable.
     self%massPresent=present(mass).and.self%isMassDependent_
     self%nodePresent=present(node).and.self%isNodeDependent_
+    self%treePresent=present(node).and.self%isTreeDependent_
     ! Determine if the memoized value must be updated.
     updateResult=.false.
     if (criticalOverdensity /= self%criticalOverdensityPrevious) updateResult=.true.
     if (self%massPresent) then
-       if (mass            /= self%massPrevious) updateResult=.true.
+       if (mass                              /= self%massPrevious) updateResult=.true.
     else
-       if (-huge(0.0d0)    /= self%massPrevious) updateResult=.true.
+       if (-huge(0.0d0)                      /= self%massPrevious) updateResult=.true.
     end if
     if (self%nodePresent) then
-       if (node%uniqueID() /= self%lastUniqueID) updateResult=.true.
+       if (node                  %uniqueID() /= self%lastUniqueID) updateResult=.true.
     else
-       if (-1_kind_int8    /= self%lastUniqueID) updateResult=.true.
+       if (-1_kind_int8                      /= self%lastUniqueID) updateResult=.true.
     end if
-    ! Recompute memoized value if necessary.
+    if (self%treePresent) then
+       if (node%hostTree%nodeBase%uniqueID() /= self%lastTreeID  ) updateResult=.true.
+    else
+       if (-1_kind_int8                      /= self%lastTreeID  ) updateResult=.true.
+    end if
+     ! Recompute memoized value if necessary.
     if (updateResult) then
        if (self%massPresent) then
           self%massPrevious=mass
@@ -391,7 +422,7 @@ contains
           self%massPrevious=-huge(0.0d0)
        end if
        if (self%nodePresent) then
-          self%lastUniqueID=node%uniqueID()
+          self%lastUniqueID=node         %uniqueID()
        else
           self%lastUniqueID=-1_kind_int8
        end if
@@ -427,9 +458,15 @@ contains
                &                                     rangeExpandType              =rangeExpandMultiplicative      &
                &                                    )
        end if
-       globalSelf                      => self
-       if (self%massPresent) self%mass =  mass
-       if (self%nodePresent) self%node => node
+       globalSelf => self
+       if     (                   &
+            &   self%massPresent  &
+            & ) self%mass =  mass
+       if     (                   &
+            &   self%nodePresent  &
+            &  .or.               &
+            &   self%treePresent  &
+            & ) self%node => node
        if (self%massPresent) then
           self%criticalOverdensityTarget=criticalOverdensity/self%cosmologicalMassVariance_%rootVariance(mass,self%timeNow)
        else
@@ -437,6 +474,17 @@ contains
        end if
        if (self%timeOfCollapsePrevious < 0.0d0) self%timeOfCollapsePrevious=self%cosmologyFunctions_%cosmicTime(1.0d0)
        if (.not.self%massPresent.and..not.self%nodePresent) then
+          ! There is no dependency on mass, or the node. If there is dependency on the tree, then, if the tree differs from the
+          ! previously seen case we must destroy the previously made table, as our tree has changed.
+          if (self%treePresent) then
+             if (node%hostTree%nodeBase%uniqueID() /= self%lastTreeID) then
+                self%collapseThresholdInitialized=.false.
+                call self%collapseThreshold%destroy()
+             end if
+             self%lastTreeID  =node%hostTree%nodeBase%uniqueID()
+          else
+             self%lastTreeID  =-1_kind_int8
+          end if
           ! Neither the mass or the node are provided, so we can use a simple tabulation of collapse thresholds for rapid
           ! inversion. Note that we do not tabulate lower than the requested threshold as in some cosmologies (e.g. with dark
           ! energy or a cosmological constant) this can require tabulating to extremely large cosmic times).
@@ -530,7 +578,7 @@ contains
     !!{
     Function used in root finding for the collapse time at a given critical overdensity. We have some target linear theory
     overdensity, $\delta_0$, extrapolated to the present epoch, $t_0$, and want to know at what epoch is would collapse. In a
-    pure dark matter universe, in which modes an all scales grow at the same rate (i.e. the growth factor $D(k,t)$ is
+    pure dark matter universe, in which modes on all scales grow at the same rate (i.e. the growth factor $D(k,t)$ is
     independent of wavenumber $k$) we would simply have $\delta(t) = \delta_0 D(t)$, and so would solve for
     $\delta_\mathrm{c}(t)/D(t) = \delta_0$. We want to generalize this to cases where the growth factor is scale dependent. In
     these cases we actually want to consider the growth rate for a region of fixed mass. Since modes of a range of different
@@ -554,7 +602,7 @@ contains
           collapseTimeRoot=globalSelf%criticalOverdensityTarget-globalSelf                          %value       (time=time                     ,node=globalSelf%node) &
                &                                               /globalSelf%linearGrowth_            %value       (time=time                                          )
        else
-          collapseTimeRoot=globalSelf%criticalOverdensityTarget-globalSelf                          %value       (time=time                                          ) &
+          collapseTimeRoot=globalSelf%criticalOverdensityTarget-globalSelf                          %value       (time=time                     ,node=globalSelf%node) &
                &                                               /globalSelf%linearGrowth_            %value       (time=time                                          )
        end if
     end if
@@ -588,6 +636,10 @@ contains
     !$GLC attributes unused :: node
 
     self%lastUniqueID=uniqueID
+    self%lastTreeID  =-1_kind_int8
+    if (associated(node%hostTree)) then
+       if (associated(node%hostTree%nodeBase)) self%lastTreeID=node%hostTree%nodeBase%uniqueID()
+    end if
     return
   end subroutine criticalOverdensityCalculationReset
 

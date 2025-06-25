@@ -61,6 +61,8 @@ Implements a fixed halo environment.
      procedure :: cdf                           => fixedHECDF
      procedure :: overdensityLinearSet          => fixedHEOverdensityLinearSet
      procedure :: overdensityIsSettable         => fixedHEOverdensityIsSettable
+     procedure :: isNodeDependent               => fixedHEIsNodeDependent
+     procedure :: isTreeDependent               => fixedHEIsTreeDependent
   end type haloEnvironmentFixed
 
   interface haloEnvironmentFixed
@@ -330,3 +332,27 @@ contains
     fixedHEOverdensityIsSettable=.false.
     return
   end function fixedHEOverdensityIsSettable
+
+  logical function fixedHEIsNodeDependent(self)
+    !!{
+    Return false as the environment is not dependent on the node.
+    !!}
+    implicit none
+    class(haloEnvironmentFixed), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    fixedHEIsNodeDependent=.false.
+    return
+  end function fixedHEIsNodeDependent
+
+  logical function fixedHEIsTreeDependent(self)
+    !!{
+    Return false as the environment is not dependent on the tree.
+    !!}
+    implicit none
+    class(haloEnvironmentFixed), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    fixedHEIsTreeDependent=.false.
+    return
+  end function fixedHEIsTreeDependent

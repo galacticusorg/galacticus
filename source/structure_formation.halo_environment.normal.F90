@@ -78,6 +78,8 @@ Implements a normally-distributed halo environment.
      procedure :: cdf                           => normalCDF
      procedure :: overdensityLinearSet          => normalOverdensityLinearSet
      procedure :: volumeFractionOccupied        => normalVolumeFractionOccupied
+     procedure :: isNodeDependent               => normalIsNodeDependent
+     procedure :: isTreeDependent               => normalIsTreeDependent
      procedure :: autoHook                      => normalAutoHook
      procedure :: calculationReset              => normalCalculationReset
   end type haloEnvironmentNormal
@@ -470,3 +472,27 @@ contains
     normalVolumeFractionOccupied=self%includedVolumeFraction
     return
   end function normalVolumeFractionOccupied
+
+  logical function normalIsNodeDependent(self)
+    !!{
+    Return false as the environment is not dependent on the node.
+    !!}
+    implicit none
+    class(haloEnvironmentNormal), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    normalIsNodeDependent=.false.
+    return
+  end function normalIsNodeDependent
+
+  logical function normalIsTreeDependent(self)
+    !!{
+    Return true as the environment is dependent on the tree.
+    !!}
+    implicit none
+    class(haloEnvironmentNormal), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    normalIsTreeDependent=.true.
+    return
+  end function normalIsTreeDependent

@@ -765,8 +765,8 @@ contains
     
     basic      =>  nodeHost%basic()
     time       =   basic   %time ()
-    peakHeight =  +self%criticalOverdensity_     %value       (time=time,mass=massHost) &
-         &        /self%cosmologicalMassVariance_%rootVariance(time=time,mass=massHost)
+    peakHeight =  +self%criticalOverdensity_     %value       (time=time,mass=massHost,node=nodeHost) &
+         &        /self%cosmologicalMassVariance_%rootVariance(time=time,mass=massHost              )
     massRatio  =  min(                &
          &            +massSatellite  &
          &            /massHost     , &

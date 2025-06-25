@@ -2,7 +2,7 @@
 <!-- Parameter file used for testing dark matter profile algorithms. -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="62e8c7bed4251e4aa284c0e228b8aba474a7cc0c" time="2025-05-27T17:56:31"/>
+  <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
   <componentBasic value="standard"/>
   <componentDarkMatterProfile value="scale"/>
   <componentBlackHole value="null"/>

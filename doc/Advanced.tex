@@ -194,6 +194,13 @@ An example change file can be found \href{https://raw.githubusercontent.com/gala
     <efficiency value="0.06"/>
   </change>
 
+  <!-- Encapsulate a parameter -->
+  <change type="encapsulate" path="cosmologicalMassVariance">
+    <cosmologicalMassVariance value="scaled">
+      <scale value="0.689"/>
+    </cosmologicalMassVariance>
+  </change>
+
   <!-- Update a parameter value -->
   <change type="update" path="nodeOperator/nodeOperator[@value='barInstability']/galacticDynamicsBarInstability/stabilityThresholdGaseous" value="0.75">
   </change>
@@ -210,6 +217,7 @@ Each change element must also have a {\normalfont \ttfamily type} attribute whic
 \item[{\normalfont \ttfamily replace}:] This will replace the parameter specified by the {\normalfont \ttfamily path} attribute with all parameters enclosed within the change element.
 \item[{\normalfont \ttfamily replaceWith}:] This will replace the parameter specified by the {\normalfont \ttfamily path} attribute with the parameter (and all children) from the parameter file at the path specified by the {\normalfont \ttfamily target} attribute (note that the parameter identified by the {\normalfont \ttfamily target} attribute is not removed)
 \item[{\normalfont \ttfamily replaceOrAppend}:] This will replace the parameter specified by the {\normalfont \ttfamily path} attribute, if it exists, with all parameters enclosed within the change element. If the parameter does not exist, instead all parameters enclosed within the change element will be appended to the children of the parent element.
+\item[{\normalfont \ttfamily encapsulate}:] This will take the parameter specified by the {\normalfont \ttfamily path} attribute, replace it by all parameters enclosed within the change element, and then reinsert the parameter specified by the {\normalfont \ttfamily path} attribute as a child of the first element enclosed within the change element. This allows an existing parameter to be encapsulated inside a new parameter.
 \item[{\normalfont \ttfamily remove}:] This will remove the parameter specified by the {\normalfont \ttfamily path} attribute.
 \item[{\normalfont \ttfamily update}:] This will update the value of the parameter specified by the {\normalfont \ttfamily path} attribute with that given by the {\normalfont \ttfamily value} attribute of the change element.
 \end{description}

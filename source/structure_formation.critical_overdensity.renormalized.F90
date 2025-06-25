@@ -61,6 +61,7 @@ $\delta_\mathrm{c}/\sigma(M)$ (and, therefore, the same halo mass function) on a
      procedure :: gradientMass    => renormalizeGradientMass
      procedure :: isMassDependent => renormalizeIsMassDependent
      procedure :: isNodeDependent => renormalizeIsNodeDependent
+     procedure :: isTreeDependent => renormalizeIsTreeDependent
   end type criticalOverdensityRenormalize
 
   interface criticalOverdensityRenormalize
@@ -231,3 +232,14 @@ contains
     renormalizeIsNodeDependent=self%criticalOverdensity_%isNodeDependent()
     return
   end function renormalizeIsNodeDependent
+
+  logical function renormalizeIsTreeDependent(self)
+    !!{
+    Return whether the critical overdensity is tree dependent.
+    !!}
+    implicit none
+    class(criticalOverdensityRenormalize), intent(inout) :: self
+
+    renormalizeIsTreeDependent=self%criticalOverdensity_%isTreeDependent()
+    return
+  end function renormalizeIsTreeDependent

@@ -302,7 +302,7 @@ def linesParse(job):
             linesFile.close()
         if badFile:
             if attempt == attemptsMaximum-1:
-                print("FAIL [unable to find Cloudy output lines file]: "+label+" see ".job['logFileName'])
+                print("FAIL [unable to find Cloudy output lines file]: "+label+" see "+job['logFileName'])
                 if grid['lineData']['status'][indices] == 0:
                     grid['lineData']['status'][indices] = 3
             else:
@@ -804,8 +804,10 @@ def outputSSP(grid,args):
     # Write the line data to file.
     tableFile = h5py.File(args.workspace+args.outputFileName,"w")
     # Add useful metadata.
-    tableFile.attrs['time'       ] = str(datetime.datetime.now())
-    tableFile.attrs['gitRevision'] = grid['gitRevision']
+    tableFile.attrs['time'         ] = str(datetime.datetime.now())
+    tableFile.attrs['gitRevision'  ] = grid['gitRevision'  ]
+    tableFile.attrs['commandLine'  ] = grid['commandLine'  ]
+    tableFile.attrs['cloudyVersion'] = grid['cloudyVersion']
     # Write parameter grid points and attributes.
     datasetAge                          = tableFile.create_dataset('age'                       ,data=      grid['ages'                   ])
     datasetMetallicity                  = tableFile.create_dataset('metallicity'               ,data=10.0**grid['logMetallicities'       ])
@@ -851,8 +853,10 @@ def outputAGN(grid,args):
     # Write the line data to file.
     tableFile = h5py.File(args.workspace+args.outputFileName,'w')
     # Add useful metadata.
-    tableFile.attrs['time'       ] = str(datetime.datetime.now())
-    tableFile.attrs['gitRevision'] = grid['gitRevision']
+    tableFile.attrs['time'         ] = str(datetime.datetime.now())
+    tableFile.attrs['gitRevision'  ] = grid['gitRevision'  ]
+    tableFile.attrs['commandLine'  ] = grid['commandLine'  ]
+    tableFile.attrs['cloudyVersion'] = grid['cloudyVersion']
     # Write parameter grid points and attributes.
     datasetSpectralIndex       = tableFile.create_dataset('spectralIndex'      ,data=      grid['spectralIndices'        ])
     datasetMetallicity         = tableFile.create_dataset('metallicity'        ,data=10.0**grid['logMetallicities'       ])
@@ -1188,6 +1192,12 @@ establishGrid(grid,args)
 repo                = Repo(os.environ['GALACTICUS_EXEC_PATH'])
 lastRevision        = repo.head.object.hexsha
 grid['gitRevision'] = lastRevision
+
+# Add the command line arguments for possible output.
+grid['commandLine'] = " ".join(sys.argv)
+
+# Store Cloudy version.
+grid['cloudyVersion'] = cloudyVersion
 
 # Initialize the line luminosity tables.
 dimensions       = list(map(lambda x: grid[x].size,grid['iterables']))
