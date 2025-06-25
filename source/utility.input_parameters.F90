@@ -510,7 +510,7 @@ contains
                 ! Replace a parameter with another parameter.
                 if (.not.hasAttribute(childNode,"target")) call Error_Report('`change` element with `type="replaceWith"` must have the `target` attribute'//{introspection:location})
                 targetPath=getAttribute(childNode,"target")
-                if (.not.XML_Path_Exists(parameterNode,char(targetPath))) call Error_Report("target path does not exist"//{introspection:location})
+                if (.not.XML_Path_Exists(parameterNode,char(targetPath))) call Error_Report("target path '"//trim(targetPath)//"' does not exist"//{introspection:location})
                 targetNode       => XML_Get_First_Element_By_Tag_Name(parameterNode,char(targetPath),directChildrenOnly=.true.)
                 clonedNode       => cloneNode    (targetNode                            ,deep=.true.)
                 changeNodeParent => getParentNode(                            changeNode            )
@@ -2178,7 +2178,7 @@ contains
                 if (isDouble) then
 #ifdef MATHEVALAVAIL
                    evaluator=Evaluator_Create_(trim(expression))
-                   if (evaluator == 0) call Error_Report('failed to parse expression'//{introspection:location})
+                   if (evaluator == 0) call Error_Report("failed to parse expression '"//trim(expression)//"' - see https://galacticusorg.github.io/libmatheval/doc/evaluator_005fcreate.html for supported operators and functions"//{introspection:location})
                    workValueDouble=Evaluator_Evaluate_(evaluator,0,"",0.0d0)
                    call Evaluator_Destroy_(evaluator)
                    call parameterNode%set(workValueDouble)
