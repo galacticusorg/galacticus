@@ -6,7 +6,7 @@
   <!-- Transfer function options -->
   <!-- Use a fitting function for WDM to get accurate behavior at very large wavenumbers -->
   <transferFunction value="bode2001">
-    <scaleCutOffModel value="vogel22SpinHalf"/>
+    <scaleCutOffModel value="vogel23SpinHalf"/>
     <epsilon value="1.000"/>
     <nu      value="1.049"/>
     <eta     value="5.000"/>
