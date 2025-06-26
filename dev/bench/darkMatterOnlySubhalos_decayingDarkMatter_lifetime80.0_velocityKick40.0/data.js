@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1750112212581,
+  "lastUpdate": 1750905393483,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=80 Gyr; vₖ=40 km/s)": [
@@ -2197,6 +2197,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
             "value": "43.08171085225684",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "b67ed4d0c631e711faacbfb2843b1cbb50ee5cba",
+          "message": "feat: Various improvements to the emission line Cloudy table script\n\n* Fix dataset ordering and other bugs.\n\n* Expand the range of HII region luminosities tabulated.\n\n* Use the Strömgren radius of the HII region in Cloudy models.\n\n* Validate models against BPT diagrams and create plots of those diagrams.\n\n* Provide data and instructions to deply those plots to a web page.",
+          "timestamp": "2025-06-25T13:01:15-07:00",
+          "tree_id": "3a78e821f793815aeaec93e362e8bfb710918b17",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b67ed4d0c631e711faacbfb2843b1cbb50ee5cba"
+        },
+        "date": 1750905392134,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": "30.85579482882552",
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": "43.59454352769889",
             "unit": "-logℒ"
           }
         ]
