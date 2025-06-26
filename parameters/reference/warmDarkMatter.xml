@@ -21,5 +21,11 @@
       <nu               value="1.049"          />
     </transferFunction>
   </change>
+
+  <!-- Include prompt cusps -->
+  <change type="update"      path="darkMatterProfileDMO/darkMatterProfileDMO" value="cuspNFW"/>
+  <change type="insertAfter" path="nodeOperator/nodeOperator[@value='darkMatterProfileScaleSet']">
+    <nodeOperator value="darkMatterProfilePromptCusps"/>
+  </change>
   
 </changes>

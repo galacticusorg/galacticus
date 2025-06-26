@@ -937,6 +937,7 @@ jobs:
                       tests.make_ranges.exe,
                       tests.mass_distributions.exe,
                       tests.mass_distributions.tabulated.exe,
+                      tests.prompt_cusps.exe,
                       tests.math_special_functions.exe,
                       tests.math_distributions.exe,
                       tests.math.fast.exe,
