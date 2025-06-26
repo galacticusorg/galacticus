@@ -31,17 +31,17 @@
     <normalization value="=[haloMassFunctionParameters/artificialNormalization]"                            />
     <exponent      value="=[haloMassFunctionParameters/artificialExponent]"                                 />
     <massZeroPoint value="=[haloMassFunctionParameters/artificialCountParticles]*[massParticleAtResolution]"/>
-  <cosmologicalMassVariance value="peakBackgroundSplit">
-    <cosmologicalMassVariance value="filteredPower">
-      <sigma_8                   value="0.820" />
-      <tolerance                 value="4.0e-4"/>
-      <toleranceTopHat           value="2.0e-4"/>
-      <nonMonotonicIsFatal       value="false" />
-      <monotonicInterpolation    value="true"  />
-      <integrationFailureIsFatal value="false" />
-      <storeTabulations          value="false" />
+    <cosmologicalMassVariance value="peakBackgroundSplit">
+      <cosmologicalMassVariance value="filteredPower">
+	<sigma_8                   value="0.820" />
+	<tolerance                 value="4.0e-4"/>
+	<toleranceTopHat           value="2.0e-4"/>
+	<nonMonotonicIsFatal       value="false" />
+	<monotonicInterpolation    value="true"  />
+	<integrationFailureIsFatal value="false" />
+	<storeTabulations          value="false" />
+      </cosmologicalMassVariance>
     </cosmologicalMassVariance>
-  </cosmologicalMassVariance>
   </cosmologicalMassVariance>
   <powerSpectrumPrimordialTransferred value="simple"/>
 
