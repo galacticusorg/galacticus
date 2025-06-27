@@ -175,6 +175,10 @@ contains
     double precision                                                                  :: densityNormalization, radiusNormalization, &
          &                                                                               radiusScaled
 
+    if (radius <= 0.0d0) then
+       mass=0.0d0
+       return
+    end if
     if (tabulating) then
        mass=self%massEnclosedBySphereNumerical(radius)
     else
