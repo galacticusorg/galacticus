@@ -42,6 +42,7 @@
           &              radiusVirial           , radiusCoreScaleFree    , &
           &              radiusSolitonScaleFree , densitySolitonScaleFree
    contains
+     procedure :: mass                  => solitonNFWMass
      procedure :: density               => solitonNFWDensity
      procedure :: densityGradientRadial => solitonNFWDensityGradientRadial
      procedure :: parameters            => solitonNFWParameters
@@ -250,6 +251,65 @@ contains
       return
    end function solitonNFWFactoryTabulation
 
+   double precision function SolitonMass(self,r) result(f)
+    !!{
+    Return the mass at the specified {\normalfont \ttfamily coordinates} in the soliton region.
+    !!}
+    use :: Numerical_Constants_Math        , only : Pi
+    implicit none
+    class           (massDistributionSolitonNFW), intent(inout) :: self
+    double precision                            , intent(in   ) :: r
+    double precision                            , parameter     :: A = 0.091d0
+    double precision                                            :: radiusCore, densitySolitonCentral
+    double precision                                            :: atanterm  , prefactor            , term, poly
+
+    radiusCore           =+self%radiusCore
+    densitySolitonCentral=+self%densitySolitonCentral
+    if (r < 1.0d-1*radiusCore) then
+       !Taylor Expansion
+       f = +4.0d0/3.0d0*Pi*densitySolitonCentral*r**3                        &
+        &  -32.0d0/5.0d0*Pi*A*densitySolitonCentral*r**5/radiusCore**2       &
+        &  +144.0d0/7.0d0*Pi*A**2*densitySolitonCentral*r**7/radiusCore**4
+    else
+       term        = +sqrt(A)*r*radiusCore/(A*r**2+radiusCore**2)**7
+       poly        = +3465.0d0*   A**6*r**12                                  &
+        &            +23100.0d0*  A**5*r**10*radiusCore**2                    &
+        &            +65373.0d0*  A**4*r**8* radiusCore**4                    &
+        &            +101376.0d0* A**3*r**6* radiusCore**6                    &
+        &            +92323.0d0*  A**2*r**4* radiusCore**8                    &
+        &            +48580.0d0*  A*   r**2* radiusCore**10                   &
+        &            -3465.0d0*   radiusCore**12
+       atanterm    = +3465.0d0*atan(sqrt(A)*r/radiusCore)
+       prefactor   = +Pi*densitySolitonCentral*radiusCore**3/(53760.0d0*A**1.5d0)
+       f           = +prefactor*(atanterm-term*poly)
+    end if
+    return
+   end function SolitonMass
+
+   double precision function solitonNFWMass(self,coordinates) result(mass)
+      !!{
+      Return the mass at the specified {\normalfont \ttfamily coordinates} in a soliton and NFW mass distribution.
+      !!}
+      use :: Numerical_Constants_Math        , only : Pi
+      implicit none
+      class           (massDistributionSolitonNFW), intent(inout) :: self
+      class           (coordinate                ), intent(in   ) :: coordinates
+      double precision                                            :: Msol       , invterm, logterm, r
+
+      r         =+coordinates%rSpherical()
+      Msol      =+SolitonMass           (self, self%radiusSoliton)
+      if (r < self%radiusSoliton) then
+         ! Soliton regime.
+         mass   =+SolitonMass(self, r)
+      else
+         ! NFW regime.
+         invterm=+self%radiusScale*(1.0d0/(r+self%radiusScale)-1.0d0/(self%radiusScale+self%radiusSoliton))
+         logterm=+log(r+self%radiusScale)-log(self%radiusScale+self%radiusSoliton)
+         mass   =+Msol+4.0d0*Pi*self%densityNormalizationNFW*self%radiusScale**3*(invterm+logterm)
+      end if
+      return
+   end function solitonNFWMass
+
    double precision function solitonNFWDensity(self,coordinates) result(density)
       !!{
       Return the density at the specified {\normalfont \ttfamily coordinates} in a soliton and NFW mass distribution.
@@ -258,6 +318,7 @@ contains
       class           (massDistributionSolitonNFW), intent(inout) :: self
       class           (coordinate                ), intent(in   ) :: coordinates
       double precision                                            :: radiusScaleFree, radiusCoreFree
+      double precision                            , parameter     :: A_soliton = 0.091d0
 
       radiusScaleFree=+coordinates%rSpherical()/self%radiusScale
       radiusCoreFree =+coordinates%rSpherical()/self%radiusCore
