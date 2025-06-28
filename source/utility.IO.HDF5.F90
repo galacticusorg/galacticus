@@ -4299,21 +4299,23 @@ attributeValue=trim(attributeValue)
     character(len=*         )              , intent(in   )           :: datasetName
     character(len=*         )              , intent(in   ), optional :: comment
     integer  (hsize_t       )              , intent(in   ), optional :: chunkSize
-    integer                                , intent(in   ), optional :: compressionLevel        , datasetDataType, &
+    integer                                , intent(in   ), optional :: compressionLevel                           , datasetDataType, &
          &                                                              appendDimension
     integer  (kind=HSIZE_T  ), dimension(:), intent(in   ), optional :: datasetDimensions
-    logical                                , intent(in   ), optional :: appendTo                , isOverwritable
+    logical                                , intent(in   ), optional :: appendTo                                   , isOverwritable
     integer  (kind=HID_T    )              , intent(in   ), optional :: useDataType
     class    (hdf5Object    )              , intent(in   ), target   :: inObject
-    integer  (kind=HSIZE_T  ), dimension(7)                          :: chunkDimensions         , datasetDimensionsActual, &
+    integer  (kind=HSIZE_T  ), parameter                             :: chunkSizeMaximum        =4294967296_hsize_t ! Maximum chunk size of 4GB (see https://support.hdfgroup.org/documentation/hdf5-docs/advanced_topics/chunking_in_hdf5.html).
+    integer  (kind=HSIZE_T  ), dimension(7)                          :: chunkDimensions                            , datasetDimensionsActual, &
          &                                                              datasetDimensionsMaximum
     integer  (kind=HSIZE_T  )                                        :: chunkSizeActual
-    integer                                                          :: compressionLevelActual  , datasetRank            , &
-         &                                                              errorCode               , appendDimensionActual
-    integer  (kind=HID_T    )                                        :: dataSpaceID             , dataTypeID             , &
-         &                                                              locationID              , propertyList
+    integer                                                          :: compressionLevelActual                     , datasetRank            , &
+         &                                                              errorCode                                  , appendDimensionActual  , &
+         &                                                              iDimension
+    integer  (kind=HID_T    )                                        :: dataSpaceID                                , dataTypeID             , &
+         &                                                              locationID                                 , propertyList
     logical                                                          :: appendToActual
-    type     (varying_string)                                        :: locationPath            , message
+    type     (varying_string)                                        :: locationPath                               , message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -4461,6 +4463,13 @@ attributeValue=trim(attributeValue)
              ! Fixed dimension array, use smaller of chunk size and actual size.
              chunkDimensions(1:datasetRank)=min(datasetDimensionsActual(1:datasetRank),chunkSizeActual)
           end if
+          ! Reduce chunk size if needed to fit within HDF5's maximum chunk size.
+          iDimension=0
+          do while (product(chunkDimensions(1:datasetRank))*sizeof(0.0d0) > chunkSizeMaximum)
+             iDimension=iDimension+1
+             if (iDimension > datasetRank) iDimension=1
+             chunkDimensions(iDimension)=max(1_hsize_t,chunkDimensions(iDimension)/2_hsize_t)
+          end do
           call h5pset_chunk_f(propertyList,datasetRank,chunkDimensions,errorCode)
           if (errorCode < 0) then
              message="unable to set chunk size for dataset '"//trim(datasetName)//"'"

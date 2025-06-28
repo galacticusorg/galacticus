@@ -834,6 +834,14 @@ program Tests_IO_HDF5
         deallocate(datasetNames)
      end if
 
+     ! Write a very large (>4GB) dataset to test that chunking limits
+     ! the chunksize to less than the maximum allowed.
+     if (iPass == 2) then
+        if (allocated(doubleValueArray4dReread)) deallocate(doubleValueArray4dReread)
+        allocate(doubleValueArray4dReread(600,100,100,100))
+        call fileObject%writeDataset(doubleValueArray4dReread,'bigDataset','A dataset larger than 4GB.',chunkSize=1024_hsize_t)
+     end if
+     
      ! Close the group.
      call groupObject%close()
 
@@ -855,7 +863,7 @@ program Tests_IO_HDF5
        call groupObject%close()
        ! Close the file.
        call fileObject%close()
-     end if
+    end if
 
      ! End the pass and destroy objects.
      call Unit_Tests_End_Group()
