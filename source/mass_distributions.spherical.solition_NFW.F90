@@ -281,7 +281,7 @@ contains
         &            -3465.0d0*   radiusCore**12
        atanterm    = +3465.0d0*atan(sqrt(A)*r/radiusCore)
        prefactor   = +Pi*densitySolitonCentral*radiusCore**3/(53760.0d0*A**1.5d0)
-       f           = +prefactor*(atanterm-term*poly)
+       f           = +prefactor*(atanterm+term*poly)
     end if
     return
    end function SolitonMass
