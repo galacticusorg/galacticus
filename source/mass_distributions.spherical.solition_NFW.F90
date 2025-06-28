@@ -318,7 +318,6 @@ contains
       class           (massDistributionSolitonNFW), intent(inout) :: self
       class           (coordinate                ), intent(in   ) :: coordinates
       double precision                                            :: radiusScaleFree, radiusCoreFree
-      double precision                            , parameter     :: A_soliton = 0.091d0
 
       radiusScaleFree=+coordinates%rSpherical()/self%radiusScale
       radiusCoreFree =+coordinates%rSpherical()/self%radiusCore
