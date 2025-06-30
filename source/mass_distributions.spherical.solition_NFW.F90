@@ -59,9 +59,10 @@
      module procedure solitonNFWConstructorInternal
    end interface massDistributionSolitonNFW
 
-   logical                                     :: containerSolitonNFWInitialized=.false.
-   type   (massDistributionContainer), pointer :: containerSolitonNFW
+   logical                                       :: containerSolitonNFWInitialized=.false.
+   type   (massDistributionContainer), pointer   :: containerSolitonNFW
    !$omp threadprivate(containerSolitonNFW,containerSolitonNFWInitialized)
+   double precision                  , parameter :: A = 0.091d0
 
    !![
    <sourceDigest name="massDistributionSolitonNFWSourceDigest"/>
@@ -251,40 +252,36 @@ contains
       return
    end function solitonNFWFactoryTabulation
 
-   double precision function SolitonMass(self,r) result(f)
+   double precision function solitonMass(self,radius) result(mass)
     !!{
     Return the mass at the specified {\normalfont \ttfamily coordinates} in the soliton region.
     !!}
     use :: Numerical_Constants_Math        , only : Pi
     implicit none
     class           (massDistributionSolitonNFW), intent(inout) :: self
-    double precision                            , intent(in   ) :: r
-    double precision                            , parameter     :: A = 0.091d0
-    double precision                                            :: radiusCore, densitySolitonCentral
-    double precision                                            :: atanterm  , prefactor            , term, poly
+    double precision                            , intent(in   ) :: radius
+    double precision                                            :: atanterm, prefactor, term, poly
 
-    radiusCore           =+self%radiusCore
-    densitySolitonCentral=+self%densitySolitonCentral
-    if (r < 1.0d-1*radiusCore) then
+    if (radius < 1.0d-1*self%radiusCore) then
        !Taylor Expansion
-       f = +4.0d0/3.0d0*Pi*densitySolitonCentral*r**3                        &
-        &  -32.0d0/5.0d0*Pi*A*densitySolitonCentral*r**5/radiusCore**2       &
-        &  +144.0d0/7.0d0*Pi*A**2*densitySolitonCentral*r**7/radiusCore**4
+       mass = +4.0d0/3.0d0*Pi*self%densitySolitonCentral*radius**3                           &
+        &     -32.0d0/5.0d0*Pi*A*self%densitySolitonCentral*radius**5/self%radiusCore**2     &
+        &     +144.0d0/7.0d0*Pi*A**2*self%densitySolitonCentral*radius**7/self%radiusCore**4
     else
-       term        = +sqrt(A)*r*radiusCore/(A*r**2+radiusCore**2)**7
-       poly        = +3465.0d0*   A**6*r**12                                  &
-        &            +23100.0d0*  A**5*r**10*radiusCore**2                    &
-        &            +65373.0d0*  A**4*r**8* radiusCore**4                    &
-        &            +101376.0d0* A**3*r**6* radiusCore**6                    &
-        &            +92323.0d0*  A**2*r**4* radiusCore**8                    &
-        &            +48580.0d0*  A*   r**2* radiusCore**10                   &
-        &            -3465.0d0*   radiusCore**12
-       atanterm    = +3465.0d0*atan(sqrt(A)*r/radiusCore)
-       prefactor   = +Pi*densitySolitonCentral*radiusCore**3/(53760.0d0*A**1.5d0)
-       f           = +prefactor*(atanterm+term*poly)
+       term        = +sqrt(A)*radius*self%radiusCore/(A*radius**2+self%radiusCore**2)**7
+       poly        = +3465.0d0*   A**6*radius**12                                        &
+        &            +23100.0d0*  A**5*radius**10*self%radiusCore**2                     &
+        &            +65373.0d0*  A**4*radius**8* self%radiusCore**4                     &
+        &            +101376.0d0* A**3*radius**6* self%radiusCore**6                     &
+        &            +92323.0d0*  A**2*radius**4* self%radiusCore**8                     &
+        &            +48580.0d0*  A*   radius**2* self%radiusCore**10                    &
+        &            -3465.0d0*self%radiusCore**12
+       atanterm    = +3465.0d0*atan(sqrt(A)*radius/self%radiusCore)
+       prefactor   = +Pi*self%densitySolitonCentral*self%radiusCore**3/(53760.0d0*A**1.5d0)
+       mass        = +prefactor*(atanterm+term*poly)
     end if
     return
-   end function SolitonMass
+   end function solitonMass
 
    double precision function solitonNFWMass(self,coordinates) result(mass)
       !!{
@@ -294,18 +291,18 @@ contains
       implicit none
       class           (massDistributionSolitonNFW), intent(inout) :: self
       class           (coordinate                ), intent(in   ) :: coordinates
-      double precision                                            :: Msol       , invterm, logterm, r
+      double precision                                            :: massSoliton, invterm, logterm, radius
 
-      r         =+coordinates%rSpherical()
-      Msol      =+SolitonMass           (self, self%radiusSoliton)
-      if (r < self%radiusSoliton) then
+      radius      =+coordinates%rSpherical()
+      if (radius < self%radiusSoliton) then
          ! Soliton regime.
-         mass   =+SolitonMass(self, r)
+         mass   =+solitonMass(self, radius)
       else
          ! NFW regime.
-         invterm=+self%radiusScale*(1.0d0/(r+self%radiusScale)-1.0d0/(self%radiusScale+self%radiusSoliton))
-         logterm=+log(r+self%radiusScale)-log(self%radiusScale+self%radiusSoliton)
-         mass   =+Msol+4.0d0*Pi*self%densityNormalizationNFW*self%radiusScale**3*(invterm+logterm)
+         massSoliton =+solitonMass(self, self%radiusSoliton)
+         invterm     =+self%radiusScale*(1.0d0/(radius+self%radiusScale)-1.0d0/(self%radiusScale+self%radiusSoliton))
+         logterm     =+log(radius+self%radiusScale)-log(self%radiusScale+self%radiusSoliton)
+         mass        =+massSoliton+4.0d0*Pi*self%densityNormalizationNFW*self%radiusScale**3*(invterm+logterm)
       end if
       return
    end function solitonNFWMass
@@ -323,10 +320,10 @@ contains
       radiusCoreFree =+coordinates%rSpherical()/self%radiusCore
       if (coordinates%rSpherical() < self%radiusSoliton) then
          ! Soliton regime.
-         density=+self%densitySolitonCentral                  /(+1.0d0+0.091d0*radiusCoreFree**2)**8
+         density=+self%densitySolitonCentral                  /(+1.0d0+A*radiusCoreFree**2)**8
       else
          ! NFW regime.
-         density=+self%densityNormalizationNFW/radiusScaleFree/(+1.0d0+        radiusScaleFree  )**2
+         density=+self%densityNormalizationNFW/radiusScaleFree/(+1.0d0+  radiusScaleFree  )**2
       end if
       return
    end function solitonNFWDensity
@@ -349,15 +346,15 @@ contains
       if (coordinates%rSpherical() < self%radiusSoliton) then
          ! Soliton regime.
          if (logarithmic) then
-            densityGradient=-16.0d0                            &
-                 &          *       0.091d0*radiusCoreFree**2  &
-                 &          /(1.0d0+0.091d0*radiusCoreFree**2)
+            densityGradient=-16.0d0                         &
+                 &          *       A*radiusCoreFree**2     &
+                 &          /(1.0d0+A*radiusCoreFree**2)
          else
-            densityGradient=-16.0d0                               &
-                 &          *self%densitySolitonCentral           &
-                 &          /self%radiusCore                      &
-                 &          *       0.091d0*radiusCoreFree        &
-                 &          /(1.0d0+0.091d0*radiusCoreFree**2)**9
+            densityGradient=-16.0d0                         &
+                 &          *self%densitySolitonCentral     &
+                 &          /self%radiusCore                &
+                 &          *       A*radiusCoreFree        &
+                 &          /(1.0d0+A*radiusCoreFree**2)**9
          end if
       else
          ! NFW regime.
@@ -366,7 +363,7 @@ contains
                  &            -2.0d0*radiusScaleFree  &
                  &          /(+1.0d0+radiusScaleFree)
          else
-            densityGradient=-self%densityNormalizationNFW         &
+            densityGradient=-self%densityNormalizationNFW      &
                  &          /self%radiusScale                  &
                  &          *(+1.0d0+3.0d0*radiusScaleFree)    &
                  &          /(+1.0d0+      radiusScaleFree)**3 &
