@@ -42,7 +42,7 @@
           &              radiusVirial           , radiusCoreScaleFree    , &
           &              radiusSolitonScaleFree , densitySolitonScaleFree
    contains
-     procedure :: mass                  => solitonNFWMass
+     procedure :: massEnclosedBySphere  => solitonNFWMassEnclosedBySphere
      procedure :: density               => solitonNFWDensity
      procedure :: densityGradientRadial => solitonNFWDensityGradientRadial
      procedure :: parameters            => solitonNFWParameters
@@ -283,7 +283,7 @@ contains
     return
    end function solitonMass
 
-   double precision function solitonNFWMass(self,coordinates) result(mass)
+   double precision function solitonNFWMassEnclosedBySphere(self,coordinates) result(mass)
       !!{
       Return the mass at the specified {\normalfont \ttfamily coordinates} in a soliton and NFW mass distribution.
       !!}
@@ -305,7 +305,7 @@ contains
          mass        =+massSoliton+4.0d0*Pi*self%densityNormalizationNFW*self%radiusScale**3*(invterm+logterm)
       end if
       return
-   end function solitonNFWMass
+   end function solitonNFWMassEnclosedBySphere
 
    double precision function solitonNFWDensity(self,coordinates) result(density)
       !!{
