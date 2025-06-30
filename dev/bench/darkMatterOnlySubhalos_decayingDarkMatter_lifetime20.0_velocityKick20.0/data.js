@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1750905373068,
+  "lastUpdate": 1751318458071,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=20 km/s)": [
@@ -2231,6 +2231,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
             "value": "5.940396351262764",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "9f71775a9dd1cbaa00b941dcdc90c2f76fe8fcf5",
+          "message": "fix: Switch source of `FFTlog` code to GitHub\n\nShould be a more reliable source than the original web site.",
+          "timestamp": "2025-06-30T07:45:10-07:00",
+          "tree_id": "97a789663b5ca2d4925bcd95ccb5c93a10945f78",
+          "url": "https://github.com/galacticusorg/galacticus/commit/9f71775a9dd1cbaa00b941dcdc90c2f76fe8fcf5"
+        },
+        "date": 1751318457205,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - mass function",
+            "value": "4.497220409905023",
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
+            "value": "1.7650197401415446",
             "unit": "-logℒ"
           }
         ]
