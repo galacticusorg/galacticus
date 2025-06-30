@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1750905318224,
+  "lastUpdate": 1751318402400,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (COZMIC WDM 3keV)": [
@@ -190,6 +190,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (COZMIC WDM 3keV Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": "100.01993021801958",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "9f71775a9dd1cbaa00b941dcdc90c2f76fe8fcf5",
+          "message": "fix: Switch source of `FFTlog` code to GitHub\n\nShould be a more reliable source than the original web site.",
+          "timestamp": "2025-06-30T07:45:10-07:00",
+          "tree_id": "97a789663b5ca2d4925bcd95ccb5c93a10945f78",
+          "url": "https://github.com/galacticusorg/galacticus/commit/9f71775a9dd1cbaa00b941dcdc90c2f76fe8fcf5"
+        },
+        "date": 1751318401088,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM 3keV Milky Way) - Likelihood - subhaloMassFunction",
+            "value": "2.0438117516624",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM 3keV Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": "3.2224813945430464",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM 3keV Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": "367.7447567531205",
             "unit": "-logℒ"
           }
         ]
