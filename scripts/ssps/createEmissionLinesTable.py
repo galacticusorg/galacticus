@@ -4,6 +4,7 @@ import h5py
 import argparse
 import sys
 import os
+import shutil
 import re
 import copy
 import lxml.etree as ET
@@ -13,6 +14,11 @@ import subprocess
 import time
 import datetime
 import urllib.request
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+import json
+import codecs
+from termcolor import colored
 from git import Repo
 
 # Generate tables of Cloudy models for use in emission line calculations.
@@ -54,7 +60,8 @@ def establishGridSSP(grid,args):
             except urllib.request.HTTPError as e:
                 print(f"Failed to download stellar populations file: HTTP Error: {e.code} - {e.reason}")
             except Exception as e:
-                print(f"Failed to download stellar populations file: {e}") 
+                print(f"Failed to download stellar populations file: {e}")
+        grid['sspURL'] = args.sspFileName
         args.sspFileName = args.workspace+fileName
     ## Read data from file.
     stellarPopulations          = h5py.File(args.sspFileName,'r')
@@ -88,14 +95,14 @@ def establishGridSSP(grid,args):
                                                                                	    )
             logMetallicitiesRefined[(i*refineMetallicityBy+j)    ]          =        +logMetallicities   [(i  )    ]                                         \
  		                                                                     +deltaLogMetallicity                     *     (j/refineMetallicityBy)
-    logMetallicitiesRefined[-1    ] = logMetallicities[-1    ]   
-    spectraRefined         [-1,:,:] = spectra         [-1,:,:]    
+    logMetallicitiesRefined[-1    ] = logMetallicities[-1    ]
+    spectraRefined         [-1,:,:] = spectra         [-1,:,:]
     grid['ages'            ] = ages
     grid['logMetallicities'] = logMetallicitiesRefined
     grid['spectra'         ] = spectraRefined
     grid['wavelength'      ] = wavelength
     grid['energy'          ] = energy
-    
+
     # Evaluate the number of Lyman continuum photons emitted per second for each population (age,metallicity).
     ## Construct the integrand. Spectra are in units of L☉ Hz¯¹. We want to evaluate Qₕ = ∫_Eₕ^∞ dν S_ν/hν = ∫₀^λₕ dλ S_ν / hλ.
     integrand                         = grid['spectra']*deltaWavelength/wavelength*luminositySolar/plancksConstant
@@ -105,13 +112,13 @@ def establishGridSSP(grid,args):
     grid['ionizingLuminosityPerMass'] = np.sum(integrand[:,:,hydrogenContinuum],axis=2)
 
     # Define ionizing luminosities, Qₕ, to tabulate.
-    grid['logHydrogenLuminosities'] = np.array([ 48.0, 49.0, 50.0, 51.0, 52.0 ])
+    grid['logHydrogenLuminosities'] = np.array([ 46.0, 47.0, 48.0, 49.0, 50.0, 51.0, 52.0 ])
     # Define hydrogen densities, nₕ, to tabulate.
     grid['logHydrogenDensities'   ] = np.array([ 1.0,  1.5,  2.0,  2.5,  3.0, 3.5, 4.0 ])
     # Specify the iterables in the grid.
     grid['iterables'] = ( "ages", "logMetallicities", "logHydrogenLuminosities"   , "logHydrogenDensities" )
     grid['names'    ] = ( "age" , "metallicity"     , "ionizingLuminosityHydrogen", "densityHydrogen"      )
-
+    
 def establishGridAGN(grid,args):
     # Establish the grid of models to use for AGN calculations.
 
@@ -302,7 +309,7 @@ def linesParse(job):
             linesFile.close()
         if badFile:
             if attempt == attemptsMaximum-1:
-                print("FAIL [unable to find Cloudy output lines file]: "+label+" see "+job['logFileName'])
+                print("FAIL [unable to find Cloudy output lines file]: "+label+" see "+job['logOutput'])
                 if grid['lineData']['status'][indices] == 0:
                     grid['lineData']['status'][indices] = 3
             else:
@@ -312,7 +319,7 @@ def linesParse(job):
     # Check that we found all lines.
     for lineName in lineList:
         if lineName not in linesFound:
-            print("FAIL [some emission lines missing]: "+label+" '"+lineName+"' see "+job['logFileName'])
+            print("FAIL [some emission lines missing]: "+label+" '"+lineName+"' see "+job['logOutput'])
             if grid['lineData']['status'][indices] == 0:
                 grid['lineData']['status'][indices] = 3
     # Clean up.
@@ -330,13 +337,14 @@ def reprocessSSP(grid,args):
     # thousands of these so some intermittment failures can occur).
     tableFile                  = h5py.File(args.workspace+args.outputFileName,'r')
     lineGroup                  = tableFile['lines' ]
-    grid['lineData']['status'] = lineGroup['status'][:]
+    grid['lineData']['status'] = np.transpose(lineGroup['status'][:])
     for lineIdentifier in lineList:
         lineName = lineList[lineIdentifier]
-        grid['lineData'][lineName]['luminosity'] = lineGroup[lineName][:]
+        grid['lineData'][lineName]['luminosity'] = np.transpose(lineGroup[lineName][:])
+        grid['lineData'][lineName]['wavelength'] =              lineGroup[lineName].attrs['wavelength']
     jobNumber = -1
-    for iAge in range(grid['ionizingLuminosityPerMass'].shape[0]):
-        for iMetallicity in range(grid['ionizingLuminosityPerMass'].shape[1]):
+    for iAge in range(grid['ionizingLuminosityPerMass'].shape[1]):
+        for iMetallicity in range(grid['ionizingLuminosityPerMass'].shape[0]):
             for iLogHydrogenLuminosity in range(len(grid['logHydrogenLuminosities'])):
                 for iLogHydrogenDensity in range(len(grid['logHydrogenDensities'])):
                     jobNumber += 1
@@ -359,6 +367,10 @@ def reprocessSSP(grid,args):
                         }
 		    )
                     print("Reprocess job number "+str(jobNumber)+" (status = "+str(statusOld)+" ==> "+str(grid['lineData']['status'][iAge,iMetallicity,iLogHydrogenLuminosity,iLogHydrogenDensity])+")")
+    # Set data URL.
+    match = re.match(r'^http.*\/([^\?]+).*',args.sspFileName)
+    if match:
+        grid['sspURL'] = args.sspFileName
 
 def reprocessAGN(grid,args):
     # Reprocess a single Cloudy job for SSP calculations.
@@ -366,10 +378,11 @@ def reprocessAGN(grid,args):
     # thousands of these so some intermittment failures can occur).
     tableFile                  = h5py.File(args.workspace+args.outputFileName,'r')
     lineGroup                  = tableFile['lines' ]
-    grid['lineData']['status'] = lineGroup['status'][:]
+    grid['lineData']['status'] = np.transpose(lineGroup['status'][:])
     for lineIdentifier in lineList:
         lineName = lineList[lineIdentifier]
-        grid['lineData'][lineName]['luminosity'] = lineGroup[lineName][:]
+        grid['lineData'][lineName]['luminosity'] = np.transpose(lineGroup[lineName][:])
+        grid['lineData'][lineName]['wavelength'] =              lineGroup[lineName].attrs['wavelength']
     jobNumber = -1
     for iSpectralIndex in range(len(grid['spectralIndices'])):
         for iMetallicity in range(len(grid['logMetallicities'])):
@@ -408,10 +421,11 @@ def generateJobSSP(grid,args):
         if not 'rerunStatusRead' in grid:
             tableFile                  = h5py.File(args.workspace+args.outputFileName,'r')
             lineGroup                  = tableFile['lines']
-            grid['lineData']['status'] = lineGroup['status'][:]
+            grid['lineData']['status'] = np.transpose(lineGroup['status'][:])
             for lineIdentifier in lineList:
                 lineName = lineList[lineIdentifier]
-                grid['lineData'][lineName]['luminosity'] = lineGroup[lineName][:]
+                grid['lineData'][lineName]['luminosity'] = np.transpose(lineGroup[lineName][:])
+                grid['lineData'][lineName]['wavelength'] =              lineGroup[lineName].attrs['wavelength']
             grid['rerunStatusRead'] = 1
         statusOld = grid['lineData']['status'][iAge,iMetallicity,iLogHydrogenLuminosity,iLogHydrogenDensity]
         if statusOld == 0:
@@ -423,6 +437,8 @@ def generateJobSSP(grid,args):
         normalizer = np.max(grid['spectra'][iMetallicity,iAge,:])
         grid['spectra'   ][iMetallicity,iAge,:] /= normalizer
         grid['normalized'][iMetallicity,iAge  ]  = 1
+    # Compute the Strömgren radius for this model.
+    radiusStromgrenLogarithmic = (grid['logHydrogenLuminosities'][iLogHydrogenLuminosity]-np.log10(4.0*np.pi/3.0*coefficientRecombinationCaseB)-2.0*grid['logHydrogenDensities'][iLogHydrogenDensity])/3.0
     # Get abundances for this metallicity.
     ## Compute metallicity relative to Solar.
     metallicity                                    = 10.0**grid['logMetallicities'][iMetallicity]
@@ -497,7 +513,7 @@ def generateJobSSP(grid,args):
     cloudyScript += "hden "+str(grid['logHydrogenDensities'][iLogHydrogenDensity])+"\n"
     # Set other HII region properties.
     cloudyScript += "sphere expanding\n"
-    cloudyScript += "radius 16.0\n"
+    cloudyScript += f"radius {radiusStromgrenLogarithmic:.1f}\n"
     # Set cosmic rays (needed to avoid problems in Cloudy in neutral gas).
     cloudyScript += "cosmic rays background\n"
     # Set stopping criteria.
@@ -706,13 +722,196 @@ def validateSSP(grid,args):
                     -grid['ages'][0:-2]
     ageStep[  -1] = ageStep[-2]
     giga          = 1.0e9
-    starFormtionRateToIonizingLuminosity = 1.0/np.sum(grid['ionizingLuminosityPerMass'][:,0]*ageStep*giga)
+    starFormationRateToIonizingLuminosity = 1.0/np.sum(grid['ionizingLuminosityPerMass'][0,:]*ageStep*giga)
     # Report.
     print( "Validation: ratio SFR/Qₕ")
-    print( "   Expected (Kroupa IMF): 7.54e-54")
+    print( "   Expected (  Kroupa IMF): 7.54e-54")
     print( "   Expected (Chabrier IMF): 4.74e-54")
-    print(f"   Found: {starFormtionRateToIonizingLuminosity:8.3e}")
-    
+    print(f"   Found: {starFormationRateToIonizingLuminosity:8.3e}")
+
+    # Validate BPT diagram location of the "standard" model of Gutkin, Charlot & Bruzual (2016;
+    # https://ui.adsabs.harvard.edu/abs/2016MNRAS.462.1757G).
+    # Their standard model has:
+    #  Z_ISM   = 0.014
+    #  ξ_d     = 0.28
+    #  log U_S = −3.4
+    #  n_H     = 10² cm⁻³
+    # and they generate BPT diagrams assuming a constant star formation rate over the past 100 Myr.
+    # Select model based on a distance metric.
+    densityHydrogenStandard                =  100.0
+    ionizationParameterLogarithmicStandard = -3.4
+    metallicityStandard                    =  0.014/0.01524 # Convert to relaive to Solar using Solar metallicity from Gutkin, Charlot & Bruzual (2016).
+    radiiStromgrenLogarithmic              = (grid['logHydrogenLuminosities']+np.log10(3.0/4.0/np.pi/densityHydrogenStandard**2/coefficientRecombinationCaseB))/3.0
+    ionizationParameterLogarithmic         =  grid['logHydrogenLuminosities']-np.log10(4.0*np.pi*(hecto*speedOfLight))-np.log10(densityHydrogenStandard)-2.0*radiiStromgrenLogarithmic
+    distanceMetals                         = (grid['logMetallicities'       ]-np.log10(metallicityStandard                   ))**2
+    distanceDensity                        = (grid['logHydrogenDensities'   ]-np.log10(densityHydrogenStandard               ))**2
+    distanceIonizationParameter            = (ionizationParameterLogarithmic-          ionizationParameterLogarithmicStandard )**2
+    selectMetals                           = np.argmin(distanceMetals             )
+    selectDensity                          = np.argmin(distanceDensity            )
+    selectIonizationParameter              = np.argmin(distanceIonizationParameter)
+    selectAge                              = grid['ages'] < 100.0e-3
+    deltaAge                               = copy.deepcopy(grid['ages'])
+    deltaAge[0:-2]                         = grid['ages'][1:-1]-deltaAge[0:-2]
+    deltaAge[  -1]                         =                    deltaAge[  -2]
+    # Compute luminosities of all diagnostic lines.
+    luminosityHalpha               = np.sum(grid['lineData']['balmerAlpha6565']['luminosity'][selectAge,selectMetals,selectIonizationParameter,selectDensity]*deltaAge[selectAge]*grid['ionizingLuminosityPerMass'][selectMetals,selectAge])
+    luminosityHbeta                = np.sum(grid['lineData']['balmerBeta4863' ]['luminosity'][selectAge,selectMetals,selectIonizationParameter,selectDensity]*deltaAge[selectAge]*grid['ionizingLuminosityPerMass'][selectMetals,selectAge])
+    luminosityOII                  = np.sum(grid['lineData']['oxygenII3727'   ]['luminosity'][selectAge,selectMetals,selectIonizationParameter,selectDensity]*deltaAge[selectAge]*grid['ionizingLuminosityPerMass'][selectMetals,selectAge])
+    luminosityOIII                 = np.sum(grid['lineData']['oxygenIII5008'  ]['luminosity'][selectAge,selectMetals,selectIonizationParameter,selectDensity]*deltaAge[selectAge]*grid['ionizingLuminosityPerMass'][selectMetals,selectAge])
+    luminosityNII                  = np.sum(grid['lineData']['nitrogenII6585' ]['luminosity'][selectAge,selectMetals,selectIonizationParameter,selectDensity]*deltaAge[selectAge]*grid['ionizingLuminosityPerMass'][selectMetals,selectAge])
+    luminositySIIa                 = np.sum(grid['lineData']['sulfurII6718'   ]['luminosity'][selectAge,selectMetals,selectIonizationParameter,selectDensity]*deltaAge[selectAge]*grid['ionizingLuminosityPerMass'][selectMetals,selectAge])
+    luminositySIIb                 = np.sum(grid['lineData']['sulfurII6733'   ][         'luminosity'][selectAge,selectMetals,selectIonizationParameter,selectDensity]*deltaAge[selectAge]*grid['ionizingLuminosityPerMass'][selectMetals,selectAge])
+    # Construct BPT diagram line ratios.
+    ratioNIIHalpha                 = np.log10( luminosityNII                 /luminosityHalpha)
+    ratioOIIIHbeta                 = np.log10( luminosityOIII                /luminosityHbeta )
+    ratioSIIHalpha                 = np.log10((luminositySIIa+luminositySIIb)/luminosityHalpha)
+    ratioNIIOII                    = np.log10( luminosityNII                 /luminosityOII   )
+    ratioOIIOIII                   = np.log10( luminosityOII                 /luminosityOIII  )
+    # Verify that the ratios match those from Gutkin, Charlot & Bruzual (2016).
+    ratioNIIHalphaTarget = -0.60
+    ratioOIIIHbetaTarget = +0.00
+    ratioSIIHalphaTarget = -0.47
+    ratioNIIOIITarget    = -0.61
+    ratioOIIOIIITarget   = +0.48
+    # Determine success.
+    toleranceSuccess = 0.2
+    successNIIHalpha = "within acceptable range" if np.abs(ratioNIIHalpha-ratioNIIHalphaTarget) < toleranceSuccess else "NOT within acceptable range"
+    successOIIIHbeta = "within acceptable range" if np.abs(ratioOIIIHbeta-ratioOIIIHbetaTarget) < toleranceSuccess else "NOT within acceptable range"
+    successSIIHalpha = "within acceptable range" if np.abs(ratioSIIHalpha-ratioSIIHalphaTarget) < toleranceSuccess else "NOT within acceptable range"
+    successNIIOII    = "within acceptable range" if np.abs(ratioNIIOII   -ratioNIIOIITarget   ) < toleranceSuccess else "NOT within acceptable range"
+    successOIIOIII   = "within acceptable range" if np.abs(ratioOIIOIII  -ratioOIIOIIITarget  ) < toleranceSuccess else "NOT within acceptable range"
+    # Report on agreement.
+    print(f'BPT diagram ratio [NII]6584/Hα         (actual : target) = {ratioNIIHalpha:+.2f} : {ratioNIIHalphaTarget:+.2f}; {successNIIHalpha}')
+    print(f'BPT diagram ratio [OIII]5007/Hβ        (actual : target) = {ratioOIIIHbeta:+.2f} : {ratioOIIIHbetaTarget:+.2f}; {successOIIIHbeta}')
+    print(f'BPT diagram ratio [SII]6717,6731/Hα    (actual : target) = {ratioSIIHalpha:+.2f} : {ratioSIIHalphaTarget:+.2f}; {successSIIHalpha}')
+    print(f'BPT diagram ratio [NII]6584/[OII]3727  (actual : target) = {ratioNIIOII   :+.2f} : {ratioNIIOIITarget   :+.2f}; {successNIIOII   }')
+    print(f'BPT diagram ratio [OII]3727/[OIII]5007 (actual : target) = {ratioOIIOIII  :+.2f} : {ratioOIIOIIITarget  :+.2f}; {successOIIOIII  }')
+
+    # Make plots of BPT diagrams.
+    ## Construct line ratios.
+    with np.errstate(divide='ignore', invalid='ignore'):
+        ratioNIIHalphaAll     = np.log10( grid['lineData']['nitrogenII6585' ]['luminosity']                                                /grid['lineData']['balmerAlpha6565']['luminosity'])
+        ratioOIIIHbetaAll     = np.log10( grid['lineData']['oxygenIII5008'  ]['luminosity']                                                /grid['lineData']['balmerBeta4863' ]['luminosity'])
+        ratioSIIHalphaAll     = np.log10((grid['lineData']['sulfurII6718'   ]['luminosity']+grid['lineData']['sulfurII6733']['luminosity'])/grid['lineData']['balmerAlpha6565']['luminosity'])
+        ratioNIIOIIAll        = np.log10( grid['lineData']['nitrogenII6585' ]['luminosity']                                                /grid['lineData']['oxygenII3727'   ]['luminosity'])
+        ratioOIIOIIIAll       = np.log10( grid['lineData']['oxygenII3727'   ]['luminosity']                                                /grid['lineData']['oxygenIII5008'  ]['luminosity'])
+        metallicityRatioAll   = np.broadcast_to(grid['logMetallicities'       ][None,:,None,None],(len(grid['ages']),len(grid['logMetallicities']),len(grid['logHydrogenLuminosities']),len(grid['logHydrogenDensities'])))
+        densityHydrogenAll    = np.broadcast_to(grid['logHydrogenDensities'   ][None,None,None,:],(len(grid['ages']),len(grid['logMetallicities']),len(grid['logHydrogenLuminosities']),len(grid['logHydrogenDensities'])))
+        ionizingLuminosityAll = np.broadcast_to(grid['logHydrogenLuminosities'][None,None,:,None],(len(grid['ages']),len(grid['logMetallicities']),len(grid['logHydrogenLuminosities']),len(grid['logHydrogenDensities'])))
+        ageAll                = np.broadcast_to(grid['ages'                   ][:,None,None,None],(len(grid['ages']),len(grid['logMetallicities']),len(grid['logHydrogenLuminosities']),len(grid['logHydrogenDensities'])))
+    rng       = np.random.default_rng()
+    selectAll = rng.choice(ratioNIIHalphaAll.ravel().shape[0], 10000)
+    ## Read SDSS data.
+    sdss = h5py.File(os.environ.get('GALACTICUS_DATA_PATH')+'/static/observations/emissionLines/emissionLineFluxesStarFormingSDSSDR8.hdf5','r')
+    flux = {}
+    for lineName in sdss:
+        flux[lineName] = sdss[lineName][:]
+    with np.errstate(divide='ignore', invalid='ignore'):
+        ratioNIIHalphaSDSS = np.log10( flux['nitrogenII6585' ]                      /flux['balmerAlpha6565'])
+        ratioOIIIHbetaSDSS = np.log10( flux['oxygenIII5008'  ]                      /flux['balmerBeta4863' ])
+        ratioSIIHalphaSDSS = np.log10((flux['sulfurII6718'   ]+flux['sulfurII6733'])/flux['balmerAlpha6565'])
+        ratioNIIOIISDSS    = np.log10( flux['nitrogenII6585' ]                      /flux['oxygenII3727'   ])
+        ratioOIIOIIISDSS   = np.log10( flux['oxygenII3727'   ]                      /flux['oxygenIII5008'  ])
+    selectSDSS         = rng.choice(ratioNIIHalphaSDSS.shape[0], 3000)
+    ## OIII vs. NII
+    figure, axes = plt.subplots(tight_layout=True)
+    axes.set_xlabel("log([NII]6584/H$\\alpha$)" )
+    axes.set_ylabel("log([OIII]5007/H$\\beta$)" )
+    axes.set_xlim([-3.5,1.0])
+    axes.set_ylim([-2.5,2.0])
+    axes.scatter(ratioNIIHalphaSDSS        [selectSDSS],ratioOIIIHbetaSDSS        [selectSDSS],color="#AAAAAA",marker=".",s=1)
+    axes.scatter(ratioNIIHalphaAll .ravel()[selectAll ],ratioOIIIHbetaAll .ravel()[selectAll ],c=metallicityRatioAll.ravel()[selectAll],cmap='viridis',norm='linear',s=1)
+    axes.scatter(ratioNIIHalpha                        ,ratioOIIIHbeta                        ,s=100,color='black',marker="x")
+    target = patches.Rectangle((ratioNIIHalphaTarget-toleranceSuccess, ratioOIIIHbetaTarget-toleranceSuccess), 2.0*toleranceSuccess, 2.0*toleranceSuccess, edgecolor='black', facecolor='none', linewidth=2)
+    axes.add_patch(target)
+    plt.savefig(args.workspace+'bptDiagramOIIINII.svg')  
+    plt.clf()
+    ## OIII vs. SII
+    figure, axes = plt.subplots(tight_layout=True)
+    axes.set_xlabel("log([SII]6716,6731/H$\\alpha$)" )
+    axes.set_ylabel("log([OIII]5007/H$\\beta$)" )
+    axes.set_xlim([-3.5,1.0])
+    axes.set_ylim([-2.5,2.0])
+    axes.scatter(ratioSIIHalphaSDSS        [selectSDSS],ratioOIIIHbetaSDSS        [selectSDSS],color="#AAAAAA",marker=".",s=1)
+    axes.scatter(ratioSIIHalphaAll .ravel()[selectAll ],ratioOIIIHbetaAll .ravel()[selectAll ],c=metallicityRatioAll.ravel()[selectAll],cmap='viridis',norm='linear',s=1)
+    axes.scatter(ratioSIIHalpha                        ,ratioOIIIHbeta                        ,s=100,color='black',marker="x")
+    target = patches.Rectangle((ratioSIIHalphaTarget-toleranceSuccess, ratioOIIIHbetaTarget-toleranceSuccess), 2.0*toleranceSuccess, 2.0*toleranceSuccess, edgecolor='black', facecolor='none', linewidth=2)
+    axes.add_patch(target)
+    plt.savefig(args.workspace+'bptDiagramOIIISII.svg')  
+    plt.clf()
+    ## OIII vs. NIIOII
+    figure, axes = plt.subplots(tight_layout=True)
+    axes.set_xlabel("log([NII]6584/[OII]3727)" )
+    axes.set_ylabel("log([OIII]5007/H$\\beta$)" )
+    axes.set_xlim([-3.0,1.5])
+    axes.set_ylim([-2.5,2.0])
+    axes.scatter(ratioNIIOIISDSS        [selectSDSS],ratioOIIIHbetaSDSS        [selectSDSS],color="#AAAAAA",marker=".",s=1)
+    axes.scatter(ratioNIIOIIAll .ravel()[selectAll ],ratioOIIIHbetaAll .ravel()[selectAll ],c=metallicityRatioAll.ravel()[selectAll],cmap='viridis',norm='linear',s=1)
+    axes.scatter(ratioNIIOII                        ,ratioOIIIHbeta                        ,s=100,color='black',marker="x")
+    target = patches.Rectangle((ratioNIIOIITarget-toleranceSuccess, ratioOIIIHbetaTarget-toleranceSuccess), 2.0*toleranceSuccess, 2.0*toleranceSuccess, edgecolor='black', facecolor='none', linewidth=2)
+    axes.add_patch(target)
+    plt.savefig(args.workspace+'bptDiagramNIIOII.svg')  
+    plt.clf()
+    ## OIII vs. OIIOII
+    figure, axes = plt.subplots(tight_layout=True)
+    axes.set_xlabel("log([OII]3727/[OIII]5007)" )
+    axes.set_ylabel("log([OIII]5007/H$\\beta$)" )
+    axes.set_xlim([-2.5,2.0])
+    axes.set_ylim([-2.5,2.0])
+    axes.scatter(ratioOIIOIIISDSS        [selectSDSS],ratioOIIIHbetaSDSS        [selectSDSS],color="#AAAAAA",marker=".",s=1)
+    axes.scatter(ratioOIIOIIIAll .ravel()[selectAll ],ratioOIIIHbetaAll .ravel()[selectAll ],c=metallicityRatioAll.ravel()[selectAll],cmap='viridis',norm='linear',s=1)
+    axes.scatter(ratioOIIOIII                        ,ratioOIIIHbeta                        ,s=100,color='black',marker="x")
+    target = patches.Rectangle((ratioOIIOIIITarget-toleranceSuccess, ratioOIIIHbetaTarget-toleranceSuccess), 2.0*toleranceSuccess, 2.0*toleranceSuccess, edgecolor='black', facecolor='none', linewidth=2)
+    axes.add_patch(target)
+    plt.savefig(args.workspace+'bptDiagramOIIOIII.svg')  
+    plt.clf()
+
+    # Update results in the datasets repo GitHub pages.
+    if args.suffixGitHubPages is not None:
+        ## Clone the repo (gh-pages branch).
+        if not os.path.isdir(args.workspace+'datasets'):
+            try:
+                Repo.clone_from("git@github.com:galacticusorg/datasets.git", args.workspace+'datasets', branch='gh-pages')
+            except Exception as e:
+                print(f"Error cloning repository: {e}")
+        ## Parse the JSON definition file if present.
+        if os.path.exists(args.workspace+'datasets/hiiRegions/tableDefinitions.json'):
+            with open(args.workspace+'datasets/hiiRegions/tableDefinitions.json', 'r') as file:
+                next(file)
+                data = file.read()
+                definition = json.loads(data)
+        else:
+            definition = {}    
+        ## Copy and rename our plots to the repo.
+        if not os.path.isdir(args.workspace+'datasets/hiiRegions'):
+            os.mkdir(args.workspace+'datasets/hiiRegions')
+        shutil.copy(args.workspace+'bptDiagramOIIINII.svg', args.workspace+'datasets/hiiRegions/bptDiagramOIIINII_'+args.suffixGitHubPages+'.svg')
+        shutil.copy(args.workspace+'bptDiagramOIIISII.svg', args.workspace+'datasets/hiiRegions/bptDiagramOIIISII_'+args.suffixGitHubPages+'.svg')
+        shutil.copy(args.workspace+'bptDiagramNIIOII.svg' , args.workspace+'datasets/hiiRegions/bptDiagramNIIOII_' +args.suffixGitHubPages+'.svg')
+        shutil.copy(args.workspace+'bptDiagramOIIOIII.svg', args.workspace+'datasets/hiiRegions/bptDiagramOIIOIII_'+args.suffixGitHubPages+'.svg')
+        ## Update and output the JSO1N definition file.
+        definition[args.suffixGitHubPages] = {
+            "time":          str(datetime.datetime.now()),
+            "gitRevision":   grid['gitRevision'  ],
+            "cloudyVersion": grid['cloudyVersion'],
+            "sspURL":        grid['sspURL'       ],
+            "commandLine":   grid['commandLine'  ],
+            "fileName":      args.outputFileName
+        }
+        f = codecs.open(args.workspace+'datasets/hiiRegions/tableDefinitions.json', "w", "utf-8")
+        f.write("window.TABLE_DATA =\n")
+        f.write(json.dumps(definition,indent=4,ensure_ascii=False))
+        f.close()
+        ## Display instructions for updating the repo.
+        print(colored('\n\nGitHub pages content has been updated.','red', attrs=["bold"])+' To deploy, do:\n')
+        print(colored('   cd '+args.workspace+'datasets','green'))
+        print(colored('   git add hiiRegions/tableDefinitions.json','green'))
+        print(colored('   git add hiiRegions/bptDiagramOIIINII_'+args.suffixGitHubPages+'.svg','green'))
+        print(colored('   git add hiiRegions/bptDiagramOIIISII_'+args.suffixGitHubPages+'.svg','green'))
+        print(colored('   git add hiiRegions/bptDiagramNIIOII_' +args.suffixGitHubPages+'.svg','green'))
+        print(colored('   git add hiiRegions/bptDiagramOIIOIII_'+args.suffixGitHubPages+'.svg','green'))
+        print(colored('   git commit -m "feat: Update BPT diagrams"','green'))
+        print(colored('   git push\n\n','green'))
     # Validate model success.
     selectSuccess       = grid['lineData']['status'] == 0
     selectDisaster      = grid['lineData']['status'] == 1
@@ -904,6 +1103,7 @@ parser.add_argument('--noGrains'                                    ,action='sto
 parser.add_argument('--stopElectronFraction' ,default='0.01'        ,action='store'      ,type=restricted_float,help='set the elctron fraction at which to stop the Cloudy models'   )
 parser.add_argument('--stopLymanOpticalDepth',default='10.0'        ,action='store'      ,type=restricted_float,help='set the Lyman optical depth at which to stop the Cloudy models')
 parser.add_argument('--cloudyVersion'        ,default="23.01"       ,action='store'                            ,help='the version of Cloudy to use'                                  )
+parser.add_argument('--suffixGitHubPages'                           ,action='store'                            ,help='update GitHub pages content using this suffix'                 )
 parser.add_argument('--model'                                       ,action='store'      ,type=restricted_int  ,help='run only the given model number'                               )
 parser.add_argument('--partition'                                   ,action='store'                            ,help='the partition to which to submit jobs'                         )
 parser.add_argument('--jobMaximum'                                  ,action='store'      ,type=restricted_int  ,help='the maximum number of active jobs to allow'                    )
@@ -949,21 +1149,22 @@ options = {"version": args.cloudyVersion}
 (cloudyPath, cloudyVersion) = cloudy.initialize(options)
 
 # Set physical constants.
-plancksConstant          = 6.6260700400000e-34 # J s
-speedOfLight             = 2.9979245800000e+08 # m s¯¹
-electronVolt             = 1.6021766340000e-19 # J
-rydbergEnergy            = 1.3605693122994e+01 # eV
-micron                   = 1.0000000000000e-06 # μm
-angstroms                = 1.0000000000000e-10 # m
-luminositySolar          = 3.8390000000000e+26 # W
-wavelengthLymanContinuum = 9.1176000000000e+02 # Å
-massSolar                = 1.9900000000000e+30 # M☉
-one                      = 1.0000000000000e+00
-hecto                    = 1.0000000000000e+02
-mega                     = 1.0000000000000e+06
-joulesPerErg             = 1.0000000000000e-07
-secondsPerGyr            = 3.1557600000000e-16
-unitsIntensity           = joulesPerErg*hecto**2
+plancksConstant               = 6.6260700400000e-34 # J s
+speedOfLight                  = 2.9979245800000e+08 # m s¯¹
+coefficientRecombinationCaseB = 2.6000000000000e-13 # cm³ s⁻¹
+electronVolt                  = 1.6021766340000e-19 # J
+rydbergEnergy                 = 1.3605693122994e+01 # eV
+micron                        = 1.0000000000000e-06 # μm
+angstroms                     = 1.0000000000000e-10 # m
+luminositySolar               = 3.8390000000000e+26 # W
+wavelengthLymanContinuum      = 9.1176000000000e+02 # Å
+massSolar                     = 1.9900000000000e+30 # M☉
+one                           = 1.0000000000000e+00
+hecto                         = 1.0000000000000e+02
+mega                          = 1.0000000000000e+06
+joulesPerErg                  = 1.0000000000000e-07
+secondsPerGyr                 = 3.1557600000000e-16
+unitsIntensity                = joulesPerErg*hecto**2
 
 # Specify abundances and depletion model. This is based upon the work by Gutkin, Charlot & Bruzual (2016;
 # https://ui.adsabs.harvard.edu/abs/2016MNRAS.462.1757G).
@@ -1243,7 +1444,8 @@ else:
     # Get a job manager to allow us to submit and monitor jobs.
     manager = queueManager.factory(args)
     # Launch all jobs.
-    manager.submitJobs(grid['jobs'])
+    if 'jobs' in grid:
+        manager.submitJobs(grid['jobs'])
     
 # Validate results.
 validate(grid,args)

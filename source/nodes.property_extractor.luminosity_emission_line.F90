@@ -30,6 +30,7 @@
   use            :: Star_Formation_Histories        , only : starFormationHistoryClass
   use            :: HII_Region_Density_Distributions, only : hiiRegionDensityDistributionClass  
   use            :: HII_Region_Escape_Fraction      , only : hiiRegionEscapeFractionClass
+
   type:: emissionLineLuminosityTemplate
      !!{
      Type used to store luminosity templates for emission lines.
@@ -296,7 +297,7 @@ contains
                   &                             *        self%hiiRegionLuminosityFunction_ %cumulativeDistributionFunction(rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum) &
                   &                             *        self%hiiRegionDensityDistribution_%cumulativeDensityDistribution (            densityHydrogenMinimum,            densityHydrogenMaximum) &
                   &                             *reshape(                                                                                                                                         &
-                  &                                             slice5Dto2D(                                                                                                                      &
+                  &                                      slice5Dto2D(                                                                                                                             &
                   &                                                   luminosities                                                                  ,                                             &
                   &                                                   [self%indexIonizingLuminosityHydrogen,self%indexDensityHydrogen,self%indexAge],                                             &
                   &                                                   [     i                              ,     k                   ,     iAge    ]                                              &
