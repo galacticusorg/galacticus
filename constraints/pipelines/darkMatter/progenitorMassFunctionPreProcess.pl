@@ -4,6 +4,7 @@ use warnings;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use XML::Simple;
 use File::Copy;
+use File::Find;
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::Misc;
@@ -88,13 +89,21 @@ my @simulations =
      snapshots           => "102 84 71 52 29 3",
      builder             => \&cosmoSimBuilder
  },
+# {
+#     label               => "Caterpillar",
+#     description         => "Progenitor halo mass function for non-backsplash z=0 parent halos from the Caterpillar simulations.",
+#     simulationReference => "Griffen et al.; 2016; ApJ; 818; 10",
+#     simulationURL       => "https://www.caterpillarproject.org/",
+#     hubbleConstant      => 0.6711,
+#     builder             => \&caterpillarBuilder
+# }
  {
-     label               => "Caterpillar",
-     description         => "Progenitor halo mass function for non-backsplash z=0 parent halos from the Caterpillar simulations.",
-     simulationReference => "Griffen et al.; 2016; ApJ; 818; 10",
-     simulationURL       => "https://www.caterpillarproject.org/",
-     hubbleConstant      => 0.6711,
-     builder             => \&caterpillarBuilder
+    label               => "Symphony",
+    description         => "Progenitor halo mass function for non-backsplash z=0 parent halos from the Symphony ZoomIn simulations.",
+    simulationReference => "Nadler et al.; 2022;",
+    #simulationURL       => "https://www.caterpillarproject.org/",
+    hubbleConstant      => 0.6711,
+    builder             => \&symphonyZoomInBuilder
  }
 );
 
@@ -139,9 +148,9 @@ sub cosmoSimBuilder {
     $simulation->{'path'} .= "/"
 	unless ( $simulation->{'path'} =~ m/\/$/ );
     $simulation->{'path'} .= "CosmoSim/".$simulation->{'label'}."/";
-    # Identify always isolated halos and export these to IRATE format files.
+    # Identify non fly by halos and export these to IRATE format files.
     ## Parse the base parameters.
-    my $parameters = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/progenitorMassFunctionIdentifyAlwaysIsolated.xml");
+    my $parameters = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/progenitorMassFunctionIdentifyNonFlyby.xml");
     ## Set the snapshots to select.
     $parameters->{'nbodyOperator'}->{'nbodyOperator'}->[3]->{'selectedValues'}->{'value'} = $simulation->{'snapshots'};
     ## Remove hostedRootID selection.
@@ -157,7 +166,7 @@ sub cosmoSimBuilder {
 		$parameters->{'nbodyImporter'}                        ->{'fileName'}->{'value'} = $simulation->{'path'}."tree_"                               .$i."_".$j."_".$k.".dat" ;
 		$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[5]->{'fileName'}->{'value'} = $simulation->{'path'}."alwaysIsolated_progenitors_subVolume".$i."_".$j."_".$k.".hdf5";
 		# Write parmeter file.
-		my $parameterFileName = $simulation->{'path'}."identifyAlwaysIsolated_progenitors_".$i."_".$j."_".$k.".xml";
+		my $parameterFileName = $simulation->{'path'}."identifyNonFlyby_progenitors_".$i."_".$j."_".$k.".xml";
 		open(my $outputFile,">",$parameterFileName);
 		print $outputFile $xml->XMLout($parameters, RootName => "parameters");
 		close($outputFile);
@@ -165,9 +174,9 @@ sub cosmoSimBuilder {
 		my $job;
 		$job->{'command'   } =
 		    "./Galacticus.exe ".$parameterFileName;
-		$job->{'launchFile'} = $simulation->{'path'}."identifyAlwaysIsolated_progenitors_".$i."_".$j."_".$k.".sh" ;
-		$job->{'logFile'   } = $simulation->{'path'}."identifyAlwaysIsolated_progenitors_".$i."_".$j."_".$k.".log";
-		$job->{'label'     } =                       "identifyAlwaysIsolated_progenitors_".$i."_".$j."_".$k       ;
+		$job->{'launchFile'} = $simulation->{'path'}."identifyNonFlyby_progenitors_".$i."_".$j."_".$k.".sh" ;
+		$job->{'logFile'   } = $simulation->{'path'}."identifyNonFlyby_progenitors_".$i."_".$j."_".$k.".log";
+		$job->{'label'     } =                       "identifyNonFlyby_progenitors_".$i."_".$j."_".$k       ;
 		$job->{'ppn'       } = 1;
 		$job->{'nodes'     } = 1;
 		$job->{'mpi'       } = "yes";
@@ -189,7 +198,7 @@ sub cosmoSimBuilder {
 			@nbodyImporters,
 			{
 			    value      => "IRATE"                                                                              ,
-			    fileName   => {value => $simulation->{'path'}."alwaysIsolated_progenitors_subVolume".$i."_".$j."_".$k.".hdf5"},
+			    fileName   => {value => $simulation->{'path'}."nonFlyby_progenitors_subVolume".$i."_".$j."_".$k.".hdf5"},
 			    properties => {value => "massVirial expansionFactor hostedRootID snapshotID"},
 			    snapshot   => {value => "1"}
 			}
@@ -304,7 +313,7 @@ sub caterpillarBuilder {
     my $massParent;
     # For each parent, construct a job to identify always isolated progenitors.
     ## Parse the base parameters.
-    my $parameters = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/progenitorMassFunctionIdentifyAlwaysIsolated.xml");
+    my $parameters = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/progenitorMassFunctionIdentifyNonFlyby.xml");
     ## Adjust comsological model.
     $parameters->{'cosmologyParameters'}->{'HubbleConstant' }->{'value'} = 67.11;
     $parameters->{'cosmologyParameters'}->{'OmegaMatter'    }->{'value'} =  0.32;
@@ -314,7 +323,7 @@ sub caterpillarBuilder {
     foreach my $parent ( &List::ExtraUtils::hashList($parents) ) {
 	# Construct the file name.
 	my $parentDirectoryName = "H".$parent->{'ID'}."_LX".$parent->{'levelMax'}."/";
-	my $outputFileName = $simulation->{'path'}.$parentDirectoryName."identifyAlwaysIsolated_progenitors.hdf5";
+	my $outputFileName = $simulation->{'path'}.$parentDirectoryName."identifyNonFlyby_progenitors.hdf5";
 	# Skip if the file already exists.
 	next
 	    if ( -e $outputFileName );
@@ -354,7 +363,7 @@ sub caterpillarBuilder {
 	}
 	@{$parent->{'treeFiles'}->{$parent->{'levelMax'}}};
 	# Write parmeter file.
-	my $parameterFileName = $simulation->{'path'}.$parentDirectoryName."identifyAlwaysIsolated_progenitors.xml";
+	my $parameterFileName = $simulation->{'path'}.$parentDirectoryName."identifyNonFlyby_progenitors.xml";
 	open(my $outputFile,">",$parameterFileName);
 	print $outputFile $xml->XMLout($parameters_, RootName => "parameters");
 	close($outputFile);
@@ -362,8 +371,8 @@ sub caterpillarBuilder {
 	my $job;
 	$job->{'command'   } =
 	    "./Galacticus.exe ".$parameterFileName;
-	$job->{'launchFile'} = $simulation->{'path'}.$parentDirectoryName."identifyAlwaysIsolated_progenitors.sh" ;
-	$job->{'logFile'   } = $simulation->{'path'}.$parentDirectoryName."identifyAlwaysIsolated_progenitors.log";
+	$job->{'launchFile'} = $simulation->{'path'}.$parentDirectoryName."identifyNonFlyby_progenitors.sh" ;
+	$job->{'logFile'   } = $simulation->{'path'}.$parentDirectoryName."identifyNonFlyby_progenitors.log";
 	$job->{'label'     } = "Caterpillar_H".$parent->{'ID'}."_LX".$parent->{'levelMax'};
 	$job->{'ppn'       } = 1;
 	$job->{'nodes'     } = 1;
@@ -399,7 +408,7 @@ sub caterpillarBuilder {
 		    
 		{
 		    value      => "IRATE",
-		    fileName   => {value => $simulation->{'path'}."H".$_->{'ID'}."_LX".$_->{'levelMax'}."/identifyAlwaysIsolated_progenitors.hdf5"},
+		    fileName   => {value => $simulation->{'path'}."H".$_->{'ID'}."_LX".$_->{'levelMax'}."/identifyNonFlyby_progenitors.hdf5"},
 		    properties => {value => "massVirial expansionFactor hostedRootID snapshotID"},
 		    snapshot   => {value => "1"}
 		}
@@ -468,6 +477,176 @@ sub caterpillarBuilder {
 	};
 	push(@{$jobs->[1]},$job);
     }   
+}
+
+sub symphonyZoomInBuilder {
+    # Build jobs for the Caterpillar simulations.
+    my $simulation =   shift() ;
+    my %options    = %{shift()};
+    # Construct the simulation path.
+    $simulation->{'path'} = $options{'simulationDataPath'};
+    $simulation->{'path'} .= "/"
+        unless ( $simulation->{'path'} =~ m/\/$/ );
+    $simulation->{'path'} .= "Symphony/";
+
+    # Set snapshots to process for each resolution, corresponding to z ~ 0.0, 0.02, 0.1, 0.5, 1.0, 2.0, 4.0, 8.0.
+    # expansion factors:  1.0000,   0.66503,   0.50239,   0.32987,   0.20064 (grabs from snapshot #)
+    my $snapshots = "235  203  181 148 109";
+
+    # Initialize lists of parent halo masses.
+    my $massParent;
+    # For each parent, construct a job to identify non flyby progenitors.
+    ## Parse the base parameters.
+    my $parameters = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/progenitorMassFunctionIdentifyNonFlyby.xml");
+    ## Adjust comsological model.
+    $parameters->{'cosmologyParameters'}->{'HubbleConstant' }->{'value'} = 67.11;
+    $parameters->{'cosmologyParameters'}->{'OmegaMatter'    }->{'value'} =  0.32;
+    $parameters->{'cosmologyParameters'}->{'OmegaDarkEnergy'}->{'value'} =  0.68;
+    $parameters->{'cosmologyParameters'}->{'OmegaBaryon'    }->{'value'} =  0.05;
+        # List available simulations
+    my @models;
+        find( (sub {my @path = split(/\//,$File::Find::dir);push(@models,$_ eq "tree_0_0_0.dat" ? {simulation => $path[-2], realization => $path[-1]}  : ())}), ($options{'simulationDataPath'}."/Symphony_ZoomIns") );
+         my $xml         = new XML::Simple();
+         my $hostHaloIDs = $xml->XMLin("constraints/pipelines/darkMatter/symphonyZoomInHostHaloIDs.xml");
+         foreach my $model ( @models ) {
+           $model->{'hostHaloID'} = $hostHaloIDs->{$model->{'simulation'}}->{$model->{'realization'}};
+           print $model->{'simulation'}." ".$model->{'realization'}." ".$model->{'hostHaloID'}.\n";
+
+            my $parentDirectoryName = $model->{'simulation'}."_".$model->{'realization'}."/";
+            my $outputFileName = $simulation->{'path'}.$parentDirectoryName."identifyNonFlyby_progenitors.hdf5";
+            # Skip if the file already exists.
+            next
+                if ( -e $outputFileName );
+            # Clone parameters.
+            my $parameters_ = dclone($parameters);
+            # Set output file.
+            $parameters_->{'nbodyOperator'}->{'nbodyOperator'}->[6]->{'fileName'}->{'value'} = $outputFileName;
+            # Set the snapshots to select.
+            $parameters_->{'nbodyOperator'}->{'nbodyOperator'}->[3]->{'selectedValues'}->{'value'} = $snapshots;
+            # Set the hostedRootID to select.
+            $parameters_->{'nbodyOperator'}->{'nbodyOperator'}->[4]->{'selectedValues'}->{'value'} = $model->{'hostHaloID'};
+
+            # Add all tree files.
+            $parameters_->{'nbodyImporter'} =
+            {
+                value       => "rockstar"                                                    ,
+                fileName    => {value => $simulation->{'path'}.$parentDirectoryName."tree_0_0_0.dat"   },
+                readColumns => {value => "id scale desc_id pid upid mmp Mvir scale Snap_num"}
+            }
+
+             # Write parameter file.
+            my $parameterFileName = $simulation->{'path'}.$parentDirectoryName."identifyNonFlyby_progenitors.xml";
+            open(my $outputFile,">",$parameterFileName);
+            print $outputFile $xml->XMLout($parameters_, RootName => "parameters");
+            close($outputFile);
+            # Generate a job.
+            my $job;
+            $job->{'command'   } =
+                "./Galacticus.exe ".$parameterFileName;
+            $job->{'launchFile'} = $simulation->{'path'}.$parentDirectoryName."identifyNonFlyby_progenitors.sh" ;
+            $job->{'logFile'   } = $simulation->{'path'}.$parentDirectoryName."identifyNonFlyby_progenitors.log";
+            $job->{'label'     } = "Symphony".$model->{'simulation'}." ".$model->{'realization'}.;
+            $job->{'ppn'       } = 1;
+            $job->{'nodes'     } = 1;
+            $job->{'mem'       } = "16gb";
+            $job->{'mpi'       } = "yes";
+            push(@{$jobs->[0]},$job);
+            # Add the parent mass to the relevant list.
+            #push(@{$massParent->{$parent->{'levelMax'}}},$parent->{'mass'}->{$parent->{'levelMax'}});
+            last;
+        }
+    }
+
+    # Write files of parent halo masses.
+        #foreach my $resolution ( keys(%{$massParent}) ) {
+        #    my $masses     = pdl @{$massParent->{$resolution}};
+        #    my $weights    = pdl ones(nelem($masses));
+        #    my $massesFile = new PDL::IO::HDF5(">".$simulation->{'path'}."masses_LX".$resolution.".hdf5");
+        #    $massesFile->dataset('treeRootMass')->set($masses );
+        #    $massesFile->dataset('treeWeight'  )->set($weights);
+        #}
+    # Generate jobs to construct mass functions.
+    ## Parse the base parameters.
+    my $massFunctionParameters = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/progenitorMassFunctionCompute.xml");
+
+    # Set output file name.
+    my $outputFileName = $simulation->{'path'}."progenitorMassFunctions_".$resolution.".hdf5";
+    next
+        if ( -e $simulation->{'path'}."progenitorMassFunctions_".$resolution.":MPI0000.hdf5" );
+    # Add an importer for each parent.
+    @{$massFunctionParameters->{'nbodyImporter'}->{'nbodyImporter'}} =
+        map
+        {
+            value      => "IRATE",
+            fileName   => {value => $simulation->{'path'}.$_->{'ID'}."_".$_->{'levelMax'}."/identifyNonFlyby_progenitors.hdf5"},
+            properties => {value => "massVirial expansionFactor hostedRootID snapshotID"},
+            snapshot   => {value => "1"}
+        }
+    @models;
+    # Determine minimum and maximum progenitor mass ratios for the mass function.
+    my $massParticle;
+    if      ( $model->{'simulation'} =~ m/LMC/ ) {
+        $massParticle = 3.5247625e4;
+    } elsif ( $model->{'simulation'} =~ m/MilkyWay/ ) {
+        if ( $model->{'simulation'} =~ m/hires/ ){
+            $massParticle = 3.5247625e4;
+        }
+        else {
+           $massParticle = 2.81981e5;
+        }
+    } else {
+        die("unknown resolution");
+    }
+    $massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[0]->{'values'                    }->{'value'} = $massParticle;
+    # Determine minimum and maximum parent halo masses for the mass function.
+    if ($model->{'simulation'} =~ m/MilkyWay/){
+        my $massParentMinimum = 1.0e11;
+        my $massParentMaximum = 1.0e13;
+    }
+    elsif ($model->{'simulation'} =~ m/LMC/) {
+        my $massParentMinimum = 1.0e10;
+        my $massParentMaximum = 1.0e12;
+    }
+    $massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'massParentMinimum'         }->{'value'} = $massParentMinimum;
+    $massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'massParentMaximum'         }->{'value'} = $massParentMaximum;
+    # Define minimum and maximum mass ratios
+    my $massRatioProgenitorMinimum = 10.0**(int(log($massParticle)/log(10.0))+2-log10($massParentMaximum));
+    my $massRatioProgenitorMaximum = 10.0;
+    $massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'massRatioProgenitorMinimum'}->{'value'} = $massRatioProgenitorMinimum;
+    $massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'massRatioProgenitorMaximum'}->{'value'} = $massRatioProgenitorMaximum;
+    # Set snapshots.
+    my @snapshotList         = split(" ",$snapshots);
+    my $snapshotParents      = &List::Util::max (                                           @snapshotList);
+    my $snapshotsProgenitors =              join(" ",map {$_ == $snapshotParents ? () : $_} @snapshotList);
+    $massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'snapshotParents'           }->{'value'} = $snapshotParents;
+    $massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'snapshotsProgenitors'      }->{'value'} = $snapshotsProgenitors;
+    # Set other task properties.
+    $massFunctionParameters  ->{'outputFileName'}                                                              ->{'value'} = $outputFileName;
+    $massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'description'               }->{'value'} = $simulation->{'description'        }                                                 ;
+    $massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'simulationReference'       }->{'value'} = $simulation->{'simulationReference'}                                                 ;
+    $massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'simulationURL'             }->{'value'} = $simulation->{'simulationURL'      }                                                 ;
+    ## Write the parameter file.
+    my $parameterFileName = $simulation->{'path'}."progenitorMassFunctions_".$resolution.".xml";
+    open(my $outputFile,">",$parameterFileName);
+    print $outputFile $xml->XMLout($massFunctionParameters, RootName => "parameters");
+    close($outputFile);
+    ## Construct the job.
+    my $job;
+    $job->{'command'   } =
+        "./Galacticus.exe ".$parameterFileName;
+    $job->{'launchFile'} = $simulation->{'path'}."progenitorMassFunctions_".$resolution.".sh" ;
+    $job->{'logFile'   } = $simulation->{'path'}."progenitorMassFunctions_".$resolution.".log";
+    $job->{'label'     } =                       "progenitorMassFunctions_".$resolution       ;
+    $job->{'ppn'       } = 16;
+    $job->{'nodes'     } = 1;
+    $job->{'mpi'       } = "no";
+    $job->{'onCompletion'} =
+    {
+        function  => \&copyFile,
+        arguments => [ $simulation->{'path'}."progenitorMassFunctions_".$resolution.":MPI0000.hdf5", $ENV{'GALACTICUS_DATA_PATH'}."/static/darkMatter/progenitorMassFunctions_".$simulation->{'label'}."_".$resolution.".hdf5" ]
+    };
+    push(@{$jobs->[1]},$job);
+    }
 }
 
 sub copyFile {
