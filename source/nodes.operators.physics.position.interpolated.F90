@@ -307,7 +307,7 @@ contains
          &                                                                              basicMergeTarget
     class           (nodeComponentPosition           )                 , pointer     :: position            , positionMergeTarget
     class           (nodeComponentSatellite          )                 , pointer     :: satellite
-    class           (nodeEvent                       )                 , pointer     :: event, eventPrior
+    class           (nodeEvent                       )                 , pointer     :: event               , eventPrior
     type            (nodeTrace                       )                 , pointer     :: traceTail           , traceHead 
     double precision                                  , dimension(   3)              :: positionReference
     double precision                                  , dimension(4 ,3)              :: coefficientsCubic
