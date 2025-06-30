@@ -283,17 +283,16 @@ contains
     return
    end function solitonMass
 
-   double precision function solitonNFWMassEnclosedBySphere(self,coordinates) result(mass)
+   double precision function solitonNFWMassEnclosedBySphere(self,radius) result(mass)
       !!{
       Return the mass at the specified {\normalfont \ttfamily coordinates} in a soliton and NFW mass distribution.
       !!}
       use :: Numerical_Constants_Math        , only : Pi
       implicit none
-      class           (massDistributionSolitonNFW), intent(inout) :: self
-      class           (coordinate                ), intent(in   ) :: coordinates
-      double precision                                            :: massSoliton, invterm, logterm, radius
+      class           (massDistributionSolitonNFW), intent(inout), target :: self
+      double precision                            , intent(in   )         :: radius
+      double precision                                                    :: massSoliton, invterm, logterm
 
-      radius      =+coordinates%rSpherical()
       if (radius < self%radiusSoliton) then
          ! Soliton regime.
          mass   =+solitonMass(self, radius)
