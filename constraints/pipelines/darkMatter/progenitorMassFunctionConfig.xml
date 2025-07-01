@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <parameters>
-  <!-- Posterior sampling simulation parameter file for constraining parameters of the PCH+ algorithm to MDPL and Caterpillar simulations -->
+  <!-- Posterior sampling simulation parameter file for constraining parameters of the PCH+ algorithm to MDPL and Symphony simulations -->
   <!-- Andrew Benson (24-Novemer-2020)                                                                                                    -->
 
   <formatVersion>2</formatVersion>
   <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
 
   <verbosityLevel value="standard"/>
-  <errorWaitTime  value="0"/>
+  <errorWaitTime  value="0"       />
 
   <task value="posteriorSample">
     <initializeNodeClassHierarchy value="false"/>
   </task>
 
-  <outputFileName value="galacticus.hdf5"/>
+  <outputFileName value="chains/galacticus.hdf5"/>
   
   <posteriorSampleLikelihood value="independentLikelihoods">
 
@@ -24,7 +24,7 @@
       <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/progenitorMassFunctionBaseHugeMDPL.xml"/>
       <randomize              value="false"                                                                            />
       <cpuLimit               value="7200"                                                                             />
-      <evolveForestsVerbosity value="0"                                                                                />
+      <evolveForestsVerbosity value="silent"                                                                           />
     </posteriorSampleLikelihood>
 
     <!-- BigMDPL -->
@@ -34,7 +34,7 @@
       <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/progenitorMassFunctionBaseBigMDPL.xml"/>
       <randomize              value="false"                                                                           />
       <cpuLimit               value="7200"                                                                            />
-      <evolveForestsVerbosity value="0"                                                                               />
+      <evolveForestsVerbosity value="silent"                                                                          />
     </posteriorSampleLikelihood>
 
     <!-- MDPL2 -->
@@ -44,7 +44,7 @@
       <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/progenitorMassFunctionBaseMDPL2.xml"/>
       <randomize              value="false"                                                                         />
       <cpuLimit               value="7200"                                                                          />
-      <evolveForestsVerbosity value="0"                                                                             />
+      <evolveForestsVerbosity value="silent"                                                                        />
     </posteriorSampleLikelihood>
 
     <!-- SMDPL -->
@@ -54,7 +54,7 @@
       <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/progenitorMassFunctionBaseSMDPL.xml"/>
       <randomize              value="false"                                                                         />
       <cpuLimit               value="7200"                                                                          />
-      <evolveForestsVerbosity value="0"                                                                             />
+      <evolveForestsVerbosity value="silent"                                                                        />
     </posteriorSampleLikelihood>
 
     <!-- VSMDPL -->
@@ -64,61 +64,65 @@
       <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/progenitorMassFunctionBaseVSMDPL.xml"/>
       <randomize              value="false"                                                                          />
       <cpuLimit               value="7200"                                                                           />
-      <evolveForestsVerbosity value="0"                                                                              />
+      <evolveForestsVerbosity value="silent"                                                                         />
     </posteriorSampleLikelihood>
 
-    <!-- Caterpillar LX12 -->
-    <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
-    <parameterInactiveMap value=""                                                                                                                                                       />
+    <!-- Symphony Milky Way -->
+    <parameterMap         value="mergerTreeBranchingProbability::G0 mergerTreeBranchingProbability::gamma1 mergerTreeBranchingProbability::gamma2 mergerTreeBranchingProbability::gamma3"/>
+    <parameterInactiveMap value=""/>
     <posteriorSampleLikelihood value="galaxyPopulation">
-      <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/progenitorMassFunctionBaseCaterpillar_LX12.xml"/>
+      <baseParametersFileName value="%EXECPATH%/constraints/pipelines/darkMatter/progenitorMassFunctionBaseSymphonyMilkyWay.xml"/>
       <randomize              value="false"                                                                                    />
       <cpuLimit               value="7200"                                                                                     />
-      <evolveForestsVerbosity value="0"                                                                                        />
-    </posteriorSampleLikelihood>
-
-    <!-- Caterpillar LX13 -->
-    <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
-    <parameterInactiveMap value=""                                                                                                                                                       />
-    <posteriorSampleLikelihood value="galaxyPopulation">
-      <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/progenitorMassFunctionBaseCaterpillar_LX13.xml"/>
-      <randomize              value="false"                                                                                    />
-      <cpuLimit               value="7200"                                                                                     />
-      <evolveForestsVerbosity value="0"                                                                                        />
-    </posteriorSampleLikelihood>
-
-    <!-- Caterpillar LX14 -->
-    <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
-    <parameterInactiveMap value=""                                                                                                                                                       />
-    <posteriorSampleLikelihood value="galaxyPopulation">
-      <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/progenitorMassFunctionBaseCaterpillar_LX14.xml"/>
-      <randomize              value="false"                                                                                    />
-      <cpuLimit               value="7200"                                                                                     />
-      <evolveForestsVerbosity value="0"                                                                                        />
+      <evolveForestsVerbosity value="silent"                                                                                   />
     </posteriorSampleLikelihood>
 
   </posteriorSampleLikelihood>
 
-  <!-- Particle swarm optimization -->
-  <posteriorSampleSimulation value="particleSwarm">
-    <stepsMaximum                    value="50"    />
-    <logFlushCount                   value=" 1"    />
-    <reportCount                     value="10"    />
-    <logFileRoot                     value="chains"/>
-    <inertiaWeight                   value="0.720" />
-    <accelerationCoefficientPersonal value="1.193" />
-    <accelerationCoefficientGlobal   value="1.193" />
-    <velocityCoefficient             value="0.500" />
-    <velocityCoefficientInitial      value="0.000" />
+  <!-- MCMC -->
+  <posteriorSampleSimulation value="differentialEvolution">
+    <stepsMaximum           value="  4000"/>
+    <acceptanceAverageCount value="    10"/>
+    <stateSwapCount         value="    10"/>
+    <logFileRoot            value="chains/chains"/>
+    <reportCount            value="    10"/>
+    <sampleOutliers         value="false" />
+    <logFlushCount          value="     1"/>
+
+    <posteriorSampleState value="correlation">
+      <acceptedStateCount value="100"/>
+    </posteriorSampleState>
 
     <posteriorSampleStateInitialize value="latinHypercube">
       <maximinTrialCount value="100"/>
     </posteriorSampleStateInitialize>
     
-    <posteriorSampleConvergence value="never"/>
+    <posteriorSampleConvergence value="gelmanRubin">
+      <thresholdHatR              value=" 1.20"/>
+      <burnCount                  value="10"   />
+      <testCount                  value="20"   />
+      <outlierCountMaximum        value=" 3"   />
+      <outlierSignificance        value=" 0.95"/>
+      <outlierLogLikelihoodOffset value="60"   />
+      <reportCount                value=" 1"   />
+      <logFileName                value="chains/convergence.log"/>
+    </posteriorSampleConvergence>
     
-    <posteriorSampleStoppingCriterion value="never">
-    </posteriorSampleStoppingCriterion>
+    <posteriorSampleStoppingCriterion value="correlationLength">
+      <stopAfterCount value="1000"/>
+     </posteriorSampleStoppingCriterion>
+
+    <posteriorSampleDffrntlEvltnRandomJump   value="adaptive"/>
+
+    <posteriorSampleDffrntlEvltnProposalSize value="adaptive" >
+      <gammaInitial          value="0.50e+0"/>
+      <gammaAdjustFactor     value="1.10e+0"/>
+      <gammaMinimum          value="1.00e-2"/>
+      <gammaMaximum          value="3.00e+0"/>
+      <acceptanceRateMinimum value="0.10e+0"/>
+      <acceptanceRateMaximum value="0.90e+0"/>
+      <updateCount           value="10"     />
+    </posteriorSampleDffrntlEvltnProposalSize>
     
     <!-- PCH parameters -->
     <modelParameter value="active">
@@ -180,18 +184,5 @@
     <seed          value="9372"/>
     <mpiRankOffset value="true"/>
   </randomNumberGenerator>
-
-  <!-- The following are matched to the base parameters file - this is necessary due to the legacy use of "globalParameters" -->
-  <!-- meaning that these are set from this parameter file, not from the base parameter file -->
-  <!-- Component selection -->
-  <componentBasic              value="standard"/>
-  <componentBlackHole          value="null"    />
-  <componentDarkMatterProfile  value="null"    />
-  <componentDisk               value="null"    />
-  <componentHotHalo            value="null"    />
-  <componentSatellite          value="standard"/>
-  <componentSpheroid           value="null"    />
-  <componentSpin               value="null"    />
-  <satelliteMergingTimescales  value="zero"    />
 
 </parameters>
