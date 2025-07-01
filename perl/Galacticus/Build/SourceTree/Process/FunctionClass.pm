@@ -378,7 +378,8 @@ sub Process_FunctionClass {
 						    $name = $object;
 						}
 					    } else {
-						$name = $constructorNode->{'directive'}->{'variable'};
+						# Use the name given, removing any array element specifiers.
+						($name = $constructorNode->{'directive'}->{'variable'}) =~ s/\(.+\)$//;
 					    }
 					} else {
 					    $name = $constructorNode->{'directive'}->{'name'};
@@ -2611,9 +2612,9 @@ CODE
 			    if ( $constructorNode->{'type'} eq "inputParameter" ) {
 				# Get the associated variable declaration.
 				my $declaration;
-				my $variableName = exists($constructorNode->{'directive'}->{'variable'}) ? $constructorNode->{'directive'}->{'variable'} : $constructorNode->{'directive'}->{'name'};
+				(my $variableName = exists($constructorNode->{'directive'}->{'variable'}) ? $constructorNode->{'directive'}->{'variable'} : $constructorNode->{'directive'}->{'name'}) =~ s/\(.+\)$//;
 				if ( $variableName =~ m/([a-zA-Z0-9_]+)(\s*\(\s*[a-zA-Z0-9_:,]\s*\)\s*)??\%([a-zA-Z0-9_]+)/ ) {
-				    my $objectName         = $1;
+				    my $objectName          = $1;
 				    my $objectVariableName = $3;
 				    if ( $objectName eq "self" || $objectName eq $node->{'name'} ) {
 					my $parentClass = $class;
