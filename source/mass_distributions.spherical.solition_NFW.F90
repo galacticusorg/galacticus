@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Yu Zhao
+
   !!{
   Implementation of a mass distribution class for fuzzy dark matter halos consisting of soliton and NFW profiles
   \citep{schive_understanding_2014}.   
@@ -42,6 +44,7 @@
           &              radiusVirial           , radiusCoreScaleFree    , &
           &              radiusSolitonScaleFree , densitySolitonScaleFree
    contains
+     procedure :: massEnclosedBySphere  => solitonNFWMassEnclosedBySphere
      procedure :: density               => solitonNFWDensity
      procedure :: densityGradientRadial => solitonNFWDensityGradientRadial
      procedure :: parameters            => solitonNFWParameters
@@ -58,9 +61,12 @@
      module procedure solitonNFWConstructorInternal
    end interface massDistributionSolitonNFW
 
-   logical                                     :: containerSolitonNFWInitialized=.false.
-   type   (massDistributionContainer), pointer :: containerSolitonNFW
+   logical                                       :: containerSolitonNFWInitialized=.false.
+   type   (massDistributionContainer), pointer   :: containerSolitonNFW
    !$omp threadprivate(containerSolitonNFW,containerSolitonNFWInitialized)
+
+   ! Coefficient of the dimensionless radius in the soliton profile.
+   double precision                  , parameter :: coefficientCore               =0.091d0 ! Schive et al. (2014; https://ui.adsabs.harvard.edu/abs/2014PhRvL.113z1302S; equation 3).
 
    !![
    <sourceDigest name="massDistributionSolitonNFWSourceDigest"/>
@@ -171,9 +177,9 @@ contains
      implicit none
      type            (massDistributionSolitonNFW)                         :: self
      double precision                              , intent(in), optional :: radiusScale          , radiusCore                , &
-          &                                                                 densitySolitonCentral, densityNormalizationNFW   , &
-          &                                                                 radiusSoliton        , radiusVirial              , &
-          &                                                                 concentration        , toleranceRelativePotential
+          &                                                                  densitySolitonCentral, densityNormalizationNFW   , &
+          &                                                                  radiusSoliton        , radiusVirial              , &
+          &                                                                  concentration        , toleranceRelativePotential
      logical                                       , intent(in), optional :: dimensionless
      type            (enumerationComponentTypeType), intent(in), optional :: componentType
      type            (enumerationMassTypeType     ), intent(in), optional :: massType
@@ -250,7 +256,92 @@ contains
       return
    end function solitonNFWFactoryTabulation
 
-   double precision function solitonNFWDensity(self,coordinates) result(density)
+   double precision function solitonNFWMassEnclosedBySphere(self,radius) result(mass)
+      !!{
+      Return the mass at the specified {\normalfont \ttfamily coordinates} in a soliton and NFW mass distribution.
+      !!}
+      use :: Numerical_Constants_Math, only : Pi
+      implicit none
+      class           (massDistributionSolitonNFW), intent(inout), target :: self
+      double precision                            , intent(in   )         :: radius
+      double precision                                                    :: termLogarithmic, termInverse
+
+      if (radius < self%radiusSoliton) then
+         ! Soliton regime.
+         mass           =+massSoliton(radius)
+      else
+         ! NFW regime.
+         termInverse    =+self%radiusScale                             &
+              &          *(                                            &
+              &           +1.0d0/(     radius     +self%radiusScale  ) &
+              &           -1.0d0/(self%radiusScale+self%radiusSoliton) &
+              &          )
+         termLogarithmic=+log(     radius     +self%radiusScale  ) &
+              &          -log(self%radiusScale+self%radiusSoliton)
+         mass           =+massSoliton(self%radiusSoliton) &
+              &          +4.0d0                           &
+              &          *Pi                              &
+              &          *self%densityNormalizationNFW    &
+              &          *self%radiusScale**3             &
+              &          *(                               &
+              &            +termInverse                   &
+              &            +termLogarithmic               &
+              &          )
+      end if
+      return
+
+    contains
+
+      double precision function massSoliton(radius_) result(mass)
+        !!{
+        Return the mass at the specified {\normalfont \ttfamily coordinates} in the soliton region.
+        !!}
+        implicit none
+        double precision, intent(in   ) :: radius_
+        double precision, parameter     :: fractionRadiusSmall=0.1d0
+        double precision                :: termArcTangent           , termPrefactor , &
+             &                             termCore                 , termPolynomial
+        
+        if (radius_ < fractionRadiusSmall*self%radiusCore) then
+           ! At small radii use a Taylor series for numerical accuracy.
+           mass          =+  4.0d0/3.0d0*Pi                   *self%densitySolitonCentral*radius_**3                    &
+                &         - 32.0d0/5.0d0*Pi*coefficientCore   *self%densitySolitonCentral*radius_**5/self%radiusCore**2 &
+                &         +144.0d0/7.0d0*Pi*coefficientCore**2*self%densitySolitonCentral*radius_**7/self%radiusCore**4
+        else
+           ! Use the exact solution.
+           termCore      =+sqrt(coefficientCore)                              &
+                &         *                 radius_                           &
+                &         *                            self%radiusCore        &
+                &         /(coefficientCore*radius_**2+self%radiusCore**2)**7
+           termPolynomial=+  3465.0d0*coefficientCore**6*radius_**12                     &
+                &         + 23100.0d0*coefficientCore**5*radius_**10*self%radiusCore** 2 &
+                &         + 65373.0d0*coefficientCore**4*radius_** 8*self%radiusCore** 4 &
+                &         +101376.0d0*coefficientCore**3*radius_** 6*self%radiusCore** 6 &
+                &         + 92323.0d0*coefficientCore**2*radius_** 4*self%radiusCore** 8 &
+                &         + 48580.0d0*coefficientCore*   radius_** 2*self%radiusCore**10 &
+                &         -  3465.0d0                               *self%radiusCore**12
+           termArcTangent=+3465.0d0                                            &
+                &         *atan(sqrt(coefficientCore)*radius_/self%radiusCore)
+           termPrefactor =+Pi                            &
+                &         *self%densitySolitonCentral    &
+                &         *self%radiusCore           **3 &
+                &         /(                             &
+                &           +53760.0d0                   &
+                &           *coefficientCore**1.5d0      &
+                &         )
+           mass          = + termPrefactor               &
+                &         *(                             &
+                &           +termArcTangent              &
+                &           +termCore                    &
+                &           *termPolynomial              &
+                &          )
+        end if
+        return
+      end function massSoliton
+      
+    end function solitonNFWMassEnclosedBySphere
+
+    double precision function solitonNFWDensity(self,coordinates) result(density)
       !!{
       Return the density at the specified {\normalfont \ttfamily coordinates} in a soliton and NFW mass distribution.
       !!}
@@ -263,10 +354,10 @@ contains
       radiusCoreFree =+coordinates%rSpherical()/self%radiusCore
       if (coordinates%rSpherical() < self%radiusSoliton) then
          ! Soliton regime.
-         density=+self%densitySolitonCentral                  /(+1.0d0+0.091d0*radiusCoreFree**2)**8
+         density=+self%densitySolitonCentral                  /(+1.0d0+coefficientCore*radiusCoreFree**2)**8
       else
          ! NFW regime.
-         density=+self%densityNormalizationNFW/radiusScaleFree/(+1.0d0+        radiusScaleFree  )**2
+         density=+self%densityNormalizationNFW/radiusScaleFree/(+1.0d0+                radiusScaleFree  )**2
       end if
       return
    end function solitonNFWDensity
@@ -289,15 +380,15 @@ contains
       if (coordinates%rSpherical() < self%radiusSoliton) then
          ! Soliton regime.
          if (logarithmic) then
-            densityGradient=-16.0d0                            &
-                 &          *       0.091d0*radiusCoreFree**2  &
-                 &          /(1.0d0+0.091d0*radiusCoreFree**2)
+            densityGradient=-16.0d0                                       &
+                 &          *       coefficientCore*radiusCoreFree**2     &
+                 &          /(1.0d0+coefficientCore*radiusCoreFree**2)
          else
-            densityGradient=-16.0d0                               &
-                 &          *self%densitySolitonCentral           &
-                 &          /self%radiusCore                      &
-                 &          *       0.091d0*radiusCoreFree        &
-                 &          /(1.0d0+0.091d0*radiusCoreFree**2)**9
+            densityGradient=-16.0d0                                       &
+                 &          *self%densitySolitonCentral                   &
+                 &          /self%radiusCore                              &
+                 &          *       coefficientCore*radiusCoreFree        &
+                 &          /(1.0d0+coefficientCore*radiusCoreFree**2)**9
          end if
       else
          ! NFW regime.
@@ -306,7 +397,7 @@ contains
                  &            -2.0d0*radiusScaleFree  &
                  &          /(+1.0d0+radiusScaleFree)
          else
-            densityGradient=-self%densityNormalizationNFW         &
+            densityGradient=-self%densityNormalizationNFW      &
                  &          /self%radiusScale                  &
                  &          *(+1.0d0+3.0d0*radiusScaleFree)    &
                  &          /(+1.0d0+      radiusScaleFree)**3 &
