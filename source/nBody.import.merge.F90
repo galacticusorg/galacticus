@@ -140,10 +140,11 @@ contains
     !!{
     Merge data from multiple importers.
     !!}
-    use :: Display, only : displayIndent     , displayUnindent         , verbosityLevelStandard
-    use :: Error  , only : Error_Report
-    use :: Hashes , only : doubleHash        , integerSizeTHash        , rank1DoublePtrHash    , rank1IntegerSizeTPtrHash, &
-          &                rank2DoublePtrHash, rank2IntegerSizeTPtrHash, varyingStringHash     , genericHash
+    use :: Display        , only : displayIndent     , displayUnindent         , verbosityLevelStandard, displayMessage
+    use :: Error          , only : Error_Report
+    use :: Hashes         , only : doubleHash        , integerSizeTHash        , rank1DoublePtrHash    , rank1IntegerSizeTPtrHash, &
+          &                        rank2DoublePtrHash, rank2IntegerSizeTPtrHash, varyingStringHash     , genericHash
+    use :: String_Handling, only : operator(//)
     implicit none
     class           (nbodyImporterMerge), intent(inout)                              :: self
     type            (nBodyData         ), intent(  out), allocatable, dimension(  :) :: simulations
@@ -227,6 +228,59 @@ contains
           call simulations(1)%attributesGeneric%set(importerReference%simulations(1)%attributesGeneric%key(k),importerReference%simulations(1)%attributesGeneric%value(k))
        end do
     end if
+    ! Verify that properties match between importers/simulations.
+    importer_ => self%importers
+    i         =  0
+    do while (associated(importer_))
+       i=i+1
+       do j=1,size(importer_%simulations)
+          !! Scalar integer properties.
+          if (importer_%simulations(j)%propertiesInteger%size() /= self%importers%simulations(1)%propertiesInteger%size()) &
+               & call Error_Report(var_str('mismatch in number of scalar integer properties at importer ')//i//', simulation '//j//{introspection:location})
+          do k=1,importer_%simulations(j)%propertiesInteger%size()
+             if (importer_%simulations(j)%propertiesInteger%key(k) /= self%importers%simulations(1)%propertiesInteger%key(k)) then
+                do i=1,importer_%simulations(j)%propertiesInteger%size()
+                   call displayMessage(importer_%simulations(j)%propertiesInteger%key(k)//" : "//self%importers%simulations(1)%propertiesInteger%key(k))
+                end do
+                call Error_Report(var_str('mismatch in integer scalar properties at importer ')//i//', simulation '//j//' (see preceeding report)'//{introspection:location})
+             end if
+          end do
+          !! Scalar real properties.
+          if (importer_%simulations(j)%propertiesReal%size() /= self%importers%simulations(1)%propertiesReal%size()) &
+               & call Error_Report(var_str('mismatch in number of scalar real properties at importer ')//i//', simulation '//j//{introspection:location})
+          do k=1,importer_%simulations(j)%propertiesReal%size()
+             if (importer_%simulations(j)%propertiesReal%key(k) /= self%importers%simulations(1)%propertiesReal%key(k)) then
+                do i=1,importer_%simulations(j)%propertiesReal%size()
+                   call displayMessage(importer_%simulations(j)%propertiesReal%key(k)//" : "//self%importers%simulations(1)%propertiesReal%key(k))
+                end do
+                call Error_Report(var_str('mismatch in real scalar properties at importer ')//i//', simulation '//j//' (see preceeding report)'//{introspection:location})
+             end if
+          end do
+          !! Rank-1 integer properties.
+          if (importer_%simulations(j)%propertiesIntegerRank1%size() /= self%importers%simulations(1)%propertiesIntegerRank1%size()) &
+               & call Error_Report(var_str('mismatch in number of rank-1 integer properties at importer ')//i//', simulation '//j//{introspection:location})
+          do k=1,importer_%simulations(j)%propertiesIntegerRank1%size()
+             if (importer_%simulations(j)%propertiesIntegerRank1%key(k) /= self%importers%simulations(1)%propertiesIntegerRank1%key(k)) then
+                do i=1,importer_%simulations(j)%propertiesIntegerRank1%size()
+                   call displayMessage(importer_%simulations(j)%propertiesIntegerRank1%key(k)//" : "//self%importers%simulations(1)%propertiesIntegerRank1%key(k))
+                end do
+                call Error_Report(var_str('mismatch in integer rank-1 properties at importer ')//i//', simulation '//j//' (see preceeding report)'//{introspection:location})
+             end if
+          end do
+          !! Rank-1 real properties.
+          if (importer_%simulations(j)%propertiesRealRank1%size() /= self%importers%simulations(1)%propertiesRealRank1%size()) &
+               & call Error_Report(var_str('mismatch in number of rank-1 real properties at importer ')//i//', simulation '//j//{introspection:location})
+          do k=1,importer_%simulations(j)%propertiesRealRank1%size()
+             if (importer_%simulations(j)%propertiesRealRank1%key(k) /= self%importers%simulations(1)%propertiesRealRank1%key(k)) then
+                do i=1,importer_%simulations(j)%propertiesRealRank1%size()
+                   call displayMessage(importer_%simulations(j)%propertiesRealRank1%key(k)//" : "//self%importers%simulations(1)%propertiesRealRank1%key(k))
+                end do
+                call Error_Report(var_str('mismatch in real rank-1 properties at importer ')//i//', simulation '//j//' (see preceeding report)'//{introspection:location})
+             end if
+          end do
+       end do
+       importer_ => importer_%next
+    end do
     !! Scalar integer properties.
     simulations(1)%propertiesInteger=rank1IntegerSizeTPtrHash()
     do k=1,importerReference%simulations(1)%propertiesInteger%size()
