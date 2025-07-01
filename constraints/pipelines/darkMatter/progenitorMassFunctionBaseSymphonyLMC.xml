@@ -34,13 +34,13 @@
   <mergerTreeOutputter value="analyzer"/>
   <outputTimes value="list">
     <!-- Matched to Symphony snapshots -->
-    <redshifts value="0.503691562786641 0.990485479408428 2.03149725649498 3.98405103668262"/>
+    <redshifts value="0.503510697478613 0.990287397500199 2.03122158229767 3.98355427090601"/>
   </outputTimes>
   <mergerTreeOperator value="regridTimes">
     <!-- Regrid the trees to massively speed up searching for parents etc. -->
     <outputTimes value="list">
       <!-- Matched to Symphony snapshots -->
-      <redshifts value="0.0 0.503691562786641 0.990485479408428 2.03149725649498 3.98405103668262 9.0"/>
+      <redshifts value="0.0 0.503510697478613 0.990287397500199 2.03122158229767 3.98355427090601 9.0"/>
     </outputTimes>
   </mergerTreeOperator>
   <outputAnalysis value="multi">
@@ -51,7 +51,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_Symphony_LMC.hdf5"/>
       <indexParent                  value="2"                                                                                        />
       <indexRedshift                value="0"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^11.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -59,7 +59,7 @@
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
-      <comment                      value="$12.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.50$; $z=0.51$; Symphony halos"/>
+      <comment                      value="$11.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 11.50$; $z=0.51$; Symphony halos"/>
       <label                        value="Symphony_MilkywayM2Z0"                                                                    />
       <targetLabel                  value="Nadler et al. (2022)"                                                                     />
     </outputAnalysis>    
@@ -67,7 +67,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_Symphony_LMC.hdf5"/>
       <indexParent                  value="2"                                                                                        />
       <indexRedshift                value="1"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^11.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -75,7 +75,7 @@
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
-      <comment                      value="$12.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.50$; $z=1.00$; Symphony halos"/>
+      <comment                      value="$11.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 11.50$; $z=1.00$; Symphony halos"/>
       <label                        value="Symphony_MilkywayM2Z1"                                                                    />
       <targetLabel                  value="Nadler et al. (2022)"                                                                     />
     </outputAnalysis>    
@@ -83,7 +83,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_Symphony_LMC.hdf5"/>
       <indexParent                  value="2"                                                                                        />
       <indexRedshift                value="2"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^11.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -91,7 +91,7 @@
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
-      <comment                      value="$12.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.50$; $z=2.03$; Symphony halos"/>
+      <comment                      value="$11.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 11.50$; $z=2.03$; Symphony halos"/>
       <label                        value="Symphony_MilkywayM2Z2"                                                                    />
       <targetLabel                  value="Nadler et al. (2022)"                                                                     />
     </outputAnalysis>    
@@ -99,7 +99,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_Symphony_LMC.hdf5"/>
       <indexParent                  value="2"                                                                                        />
       <indexRedshift                value="3"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^11.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -107,7 +107,7 @@
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
-      <comment                      value="$12.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.50$; $z=3.98$; Symphony halos"/>
+      <comment                      value="$11.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 11.50$; $z=3.98$; Symphony halos"/>
       <label                        value="Symphony_MilkywayM2Z3"                                                                    />
       <targetLabel                  value="Nadler et al. (2022)"                                                                     />
     </outputAnalysis>    
