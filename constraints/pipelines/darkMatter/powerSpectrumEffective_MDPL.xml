@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <!-- Power spectrum options -->
+  <powerSpectrumPrimordial value="cosmologicalCube">
+    <lengthCube value="=[simulation::lengthCube]"/>
+    <wavenumberMinimumFactor value="0.5"/>
+    <powerSpectrumPrimordial value="powerLaw">
+      <!-- MDPL simulation power spectrum; https://www.cosmosim.org/cms/simulations/mdpl -->
+      <index               value="0.960"/>
+      <wavenumberReference value="1.000"/>
+      <running             value="0.000"/>
+    </powerSpectrumPrimordial>
+  </powerSpectrumPrimordial>
+  <powerSpectrumWindowFunction value="ETHOSExtended">
+    <cW0                         value="=[haloMassFunctionParameters/cW0]"                        />
+    <cW1                         value="=[haloMassFunctionParameters/cW1]"                        />
+    <beta0                       value="=[haloMassFunctionParameters/beta0]"                      />
+    <beta1                       value="=[haloMassFunctionParameters/beta1]"                      />
+    <wavenumberScaledMinimum     value="=[haloMassFunctionParameters/wavenumberScaledMinimum]"    />
+    <powerSpectrumSmoothingWidth value="=[haloMassFunctionParameters/powerSpectrumSmoothingWidth]"/>
+  </powerSpectrumWindowFunction>
+  <cosmologicalMassVariance value="artificialHalos">
+    <normalization value="=[haloMassFunctionParameters/artificialNormalization]"                            />
+    <exponent      value="=[haloMassFunctionParameters/artificialExponent]"                                 />
+    <massZeroPoint value="=[haloMassFunctionParameters/artificialCountParticles]*[massParticleAtResolution]"/>
+    <cosmologicalMassVariance value="filteredPower">
+      <!-- Normalize to a reference power spectrum at small scales because the actual power spectrum we used excludes modes which do
+           not fit into the cosmological box. Normalizing that power spectrum would result in too much power on small scales to
+           compensate. -->
+      <tolerance                 value="4.0e-6"/>
+      <toleranceTopHat           value="2.0e-6"/>
+      <nonMonotonicIsFatal       value="false" />
+      <monotonicInterpolation    value="true"  />
+      <integrationFailureIsFatal value="false" />
+      <storeTabulations          value="false" />
+      <wavenumberReference       value="1.0e+2"/>
+      <reference value="N/A">
+	<powerSpectrumPrimordial value="powerLaw">
+	  <!-- MDPL simulation power spectrum; https://www.cosmosim.org/cms/simulations/mdpl -->
+	  <index               value="0.960"/>
+	  <wavenumberReference value="1.000"/>
+	  <running             value="0.000"/>
+	</powerSpectrumPrimordial>
+	<powerSpectrumPrimordialTransferred value="simple" />
+	<powerSpectrumWindowFunction value="ETHOSExtended">
+	  <cW0                         value="=[haloMassFunctionParameters/cW0]"                        />
+	  <cW1                         value="=[haloMassFunctionParameters/cW1]"                        />
+	  <beta0                       value="=[haloMassFunctionParameters/beta0]"                      />
+	  <beta1                       value="=[haloMassFunctionParameters/beta1]"                      />
+	  <wavenumberScaledMinimum     value="=[haloMassFunctionParameters/wavenumberScaledMinimum]"    />
+	  <powerSpectrumSmoothingWidth value="=[haloMassFunctionParameters/powerSpectrumSmoothingWidth]"/>
+	</powerSpectrumWindowFunction>
+	<cosmologicalMassVariance value="filteredPower">
+	  <!-- MDPL simulation power spectrum; https://www.cosmosim.org/cms/simulations/mdpl -->
+	  <sigma_8                   value="0.8228"/>
+	  <tolerance                 value="4.0e-6"/>
+	  <toleranceTopHat           value="2.0e-6"/>
+          <nonMonotonicIsFatal       value="false" />
+	  <monotonicInterpolation    value="true"  />
+	  <integrationFailureIsFatal value="false" />
+	  <storeTabulations          value="false" />
+	</cosmologicalMassVariance>
+      </reference>
+    </cosmologicalMassVariance>
+  </cosmologicalMassVariance>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+
+  <!-- Structure formation options -->
+  <linearGrowth          value="collisionlessMatter"                      />
+  <criticalOverdensity   value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+
+</parameters>

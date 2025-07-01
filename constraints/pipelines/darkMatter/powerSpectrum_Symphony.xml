@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+ameters>
+
+  <!-- Power spectrum options -->
+  <powerSpectrumPrimordial value="powerLaw">
+    <index               value="0.960"/>
+    <wavenumberReference value="1.000"/>
+    <running             value="0.000"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumWindowFunction value="ETHOSExtended">
+    <cW0                         value="=[haloMassFunctionParameters/cW0]"                        />
+    <cW1                         value="=[haloMassFunctionParameters/cW1]"                        />
+    <beta0                       value="=[haloMassFunctionParameters/beta0]"                      />
+    <beta1                       value="=[haloMassFunctionParameters/beta1]"                      />
+    <wavenumberScaledMinimum     value="=[haloMassFunctionParameters/wavenumberScaledMinimum]"    />
+    <powerSpectrumSmoothingWidth value="=[haloMassFunctionParameters/powerSpectrumSmoothingWidth]"/>
+  </powerSpectrumWindowFunction>
+  <cosmologicalMassVariance value="filteredPower">
+    <sigma_8                value="0.820" />
+    <tolerance              value="4.0e-4"/>
+    <toleranceTopHat        value="2.0e-4"/>
+    <nonMonotonicIsFatal    value="false" />
+    <monotonicInterpolation value="true"  />
+  </cosmologicalMassVariance>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+
+  <!-- Structure formation options -->
+  <linearGrowth          value="collisionlessMatter"                      />
+  <criticalOverdensity   value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+
+</parameters>
