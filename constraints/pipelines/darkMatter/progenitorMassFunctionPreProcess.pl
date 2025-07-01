@@ -514,6 +514,9 @@ sub symphonyZoomInBuilder {
 	print "Model: ".$model->{'simulation'}."; Realization: ".$model->{'realization'}."; HostHaloID: ".$model->{'hostHaloID'}."\n";	
 	my $parentDirectoryName = $model->{'simulation'}."/".$model->{'realization'}."/";
 	my $outputFileName = $simulation->{'path'}.$parentDirectoryName."identifyNonFlyby_progenitors.hdf5";
+	#Skip is Halo realization is 004 or 113
+	next 
+	    if ($model->{'realization'} eq 'Halo004' || $model->{'realization'} eq 'Halo113');
 	# Skip if the file already exists.
 	next
 	    if ( -e $outputFileName );

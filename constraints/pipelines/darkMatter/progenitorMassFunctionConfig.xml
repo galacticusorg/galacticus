@@ -19,62 +19,219 @@
 
     <!-- HugeMDPL -->
     <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
-    <parameterInactiveMap value=""                                                                                                                                                       />
+    <parameterInactiveMap value="" ignoreWarnings="true"                                                                                                                             />
     <posteriorSampleLikelihood value="galaxyPopulation">
       <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/progenitorMassFunctionBaseHugeMDPL.xml"/>
       <randomize              value="false"                                                                            />
-      <cpuLimit               value="7200"                                                                             />
       <evolveForestsVerbosity value="silent"                                                                           />
     </posteriorSampleLikelihood>
 
     <!-- BigMDPL -->
     <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
-    <parameterInactiveMap value=""                                                                                                                                                       />
+    <parameterInactiveMap value="" ignoreWarnings="true"                                                                                                                             />
     <posteriorSampleLikelihood value="galaxyPopulation">
       <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/progenitorMassFunctionBaseBigMDPL.xml"/>
       <randomize              value="false"                                                                           />
-      <cpuLimit               value="7200"                                                                            />
       <evolveForestsVerbosity value="silent"                                                                          />
     </posteriorSampleLikelihood>
 
     <!-- MDPL2 -->
     <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
-    <parameterInactiveMap value=""                                                                                                                                                       />
+    <parameterInactiveMap value="" ignoreWarnings="true"                                                                                                                             />
     <posteriorSampleLikelihood value="galaxyPopulation">
       <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/progenitorMassFunctionBaseMDPL2.xml"/>
       <randomize              value="false"                                                                         />
-      <cpuLimit               value="7200"                                                                          />
       <evolveForestsVerbosity value="silent"                                                                        />
     </posteriorSampleLikelihood>
 
     <!-- SMDPL -->
     <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
-    <parameterInactiveMap value=""                                                                                                                                                       />
+    <parameterInactiveMap value="" ignoreWarnings="true"                                                                                                                             />
     <posteriorSampleLikelihood value="galaxyPopulation">
       <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/progenitorMassFunctionBaseSMDPL.xml"/>
       <randomize              value="false"                                                                         />
-      <cpuLimit               value="7200"                                                                          />
       <evolveForestsVerbosity value="silent"                                                                        />
     </posteriorSampleLikelihood>
 
     <!-- VSMDPL -->
     <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
-    <parameterInactiveMap value=""                                                                                                                                                       />
+    <parameterInactiveMap value="" ignoreWarnings="true"                                                                                                                             />
     <posteriorSampleLikelihood value="galaxyPopulation">
       <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/progenitorMassFunctionBaseVSMDPL.xml"/>
       <randomize              value="false"                                                                          />
-      <cpuLimit               value="7200"                                                                           />
       <evolveForestsVerbosity value="silent"                                                                         />
     </posteriorSampleLikelihood>
 
     <!-- Symphony Milky Way -->
-    <parameterMap         value="mergerTreeBranchingProbability::G0 mergerTreeBranchingProbability::gamma1 mergerTreeBranchingProbability::gamma2 mergerTreeBranchingProbability::gamma3"/>
-    <parameterInactiveMap value=""/>
+    <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
+    <parameterInactiveMap value="" ignoreWarnings="true"                                                                                                                             />
     <posteriorSampleLikelihood value="galaxyPopulation">
       <baseParametersFileName value="%EXECPATH%/constraints/pipelines/darkMatter/progenitorMassFunctionBaseSymphonyMilkyWay.xml"/>
       <randomize              value="false"                                                                                    />
-      <cpuLimit               value="7200"                                                                                     />
       <evolveForestsVerbosity value="silent"                                                                                   />
+    </posteriorSampleLikelihood>
+ 
+    <!-- Symphony WDM3 -->
+    <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
+    <parameterInactiveMap value="" ignoreWarnings="true"                                                                                                                             />
+    <posteriorSampleLikelihood value="galaxyPopulation">
+      <baseParametersFileName value="%EXECPATH%/constraints/pipelines/darkMatter/progenitorMassFunctionBaseSymphonyWDM3.xml"/>
+      <randomize              value="false"                                                                                    />
+      <evolveForestsVerbosity value="silent"                                                                                   />
+    </posteriorSampleLikelihood>
+
+
+  <!-- Symphony IDM1e-4GeV_halfmode -->
+    <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
+    <parameterInactiveMap value="" ignoreWarnings="true"                                                                                                                             />
+    <posteriorSampleLikelihood value="galaxyPopulation">
+      <baseParametersFileName value="%EXECPATH%/constraints/pipelines/darkMatter/progenitorMassFunctionBaseSymphonyIDM1e-4GeV_halfmode.xml"/>
+      <randomize              value="false"/>
+      <evolveForestsVerbosity value="silent"/>
+    </posteriorSampleLikelihood>
+
+  <!-- Symphony IDM1e-2GeV_halfmode -->
+    <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
+    <parameterInactiveMap value="" ignoreWarnings="true"                                                                                                                             />
+    <posteriorSampleLikelihood value="galaxyPopulation">
+      <baseParametersFileName value="%EXECPATH%/constraints/pipelines/darkMatter/progenitorMassFunctionBaseSymphonyIDM1e-2GeV_halfmode.xml"/>
+      <randomize              value="false"/>
+      <evolveForestsVerbosity value="silent"/>
+    </posteriorSampleLikelihood>
+
+  <!-- Symphony IDM1GeV_halfmode -->
+    <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
+    <parameterInactiveMap value="" ignoreWarnings="true"                                                                                                                             />
+    <posteriorSampleLikelihood value="galaxyPopulation">
+      <baseParametersFileName value="%EXECPATH%/constraints/pipelines/darkMatter/progenitorMassFunctionBaseSymphonyIDM1GeV_halfmode.xml"/>
+      <randomize              value="false"/>
+      <evolveForestsVerbosity value="silent"/>
+    </posteriorSampleLikelihood>
+
+  <!-- Symphony IDM1e-4GeV_envelope -->
+    <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
+    <parameterInactiveMap value="" ignoreWarnings="true"                                                                                                                             />
+    <posteriorSampleLikelihood value="galaxyPopulation">
+      <baseParametersFileName value="%EXECPATH%/constraints/pipelines/darkMatter/progenitorMassFunctionBaseSymphonyIDM1e-4GeV_envelope.xml"/>
+      <randomize              value="false"/>
+      <evolveForestsVerbosity value="silent"/>
+    </posteriorSampleLikelihood>
+
+  <!-- Symphony IDM1e-2GeV_envelope -->
+    <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
+    <parameterInactiveMap value="" ignoreWarnings="true"                                                                                                                             />
+    <posteriorSampleLikelihood value="galaxyPopulation">
+      <baseParametersFileName value="%EXECPATH%/constraints/pipelines/darkMatter/progenitorMassFunctionBaseSymphonyIDM1e-2GeV_envelope.xml"/>
+      <randomize              value="false"/>
+      <evolveForestsVerbosity value="silent"/>
+    </posteriorSampleLikelihood>
+
+  <!-- Symphony IDM1GeV_envelope -->
+    <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
+    <parameterInactiveMap value="" ignoreWarnings="true"                                                                                                                             />
+    <posteriorSampleLikelihood value="galaxyPopulation">
+      <baseParametersFileName value="%EXECPATH%/constraints/pipelines/darkMatter/progenitorMassFunctionBaseSymphonyIDM1GeV_envelope.xml"/>
+      <randomize              value="false"/>
+      <evolveForestsVerbosity value="silent"/>
+    </posteriorSampleLikelihood>
+
+  <!-- Symphony fdm_490e-22eV -->
+    <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
+    <parameterInactiveMap value="" ignoreWarnings="true"                                                                                                                             />
+    <posteriorSampleLikelihood value="galaxyPopulation">
+      <baseParametersFileName value="%EXECPATH%/constraints/pipelines/darkMatter/progenitorMassFunctionBaseSymphonyfdm_490e-22eV.xml"/>
+      <randomize              value="false"/>
+      <evolveForestsVerbosity value="silent"/>
+    </posteriorSampleLikelihood>
+
+  <!-- Symphony fdm_25.9e-22eV -->
+    <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
+    <parameterInactiveMap value="" ignoreWarnings="true"                                                                                                                             />
+    <posteriorSampleLikelihood value="galaxyPopulation">
+      <baseParametersFileName value="%EXECPATH%/constraints/pipelines/darkMatter/progenitorMassFunctionBaseSymphonyfdm_25.9e-22eV.xml"/>
+      <randomize              value="false"/>
+      <evolveForestsVerbosity value="silent"/>
+    </posteriorSampleLikelihood>
+
+  <!-- Symphony fdm_185e-22eV -->
+    <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
+    <parameterInactiveMap value="" ignoreWarnings="true"                                                                                                                             />
+    <posteriorSampleLikelihood value="galaxyPopulation">
+      <baseParametersFileName value="%EXECPATH%/constraints/pipelines/darkMatter/progenitorMassFunctionBaseSymphonyfdm_185e-22eV.xml"/>
+      <randomize              value="false"/>
+      <evolveForestsVerbosity value="silent"/>
+    </posteriorSampleLikelihood>
+
+  <!-- Symphony fdm_69.4e-22eV -->
+    <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
+    <parameterInactiveMap value="" ignoreWarnings="true"                                                                                                                             />
+    <posteriorSampleLikelihood value="galaxyPopulation">
+      <baseParametersFileName value="%EXECPATH%/constraints/pipelines/darkMatter/progenitorMassFunctionBaseSymphonyfdm_69.4e-22eV.xml"/>
+      <randomize              value="false"/>
+      <evolveForestsVerbosity value="silent"/>
+    </posteriorSampleLikelihood>
+
+  <!-- Symphony fdm_151e-22eV -->
+    <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
+    <parameterInactiveMap value="" ignoreWarnings="true"                                                                                                                             />
+    <posteriorSampleLikelihood value="galaxyPopulation">
+      <baseParametersFileName value="%EXECPATH%/constraints/pipelines/darkMatter/progenitorMassFunctionBaseSymphonyfdm_151e-22eV.xml"/>
+      <randomize              value="false"/>
+      <evolveForestsVerbosity value="silent"/>
+    </posteriorSampleLikelihood>
+
+  <!-- Symphony fdm_113e-22eV -->
+    <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
+    <parameterInactiveMap value="" ignoreWarnings="true"                                                                                                                             />
+    <posteriorSampleLikelihood value="galaxyPopulation">
+      <baseParametersFileName value="%EXECPATH%/constraints/pipelines/darkMatter/progenitorMassFunctionBaseSymphonyfdm_113e-22eV.xml"/>
+      <randomize              value="false"/>
+      <evolveForestsVerbosity value="silent"/>
+    </posteriorSampleLikelihood>
+
+  <!-- Symphony WDM10 -->
+    <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
+    <parameterInactiveMap value="" ignoreWarnings="true"                                                                                                                             />
+    <posteriorSampleLikelihood value="galaxyPopulation">
+      <baseParametersFileName value="%EXECPATH%/constraints/pipelines/darkMatter/progenitorMassFunctionBaseSymphonyWDM10.xml"/>
+      <randomize              value="false"/>
+      <evolveForestsVerbosity value="silent"/>
+    </posteriorSampleLikelihood>
+
+  <!-- Symphony WDM6.5 -->
+    <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
+    <parameterInactiveMap value="" ignoreWarnings="true"                                                                                                                             />
+    <posteriorSampleLikelihood value="galaxyPopulation">
+      <baseParametersFileName value="%EXECPATH%/constraints/pipelines/darkMatter/progenitorMassFunctionBaseSymphonyWDM6.5.xml"/>
+      <randomize              value="false"/>
+      <evolveForestsVerbosity value="silent"/>
+    </posteriorSampleLikelihood>
+
+  <!-- Symphony WDM6 -->
+    <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
+    <parameterInactiveMap value="" ignoreWarnings="true"                                                                                                                             />
+    <posteriorSampleLikelihood value="galaxyPopulation">
+      <baseParametersFileName value="%EXECPATH%/constraints/pipelines/darkMatter/progenitorMassFunctionBaseSymphonyWDM6.xml"/>
+      <randomize              value="false"/>
+      <evolveForestsVerbosity value="silent"/>
+    </posteriorSampleLikelihood>
+
+  <!-- Symphony WDM5 -->
+    <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
+    <parameterInactiveMap value="" ignoreWarnings="true"                                                                                                                             />
+    <posteriorSampleLikelihood value="galaxyPopulation">
+      <baseParametersFileName value="%EXECPATH%/constraints/pipelines/darkMatter/progenitorMassFunctionBaseSymphonyWDM5.xml"/>
+      <randomize              value="false"/>
+      <evolveForestsVerbosity value="silent"/>
+    </posteriorSampleLikelihood>
+
+  <!-- Symphony WDM4 -->
+    <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3"/>
+    <parameterInactiveMap value="" ignoreWarnings="true"                                                                                                                             />
+    <posteriorSampleLikelihood value="galaxyPopulation">
+      <baseParametersFileName value="%EXECPATH%/constraints/pipelines/darkMatter/progenitorMassFunctionBaseSymphonyWDM4.xml"/>
+      <randomize              value="false"/>
+      <evolveForestsVerbosity value="silent"/>
     </posteriorSampleLikelihood>
 
   </posteriorSampleLikelihood>
@@ -84,7 +241,7 @@
     <stepsMaximum           value="  4000"/>
     <acceptanceAverageCount value="    10"/>
     <stateSwapCount         value="    10"/>
-    <logFileRoot            value="chains/chains"/>
+    <logFileRoot            value="chains_sub/chains"/>
     <reportCount            value="    10"/>
     <sampleOutliers         value="false" />
     <logFlushCount          value="     1"/>
@@ -101,11 +258,11 @@
       <thresholdHatR              value=" 1.20"/>
       <burnCount                  value="10"   />
       <testCount                  value="20"   />
-      <outlierCountMaximum        value=" 3"   />
+      <outlierCountMaximum        value="3"   />
       <outlierSignificance        value=" 0.95"/>
       <outlierLogLikelihoodOffset value="60"   />
       <reportCount                value=" 1"   />
-      <logFileName                value="chains/convergence.log"/>
+      <logFileName                value="chains_sub/convergence.log"/>
     </posteriorSampleConvergence>
     
     <posteriorSampleStoppingCriterion value="correlationLength">

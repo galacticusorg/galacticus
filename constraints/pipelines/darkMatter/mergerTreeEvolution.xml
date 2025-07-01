@@ -13,10 +13,10 @@
   </mergerTreeBuilder>
   <mergerTreeBranchingProbability value="PCHPlus">
     <!-- Best fit values from PCH -->
-    <G0     value="+0.5700"/>
-    <gamma1 value="+0.3800"/>
-    <gamma2 value="-0.0100"/>
-    <gamma3 value="+0.0000"/>
+    <G0     value="+0.3632"/>
+    <gamma1 value="+0.2080"/>
+    <gamma2 value="+0.3013"/>
+    <gamma3 value="+0.2487"/>
     <accuracyFirstOrder value="+0.10"/>
     <cdmAssumptions value="true"/>
   </mergerTreeBranchingProbability>
@@ -57,12 +57,5 @@
 
   <!-- Dark matter halo structure options -->
   <darkMatterProfileDMO            value="isothermal"/>
-  <darkMatterProfileConcentration  value="gao2008"   />
-  <darkMatterProfileMinimumConcentration value="4"   />
-  <galacticStructureSolver         value="null"      />
-  <haloSpinDistribution value="bett2007">
-    <alpha   value="2.50900"/>
-    <lambda0 value="0.04326"/>
-  </haloSpinDistribution>
 
 </parameters>

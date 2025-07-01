@@ -32,7 +32,7 @@
       <selectedValues value=""/>
     </nbodyOperator>
     <nbodyOperator value="deleteProperties">
-      <propertyNames value="isFlyby descendentID isolatedHostID hostID isMostMassiveProgenitor radiusVirial position"/>
+      <propertyNames value="isFlyby descendantID isolatedHostID hostID isMostMassiveProgenitor radiusVirial position"/>
     </nbodyOperator>
     <nbodyOperator value="exportIRATE">
       <fileName value="nonFlyby_progenitors_subVolume0_0_0.hdf5"/>

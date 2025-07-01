@@ -5,112 +5,27 @@
   <formatVersion>2</formatVersion>
   <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
   
+  
+  <!-- Include parameters -->
+  <xi:include href="haloMassFunctionParameters.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="simulation_HugeMDPL.xml"         xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="cosmology_MDPL.xml"             xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="mergerTreeEvolution.xml"        xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
   <!-- Task control -->
   <evolveForestsWorkShare value="cyclic"/>
-  
-  <!-- Component selection -->
-  <componentBasic              value="standard"  />
-  <componentBlackHole          value="null"      />
-  <componentDarkMatterProfile  value="scale"     />
-  <componentDisk               value="null"      />
-  <componentHotHalo            value="null"      />
-  <componentSatellite          value="verySimple"/>
-  <componentSpheroid           value="null"      />
-  <satelliteMergingTimescales  value="zero"      />
-  <componentSpin               value="null"      />
 
-  <!-- Cosmological parameters matched to MDPL -->
-  <cosmologyFunctions value="matterLambda"/>
-  <cosmologyParameters value="simple">
-    <HubbleConstant  value="67.77000"/>
-    <OmegaMatter     value=" 0.307115"/>
-    <OmegaDarkEnergy value=" 0.692885"/>
-    <OmegaBaryon     value=" 0.048206"/>
-    <temperatureCMB  value=" 2.725480"/>
-  </cosmologyParameters>
-
-  <!-- Power spectrum options matched to MDPL2 -->
-  <transferFunction        value="CAMB"    />
-  <powerSpectrumPrimordial value="powerLaw" >
-    <index               value="0.96"/>
-    <wavenumberReference value="1.00"/>
-    <running             value="0.00"/>
-  </powerSpectrumPrimordial>
-  <powerSpectrumPrimordialTransferred value="simple"       />
-  <powerSpectrumWindowFunction        value="ETHOS"        />
-  <cosmologicalMassVariance           value="filteredPower" >
-    <sigma_8 value="0.8228"/>
-  </cosmologicalMassVariance>
-  
-  <!-- Structure formation options -->
-  <linearGrowth          value="collisionlessMatter"                       />
-  <haloMassFunction      value="shethTormen"                                >
-    <a             value="+0.8745"/> <!-- Best fit values for z=0 from Benson (2017) -->
-    <p             value="-0.0306"/>
-    <normalization value="+0.3318"/>
-  </haloMassFunction>
-  <criticalOverdensity   value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/> <!-- Matches halo mass definition in Benson (2017) -->
-  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
-
-  <!-- Merger tree building options -->
-  <mergerTreeConstructor value="build"/>
-  <mergerTreeBuilder value="cole2000">
-    <accretionLimit     value="0.01"/>
-    <mergeProbability   value="0.10"/>
-    <branchIntervalStep value="true"/>
-    <redshiftMaximum    value="10.0"/>
-  </mergerTreeBuilder>
-  <mergerTreeBranchingProbability value="PCHPlus">
-    <!-- Best fit values from PCH -->
-    <G0     value="+0.5700"/>
-    <gamma1 value="+0.3800"/>
-    <gamma2 value="-0.0100"/>
-    <gamma3 value="+0.0000"/>
-    <accuracyFirstOrder value="+0.10"/>
-    <cdmAssumptions value="true"/>
-  </mergerTreeBranchingProbability>
+  <!-- Distribution of merger tree masses to build -->
   <mergerTreeBuildMasses value="sampledDistributionUniform">
-    <!-- Minimum is larger of 300 times the HugeMDPL mass resolution and the minimum parent mass bin -->
-    <massTreeMinimum value="1.00e14"/>
-    <massTreeMaximum value="1.00e16"/>
-    <treesPerDecade  value="42000"  />
+    <!-- Minimum is 300 times the mass resolution -->
+    <massTreeMinimum value="=[simulation::massParticle]*300.0"/>
+    <massTreeMaximum value="1.00e16"                          />
+    <treesPerDecade  value="100"                            />
   </mergerTreeBuildMasses>
   <mergerTreeMassResolution value="fixed">
-    <!-- 1/5th of 300 times the HugeMDPL particle mass - such that our resolution is well below any mass scale that we care about -->
-    <massResolution value="6.99e12"/>
+  <!-- 1/5th of 300 times the particle mass - such that our resolution is well below any mass scale that we care about -->
+  <massResolution value="=[simulation::massParticle]*300.0/5.0"/>
   </mergerTreeMassResolution>
-  
-  <!-- Substructure hierarchy options -->
-  <mergerTreeNodeMerger value="singleLevelHierarchy"/>
-
-  <!-- Dark matter halo structure options -->
-  <darkMatterProfileDMO            value="isothermal"/>
-  <darkMatterProfileConcentration  value="gao2008"   />
-  <darkMatterProfileMinimumConcentration value="4"         />
-  <galacticStructureSolver         value="null"      />
-  <haloSpinDistribution value="bett2007">
-    <alpha   value="2.50900"/>
-    <lambda0 value="0.04326"/>
-  </haloSpinDistribution>
-  <randomSpinResetMassFactor value="2.0"/>
-
-  <!-- Merger tree evolution -->
-  <mergerTreeEvolver value="standard">
-    <timestepHostAbsolute value="1.0"/>
-    <timestepHostRelative value="0.1"/>
-  </mergerTreeEvolver>
-  <mergerTreeNodeEvolver value="standard">
-    <odeToleranceAbsolute value="0.01"/>
-    <odeToleranceRelative value="0.01"/>
-  </mergerTreeNodeEvolver>
-  <nodeOperator value="multi">
-    <!-- Cosmological epoch -->
-    <nodeOperator value="cosmicTime"/>
-    <!-- DMO evolution -->
-    <nodeOperator value="DMOInterpolate"/>
-    <!-- Subhalo hierarchy -->
-    <nodeOperator value="hierarchy"/>
-  </nodeOperator>
 
   <!-- Output options -->
   <outputFileName  value="HugeMDPL.hdf5"/>
@@ -135,7 +50,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_HugeMDPL.hdf5"/>
       <indexParent                  value="0"                                                                                        />
       <indexRedshift                value="0"                                                                                        />
-      <massRatioLikelihoodMinimum   value="3.51e-01"                                                                                 />
+      <massRatioLikelihoodMinimum   value="1.33e-01"                                                                                 />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -151,7 +66,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_HugeMDPL.hdf5"/>
       <indexParent                  value="0"                                                                                        />
       <indexRedshift                value="1"                                                                                        />
-      <massRatioLikelihoodMinimum   value="3.51e-01"                                                                                 />
+      <massRatioLikelihoodMinimum   value="1.33e-01"                                                                                 />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -167,7 +82,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_HugeMDPL.hdf5"/>
       <indexParent                  value="0"                                                                                        />
       <indexRedshift                value="2"                                                                                        />
-      <massRatioLikelihoodMinimum   value="3.51e-01"                                                                                 />
+      <massRatioLikelihoodMinimum   value="1.33e-01"                                                                                 />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -183,7 +98,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_HugeMDPL.hdf5"/>
       <indexParent                  value="1"                                                                                        />
       <indexRedshift                value="0"                                                                                        />
-      <massRatioLikelihoodMinimum   value="1.11e-01"                                                                                 />
+      <massRatioLikelihoodMinimum   value="4.21e-02"                                                                                 />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -199,7 +114,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_HugeMDPL.hdf5"/>
       <indexParent                  value="1"                                                                                        />
       <indexRedshift                value="1"                                                                                        />
-      <massRatioLikelihoodMinimum   value="1.11e-01"                                                                                 />
+      <massRatioLikelihoodMinimum   value="4.21e-02"                                                                                 />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -215,7 +130,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_HugeMDPL.hdf5"/>
       <indexParent                  value="1"                                                                                        />
       <indexRedshift                value="2"                                                                                        />
-      <massRatioLikelihoodMinimum   value="1.11e-01"                                                                                 />
+      <massRatioLikelihoodMinimum   value="4.21e-02"                                                                                 />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -231,7 +146,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_HugeMDPL.hdf5"/>
       <indexParent                  value="1"                                                                                        />
       <indexRedshift                value="3"                                                                                        />
-      <massRatioLikelihoodMinimum   value="1.11e-01"                                                                                 />
+      <massRatioLikelihoodMinimum   value="4.21e-02"                                                                                 />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -247,7 +162,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_HugeMDPL.hdf5"/>
       <indexParent                  value="2"                                                                                        />
       <indexRedshift                value="0"                                                                                        />
-      <massRatioLikelihoodMinimum   value="3.51e-02"                                                                                 />
+      <massRatioLikelihoodMinimum   value="1.33e-02"                                                                                 />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -263,7 +178,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_HugeMDPL.hdf5"/>
       <indexParent                  value="2"                                                                                        />
       <indexRedshift                value="1"                                                                                        />
-      <massRatioLikelihoodMinimum   value="3.51e-02"                                                                                 />
+      <massRatioLikelihoodMinimum   value="1.33e-02"                                                                                 />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -279,7 +194,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_HugeMDPL.hdf5"/>
       <indexParent                  value="2"                                                                                        />
       <indexRedshift                value="2"                                                                                        />
-      <massRatioLikelihoodMinimum   value="3.51e-02"                                                                                 />
+      <massRatioLikelihoodMinimum   value="1.33e-02"                                                                                 />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -295,7 +210,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_HugeMDPL.hdf5"/>
       <indexParent                  value="2"                                                                                        />
       <indexRedshift                value="3"                                                                                        />
-      <massRatioLikelihoodMinimum   value="3.51e-02"                                                                                 />
+      <massRatioLikelihoodMinimum   value="1.33e-02"                                                                                 />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -311,7 +226,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_HugeMDPL.hdf5"/>
       <indexParent                  value="3"                                                                                        />
       <indexRedshift                value="0"                                                                                        />
-      <massRatioLikelihoodMinimum   value="1.11e-02"                                                                                 />
+      <massRatioLikelihoodMinimum   value="4.21e-03"                                                                                 />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -327,7 +242,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_HugeMDPL.hdf5"/>
       <indexParent                  value="3"                                                                                        />
       <indexRedshift                value="1"                                                                                        />
-      <massRatioLikelihoodMinimum   value="1.11e-02"                                                                                 />
+      <massRatioLikelihoodMinimum   value="4.21e-03"                                                                                 />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -343,7 +258,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_HugeMDPL.hdf5"/>
       <indexParent                  value="3"                                                                                        />
       <indexRedshift                value="2"                                                                                        />
-      <massRatioLikelihoodMinimum   value="1.11e-02"                                                                                 />
+      <massRatioLikelihoodMinimum   value="4.21e-03"                                                                                 />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -359,7 +274,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_HugeMDPL.hdf5"/>
       <indexParent                  value="3"                                                                                        />
       <indexRedshift                value="3"                                                                                        />
-      <massRatioLikelihoodMinimum   value="1.11e-02"                                                                                 />
+      <massRatioLikelihoodMinimum   value="4.21e-03"                                                                                 />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -373,7 +288,7 @@
     </outputAnalysis>    
   </outputAnalysis>
   <nbodyHaloMassError value="trenti2010">
-    <massParticle                value="1.17e11"/> <!-- Particle mass in HugeMDPL -->
+    <massParticle                value="=[simulation::massParticle]"/> <!-- Particle mass in HugeMDPL -->
     <correlationNormalization    value="1.0"    />
     <correlationMassExponent     value="1.0"    />
     <correlationRedshiftExponent value="0.0"    />
