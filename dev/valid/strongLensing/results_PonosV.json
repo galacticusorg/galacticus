@@ -4,21 +4,21 @@ window.PONOSV_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@obs.carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "9f71775a9dd1cbaa00b941dcdc90c2f76fe8fcf5",
-        "message": "fix: Switch source of `FFTlog` code to GitHub\n\nShould be a more reliable source than the original web site.\n",
-        "timestamp": "2025-06-30 07:45:10-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/9f71775a9dd1cbaa00b941dcdc90c2f76fe8fcf5"
+        "id": "6d042e8a745d610dc3198dc6c263f14e9d7b131b",
+        "message": "Merge pull request #870 from galacticusorg/fixHDF5ChunkSizeMaximum\n\n Avoid chunk sizes over 4GB in HDF5 datasets\n",
+        "timestamp": "2025-06-30 21:43:37+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/6d042e8a745d610dc3198dc6c263f14e9d7b131b"
     },
     "surfaceDensity": {
-        "percentageBelow": 35.71428571428571,
-        "percentageAbove": 64.28571428571429,
+        "percentageBelow": 32.14285714285714,
+        "percentageAbove": 67.85714285714286,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 45.45454545454545,
-        "percentageAbove": 54.54545454545455,
+        "percentageBelow": 54.54545454545455,
+        "percentageAbove": 45.45454545454545,
         "target": 0.85
     }
 }
