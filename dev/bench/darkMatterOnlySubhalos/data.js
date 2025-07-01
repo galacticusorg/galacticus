@@ -1,45 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1751359781131,
+  "lastUpdate": 1751359789251,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "id": "18eaf8aeaa516ae8acddbaf211bfd03db1710e0b",
-          "message": "fix: Merge branch 'master' into massDistributions",
-          "timestamp": "2024-08-26T15:35:06Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/18eaf8aeaa516ae8acddbaf211bfd03db1710e0b"
-        },
-        "date": 1724722526323,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 17.1220335742132,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 9.65209286752237,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 20598.8638559025,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8750,6 +8713,45 @@ window.BENCHMARK_DATA = {
             "value": 60.129,
             "unit": "seconds",
             "range": 0.0952412725663173
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6d042e8a745d610dc3198dc6c263f14e9d7b131b",
+          "message": "Merge pull request #870 from galacticusorg/fixHDF5ChunkSizeMaximum\n\n Avoid chunk sizes over 4GB in HDF5 datasets",
+          "timestamp": "2025-06-30T21:43:37Z",
+          "tree_id": "10e56466434d674f185651513e89eb577541bb08",
+          "url": "https://github.com/galacticusorg/galacticus/commit/6d042e8a745d610dc3198dc6c263f14e9d7b131b"
+        },
+        "date": 1751359788795,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": "17.274551628999887",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": "10.414361238885798",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": "21877.745485727606",
+            "unit": "-logℒ"
           }
         ]
       }
