@@ -301,10 +301,8 @@ contains
     Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
     specified as a variable length string.
     !!}
-    use :: FoX_dom           , only : node
-    use :: ISO_Varying_String, only : char                             , extract    , operator(==)
     use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name
-    use :: FoX_dom           , only : node                             , parseString
+    use :: FoX_DOM           , only : node                             , parseString
     use :: ISO_Varying_String, only : char                             , extract    , operator(==)
     implicit none
     type     (inputParameters)                                           :: self
@@ -348,17 +346,17 @@ contains
     specified as a character variable.
     !!}
     use :: Display           , only : displayGreen                     , displayReset
-    use :: File_Utilities    , only : File_Exists
-    use :: FoX_dom           , only : node                             , getAttribute, setAttribute          , getParentNode, &
-         &                            removeChild                      , getNodeName , hasAttribute          , appendChild  , &
-         &                            importNode                       , insertBefore, getNextSibling        , destroy      , &
-         &                            getExceptionCode                 , inException , DOMException          , cloneNode    , &
+    use :: File_Utilities    , only : File_Exists                      , File_Name_Expand
+    use :: FoX_DOM           , only : node                             , getAttribute    , setAttribute          , getParentNode, &
+         &                            removeChild                      , getNodeName     , hasAttribute          , appendChild  , &
+         &                            importNode                       , insertBefore    , getNextSibling        , destroy      , &
+         &                            getExceptionCode                 , inException     , DOMException          , cloneNode    , &
          &                            getNodeType                      , ELEMENT_NODE
     use :: Error             , only : Error_Report
-    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Parse   , XML_Get_Child_Elements, xmlNodeList  , &
+    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Parse       , XML_Get_Child_Elements, xmlNodeList  , &
          &                            XML_Path_Exists
-    use :: ISO_Varying_String, only : trim                             , char        , assignment(=)         , operator(//) , &
-         &                            operator(==)                     , index       , extract
+    use :: ISO_Varying_String, only : trim                             , char            , assignment(=)         , operator(//) , &
+         &                            operator(==)                     , index           , extract
     use :: String_Handling   , only : operator(//)
     implicit none
     type     (inputParameters)                                        :: self
@@ -385,10 +383,10 @@ contains
     character(len=32         )                                        :: changeType
 
     ! Check that the file exists.
-    if (.not.File_Exists(fileName)) call Error_Report("parameter file '"//trim(fileName)//"' does not exist"//{introspection:location})
+    if (.not.File_Exists(File_Name_Expand(fileName))) call Error_Report("parameter file '"//trim(fileName)//"' does not exist"//{introspection:location})
     ! Open and parse the data file.
     !$omp critical (FoX_DOM_Access)
-    doc           => XML_Parse(fileName,iostat=errorStatus,ex=exception,fileNameCurrent=fileNameFailed)
+    doc           => XML_Parse(File_Name_Expand(fileName),iostat=errorStatus,ex=exception,fileNameCurrent=fileNameFailed)
     isException   =  inException(exception)
     exceptionCode =  getExceptionCode(exception)
     !$omp end critical (FoX_DOM_Access)
