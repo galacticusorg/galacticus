@@ -273,6 +273,7 @@ CODE
   <xi:include href="haloMassFunctionParameters.xml"                                                                       xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
   <xi:include href="{$pipelinePath}simulation_{$entry->{'suite'}->{'name'}}_{$entry->{'group'}->{'name'}}.xml"            xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
   <xi:include href="{$pipelinePath}cosmology_{$entry->{'suite'}->{'name'}}.xml"                                           xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="{$pipelinePath}powerSpectrumEffective_{$entry->{'suite'}->{'name'}}.xml"                              xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
   <xi:include href="{$outputDirectory}haloMassFunction_{$entry->{'suite'}->{'name'}}.xml"                                 xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
   <xi:include href="{$pipelinePath}transferFunction_{$entry->{'suite'}->{'name'}}_{$entry->{'simulation'}->{'name'}}.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
 
