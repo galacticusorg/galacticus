@@ -662,7 +662,7 @@ contains
              message=message//char(10)//'xDownwardLimit :f(xDownwardLimit)='//trim(label)
              call Error_Report(message)
           end if
-       else if (report) then
+       else if (report_) then
           write (label,'(e12.6,a1,e12.6)') self%rangeDownwardLimit ,":",fDownwardLimit
           message="function at downward limit: x, f(x) = "//trim(label)
           call displayMessage(message)
@@ -693,7 +693,7 @@ contains
              message=message//char(10)//'xUpwardLimit :f(xUpwardLimit)='//trim(label)
              call Error_Report(message)
           end if
-       else if (report) then
+       else if (report_) then
           write (label,'(e12.6,a1,e12.6)') self%rangeUpwardLimit ,":",fUpwardLimit
           message="function at upward limit: x, f(x) = "//trim(label)
           call displayMessage(message)
