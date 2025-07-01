@@ -526,9 +526,10 @@ sub symphonyZoomInBuilder {
 	    # Split the line into columns.
 	    my @columns = split(" ",$line);
 	    # Halo ID is in the 2nd column, halo mass in the 11th.
-	    # Check for a match to the host halo ID, and record the mass.
+	    # Check for a match to the host halo ID, and record the mass and corresponding snapshot number.
 	    if ( $columns[1] == $model->{'hostHaloID'} ) {
-		$model->{'hostHaloMass'} = $columns[10]/$simulation->{'hubbleConstant'};
+		$model->{'hostHaloMass' } = $columns[10]/$simulation->{'hubbleConstant'};
+		$model->{'snapshotFinal'} = $columns[31];
 		# We can exit reading the file now as we've found the host halo of interest.
 		last;
 	    }
@@ -546,6 +547,18 @@ sub symphonyZoomInBuilder {
 	$parameters_->{'nbodyOperator'}->{'nbodyOperator'}->[3]->{'selectedValues'}->{'value'} = $snapshots;
 	# Set the hostedRootID to select.
 	$parameters_->{'nbodyOperator'}->{'nbodyOperator'}->[4]->{'selectedValues'}->{'value'} = $model->{'hostHaloID'};
+	# Add an operator to shift snapshot numbers. All Symphony simulations should have 235 snapshots. There are fewer
+	# snapshots in the Rockstar trees because Rockstar ignores snapshots with no halos and renumbers. So, here we want to
+	# adjust the snapshot numbers such that a=1 is always snapshot 235.
+	my $snapshotOffset = 235-$model->{'snapshotFinal'};
+	my $shiftOperator =
+	{
+	    value        =>           "shiftProperty" ,
+	    propertyName => {value => "snapshotID"   },
+	    shiftBy      => {value => $snapshotOffset}
+	};
+	unshift(@{$parameters_->{'nbodyOperator'}->{'nbodyOperator'}},$shiftOperator)
+	    unless ( $snapshotOffset == 0 );
 	
 	# Add all tree files.
 	$parameters_->{'nbodyImporter'} =
