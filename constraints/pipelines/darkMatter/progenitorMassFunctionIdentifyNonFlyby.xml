@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Process Rockstar catalogs to identify always isolated halos -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <task value="NBodyAnalyze"/>
+
+  <nbodyImporter value="rockstar">
+    <fileName    value="tree_0_0_0.dat"                                        />
+    <readColumns value="id scale desc_id pid upid mmp Mvir Rvir X Y Z Snap_num"/>
+  </nbodyImporter>
+
+  <nbodyOperator value="sequence">
+    <nbodyOperator value="identifyFlybysMansfieldKravtsov2020" >
+      <missingHostsAreFatal value="false"/>
+    </nbodyOperator>
+    <nbodyOperator value="hostedRootID" >
+      <missingHalosAreFatal value="false"/>
+    </nbodyOperator>
+    <nbodyOperator value="selectProperties"   >
+      <propertyName   value="isFlyby"/>
+      <selectedValues value="0"      />
+    </nbodyOperator>
+    <nbodyOperator value="selectProperties"   >
+      <propertyName   value="snapshotID"           />
+      <!-- Select snapshots for z = 0.0, 0.49, 0.99, 2.03, 4.04, 7.96 -->
+      <selectedValues value="150 132 119 100 77 51"/>
+    </nbodyOperator>
+    <nbodyOperator value="selectProperties"   >
+      <propertyName   value="hostedRootID"/>
+      <selectedValues value=""/>
+    </nbodyOperator>
+    <nbodyOperator value="deleteProperties">
+      <propertyNames value="isFlyby descendentID isolatedHostID hostID isMostMassiveProgenitor radiusVirial position"/>
+    </nbodyOperator>
+    <nbodyOperator value="exportIRATE">
+      <fileName value="nonFlyby_progenitors_subVolume0_0_0.hdf5"/>
+      <snapshot value="1"                                       />
+      <redshift value="0.0"                                     />
+    </nbodyOperator>
+  </nbodyOperator>
+
+  <cosmologyParameters value="simple">
+    <HubbleConstant  value="67.770000"/>
+    <OmegaMatter     value=" 0.307115"/>
+    <OmegaDarkEnergy value=" 0.692885"/>
+    <OmegaBaryon     value=" 0.048206"/>
+    <temperatureCMB  value=" 2.725480"/>
+  </cosmologyParameters>
+
+</parameters>
