@@ -137,12 +137,31 @@ contains
       <description>If true, only the covariance of the target dataset is accounted for (otherwise the model covariance is added).</description>
       <defaultValue>.false.</defaultValue>
     </inputParameter>
-    <inputParameter>
-      <name>rootVarianceTargetFractional</name>
-      <source>parameters</source>
-      <description>The diagonal of the covariance matrix is forced to be at least equal to this fraction multiplied by the target dataset squared. This may be a list of values corresponding to each element of the target dataset. If the list is shorter than the target dataset the final value in the list is applied to all remaining elements in the target dataset.</description>
-      <defaultValue>[0.0d0]</defaultValue>
-    </inputParameter>
+    !!]
+    if (parameters%isPresent('rootVarianceTargetFractional')) then
+       if (parameters%count('rootVarianceTargetFractional') == 1) then
+          ! For a single value, read as a scalar to allow processing of math in the parameter value.
+          !![
+	  <inputParameter>	    
+	    <name>rootVarianceTargetFractional</name>
+	    <variable>rootVarianceTargetFractional(1)</variable>
+	    <source>parameters</source>
+	    <description>The diagonal of the covariance matrix is forced to be at least equal to this fraction multiplied by the target dataset squared. This may be a list of values corresponding to each element of the target dataset. If the list is shorter than the target dataset the final value in the list is applied to all remaining elements in the target dataset.</description>
+	  </inputParameter>
+          !!]
+       else
+          !![
+	  <inputParameter>
+	    <name>rootVarianceTargetFractional</name>
+	    <source>parameters</source>
+	    <description>The diagonal of the covariance matrix is forced to be at least equal to this fraction multiplied by the target dataset squared. This may be a list of values corresponding to each element of the target dataset. If the list is shorter than the target dataset the final value in the list is applied to all remaining elements in the target dataset.</description>
+	  </inputParameter>
+          !!]
+       end if
+    else
+       rootVarianceTargetFractional=0.0d0
+    end if
+    !![
     <inputParameter>
       <name>likelihoodInLog</name>
       <source>parameters</source>
@@ -759,7 +778,7 @@ contains
     treeWalker=mergerTreeWalkerIsolatedNodes(tree,spanForest=.true.)
     do while (treeWalker%next(node))
        basic => node%basic()
-              if (Values_Agree(basic%time(),self%timeParent,absTol=timeTolerance) .and. self%galacticFilterParentMass_%passes(node)) then
+       if (Values_Agree(basic%time(),self%timeParent,absTol=timeTolerance) .and. self%galacticFilterParentMass_%passes(node)) then
           weight            =+node%hostTree%volumeWeight
           mass              =+self%nodePropertyExtractorMassParent_      %extract      (       node                                                )
           propertyType      = self%nodePropertyExtractorMassParent_      %type         (                                                           )
