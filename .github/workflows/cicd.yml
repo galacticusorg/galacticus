@@ -1219,7 +1219,7 @@ jobs:
                 test-decayingDM-profile.py,
                 test-decayingDM-shell-crossing-capture.py,
                 test-enforceNonNegativity.py,
-		test-pruneLightcone.py ]
+                test-pruneLightcone.py ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
