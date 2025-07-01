@@ -26,6 +26,46 @@
       <massRatioProgenitorCountPerDecade value="5"                />
       <snapshotParents                   value="150"              />
       <snapshotsProgenitors              value="132 119 100 77 51"/>      
+    </nbodyOperator> 
+    <nbodyOperator value="progenitorOrderStatistics">
+      <description value="Progenitor halo mass order statistics for non-backsplash z=0 parent halos from the MDPL2 simulation." />
+      <massParentCountPerDecade value="2" />
+      <massParentMaximum value="1e+16" />
+      <massParentMinimum value="1000000000000" />
+      <massRatioProgenitorCountPerDecade value="5" />
+      <massRatioProgenitorMaximum value="10" />
+      <massRatioProgenitorMinimum value="1e-05" />
+      <orderMaximum value="2" />
+      <simulationReference value="Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340" />
+      <simulationURL value="https://www.cosmosim.org/cms/simulations/mdpl2/" />
+      <snapshotParents value="125" />
+      <snapshotsProgenitors value="124 120 107 94 75 52 26" />
+    </nbodyOperator>
+    <nbodyOperator value="timeFormation">
+      <description value="Formation time distributions for non-backsplash z=0 parent halos from the MDPL2 simulation." />
+      <massParentCountPerDecade value="2" />
+      <massParentMaximum value="1e+16" />
+      <massParentMinimum value="1000000000000" />
+      <redshiftFormationCountPerUnit value="5" />
+      <redshiftFormationMinimum value="0.0" />
+      <redshiftFormationMaximum value="10.0" />
+      <fractionFormation value="0.5" />
+      <simulationReference value="Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340" />
+      <simulationURL value="https://www.cosmosim.org/cms/simulations/mdpl2/" />
+      <snapshotParents value="125" />
+    </nbodyOperator>
+    <nbodyOperator value="timeLastMajorMerger">
+      <description value="Time of last major merger distributions for non-backsplash z=0 parent halos from the MDPL2 simulation." />
+      <massParentCountPerDecade value="2" />
+      <massParentMaximum value="1e+16" />
+      <massParentMinimum value="1000000000000" />
+      <redshiftMergerCountPerUnit value="5" />
+      <redshiftMergerMinimum value="0.0" />
+      <redshiftMergerMaximum value="10.0" />
+      <ratioMajor value="0.3" />
+      <simulationReference value="Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340" />
+      <simulationURL value="https://www.cosmosim.org/cms/simulations/mdpl2/" />
+      <snapshotParents value="125" />
     </nbodyOperator>
   </nbodyOperator>
   

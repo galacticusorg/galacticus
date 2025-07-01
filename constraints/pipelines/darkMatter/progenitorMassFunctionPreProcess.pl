@@ -153,9 +153,9 @@ sub cosmoSimBuilder {
     ## Parse the base parameters.
     my $parameters = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/progenitorMassFunctionIdentifyNonFlyby.xml");
     ## Set the snapshots to select.
-    $parameters->{'nbodyOperator'}->{'nbodyOperator'}->[3]->{'selectedValues'}->{'value'} = $simulation->{'snapshots'};
+    #$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[3]->{'selectedValues'}->{'value'} = $simulation->{'snapshots'};
     ## Remove hostedRootID selection.
-    splice(@{$parameters->{'nbodyOperator'}->{'nbodyOperator'}},4,1);
+    splice(@{$parameters->{'nbodyOperator'}->{'nbodyOperator'}},3,1);
     ## Iterate over subvolumes.
     for(my $i=0;$i<10;++$i) {
 	for(my $j=0;$j<10;++$j) {
@@ -165,7 +165,7 @@ sub cosmoSimBuilder {
 		    if ( -e $simulation->{'path'}."nonFlyby_progenitors_subVolume".$i."_".$j."_".$k.".hdf5" );
 		# Modify file names.
 		$parameters->{'nbodyImporter'}                        ->{'fileName'}->{'value'} = $simulation->{'path'}."tree_"                               .$i."_".$j."_".$k.".dat" ;
-		$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[5]->{'fileName'}->{'value'} = $simulation->{'path'}."nonFlyby_progenitors_subVolume".$i."_".$j."_".$k.".hdf5";
+		$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[4]->{'fileName'}->{'value'} = $simulation->{'path'}."nonFlyby_progenitors_subVolume".$i."_".$j."_".$k.".hdf5";
 		# Write parmeter file.
 		my $parameterFileName = $simulation->{'path'}."identifyNonFlyby_progenitors_".$i."_".$j."_".$k.".xml";
 		open(my $outputFile,">",$parameterFileName);
@@ -200,7 +200,7 @@ sub cosmoSimBuilder {
 			{
 			    value      => "IRATE"                                                                              ,
 			    fileName   => {value => $simulation->{'path'}."nonFlyby_progenitors_subVolume".$i."_".$j."_".$k.".hdf5"},
-			    properties => {value => "massVirial expansionFactor hostedRootID snapshotID"},
+			    properties => {value => "massVirial expansionFactor hostedRootID snapshotID particleID descendantID"},
 			    snapshot   => {value => "1"}
 			}
 			);
@@ -222,6 +222,28 @@ sub cosmoSimBuilder {
 	    $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[1]->{'massRatioProgenitorMaximum'}->{'value'} = $simulation->{'massRatioProgenitorMaximum'}                               ;
 	    $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[1]->{'snapshotParents'           }->{'value'} = $simulation->{'snapshotParents'           }                               ;
 	    $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[1]->{'snapshotsProgenitors'      }->{'value'} = $simulation->{'snapshotsProgenitors'      }                               ;
+            $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[2]->{'description'               }->{'value'} = $simulation->{'description'               }                               ;
+            $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[2]->{'simulationReference'       }->{'value'} = $simulation->{'simulationReference'       }                               ;
+            $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[2]->{'simulationURL'             }->{'value'} = $simulation->{'simulationURL'             }                               ;
+            $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[2]->{'massParentMinimum'         }->{'value'} = $simulation->{'massParentMinimum'         }                               ;
+            $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[2]->{'massParentMaximum'         }->{'value'} = $simulation->{'massParentMaximum'         }                               ;
+            $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[2]->{'massRatioProgenitorMinimum'}->{'value'} = $simulation->{'massRatioProgenitorMinimum'}                               ;
+            $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[2]->{'massRatioProgenitorMaximum'}->{'value'} = $simulation->{'massRatioProgenitorMaximum'}                               ;
+            $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[2]->{'snapshotParents'           }->{'value'} = $simulation->{'snapshotParents'           }                               ;
+            $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[2]->{'snapshotsProgenitors'      }->{'value'} = $simulation->{'snapshotsProgenitors'      }                               ;
+            $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[3]->{'description'               }->{'value'} = $simulation->{'description'               }                               ;
+            $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[3]->{'simulationReference'       }->{'value'} = $simulation->{'simulationReference'       }                               ;
+            $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[3]->{'simulationURL'             }->{'value'} = $simulation->{'simulationURL'             }                               ;
+            $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[3]->{'massParentMinimum'         }->{'value'} = $simulation->{'massParentMinimum'         }                               ;
+            $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[3]->{'massParentMaximum'         }->{'value'} = $simulation->{'massParentMaximum'         }                               ;
+            $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[3]->{'snapshotParents'           }->{'value'} = $simulation->{'snapshotParents'           }                               ;
+            $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[4]->{'description'               }->{'value'} = $simulation->{'description'               }                               ;
+            $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[4]->{'simulationReference'       }->{'value'} = $simulation->{'simulationReference'       }                               ;
+            $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[4]->{'simulationURL'             }->{'value'} = $simulation->{'simulationURL'             }                               ;
+            $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[4]->{'massParentMinimum'         }->{'value'} = $simulation->{'massParentMinimum'         }                               ;
+            $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[4]->{'massParentMaximum'         }->{'value'} = $simulation->{'massParentMaximum'         }                               ;
+            $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[4]->{'snapshotParents'           }->{'value'} = $simulation->{'snapshotParents'           }                               ;
+
 	    ## Write the parameter file.
 	    my $parameterFileName = $simulation->{'path'}."progenitorMassFunctions.xml";
 	    open(my $outputFile,">",$parameterFileName);
@@ -410,7 +432,7 @@ sub caterpillarBuilder {
 		{
 		    value      => "IRATE",
 		    fileName   => {value => $simulation->{'path'}."H".$_->{'ID'}."_LX".$_->{'levelMax'}."/identifyNonFlyby_progenitors.hdf5"},
-		    properties => {value => "massVirial expansionFactor hostedRootID snapshotID"},
+		    properties => {value => "massVirial expansionFactor hostedRootID snapshotID particleID descendantID"},
 		    snapshot   => {value => "1"}
 		}
 		:
@@ -625,7 +647,7 @@ sub symphonyZoomInBuilder {
 	{{
     	    value      => "IRATE",
     	    fileName   => {value => $simulation->{'path'}.$modelGroup."/".$_."/identifyNonFlyby_progenitors.hdf5"},
-    	    properties => {value => "massVirial expansionFactor hostedRootID snapshotID"},
+    	    properties => {value => "massVirial expansionFactor hostedRootID snapshotID particleID descendantID"},
     	    snapshot   => {value => "1"}
     	    }} @{$modelRealizations{$modelGroup}};
 	
