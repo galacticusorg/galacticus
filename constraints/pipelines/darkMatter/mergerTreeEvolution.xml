@@ -21,6 +21,13 @@
     <cdmAssumptions value="true"/>
   </mergerTreeBranchingProbability>
 
+  <!-- Subsampling merger of merger tree branches -->
+  <mergerTreeBuildController value="subsample">
+    <fractionMassThreshold      value="0.1"/>
+    <subsamplingRateAtThreshold value="1.0"/>
+    <exponent                   value="1.0"/>
+  </mergerTreeBuildController>
+
   <!-- Merger tree evolution -->
   <mergerTreeEvolver value="standard">
     <timestepHostAbsolute value="1.0"/>
