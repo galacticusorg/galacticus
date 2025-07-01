@@ -40,15 +40,14 @@
   </nodeOperator>
 
   <!-- Component selection -->
-  <componentBasic              value="standard" />
-  <componentBlackHole          value="null"     />
-  <componentDarkMatterProfile  value="scale"    />
-  <componentDisk               value="null"     />
-  <componentHotHalo            value="null"     />
-  <componentSatellite          value="mergeTime"/>
-  <componentSpheroid           value="null"     />
-  <satelliteMergingTimescales  value="zero"     />
-  <componentSpin               value="null"     />
+  <componentBasic              value="standard"/>
+  <componentBlackHole          value="null"    />
+  <componentDarkMatterProfile  value="scale"   />
+  <componentDisk               value="null"    />
+  <componentHotHalo            value="null"    />
+  <componentSatellite          value="null"    />
+  <componentSpheroid           value="null"    />
+  <componentSpin               value="null"    />
 
   <!-- Nullify irrelevant classes -->
   <hotHaloMassDistribution value="null"/>
