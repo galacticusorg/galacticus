@@ -80,6 +80,7 @@
      procedure :: rate                  => fixedAgesRate
      procedure :: scales                => fixedAgesScales
      procedure :: times                 => fixedAgesTimes
+     procedure :: timeNext              => fixedAgesTimeNext
      procedure :: masses                => fixedAgesMasses
      procedure :: metallicityBoundaries => fixedAgesMetallicityBoundaries
      procedure :: ageDistribution       => fixedAgesAgeDistribution
@@ -738,6 +739,42 @@ contains
     return
   end function fixedAgesTimes
 
+  double precision function fixedAgesTimeNext(self,node,starFormationHistory) result(timeNext)
+    !!{
+    Return the next tabulation time boundary across all histories.
+    !!}
+    use, intrinsic :: ISO_C_Binding   , only : c_size_t
+    use            :: Galacticus_Nodes, only : nodeComponentBasic
+    use            :: Arrays_Search   , only : searchArray
+    implicit none
+    class           (starFormationHistoryFixedAges), intent(inout)               :: self
+    type            (treeNode                     ), intent(inout)               :: node
+    type            (history                      ), intent(in   )               :: starFormationHistory
+    double precision                               , allocatable  , dimension(:) :: timesCrossing
+    class           (nodeComponentBasic           ), pointer                     :: basic
+    integer         (c_size_t                     )                              :: i                   , j
+
+    ! Call the recursive copy if necessary.
+    if (self%isRecursive) then
+       timeNext=self%recursiveSelf%timeNext(node,starFormationHistory)
+       return
+    end if
+    ! Find the next boundary time across all histories.
+    basic         => node %basic                    (                    )
+    timesCrossing =  basic%floatRank1MetaPropertyGet(self%timesCrossingID)
+    timeNext      =  huge(0.0d0)
+    do i=1,size(timesCrossing)
+       j=searchArray(starFormationHistory%time,basic%time()-timesCrossing(i))
+       if     (                                                                 &
+            &   basic%time() >= starFormationHistory%time(j+1)+timesCrossing(i) &
+            &  .and.                                                            &
+            &   j+1          <  size(starFormationHistory%time)                 &
+            & ) j=j+1
+       timeNext=min(timeNext,starFormationHistory%time(j+1)+timesCrossing(i))
+    end do
+    return
+  end function fixedAgesTimeNext
+
   function fixedAgesMasses(self,node,starFormationHistory,allowTruncation) result(masses)
     !!{
     Return the times used in this tabulation.
@@ -757,7 +794,7 @@ contains
     class           (nodeComponentBasic           ), pointer                       :: basic
     type            (varying_string               )                                :: message
     character       (len=16                       )                                :: label
-     !![
+    !![
     <optionalArgument name="allowTruncation" defaultsTo=".false."/>
     !!]
     

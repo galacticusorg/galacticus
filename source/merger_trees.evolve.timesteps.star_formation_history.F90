@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  use :: Star_Formation_Histories, only : starFormationHistoryClass
+
   !![
   <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepStarFormationHistory">
    <description>
@@ -29,6 +31,7 @@
      A merger tree evolution timestepping class that limits the timestep to the next bin in the star formation history.
      !!}
      private
+     class(starFormationHistoryClass), pointer :: starFormationHistory_ => null()
    contains
      procedure :: timeEvolveTo => starFormationHistoryTimeEvolveTo
   end type mergerTreeEvolveTimestepStarFormationHistory
@@ -38,6 +41,7 @@
      Constructors for the \refClass{mergerTreeEvolveTimestepStarFormationHistory} merger tree evolution timestep class.
      !!}
      module procedure starFormationHistoryConstructorParameters
+     module procedure starFormationHistoryConstructorInternal
   end interface mergerTreeEvolveTimestepStarFormationHistory
 
 contains
@@ -48,27 +52,57 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(mergerTreeEvolveTimestepStarFormationHistory)                :: self
-    type(inputParameters                             ), intent(inout) :: parameters
+    type (mergerTreeEvolveTimestepStarFormationHistory)                :: self
+    type (inputParameters                             ), intent(inout) :: parameters
+    class(starFormationHistoryClass                   ), pointer       :: starFormationHistory_
 
-    self=mergerTreeEvolveTimestepStarFormationHistory()
+    !![
+    <objectBuilder class="starFormationHistory" name="starFormationHistory_" source="parameters"/>
+    !!]
+    self=mergerTreeEvolveTimestepStarFormationHistory(starFormationHistory_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="starFormationHistory_"/>
     !!]
     return
   end function starFormationHistoryConstructorParameters
+
+  function starFormationHistoryConstructorInternal(starFormationHistory_) result(self)
+    !!{
+    Internal constructor for the \refClass{mergerTreeEvolveTimestepStarFormationHistory} merger tree timestepping class.
+    !!}
+    implicit none
+    type (mergerTreeEvolveTimestepStarFormationHistory)                        :: self
+    class(starFormationHistoryClass                  ), intent(in   ), target :: starFormationHistory_
+    !![
+    <constructorAssign variables="*starFormationHistory_"/>
+    !!]
+
+    return
+  end function starFormationHistoryConstructorInternal
+
+  subroutine starFormationHistoryDestructor(self)
+    !!{
+    Destructor for the \refClass{mergerTreeEvolveTimestepStarFormationHistory} merger tree timestepping class.
+    !!}
+    implicit none
+    type(mergerTreeEvolveTimestepStarFormationHistory), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%starFormationHistory_"/>
+    !!]
+    return
+  end subroutine starFormationHistoryDestructor
 
   double precision function starFormationHistoryTimeEvolveTo(self,timeEnd,node,task,taskSelf,report,lockNode,lockType) result(timeEvolveTo)
     !!{
     Determine a suitable timestep for {\normalfont \ttfamily node} using the starFormationHistory method. This simply selects the smaller of {\normalfont \ttfamily
     timeStepAbsolute} and {\normalfont \ttfamily timeStepRelative}$H^{-1}(t)$.
     !!}
-    use, intrinsic :: ISO_C_Binding         , only : c_size_t
-    use            :: Arrays_Search         , only : searchArray
-    use            :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
-    use            :: Galacticus_Nodes      , only : nodeComponentBasic   , nodeComponentDisk, nodeComponentSpheroid
-    use            :: ISO_Varying_String    , only : varying_string
-    use            :: Histories             , only : history
+    use :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
+    use :: Galacticus_Nodes      , only : nodeComponentBasic   , nodeComponentDisk, nodeComponentSpheroid
+    use :: ISO_Varying_String    , only : varying_string
+    use :: Histories             , only : history
     implicit none
     class           (mergerTreeEvolveTimestepStarFormationHistory), intent(inout), target            :: self
     double precision                                              , intent(in   )                    :: timeEnd
@@ -81,10 +115,9 @@ contains
     class           (nodeComponentBasic                          )               , pointer           :: basic
     class           (nodeComponentDisk                           )               , pointer           :: disk
     class           (nodeComponentSpheroid                       )               , pointer           :: spheroid
-    type            (history                                     )                                   :: historyStarFormationDisk, historyStarFormationSpheroid
-    integer         (c_size_t                                    )                                   :: i
+    type            (history                                     )                                   :: historyStarFormationDisk    , historyStarFormationSpheroid
+    double precision                                                                                 :: timeStarFormationHistoryNext
     !$GLC attributes unused :: timeEnd
-
 
     basic                        => node    %basic               ()
     disk                         => node    %disk                ()
@@ -93,14 +126,14 @@ contains
     historyStarFormationSpheroid =  spheroid%starFormationHistory()
     timeEvolveTo                 =  huge(0.0d0)
     if (historyStarFormationDisk    %exists()) then
-       i=searchArray(historyStarFormationDisk%time,basic%time())+1
-       if (basic%time() < historyStarFormationDisk    %time(i))                   &
-            & timeEvolveTo=min(timeEvolveTo,historyStarFormationDisk    %time(i))       
+       timeStarFormationHistoryNext=self%starFormationHistory_%timeNext(node,historyStarFormationDisk)
+       if (basic%time() < timeStarFormationHistoryNext) &
+            & timeEvolveTo=min(timeEvolveTo,timeStarFormationHistoryNext)
     end if
     if (historyStarFormationSpheroid%exists()) then
-       i=searchArray(historyStarFormationSpheroid%time,basic%time())+1
-       if (basic%time() < historyStarFormationSpheroid%time(i))                   &
-            & timeEvolveTo=min(timeEvolveTo,historyStarFormationSpheroid%time(i))       
+       timeStarFormationHistoryNext=self%starFormationHistory_%timeNext(node,historyStarFormationSpheroid)
+       if (basic%time() < timeStarFormationHistoryNext) &
+            & timeEvolveTo=min(timeEvolveTo,timeStarFormationHistoryNext)
     end if
     task                            => null()
     taskSelf                        => null()
