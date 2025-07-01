@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Resolutions (in terms of particle counts) for progenitor mass functions -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <!-- Define particle resolutions -->
+  <resolution value="" ignoreWarnings="true">
+    <!-- The number of particles in the minimum mass progenitor halo to consider. -->
+    <progenitorHaloParticleCountMinimum value=" 20.0"/>
+    <!-- The number of particles in the minimum mass parent halo to consider.     -->
+    <parentHaloParticleCountMinimum     value="300.0"/>
+  </resolution>
+  
+</parameters>
