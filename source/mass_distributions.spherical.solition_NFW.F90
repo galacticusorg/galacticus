@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Yu Zhao
+
   !!{
   Implementation of a mass distribution class for fuzzy dark matter halos consisting of soliton and NFW profiles
   \citep{schive_understanding_2014}.   
