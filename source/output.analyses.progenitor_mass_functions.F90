@@ -886,6 +886,7 @@ contains
     use            :: Linear_Algebra              , only : assignment(=), matrix, operator(*), vector
     use            :: Interface_GSL               , only : GSL_Success
     use            :: Models_Likelihoods_Constants, only : logImprobable
+    use            :: Numerical_Constants_Math    , only : Pi
     implicit none
     class           (outputAnalysisProgenitorMassFunction), intent(inout)                 :: self
     double precision                                      , allocatable  , dimension(:,:) :: functionCovarianceCombined
@@ -981,7 +982,14 @@ contains
           covariance=matrix(functionCovarianceCombined)
           ! Compute the log-likelihood.
           progenitorMassFunctionLogLikelihood=-0.5d0*covariance%covarianceProduct(residual,status)
-          if (status /= GSL_Success) progenitorMassFunctionLogLikelihood=logImprobable
+          if (status == GSL_Success) then
+             progenitorMassFunctionLogLikelihood=+progenitorMassFunctionLogLikelihood          &
+                  &                              -0.5d0*covariance%determinant      (        ) &
+                  &                              -0.5d0*dble(self%binCount)                    &
+                  &                              *log(2.0d0*Pi)
+          else
+             progenitorMassFunctionLogLikelihood=logImprobable
+          end if
        else
           progenitorMassFunctionLogLikelihood=+0.0d0
        end if
