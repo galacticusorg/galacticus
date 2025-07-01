@@ -962,17 +962,13 @@ contains
                            &                            +covarianceTerm
                       ! Set a floor in covariance.
                       if (self%likelihoodInLog) then
-                         functionCovarianceCombined(ii,jj)=max(                                                                                                                           &
-                              &                                +self%rootVarianceTargetFractional(min(i,size(self%rootVarianceTargetFractional)))                                         &
-                              &                                *self%rootVarianceTargetFractional(min(j,size(self%rootVarianceTargetFractional)))                                       , &
-                              &                                +                                                                                       functionCovarianceCombined(ii,jj)  &
-                              &                               )
+                         functionCovarianceCombined(ii,jj)=+self%rootVarianceTargetFractional(min(i,size(self%rootVarianceTargetFractional)))                                        &
+                              &                            *self%rootVarianceTargetFractional(min(j,size(self%rootVarianceTargetFractional)))                                        &
+                              &                            +                                                                                       functionCovarianceCombined(ii,jj)
                       else
-                         functionCovarianceCombined(ii,jj)=max(                                                                                                                           &
-                              &                                +self%rootVarianceTargetFractional(min(i,size(self%rootVarianceTargetFractional)))*self%functionValueTarget       (i    )  &
-                              &                                *self%rootVarianceTargetFractional(min(j,size(self%rootVarianceTargetFractional)))*self%functionValueTarget       (    j), &
-                              &                                +                                                                                       functionCovarianceCombined(ii,jj)  &
-                              &                               )
+                         functionCovarianceCombined(ii,jj)=+self%rootVarianceTargetFractional(min(i,size(self%rootVarianceTargetFractional)))*self%functionValueTarget       (i    ) &
+                              &                            *self%rootVarianceTargetFractional(min(j,size(self%rootVarianceTargetFractional)))*self%functionValueTarget       (    j) &
+                              &                            +                                                                                       functionCovarianceCombined(ii,jj)
                       end if
                       ! Zero off-diagonal terms if requested.
                       if (self%covarianceDiagonalize .and. ii /= jj) &
