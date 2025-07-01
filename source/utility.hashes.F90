@@ -282,11 +282,13 @@ contains
     !!{
     Returns the value of entry number {\normalfont \ttfamily index} in {\normalfont \ttfamily Hash}.
     !!}
+    use :: Error, only : Error_Report
     implicit none
     {Type¦intrinsic}                  {Type¦attributes} :: {Type¦label}ValueInt
     class           ({Type¦label}Hash), intent(in   )   :: self
     integer                           , intent(in   )   :: indexValue
 
+    if (indexValue < 1 .or. indexValue > self%size()) call Error_Report('index is out of range'//{introspection:location})
     {Type¦label}ValueInt {Type¦assignment} self%hashValues(indexValue)%object
     return
   end function {Type¦label}ValueInt
