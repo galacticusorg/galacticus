@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1751446932571,
+  "lastUpdate": 1751494990397,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (Symphony)": [
@@ -307,6 +307,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (Symphony Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": "2.545872688849074",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7c3698fb79ca1ee799ee0c1593cf3820d827916d",
+          "message": "Merge pull request #872 from galacticusorg/fixPruneLightcone\n\nCorrect pruning of lightcones to use the correct time intervals for each output",
+          "timestamp": "2025-07-02T15:47:51Z",
+          "tree_id": "bbbd0edb07ecea278e11fbad0aa9adcb429e2641",
+          "url": "https://github.com/galacticusorg/galacticus/commit/7c3698fb79ca1ee799ee0c1593cf3820d827916d"
+        },
+        "date": 1751494989504,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (Symphony Milky Way) - Likelihood - subhaloMassFunction",
+            "value": "3.1466953188198534",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": "2.0693555540552033",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": "2.5571799105067887",
             "unit": "-logℒ"
           }
         ]
