@@ -6,14 +6,14 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "e853ae4249d68e38ca94891b77d577795ef565ab",
-        "message": "Merge pull request #871 from yzhaoastro/soliton-mass-fix\n\nAdd analytic solution for soliton and NFW mass profile\n",
-        "timestamp": "2025-07-01 17:46:07+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/e853ae4249d68e38ca94891b77d577795ef565ab"
+        "id": "7c3698fb79ca1ee799ee0c1593cf3820d827916d",
+        "message": "Merge pull request #872 from galacticusorg/fixPruneLightcone\n\nCorrect pruning of lightcones to use the correct time intervals for each output\n",
+        "timestamp": "2025-07-02 15:47:51+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/7c3698fb79ca1ee799ee0c1593cf3820d827916d"
     },
     "surfaceDensity": {
-        "percentageBelow": 39.285714285714285,
-        "percentageAbove": 60.714285714285715,
+        "percentageBelow": 42.857142857142854,
+        "percentageAbove": 57.142857142857146,
         "target": 0.006
     },
     "slope": {
