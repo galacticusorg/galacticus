@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "6d042e8a745d610dc3198dc6c263f14e9d7b131b",
-        "message": "Merge pull request #870 from galacticusorg/fixHDF5ChunkSizeMaximum\n\n Avoid chunk sizes over 4GB in HDF5 datasets\n",
-        "timestamp": "2025-06-30 21:43:37+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/6d042e8a745d610dc3198dc6c263f14e9d7b131b"
+        "id": "e853ae4249d68e38ca94891b77d577795ef565ab",
+        "message": "Merge pull request #871 from yzhaoastro/soliton-mass-fix\n\nAdd analytic solution for soliton and NFW mass profile\n",
+        "timestamp": "2025-07-01 17:46:07+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/e853ae4249d68e38ca94891b77d577795ef565ab"
     },
     "results": [
         {
@@ -241,7 +241,7 @@ window.ANALYSES_DATA = {
                 ],
                 "yError": [
                     0.14855282683712095,
-                    0.21206035417952507,
+                    0.2120603541795247,
                     0.3092415021662823,
                     0.40031870396936914,
                     0.48268485784524906,
