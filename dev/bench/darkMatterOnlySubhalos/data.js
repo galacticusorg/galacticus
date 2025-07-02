@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1751446928486,
+  "lastUpdate": 1751494978646,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "id": "44abc28ecbfdef8fa2cf6cac325595947792c29d",
-          "message": "fix: Update description text for dark matter profile classes to reflect their factory status",
-          "timestamp": "2024-08-27T22:55:15Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/44abc28ecbfdef8fa2cf6cac325595947792c29d"
-        },
-        "date": 1724832104810,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 48.573,
-            "unit": "seconds",
-            "range": 0.0839172211169415
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8752,6 +8724,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": "22064.222906252533",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7c3698fb79ca1ee799ee0c1593cf3820d827916d",
+          "message": "Merge pull request #872 from galacticusorg/fixPruneLightcone\n\nCorrect pruning of lightcones to use the correct time intervals for each output",
+          "timestamp": "2025-07-02T15:47:51Z",
+          "tree_id": "bbbd0edb07ecea278e11fbad0aa9adcb429e2641",
+          "url": "https://github.com/galacticusorg/galacticus/commit/7c3698fb79ca1ee799ee0c1593cf3820d827916d"
+        },
+        "date": 1751494975827,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 60.646,
+            "unit": "seconds",
+            "range": 0.0928999461791216
           }
         ]
       }
