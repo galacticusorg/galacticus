@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1751359789251,
+  "lastUpdate": 1751446920157,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "17565016588319134998228384202ff1ba32e5e6",
-          "message": "Merge pull request #680 from galacticusorg/fixDetectMissingParameterInExpression\n\nProvide a more helpful error message when a parameter referenced in an expression is not found",
-          "timestamp": "2024-08-27T22:13:41Z",
-          "tree_id": "6b865f38be30b7d529d7b0eba7b3812965f86c3a",
-          "url": "https://github.com/galacticusorg/galacticus/commit/17565016588319134998228384202ff1ba32e5e6"
-        },
-        "date": 1724822513957,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 51.785,
-            "unit": "seconds",
-            "range": 0.0569429539099225
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8752,6 +8722,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": "21877.745485727606",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e853ae4249d68e38ca94891b77d577795ef565ab",
+          "message": "Merge pull request #871 from yzhaoastro/soliton-mass-fix\n\nAdd analytic solution for soliton and NFW mass profile",
+          "timestamp": "2025-07-01T17:46:07Z",
+          "tree_id": "3d2a6565b16b3031b09d490b6fe4eb730492447c",
+          "url": "https://github.com/galacticusorg/galacticus/commit/e853ae4249d68e38ca94891b77d577795ef565ab"
+        },
+        "date": 1751446917484,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 60.024,
+            "unit": "seconds",
+            "range": 0.0393242927458469
           }
         ]
       }
