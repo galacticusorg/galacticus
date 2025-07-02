@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1751446968485,
+  "lastUpdate": 1751495026200,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=1.0)": [
@@ -7611,6 +7611,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/e853ae4249d68e38ca94891b77d577795ef565ab"
         },
         "date": 1751446967581,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteBoundMass",
+            "value": "30.592138411171724",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "16.757775564941944",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteVelocityMaximum",
+            "value": "17.51631865269663",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7c3698fb79ca1ee799ee0c1593cf3820d827916d",
+          "message": "Merge pull request #872 from galacticusorg/fixPruneLightcone\n\nCorrect pruning of lightcones to use the correct time intervals for each output",
+          "timestamp": "2025-07-02T15:47:51Z",
+          "tree_id": "bbbd0edb07ecea278e11fbad0aa9adcb429e2641",
+          "url": "https://github.com/galacticusorg/galacticus/commit/7c3698fb79ca1ee799ee0c1593cf3820d827916d"
+        },
+        "date": 1751495025346,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
