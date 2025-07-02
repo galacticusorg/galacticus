@@ -683,7 +683,9 @@ contains
     Return the times used in this tabulation.
     !!}
     use :: Galacticus_Nodes    , only : nodeComponentBasic
+    use :: Geometry_Lightcones , only : geometryLightconeNull
     use :: Error               , only : Error_Report
+    use :: Display             , only : displayGreen      , displayReset
     use :: Numerical_Comparison, only : Values_Agree
     use :: ISO_Varying_String  , only : varying_string    , assignment(=), operator(//)
     use :: String_Handling     , only : operator(//)
@@ -711,6 +713,18 @@ contains
     ! Check that the current time matches the next tabulated time.
     basic         => node %basic                    (                    )
     timesCrossing =  basic%floatRank1MetaPropertyGet(self%timesCrossingID)
+    if (size(timesCrossing) == 0) then
+       message=                                            "no lightcone crossing times found"                                                   //char(10)// &
+            & displayGreen()//"    HELP:"//displayReset()//" the `starFormationHistoryFixedAges` class is intended for use with lightcone output"
+       select type (geometryLightcone_ => self%geometryLightcone_)
+       class is (geometryLightconeNull)
+          message=message//","//char(10)//"          but you have no lightcone geometry configured."
+       class default
+          message=message//"."
+       end select
+       message=message//char(10)//"          Consider using a different star formation history class."
+       call Error_Report(message//{introspection:location})
+    end if
     if (.not.Values_Agree(basic%time(),timesCrossing(1),relTol=1.0d-6)) then
        write (label,'(e16.10)') basic%time         ( )
        message="time ("//label//") "
@@ -743,7 +757,9 @@ contains
     Return the times used in this tabulation.
     !!}
     use :: Galacticus_Nodes    , only : nodeComponentBasic
+    use :: Geometry_Lightcones , only : geometryLightconeNull
     use :: Error               , only : Error_Report
+    use :: Display             , only : displayGreen      , displayReset
     use :: Numerical_Comparison, only : Values_Agree
     use :: ISO_Varying_String  , only : varying_string    , assignment(=), operator(//)
     use :: String_Handling     , only : operator(//)
@@ -769,6 +785,18 @@ contains
     ! Check that the current time matches the next tabulated time.
     basic         => node %basic                    (                    )
     timesCrossing =  basic%floatRank1MetaPropertyGet(self%timesCrossingID)
+    if (size(timesCrossing) == 0) then
+       message=                                            "no lightcone crossing times found"                                                   //char(10)// &
+            & displayGreen()//"    HELP:"//displayReset()//" the `starFormationHistoryFixedAges` class is intended for use with lightcone output"
+       select type (geometryLightcone_ => self%geometryLightcone_)
+       class is (geometryLightconeNull)
+          message=message//","//char(10)//"          but you have no lightcone geometry configured."
+       class default
+          message=message//"."
+       end select
+       message=message//char(10)//"          Consider using a different star formation history class."
+       call Error_Report(message//{introspection:location})
+    end if
     if (.not.Values_Agree(basic%time(),timesCrossing(1),relTol=1.0d-6)) then
        write (label,'(e16.10)') basic%time         ( )
        message="time ("//label//") "
