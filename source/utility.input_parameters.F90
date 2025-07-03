@@ -583,7 +583,7 @@ contains
     !!}
     use            :: Display           , only : displayGreen                     , displayMessage  , displayMagenta  , displayReset  , &
          &                                       verbosityLevelSilent
-    use            :: File_Utilities    , only : File_Name_Temporary
+    use            :: File_Utilities    , only : File_Name_Temporary              , File_Remove
     use            :: FoX_dom           , only : getOwnerDocument                 , node            , setLiveNodeLists, getTextContent, &
          &                                       hasAttribute                     , getAttributeNode
     use            :: Error             , only : Error_Report
@@ -677,6 +677,7 @@ contains
        self%outputParametersCopied   =.false.
        self%outputParametersTemporary=.true.
        !$ call hdf5Access%unset()
+       call File_Remove(char(self%outputParametersContainer%name()))
     end if
     ! Get allowed parameter names.
     if (.not.allocated(allowedParameterNamesGlobal)) &
@@ -1025,7 +1026,6 @@ contains
     !!{
     Finalizer for the {\normalfont \ttfamily inputParameters} class.
     !!}
-    use :: File_Utilities    , only : File_Remove
     use :: FoX_dom           , only : destroy
     use :: HDF5_Access       , only : hdf5Access
     use :: ISO_Varying_String, only : char
@@ -1053,7 +1053,6 @@ contains
           call self%outputParametersContainer%close  ()
           call self%outputParameters         %destroy()
           call self%outputParametersContainer%destroy()
-          call File_Remove(char(fileNameTemporary))
        else
           ! Simply close our parameters group.
           call self%outputParameters%close  ()
@@ -1526,7 +1525,6 @@ contains
     !!{
     Open an output group for parameters in the given HDF5 object.
     !!}
-    use :: File_Utilities    , only : File_Remove
     use :: HDF5_Access       , only : hdf5Access
     use :: ISO_Varying_String, only : char
     implicit none
@@ -1541,7 +1539,6 @@ contains
        fileNameTemporary=self%outputParametersContainer%name()
        call self%outputParameters         %close()
        call self%outputParametersContainer%close()
-       call File_Remove(char(fileNameTemporary))
        self%outputParameters=outputGroup%openGroup('Parameters')
        self%outputParametersTemporary=.false.
     else
