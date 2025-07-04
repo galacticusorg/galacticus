@@ -6,10 +6,10 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "7c3698fb79ca1ee799ee0c1593cf3820d827916d",
-        "message": "Merge pull request #872 from galacticusorg/fixPruneLightcone\n\nCorrect pruning of lightcones to use the correct time intervals for each output\n",
-        "timestamp": "2025-07-02 15:47:51+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/7c3698fb79ca1ee799ee0c1593cf3820d827916d"
+        "id": "f8499939ca9a4f15772eaabc0dc955a98b2722d4",
+        "message": "Merge pull request #876 from galacticusorg/fixLargeParametersWrite\n\nForce the use of dense attribute storage for the `Parameters` group\n",
+        "timestamp": "2025-07-04 03:04:34+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/f8499939ca9a4f15772eaabc0dc955a98b2722d4"
     },
     "surfaceDensity": {
         "percentageBelow": 42.857142857142854,
