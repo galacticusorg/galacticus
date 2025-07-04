@@ -653,7 +653,7 @@ contains
     ! Set a pointer to HDF5 object to which to write parameters.
     if (present(outputParametersGroup)) then
        !$ call hdf5Access%  set()
-       self%outputParameters         =outputParametersGroup%openGroup('Parameters')
+       self%outputParameters         =outputParametersGroup%openGroup('Parameters',attributesCompactMaxiumum=0)
        self%outputParametersCopied   =.false.
        self%outputParametersTemporary=.false.
        !$ call hdf5Access%unset()
@@ -673,7 +673,7 @@ contains
             &                                                               )             &
             &                                            )                                &
             &                                      )
-       self%outputParameters         =self%outputParametersContainer%openGroup('Parameters')
+       self%outputParameters         =self%outputParametersContainer%openGroup('Parameters',attributesCompactMaxiumum=0)
        self%outputParametersCopied   =.false.
        self%outputParametersTemporary=.true.
        !$ call hdf5Access%unset()
@@ -1542,11 +1542,11 @@ contains
        call self%outputParameters         %close()
        call self%outputParametersContainer%close()
        call File_Remove(char(fileNameTemporary))
-       self%outputParameters=outputGroup%openGroup('Parameters')
+       self%outputParameters=outputGroup%openGroup('Parameters',attributesCompactMaxiumum=0)
        self%outputParametersTemporary=.false.
     else
        if (self%outputParameters%isOpen()) call self%outputParameters%close()
-       self%outputParameters      =outputGroup%openGroup('Parameters')
+       self%outputParameters      =outputGroup%openGroup('Parameters',attributesCompactMaxiumum=0)
     end if
     !$ call hdf5Access%unset()
     self%outputParametersCopied=.false.
