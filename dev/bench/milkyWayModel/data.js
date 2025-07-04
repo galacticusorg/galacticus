@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1751494998537,
+  "lastUpdate": 1751627317843,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "4d189fb7a539a452bfc96633a438f10492f58076",
-          "message": "Merge pull request #677 from cgannonucm/EmpiricalGalaxyUniverseMachine\n\nEmpirical Universe Machine Fits",
-          "timestamp": "2024-08-29T03:55:45Z",
-          "tree_id": "54df11a393ec5cb4435baef0d707635a91659115",
-          "url": "https://github.com/galacticusorg/galacticus/commit/4d189fb7a539a452bfc96633a438f10492f58076"
-        },
-        "date": 1724926304660,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 412.668,
-            "unit": "seconds",
-            "range": 0.305338500687412
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10676,6 +10646,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": "14.41410532449727",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f8499939ca9a4f15772eaabc0dc955a98b2722d4",
+          "message": "Merge pull request #876 from galacticusorg/fixLargeParametersWrite\n\nForce the use of dense attribute storage for the `Parameters` group",
+          "timestamp": "2025-07-04T03:04:34Z",
+          "tree_id": "c5997ef9dc3a1f1ebbb7b74989a5e68fa1d2889f",
+          "url": "https://github.com/galacticusorg/galacticus/commit/f8499939ca9a4f15772eaabc0dc955a98b2722d4"
+        },
+        "date": 1751627316786,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 95.1,
+            "unit": "seconds",
+            "range": 0.152787434039456
           }
         ]
       }
