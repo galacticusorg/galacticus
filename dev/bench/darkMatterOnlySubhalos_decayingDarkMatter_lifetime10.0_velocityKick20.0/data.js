@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1751495034304,
+  "lastUpdate": 1751627378576,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=10 Gyr; vₖ=20 km/s)": [
@@ -2367,6 +2367,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=10.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
             "value": "19.616577340642603",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f8499939ca9a4f15772eaabc0dc955a98b2722d4",
+          "message": "Merge pull request #876 from galacticusorg/fixLargeParametersWrite\n\nForce the use of dense attribute storage for the `Parameters` group",
+          "timestamp": "2025-07-04T03:04:34Z",
+          "tree_id": "c5997ef9dc3a1f1ebbb7b74989a5e68fa1d2889f",
+          "url": "https://github.com/galacticusorg/galacticus/commit/f8499939ca9a4f15772eaabc0dc955a98b2722d4"
+        },
+        "date": 1751627377607,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=10.0 Gyr; vₖ=20.0 km/s) - Likelihood - mass function",
+            "value": "23.035913639602636",
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=10.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
+            "value": "52.141021601755696",
             "unit": "-logℒ"
           }
         ]
