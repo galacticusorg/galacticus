@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1751494990397,
+  "lastUpdate": 1751627327275,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (Symphony)": [
@@ -346,6 +346,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (Symphony Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": "2.5571799105067887",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f8499939ca9a4f15772eaabc0dc955a98b2722d4",
+          "message": "Merge pull request #876 from galacticusorg/fixLargeParametersWrite\n\nForce the use of dense attribute storage for the `Parameters` group",
+          "timestamp": "2025-07-04T03:04:34Z",
+          "tree_id": "c5997ef9dc3a1f1ebbb7b74989a5e68fa1d2889f",
+          "url": "https://github.com/galacticusorg/galacticus/commit/f8499939ca9a4f15772eaabc0dc955a98b2722d4"
+        },
+        "date": 1751627326374,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (Symphony Milky Way) - Likelihood - subhaloMassFunction",
+            "value": "3.150483217277693",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": "2.0947728071074065",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": "2.6077489952306054",
             "unit": "-logℒ"
           }
         ]
