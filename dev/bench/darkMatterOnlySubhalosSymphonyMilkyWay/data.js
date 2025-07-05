@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1751627327275,
+  "lastUpdate": 1751687890011,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (Symphony)": [
@@ -385,6 +385,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (Symphony Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": "2.6077489952306054",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "748251f674757f56d9651b652931102c83599583",
+          "message": "Merge pull request #877 from galacticusorg/fixSHMCleanUp\n\nAvoid persistence of temporary parameter files on error",
+          "timestamp": "2025-07-04T21:25:08Z",
+          "tree_id": "bf40c452921f273008ab40d7f0dcf50917f64e8f",
+          "url": "https://github.com/galacticusorg/galacticus/commit/748251f674757f56d9651b652931102c83599583"
+        },
+        "date": 1751687889233,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (Symphony Milky Way) - Likelihood - subhaloMassFunction",
+            "value": "3.1688625263930588",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": "2.0429386376647596",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": "2.5561991109972704",
             "unit": "-logℒ"
           }
         ]
