@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1751627340600,
+  "lastUpdate": 1751687902085,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.005; γ=1.5)": [
@@ -7800,6 +7800,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/f8499939ca9a4f15772eaabc0dc955a98b2722d4"
         },
         "date": 1751627339985,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteBoundMass",
+            "value": "48.178341763109046",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "35.33237775519459",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteVelocityMaximum",
+            "value": "23.791744062057187",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "748251f674757f56d9651b652931102c83599583",
+          "message": "Merge pull request #877 from galacticusorg/fixSHMCleanUp\n\nAvoid persistence of temporary parameter files on error",
+          "timestamp": "2025-07-04T21:25:08Z",
+          "tree_id": "bf40c452921f273008ab40d7f0dcf50917f64e8f",
+          "url": "https://github.com/galacticusorg/galacticus/commit/748251f674757f56d9651b652931102c83599583"
+        },
+        "date": 1751687901299,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
