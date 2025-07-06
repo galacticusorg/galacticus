@@ -29,6 +29,10 @@
   <change type="remove" path="axionCAMBTmp"/>
 
   <!-- Use the soliton+NFW mass distribution for dark matter halo profiles. -->
+  <change type="append" path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius">
+    <darkMatterProfileDMO/>
+  </change>
+  <change type="replaceWith" path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileDMO" target="darkMatterProfileDMO/darkMatterProfileDMO"/>
   <change type="update" path="darkMatterProfileDMO/darkMatterProfileDMO" value="solitonNFW"/>
 
 </changes>

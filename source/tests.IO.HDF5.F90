@@ -31,7 +31,7 @@ program Tests_IO_HDF5
   use :: Unit_Tests        , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (hdf5Object     ), target                                 :: datasetObject                  , fileObject           , &
-       &                                                                       groupObject
+       &                                                                       groupObject                    , groupObject2
   integer                                                                   :: iPass                          , integerValue         , &
        &                                                                       integerValueReread             , i                    , &
        &                                                                       j                              , k
@@ -83,7 +83,7 @@ program Tests_IO_HDF5
   do iPass=1,2
 
      ! Open an HDF5 file.
-     call fileObject%openFile("testSuite/outputs/test.IO.HDF5.hdf5",overWrite=.true.,objectsOverwritable=.true.)
+     call fileObject%openFile("testSuite/outputs/test.IO.HDF5.hdf5",overWrite=.true.,objectsOverwritable=.true.,useLatestFormat=.true.)
 
      ! Open an HDF5 group.
      select case (iPass)
@@ -834,6 +834,22 @@ program Tests_IO_HDF5
         deallocate(datasetNames)
      end if
 
+     ! Write a very large (>4GB) dataset to test that chunking limits
+     ! the chunksize to less than the maximum allowed.
+     if (iPass == 2) then
+        if (allocated(doubleValueArray4dReread)) deallocate(doubleValueArray4dReread)
+        allocate(doubleValueArray4dReread(600,100,100,100))
+        call fileObject%writeDataset(doubleValueArray4dReread,'bigDataset','A dataset larger than 4GB.',chunkSize=1024_hsize_t)
+     end if
+
+     ! Write an attribute of length >64KB by forcing dense storage of
+     ! attributes in s group.
+     groupObject2=fileObject%openGroup("myGroup64k",comment="This is my group for 64k attributes.",objectsOverwritable=.true.,chunkSize=1024_hsize_t&
+             &,compressionLevel=9,attributesCompactMaxiumum=0)
+     varStringValue=repeat("rain day happy calm dog joy joy over bright falls rain lazy shin ",1025)
+     call groupObject2%writeAttribute(varStringValue,"varStringAttribute64k")
+     call groupObject2%close()
+
      ! Close the group.
      call groupObject%close()
 
@@ -855,7 +871,7 @@ program Tests_IO_HDF5
        call groupObject%close()
        ! Close the file.
        call fileObject%close()
-     end if
+    end if
 
      ! End the pass and destroy objects.
      call Unit_Tests_End_Group()
