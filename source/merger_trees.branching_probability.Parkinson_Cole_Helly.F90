@@ -755,7 +755,7 @@ contains
     ! Iterative over available bounds.
     parkinsonColeHellyProbabilityBound=0.0d0
     do iBound=1,2
-       ! Determine if CDM assumptions can be used. Do this only is these have been explicitly allowed, if this is our first
+       ! Determine if CDM assumptions can be used. Do this only if these have been explicitly allowed, if this is our first
        ! pass through the bounds evaluation, and if both αs are sufficiently large. (This last condition is required
        ! since we raise quantities to the power of 1/α which can cause problems for very small α.)
        usingCDMAssumptions= self%cdmAssumptions                       &
@@ -1066,6 +1066,8 @@ contains
     use :: Hypergeometric_Functions, only : Hypergeometric_2F1
     use :: Numerical_Constants_Math, only : Pi
     use :: Table_Labels            , only : extrapolationTypeAbort
+    use :: Display                 , only : displayGreen          , displayBlue, displayYellow, displayReset
+    use :: Error                   , only : Error_Report
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout)           :: self
     double precision                                                  , intent(in   )           :: mass                              , massResolution
@@ -1114,6 +1116,13 @@ contains
           ! Evaluate σ and α.
           call           self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(0.5d0*self%upperBoundHypergeometric%x(i),self%timeParent,halfMassSigma,halfMassAlpha)
           massSigma     =self%cosmologicalMassVariance_%rootVariance                      (      self%upperBoundHypergeometric%x(i),self%timeParent                            )
+          if (abs(halfMassAlpha) <= alphaMinimum)                                                                                                                                                                                                                      &
+               & call Error_Report(                                                                                                                                                                                                                                    &
+               &                   'CDM assumptions were requested, but seem to be violated: unexpected |α| = |dlogσ/dlogM| ≪ 1'//char(10)                                                                                                                                         // &
+               &                   displayGreen()//'HELP:'//displayReset()//' set <'//displayBlue()//'cdmAssumptions'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"false"'//displayReset()//'/> '                         // &
+               &                   'in class <'//displayBlue()//'mergerTreeBranchingProbability'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"parkinsonColeHelly"'//displayReset()//'/> to avoid making these assumptions'// &
+               &                   {introspection:location}                                                                                                                                                                                                            &
+               &                  )
           gammaEffective=self%gamma1-1.0d0/halfMassAlpha
           call self%upperBoundHypergeometric%populate(                                                                             &
                &                                      +sqrtTwoOverPi                                                               &
