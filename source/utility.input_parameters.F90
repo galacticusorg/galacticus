@@ -386,7 +386,7 @@ contains
     if (.not.File_Exists(File_Name_Expand(fileName))) call Error_Report("parameter file '"//trim(fileName)//"' does not exist"//{introspection:location})
     ! Open and parse the data file.
     !$omp critical (FoX_DOM_Access)
-    doc           => XML_Parse(File_Name_Expand(fileName),iostat=errorStatus,ex=exception,fileNameCurrent=fileNameFailed)
+    doc           => XML_Parse(char(File_Name_Expand(fileName)),iostat=errorStatus,ex=exception,fileNameCurrent=fileNameFailed)
     isException   =  inException(exception)
     exceptionCode =  getExceptionCode(exception)
     !$omp end critical (FoX_DOM_Access)
