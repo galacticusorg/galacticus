@@ -528,7 +528,7 @@ sub symphonyZoomInBuilder {
     $parameters->{'cosmologyParameters'}->{'OmegaBaryon'    }->{'value'} =  0.047;
     # List available simulations
     my @models;
-    find( (sub {my @path = split(/\//,$File::Find::dir);push(@models,$_ eq "tree_0_0_0.dat" ? {simulation => $path[-2], realization => $path[-1]}  : ())}), ($options{'simulationDataPath'}."/Symphony_ZoomIns") );
+    find( { wanted => (sub {my @path = split(/\//,$File::Find::dir);push(@models,$_ eq "tree_0_0_0.dat" ? {simulation => $path[-2], realization => $path[-1]}  : ())}), follow => 1, follow_skip => 2 }, ($options{'simulationDataPath'}."/Symphony_ZoomIns") );
     my $xml         = new XML::Simple();
     my $hostHaloIDs = $xml->XMLin("constraints/pipelines/darkMatter/symphonyZoomInHostHaloIDs.xml");
     foreach my $model ( @models ) {
@@ -567,11 +567,9 @@ sub symphonyZoomInBuilder {
 	# Clone parameters.
 	my $parameters_ = dclone($parameters);
 	# Set output file.
-	$parameters_->{'nbodyOperator'}->{'nbodyOperator'}->[6]->{'fileName'}->{'value'} = $outputFileName;
-	# Set the snapshots to select.
-	$parameters_->{'nbodyOperator'}->{'nbodyOperator'}->[3]->{'selectedValues'}->{'value'} = $snapshots;
+	$parameters_->{'nbodyOperator'}->{'nbodyOperator'}->[5]->{'fileName'}->{'value'} = $outputFileName;
 	# Set the hostedRootID to select.
-	$parameters_->{'nbodyOperator'}->{'nbodyOperator'}->[4]->{'selectedValues'}->{'value'} = $model->{'hostHaloID'};
+	$parameters_->{'nbodyOperator'}->{'nbodyOperator'}->[3]->{'selectedValues'}->{'value'} = $model->{'hostHaloID'};
 	# Add an operator to shift snapshot numbers. All Symphony simulations should have 235 snapshots. There are fewer
 	# snapshots in the Rockstar trees because Rockstar ignores snapshots with no halos and renumbers. So, here we want to
 	# adjust the snapshot numbers such that a=1 is always snapshot 235.
@@ -644,12 +642,18 @@ sub symphonyZoomInBuilder {
 	# Add an importer for each parent.
 	@{$massFunctionParameters->{'nbodyImporter'}->{'nbodyImporter'}} =
             map
-	{{
-    	    value      => "IRATE",
-    	    fileName   => {value => $simulation->{'path'}.$modelGroup."/".$_."/identifyNonFlyby_progenitors.hdf5"},
-    	    properties => {value => "massVirial expansionFactor hostedRootID snapshotID particleID descendantID"},
-    	    snapshot   => {value => "1"}
-    	    }} @{$modelRealizations{$modelGroup}};
+	{
+	    $_ eq "Halo004" || $_ eq "Halo113"
+		?
+		()
+		:
+	    {
+		value      => "IRATE",
+		fileName   => {value => $simulation->{'path'}.$modelGroup."/".$_."/identifyNonFlyby_progenitors.hdf5"},
+		properties => {value => "massVirial expansionFactor hostedRootID snapshotID particleID descendantID"},
+		snapshot   => {value => "1"}
+	    }
+	} @{$modelRealizations{$modelGroup}};
 	
 	# Determine minimum and maximum progenitor mass ratios for the mass function.
 	my $massParticle;
