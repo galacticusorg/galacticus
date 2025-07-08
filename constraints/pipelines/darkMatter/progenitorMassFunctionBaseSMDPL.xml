@@ -7,7 +7,6 @@
   
 
   <!-- Include parameters -->
-  <xi:include href="haloMassFunctionParameters.xml"	xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
   <xi:include href="simulation_SMDPL.xml"  		xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
   <xi:include href="cosmology_MDPL.xml"      		xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
   <xi:include href="progenitorMassFunctionParameters.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
@@ -20,13 +19,13 @@
   <!-- Distribution of merger tree masses to build -->
   <mergerTreeBuildMasses value="sampledDistributionUniform">
     <!-- Minimum is 300 times the mass resolution -->
-    <massTreeMinimum value="=[simulation::massParticle]*300.0"/>
+    <massTreeMinimum value="=[simulation/massParticle/resolutionX1]*300.0"/>
     <massTreeMaximum value="1.00e16"                          />
     <treesPerDecade  value="100"                            />
   </mergerTreeBuildMasses>
   <mergerTreeMassResolution value="fixed">
     <!-- 1/5th of 300 times the particle mass - such that our resolution is well below any mass scale that we care about -->
-    <massResolution value="=[simulation::massParticle]*300.0/5.0"/>
+    <massResolution value="=[simulation/massParticle/resolutionX1]*300.0/5.0"/>
   </mergerTreeMassResolution>
 
   <!-- Output options -->
@@ -52,12 +51,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="0"                                                                                        />
       <indexRedshift                value="0"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^11.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^11.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$11.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 11.50$; $z=0.51$; SMDPL halos"/>
@@ -68,12 +67,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="0"                                                                                        />
       <indexRedshift                value="1"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^11.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^11.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$11.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 11.50$; $z=1.00$; SMDPL halos"/>
@@ -84,12 +83,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="0"                                                                                        />
       <indexRedshift                value="2"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^11.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^11.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$11.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 11.50$; $z=2.02$; SMDPL halos"/>
@@ -100,12 +99,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="0"                                                                                        />
       <indexRedshift                value="3"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^11.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^11.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$11.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 11.50$; $z=3.95$; SMDPL halos"/>
@@ -116,12 +115,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="1"                                                                                        />
       <indexRedshift                value="0"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^11.5"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^11.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$11.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.00$; $z=0.51$; SMDPL halos"/>
@@ -132,12 +131,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="1"                                                                                        />
       <indexRedshift                value="1"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^11.5"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^11.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$11.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.00$; $z=1.00$; SMDPL halos"/>
@@ -148,12 +147,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="1"                                                                                        />
       <indexRedshift                value="2"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^11.5"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^11.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$11.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.00$; $z=2.02$; SMDPL halos"/>
@@ -164,12 +163,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="1"                                                                                        />
       <indexRedshift                value="3"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^11.5"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^11.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$11.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.00$; $z=3.95$; SMDPL halos"/>
@@ -180,12 +179,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="1"                                                                                        />
       <indexRedshift                value="4"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^11.5"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^11.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$11.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.00$; $z=7.85$; SMDPL halos"/>
@@ -196,12 +195,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="2"                                                                                        />
       <indexRedshift                value="0"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$12.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.50$; $z=0.51$; SMDPL halos"/>
@@ -212,12 +211,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="2"                                                                                        />
       <indexRedshift                value="1"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$12.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.50$; $z=1.00$; SMDPL halos"/>
@@ -228,12 +227,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="2"                                                                                        />
       <indexRedshift                value="2"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$12.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.50$; $z=2.02$; SMDPL halos"/>
@@ -244,12 +243,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="2"                                                                                        />
       <indexRedshift                value="3"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$12.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.50$; $z=3.95$; SMDPL halos"/>
@@ -260,12 +259,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="2"                                                                                        />
       <indexRedshift                value="4"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$12.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.50$; $z=7.85$; SMDPL halos"/>
@@ -276,12 +275,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="3"                                                                                        />
       <indexRedshift                value="0"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.5"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$12.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 13.00$; $z=0.51$; SMDPL halos"/>
@@ -292,12 +291,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="3"                                                                                        />
       <indexRedshift                value="1"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.5"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$12.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 13.00$; $z=1.00$; SMDPL halos"/>
@@ -308,12 +307,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="3"                                                                                        />
       <indexRedshift                value="2"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.5"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$12.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 13.00$; $z=2.02$; SMDPL halos"/>
@@ -324,12 +323,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="3"                                                                                        />
       <indexRedshift                value="3"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.5"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$12.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 13.00$; $z=3.95$; SMDPL halos"/>
@@ -340,12 +339,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="3"                                                                                        />
       <indexRedshift                value="4"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.5"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$12.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 13.00$; $z=7.85$; SMDPL halos"/>
@@ -356,12 +355,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="4"                                                                                        />
       <indexRedshift                value="0"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^13.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^13.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$13.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 13.50$; $z=0.51$; SMDPL halos"/>
@@ -372,12 +371,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="4"                                                                                        />
       <indexRedshift                value="1"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^13.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^13.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$13.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 13.50$; $z=1.00$; SMDPL halos"/>
@@ -388,12 +387,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="4"                                                                                        />
       <indexRedshift                value="2"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^13.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^13.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$13.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 13.50$; $z=2.02$; SMDPL halos"/>
@@ -404,12 +403,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="4"                                                                                        />
       <indexRedshift                value="3"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^13.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^13.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$13.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 13.50$; $z=3.95$; SMDPL halos"/>
@@ -420,12 +419,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="4"                                                                                        />
       <indexRedshift                value="4"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^13.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^13.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$13.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 13.50$; $z=7.85$; SMDPL halos"/>
@@ -436,12 +435,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="5"                                                                                        />
       <indexRedshift                value="0"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^13.5"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^13.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$13.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 14.00$; $z=0.51$; SMDPL halos"/>
@@ -452,12 +451,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="5"                                                                                        />
       <indexRedshift                value="1"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^13.5"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^13.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$13.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 14.00$; $z=1.00$; SMDPL halos"/>
@@ -468,12 +467,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="5"                                                                                        />
       <indexRedshift                value="2"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^13.5"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^13.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$13.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 14.00$; $z=2.02$; SMDPL halos"/>
@@ -484,12 +483,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="5"                                                                                        />
       <indexRedshift                value="3"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^13.5"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^13.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$13.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 14.00$; $z=3.95$; SMDPL halos"/>
@@ -500,12 +499,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="5"                                                                                        />
       <indexRedshift                value="4"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^13.5"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^13.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$13.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 14.00$; $z=7.85$; SMDPL halos"/>
@@ -516,12 +515,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="6"                                                                                        />
       <indexRedshift                value="0"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^14.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^14.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$14.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 14.50$; $z=0.51$; SMDPL halos"/>
@@ -532,12 +531,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="6"                                                                                        />
       <indexRedshift                value="1"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^14.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^14.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$14.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 14.50$; $z=1.00$; SMDPL halos"/>
@@ -548,12 +547,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="6"                                                                                        />
       <indexRedshift                value="2"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^14.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^14.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$14.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 14.50$; $z=2.02$; SMDPL halos"/>
@@ -564,12 +563,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="6"                                                                                        />
       <indexRedshift                value="3"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^14.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^14.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$14.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 14.50$; $z=3.95$; SMDPL halos"/>
@@ -580,12 +579,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="6"                                                                                        />
       <indexRedshift                value="4"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^14.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^14.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$14.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 14.50$; $z=7.85$; SMDPL halos"/>
@@ -596,12 +595,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="7"                                                                                        />
       <indexRedshift                value="0"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^14.5"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^14.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$14.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 15.00$; $z=0.51$; SMDPL halos"/>
@@ -612,12 +611,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="7"                                                                                        />
       <indexRedshift                value="1"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^14.5"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^14.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$14.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 15.00$; $z=1.00$; SMDPL halos"/>
@@ -628,12 +627,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="7"                                                                                        />
       <indexRedshift                value="2"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^14.5"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^14.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$14.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 15.00$; $z=2.02$; SMDPL halos"/>
@@ -644,12 +643,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="7"                                                                                        />
       <indexRedshift                value="3"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^14.5"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^14.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$14.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 15.00$; $z=3.95$; SMDPL halos"/>
@@ -660,12 +659,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="7"                                                                                        />
       <indexRedshift                value="4"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^14.5"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^14.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$14.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 15.00$; $z=7.85$; SMDPL halos"/>
@@ -676,12 +675,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="8"                                                                                        />
       <indexRedshift                value="0"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^15.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^15.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$15.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 15.50$; $z=0.51$; SMDPL halos"/>
@@ -692,12 +691,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="8"                                                                                        />
       <indexRedshift                value="1"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^15.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^15.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$15.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 15.50$; $z=1.00$; SMDPL halos"/>
@@ -708,12 +707,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="8"                                                                                        />
       <indexRedshift                value="2"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^15.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^15.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$15.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 15.50$; $z=2.02$; SMDPL halos"/>
@@ -724,12 +723,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="8"                                                                                        />
       <indexRedshift                value="3"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^15.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^15.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$15.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 15.50$; $z=3.95$; SMDPL halos"/>
@@ -740,12 +739,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="8"                                                                                        />
       <indexRedshift                value="4"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^15.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^15.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$15.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 15.50$; $z=7.85$; SMDPL halos"/>
@@ -754,7 +753,7 @@
     </outputAnalysis>    
   </outputAnalysis>
   <nbodyHaloMassError value="trenti2010">
-    <massParticle                value="=[simulation::massParticle]"/> <!-- Particle mass in SMDPL -->
+    <massParticle                value="=[simulation/massParticle/resolutionX1]"/> <!-- Particle mass in SMDPL -->
     <correlationNormalization    value="1.0"   />
     <correlationMassExponent     value="1.0"   />
     <correlationRedshiftExponent value="0.0"   />

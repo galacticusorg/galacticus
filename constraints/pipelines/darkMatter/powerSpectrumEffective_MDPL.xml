@@ -5,7 +5,7 @@
 
   <!-- Power spectrum options -->
   <powerSpectrumPrimordial value="cosmologicalCube">
-    <lengthCube value="=[simulation::lengthCube]"/>
+    <lengthCube value="=[simulation/lengthCube]"/>
     <wavenumberMinimumFactor value="0.5"/>
     <powerSpectrumPrimordial value="powerLaw">
       <!-- MDPL simulation power spectrum; https://www.cosmosim.org/cms/simulations/mdpl -->

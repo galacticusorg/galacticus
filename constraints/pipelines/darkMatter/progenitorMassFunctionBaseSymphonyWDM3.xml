@@ -6,9 +6,9 @@
   <version>0.9.4</version>
   
   <!-- Include parameters -->
-  <xi:include href="haloMassFunctionParameters.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
   <xi:include href="simulation_Symphony_MilkyWay.xml"        xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
   <xi:include href="cosmology_Symphony.xml"         xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="powerSpectrum_Symphony.xml"         xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
   <xi:include href="transferFunction_Symphony_WDM3.xml"     xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
   <xi:include href="progenitorMassFunctionParameters.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
   <xi:include href="progenitorMassFunctionResolution.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
@@ -21,12 +21,12 @@
   <mergerTreeBuildMasses value="replicate">
     <replicationCount value="100"/>
     <mergerTreeBuildMasses value="readHDF5">
-      <fileName value="%DATASTATICPATH%/darkMatter/haloMasses_Symphony_MilkyWay_WDM3.hdf5"/>
+      <fileName value="%DATASTATICPATH%/darkMatter/hostHaloMasses_COZMIC_MilkyWay_resolutionX1_WDM:3keV.hdf5"/>
     </mergerTreeBuildMasses>
   </mergerTreeBuildMasses>
   <mergerTreeMassResolution value="fixed">
     <!-- 1/5th of 300 times the particle mass - such that our resolution is well below any mass scale that we care about -->
-    <massResolution value="=[simulation::massParticle]*300.0/5.0"/>
+    <massResolution value="=[simulation/massParticle/resolutionX1]*300.0/5.0"/>
   </mergerTreeMassResolution>
 
   <!-- Output options -->
@@ -52,12 +52,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_Symphony_MilkyWay_WDM3.hdf5"/>
       <indexParent                  value="2"                                                                                        />
       <indexRedshift                value="0"                                                                                        />
-      <massRatioLikelihoodMinimum value="=([simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]*step([simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]-1e-5*1e12)+1e-5*1e12*step(-[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]+1e-5*1e12))/10.0^12.0"/>
+      <massRatioLikelihoodMinimum value="=([simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]*step([simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]-1e-5*1e12)+1e-5*1e12*step(-[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]+1e-5*1e12))/10.0^12.0"/>
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$12.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.50$; $z=0.51$; Symphony halos"/>
@@ -68,12 +68,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_Symphony_MilkyWay_WDM3.hdf5"/>
       <indexParent                  value="2"                                                                                        />
       <indexRedshift                value="1"                                                                                        />
-      <massRatioLikelihoodMinimum value="=([simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]*step([simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]-1e-5*1e12)+1e-5*1e12*step(-[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]+1e-5*1e12))/10.0^12.0"/>
+      <massRatioLikelihoodMinimum value="=([simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]*step([simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]-1e-5*1e12)+1e-5*1e12*step(-[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]+1e-5*1e12))/10.0^12.0"/>
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$12.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.50$; $z=1.00$; Symphony halos"/>
@@ -84,12 +84,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_Symphony_MilkyWay_WDM3.hdf5"/>
       <indexParent                  value="2"                                                                                        />
       <indexRedshift                value="2"                                                                                        />
-      <massRatioLikelihoodMinimum value="=([simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]*step([simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]-1e-5*1e12)+1e-5*1e12*step(-[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]+1e-5*1e12))/10.0^12.0"/>
+      <massRatioLikelihoodMinimum value="=([simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]*step([simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]-1e-5*1e12)+1e-5*1e12*step(-[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]+1e-5*1e12))/10.0^12.0"/>
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$12.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.50$; $z=2.03$; Symphony halos"/>
@@ -100,12 +100,12 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_Symphony_MilkyWay_WDM3.hdf5"/>
       <indexParent                  value="2"                                                                                        />
       <indexRedshift                value="3"                                                                                        />
-      <massRatioLikelihoodMinimum value="=([simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]*step([simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]-1e-5*1e12)+1e-5*1e12*step(-[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]+1e-5*1e12))/10.0^12.0"/>
+      <massRatioLikelihoodMinimum value="=([simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]*step([simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]-1e-5*1e12)+1e-5*1e12*step(-[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]+1e-5*1e12))/10.0^12.0"/>
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
       <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters::rootVarianceTargetFractional]" 			     />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]" 			     />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
       <comment                      value="$12.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.50$; $z=3.98$; Symphony halos"/>
@@ -114,7 +114,7 @@
     </outputAnalysis>    
   </outputAnalysis>
   <nbodyHaloMassError value="trenti2010">
-    <massParticle                value="=[simulation::massParticle]"/> <!-- Particle mass in Symphony -->
+    <massParticle                value="=[simulation/massParticle/resolutionX1]"/> <!-- Particle mass in Symphony -->
     <correlationNormalization    value="1.0"   />
     <correlationMassExponent     value="1.0"   />
     <correlationRedshiftExponent value="0.0"   />

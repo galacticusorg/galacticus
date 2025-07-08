@@ -6,10 +6,12 @@
   <version>0.9.4</version>
   
   <!-- Include parameters -->
-  <xi:include href="haloMassFunctionParameters.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
   <xi:include href="simulation_Symphony_MilkyWay_hires.xml"        xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
   <xi:include href="cosmology_Symphony.xml"         xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="powerSpectrum_Symphony.xml"         xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
   <xi:include href="transferFunction_Symphony_fdm_69.4e-22eV.xml"     xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="progenitorMassFunctionParameters.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="progenitorMassFunctionResolution.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
   <xi:include href="mergerTreeEvolution.xml"        xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
 
   <!-- Task control -->
@@ -19,12 +21,12 @@
   <mergerTreeBuildMasses value="replicate">
     <replicationCount value="100"/>
     <mergerTreeBuildMasses value="readHDF5">
-      <fileName value="%DATASTATICPATH%/darkMatter/haloMasses_Symphony_fdm_69.4e-22eV_hires.hdf5"/>
+      <fileName value="%DATASTATICPATH%/darkMatter/hostHaloMasses_COZMIC_MilkyWay_resolutionX8_FDM:69.4e-22eV.hdf5"/>
     </mergerTreeBuildMasses>
   </mergerTreeBuildMasses>
   <mergerTreeMassResolution value="fixed">
     <!-- 1/5th of 300 times the particle mass - such that our resolution is well below any mass scale that we care about -->
-    <massResolution value="=[simulation::massParticle]*300.0/5.0"/>
+    <massResolution value="=[simulation/massParticle/resolutionX8]*300.0/5.0"/>
   </mergerTreeMassResolution>
 
   <!-- Output options -->
@@ -49,7 +51,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_Symphony_fdm_69.4e-22eV_hires.hdf5"/>
       <indexParent                  value="2"                                                                                        />
       <indexRedshift                value="0"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX8]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -65,7 +67,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_Symphony_fdm_69.4e-22eV_hires.hdf5"/>
       <indexParent                  value="2"                                                                                        />
       <indexRedshift                value="1"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX8]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -81,7 +83,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_Symphony_fdm_69.4e-22eV_hires.hdf5"/>
       <indexParent                  value="2"                                                                                        />
       <indexRedshift                value="2"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX8]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -97,7 +99,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_Symphony_fdm_69.4e-22eV_hires.hdf5"/>
       <indexParent                  value="2"                                                                                        />
       <indexRedshift                value="3"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX8]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -113,7 +115,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_fdm_69.4e-22eV_hires.hdf5"/>
       <indexParent                  value="2"                                                                                        />
       <indexRedshift                value="0"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX8]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -129,7 +131,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_fdm_69.4e-22eV_hires.hdf5"/>
       <indexParent                  value="2"                                                                                        />
       <indexRedshift                value="1"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX8]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -145,7 +147,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_fdm_69.4e-22eV_hires.hdf5"/>
       <indexParent                  value="2"                                                                                        />
       <indexRedshift                value="2"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX8]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -161,7 +163,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_fdm_69.4e-22eV_hires.hdf5"/>
       <indexParent                  value="2"                                                                                        />
       <indexRedshift                value="3"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX8]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -177,7 +179,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_fdm_69.4e-22eV_hires.hdf5"/>
       <indexParent                  value="3"                                                                                        />
       <indexRedshift                value="0"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX8]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -193,7 +195,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_fdm_69.4e-22eV_hires.hdf5"/>
       <indexParent                  value="3"                                                                                        />
       <indexRedshift                value="1"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX8]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -209,7 +211,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_fdm_69.4e-22eV_hires.hdf5"/>
       <indexParent                  value="3"                                                                                        />
       <indexRedshift                value="2"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX8]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -225,7 +227,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_fdm_69.4e-22eV_hires.hdf5"/>
       <indexParent                  value="3"                                                                                        />
       <indexRedshift                value="3"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX8]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -241,7 +243,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_fdm_69.4e-22eV_hires.hdf5"/>
       <indexParent                  value="4"                                                                                        />
       <indexRedshift                value="0"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX8]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -257,7 +259,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_fdm_69.4e-22eV_hires.hdf5"/>
       <indexParent                  value="4"                                                                                        />
       <indexRedshift                value="1"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX8]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -273,7 +275,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_fdm_69.4e-22eV_hires.hdf5"/>
       <indexParent                  value="4"                                                                                        />
       <indexRedshift                value="2"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX8]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -289,7 +291,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_fdm_69.4e-22eV_hires.hdf5"/>
       <indexParent                  value="4"                                                                                        />
       <indexRedshift                value="3"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX8]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -305,7 +307,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_fdm_69.4e-22eV_hires.hdf5"/>
       <indexParent                  value="5"                                                                                        />
       <indexRedshift                value="0"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX8]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -321,7 +323,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_fdm_69.4e-22eV_hires.hdf5"/>
       <indexParent                  value="5"                                                                                        />
       <indexRedshift                value="1"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX8]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -337,7 +339,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_fdm_69.4e-22eV_hires.hdf5"/>
       <indexParent                  value="5"                                                                                        />
       <indexRedshift                value="2"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX8]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -353,7 +355,7 @@
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_fdm_69.4e-22eV_hires.hdf5"/>
       <indexParent                  value="5"                                                                                        />
       <indexRedshift                value="3"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation::massParticle]*[resolution::progenitorHaloParticleCountMinimum]/10.0^12.0"   />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX8]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
       <covarianceTargetOnly         value="true"                                                                                     />
@@ -367,7 +369,7 @@
     </outputAnalysis> -->    
   </outputAnalysis>
   <nbodyHaloMassError value="trenti2010">
-    <massParticle                value="=[simulation::massParticle]"/> <!-- Particle mass in BigMDPL -->
+    <massParticle                value="=[simulation/massParticle/resolutionX8]"/> <!-- Particle mass in BigMDPL -->
     <correlationNormalization    value="1.0"   />
     <correlationMassExponent     value="1.0"   />
     <correlationRedshiftExponent value="0.0"   />
