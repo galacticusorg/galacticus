@@ -670,6 +670,18 @@ The name and e-mail address in the {\normalfont \ttfamily contact} section will 
 
 When running \glc\ on a compute cluster it is often advantageous to have output written to a local scratch disk during run time and only moved to networked storage after the run is complete. (Otherwise, \glc\ will perform many small writes to networked storage which can result in extremely slow run times.) To do this, simply set the parameter {\normalfont \ttfamily [galacticusOutputScratchFileName]} to the full path of a file to write to on local scratch space. During the run, data will be written to this file. After the run is finished, \glc\ will move this file to its permanent location as specified by the parameter {\normalfont \ttfamily [galacticusOutputFileName]}.
 
+\section{Error Handling}
+
+If something goes wrong and \glc\ fails, it will attempt to provide an error report, including a backtrace of where in the code the error happened, and will list any previously suppressed warning messages which may have occurred.
+
+\subsection{Backtraces}
+
+You can also request a backtrace from the code at any time by sending signal {\normalfont \ttfamily SIGUSR1} to a running \glc\ process. To do use, issue the command:
+\begin{verbatim}
+kill -SIGUSR1 <pid>
+\end{verbatim}
+from the command line, where {\normalfont \ttfamily \textless pid\textgreater} is the process ID of the running \glc\ process.
+
 \section{Restarting A Crashed Run}\label{sec:Restarting}\hyperdef{sec}{Restarting}{}
 
 If \glc\ crashes, it can be useful to restart the calculation from just prior to the crash to speed the debugging process. \glc\ has functionality to store and retrieve the internal state of any modules and to recover this to permit such restarting. Currently, this is implemented with the {\normalfont \ttfamily build} and {\normalfont \ttfamily read} methods of merger tree construction, such that the internal state is stored prior to commencing the building or reading of each tree, thereby allowing a calculation to be restarted with the tree that crashed. More general store/retrieve behavior is planned for future releases.

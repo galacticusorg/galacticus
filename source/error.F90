@@ -267,6 +267,7 @@ contains
     call Signal( 4,Signal_Handler_SIGILL )
     call Signal( 7,Signal_Handler_SIGBUS )
     call Signal( 8,Signal_Handler_SIGFPE )
+    call Signal(10,Signal_Handler_SIGUSR1)
     call Signal(11,Signal_Handler_SIGSEGV)
     call Signal(15,Signal_Handler_SIGINT )
     call Signal(24,Signal_Handler_SIGXCPU)
@@ -588,6 +589,47 @@ contains
     call Exit(errorStatusXCPU)
     return
   end subroutine Signal_Handler_SIGXCPU
+
+  subroutine Signal_Handler_SIGUSR1()
+    !!{
+    Handle {\normalfont \ttfamily SIGUSR1} signals, by outputting a backtrace.
+    !!}
+    use, intrinsic :: ISO_Fortran_Env, only : error_unit
+    use            :: Display        , only : displayBold  , displayMagenta, displayReset
+    use            :: System_Output  , only : stdOutIsATTY
+#ifdef USEMPI
+    use            :: MPI_F08        , only : MPI_Comm_Rank, MPI_Comm_World
+#endif
+    implicit none
+    integer            :: mpiRank , error
+    character(len=128) :: hostName
+
+    if (stdOutIsATTY()) then
+#ifdef USEMPI
+       call MPI_Comm_Rank(MPI_Comm_World,mpiRank,error)
+       call hostnm(hostName)
+       write (error_unit,*) displayMagenta()//displayBold()//'backtrace requested (rank ',mpiRank,'; PID ',getPID(),'; host ',trim(hostName),'...'//displayReset()
+#else
+       write (error_unit,*) displayMagenta()//displayBold()//'backtrace requested (PID ',getPID(),')...'//displayReset()
+#endif
+    else
+#ifdef USEMPI
+       call MPI_Comm_Rank(MPI_Comm_World,mpiRank,error)
+       call hostnm(hostName)
+       write (error_unit,*)                                  'backtrace requested (rank ',mpiRank,'; PID ',getPID(),'; host ',trim(hostName),'...'
+#else
+       write (error_unit,*)                                  'backtrace requested (PID ',getPID(),')...'
+#endif
+    end if
+    call backtrace()
+    if (stdOutIsATTY()) then
+       write (error_unit,*) displayMagenta()//displayBold()//'...continuing'//displayReset()
+    else
+       write (error_unit,*)                                  '...continuing'
+    end if
+    call flush(error_unit)
+    return
+  end subroutine Signal_Handler_SIGUSR1
 
   subroutine errorHandlerGSL(reason,file,line,errorNumber) bind(c)
     !!{
