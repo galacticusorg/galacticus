@@ -7004,9 +7004,9 @@ attributeValue=trim(attributeValue)
     Open and write a long integer 4-D array dataset in {\normalfont \ttfamily self}.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5P_DEFAULT_F     , H5S_SELECT_SET_F           , H5T_NATIVE_INTEGER_8 , HID_T     , &
-          &                                      HSIZE_T           , h5dget_space_f             , h5dset_extent_f      , h5sclose_f, &
-          &                                      h5screate_simple_f, h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, hsize_t
+    use            :: HDF5              , only : H5P_DEFAULT_F     , H5S_SELECT_SET_F           , h5sselect_hyperslab_f , HID_T     , &
+          &                                      HSIZE_T           , h5dget_space_f             , h5dset_extent_f       , h5sclose_f, &
+          &                                      h5screate_simple_f, h5sget_simple_extent_dims_f, hsize_t
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)     , operator(//)               , trim
     implicit none
@@ -7147,7 +7147,7 @@ attributeValue=trim(attributeValue)
     allocate(datasetValueContiguous,mold=datasetValue)
     datasetValueContiguous=datasetValue
     dataBuffer=c_loc(datasetValueContiguous)
-    errorCode=h5dwrite(datasetObject%objectID,H5T_NATIVE_INTEGER_8,newDataspaceID,dataspaceID,H5P_DEFAULT_F,dataBuffer)
+    errorCode=h5dwrite(datasetObject%objectID,H5T_INTEGER8,newDataspaceID,dataspaceID,H5P_DEFAULT_F,dataBuffer)
     if (errorCode /= 0) then
        message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
        call Error_Report(message//{introspection:location})
