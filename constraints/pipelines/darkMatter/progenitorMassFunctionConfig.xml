@@ -25,6 +25,8 @@
       <changeParametersFileNames value="%EXECPATH%/constraints/pipeline/darkMatter/powerSpectrumWindowFunction_topHat.xml"/>
       <randomize                 value="false"                                                                            />
       <evolveForestsVerbosity    value="silent"                                                                           />
+      <reportFileName            value="true"                                                                             />
+      <reportState               value="true"                                                                             />
     </posteriorSampleLikelihood>
 
     <!-- BigMDPL -->
@@ -35,6 +37,8 @@
       <changeParametersFileNames value="%EXECPATH%/constraints/pipeline/darkMatter/powerSpectrumWindowFunction_topHat.xml"/>
       <randomize                 value="false"                                                                            />
       <evolveForestsVerbosity    value="silent"                                                                           />
+      <reportFileName            value="true"                                                                             />
+      <reportState               value="true"                                                                             />
     </posteriorSampleLikelihood>
 
     <!-- MDPL2 -->
@@ -45,6 +49,8 @@
       <changeParametersFileNames value="%EXECPATH%/constraints/pipeline/darkMatter/powerSpectrumWindowFunction_topHat.xml"/>
       <randomize                 value="false"                                                                            />
       <evolveForestsVerbosity    value="silent"                                                                           />
+      <reportFileName            value="true"                                                                             />
+      <reportState               value="true"                                                                             />
     </posteriorSampleLikelihood>
 
     <!-- SMDPL -->
@@ -55,6 +61,8 @@
       <changeParametersFileNames value="%EXECPATH%/constraints/pipeline/darkMatter/powerSpectrumWindowFunction_topHat.xml"/>
       <randomize                 value="false"                                                                            />
       <evolveForestsVerbosity    value="silent"                                                                           />
+      <reportFileName            value="true"                                                                             />
+      <reportState               value="true"                                                                             />
     </posteriorSampleLikelihood>
 
     <!-- VSMDPL -->
@@ -65,6 +73,8 @@
       <changeParametersFileNames value="%EXECPATH%/constraints/pipeline/darkMatter/powerSpectrumWindowFunction_topHat.xml"/>
       <randomize                 value="false"                                                                            />
       <evolveForestsVerbosity    value="silent"                                                                           />
+      <reportFileName            value="true"                                                                             />
+      <reportState               value="true"                                                                             />
     </posteriorSampleLikelihood>
 
     <!-- Symphony Milky Way -->
@@ -75,6 +85,8 @@
       <changeParametersFileNames value="%EXECPATH%/constraints/pipeline/darkMatter/powerSpectrumWindowFunction_topHat.xml"         />
       <randomize                 value="false"                                                                                     />
       <evolveForestsVerbosity    value="silent"                                                                                    />
+      <reportFileName            value="true"                                                                                      />
+      <reportState               value="true"                                                                                      />
     </posteriorSampleLikelihood>
  
     <!-- Symphony WDM3 -->
@@ -85,6 +97,8 @@
       <changeParametersFileNames value="%EXECPATH%/constraints/pipeline/darkMatter/powerSpectrumWindowFunction_sharpK.xml"     />
       <randomize                 value="false"                                                                                 />
       <evolveForestsVerbosity    value="silent"                                                                                />
+      <reportFileName            value="true"                                                                                  />
+      <reportState               value="true"                                                                                  />
     </posteriorSampleLikelihood>
 
 
@@ -96,6 +110,8 @@
       <changeParametersFileNames value="%EXECPATH%/constraints/pipeline/darkMatter/powerSpectrumWindowFunction_sharpK.xml"                    />
       <randomize                 value="false"                                                                                                />
       <evolveForestsVerbosity    value="silent"                                                                                               />
+      <reportFileName            value="true"                                                                                                 />
+      <reportState               value="true"                                                                                                 />
     </posteriorSampleLikelihood>
 
   <!-- Symphony IDM1e-2GeV_halfmode -->
@@ -106,6 +122,8 @@
       <changeParametersFileNames value="%EXECPATH%/constraints/pipeline/darkMatter/powerSpectrumWindowFunction_sharpK.xml"                    />
       <randomize                 value="false"                                                                                                />
       <evolveForestsVerbosity    value="silent"                                                                                               />
+      <reportFileName            value="true"                                                                                                 />
+      <reportState               value="true"                                                                                                 />
     </posteriorSampleLikelihood>
 
   <!-- Symphony IDM1GeV_halfmode -->
@@ -116,16 +134,20 @@
       <changeParametersFileNames value="%EXECPATH%/constraints/pipeline/darkMatter/powerSpectrumWindowFunction_sharpK.xml"                 />
       <randomize                 value="false"                                                                                             />
       <evolveForestsVerbosity    value="silent"                                                                                            />
+      <reportFileName            value="true"                                                                                              />
+      <reportState               value="true"                                                                                              />
     </posteriorSampleLikelihood>
 
   <!-- Symphony IDM1e-4GeV_envelope -->
-    <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3 progenitorMassFunctionParameters/rootVarianceTargetFractional"/>
+    <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3 progenitorMassFunctionParameters/rootVarian-ceTargetFractional"/>
     <parameterInactiveMap value="" ignoreWarnings="true"                                                                                                                                                                                           />
     <posteriorSampleLikelihood value="galaxyPopulation">
       <baseParametersFileName    value="%EXECPATH%/constraints/pipelines/darkMatter/progenitorMassFunctionBaseSymphonyIDM1e-4GeV_envelope.xml"/>
       <changeParametersFileNames value="%EXECPATH%/constraints/pipeline/darkMatter/powerSpectrumWindowFunction_sharpK.xml"                    />
       <randomize                 value="false"                                                                                                />
       <evolveForestsVerbosity    value="silent"                                                                                               />
+      <reportFileName            value="true"                                                                                                 />
+      <reportState               value="true"                                                                                                 />
     </posteriorSampleLikelihood>
 
   <!-- Symphony IDM1e-2GeV_envelope -->
@@ -136,6 +158,8 @@
       <changeParametersFileNames value="%EXECPATH%/constraints/pipeline/darkMatter/powerSpectrumWindowFunction_sharpK.xml"                    />
       <randomize                 value="false"                                                                                                />
       <evolveForestsVerbosity    value="silent"                                                                                               />
+      <reportFileName            value="true"                                                                                                 />
+      <reportState               value="true"                                                                                                 />
     </posteriorSampleLikelihood>
 
   <!-- Symphony IDM1GeV_envelope -->
@@ -146,6 +170,8 @@
       <changeParametersFileNames value="%EXECPATH%/constraints/pipeline/darkMatter/powerSpectrumWindowFunction_sharpK.xml"                 />
       <randomize                 value="false"                                                                                             />
       <evolveForestsVerbosity    value="silent"                                                                                            />
+      <reportFileName            value="true"                                                                                              />
+      <reportState               value="true"                                                                                              />
     </posteriorSampleLikelihood>
 
   <!-- Symphony fdm_490e-22eV -->
@@ -156,6 +182,8 @@
       <changeParametersFileNames value="%EXECPATH%/constraints/pipeline/darkMatter/powerSpectrumWindowFunction_sharpK.xml"              />
       <randomize                 value="false"                                                                                          />
       <evolveForestsVerbosity    value="silent"                                                                                         />
+      <reportFileName            value="true"                                                                                           />
+      <reportState               value="true"                                                                                           />
     </posteriorSampleLikelihood>
 
   <!-- Symphony fdm_25.9e-22eV -->
@@ -166,6 +194,8 @@
       <changeParametersFileNames value="%EXECPATH%/constraints/pipeline/darkMatter/powerSpectrumWindowFunction_sharpK.xml"               />
       <randomize                 value="false"                                                                                           />
       <evolveForestsVerbosity    value="silent"                                                                                          />
+      <reportFileName            value="true"                                                                                            />
+      <reportState               value="true"                                                                                            />
     </posteriorSampleLikelihood>
 
   <!-- Symphony fdm_185e-22eV -->
@@ -176,6 +206,8 @@
       <changeParametersFileNames value="%EXECPATH%/constraints/pipeline/darkMatter/powerSpectrumWindowFunction_sharpK.xml"              />
       <randomize                 value="false"                                                                                          />
       <evolveForestsVerbosity    value="silent"                                                                                         />
+      <reportFileName            value="true"                                                                                           />
+      <reportState               value="true"                                                                                           />
     </posteriorSampleLikelihood>
 
   <!-- Symphony fdm_69.4e-22eV -->
@@ -186,6 +218,8 @@
       <changeParametersFileNames value="%EXECPATH%/constraints/pipeline/darkMatter/powerSpectrumWindowFunction_sharpK.xml"               />
       <randomize                 value="false"                                                                                           />
       <evolveForestsVerbosity    value="silent"                                                                                          />
+      <reportFileName            value="true"                                                                                            />
+      <reportState               value="true"                                                                                            />
     </posteriorSampleLikelihood>
 
   <!-- Symphony fdm_151e-22eV -->
@@ -196,6 +230,8 @@
       <changeParametersFileNames value="%EXECPATH%/constraints/pipeline/darkMatter/powerSpectrumWindowFunction_sharpK.xml"              />
       <randomize                 value="false"                                                                                          />
       <evolveForestsVerbosity    value="silent"                                                                                         />
+      <reportFileName            value="true"                                                                                           />
+      <reportState               value="true"                                                                                           />
     </posteriorSampleLikelihood>
 
   <!-- Symphony fdm_113e-22eV -->
@@ -206,6 +242,8 @@
       <changeParametersFileNames value="%EXECPATH%/constraints/pipeline/darkMatter/powerSpectrumWindowFunction_sharpK.xml"              />
       <randomize                 value="false"                                                                                          />
       <evolveForestsVerbosity    value="silent"                                                                                         />
+      <reportFileName            value="true"                                                                                           />
+      <reportState               value="true"                                                                                           />
     </posteriorSampleLikelihood>
 
   <!-- Symphony WDM10 -->
@@ -216,6 +254,8 @@
       <changeParametersFileNames value="%EXECPATH%/constraints/pipeline/darkMatter/powerSpectrumWindowFunction_sharpK.xml"      />
       <randomize                 value="false"                                                                                  />
       <evolveForestsVerbosity    value="silent"                                                                                 />
+      <reportFileName            value="true"                                                                                   />
+      <reportState               value="true"                                                                                   />
     </posteriorSampleLikelihood>
 
   <!-- Symphony WDM6.5 -->
@@ -226,6 +266,8 @@
       <changeParametersFileNames value="%EXECPATH%/constraints/pipeline/darkMatter/powerSpectrumWindowFunction_sharpK.xml"       />
       <randomize                 value="false"                                                                                   />
       <evolveForestsVerbosity    value="silent"                                                                                  />
+      <reportFileName            value="true"                                                                                    />
+      <reportState               value="true"                                                                                    />
     </posteriorSampleLikelihood>
 
   <!-- Symphony WDM6 -->
@@ -236,6 +278,8 @@
       <changeParametersFileNames value="%EXECPATH%/constraints/pipeline/darkMatter/powerSpectrumWindowFunction_sharpK.xml"     />
       <randomize                 value="false"                                                                                 />
       <evolveForestsVerbosity    value="silent"                                                                                />
+      <reportFileName            value="true"                                                                                  />
+      <reportState               value="true"                                                                                  />
     </posteriorSampleLikelihood>
 
   <!-- Symphony WDM5 -->
@@ -246,6 +290,8 @@
       <changeParametersFileNames value="%EXECPATH%/constraints/pipeline/darkMatter/powerSpectrumWindowFunction_sharpK.xml"     />
       <randomize                 value="false"                                                                                 />
       <evolveForestsVerbosity    value="silent"                                                                                />
+      <reportFileName            value="true"                                                                                  />
+      <reportState               value="true"                                                                                  />
     </posteriorSampleLikelihood>
 
   <!-- Symphony WDM4 -->
@@ -256,6 +302,8 @@
       <changeParametersFileNames value="%EXECPATH%/constraints/pipeline/darkMatter/powerSpectrumWindowFunction_sharpK.xml"     />
       <randomize                 value="false"                                                                                 />
       <evolveForestsVerbosity    value="silent"                                                                                />
+      <reportFileName            value="true"                                                                                  />
+      <reportState               value="true"                                                                                  />
     </posteriorSampleLikelihood>
 
   </posteriorSampleLikelihood>
