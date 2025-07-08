@@ -140,7 +140,7 @@ contains
     </inputParameter>
     <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbability_" source="parameters"/>
     <conditionalCall>
-      <call>self=mergerTreeBuildControllerSubsample(mergerTreeBranchingProbability_,subsamplingRateAtThreshold,exponent,factorMassGrowthConsolidate,destroySubs{conditions})</call>
+      <call>self=mergerTreeBuildControllerSubsample(mergerTreeBranchingProbability_,subsamplingRateAtThreshold,exponent,factorMassGrowthConsolidate,enumerationDestroyStubsEncode(destroyStubs,includesPrefix=.false.){conditions})</call>
       <argument name="massThreshold"         value="massThreshold"         parameterPresent="parameters"/>
       <argument name="fractionMassThreshold" value="fractionMassThreshold" parameterPresent="parameters"/>
     </conditionalCall>
@@ -160,8 +160,8 @@ contains
     class           (mergerTreeBranchingProbabilityClass), intent(in   ), target   :: mergerTreeBranchingProbability_
     double precision                                     , intent(in   )           :: factorMassGrowthConsolidate    , subsamplingRateAtThreshold , &
          &                                                                            exponent                       , 
-    double precision                                     , intent(in   ), optional :: massThreshold                  , fractionMassThreshold
     type            (enumerationDestroyStubsType        ), intent(in   )           :: destroyStubs
+    double precision                                     , intent(in   ), optional :: massThreshold                  , fractionMassThreshold
     !![
     <constructorAssign variables="massThreshold, fractionMassThreshold, subsamplingRateAtThreshold, exponent, factorMassGrowthConsolidate, destroyStubs, *mergerTreeBranchingProbability_"/>
     !!]
