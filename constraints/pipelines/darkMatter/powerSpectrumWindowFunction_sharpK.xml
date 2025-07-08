@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Changes file to switch to using a sharp-k window function for the cosmological mass variance -->
+<changes>
+  <change type="replace" path="powerSpectrumWindowFunction">
+    <powerSpectrumWindowFunction value="sharpKSpace">
+      <normalization value="2.5" />
+    </powerSpectrumWindowFunction>    
+  </change>
+</changes>
