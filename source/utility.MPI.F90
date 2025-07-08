@@ -104,14 +104,16 @@ module MPI_Utilities
      generic   :: median           => mpiMedianArray
      procedure ::                     mpiSumScalarInt            , mpiSumArrayInt
      procedure ::                     mpiSumScalarSizeT          , mpiSumArraySizeT       , &
-          &                           mpiSumArrayTwoSizeT        , mpiSumArrayThreeSizeT
+          &                           mpiSumArrayTwoSizeT        , mpiSumArrayThreeSizeT  , &
+          &                           mpiSumArrayFourSizeT
      procedure ::                     mpiSumScalarDouble         , mpiSumArrayDouble      , &
           &                           mpiSumArrayTwoDouble       , mpiSumArrayThreeDouble
      generic   :: sum              => mpiSumScalarInt            , mpiSumArrayInt         , &
           &                           mpiSumScalarDouble         , mpiSumArrayDouble      , &
           &                           mpiSumArrayTwoDouble       , mpiSumArrayThreeDouble , &
           &                           mpiSumScalarSizeT          , mpiSumArraySizeT       , &
-          &                           mpiSumArrayTwoSizeT        , mpiSumArrayThreeSizeT
+          &                           mpiSumArrayTwoSizeT        , mpiSumArrayThreeSizeT  , &
+          &                           mpiSumArrayFourSizeT
      procedure ::                     mpiAnyLogicalScalar
      generic   :: any              => mpiAnyLogicalScalar
      procedure ::                     mpiAllLogicalScalar
@@ -1114,6 +1116,42 @@ contains
     return
   end function mpiSumArrayThreeSizeT
   
+  function mpiSumArrayFourSizeT(self,array,mask)
+    !!{
+    Sum a rank-4 integer array over all processes, returning it to all processes.
+    !!}
+    use :: Error  , only : Error_Report
+#ifdef USEMPI
+    use :: MPI_F08, only : MPI_AllReduce, MPI_Integer8, MPI_Sum
+#endif
+    implicit none
+    class  (mpiObject), intent(in   )                                                                                               :: self
+    integer(c_size_t ), intent(in   ), dimension( :               , :               , :               , :               )           :: array
+    logical           , intent(in   ), dimension(0:                                                                     ), optional :: mask
+    integer(c_size_t )               , dimension(size(array,dim=1),size(array,dim=2),size(array,dim=3),size(array,dim=4))           :: mpiSumArrayFourSizeT
+#ifdef USEMPI
+    integer(c_size_t )               , dimension(size(array,dim=1),size(array,dim=2),size(array,dim=3),size(array,dim=4))           :: maskedArray
+    integer                                                                                                                         :: iError               , activeCount
+#endif
+
+#ifdef USEMPI
+    ! Sum the array over all processes.
+    maskedArray=array
+    activeCount=self%count()
+    if (present(mask)) then
+       if (.not.mask(self%rank())) maskedArray=0_c_size_t
+       activeCount=count(mask)
+    end if
+    call MPI_AllReduce(maskedArray,mpiSumArrayFourSizeT,size(array),MPI_Integer8,MPI_Sum,mpiSelf%communicator,iError)
+    if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
+#else
+    !$GLC attributes unused :: self, array, mask
+    mpiSumArrayFourSizeT=0_c_size_t
+    call Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end function mpiSumArrayFourSizeT
+
   integer function mpiSumScalarInt(self,scalar,mask)
     !!{
     Sum an integer scalar over all processes, returning it to all processes.
