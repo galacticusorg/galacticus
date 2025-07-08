@@ -88,7 +88,19 @@
       <reportFileName            value="true"                                                                                      />
       <reportState               value="true"                                                                                      />
     </posteriorSampleLikelihood>
- 
+
+    <!-- Symphony LMC -->
+    <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3 progenitorMassFunctionParameters/rootVarianceTargetFractional"/>
+    <parameterInactiveMap value="" ignoreWarnings="true"                                                                                                                                                                                           />
+    <posteriorSampleLikelihood value="galaxyPopulation">
+      <baseParametersFileName value="%EXECPATH%/constraints/pipelines/darkMatter/progenitorMassFunctionBaseSymphonyLMC.xml"/>
+      <changeParametersFileNames value="%EXECPATH%/constraints/pipeline/darkMatter/powerSpectrumWindowFunction_topHat.xml" />
+      <randomize              value="false"                                                                                />
+      <evolveForestsVerbosity value="silent"                                                                               />
+      <reportFileName value="true" />
+      <reportState    value="true" />
+    </posteriorSampleLikelihood>
+
     <!-- Symphony WDM3 -->
     <parameterMap         value="mergerTreeBranchingProbability/G0 mergerTreeBranchingProbability/gamma1 mergerTreeBranchingProbability/gamma2 mergerTreeBranchingProbability/gamma3 progenitorMassFunctionParameters/rootVarianceTargetFractional"/>
     <parameterInactiveMap value="" ignoreWarnings="true"                                                                                                                                                                                           />
@@ -425,7 +437,7 @@
     </modelParameter>
     
     <modelParameter value="active">
-      <name value="progenitorMassFunctionParameters::rootVarianceTargetFractional"/>
+      <name value="progenitorMassFunctionParameters/rootVarianceTargetFractional"/>
       <distributionFunction1DPrior value="logUniform">
 	<limitLower value="+1.00e-4"/>
 	<limitUpper value="+1.00e+0"/>
