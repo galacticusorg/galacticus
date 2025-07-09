@@ -385,6 +385,9 @@ contains
        ! Specify names and descriptions of the parameters.
        containerCuspNFW%nameParameters                               (1)='y'
        containerCuspNFW%descriptionParameters                        (1)='The cusp amplitude.'
+       ! Specify parameter ranges.
+       containerCuspNFW%parametersMinimumLimit                       (1)=0.000d0
+       containerCuspNFW%parametersMaximumLimit                       (1)=0.999d0
        ! Record that the table is now initialized.
        containerCuspNFWInitialized                                      =.true.
     end if
