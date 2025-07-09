@@ -52,9 +52,10 @@
        <method method="sigma" description="Evaluate $\sigma_j^2 = \int_0^\infty \frac{\mathrm{d}k}{k} \mathcal{P}(k,t) k^{2j}$ where $\mathcal{P}(k) = k^3 P(k) / 2 \pi^2$ is the dimensionless form of the power spectrum."/>
      </methods>
      !!]
-     final     ::                       darkMatterProfilePromptCuspsConstructorDestructor
-     procedure :: nodeTreeInitialize => darkMatterProfilePromptCuspsNodeTreeInitialize
-     procedure :: sigma              => darkMatterProfilePromptCuspsNodeSigma
+     final     ::                                        darkMatterProfilePromptCuspsConstructorDestructor
+     procedure :: nodeTreeInitialize                  => darkMatterProfilePromptCuspsNodeTreeInitialize
+     procedure :: differentialEvolutionSolveAnalytics => darkMatterProfilePromptCuspsSolveAnalytics
+     procedure :: sigma                               => darkMatterProfilePromptCuspsNodeSigma
   end type nodeOperatorDarkMatterProfilePromptCusps
   
   interface nodeOperatorDarkMatterProfilePromptCusps
@@ -66,11 +67,15 @@
   end interface nodeOperatorDarkMatterProfilePromptCusps
 
   ! Submodule-scope variables used in root-finding.
-  class           (nodeOperatorDarkMatterProfilePromptCusps), pointer :: self_
-  double precision                                                    :: sigma0Collapse  , time_ ,&
-       &                                                                 expansionFactor_
-  integer                                                             :: j_
+  class           (nodeOperatorDarkMatterProfilePromptCusps), pointer   :: self_
+  double precision                                                      :: sigma0Collapse          , time_ ,&
+       &                                                                   expansionFactor_
+  integer                                                               :: j_
   !$omp threadprivate(self_,sigma0Collapse,time_,expansionFactor_,j_)
+
+  ! Maximum allowed value of the y-parameter in the cusp-NFW profile. Values of 1 or greater are not valid. We limit here to a
+  ! value close to 1.
+  double precision                                          , parameter :: yMaximum        =0.999d0
   
 contains
   
@@ -207,7 +212,7 @@ contains
     if (associated(node%firstChild)) return
     ! Initialize the root finder.
     if (.not.finderInitialized) then
-       finder=rootFinder(&
+       finder=rootFinder(                                                             &
             &            rootFunction                 =timeCollapseRoot             , &
             &            toleranceRelative            =1.0d-6                       , &
             &            rangeExpandUpward            =2.0d+0                       , &
@@ -254,14 +259,17 @@ contains
     ! Evaluate the prompt cusp parameters.
     amplitude=self%alpha*(self%alpha/self%C/self%beta**self%p)**(1.0d0/(2.0d0*self%p-1.0d0))*densityMeanCollapse*sigma0Collapse**((9.0d0-6.0d0*self%p)/(4.0d0-8.0d0*self%p))/sigma2Collapse**0.75d0
     mass     =self%beta *(self%alpha/self%C/self%beta**self%p)**(2.0d0/(2.0d0*self%p-1.0d0))*densityMeanCollapse*sigma0Collapse**((9.0d0-6.0d0*self%p)/(2.0d0-4.0d0*self%p))/sigma2Collapse**1.50d0
-    y        =+amplitude                        &
-         &    /densityScale                     &
-         &    /darkMatterProfile%scale()**1.5d0
+    y        =min(                     &
+         &        +amplitude           &
+         &        /densityScale        &
+         &        /radiusScale**1.5d0, &
+         &        +yMaximum            &
+         &       )
     ! Store prompt cusp parameters.
     call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspAmplitudeID,amplitude)
     call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspMassID     ,mass     )
     call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWYID     ,y        )
-    return
+   return
   end subroutine darkMatterProfilePromptCuspsNodeTreeInitialize
 
   double precision function timeCollapseRoot(timeCollapse)
@@ -338,7 +346,45 @@ contains
     wavenumberPhysical=+exp(wavenumberPhysicalLogarithmic)
     wavenumberComoving=+expansionFactor_   &
          &             *wavenumberPhysical
-    integrand         =+self_%powerSpectrum_%powerDimensionless(wavenumberComoving       ,time_) &
+    integrand         =+self_%powerSpectrum_%powerDimensionless(wavenumberComoving        ,time_) &
          &             *                                        wavenumberPhysical**(2*j_)
     return
   end function integrand
+
+  subroutine darkMatterProfilePromptCuspsSolveAnalytics(self,node,time)
+    !!{
+    Compute the value of the $y$-parameter in the prompt cusp.
+    !!}
+    use :: Galacticus_Nodes        , only : nodeComponentBasic, nodeComponentDarkMatterProfile
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    class           (nodeOperatorDarkMatterProfilePromptCusps), intent(inout) :: self
+    type            (treeNode                                ), intent(inout) :: node
+    double precision                                          , intent(in   ) :: time
+    class           (nodeComponentBasic                      ), pointer       :: basic
+    class           (nodeComponentDarkMatterProfile          ), pointer       :: darkMatterProfile
+    double precision                                                          :: radiusScale      , concentration, &
+         &                                                                       densityScale     , y
+
+    basic             =>  node                                  %basic               (    )
+    darkMatterProfile =>  node                                  %darkMatterProfile   (    )
+    radiusScale       =   darkMatterProfile%scale()
+    concentration     =  +self             %darkMatterHaloScale_%radiusVirial        (node)         &
+         &               /                                       radiusScale
+    densityScale      =  +basic                                 %mass                (    )         &
+         &               /4.0d0                                                                     &
+         &               /Pi                                                                        &
+         &               /radiusScale**3                                                            &
+         &               /(                                                                         &
+         &                 +              log(1.0d0+concentration)                                  &
+         &                 -concentration/   (1.0d0+concentration)                                  &
+         &                )
+    y                 =min(                                                                         &
+         &                 +darkMatterProfile%floatRank0MetaPropertyGet(self%promptCuspAmplitudeID) &
+         &                 /densityScale                                                            &
+         &                 /radiusScale**1.5d0                                                    , &
+         &                 +yMaximum                                                                &
+         &                )
+    call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWYID,y)
+    return
+  end subroutine darkMatterProfilePromptCuspsSolveAnalytics
