@@ -518,8 +518,6 @@ contains
     logical                                                                        :: doBranch                              , branchIsDone               , &
          &                                                                            snapAccretionFraction                 , snapEarliestTime           , &
          &                                                                            controlLimited                        , controlInsertNode
-    type            (varying_string                     )                          :: message
-    character       (len=20                             )                          :: label
 
     nodeCurrent => nodeTip
     do while (associated(nodeCurrent))
@@ -556,18 +554,23 @@ contains
              branchMassPrevious         =branchMassCurrent
           end if
           if (countNoProgress > limitNoProgress) then
-             message='branch is making no progress'
-             if (time < self_%timeEarliest*1.01d0) then
-                write (label,'(e12.6)') self_%toleranceTimeEarliest
-                message=message                                                                                        //char(10)// &
-                     &  displayGreen()//'   HELP:'//displayReset()//' branch is within 1% of the imposed earliest time'//char(10)// &
-                     &                  '          - this may be a tolerance issue'                                    //char(10)// &
-                     &                  '          - try increasing the value of the tolerance parameter, currently:'  //char(10)// &
-                     &                  '             <'//displayBlue()//'toleranceTimeEarliest'//displayReset()//' '            // &
-                     & displayYellow()//'value'//displayReset()//'='//displayGreen()//'"'//trim(adjustl(label))//'"'             // &
-                     & displayReset ()//'/>'
-             end if
-             call Error_Report(message//{introspection:location})
+             block
+               type     (varying_string) :: message
+               character(len=20        ) :: label
+               
+               message='branch is making no progress'
+               if (time < self_%timeEarliest*1.01d0) then
+                  write (label,'(e12.6)') self_%toleranceTimeEarliest
+                  message=message                                                                                        //char(10)// &
+                       &  displayGreen()//'   HELP:'//displayReset()//' branch is within 1% of the imposed earliest time'//char(10)// &
+                       &                  '          - this may be a tolerance issue'                                    //char(10)// &
+                       &                  '          - try increasing the value of the tolerance parameter, currently:'  //char(10)// &
+                       &                  '             <'//displayBlue()//'toleranceTimeEarliest'//displayReset()//' '            // &
+                       & displayYellow()//'value'//displayReset()//'='//displayGreen()//'"'//trim(adjustl(label))//'"'             // &
+                       & displayReset ()//'/>'
+               end if
+               call Error_Report(message//{introspection:location})
+             end block
           end if
           ! Process the branch.
           if     (                                                                               &
@@ -970,8 +973,6 @@ contains
     double precision                    , intent(in   )          :: massResolution
     type            (mergerTree        ), intent(in   )          :: tree
     class           (nodeComponentBasic)               , pointer :: basic_                   , basicParent_
-    character       (len=20            )                         :: label
-    type            (varying_string    )                         :: message
     logical                                                      :: closeToResolution
     logical                             , save                   :: warned           =.false.
     
@@ -997,33 +998,38 @@ contains
              node => null()
           else
              ! Parent halo is not close to the resolution limit - this is an error.
-             message="branch is not well-ordered in time:"           //char(10)
-             write (label,'(i20)'   ) tree       %index
-             message=message//" ->      tree index = "//label        //char(10)
-             write (label,'(i20)'   ) node       %index()
-             message=message//" ->      node index = "//label        //char(10)
-             write (label,'(i20)'   ) node%parent%index()
-             message=message//" ->    parent index = "//label        //char(10)
-             write (label,'(e20.14)')                                                             basic_      %time()
-             message=message//" ->       node time = "//label//" Gyr"//char(10)
-             write (label,'(e20.14)')                                                             basicParent_%time()
-             message=message//" ->     parent time = "//label//" Gyr"//char(10)
-             write (label,'(e20.14)')                                                             basic_      %mass()
-             message=message//" ->       node mass = "//label//" M☉" //char(10)
-             write (label,'(e20.14)')                                                             basicParent_%mass()
-             message=message//" ->     parent mass = "//label//" M☉" //char(10)
-             write (label,'(e20.14)') self_%workers(numberWorker)%criticalOverdensity_%value(time=basic_      %time(),mass=basic_      %mass(),node=node       )
-             message=message//" ->         node δc = "//label        //char(10)
-             write (label,'(e20.14)') self_%workers(numberWorker)%criticalOverdensity_%value(time=basicParent_%time(),mass=basicParent_%mass(),node=node%parent)
-             message=message//" ->       parent δc = "//label        //char(10)
-             basic_ => tree%nodeBase%basic()
-             write (label,'(e20.14)')                                   basic_%time()
-             message=message//" ->       tree time = "//label//" Gyr"//char(10)
-             write (label,'(e20.14)')                                                              basic_     %mass()
-             message=message//" ->       tree mass = "//label//" M☉" //char(10)
-             write (label,'(e20.14)') massResolution
-             message=message//" -> mass resolution = "//label//" M☉"
-             call Error_Report(message//{introspection:location})
+             block
+               character(len=20        ) :: label
+               type     (varying_string) :: message
+
+               message="branch is not well-ordered in time:"           //char(10)
+               write (label,'(i20)'   ) tree       %index
+               message=message//" ->      tree index = "//label        //char(10)
+               write (label,'(i20)'   ) node       %index()
+               message=message//" ->      node index = "//label        //char(10)
+               write (label,'(i20)'   ) node%parent%index()
+               message=message//" ->    parent index = "//label        //char(10)
+               write (label,'(e20.14)')                                                             basic_      %time()
+               message=message//" ->       node time = "//label//" Gyr"//char(10)
+               write (label,'(e20.14)')                                                             basicParent_%time()
+               message=message//" ->     parent time = "//label//" Gyr"//char(10)
+               write (label,'(e20.14)')                                                             basic_      %mass()
+               message=message//" ->       node mass = "//label//" M☉" //char(10)
+               write (label,'(e20.14)')                                                             basicParent_%mass()
+               message=message//" ->     parent mass = "//label//" M☉" //char(10)
+               write (label,'(e20.14)') self_%workers(numberWorker)%criticalOverdensity_%value(time=basic_      %time(),mass=basic_      %mass(),node=node       )
+               message=message//" ->         node δc = "//label        //char(10)
+               write (label,'(e20.14)') self_%workers(numberWorker)%criticalOverdensity_%value(time=basicParent_%time(),mass=basicParent_%mass(),node=node%parent)
+               message=message//" ->       parent δc = "//label        //char(10)
+               basic_ => tree%nodeBase%basic()
+               write (label,'(e20.14)')                                   basic_%time()
+               message=message//" ->       tree time = "//label//" Gyr"//char(10)
+               write (label,'(e20.14)')                                                              basic_     %mass()
+               message=message//" ->       tree mass = "//label//" M☉" //char(10)
+               write (label,'(e20.14)') massResolution
+               message=message//" -> mass resolution = "//label//" M☉"
+               call Error_Report(message//{introspection:location})
+             end block
           end if
        end if
     end if
