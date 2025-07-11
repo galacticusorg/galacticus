@@ -60,13 +60,13 @@
      class           (hiiRegionDensityDistributionClass), pointer                       :: hiiRegionDensityDistribution_        => null()
      class           (hiiRegionEscapeFractionClass     ), pointer                       :: hiiRegionEscapeFraction_             => null()
      type            (enumerationComponentTypeType     )                                :: component
-     integer                                                                            :: countWavelengths                             , countLines
+     integer                                                                            :: countLines
      integer         (c_size_t                         )                                :: indexAge                                     , indexMetallicity            , &
           &                                                                                indexIonizingLuminosityHydrogen              , indexDensityHydrogen
      type            (varying_string                   ), allocatable, dimension(:    ) :: lineNames                                    , names_                      , &
           &                                                                                descriptions_
      double precision                                   , allocatable, dimension(:    ) :: metallicityBoundaries                        , metallicities               , &
-          &                                                                                ages
+          &                                                                                ages                                         , wavelengths
      double precision                                   , allocatable, dimension(:,:,:) :: luminositiesReduced
      double precision                                   , allocatable, dimension(:,:  ) :: ionizingLuminosityHydrogenNormalized
      type            (emissionLineLuminosityTemplate   ), allocatable, dimension(:    ) :: templates
@@ -263,9 +263,18 @@ contains
          &    size(     lineNames                 )  &
          &   )                                       &
          &  )
+    allocate(                                        &
+         &   self%wavelengths                        &
+         &   (                                       &
+         &    size(     lineNames                 )  &
+         &   )                                       &
+         &  )
     self%luminositiesReduced=0.0d0
     do i=1,size(lineNames)
-       call lines%readDatasetStatic(char(lineNames(i)),luminosities(:,:,:,:,i))      
+       dataset=lines%openDataset(char(lineNames(i)))
+       call dataset%readAttribute    ('wavelength'      ,self%wavelengths (        i))
+       call dataset%close            (                                               )
+       call lines  %readDatasetStatic(char(lineNames(i)),     luminosities(:,:,:,:,i))
     end do
     call lines            %close()
     call emissionLinesFile%close()
@@ -517,16 +526,17 @@ contains
     use :: Input_Paths             , only : inputPath                    , pathTypeDataDynamic
     use :: Star_Formation_Histories, only : starFormationHistoryAgesFixed, starFormationHistoryAgesFixedPerOutput
     implicit none
-    integer  (c_size_t                                   )                :: indexTemplate
-    class    (nodePropertyExtractorLuminosityEmissionLine), intent(inout) :: self
-    type     (treeNode                                   ), intent(inout) :: node
-    type     (history                                    ), intent(in   ) :: starFormationHistory
-    class    (nodeComponentBasic                         ), pointer       :: basic
-    integer  (c_size_t                                   )                :: indexOutput         , countTemplates
-    type     (lockDescriptor                             )                :: fileLock
-    type     (hdf5Object                                 )                :: file
-    type     (varying_string                             )                :: fileName
-    character(len=16                                     )                :: label
+    integer         (c_size_t                                   )                              :: indexTemplate
+    class           (nodePropertyExtractorLuminosityEmissionLine), intent(inout)               :: self
+    type            (treeNode                                   ), intent(inout)               :: node
+    type            (history                                    ), intent(in   )               :: starFormationHistory
+    class           (nodeComponentBasic                         ), pointer                     :: basic
+    double precision                                             , allocatable  , dimension(:) :: times
+    integer         (c_size_t                                   )                              :: indexOutput         , countTemplates
+    type            (lockDescriptor                             )                              :: fileLock
+    type            (hdf5Object                                 )                              :: file
+    type            (varying_string                             )                              :: fileName
+    character       (len=16                                     )                              :: label
 
     if      (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixed         ) then
        ! Ages are fixed - a single template can be used.
@@ -584,8 +594,8 @@ contains
           !$ call hdf5Access%unset()
        end if
        if (.not.allocated(self%templates(indexTemplate)%emissionLineLuminosity)) then
-          basic                                                => node%basic         (                                                                       )
-          self%templates(indexTemplate)%emissionLineLuminosity =  self%luminosityMean(basic%time(),node,indexTemplate,starFormationHistory,parallelize=.true.)
+          basic                                                => node%basic         (                                                                                    )
+          self%templates(indexTemplate)%emissionLineLuminosity =  self%luminosityMean(basic%time(),node,indexTemplate,starFormationHistory,parallelize=.true.,times_=times)
           if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixed) then
              call displayMessage("storing emission line luminosity tabulation to file '"                                        //fileName//"'",verbosityLevelWorking)
           else
@@ -595,8 +605,16 @@ contains
              call displayMessage("storing emission line luminosity tabulation for time "//trim(adjustl(label))//" Gyr to file '"//fileName//"'",verbosityLevelWorking)
           end if
           !$ call hdf5Access%set()
-          call file%openFile(char(fileName),overWrite=.false.,readOnly=.false.)
-          call file%writeDataset(self%templates(indexTemplate)%emissionLineLuminosity,'luminosityTemplate')
+          call    file%openFile(char(fileName),overWrite=.false.,readOnly=.false.)
+          call    file%writeDataset(self %templates             (indexTemplate)%emissionLineLuminosity      ,'luminosityTemplate','A matrix mapping star formation history to emission line luminosities.' )
+          call    file%writeDataset(self %lineNames                                                         ,'lineNames'         ,'The names of the emission lines'                                        )
+          call    file%writeDataset(self %wavelengths                                                       ,'wavelengths'       ,'The wavelengths of the emission lines [Å]'                              )
+          call    file%writeDataset(self %metallicityBoundaries                                             ,'metallicity'       ,'The metallicities at which the star formation history is tabulated [Z☉]')
+          if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixed) then
+             call file%writeDataset(basic%time                  (             )                       -times,'ages'              ,'The ages at which the star formation history is tabulated [Gyr]'        )
+          else
+             call file%writeDataset(      times                                                             ,'time'              ,'The times at which the star formation history is tabulated [Gyr]'       )
+          end if
           call file%close()
           !$ call hdf5Access%unset()
        end if
@@ -605,7 +623,7 @@ contains
     return
   end function emissionLineLuminosityIndexTemplateNode
 
-  function emissionLineLuminosityMean(self,time,node,indexOutput,starFormationHistory,parallelize) result(luminosityMean)
+  function emissionLineLuminosityMean(self,time,node,indexOutput,starFormationHistory,parallelize,times_) result(luminosityMean)
     !!{
     Compute the mean luminosity of the stellar population in each bin of the star formation history.
     !!}
@@ -619,28 +637,29 @@ contains
     use :: Numerical_Interpolation, only : interpolator
     !$ use :: OMP_Lib, only : OMP_Get_Thread_Num
     implicit none
-    double precision                                             , dimension(:,:,:), allocatable :: luminosityMean
-    class           (nodePropertyExtractorLuminosityEmissionLine), intent(inout)                 :: self
-    double precision                                             , intent(in   )                 :: time
-    type            (treeNode                                   ), intent(inout)                 :: node
-    integer         (c_size_t                                   ), intent(in   )                 :: indexOutput
-    type            (history                                    ), intent(in   )                 :: starFormationHistory
-    logical                                                      , intent(in   )   , optional    :: parallelize
-    double precision                                             , dimension(:    ), allocatable :: times
-    double precision                                             , dimension(  :,:), allocatable :: masses
-    type            (integrator                                 ), save            , allocatable :: integratorTime            , integratorMetallicity
-    type            (interpolator                               ), save            , allocatable :: interpolatorTime          , interpolatorMetallicity
-    integer         (c_size_t                                   )                                :: iTime                     , iMetallicity           , &
-         &                                                                                          counter                   , counterMaximum         , &
-         &                                                                                          iterator
-    integer         (c_size_t                                   ), save                          :: iLine
-    double precision                                                                             :: metallicityMinimum        , metallicityMaximum     , &
-         &                                                                                          timeStart
-    double precision                                             , save                          :: timeMinimum               , timeMaximum            , &
-         &                                                                                          age                       , metallicity_
-    character       (len=12                                     )                                :: label
-    type            (multiCounter                               )                                :: state
-    type            (ompLock                                    )                                :: stateLock
+    double precision                                             , dimension(:,:,:)                            , allocatable :: luminosityMean
+    class           (nodePropertyExtractorLuminosityEmissionLine), intent(inout)                                             :: self
+    double precision                                             , intent(in   )                                             :: time
+    type            (treeNode                                   ), intent(inout)                                             :: node
+    integer         (c_size_t                                   ), intent(in   )                                             :: indexOutput
+    type            (history                                    ), intent(in   )                                             :: starFormationHistory
+    logical                                                      , intent(in   )   , optional                                :: parallelize
+    double precision                                             , intent(  out)   , optional, dimension(:    ), allocatable :: times_
+    double precision                                             , dimension(:    )                            , allocatable :: times
+    double precision                                             , dimension(  :,:)                            , allocatable :: masses
+    type            (integrator                                 ), save                                        , allocatable :: integratorTime            , integratorMetallicity
+    type            (interpolator                               ), save                                        , allocatable :: interpolatorTime          , interpolatorMetallicity
+    integer         (c_size_t                                   )                                                            :: iTime                     , iMetallicity           , &
+         &                                                                                                                      counter                   , counterMaximum         , &
+         &                                                                                                                      iterator
+    integer         (c_size_t                                   ), save                                                      :: iLine
+    double precision                                                                                                         :: metallicityMinimum        , metallicityMaximum     , &
+         &                                                                                                                      timeStart
+    double precision                                             , save                                                      :: timeMinimum               , timeMaximum            , &
+         &                                                                                                                      age                       , metallicity_
+    character       (len=12                                     )                                                            :: label
+    type            (multiCounter                               )                                                            :: state
+    type            (ompLock                                    )                                                            :: stateLock
     !$omp threadprivate(iLine,integratorTime,integratorMetallicity,interpolatorTime,interpolatorMetallicity,timeMinimum,timeMaximum,age,metallicity_)
     !$GLC attributes initialized :: masses
     !![
@@ -649,6 +668,7 @@ contains
     
     times =self%starFormationHistory_%times (node=node,indexOutput=indexOutput,starFormationHistory=starFormationHistory,allowTruncation=.false.,timeStart=timeStart)
     masses=self%starFormationHistory_%masses(node=node                        ,starFormationHistory=starFormationHistory,allowTruncation=.false.                    )
+    if (present(times_)) times_=times
     allocate(luminosityMean(self%countLines,size(masses,dim=1),size(masses,dim=2)))
     counter       =-1
     counterMaximum=product     ([size(luminosityMean,dim=1              ),size(masses,dim=1              ),size(masses,dim=2              )])
