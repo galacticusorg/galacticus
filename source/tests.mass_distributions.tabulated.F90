@@ -48,7 +48,7 @@ program Test_Mass_Distributions_Tabulated
        &                                                                                     velocityDispersion      , massTarget                        , &
        &                                                                                     densityMoment0Target    , densityMoment1Target              , &
        &                                                                                     densityMoment2Target    , densityMoment3Target
-  type            (coordinateSpherical                         )                          :: coordinates
+  type            (coordinateSpherical                         )                          :: coordinates             , coordinatesReference
   double precision                                                                        :: timeScale
   integer                                                                                 :: i                       , iProfile
   double precision                                              , parameter, dimension(7) :: radiiScaleFree      =[                                           &
@@ -165,26 +165,27 @@ program Test_Mass_Distributions_Tabulated
           &    *MpcPerKmPerSToGyr
      select type (massDistribution_)
      class is (massDistributionSpherical)
-        do i=1,7
+        coordinatesReference=[radiusScale*radiiScaleFree(1),0.0d0,0.0d0]
+       do i=1,7
            coordinates                        =[radiusScale*radiiScaleFree(i),0.0d0,0.0d0]
-           mass                            (i)=massDistribution_      %massEnclosedBySphere               (                         radiiScaleFree(i)*radiusScale                                    )
-           potential                       (i)=massDistribution_      %potential                          (                                           coordinates                                    )
-           potentialTarget                 (i)=massDistribution_      %potentialNumerical                 (                                           coordinates                                    )
-           energy                          (i)=massDistribution_      %energy                             (                         radiiScaleFree(i)*radiusScale,massDistribution_                  )
-           energyTarget                    (i)=massDistribution_      %energyNumerical                    (                         radiiScaleFree(i)*radiusScale,massDistribution_                  )
-           velocityDispersion              (i)=kinematicsDistribution_%velocityDispersion1D               (                                           coordinates,massDistribution_,massDistribution_)
-           velocityDispersionTarget        (i)=kinematicsDistribution_%velocityDispersion1DNumerical      (                                           coordinates,massDistribution_,massDistribution_)
+           mass                            (i)=massDistribution_      %massEnclosedBySphere               (                         radiiScaleFree(i)*radiusScale                                       )
+           potential                       (i)=massDistribution_      %potentialDifference                (                                           coordinates                  ,coordinatesReference)
+           potentialTarget                 (i)=massDistribution_      %potentialDifferenceNumerical       (                                           coordinates                  ,coordinatesReference)
+           energy                          (i)=massDistribution_      %energy                             (                         radiiScaleFree(i)*radiusScale,massDistribution_                     )
+           energyTarget                    (i)=massDistribution_      %energyNumerical                    (                         radiiScaleFree(i)*radiusScale,massDistribution_                     )
+           velocityDispersion              (i)=kinematicsDistribution_%velocityDispersion1D               (                                           coordinates,massDistribution_,massDistribution_   )
+           velocityDispersionTarget        (i)=kinematicsDistribution_%velocityDispersion1DNumerical      (                                           coordinates,massDistribution_,massDistribution_   )
            if (all(densityMoment0Target > 0.0d0)) &
-                & densityMoment0           (i)=massDistribution_      %densityRadialMoment                (0.0d0,0.0d0,             radiiScaleFree(i)*radiusScale                                    )
-           densityMoment1                  (i)=massDistribution_      %densityRadialMoment                (1.0d0,0.0d0,             radiiScaleFree(i)*radiusScale                                    )
-           densityMoment2                  (i)=massDistribution_      %densityRadialMoment                (2.0d0,0.0d0,             radiiScaleFree(i)*radiusScale                                    )
-           densityMoment3                  (i)=massDistribution_      %densityRadialMoment                (3.0d0,0.0d0,             radiiScaleFree(i)*radiusScale                                    )
-           radiusFreefall                  (i)=massDistribution_      %radiusFreefall                     (                         radiiScaleFree(i)*  timeScale                                    )
-           radiusFreefallTarget            (i)=massDistribution_      %radiusFreefallNumerical            (                         radiiScaleFree(i)*  timeScale                                    )
-           radiusFreefallIncreaseRate      (i)=massDistribution_      %radiusFreefallIncreaseRate         (                         radiiScaleFree(i)*  timeScale                                    )
-           radiusFreefallIncreaseRateTarget(i)=massDistribution_      %radiusFreefallIncreaseRateNumerical(                         radiiScaleFree(i)*  timeScale                                    )
-           fourierTransform                (i)=massDistribution_      %fourierTransform                   (            radiusVirial,radiiScaleFree(i)/radiusScale                                    )
-           fourierTransformTarget          (i)=massDistribution_      %fourierTransformNumerical          (            radiusVirial,radiiScaleFree(i)/radiusScale                                    )
+                & densityMoment0           (i)=massDistribution_      %densityRadialMoment                (0.0d0,0.0d0,             radiiScaleFree(i)*radiusScale                                       )
+           densityMoment1                  (i)=massDistribution_      %densityRadialMoment                (1.0d0,0.0d0,             radiiScaleFree(i)*radiusScale                                       )
+           densityMoment2                  (i)=massDistribution_      %densityRadialMoment                (2.0d0,0.0d0,             radiiScaleFree(i)*radiusScale                                       )
+           densityMoment3                  (i)=massDistribution_      %densityRadialMoment                (3.0d0,0.0d0,             radiiScaleFree(i)*radiusScale                                       )
+           radiusFreefall                  (i)=massDistribution_      %radiusFreefall                     (                         radiiScaleFree(i)*  timeScale                                       )
+           radiusFreefallTarget            (i)=massDistribution_      %radiusFreefallNumerical            (                         radiiScaleFree(i)*  timeScale                                       )
+           radiusFreefallIncreaseRate      (i)=massDistribution_      %radiusFreefallIncreaseRate         (                         radiiScaleFree(i)*  timeScale                                       )
+           radiusFreefallIncreaseRateTarget(i)=massDistribution_      %radiusFreefallIncreaseRateNumerical(                         radiiScaleFree(i)*  timeScale                                       )
+           fourierTransform                (i)=massDistribution_      %fourierTransform                   (            radiusVirial,radiiScaleFree(i)/radiusScale                                       )
+           fourierTransformTarget          (i)=massDistribution_      %fourierTransformNumerical          (            radiusVirial,radiiScaleFree(i)/radiusScale                                       )
         end do
         ! Only potential differences are relevant.
         potential      =potential      -potential      (1)

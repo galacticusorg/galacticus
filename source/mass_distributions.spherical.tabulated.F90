@@ -57,6 +57,7 @@
      procedure                                                :: isTabulating               => sphericalTabulatedIsTabulating
      procedure                                                :: massEnclosedBySphere       => sphericalTabulatedMassEnclosedBySphere
      procedure                                                :: potential                  => sphericalTabulatedPotential
+     procedure                                                :: potentialDifference        => sphericalTabulatedPotentialDifference
      procedure                                                :: fourierTransform           => sphericalTabulatedFourierTransform
      procedure                                                :: energy                     => sphericalTabulatedEnergy
      procedure                                                :: densityRadialMoment        => sphericalTabulatedDensityRadialMoment
@@ -224,6 +225,38 @@ contains
     end if
     return
   end function sphericalTabulatedPotential
+
+  double precision function sphericalTabulatedPotentialDifference(self,coordinates1,coordinates2,status) result(potentialDifference)
+    !!{
+    Compute the potential difference between the given {\normalfont \ttfamily coordinates1} and {\normalfont \ttfamily coordinates2} in a spherical mass distribution using a tabulation.
+    !!}
+    use :: Galactic_Structure_Options, only : structureErrorCodeSuccess
+    implicit none
+    class           (massDistributionSphericalTabulated), intent(inout) , target   :: self
+    class           (coordinate                        ), intent(in   )            :: coordinates1, coordinates2
+    type            (enumerationStructureErrorCodeType ), intent(  out) , optional :: status
+    double precision                                                               :: potential1  , potential2
+
+    if (.not.tabulating) then
+       ! Initialize to no potential difference.
+       potentialDifference=+0.0d0
+       ! Evaluate the potential at both coordinates.
+       potential1=self%potential(coordinates1,status)
+       if (present(status) .and. status /= structureErrorCodeSuccess) return
+       potential2=self%potential(coordinates2,status)
+       if (present(status) .and. status /= structureErrorCodeSuccess) return
+       ! Re-evaluate potential1 now that we are sure that the potential is tabulated over a sufficient range of radii. This avoids
+       ! any zero-point offset changes due to retabulation.
+       potential1=self%potential(coordinates1,status)
+       if (present(status) .and. status /= structureErrorCodeSuccess) return
+       potentialDifference=+potential1 &
+            &              -potential2
+    else
+       ! If tabulating then fall back to a numerical evaluation.
+       potentialDifference=+self%potentialDifferenceNumerical(coordinates1,coordinates2,status)
+    end if
+    return
+  end function sphericalTabulatedPotentialDifference
 
   double precision function sphericalTabulatedVelocityDispersion1D(self,coordinates) result(velocityDispersion)
     !!{
