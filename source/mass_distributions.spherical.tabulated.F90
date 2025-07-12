@@ -95,8 +95,8 @@
           &                                                                         radiusInverseStep
      double precision                          , allocatable, dimension(:      ) :: parametersMinimum    , parametersMaximum, &
           &                                                                         parametersInverseStep
-     integer         (c_size_t                )                                  :: radiusCountPer
-     integer         (c_size_t                ), allocatable, dimension(:      ) :: parametersCountPer
+     integer         (c_size_t                )                                  :: radiusCountPer       , countRadii
+     integer         (c_size_t                ), allocatable, dimension(:      ) :: parametersCountPer   , countParameters
      double precision                          , allocatable, dimension(:,:,:,:) :: table
   end type massDistributionTabulation
 
@@ -107,17 +107,17 @@
      type            (varying_string            ), allocatable, dimension(:) :: nameParameters        , descriptionParameters
      double precision                            , allocatable, dimension(:) :: parametersMinimumLimit, parametersMaximumLimit
      ! Tabulations for individual quantities.
-     type            (massDistributionTabulation)                            :: mass                      =massDistributionTabulation(quantityMass                      ,.true. ,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,null(),null())
-     type            (massDistributionTabulation)                            :: potential                 =massDistributionTabulation(quantityPotential                 ,.false.,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,null(),null())
-     type            (massDistributionTabulation)                            :: energy                    =massDistributionTabulation(quantityEnergy                    ,.false.,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,null(),null())
-     type            (massDistributionTabulation)                            :: fourierTransform          =massDistributionTabulation(quantityFourierTransform          ,.false.,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,null(),null())
-     type            (massDistributionTabulation)                            :: radiusFreefall            =massDistributionTabulation(quantityRadiusFreefall            ,.false.,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,null(),null())
-     type            (massDistributionTabulation)                            :: radiusFreefallIncreaseRate=massDistributionTabulation(quantityRadiusFreefallIncreaseRate,.false.,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,null(),null())
-     type            (massDistributionTabulation)                            :: densityRadialMoment0      =massDistributionTabulation(quantityDensityRadialMoment0      ,.true. ,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,null(),null())
-     type            (massDistributionTabulation)                            :: densityRadialMoment1      =massDistributionTabulation(quantityDensityRadialMoment1      ,.true. ,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,null(),null())
-     type            (massDistributionTabulation)                            :: densityRadialMoment2      =massDistributionTabulation(quantityDensityRadialMoment2      ,.true. ,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,null(),null())
-     type            (massDistributionTabulation)                            :: densityRadialMoment3      =massDistributionTabulation(quantityDensityRadialMoment3      ,.true. ,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,null(),null())
-     type            (massDistributionTabulation)                            :: velocityDispersion1D      =massDistributionTabulation(quantityVelocityDispersion1D      ,.true. ,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,null(),null())
+     type            (massDistributionTabulation)                            :: mass                      =massDistributionTabulation(quantityMass                      ,.true. ,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
+     type            (massDistributionTabulation)                            :: potential                 =massDistributionTabulation(quantityPotential                 ,.false.,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
+     type            (massDistributionTabulation)                            :: energy                    =massDistributionTabulation(quantityEnergy                    ,.false.,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
+     type            (massDistributionTabulation)                            :: fourierTransform          =massDistributionTabulation(quantityFourierTransform          ,.false.,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
+     type            (massDistributionTabulation)                            :: radiusFreefall            =massDistributionTabulation(quantityRadiusFreefall            ,.false.,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
+     type            (massDistributionTabulation)                            :: radiusFreefallIncreaseRate=massDistributionTabulation(quantityRadiusFreefallIncreaseRate,.false.,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
+     type            (massDistributionTabulation)                            :: densityRadialMoment0      =massDistributionTabulation(quantityDensityRadialMoment0      ,.true. ,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
+     type            (massDistributionTabulation)                            :: densityRadialMoment1      =massDistributionTabulation(quantityDensityRadialMoment1      ,.true. ,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
+     type            (massDistributionTabulation)                            :: densityRadialMoment2      =massDistributionTabulation(quantityDensityRadialMoment2      ,.true. ,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
+     type            (massDistributionTabulation)                            :: densityRadialMoment3      =massDistributionTabulation(quantityDensityRadialMoment3      ,.true. ,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
+     type            (massDistributionTabulation)                            :: velocityDispersion1D      =massDistributionTabulation(quantityVelocityDispersion1D      ,.true. ,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
    contains
      !![
      <methods>
@@ -727,8 +727,8 @@ contains
 
     ! Compute interpolating factors.
     allocate(hParameters(3,size(parameters)))
-    hRadius    (2  )=log(radiusScaled/tabulation%radiusMinimum    )*tabulation%radiusInverseStep    +1_c_size_t
-    hParameters(2,:)=log(parameters  /tabulation%parametersMinimum)*tabulation%parametersInverseStep+1_c_size_t
+    hRadius    (2  )=min(log(radiusScaled/tabulation%radiusMinimum    )*tabulation%radiusInverseStep    +1.0d0,dble(tabulation%countRadii     -1_c_size_t))
+    hParameters(2,:)=min(log(parameters  /tabulation%parametersMinimum)*tabulation%parametersInverseStep+1.0d0,dble(tabulation%countParameters-1_c_size_t))
     iRadius         =int(hRadius    (2  ),kind=c_size_t)
     iParameters     =int(hParameters(2,:),kind=c_size_t)
     hRadius    (2  )=hRadius    (2  )-dble(iRadius    )
@@ -934,36 +934,47 @@ contains
     allocate(self%mass                      %parametersMinimum     (countParameters  ))
     allocate(self%mass                      %parametersMaximum     (countParameters  ))
     allocate(self%mass                      %parametersCountPer    (countParameters  ))
+    allocate(self%mass                      %countParameters       (countParameters  ))
     allocate(self%energy                    %parametersMinimum     (countParameters  ))
     allocate(self%energy                    %parametersMaximum     (countParameters  ))
     allocate(self%energy                    %parametersCountPer    (countParameters  ))
+    allocate(self%energy                    %countParameters       (countParameters  ))
     allocate(self%potential                 %parametersMinimum     (countParameters  ))
     allocate(self%potential                 %parametersMaximum     (countParameters  ))
     allocate(self%potential                 %parametersCountPer    (countParameters  ))
+    allocate(self%potential                 %countParameters       (countParameters  ))
     allocate(self%velocityDispersion1D      %parametersMinimum     (countParameters  ))
     allocate(self%velocityDispersion1D      %parametersMaximum     (countParameters  ))
     allocate(self%velocityDispersion1D      %parametersCountPer    (countParameters  ))
+    allocate(self%velocityDispersion1D      %countParameters       (countParameters  ))
     allocate(self%radiusFreefall            %parametersMinimum     (countParameters  ))
     allocate(self%radiusFreefall            %parametersMaximum     (countParameters  ))
     allocate(self%radiusFreefall            %parametersCountPer    (countParameters  ))
+    allocate(self%radiusFreefall            %countParameters       (countParameters  ))
     allocate(self%radiusFreefallIncreaseRate%parametersMinimum     (countParameters  ))
     allocate(self%radiusFreefallIncreaseRate%parametersMaximum     (countParameters  ))
     allocate(self%radiusFreefallIncreaseRate%parametersCountPer    (countParameters  ))
+    allocate(self%radiusFreefallIncreaseRate%countParameters       (countParameters  ))
     allocate(self%densityRadialMoment0      %parametersMinimum     (countParameters  ))
     allocate(self%densityRadialMoment0      %parametersMaximum     (countParameters  ))
     allocate(self%densityRadialMoment0      %parametersCountPer    (countParameters  ))
+    allocate(self%densityRadialMoment0      %countParameters       (countParameters  ))
     allocate(self%densityRadialMoment1      %parametersMinimum     (countParameters  ))
     allocate(self%densityRadialMoment1      %parametersMaximum     (countParameters  ))
     allocate(self%densityRadialMoment1      %parametersCountPer    (countParameters  ))
+    allocate(self%densityRadialMoment1      %countParameters       (countParameters  ))
     allocate(self%densityRadialMoment2      %parametersMinimum     (countParameters  ))
     allocate(self%densityRadialMoment2      %parametersMaximum     (countParameters  ))
     allocate(self%densityRadialMoment2      %parametersCountPer    (countParameters  ))
+    allocate(self%densityRadialMoment2      %countParameters       (countParameters  ))
     allocate(self%densityRadialMoment3      %parametersMinimum     (countParameters  ))
     allocate(self%densityRadialMoment3      %parametersMaximum     (countParameters  ))
     allocate(self%densityRadialMoment3      %parametersCountPer    (countParameters  ))
+    allocate(self%densityRadialMoment3      %countParameters       (countParameters  ))
     allocate(self%fourierTransform          %parametersMinimum     (countParameters+1))
     allocate(self%fourierTransform          %parametersMaximum     (countParameters+1))
     allocate(self%fourierTransform          %parametersCountPer    (countParameters+1))
+    allocate(self%fourierTransform          %countParameters       (countParameters+1))
     ! Initialize minima/maxima of tabulation ranges. These are chosen to ensure that the first tabulation will force these to
     ! be reset.
     self                           %parametersMinimumLimit=-huge(0.0d0)
