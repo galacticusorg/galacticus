@@ -1108,7 +1108,7 @@ contains
             &       radius > self%velocityDispersionRadialRadiusMaximum__
     end if
     if (remakeTable) then
-       integrator_=integrator(jeansEquationIntegrand_,toleranceRelative=self%toleranceRelativeVelocityDispersion)
+       integrator_=integrator(jeansEquationIntegrand_,toleranceRelative=self%toleranceRelativeVelocityDispersion,intervalsMaximum=10000_c_size_t)
        ! Find the range of radii at which to compute the velocity dispersion, and construct the arrays.
        call self%solverSet(massDistribution_,massDistributionEmbedding)
        !! Set an initial range of radii that brackets the requested radius.
