@@ -23,7 +23,12 @@
   </change>
 
   <!-- Include prompt cusps -->
-  <change type="update"      path="darkMatterProfileDMO/darkMatterProfileDMO" value="cuspNFW"/>
+  <change type="replace" path="darkMatterProfileDMO/darkMatterProfileDMO">
+    <darkMatterProfileDMO value="cuspNFW">
+      <toleranceRelativeVelocityDispersion        value="1.0e-6"/>
+      <toleranceRelativeVelocityDispersionMaximum value="1.0e-1"/>
+    </darkMatterProfileDMO>
+  </change>
   <change type="insertAfter" path="nodeOperator/nodeOperator[@value='darkMatterProfileScaleSet']">
     <nodeOperator value="darkMatterProfilePromptCusps"/>
   </change>

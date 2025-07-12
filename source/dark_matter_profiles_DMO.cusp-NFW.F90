@@ -40,6 +40,7 @@
      class  (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_                 => null()
      logical                                    :: velocityDispersionUseSeriesExpansion
      integer                                    :: promptCuspNFWYID
+     double precision                           :: toleranceRelativeVelocityDispersion           , toleranceRelativeVelocityDispersionMaximum
    contains
      final     ::        cuspNFWDestructor
      procedure :: get => cuspNFWGet
@@ -61,12 +62,25 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type   (darkMatterProfileDMOCuspNFW)                :: self
-    type   (inputParameters            ), intent(inout) :: parameters
-    class  (darkMatterHaloScaleClass   ), pointer       :: darkMatterHaloScale_
-    logical                                             :: velocityDispersionUseSeriesExpansion
+    type            (darkMatterProfileDMOCuspNFW)                :: self
+    type            (inputParameters            ), intent(inout) :: parameters
+    class           (darkMatterHaloScaleClass   ), pointer       :: darkMatterHaloScale_
+    logical                                                      :: velocityDispersionUseSeriesExpansion
+    double precision                                             :: toleranceRelativeVelocityDispersion , toleranceRelativeVelocityDispersionMaximum
 
     !![
+    <inputParameter>
+      <name>toleranceRelativeVelocityDispersion</name>
+      <defaultValue>1.0d-6</defaultValue>
+      <source>parameters</source>
+      <description>The relative tolerance to use in numerical solutions for the velocity dispersion.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>toleranceRelativeVelocityDispersionMaximum</name>
+      <defaultValue>1.0d-3</defaultValue>
+      <source>parameters</source>
+      <description>The maximum relative tolerance to use in numerical solutions for the velocity dispersion.</description>
+    </inputParameter>
     <inputParameter>
       <name>velocityDispersionUseSeriesExpansion</name>
       <defaultValue>.true.</defaultValue>
@@ -75,7 +89,7 @@ contains
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
-    self=darkMatterProfileDMOCuspNFW(velocityDispersionUseSeriesExpansion,darkMatterHaloScale_)
+    self=darkMatterProfileDMOCuspNFW(velocityDispersionUseSeriesExpansion,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_"/>
@@ -83,7 +97,7 @@ contains
     return
   end function cuspNFWConstructorParameters
 
-  function cuspNFWConstructorInternal(velocityDispersionUseSeriesExpansion,darkMatterHaloScale_) result(self)
+  function cuspNFWConstructorInternal(velocityDispersionUseSeriesExpansion,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the \refClass{darkMatterProfileDMOCuspNFW} dark matter halo profile class.
     !!}
@@ -93,8 +107,9 @@ contains
     type   (darkMatterProfileDMOCuspNFW)                        :: self
     class  (darkMatterHaloScaleClass   ), intent(in   ), target :: darkMatterHaloScale_
     logical                             , intent(in   )         :: velocityDispersionUseSeriesExpansion
+    double precision                    , intent(in   )         :: toleranceRelativeVelocityDispersion , toleranceRelativeVelocityDispersionMaximum
     !![
-    <constructorAssign variables="velocityDispersionUseSeriesExpansion, *darkMatterHaloScale_"/>
+    <constructorAssign variables="velocityDispersionUseSeriesExpansion, toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, *darkMatterHaloScale_"/>
     !!]
 
     !![
@@ -187,7 +202,10 @@ contains
           !![
 	  <referenceConstruct object="kinematicsDistribution_">
 	    <constructor>
-              kinematicsDistributionCollisionlessTabulated()
+              kinematicsDistributionCollisionlessTabulated(                                                                                            &amp;
+               &amp;                                       toleranceRelativeVelocityDispersion       =self%toleranceRelativeVelocityDispersion       , &amp; 
+               &amp;                                       toleranceRelativeVelocityDispersionMaximum=self%toleranceRelativeVelocityDispersionMaximum  &amp; 
+	       &amp;                                      )
 	    </constructor>
 	  </referenceConstruct>
           !!]
