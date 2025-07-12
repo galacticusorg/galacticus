@@ -234,6 +234,7 @@ program Test_Prompt_Cusps
      &amp;                                                         kappa                              = 4.5d0                                                           , &amp;
      &amp;                                                         C                                  = 0.8d0                                                           , &amp;
      &amp;                                                         p                                  = 1.9d0                                                           , &amp;
+     &amp;                                                         linearGrowth_                      =linearGrowth_                                                    , &amp;
      &amp;                                                         powerSpectrum_                     =powerSpectrum_                                                   , &amp;
      &amp;                                                         cosmologyFunctions_                =cosmologyFunctions_                                              , &amp;
      &amp;                                                         darkMatterHaloScale_               =darkMatterHaloScale_                                               &amp;

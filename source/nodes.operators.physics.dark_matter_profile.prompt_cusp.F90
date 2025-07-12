@@ -25,6 +25,7 @@
   use :: Cosmology_Functions    , only : cosmologyFunctionsClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
   use :: Power_Spectra          , only : powerSpectrumClass
+  use :: Linear_Growth          , only : linearGrowthClass
   
   !![
   <nodeOperator name="nodeOperatorDarkMatterProfilePromptCusps">
@@ -38,14 +39,17 @@
      A node operator class that evaluates the properties of prompt cusps following the model of \cite{delos_cusp-halo_2025}.
      !!}
      private
-     class           (powerSpectrumClass      ), pointer :: powerSpectrum_       => null()
-     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
-     double precision                                    :: alpha                         , beta                 , &
-          &                                                 kappa                         , C                    , &
-          &                                                 p
-     integer                                             :: promptCuspMassID              , promptCuspAmplitudeID, &
-          &                                                 promptCuspNFWYID
+     class           (powerSpectrumClass      ), pointer                   :: powerSpectrum_              => null()
+     class           (linearGrowthClass       ), pointer                   :: linearGrowth_               => null()
+     class           (cosmologyFunctionsClass ), pointer                   :: cosmologyFunctions_         => null()
+     class           (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_        => null()
+     double precision                          , allocatable, dimension(:) :: sigma_
+     logical                                                               :: growthIsWavenumberDependent
+     double precision                                                      :: alpha                                , beta                 , &
+          &                                                                   kappa                                , C                    , &
+          &                                                                   p
+     integer                                                               :: promptCuspMassID                     , promptCuspAmplitudeID, &
+          &                                                                   promptCuspNFWYID
    contains
      !![
      <methods>
@@ -88,6 +92,7 @@ contains
     implicit none
     type            (nodeOperatorDarkMatterProfilePromptCusps)                :: self
     type            (inputParameters                         ), intent(inout) :: parameters
+    class           (linearGrowthClass                       ), pointer       :: linearGrowth_
     class           (powerSpectrumClass                      ), pointer       :: powerSpectrum_
     class           (cosmologyFunctionsClass                 ), pointer       :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass                ), pointer       :: darkMatterHaloScale_
@@ -131,13 +136,15 @@ contains
       <defaultSource>\citep[][Table 3]{delos_cusp-halo_2025}</defaultSource>
       <description>The parameter, $\kappa$, of the mass growth factor in the \cite{delos_cusp-halo_2025} prompt cusp model.</description>
     </inputParameter>
-    <objectBuilder class="powerSpectrum"      name="powerSpectrum_"      source="parameters"/>
-    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    <objectBuilder class="linearGrowth"        name="linearGrowth_"        source="parameters"/>
+    <objectBuilder class="powerSpectrum"       name="powerSpectrum_"       source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
-    self=nodeOperatorDarkMatterProfilePromptCusps(alpha,beta,kappa,C,p,powerSpectrum_,cosmologyFunctions_,darkMatterHaloScale_)
+    self=nodeOperatorDarkMatterProfilePromptCusps(alpha,beta,kappa,C,p,linearGrowth_,powerSpectrum_,cosmologyFunctions_,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="linearGrowth_"       />
     <objectDestructor name="powerSpectrum_"      />
     <objectDestructor name="cosmologyFunctions_" />
     <objectDestructor name="darkMatterHaloScale_"/>
@@ -145,13 +152,14 @@ contains
     return
   end function darkMatterProfilePromptCuspsConstructorParameters
 
-  function darkMatterProfilePromptCuspsConstructorInternal(alpha,beta,kappa,C,p,powerSpectrum_,cosmologyFunctions_,darkMatterHaloScale_) result(self)
+  function darkMatterProfilePromptCuspsConstructorInternal(alpha,beta,kappa,C,p,linearGrowth_,powerSpectrum_,cosmologyFunctions_,darkMatterHaloScale_) result(self)
     !!{
     Constructor for the \refClass{nodeOperatorDarkMatterProfilePromptCusps} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type            (nodeOperatorDarkMatterProfilePromptCusps)                        :: self
+    class           (linearGrowthClass                       ), intent(in   ), target :: linearGrowth_
     class           (powerSpectrumClass                      ), intent(in   ), target :: powerSpectrum_
     class           (cosmologyFunctionsClass                 ), intent(in   ), target :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass                ), intent(in   ), target :: darkMatterHaloScale_
@@ -159,7 +167,7 @@ contains
          &                                                                               kappa               , C   , &
          &                                                                               p
     !![
-    <constructorAssign variables="alpha, beta, kappa, C, p, *powerSpectrum_, *cosmologyFunctions_, *darkMatterHaloScale_"/>
+    <constructorAssign variables="alpha, beta, kappa, C, p, *linearGrowth_, *powerSpectrum_, *cosmologyFunctions_, *darkMatterHaloScale_"/>
     !!]
 
     !![
@@ -167,6 +175,7 @@ contains
     <addMetaProperty component="darkMatterProfile" name="promptCuspMass"      id="self%promptCuspMassID"      isEvolvable="no" isCreator="yes"/>
     <addMetaProperty component="darkMatterProfile" name="promptCuspNFWY"      id="self%promptCuspNFWYID"      isEvolvable="no" isCreator="yes"/>
     !!]
+    self%growthIsWavenumberDependent=self%linearGrowth_%isWavenumberDependent()
     return
   end function darkMatterProfilePromptCuspsConstructorInternal
 
@@ -178,6 +187,7 @@ contains
     type(nodeOperatorDarkMatterProfilePromptCusps), intent(inout) :: self
 
     !![
+    <objectDestructor name="self%linearGrowth_"       />
     <objectDestructor name="self%powerSpectrum_"      />
     <objectDestructor name="self%cosmologyFunctions_" />
     <objectDestructor name="self%darkMatterHaloScale_"/>
@@ -295,43 +305,71 @@ contains
     use :: Numerical_Integration, only : integrator
     use :: Numerical_Comparison , only : Values_Agree
     implicit none
-    class           (nodeOperatorDarkMatterProfilePromptCusps), intent(inout), target :: self
-    integer                                                   , intent(in   )         :: j
-    double precision                                          , intent(in   )         :: time
-    double precision                                          , parameter             :: wavenumberPhysicalMinimum           =1.0d-2 , wavenumberPhysicalMaximum           =1.0d+2, &
-         &                                                                               toleranceRelative                   =1.0d-3
-    type            (integrator                              ), save                  :: integrator_
-    logical                                                   , save                  :: integratorInitialized               =.false.
+    class           (nodeOperatorDarkMatterProfilePromptCusps), intent(inout), target       :: self
+    integer                                                   , intent(in   )               :: j
+    double precision                                          , intent(in   )               :: time
+    double precision                                          , parameter                   :: wavenumberPhysicalMinimum           =1.0d-2 , wavenumberPhysicalMaximum           =1.0d+2, &
+         &                                                                                     toleranceRelative                   =1.0d-3
+    type            (integrator                              ), save                        :: integrator_
+    logical                                                   , save                        :: integratorInitialized               =.false.
     !$omp threadprivate(integrator_,integratorInitialized)
-    double precision                                                                  :: wavenumberPhysicalLogarithmicMinimum        , wavenumberPhysicalLogarithmicMaximum, &
-         &                                                                               sigmaPrevious
+    double precision                                          , allocatable  , dimension(:) :: sigmaTmp
+    double precision                                                                        :: wavenumberPhysicalLogarithmicMinimum        , wavenumberPhysicalLogarithmicMaximum, &
+         &                                                                                     sigmaPrevious
 
     ! Initialize an integrator if necessary.
     if (.not.integratorInitialized) then       
        integrator_          =integrator(integrand,toleranceRelative=toleranceRelative)
        integratorInitialized=.true.
     end if
-    ! Make an initial guess for the range of wavenumbers over which to integrate the power spectrum.
-    self_                                => self
-    j_                                   =  j
-    time_                                =  time
-    expansionFactor_                     =  self%cosmologyFunctions_%expansionFactor(time)
-    wavenumberPhysicalLogarithmicMinimum =  log(wavenumberPhysicalMinimum)
-    wavenumberPhysicalLogarithmicMaximum =  log(wavenumberPhysicalMaximum)
-    sigmaPrevious                        =  -huge(0.0d0)
-    sigma                                =  +     0.0d0
-    ! Expand the range over wavenumbers integrated over until the integral is sufficiently well converged.
-    do while (.not.Values_Agree(sigma,sigmaPrevious,relTol=toleranceRelative))
-       sigmaPrevious                       =+sigma
-       sigma                               =+sqrt(                                                            &
-            &                                     integrator_%integrate(                                      &
-            &                                                           wavenumberPhysicalLogarithmicMinimum, &
-            &                                                           wavenumberPhysicalLogarithmicMaximum  &
-            &                                                          )                                      &
-            &                                    )
-       wavenumberPhysicalLogarithmicMinimum=+wavenumberPhysicalLogarithmicMinimum-1.0d0
-       wavenumberPhysicalLogarithmicMaximum=+wavenumberPhysicalLogarithmicMaximum+1.0d0
-    end do
+    ! Is growth is not wavenumber dependent, check if we have computed the value of sigma for this j.
+    if (.not.self%growthIsWavenumberDependent) then
+       if (.not.allocated(self%sigma_)) then
+          allocate(self%sigma_(0:j))
+          self%sigma_                    =-huge(0.0d0)
+       else if (ubound(self%sigma_,dim=1) < j) then
+          call move_alloc(self%sigma_,sigmaTmp)
+          allocate(self%sigma_(0:j))
+          self%sigma_                    =-huge(0.0d0)
+          self%sigma_(0:size(sigmaTmp)-1)= sigmaTmp
+       end if
+    end if
+    ! Determine if we need to perform the integral.
+    if (self%growthIsWavenumberDependent .or. self%sigma_(j) < 0.0d0) then
+       ! Make an initial guess for the range of wavenumbers over which to integrate the power spectrum.
+       if (self%growthIsWavenumberDependent) then
+          time_                             =  time
+          expansionFactor_                  =  self%cosmologyFunctions_%expansionFactor(time            )
+       else
+          expansionFactor_                  =  1.0d0
+          time_                             =  self%cosmologyFunctions_%cosmicTime     (expansionFactor_)
+       end if
+       self_                                => self
+       j_                                   =  j
+       wavenumberPhysicalLogarithmicMinimum =  log(wavenumberPhysicalMinimum)
+       wavenumberPhysicalLogarithmicMaximum =  log(wavenumberPhysicalMaximum)
+       sigmaPrevious                        =  -huge(0.0d0)
+       sigma                                =  +     0.0d0
+       ! Expand the range over wavenumbers integrated over until the integral is sufficiently well converged.
+       do while (.not.Values_Agree(sigma,sigmaPrevious,relTol=toleranceRelative))
+          sigmaPrevious                       =+sigma
+          sigma                               =+sqrt(                                                            &
+               &                                     integrator_%integrate(                                      &
+               &                                                           wavenumberPhysicalLogarithmicMinimum, &
+               &                                                           wavenumberPhysicalLogarithmicMaximum  &
+               &                                                          )                                      &
+               &                                    )
+          wavenumberPhysicalLogarithmicMinimum=+wavenumberPhysicalLogarithmicMinimum-1.0d0
+          wavenumberPhysicalLogarithmicMaximum=+wavenumberPhysicalLogarithmicMaximum+1.0d0
+       end do
+       if (.not.self%growthIsWavenumberDependent) self%sigma_(j)=sigma
+    end if
+    ! If growth is wavenumber independent simply scale sigma to the current time (accounting for both linear growth and the fact
+    ! that these σ are defined in physical, not comoving coordinates).
+    if (.not.self%growthIsWavenumberDependent)                           &
+         & sigma=+self                    %sigma_         (     j   )    &
+         &       *self%linearGrowth_      %value          (time=time)    &
+         &       /self%cosmologyFunctions_%expansionFactor(time=time)**j
     return
   end function darkMatterProfilePromptCuspsNodeSigma
   
