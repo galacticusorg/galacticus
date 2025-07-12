@@ -563,17 +563,18 @@ contains
     use :: Stellar_Luminosities_Structure, only : frameRest
     use :: Input_Paths                   , only : inputPath                    , pathTypeDataDynamic
     implicit none
-    integer  (c_size_t                )                :: indexTemplate
-    class    (nodePropertyExtractorSED), intent(inout) :: self
-    type     (treeNode                ), intent(inout) :: node
-    type     (history                 ), intent(in   ) :: starFormationHistory
-    integer  (c_size_t                ), intent(  out) :: countTemplates 
-    class    (nodeComponentBasic      ), pointer       :: basic
-    integer  (c_size_t                )                :: indexOutput
-    type     (lockDescriptor          )                :: fileLock
-    type     (hdf5Object              )                :: file
-    type     (varying_string          )                :: fileName
-    character(len=16                  )                :: label
+    integer         (c_size_t                )                              :: indexTemplate
+    class           (nodePropertyExtractorSED), intent(inout)               :: self
+    type            (treeNode                ), intent(inout)               :: node
+    type            (history                 ), intent(in   )               :: starFormationHistory
+    integer         (c_size_t                ), intent(  out)               :: countTemplates 
+    class           (nodeComponentBasic      ), pointer                     :: basic
+    double precision                          , allocatable  , dimension(:) :: times
+    integer         (c_size_t                )                              :: indexOutput
+    type            (lockDescriptor          )                              :: fileLock
+    type            (hdf5Object              )                              :: file
+    type            (varying_string          )                              :: fileName
+    character       (len=16                  )                              :: label
 
     if      (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixed         ) then
        ! Ages are fixed. A single template can be used if we are computing rest-frame SEDs, and postprocessing is redshift independent.
@@ -636,8 +637,8 @@ contains
           !$ call hdf5Access%unset()
        end if
        if (.not.allocated(self%templates(indexTemplate)%sed)) then
-          basic                              => node%basic         (                                                                       )
-          self %templates(indexTemplate)%sed =  self%luminosityMean(basic%time(),node,indexTemplate,starFormationHistory,parallelize=.true.)
+          basic                              => node%basic         (                                                                                    )
+          self %templates(indexTemplate)%sed =  self%luminosityMean(basic%time(),node,indexTemplate,starFormationHistory,parallelize=.true.,times_=times)
           if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixed) then
              call displayMessage("storing SED tabulation to file '"                                        //fileName//"'",verbosityLevelWorking)
           else
@@ -647,8 +648,15 @@ contains
              call displayMessage("storing SED tabulation for time "//trim(adjustl(label))//" Gyr to file '"//fileName//"'",verbosityLevelWorking)
           end if
           !$ call hdf5Access%set()
-          call file%openFile(char(fileName),overWrite=.false.,readOnly=.false.)
-          call file%writeDataset(self%templates(indexTemplate)%sed,'sedTemplate')
+          call    file%openFile(char(fileName),overWrite=.false.,readOnly=.false.)
+          call    file%writeDataset(self %templates            (indexTemplate)%sed       ,'sedTemplate','A matrix mapping star formation history to SED.'                        )
+          call    file%writeDataset(self %templates            (indexTemplate)%wavelength,'wavelength' ,'The wavelengths at which the SED is tabulated [Å]'                      )
+          call    file%writeDataset(self %metallicityBoundaries                          ,'metallicity','The metallicities at which the star formation history is tabulated [Z☉]')
+          if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixed) then
+             call file%writeDataset(basic%time                 (             )    -times ,'ages'       ,'The ages at which the star formation history is tabulated [Gyr]'        )
+          else
+             call file%writeDataset(      times                                          ,'time'       ,'The times at which the star formation history is tabulated [Gyr]'       )
+          end if
           call file%close()
           !$ call hdf5Access%unset()
        end if
@@ -657,7 +665,7 @@ contains
     return
   end function sedIndexTemplateNode
 
-  double precision function sedLuminosityMean(self,time,node,indexOutput,starFormationHistory,parallelize)
+  double precision function sedLuminosityMean(self,time,node,indexOutput,starFormationHistory,parallelize,times_)
     !!{
     Compute the mean luminosity of the stellar population in each bin of the star formation history.
     !!}
@@ -674,37 +682,38 @@ contains
     use :: Star_Formation_Histories      , only : starFormationHistoryAgesFixed
     use :: Timers                        , only : timer
     implicit none
-    double precision                                            , dimension(:,:,:), allocatable :: sedLuminosityMean
-    class           (nodePropertyExtractorSED                  ), intent(inout)                 :: self
-    double precision                                            , intent(in   )                 :: time
-    type            (treeNode                                  ), intent(inout)                 :: node
-    integer         (c_size_t                                  ), intent(in   )                 :: indexOutput
-    type            (history                                   ), intent(in   )                 :: starFormationHistory
-    logical                                                     , intent(in   )   , optional    :: parallelize
-    class           (stellarPopulationSpectraClass             ), pointer         , save        :: stellarPopulationSpectra_
-    class           (stellarPopulationSpectraPostprocessorClass), pointer         , save        :: stellarPopulationSpectraPostprocessor_
-    class           (cosmologyFunctionsClass                   ), pointer         , save        :: cosmologyFunctions_
-    type            (integrator                                ), allocatable     , save        :: integratorTime                        , integratorMetallicity, &
-         &                                                                                         integratorWavelength
-    integer         (c_size_t                                  ), dimension(:    ), allocatable :: jWavelength
-    double precision                                            , dimension(:    ), allocatable :: wavelengthMinima                      , wavelengthMaxima     , &
-         &                                                                                         times
-    double precision                                            , dimension(  :,:), allocatable :: masses
-    integer         (c_size_t                                  )                                :: iWavelength                           , iTime                , &
-         &                                                                                         iMetallicity                          , kWavelength          , &
-         &                                                                                         counter                               , counterMaximum       , &
-         &                                                                                         iterator
-    double precision                                                                            :: metallicityMinimum                    , metallicityMaximum   , &
-         &                                                                                         expansionFactor                       , timeStart
-    double precision                                                              , save        :: timeMinimum                           , timeMaximum          , &
-         &                                                                                         wavelength                            , wavelengthMinimum    , &
-         &                                                                                         wavelengthMaximum                     , age                  , &
-         &                                                                                         redshift
-    type            (abundances                                )                  , save        :: abundancesStellar
-    character       (len=12                                    )                                :: label
-    type            (multiCounter                              )                                :: state
-    type            (ompLock                                   )                                :: stateLock
-    type            (timer                                     )                                :: timer_
+    double precision                                            , dimension(:,:,:)                            , allocatable :: sedLuminosityMean
+    class           (nodePropertyExtractorSED                  ), intent(inout)                                             :: self
+    double precision                                            , intent(in   )                                             :: time
+    type            (treeNode                                  ), intent(inout)                                             :: node
+    integer         (c_size_t                                  ), intent(in   )                                             :: indexOutput
+    type            (history                                   ), intent(in   )                                             :: starFormationHistory
+    logical                                                     , intent(in   )   , optional                                :: parallelize
+    double precision                                            , intent(  out)   , optional, dimension(:    ), allocatable :: times_
+    class           (stellarPopulationSpectraClass             ), pointer         , save                                    :: stellarPopulationSpectra_
+    class           (stellarPopulationSpectraPostprocessorClass), pointer         , save                                    :: stellarPopulationSpectraPostprocessor_
+    class           (cosmologyFunctionsClass                   ), pointer         , save                                    :: cosmologyFunctions_
+    type            (integrator                                ), allocatable     , save                                    :: integratorTime                        , integratorMetallicity, &
+         &                                                                                                                     integratorWavelength
+    integer         (c_size_t                                  )                            , dimension(:    ), allocatable :: jWavelength
+    double precision                                                                        , dimension(:    ), allocatable :: wavelengthMinima                      , wavelengthMaxima     , &
+         &                                                                                                                     times
+    double precision                                                                        , dimension(  :,:), allocatable :: masses
+    integer         (c_size_t                                  )                                                            :: iWavelength                           , iTime                , &
+         &                                                                                                                     iMetallicity                          , kWavelength          , &
+         &                                                                                                                     counter                               , counterMaximum       , &
+         &                                                                                                                     iterator
+    double precision                                                                                                        :: metallicityMinimum                    , metallicityMaximum   , &
+         &                                                                                                                     expansionFactor                       , timeStart
+    double precision                                                              , save                                    :: timeMinimum                           , timeMaximum          , &
+         &                                                                                                                     wavelength                            , wavelengthMinimum    , &
+         &                                                                                                                     wavelengthMaximum                     , age                  , &
+         &                                                                                                                     redshift
+    type            (abundances                                )                  , save                                    :: abundancesStellar
+    character       (len=12                                    )                                                            :: label
+    type            (multiCounter                              )                                                            :: state
+    type            (ompLock                                   )                                                            :: stateLock
+    type            (timer                                     )                                                            :: timer_
     !$omp threadprivate(stellarPopulationSpectra_,stellarPopulationSpectraPostprocessor_,cosmologyFunctions_,integratorTime,integratorWavelength,integratorMetallicity,abundancesStellar,wavelength,wavelengthMinimum,wavelengthMaximum,timeMinimum,timeMaximum,age,redshift)
     !$GLC attributes initialized :: masses
     !![
@@ -713,6 +722,7 @@ contains
 
     times =self%starFormationHistory_%times (node=node,indexOutput=indexOutput,starFormationHistory=starFormationHistory,allowTruncation=.false.,timeStart=timeStart)
     masses=self%starFormationHistory_%masses(node=node                        ,starFormationHistory=starFormationHistory,allowTruncation=.false.                    )
+    if (present(times_)) times_=times
     allocate(sedLuminosityMean(self%size(time),size(masses,dim=1),size(masses,dim=2)))
     select case (self%frame%ID)
     case (frameRest    %ID)
