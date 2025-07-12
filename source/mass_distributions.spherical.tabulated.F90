@@ -501,6 +501,9 @@ contains
     Tabulate the mass distribution.
     !!}
     use :: Coordinates                 , only : coordinateSpherical, assignment(=)
+    use :: Input_Paths                 , only : inputPath          , pathTypeDataDynamic
+    use :: File_Utilities              , only : File_Lock          , File_Path          , File_Unlock   , lockDescriptor       , &
+         &                                      File_Exists        , Directory_Make
     use :: Multi_Counters              , only : multiCounter
     use :: Display                     , only : displayIndent      , displayUnindent    , displayMessage, verbosityLevelWorking, &
          &                                      displayCounter     , displayCounterClear
@@ -515,10 +518,10 @@ contains
     type            (kinematicsDistributionCollisionless), save          , pointer       :: instanceKinematicsDistribution
     !$omp threadprivate(instance,instanceKinematicsDistribution)
     double precision                                     , dimension(:  ), allocatable   :: parameters_                   , parametersReduced_
-    integer         (c_size_t                           ), dimension(:  ), allocatable   :: countParameters               , iParameters
-    integer         (c_size_t                           )                                :: countRadii                    , iRadius             , &
-         &                                                                                  i                             , lengthMaximum       , &
-         &                                                                                  iterationCount                , iterationCountTotal
+    integer         (c_size_t                           ), dimension(:  ), allocatable   :: iParameters
+    integer         (c_size_t                           )                                :: lengthMaximum                 , iRadius             , &
+         &                                                                                  iterationCount                , iterationCountTotal , &
+         &                                                                                  i
     double precision                                                                     :: radius_                       , quantity_           , &
          &                                                                                  time_                         , wavenumber_         , &
          &                                                                                  radiusOuter_
@@ -526,164 +529,184 @@ contains
     type            (multiCounter                       )                                :: counter
     character       (len= 8                             )                                :: labelLower                    , labelUpper
     character       (len=64                             )                                :: labelSize
-    type            (varying_string                     )                                :: message
-    type            (coordinateSpherical                )                                :: coordinates                   , coordinatesZeroPoint
- 
+
     ! Test if within current tabulation range.
     if (retabulate()) then
-       tabulating=.true.
-       ! Restore tabulation from file if necessary.
-       call self%fileRead(container,tabulation)
-       ! Test if within current tabulation range.
-       if (retabulate()) then
-          call displayIndent("tabulating "//enumerationQuantityDecode(tabulation%quantity)//" profile for '"//char(self%objectType())//"'",verbosityLevelWorking)
-          ! Construct radius and parameter ranges.
-          tabulation%radiusMinimum        =min(tabulation%radiusMinimum    ,0.5d0*radiusScaled)
-          tabulation%radiusMaximum        =max(tabulation%radiusMaximum    ,2.0d0*radiusScaled)
-          tabulation%parametersMinimum    =max(min(tabulation%parametersMinimum,0.5d0*parameters  ),container%parametersMinimumLimit)
-          tabulation%parametersMaximum    =min(max(tabulation%parametersMaximum,2.0d0*parameters  ),container%parametersMaximumLimit)
-          countRadii                      =int(log10(    tabulation%radiusMaximum/tabulation%    radiusMinimum)*dble(    tabulation%radiusCountPer),kind=c_size_t)+1_c_size_t
-          countParameters                 =int(log10(tabulation%parametersMaximum/tabulation%parametersMinimum)*dble(tabulation%parametersCountPer),kind=c_size_t)+1_c_size_t
-          tabulation%radiusInverseStep    =dble(countRadii     -1_c_size_t)/log(tabulation%    radiusMaximum/tabulation%    radiusMinimum)
-          tabulation%parametersInverseStep=dble(countParameters-1_c_size_t)/log(tabulation%parametersMaximum/tabulation%parametersMinimum)
-          if (allocated(tabulation%table)) deallocate(tabulation%table)
-          select case(size(countParameters))
-          case (1)
-             allocate(tabulation%table(countRadii,countParameters(1),1                 ,1                 ))
-          case (2)
-             allocate(tabulation%table(countRadii,countParameters(1),countParameters(2),1                 ))
-          case (3)
-             allocate(tabulation%table(countRadii,countParameters(1),countParameters(2),countParameters(3)))
-          case default
-             call Error_Report('rank not supported'//{introspection:location})
-          end select
-          ! Report on tabulation.
-          lengthMaximum=max(12,maxval(len(container%nameParameters)))
-          write (labelLower,'(e8.2)') tabulation%radiusMinimum
-          write (labelUpper,'(e8.2)') tabulation%radiusMaximum
-          message=labelLower//" ≤ radiusScaled"//repeat(" ",lengthMaximum-12)//" ≤ "//labelUpper
-          call displayMessage(message,verbosityLevelWorking)
-          do i=1,size(countParameters)
-             write (labelLower,'(e8.2)') tabulation%parametersMinimum(i)
-             write (labelUpper,'(e8.2)') tabulation%parametersMaximum(i)
-             message=labelLower//" ≤ "//container%nameParameter(i,tabulation)//repeat(" ",lengthMaximum-len(container%nameParameter(i,tabulation)))//" ≤ "//labelUpper
-             call displayMessage(message,verbosityLevelWorking)
-          end do
-          labelSize=siFormat(dble(sizeof(tabulation%table)),'f8.2,1x')
-          message="tabulation size = "//trim(adjustl(labelSize))//"B"
-          call displayMessage(message,verbosityLevelWorking)
-          ! Iterate over parameters.
-          iterationCount     =0_c_size_t
-          iterationCountTotal=product(countParameters)
-          ! Tabulate in parallel.
-          !$omp parallel private(iRadius,radius_,time_,radiusOuter_,wavenumber_,coordinates,coordinatesZeroPoint,quantity_,iParameters,parameters_,parametersReduced_,workRemains,counter)
-          ! This is a new thread, so mark it as tabulating.
-          tabulating         =.true.
-          ! Initialize the counter and iterate over parameter states.
-          counter            =multiCounter(countParameters)
-          do while (.true.)
-             !$omp barrier
-             workRemains=counter%increment()
-             if (.not.workRemains) exit
-             !$omp master
-             call displayCounter(int(100.0d0*dble(iterationCount)/dble(iterationCountTotal)),iterationCount==0,verbosityLevelWorking)
-             iterationCount=iterationCount+1_c_size_t
-             !$omp end master
-             iParameters   =counter%states()
-             parameters_   =exp(log(tabulation%parametersMinimum)+dble(iParameters-1_c_size_t)/tabulation%parametersInverseStep)
-             ! Call the factory function in the child class to get an instance built with the current parameters.
-             select case (tabulation%quantity%ID)
-             case (quantityFourierTransform%ID)
-                if (.not.allocated(parametersReduced_)) allocate(parametersReduced_(size(parameters_-1)))
-                parametersReduced_ =  parameters_(1:size(parameters_)-1)
-                radiusOuter_       =  parameters_(  size(parameters_)  )
-                instance           => self%factoryTabulation(parametersReduced_)
-             case default
-                instance           => self%factoryTabulation(parameters_       )
-             end select
-             allocate(instanceKinematicsDistribution)
-             !![
-	     <referenceConstruct object="instanceKinematicsDistribution">
-	       <constructor>
-		 kinematicsDistributionCollisionless(                                                                                                                    &amp;
-                  &amp;                              toleranceRelativeVelocityDispersion       =self%kinematicsDistribution_%toleranceRelativeVelocityDispersion       , &amp;
-                  &amp;                              toleranceRelativeVelocityDispersionMaximum=self%kinematicsDistribution_%toleranceRelativeVelocityDispersionMaximum  &amp;
-                  &amp;                             )
-	       </constructor>
-	     </referenceConstruct>
-             !!]
-             call instance%setKinematicsDistribution(instanceKinematicsDistribution)
-             !![
-	     <objectDestructor name="instanceKinematicsDistribution"/>
-             !!]
-             ! Iterate over scaled radii.
-             !$omp do
-             do iRadius=1,countRadii
-                radius_             =exp(log(tabulation%radiusMinimum)+dble(iRadius-1_c_size_t)/tabulation%radiusInverseStep)
-                time_               = radius_
-                wavenumber_         = radius_
-                coordinates         =[radius_,0.0d0,0.0d0]
-                coordinatesZeroPoint=[1.0d0  ,0.0d0,0.0d0]
-                ! Compute the quantity numerically.
-                select case (tabulation%quantity%ID)
-                case (quantityMass                      %ID)
-                   quantity_=+instance%massEnclosedBySphereNumerical      (             radius_                      )
-                case (quantityEnergy                    %ID)
-                   quantity_=+instance%energyNumerical                    (             radius_             ,instance)
-                case (quantityPotential                 %ID)
-                   ! Potential is always referenced to a zero-point at the normalization radius.
-                   quantity_=+instance%potentialNumerical                 (             coordinates                  ) &
-                        &    -instance%potentialNumerical                 (             coordinatesZeroPoint         )
-                case (quantityVelocityDispersion1D      %ID)
-                   quantity_=+instance%velocityDispersion1D               (             coordinates                  )
-                case (quantityFourierTransform          %ID)
-                   quantity_=+instance%fourierTransformNumerical          (radiusOuter_,wavenumber_                  )
-                case (quantityRadiusFreefall            %ID)
-                   quantity_=+instance%radiusFreefallNumerical            (             time_                        )
-                case (quantityRadiusFreefallIncreaseRate%ID)
-                   quantity_=+instance%radiusFreefallIncreaseRateNumerical(             time_                        )
-                case (quantityDensityRadialMoment0      %ID)
-                   quantity_=+instance% densityRadialMomentNumerical      (0.0d0,0.0d0 ,radius_                      )
-                case (quantityDensityRadialMoment1      %ID)
-                   quantity_=+instance% densityRadialMomentNumerical      (1.0d0,0.0d0 ,radius_                      )
-                case (quantityDensityRadialMoment2      %ID)
-                   quantity_=+instance% densityRadialMomentNumerical      (2.0d0,0.0d0 ,radius_                      )
-                case (quantityDensityRadialMoment3      %ID)
-                   quantity_=+instance% densityRadialMomentNumerical      (3.0d0,0.0d0 ,radius_                      )
-                case default
-                   quantity_=+0.0d0
-                   call Error_Report('unknown quantity'//{introspection:location})
-                end select
-                ! For quantities that are negative, invert the sign prior to any logarithmic transform.
-                if (tabulation%isNegative  ) quantity_=-    quantity_
-                ! If logarithmic interpolation is requested, log-transform now.
-                if (tabulation%logTransform) quantity_=+log(quantity_)
-                ! Store the quantity.
-                select case(size(countParameters))
-                case (1)
-                   tabulation%table(iRadius,iParameters(1),1             ,1             )=quantity_
-                case (2)
-                   tabulation%table(iRadius,iParameters(1),iParameters(2),1             )=quantity_
-                case (3)
-                   tabulation%table(iRadius,iParameters(1),iParameters(2),iParameters(3))=quantity_
-                case default
-                   call Error_Report('rank not supported'//{introspection:location})
-                end select
-             end do
-             !$omp end do
-             deallocate(instance)
-             nullify   (instance)
-          end do
-          !$omp master
-          call displayCounterClear(verbosityLevelWorking)
-          !$omp end master
-          tabulating=.false.
-          !$omp end parallel
-          ! Store tabulation to file.
-          call self%fileWrite(container,tabulation)
-          call displayUnindent('done',verbosityLevelWorking)
-       end if
-       tabulating=.false.
+       block
+         type(varying_string                     ) :: message     , fileName            , &
+              &                                       quantityName
+         type(coordinateSpherical                ) :: coordinates , coordinatesZeroPoint
+         type(lockDescriptor                     ) :: fileLock
+         
+         ! Generate the file name.
+         quantityName=enumerationQuantityDecode(tabulation%quantity)
+         fileName    =inputPath(pathTypeDataDynamic)//'massDistributions/'//self%objectType()//'_'//quantityName//'_'//self%suffix()//'.hdf5'
+         ! Restore tabulation from file if necessary.
+         call Directory_Make(char(File_Path(char(fileName))))
+         if (File_Exists(fileName)) then
+            call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
+            call self%fileRead(fileName,quantityName,container,tabulation)
+            call File_Unlock(fileLock)
+         end if
+         if (retabulate()) then
+            tabulating=.true.
+            call File_Lock(char(fileName),fileLock,lockIsShared=.false.)
+            if (File_Exists(fileName)) then
+               call self%fileRead(fileName,quantityName,container,tabulation)
+            end if
+            ! Test if within current tabulation range.
+            if (retabulate()) then
+               call displayIndent("tabulating "//enumerationQuantityDecode(tabulation%quantity)//" profile for '"//char(self%objectType())//"'",verbosityLevelWorking)
+               ! Construct radius and parameter ranges.
+               tabulation%radiusMinimum        =min(tabulation%radiusMinimum    ,0.5d0*radiusScaled)
+               tabulation%radiusMaximum        =max(tabulation%radiusMaximum    ,2.0d0*radiusScaled)
+               tabulation%parametersMinimum    =max(min(tabulation%parametersMinimum,0.5d0*parameters  ),container%parametersMinimumLimit)
+               tabulation%parametersMaximum    =min(max(tabulation%parametersMaximum,2.0d0*parameters  ),container%parametersMaximumLimit)
+               tabulation%countRadii           =int(log10(    tabulation%radiusMaximum/tabulation%    radiusMinimum)*dble(    tabulation%radiusCountPer),kind=c_size_t)+1_c_size_t
+               tabulation%countParameters      =int(log10(tabulation%parametersMaximum/tabulation%parametersMinimum)*dble(tabulation%parametersCountPer),kind=c_size_t)+1_c_size_t
+               tabulation%radiusInverseStep    =dble(tabulation%countRadii     -1_c_size_t)/log(tabulation%    radiusMaximum/tabulation%    radiusMinimum)
+               tabulation%parametersInverseStep=dble(tabulation%countParameters-1_c_size_t)/log(tabulation%parametersMaximum/tabulation%parametersMinimum)
+               if (allocated(tabulation%table)) deallocate(tabulation%table)
+               select case(size(tabulation%countParameters))
+               case (1)
+                  allocate(tabulation%table(tabulation%countRadii,tabulation%countParameters(1),1                            ,1                            ))
+               case (2)
+                  allocate(tabulation%table(tabulation%countRadii,tabulation%countParameters(1),tabulation%countParameters(2),1                            ))
+               case (3)
+                  allocate(tabulation%table(tabulation%countRadii,tabulation%countParameters(1),tabulation%countParameters(2),tabulation%countParameters(3)))
+               case default
+                  call Error_Report('rank not supported'//{introspection:location})
+               end select
+               ! Report on tabulation.
+               lengthMaximum=max(12,maxval(len(container%nameParameters)))
+               write (labelLower,'(e8.2)') tabulation%radiusMinimum
+               write (labelUpper,'(e8.2)') tabulation%radiusMaximum
+               message=labelLower//" ≤ radiusScaled"//repeat(" ",lengthMaximum-12)//" ≤ "//labelUpper
+               call displayMessage(message,verbosityLevelWorking)
+               do i=1,size(tabulation%countParameters)
+                  write (labelLower,'(e8.2)') tabulation%parametersMinimum(i)
+                  write (labelUpper,'(e8.2)') tabulation%parametersMaximum(i)
+                  message=labelLower//" ≤ "//container%nameParameter(i,tabulation)//repeat(" ",lengthMaximum-len(container%nameParameter(i,tabulation)))//" ≤ "//labelUpper
+                  call displayMessage(message,verbosityLevelWorking)
+               end do
+               labelSize=siFormat(dble(sizeof(tabulation%table)),'f8.2,1x')
+               message="tabulation size = "//trim(adjustl(labelSize))//"B"
+               call displayMessage(message,verbosityLevelWorking)
+               ! Iterate over parameters.
+               iterationCount     =0_c_size_t
+               iterationCountTotal=product(tabulation%countParameters)
+               ! Tabulate in parallel.
+               !$omp parallel private(iRadius,radius_,time_,radiusOuter_,wavenumber_,coordinates,coordinatesZeroPoint,quantity_,iParameters,parameters_,parametersReduced_,workRemains,counter)
+               ! This is a new thread, so mark it as tabulating.
+               tabulating         =.true.
+               ! Initialize the counter and iterate over parameter states.
+               counter            =multiCounter(tabulation%countParameters)
+               do while (.true.)
+                  !$omp barrier
+                  workRemains=counter%increment()
+                  if (.not.workRemains) exit
+                  !$omp master
+                  call displayCounter(int(100.0d0*dble(iterationCount)/dble(iterationCountTotal)),iterationCount==0,verbosityLevelWorking)
+                  iterationCount=iterationCount+1_c_size_t
+                  !$omp end master
+                  iParameters   =counter%states()
+                  parameters_   =exp(log(tabulation%parametersMinimum)+dble(iParameters-1_c_size_t)/tabulation%parametersInverseStep)
+                  ! Call the factory function in the child class to get an instance built with the current parameters.
+                  select case (tabulation%quantity%ID)
+                  case (quantityFourierTransform%ID)
+                     if (.not.allocated(parametersReduced_)) allocate(parametersReduced_(size(parameters_-1)))
+                     parametersReduced_ =  parameters_(1:size(parameters_)-1)
+                     radiusOuter_       =  parameters_(  size(parameters_)  )
+                     instance           => self%factoryTabulation(parametersReduced_)
+                  case default
+                     instance           => self%factoryTabulation(parameters_       )
+                  end select
+                  allocate(instanceKinematicsDistribution)
+                  !![
+		  <referenceConstruct object="instanceKinematicsDistribution">
+		    <constructor>
+		      kinematicsDistributionCollisionless(                                                                                                                    &amp;
+                       &amp;                              toleranceRelativeVelocityDispersion       =self%kinematicsDistribution_%toleranceRelativeVelocityDispersion       , &amp;
+                       &amp;                              toleranceRelativeVelocityDispersionMaximum=self%kinematicsDistribution_%toleranceRelativeVelocityDispersionMaximum  &amp;
+                       &amp;                             )
+		    </constructor>
+		  </referenceConstruct>
+                  !!]
+                  call instance%setKinematicsDistribution(instanceKinematicsDistribution)
+                  !![
+		  <objectDestructor name="instanceKinematicsDistribution"/>
+                  !!]
+                  ! Iterate over scaled radii.
+                  !$omp do
+                  do iRadius=1,tabulation%countRadii
+                     radius_             =exp(log(tabulation%radiusMinimum)+dble(iRadius-1_c_size_t)/tabulation%radiusInverseStep)
+                     time_               = radius_
+                     wavenumber_         = radius_
+                     coordinates         =[radius_,0.0d0,0.0d0]
+                     coordinatesZeroPoint=[1.0d0  ,0.0d0,0.0d0]
+                     ! Compute the quantity numerically.
+                     select case (tabulation%quantity%ID)
+                     case (quantityMass                      %ID)
+                        quantity_=+instance%massEnclosedBySphereNumerical      (             radius_                      )
+                     case (quantityEnergy                    %ID)
+                        quantity_=+instance%energyNumerical                    (             radius_             ,instance)
+                     case (quantityPotential                 %ID)
+                        ! Potential is always referenced to a zero-point at the normalization radius.
+                        quantity_=+instance%potentialNumerical                 (             coordinates                  ) &
+                             &    -instance%potentialNumerical                 (             coordinatesZeroPoint         )
+                     case (quantityVelocityDispersion1D      %ID)
+                        quantity_=+instance%velocityDispersion1D               (             coordinates                  )
+                     case (quantityFourierTransform          %ID)
+                        quantity_=+instance%fourierTransformNumerical          (radiusOuter_,wavenumber_                  )
+                     case (quantityRadiusFreefall            %ID)
+                        quantity_=+instance%radiusFreefallNumerical            (             time_                        )
+                     case (quantityRadiusFreefallIncreaseRate%ID)
+                        quantity_=+instance%radiusFreefallIncreaseRateNumerical(             time_                        )
+                     case (quantityDensityRadialMoment0      %ID)
+                        quantity_=+instance% densityRadialMomentNumerical      (0.0d0,0.0d0 ,radius_                      )
+                     case (quantityDensityRadialMoment1      %ID)
+                        quantity_=+instance% densityRadialMomentNumerical      (1.0d0,0.0d0 ,radius_                      )
+                     case (quantityDensityRadialMoment2      %ID)
+                        quantity_=+instance% densityRadialMomentNumerical      (2.0d0,0.0d0 ,radius_                      )
+                     case (quantityDensityRadialMoment3      %ID)
+                        quantity_=+instance% densityRadialMomentNumerical      (3.0d0,0.0d0 ,radius_                      )
+                     case default
+                        quantity_=+0.0d0
+                        call Error_Report('unknown quantity'//{introspection:location})
+                     end select
+                     ! For quantities that are negative, invert the sign prior to any logarithmic transform.
+                     if (tabulation%isNegative  ) quantity_=-    quantity_
+                     ! If logarithmic interpolation is requested, log-transform now.
+                     if (tabulation%logTransform) quantity_=+log(quantity_)
+                     ! Store the quantity.
+                     select case(size(tabulation%countParameters))
+                     case (1)
+                        tabulation%table(iRadius,iParameters(1),1             ,1             )=quantity_
+                     case (2)
+                        tabulation%table(iRadius,iParameters(1),iParameters(2),1             )=quantity_
+                     case (3)
+                        tabulation%table(iRadius,iParameters(1),iParameters(2),iParameters(3))=quantity_
+                     case default
+                        call Error_Report('rank not supported'//{introspection:location})
+                     end select
+                  end do
+                  !$omp end do
+                  deallocate(instance)
+                  nullify   (instance)
+               end do
+               !$omp master
+               call displayCounterClear(verbosityLevelWorking)
+               !$omp end master
+               tabulating=.false.
+               !$omp end parallel
+               ! Store tabulation to file.
+               call self%fileWrite(fileName,quantityName,container,tabulation)
+               call displayUnindent('done',verbosityLevelWorking)
+            end if
+            tabulating=.false.
+            call File_Unlock(fileLock)
+         end if
+       end block
     end if
     return
 
@@ -827,80 +850,65 @@ contains
     return
   end function sphericalTabulatedIsTabulating
   
-  subroutine sphericalTabulatedFileRead(self,container,tabulation)
+  subroutine sphericalTabulatedFileRead(self,fileName,quantityName,container,tabulation)
     !!{
     Read tabulated data from file.
     !!}
-    use :: Input_Paths    , only : inputPath              , pathTypeDataDynamic
     use :: HDF5_Access    , only : hdf5Access
     use :: IO_HDF5        , only : hdf5Object
-    use :: File_Utilities , only : File_Lock              , File_Path            , File_Unlock, lockDescriptor, &
-         &                         File_Exists
     use :: String_Handling, only : String_Upper_Case_First
     use :: Display        , only : displayMessage         , verbosityLevelWorking
     implicit none
     class  (massDistributionSphericalTabulated), intent(inout) :: self
+    type   (varying_string                    ), intent(in   ) :: fileName  , quantityName
     type   (massDistributionContainer         ), intent(inout) :: container
     type   (massDistributionTabulation        ), intent(inout) :: tabulation
-    type   (varying_string                    )                :: fileName  , quantityName
     type   (hdf5Object                        )                :: file
-    type   (lockDescriptor                    )                :: fileLock
     integer(c_size_t                          )                :: i
 
     if (allocated(tabulation%table)) deallocate(tabulation%table)
-    quantityName=enumerationQuantityDecode(tabulation%quantity)
-    fileName    =inputPath(pathTypeDataDynamic)//'massDistributions/'//self%objectType()//'_'//quantityName//'_'//self%suffix()//'.hdf5'
-    if (File_Exists(fileName)) then
-       call displayMessage("reading tabulated "//enumerationQuantityDecode(tabulation%quantity)//" profile from '"//char(fileName)//"'",verbosityLevelWorking)
-       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-       if (.not.allocated(tabulation%parametersMinimum    )) allocate(tabulation%parametersMinimum    (container%countParameters(tabulation)))
-       if (.not.allocated(tabulation%parametersMaximum    )) allocate(tabulation%parametersMaximum    (container%countParameters(tabulation)))
-       if (.not.allocated(tabulation%parametersInverseStep)) allocate(tabulation%parametersInverseStep(container%countParameters(tabulation)))
-       call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
-       !$ call hdf5Access%set()
-       call    file%openFile     (char(fileName)                                                                                         ,readOnly=.true.                    )
-       call    file%readAttribute(char(quantityName)//'RadiusMinimum'                                                                    ,tabulation%radiusMinimum           )
-       call    file%readAttribute(char(quantityName)//'RadiusMaximum'                                                                    ,tabulation%radiusMaximum           )
-       call    file%readAttribute(char(quantityName)//'RadiusInverseStep'                                                                ,tabulation%radiusInverseStep       )
-       do i=1,container%countParameters(tabulation)
-          call file%readAttribute(char(quantityName)//String_Upper_Case_First(char(container%nameParameter(i,tabulation)))//'Minimum'    ,tabulation%parametersMinimum    (i))
-          call file%readAttribute(char(quantityName)//String_Upper_Case_First(char(container%nameParameter(i,tabulation)))//'Maximum'    ,tabulation%parametersMaximum    (i))
-          call file%readAttribute(char(quantityName)//String_Upper_Case_First(char(container%nameParameter(i,tabulation)))//'InverseStep',tabulation%parametersInverseStep(i))
-       end do
-       call    file%readDataset  (char(quantityName)                                                                                     ,tabulation%table                   )
-       call    file%close        (                                                                                                                                           )
-       !$ call hdf5Access%unset()
-       call File_Unlock(fileLock)
-    end if
+    call displayMessage("reading tabulated "//enumerationQuantityDecode(tabulation%quantity)//" profile from '"//char(fileName)//"'",verbosityLevelWorking)
+    if (.not.allocated(tabulation%parametersMinimum    )) allocate(tabulation%parametersMinimum    (container%countParameters(tabulation)))
+    if (.not.allocated(tabulation%parametersMaximum    )) allocate(tabulation%parametersMaximum    (container%countParameters(tabulation)))
+    if (.not.allocated(tabulation%parametersInverseStep)) allocate(tabulation%parametersInverseStep(container%countParameters(tabulation)))
+    if (.not.allocated(tabulation%countParameters      )) allocate(tabulation%countParameters      (container%countParameters(tabulation)))
+    !$ call hdf5Access%set()
+    call    file%openFile     (char(fileName)                                                                                         ,readOnly=.true.                    )
+    call    file%readAttribute(char(quantityName)//'RadiusMinimum'                                                                    ,tabulation%radiusMinimum           )
+    call    file%readAttribute(char(quantityName)//'RadiusMaximum'                                                                    ,tabulation%radiusMaximum           )
+    call    file%readAttribute(char(quantityName)//'RadiusInverseStep'                                                                ,tabulation%radiusInverseStep       )
+    do i=1,container%countParameters(tabulation)
+       call file%readAttribute(char(quantityName)//String_Upper_Case_First(char(container%nameParameter(i,tabulation)))//'Minimum'    ,tabulation%parametersMinimum    (i))
+       call file%readAttribute(char(quantityName)//String_Upper_Case_First(char(container%nameParameter(i,tabulation)))//'Maximum'    ,tabulation%parametersMaximum    (i))
+       call file%readAttribute(char(quantityName)//String_Upper_Case_First(char(container%nameParameter(i,tabulation)))//'InverseStep',tabulation%parametersInverseStep(i))
+    end do
+    call    file%readDataset  (char(quantityName)                                                                                     ,tabulation%table                   )
+    call    file%close        (                                                                                                                                           )
+    !$ call hdf5Access%unset()
+    tabulation   %countRadii        =size(tabulation%table,dim=  1)
+    do i=1,container%countParameters(tabulation)
+       tabulation%countParameters(i)=size(tabulation%table,dim=i+1)
+    end do
     return
   end subroutine sphericalTabulatedFileRead
 
-  subroutine sphericalTabulatedFileWrite(self,container,tabulation)
+  subroutine sphericalTabulatedFileWrite(self,fileName,quantityName,container,tabulation)
     !!{
     Read tabulated data from file.
     !!}
-    use :: Input_Paths    , only : inputPath              , pathTypeDataDynamic
     use :: HDF5_Access    , only : hdf5Access
     use :: IO_HDF5        , only : hdf5Object
-    use :: File_Utilities , only : File_Lock              , File_Path            , File_Unlock, lockDescriptor, &
-         &                         Directory_Make
     use :: String_Handling, only : String_Upper_Case_First
     use :: Display        , only : displayMessage         , verbosityLevelWorking
     implicit none
     class  (massDistributionSphericalTabulated), intent(inout) :: self
+    type   (varying_string                    ), intent(in   ) :: fileName  , quantityName
     type   (massDistributionContainer         ), intent(inout) :: container
     type   (massDistributionTabulation        ), intent(in   ) :: tabulation
-    type   (varying_string                    )                :: fileName  , quantityName
     type   (hdf5Object                        )                :: file
-    type   (lockDescriptor                    )                :: fileLock
     integer(c_size_t                          )                :: i
 
-    quantityName=enumerationQuantityDecode(tabulation%quantity)
-    fileName    =inputPath(pathTypeDataDynamic)//'massDistributions/'//self%objectType()//'_'//quantityName//'_'//self%suffix()//'.hdf5'
-    call Directory_Make(char(File_Path(char(fileName))))
     call displayMessage("writing tabulated "//char(quantityName)//" profile to '"//char(fileName)//"'",verbosityLevelWorking)
-    ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-    call File_Lock(char(fileName),fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
     call    file%openFile      (char(fileName)                     ,overWrite=.true.                                                                                                                                     )
     call    file%writeAttribute(tabulation%radiusMinimum           ,char(quantityName)//'RadiusMinimum'                                                                                                                  )
@@ -914,7 +922,6 @@ contains
     call    file%writeDataset  (tabulation%table                   ,char(quantityName)                                                                                     ,'Tabulated '//char(quantityName)//' profile.')
     call    file%close         (                                                                                                                                                                                         )
     !$ call hdf5Access%unset()
-    call File_Unlock(fileLock)
     return
   end subroutine sphericalTabulatedFileWrite
 
