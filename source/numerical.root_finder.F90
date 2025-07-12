@@ -675,6 +675,11 @@ contains
           end if
        end if
     end if
+    ! Set error handler if necessary.
+    if (present(status)) then
+       call GSL_Error_Handler_Abort_Off()
+       statusActual=errorStatusSuccess
+    end if
     ! Expand the range as necessary.
     if (self%useDerivative) then
        xRoot       =0.5d0*(xLow+xHigh)
@@ -872,11 +877,6 @@ contains
        currentFinders(currentFinderIndex)%highInitialUsed=.false.
        ! Set the initial range for the solver.
        statusActual=GSL_Root_fSolver_Set(self%solver,self%gslFunction,xLow,xHigh)
-    end if
-    ! Set error handler if necessary.
-    if (present(status)) then
-       call GSL_Error_Handler_Abort_Off()
-       statusActual=errorStatusSuccess
     end if
     ! Find the root.
     if (statusActual /= GSL_Success) then
