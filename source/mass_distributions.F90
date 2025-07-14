@@ -1210,8 +1210,7 @@ contains
                 if (status /= errorStatusSuccess) then
                    block
                      integer                   :: line
-                     type     (varying_string) :: reason , file, &
-                          &                       message
+                     type     (varying_string) :: reason, file
                      character(len=24        ) :: label
                      call GSL_Error_Details(reason,file,line,status)
                      call displayIndent('Jeans equation integration failure report')
