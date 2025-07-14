@@ -142,7 +142,7 @@ contains
                   &               *massDistributionEmbedding%y            **2
              if (radiusScaleFree < radiusScaleFreeSmall) then
                 ! Small radius. Use the tabulated solution at the small radius boundary, extrapolated to the actual
-                ! radius using the reuslt for a power-law ρ(r) ∝ r^{-3/2} profile.
+                ! radius using the result for a power-law ρ(r) ∝ r^{-3/2} profile.
                 coordinatesReference=[radiusScaleFreeSmall*massDistributionEmbedding%radiusScale,0.0d0,0.0d0]
                 velocityDispersion  =+massDistributionEmbedding%velocityDispersion1D         (coordinatesReference                                            ) &
                      &               *(                                                                                                                         &
