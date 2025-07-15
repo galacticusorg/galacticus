@@ -6,19 +6,20 @@
   <!-- Merger tree building options -->
   <mergerTreeConstructor value="build"/>
   <mergerTreeBuilder value="cole2000">
-    <accretionLimit     value="0.01"/>
-    <mergeProbability   value="0.10"/>
-    <branchIntervalStep value="true"/>
-    <redshiftMaximum    value="10.0"/>
+    <accretionLimit        value="0.01"  />
+    <mergeProbability      value="0.10"  />
+    <branchIntervalStep    value="true"  />
+    <redshiftMaximum       value="10.0"  />
+    <toleranceTimeEarliest value="1.0e-5"/>
   </mergerTreeBuilder>
   <mergerTreeBranchingProbability value="PCHPlus">
     <!-- Best fit values from PCH -->
-    <G0     value="+0.3632"/>
-    <gamma1 value="+0.2080"/>
-    <gamma2 value="+0.3013"/>
-    <gamma3 value="+0.2487"/>
-    <accuracyFirstOrder value="+0.10"/>
-    <cdmAssumptions value="true"/>
+    <G0                 value="+0.3632"/>
+    <gamma1             value="+0.2080"/>
+    <gamma2             value="+0.3013"/>
+    <gamma3             value="+0.2487"/>
+    <accuracyFirstOrder value="+0.1000"/>
+    <cdmAssumptions     value="true"   />
   </mergerTreeBranchingProbability>
 
   <!-- Subsampling merger of merger tree branches -->
