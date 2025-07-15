@@ -9,9 +9,16 @@
   <!-- Include parameters -->
   <xi:include href="progenitorMassFunctionParameters.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
   <xi:include href="progenitorMassFunctionResolution.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="simulation_MDPL2.xml"  	          xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="simulation_MDPL_MDPL2.xml"  	  xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
   <xi:include href="cosmology_MDPL.xml"      		  xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="powerSpectrum_MDPL.xml"               xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="transferFunction_MDPL_CDM.xml"        xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
   <xi:include href="mergerTreeEvolution.xml"		  xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+  <!-- Random number generator -->
+  <randomNumberGenerator value="GSL">
+    <seed value="9372"/>
+  </randomNumberGenerator>
 
   <!-- Task control -->
   <evolveForestsWorkShare value="cyclic"/>
@@ -20,8 +27,8 @@
   <mergerTreeBuildMasses value="sampledDistributionUniform">
     <!-- Minimum is 300 times the mass resolution -->
     <massTreeMinimum value="=[simulation/massParticle/resolutionX1]*[resolution/parentHaloParticleCountMinimum]"/>
-    <massTreeMaximum value="1.00e16"                                                                 />
-    <treesPerDecade  value="10000"                                                                   />
+    <massTreeMaximum value="1.00e16"                                                                            />
+    <treesPerDecade  value="10000"                                                                              />
   </mergerTreeBuildMasses>
   <mergerTreeMassResolution value="fixed">
     <!-- 1/5th of the minimum progneitor halo mass - such that our resolution is well below any mass scale that we care about -->
@@ -39,8 +46,8 @@
   <mergerTreeOperator value="regridTimes">
     <!-- Regrid the trees to massively speed up searching for parents etc. -->
     <outputTimes value="list">
-      <!-- Matched to SMDPL snapshots -->
-      <redshifts value="0.0 0.505343971097396 1.0 2.02114803625378 3.95049504950495 7.84955752212389 9.0"/>
+      <!-- Matched to MDPL2 snapshots -->
+      <redshifts value="0.0 0.489868891537545 0.987281399046105 2.02755071147442 4.03778337531486 7.96057347670251 9.0"/>
     </outputTimes>
   </mergerTreeOperator>
   <outputAnalysis value="multi">
@@ -52,8 +59,8 @@
       <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
+      <covarianceTargetOnly         value="false"                                                                                    />
+      <likelihoodInLog              value="false"                                                                                    />
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
@@ -68,8 +75,8 @@
       <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
+      <covarianceTargetOnly         value="false"                                                                                    />
+      <likelihoodInLog              value="false"                                                                                    />
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
@@ -84,8 +91,8 @@
       <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
+      <covarianceTargetOnly         value="false"                                                                                    />
+      <likelihoodInLog              value="false"                                                                                    />
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
@@ -100,8 +107,8 @@
       <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
+      <covarianceTargetOnly         value="false"                                                                                    />
+      <likelihoodInLog              value="false"                                                                                    />
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
@@ -116,8 +123,8 @@
       <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
+      <covarianceTargetOnly         value="false"                                                                                    />
+      <likelihoodInLog              value="false"                                                                                    />
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
@@ -132,8 +139,8 @@
       <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
+      <covarianceTargetOnly         value="false"                                                                                    />
+      <likelihoodInLog              value="false"                                                                                    />
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
@@ -148,8 +155,8 @@
       <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^12.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
+      <covarianceTargetOnly         value="false"                                                                                    />
+      <likelihoodInLog              value="false"                                                                                    />
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
@@ -159,67 +166,67 @@
     </outputAnalysis>
     <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_MDPL2.hdf5"/>
-      <indexParent                  value="2"                                                                                        />
-      <indexRedshift                value="2"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^13.0"   />
-      <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
-      <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
-      <alwaysIsolatedOnly           value="true"                                                                                     />
-      <redshiftParent               value="0.0"                                                                                      />
-      <comment                      value="$13.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 13.50$; $z=0.49$; MDPL2 halos"/>
-      <label                        value="MDPL2M2Z0"                                                                               />
-      <targetLabel                  value="Klypin et al. (2015)"                                                                     />
+      <indexParent                  value="2"                                                                                                />
+      <indexRedshift                value="2"                                                                                                />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^13.0"/>
+      <massRatioLikelihoodMaximum   value="1.00"                                                                                             />
+      <covarianceDiagonalize        value="true"                                                                                             />
+      <covarianceTargetOnly         value="false"                                                                                            />
+      <likelihoodInLog              value="false"                                                                                            />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                                 />
+      <alwaysIsolatedOnly           value="true"                                                                                             />
+      <redshiftParent               value="0.0"                                                                                              />
+      <comment                      value="$13.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 13.50$; $z=0.49$; MDPL2 halos"      />
+      <label                        value="MDPL2M2Z0"                                                                                        />
+      <targetLabel                  value="Klypin et al. (2015)"                                                                             />
     </outputAnalysis>
     <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_MDPL2.hdf5"/>
-      <indexParent                  value="2"                                                                                        />
-      <indexRedshift                value="3"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^13.0"   />
-      <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
-      <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
-      <alwaysIsolatedOnly           value="true"                                                                                     />
-      <redshiftParent               value="0.0"                                                                                      />
-      <comment                      value="$13.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 13.50$; $z=0.99$; MDPL2 halos"/>
-      <label                        value="MDPL2M2Z1"                                                                               />
-      <targetLabel                  value="Klypin et al. (2015)"                                                                     />
+      <indexParent                  value="2"                                                                                                />
+      <indexRedshift                value="3"                                                                                                />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^13.0"/>
+      <massRatioLikelihoodMaximum   value="1.00"                                                                                             />
+      <covarianceDiagonalize        value="true"                                                                                             />
+      <covarianceTargetOnly         value="false"                                                                                            />
+      <likelihoodInLog              value="false"                                                                                            />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                                 />
+      <alwaysIsolatedOnly           value="true"                                                                                             />
+      <redshiftParent               value="0.0"                                                                                              />
+      <comment                      value="$13.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 13.50$; $z=0.99$; MDPL2 halos"      />
+      <label                        value="MDPL2M2Z1"                                                                                        />
+      <targetLabel                  value="Klypin et al. (2015)"                                                                             />
     </outputAnalysis>
     <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_MDPL2.hdf5"/>
-      <indexParent                  value="2"                                                                                        />
-      <indexRedshift                value="4"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^13.0"   />
-      <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
-      <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
-      <alwaysIsolatedOnly           value="true"                                                                                     />
-      <redshiftParent               value="0.0"                                                                                      />
-      <comment                      value="$13.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 13.50$; $z=2.03$; MDPL2 halos"/>
-      <label                        value="MDPL2M2Z2"                                                                               />
-      <targetLabel                  value="Klypin et al. (2015)"                                                                     />
+      <indexParent                  value="2"                                                                                                />
+      <indexRedshift                value="4"                                                                                                />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^13.0"/>
+      <massRatioLikelihoodMaximum   value="1.00"                                                                                             />
+      <covarianceDiagonalize        value="true"                                                                                             />
+      <covarianceTargetOnly         value="false"                                                                                            />
+      <likelihoodInLog              value="false"                                                                                            />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                                 />
+      <alwaysIsolatedOnly           value="true"                                                                                             />
+      <redshiftParent               value="0.0"                                                                                              />
+      <comment                      value="$13.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 13.50$; $z=2.03$; MDPL2 halos"      />
+      <label                        value="MDPL2M2Z2"                                                                                        />
+      <targetLabel                  value="Klypin et al. (2015)"                                                                             />
     </outputAnalysis>
     <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_MDPL2.hdf5"/>
-      <indexParent                  value="2"                                                                                        />
-      <indexRedshift                value="5"                                                                                        />
-      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^13.0"   />
-      <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
-      <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
-      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
-      <alwaysIsolatedOnly           value="true"                                                                                     />
-      <redshiftParent               value="0.0"                                                                                      />
-      <comment                      value="$13.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 13.50$; $z=4.04$; MDPL2 halos"/>
-      <label                        value="MDPL2M2Z3"                                                                               />
-      <targetLabel                  value="Klypin et al. (2015)"                                                                     />
+      <indexParent                  value="2"                                                                                                />
+      <indexRedshift                value="5"                                                                                                />
+      <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^13.0"/>
+      <massRatioLikelihoodMaximum   value="1.00"                                                                                             />
+      <covarianceDiagonalize        value="true"                                                                                             />
+      <covarianceTargetOnly         value="false"                                                                                            />
+      <likelihoodInLog              value="false"                                                                                            />
+      <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                                 />
+      <alwaysIsolatedOnly           value="true"                                                                                             />
+      <redshiftParent               value="0.0"                                                                                              />
+      <comment                      value="$13.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 13.50$; $z=4.04$; MDPL2 halos"      />
+      <label                        value="MDPL2M2Z3"                                                                                        />
+      <targetLabel                  value="Klypin et al. (2015)"                                                                             />
     </outputAnalysis>
     <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_MDPL2.hdf5"/>
@@ -228,8 +235,8 @@
       <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^13.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
+      <covarianceTargetOnly         value="false"                                                                                    />
+      <likelihoodInLog              value="false"                                                                                    />
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
@@ -244,8 +251,8 @@
       <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^13.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
+      <covarianceTargetOnly         value="false"                                                                                    />
+      <likelihoodInLog              value="false"                                                                                    />
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
@@ -260,8 +267,8 @@
       <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^13.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
+      <covarianceTargetOnly         value="false"                                                                                    />
+      <likelihoodInLog              value="false"                                                                                    />
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
@@ -276,8 +283,8 @@
       <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^13.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
+      <covarianceTargetOnly         value="false"                                                                                    />
+      <likelihoodInLog              value="false"                                                                                    />
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
@@ -292,8 +299,8 @@
       <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^13.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
+      <covarianceTargetOnly         value="false"                                                                                    />
+      <likelihoodInLog              value="false"                                                                                    />
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
@@ -308,8 +315,8 @@
       <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^14.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
+      <covarianceTargetOnly         value="false"                                                                                    />
+      <likelihoodInLog              value="false"                                                                                    />
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
@@ -324,8 +331,8 @@
       <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^14.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
+      <covarianceTargetOnly         value="false"                                                                                    />
+      <likelihoodInLog              value="false"                                                                                    />
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
@@ -340,8 +347,8 @@
       <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^14.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
+      <covarianceTargetOnly         value="false"                                                                                    />
+      <likelihoodInLog              value="false"                                                                                    />
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
@@ -356,8 +363,8 @@
       <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^14.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
+      <covarianceTargetOnly         value="false"                                                                                    />
+      <likelihoodInLog              value="false"                                                                                    />
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
@@ -372,8 +379,8 @@
       <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^14.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
+      <covarianceTargetOnly         value="false"                                                                                    />
+      <likelihoodInLog              value="false"                                                                                    />
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
@@ -388,8 +395,8 @@
       <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^14.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
+      <covarianceTargetOnly         value="false"                                                                                    />
+      <likelihoodInLog              value="false"                                                                                    />
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
@@ -404,8 +411,8 @@
       <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^14.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
+      <covarianceTargetOnly         value="false"                                                                                    />
+      <likelihoodInLog              value="false"                                                                                    />
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
@@ -420,8 +427,8 @@
       <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^14.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
+      <covarianceTargetOnly         value="false"                                                                                    />
+      <likelihoodInLog              value="false"                                                                                    />
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
@@ -436,8 +443,8 @@
       <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^14.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
+      <covarianceTargetOnly         value="false"                                                                                    />
+      <likelihoodInLog              value="false"                                                                                    />
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
@@ -452,8 +459,8 @@
       <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^14.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
+      <covarianceTargetOnly         value="false"                                                                                    />
+      <likelihoodInLog              value="false"                                                                                    />
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
@@ -468,8 +475,8 @@
       <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^15.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
+      <covarianceTargetOnly         value="false"                                                                                    />
+      <likelihoodInLog              value="false"                                                                                    />
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
@@ -484,8 +491,8 @@
       <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^15.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
+      <covarianceTargetOnly         value="false"                                                                                    />
+      <likelihoodInLog              value="false"                                                                                    />
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
@@ -500,8 +507,8 @@
       <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^15.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
+      <covarianceTargetOnly         value="false"                                                                                    />
+      <likelihoodInLog              value="false"                                                                                    />
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
@@ -516,8 +523,8 @@
       <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^15.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
+      <covarianceTargetOnly         value="false"                                                                                    />
+      <likelihoodInLog              value="false"                                                                                    />
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
@@ -532,8 +539,8 @@
       <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^15.0"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
+      <covarianceTargetOnly         value="false"                                                                                    />
+      <likelihoodInLog              value="false"                                                                                    />
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
@@ -548,8 +555,8 @@
       <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^15.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
+      <covarianceTargetOnly         value="false"                                                                                    />
+      <likelihoodInLog              value="false"                                                                                    />
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
@@ -564,8 +571,8 @@
       <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^15.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
+      <covarianceTargetOnly         value="false"                                                                                    />
+      <likelihoodInLog              value="false"                                                                                    />
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
@@ -580,8 +587,8 @@
       <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^15.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
+      <covarianceTargetOnly         value="false"                                                                                    />
+      <likelihoodInLog              value="false"                                                                                    />
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
@@ -596,8 +603,8 @@
       <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^15.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
+      <covarianceTargetOnly         value="false"                                                                                    />
+      <likelihoodInLog              value="false"                                                                                    />
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
@@ -612,8 +619,8 @@
       <massRatioLikelihoodMinimum   value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/10.0^15.5"   />
       <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
       <covarianceDiagonalize        value="true"                                                                                     />
-      <covarianceTargetOnly         value="true"                                                                                     />
-      <likelihoodInLog              value="true"                                                                                     />
+      <covarianceTargetOnly         value="false"                                                                                    />
+      <likelihoodInLog              value="false"                                                                                    />
       <rootVarianceTargetFractional value="=[progenitorMassFunctionParameters/rootVarianceTargetFractional]"                        />
       <alwaysIsolatedOnly           value="true"                                                                                     />
       <redshiftParent               value="0.0"                                                                                      />
