@@ -152,11 +152,11 @@ contains
        do i=1,size(modelParametersInactive_)
           ! Check for duplicated parameters.
           do j=1,size(modelParametersInactive_)
-             if     (                                                                                                                                                  &
-                  &   modelParametersInactive_(i)%modelParameter_%name() == modelParametersInactive_(j)%modelParameter_%name()                                         &
-                  &  .and.                                                                                                                                             &
-                  &                            i                         /=                          j                                                                 &
-                  & ) call Error_Report("duplicated active parameter name '"//char(modelParametersInactive_(i)%modelParameter_%name())//"'"//{introspection:location})
+             if     (                                                                                                                                                    &
+                  &   modelParametersInactive_(i)%modelParameter_%name() == modelParametersInactive_(j)%modelParameter_%name()                                           &
+                  &  .and.                                                                                                                                               &
+                  &                            i                         /=                          j                                                                   &
+                  & ) call Error_Report("duplicated inactive parameter name '"//char(modelParametersInactive_(i)%modelParameter_%name())//"'"//{introspection:location})
           end do
           parameterCount=String_Count_Words(char(modelParametersInactive_(i)%modelParameter_%name()),"/")
           allocate(parameterNames(parameterCount))
@@ -352,14 +352,23 @@ contains
 #endif
                    if (self%modelParametersInactive_(i)%indexElement == 0) then
                       ! Simply overwrite the parameter.
-                      call self%modelParametersInactive_(i)%parameter_%set(valueDerived)
+                      if (modelParameter_%isInteger()) then
+                         write (valueText,'(i24)') int(valueDerived)
+                         call self%modelParametersInactive_(i)%parameter_%set(var_str(valueText   ))
+                      else
+                         call self%modelParametersInactive_(i)%parameter_%set(        valueDerived )
+                      end if
                    else
                       ! Overwrite only the indexed parameter in the list.
                       parameterText =self%modelParametersInactive_(i)%parameter_%get()
                       parameterCount=String_Count_Words(char(parameterText))
                       allocate(parameterNames(parameterCount))
                       call String_Split_Words(parameterNames,char(parameterText))
-                      write (valueText,'(e24.16)') valueDerived
+                      if (modelParameter_%isInteger()) then
+                         write (valueText,'(i24   )') valueDerived
+                      else
+                         write (valueText,'(e24.16)') valueDerived
+                      end if
                       parameterNames(self%modelParametersInactive_(i)%indexElement)=trim(valueText)
                       call self%modelParametersInactive_(i)%parameter_%set(String_Join(parameterNames," "))
                       deallocate(parameterNames)

@@ -1310,8 +1310,8 @@ contains
     use :: FoX_DOM           , only : setAttribute
     use :: ISO_Varying_String, only : char
     implicit none
-    class    (inputParameter), intent(inout) :: self
-    type     (varying_string), intent(in   ) :: value
+    class(inputParameter), intent(inout) :: self
+    type (varying_string), intent(in   ) :: value
 
     !$omp critical (FoX_DOM_Access)
     call setAttribute(self%content,"value",char(value))
@@ -2056,7 +2056,7 @@ contains
     logical                                                                             :: hasValueAttribute  , hasValueElement , &
          &                                                                                 isException        , isPresent       , &
          &                                                                                 isDouble           , isText          , &
-         &                                                                                 haveDefault
+         &                                                                                 isInteger          , haveDefault
     character       (len=parameterLengthMaximum              )                          :: expression         , parameterName   , &
          &                                                                                 workText           , content         , &
          &                                                                                 workValueText      , formatSpecifier , &
@@ -2113,7 +2113,8 @@ contains
           expression=getTextContent(valueElement)
           !$omp end critical (FoX_DOM_Access)
           if (expression(1:1) == "=" .and. evaluate_) then
-             {Type¦match¦^(Double|Character|VarStr)$¦if (.true.) then¦if (.false.) then}
+             {Type¦match¦^(Integer|Long|Double|Character|VarStr)$¦if (.true.) then¦if (.false.) then}
+                {Type¦match¦^Integer|Long¦isInteger=.true.¦isInteger=.false.}
                 {Type¦match¦^Double$¦isDouble=.true.¦isDouble=.false.}
                 {Type¦match¦^(Character|VarStr)¦isText=.true.¦isText=.false.}
                 ! This is an expression, and we have a scalar, floating point or text type - it can be evaluated.             
@@ -2148,7 +2149,7 @@ contains
                       else
                          call Error_Report('inserted parameters must have a format specifier'//{introspection:location})
                       end if
-                   else if (isDouble) then
+                   else if (isDouble.or.isInteger) then
                       haveDefault=index(parameterName,"|") > 0
                       if (haveDefault) then
                          defaultValue =parameterName(  index(parameterName,"|")+1:len_trim(parameterName))
@@ -2167,6 +2168,10 @@ contains
                          call parentParameters%value(trim(parameterLeafName),workValueText   )
                       end if
                       deallocate(parentParameters)
+                   else if (isInteger .and. haveDefault) then
+                      ! The parameter does not exist, but a default value is available - use that default.
+                      read (defaultValue,*) workValueInteger
+                      deallocate(parentParameters)
                    else if (isDouble .and. haveDefault) then
                       ! The parameter does not exist, but a default value is available - use that default.
                       read (defaultValue,*) workValueDouble
@@ -2179,6 +2184,8 @@ contains
                    end if
                    if (isDouble) then
                       write (workText,'(e24.16)') workValueDouble
+                   else if (isInteger) then
+                      write (workText,'(i24)'   ) workValueInteger
                    else if (isText) then
                       if      (parameterType == inputParameterTypeDouble ) then
                          write (worktext,formatSpecifier) workValueDouble
@@ -2191,13 +2198,18 @@ contains
                    expression=expression(1:index(expression,"[")-1)//trim(adjustl(workText))//expression(index(expression,"]")+1:len_trim(expression))
                 end do
                 !! Evaluate the expression.
-                if (isDouble) then
+                if (isDouble .or. isInteger) then
 #ifdef MATHEVALAVAIL
                    evaluator=Evaluator_Create_(trim(expression))
                    if (evaluator == 0) call Error_Report("failed to parse expression '"//trim(expression)//"' - see https://galacticusorg.github.io/libmatheval/doc/evaluator_005fcreate.html for supported operators and functions"//{introspection:location})
                    workValueDouble=Evaluator_Evaluate_(evaluator,0,"",0.0d0)
                    call Evaluator_Destroy_(evaluator)
-                   call parameterNode%set(workValueDouble)
+                   if (isDouble) then
+                      call parameterNode%set(workValueDouble)
+                   else if (isInteger) then
+                      write (workValueText,'(i24)') int(workValueDouble,kind=c_size_t)
+                      call parameterNode%set(var_str(trim(workValueText)))
+                   end if
                    !$omp critical (FoX_DOM_Access)
                    valueElement => getAttributeNode(parameterNode%content,"value")
                    !$omp end critical (FoX_DOM_Access)
