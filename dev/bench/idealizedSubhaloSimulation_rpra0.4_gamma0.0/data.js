@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1751687929677,
+  "lastUpdate": 1752617205298,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.4; γ=0.0)": [
@@ -7728,6 +7728,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/748251f674757f56d9651b652931102c83599583"
         },
         "date": 1751687928996,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteBoundMass",
+            "value": "26.85204754908515",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "12.856479837303228",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteVelocityMaximum",
+            "value": "11.535714177834446",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ee97583a3656c672a270e7c6abba73c66525336e",
+          "message": "Merge pull request #879 from galacticusorg/fixCuspNFWVelocityDispersion\n\nAdd a kinematics class for the cusp-NFW profile",
+          "timestamp": "2025-07-15T14:20:32Z",
+          "tree_id": "40dfdf406244ef3cce42d4a79cf7288fe53ac0fb",
+          "url": "https://github.com/galacticusorg/galacticus/commit/ee97583a3656c672a270e7c6abba73c66525336e"
+        },
+        "date": 1752617204389,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
