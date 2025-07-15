@@ -6,10 +6,10 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "748251f674757f56d9651b652931102c83599583",
-        "message": "Merge pull request #877 from galacticusorg/fixSHMCleanUp\n\nAvoid persistence of temporary parameter files on error\n",
-        "timestamp": "2025-07-04 21:25:08+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/748251f674757f56d9651b652931102c83599583"
+        "id": "ee97583a3656c672a270e7c6abba73c66525336e",
+        "message": "Merge pull request #879 from galacticusorg/fixCuspNFWVelocityDispersion\n\nAdd a kinematics class for the cusp-NFW profile\n",
+        "timestamp": "2025-07-15 14:20:32+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/ee97583a3656c672a270e7c6abba73c66525336e"
     },
     "surfaceDensity": {
         "percentageBelow": 42.857142857142854,
