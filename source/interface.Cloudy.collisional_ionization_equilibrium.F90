@@ -136,24 +136,24 @@ contains
        ! Perform calculations if necessary.
        if (computeCoolingFunctions .or. computeChemicalStates) then
           ! Generate metallicity and temperature arrays.
-          metallicityCount        =int(     (+metallicityMaximumLogarithmic-metallicityMinimumLogarithmic)/     metallicityStepLogarithmic+1.5d0)
-          temperatureCount        =int(     (+temperatureMaximumLogarithmic-temperatureMinimumLogarithmic)/     temperatureStepLogarithmic+1.5d0)
-          energyCount             =int(log10(+energyMaximum                /energyMinimum                )*dble(energyBinsPerDecade      )+1    )
-          allocate   (metallicitiesLogarithmic        (metallicityCount+1                             ))
-          allocate   (temperaturesLogarithmic         (                   temperatureCount            ))
-          allocate   (coolingFunction                 (metallicityCount+1,temperatureCount            ))
-          allocate   (densityElectron                 (metallicityCount+1,temperatureCount            ))
-          allocate   (densityHydrogenI                (metallicityCount+1,temperatureCount            ))
-          allocate   (densityHydrogenII               (metallicityCount+1,temperatureCount            ))
+          metallicityCount=int(     (+metallicityMaximumLogarithmic-metallicityMinimumLogarithmic)/     metallicityStepLogarithmic+1.5d0)
+          temperatureCount=int(     (+temperatureMaximumLogarithmic-temperatureMinimumLogarithmic)/     temperatureStepLogarithmic+1.5d0)
+          energyCount     =int(log10(+energyMaximum                /energyMinimum                )*dble(energyBinsPerDecade      )+1    )
+          allocate(metallicitiesLogarithmic(metallicityCount+1                 ))
+          allocate(temperaturesLogarithmic (                   temperatureCount))
+          allocate(coolingFunction         (metallicityCount+1,temperatureCount))
+          allocate(densityElectron         (metallicityCount+1,temperatureCount))
+          allocate(densityHydrogenI        (metallicityCount+1,temperatureCount))
+          allocate(densityHydrogenII       (metallicityCount+1,temperatureCount))
+          metallicitiesLogarithmic(1                   )=metallicityZeroLogarithmic
+          metallicitiesLogarithmic(2:metallicityCount+1)=Make_Range(metallicityMinimumLogarithmic,metallicityMaximumLogarithmic,metallicityCount,rangeTypeLinear)
+          temperaturesLogarithmic                       =Make_Range(temperatureMinimumLogarithmic,temperatureMaximumLogarithmic,temperatureCount,rangeTypeLinear)
           if (includeContinuum_) then
              allocate(energyContinuum                 (                                    energyCount))
              allocate(powerEmittedFractionalCumulative(metallicityCount+1,temperatureCount,energyCount))
+             energyContinuum                 =Make_Range(energyMinimum,energyMaximum,energyCount,rangeTypeLogarithmic)
              powerEmittedFractionalCumulative=0.0d0
           end if
-          metallicitiesLogarithmic(1                   )=metallicityZeroLogarithmic
-          metallicitiesLogarithmic(2:metallicityCount+1)=Make_Range(metallicityMinimumLogarithmic,metallicityMaximumLogarithmic,metallicityCount,rangeTypeLinear     )
-          temperaturesLogarithmic                       =Make_Range(temperatureMinimumLogarithmic,temperatureMaximumLogarithmic,temperatureCount,rangeTypeLinear     )
-          energyContinuum                               =Make_Range(energyMinimum                ,energyMaximum                ,energyCount     ,rangeTypeLogarithmic)
           ! Initialize Cloudy.
           call Interface_Cloudy_Initialize(cloudyPath,cloudyVersion)
           ! Specify file names for temporary Cloudy data.
