@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1751687936942,
+  "lastUpdate": 1752617213500,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=20 km/s)": [
@@ -2435,6 +2435,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
             "value": "5.638082539151067",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ee97583a3656c672a270e7c6abba73c66525336e",
+          "message": "Merge pull request #879 from galacticusorg/fixCuspNFWVelocityDispersion\n\nAdd a kinematics class for the cusp-NFW profile",
+          "timestamp": "2025-07-15T14:20:32Z",
+          "tree_id": "40dfdf406244ef3cce42d4a79cf7288fe53ac0fb",
+          "url": "https://github.com/galacticusorg/galacticus/commit/ee97583a3656c672a270e7c6abba73c66525336e"
+        },
+        "date": 1752617212533,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - mass function",
+            "value": "2.483200115938677",
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
+            "value": "5.726978952977434",
             "unit": "-logℒ"
           }
         ]
