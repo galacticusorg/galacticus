@@ -369,9 +369,9 @@ contains
     double precision                                                                                     :: massParentMinimum               , massParentMaximum        , &
          &                                                                                                  timeProgenitor                  , timeParent               , &
          &                                                                                                  redshiftMinimum                 , redshiftMaximum
-    double precision                                                     , allocatable, dimension(:    ) :: functionValueTarget             , massRatio                , &
-         &                                                                                                  redshiftProgenitor_val          , massParents              , &
-         &                                                                                                  massParentsMinimum              , massParentsMaximum
+    double precision                                                     , allocatable, dimension(:    ) :: functionValueTarget             , redshiftProgenitor_val   , &
+         &                                                                                                  massParentsMinimum              , massParentsMaximum       , &
+         &                                                                                                  massParents
     double precision                                                                                     :: redshiftProgenitor
     double precision                                                     , allocatable, dimension(:,:  ) :: functionCovarianceTarget
     double precision                                                     , allocatable, dimension(:,:,:) :: functionValuesTarget
@@ -434,7 +434,6 @@ contains
     !!{
     Internal constructor for the ``formationTimeDistribution'' output analysis class.
     !!}
-    use :: HDF5_Access                             , only : hdf5Access
     use :: Galactic_Filters                        , only : filterList                                      , galacticFilterDescendantNode                , galacticFilterHaloAlwaysIsolated             ,&
       &                                                     galacticFilterHaloIsolated                      , galacticFilterHaloMass                      , galacticFilterNot                            ,&
       &                                                     galacticFilterHaloMassRange
@@ -473,7 +472,6 @@ contains
     double precision                                                  , intent(in   ), optional, dimension(:  ) :: functionValueTarget
     double precision                                                  , intent(in   ), optional, dimension(:,:) :: functionCovarianceTarget
     double precision                                                  , parameter                               :: timeTolerance                                  =1.0d-04
-    !double precision                                                  , parameter                               :: massRatioBuffer                                =1.0d-01
     integer                                                           , parameter                               :: covarianceBinomialBinsPerDecade                =2
     double precision                                                  , parameter                               :: covarianceBinomialMassHaloMinimum              =3.0d+11, covarianceBinomialMassHaloMaximum=1.0d15
     logical                                                           , parameter                               :: allowSelf                                      =.false.
@@ -483,7 +481,6 @@ contains
     type            (galacticFilterHaloIsolated                      ), pointer                                 :: galacticFilterHaloIsolated_
     type            (galacticFilterDescendantNode                    ), pointer                                 :: galacticFilterParentNode_
     type            (galacticFilterNot                               ), pointer                                 :: galacticFilterNot_
-    !type            (galacticFilterHaloMass                          ), pointer                                 :: galacticFilterParentMassMinimum_                      , galacticFilterParentMassMaximum_
     type            (galacticFilterHaloMassRange                     ), pointer                                 :: galacticFilterParentMassMinimum_                     ,galacticFilterParentMassMaximum_,&
        &                                                                                                           galacticFilterHaloMassRange_ 
     type            (galacticFilterHaloAlwaysIsolated                ), pointer                                 :: galacticFilterHaloAlwaysIsolated_
