@@ -317,11 +317,11 @@ contains
              call    outputFile%close         (                                                                                                    )
              !$ call hdf5Access%unset         (                                                                                                    )
           end if
-          call File_Unlock(fileLockChemicalState  )
-          call File_Unlock(fileLockCoolingFunction)
           ! Write message.
           call displayUnindent("...done",verbosityLevelWorking)
        end if
+       call File_Unlock(fileLockChemicalState  )
+       call File_Unlock(fileLockCoolingFunction)
     end do
     return
   end subroutine Interface_Cloudy_CIE_Tabulate
