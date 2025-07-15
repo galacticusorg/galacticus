@@ -983,9 +983,9 @@ contains
           ! Compute the log-likelihood.
           progenitorMassFunctionLogLikelihood=-0.5d0*covariance%covarianceProduct(residual,status)
           if (status == GSL_Success) then
-             progenitorMassFunctionLogLikelihood=+progenitorMassFunctionLogLikelihood          &
-                  &                              -0.5d0*covariance%determinant      (        ) &
-                  &                              -0.5d0*dble(self%binCount)                    &
+             progenitorMassFunctionLogLikelihood=+progenitorMassFunctionLogLikelihood       &
+                  &                              -0.5d0*covariance%logarithmicDeterminant() &
+                  &                              -0.5d0*dble(self%binCount)                 &
                   &                              *log(2.0d0*Pi)
           else
              progenitorMassFunctionLogLikelihood=logImprobable
