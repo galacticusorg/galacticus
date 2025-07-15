@@ -883,7 +883,8 @@ contains
     Return the log-likelihood of the progenitor mass function.
     !!}
     use, intrinsic :: ISO_C_Binding               , only : c_size_t
-    use            :: Linear_Algebra              , only : assignment(=), matrix, operator(*), vector
+    use            :: Display                     , only : displayMessage, displayMagenta, displayReset
+    use            :: Linear_Algebra              , only : assignment(=) , matrix        , operator(*) , vector
     use            :: Interface_GSL               , only : GSL_Success
     use            :: Models_Likelihoods_Constants, only : logImprobable
     use            :: Numerical_Constants_Math    , only : Pi
@@ -892,13 +893,15 @@ contains
     double precision                                      , allocatable  , dimension(:,:) :: functionCovarianceCombined
     double precision                                      , allocatable  , dimension(:  ) :: functionValueDifference
     logical                                               , allocatable  , dimension(:  ) :: mask
-    double precision                                      , parameter                     :: logRatioZero              =7.0d0
+    double precision                                      , parameter                     :: logRatioZero              =700.0d0, ratioCovarianceLarge=0.1d0
+    logical                                               , save                          :: warnedLargeModelCovariance=.false.
     type            (vector                              )                                :: residual
     type            (matrix                              )                                :: covariance
-    integer         (c_size_t                            )                                :: i                               , j             , &
-         &                                                                                   ii                              , jj
+    integer         (c_size_t                            )                                :: i                                 , j                         , &
+         &                                                                                   ii                                , jj
     integer                                                                               :: status
-    double precision                                                                      :: covarianceTermTarget            , covarianceTerm
+    double precision                                                                      :: covarianceTermTarget              , covarianceTerm            , &
+         &                                                                                   ratioCovarianceMaximum
     
     ! Check for existence of a target distribution.
     if (allocated(self%functionValueTarget)) then
@@ -915,7 +918,8 @@ contains
           allocate(functionCovarianceCombined(count(mask),count(mask)))
           allocate(functionValueDifference   (count(mask)            ))
           ! Find combined covariance and difference between model and target.
-          ii=0
+          ii                    =0
+          ratioCovarianceMaximum=0.0d0
           do i=1,self%binCount
              if (mask(i)) then
                 ii=ii+1
@@ -935,6 +939,12 @@ contains
                         &                             -self%functionValueTarget(i)
                 end if
                 jj=0
+                ! Find the maximum ratio of model to target covariance.
+                ratioCovarianceMaximum=max(                                     &
+                     &                     +ratioCovarianceMaximum            , &
+                     &                     +self%functionCovariance      (i,i)  &
+                     &                     /self%functionCovarianceTarget(i,i)  &
+                     &                    )
                 do j=1,self%binCount
                    if (mask(j)) then
                       jj=jj+1
@@ -980,6 +990,11 @@ contains
           end do
           residual  =vector(functionValueDifference   )
           covariance=matrix(functionCovarianceCombined)
+          ! Warn about large model variances.
+          if (.not.self%covarianceTargetOnly .and. ratioCovarianceMaximum > ratioCovarianceLarge .and. .not.warnedLargeModelCovariance) then
+             call displayMessage(displayMagenta()//"WARNING:"//displayReset()//" in progenitor mass function analysis model variance is large (relative to that of target data) but is not included in total covariance - this warning will not be shown again")
+             warnedLargeModelCovariance=.true.
+          end if
           ! Compute the log-likelihood.
           progenitorMassFunctionLogLikelihood=-0.5d0*covariance%covarianceProduct(residual,status)
           if (status == GSL_Success) then
