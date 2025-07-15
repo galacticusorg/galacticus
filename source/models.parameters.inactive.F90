@@ -73,10 +73,10 @@ contains
     </inputParameter>
     !!]
     self=modelParameterInactive(name)
-     !![
-     <inputParametersValidate source="parameters"/>
-     !!]
-   return
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
+    return
   end function inactiveConstructorParameters
 
   function inactiveConstructorInternal(name_) result(self)
