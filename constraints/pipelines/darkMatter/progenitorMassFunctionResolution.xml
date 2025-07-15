@@ -7,7 +7,7 @@
   <!-- Define particle resolutions -->
   <resolution value="" ignoreWarnings="true">
     <!-- The number of particles in the minimum mass progenitor halo to consider. -->
-    <progenitorHaloParticleCountMinimum value=" 20.0"/>
+    <progenitorHaloParticleCountMinimum value=" 50.0"/>
     <!-- The number of particles in the minimum mass parent halo to consider.     -->
     <parentHaloParticleCountMinimum     value="300.0"/>
   </resolution>
