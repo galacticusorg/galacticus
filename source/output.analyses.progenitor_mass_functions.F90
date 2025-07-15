@@ -991,7 +991,7 @@ contains
           residual  =vector(functionValueDifference   )
           covariance=matrix(functionCovarianceCombined)
           ! Warn about large model variances.
-          if (.not.self%covarianceTargetOnly .and. ratioCovarianceMaximum > ratioCovarianceLarge .and. .not.warnedLargeModelCovariance) then
+          if (self%covarianceTargetOnly .and. ratioCovarianceMaximum > ratioCovarianceLarge .and. .not.warnedLargeModelCovariance) then
              call displayMessage(displayMagenta()//"WARNING:"//displayReset()//" in progenitor mass function analysis model variance is large (relative to that of target data) but is not included in total covariance - this warning will not be shown again")
              warnedLargeModelCovariance=.true.
           end if
