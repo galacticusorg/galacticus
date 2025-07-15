@@ -111,6 +111,7 @@ contains
     !!}
     implicit none
     class(kinematicsDistributionCollisionlessTabulated), intent(inout) :: self
+    !$GLC attributes unused :: self
     
     collisionlessTabulatedIsCollisional=.false.
     return

@@ -42,6 +42,7 @@
      double precision :: densityNormalization, radiusScale, &
           &              y
    contains
+     procedure :: describe              => cuspNFWDescribe
      procedure :: density               => cuspNFWDensity
      procedure :: densityGradientRadial => cuspNFWDensityGradientRadial
      procedure :: massEnclosedBySphere  => cuspNFWMassEnclosedBySphere
@@ -436,3 +437,21 @@ contains
     suffix=String_C_To_Fortran(massDistributionCuspNFWSourceDigest)
     return
   end function cuspNFWSuffix
+
+  subroutine cuspNFWDescribe(self)
+    !!{
+    Return a suffix for tabulated file names.
+    !!}
+    use :: Display, only : displayMessage
+    implicit none
+    class    (massDistributionCuspNFW), intent(inout) :: self
+    character(len=24                 )                :: label
+
+    write (label,'(e24.16)') self%densityNormalization
+    call displayMessage('densityNormalization = '//trim(label))
+    write (label,'(e24.16)') self%radiusScale
+    call displayMessage('radiusScale          = '//trim(label))
+    write (label,'(e24.16)') self%y
+    call displayMessage('y                    = '//trim(label))
+    return
+  end subroutine cuspNFWDescribe

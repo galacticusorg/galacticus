@@ -147,8 +147,8 @@ contains
     Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic         , nodeComponentDarkMatterProfile
-    use :: Galactic_Structure_Options, only : componentTypeDarkHalo      , massTypeDark                                , weightByMass
-    use :: Mass_Distributions        , only : massDistributionCuspNFW    , kinematicsDistributionCollisionlessTabulated, massDistributionNFW, kinematicsDistributionNFW, &
+    use :: Galactic_Structure_Options, only : componentTypeDarkHalo      , massTypeDark                  , weightByMass
+    use :: Mass_Distributions        , only : massDistributionCuspNFW    , kinematicsDistributionCuspNFW , massDistributionNFW, kinematicsDistributionNFW, &
          &                                    kinematicsDistributionClass
     implicit none
     class           (massDistributionClass         ), pointer                 :: massDistribution_
@@ -174,12 +174,12 @@ contains
     amplitudeCuspScaleFree =  darkMatterProfile%floatRank0MetaPropertyGet(self%promptCuspNFWYID)
     if (amplitudeCuspScaleFree <= 0.0d0) then
        ! For halos with no cusp, use an NFW mass distribution.
-       allocate(massDistributionNFW                          :: massDistribution_      )
-       allocate(kinematicsDistributionNFW                    :: kinematicsDistribution_)
+       allocate(massDistributionNFW           :: massDistribution_      )
+       allocate(kinematicsDistributionNFW     :: kinematicsDistribution_)
     else
        ! For halos with a cusp, use the cusp-NFW distribution.
-       allocate(massDistributionCuspNFW                      :: massDistribution_      )
-       allocate(kinematicsDistributionCollisionlessTabulated :: kinematicsDistribution_)
+       allocate(massDistributionCuspNFW       :: massDistribution_      )
+       allocate(kinematicsDistributionCuspNFW :: kinematicsDistribution_)
     end if
     select type(massDistribution_)
     type is (massDistributionCuspNFW)
@@ -198,14 +198,14 @@ contains
        </referenceConstruct>
        !!]
        select type (kinematicsDistribution_)
-       type is (kinematicsDistributionCollisionlessTabulated)
+       type is (kinematicsDistributionCuspNFW)
           !![
 	  <referenceConstruct object="kinematicsDistribution_">
 	    <constructor>
-              kinematicsDistributionCollisionlessTabulated(                                                                                            &amp;
-               &amp;                                       toleranceRelativeVelocityDispersion       =self%toleranceRelativeVelocityDispersion       , &amp; 
-               &amp;                                       toleranceRelativeVelocityDispersionMaximum=self%toleranceRelativeVelocityDispersionMaximum  &amp; 
-	       &amp;                                      )
+              kinematicsDistributionCuspNFW(                                                                                            &amp;
+               &amp;                        toleranceRelativeVelocityDispersion       =self%toleranceRelativeVelocityDispersion       , &amp; 
+               &amp;                        toleranceRelativeVelocityDispersionMaximum=self%toleranceRelativeVelocityDispersionMaximum  &amp; 
+	       &amp;                       )
 	    </constructor>
 	  </referenceConstruct>
           !!]
