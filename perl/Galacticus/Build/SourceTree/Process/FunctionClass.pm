@@ -1017,7 +1017,7 @@ CODE
 				    for(my $i=0;$i<$parameterCount;++$i) {
 					# <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336">
 					#   <description>
-					#     Array constructors are not correctly finalized. So, avoid using thme
+					#     Array constructors are not correctly finalized. So, avoid using them.
 					#   </description>
 					# $allowedParametersCode .= "       if (.not.any(trim(allowedParameters) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."')) countNew=countNew+1\n";
 					$allowedParametersCode .= "       isNew=.true.\n";
@@ -1038,7 +1038,7 @@ CODE
 				    for(my $i=0;$i<$parameterCount;++$i) {
 					# <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336">
 					#   <description>
-					#     Array constructors are not correctly finalized. So, avoid using thme
+					#     Array constructors are not correctly finalized. So, avoid using them.
 					#   </description>
 					# $allowedParametersCode .= "         if (.not.any(trim(allowedParameters(1:size(allowedParameters)-countNew)) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."')) then\n";
 					$allowedParametersCode .= "       isNew=.true.\n";
@@ -1075,7 +1075,7 @@ CODE
 				    for(my $i=0;$i<$parameterCount;++$i) {
 					# <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336">
 					#   <description>
-					#     Array constructors are not correctly finalized. So, avoid using thme
+					#     Array constructors are not correctly finalized. So, avoid using them.
 					#   </description>
 					# $allowedParametersCode .= "       if (.not.any(trim(allowedParameters) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."')) countNew=countNew+1\n";
 					$allowedParametersCode .= "       isNew=.true.\n";
@@ -1095,7 +1095,7 @@ CODE
 				    for(my $i=0;$i<$parameterCount;++$i) {
 					# <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336">
 					#   <description>
-					#     Array constructors are not correctly finalized. So, avoid using thme
+					#     Array constructors are not correctly finalized. So, avoid using them.
 					#   </description>
 					# $allowedParametersCode .= "         if (.not.any(trim(allowedParameters(1:size(allowedParameters)-countNew)) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."')) then\n";
 					$allowedParametersCode .= "       isNew=.true.\n";
