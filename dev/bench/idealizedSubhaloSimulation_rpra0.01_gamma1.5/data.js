@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1752617180397,
+  "lastUpdate": 1752699360401,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.01; γ=1.5)": [
@@ -7878,6 +7878,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/ee97583a3656c672a270e7c6abba73c66525336e"
         },
         "date": 1752617179254,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.01; γ=1.5) - Likelihood - satelliteBoundMass",
+            "value": "57.20229486294781",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.01; γ=1.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "29.56350148803499",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.01; γ=1.5) - Likelihood - satelliteVelocityMaximum",
+            "value": "23.03754786395062",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d8c01b4a46e407e3d1285833cd41fd216d725966",
+          "message": "Merge pull request #880 from galacticusorg/fixOpenMPCritical\n\nUse OpenMP locks instead of `critical` sections",
+          "timestamp": "2025-07-16T14:04:57Z",
+          "tree_id": "cdf63738d5321bc6d5ba616e6518fc08434a4cd8",
+          "url": "https://github.com/galacticusorg/galacticus/commit/d8c01b4a46e407e3d1285833cd41fd216d725966"
+        },
+        "date": 1752699359821,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
