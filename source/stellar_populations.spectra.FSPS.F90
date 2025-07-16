@@ -134,6 +134,7 @@ contains
     integer                                              :: fileFormatVersion
     type   (hdf5Object                  )                :: spectraFile
     type   (lockDescriptor              )                :: fileLock
+    integer                                              :: i
 
     ! Decide if we need to read the file.
     if (.not.self%fileRead) then
@@ -141,28 +142,33 @@ contains
        remakeFile=.false.
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call Directory_Make(char(File_Path(char(self%fileName))))
-       call File_Lock(char(self%fileName),fileLock,lockIsShared=.false.)
-       if (File_Exists(char(self%fileName))) then
-          !$ call hdf5Access%set()
-          call spectraFile%openFile     (char(self%fileName),readOnly         =.true.)
-          call spectraFile%readAttribute('fileFormat'       ,fileFormatVersion       )
-          if (fileFormatVersion /= fileFormatVersionCurrent) remakeFile=.true.
-          !$ call hdf5Access%unset()
-       else
-          remakeFile=.true.
-       end if
-       ! Generate the file if necessary.
-       if (remakeFile) then
-          ! Generate the IMF tabulation.
-          call self%initialMassFunction_%tabulate(imf)
-          ! Build the SSPs.
-          !$omp critical (stellarPopulationsFSPS)
-          call Interface_FSPS_SSPs_Tabulate(imf,self%initialMassFunction_%label(),fileFormatVersionCurrent,self%fileName)
-          !$omp end critical (stellarPopulationsFSPS)
-       end if
-       call File_Unlock(fileLock)
-       ! Call the parent file reader to complete reading.
-       call self%stellarPopulationSpectraFile%readFile()
+       do i=1,2
+          call File_Lock(char(self%fileName),fileLock,lockIsShared=i == 1)
+          if (File_Exists(char(self%fileName))) then
+             !$ call hdf5Access%set()
+             call spectraFile%openFile     (char(self%fileName),readOnly         =.true.)
+             call spectraFile%readAttribute('fileFormat'       ,fileFormatVersion       )
+             if (fileFormatVersion /= fileFormatVersionCurrent) remakeFile=.true.
+             !$ call hdf5Access%unset()
+          else
+             remakeFile=.true.
+          end if
+          if (remakeFile .and. i == 1) then
+             remakeFile=.false.
+             call File_Unlock(fileLock,sync=.false.)
+             cycle
+          end if
+          ! Generate the file if necessary.
+          if (remakeFile) then
+             ! Generate the IMF tabulation.
+             call self%initialMassFunction_%tabulate(imf)
+             ! Build the SSPs.
+             call Interface_FSPS_SSPs_Tabulate(imf,self%initialMassFunction_%label(),fileFormatVersionCurrent,self%fileName)
+          end if
+          ! Call the parent file reader to complete reading.
+          call self%stellarPopulationSpectraFile%readFile()
+          call File_Unlock(fileLock)
+       end do
     end if
     return
   end subroutine fspsReadFile
