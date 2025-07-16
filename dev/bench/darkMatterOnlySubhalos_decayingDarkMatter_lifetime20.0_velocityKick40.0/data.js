@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1752617217433,
+  "lastUpdate": 1752699396420,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=40 km/s)": [
@@ -2469,6 +2469,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
             "value": "16.955226514912198",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d8c01b4a46e407e3d1285833cd41fd216d725966",
+          "message": "Merge pull request #880 from galacticusorg/fixOpenMPCritical\n\nUse OpenMP locks instead of `critical` sections",
+          "timestamp": "2025-07-16T14:04:57Z",
+          "tree_id": "cdf63738d5321bc6d5ba616e6518fc08434a4cd8",
+          "url": "https://github.com/galacticusorg/galacticus/commit/d8c01b4a46e407e3d1285833cd41fd216d725966"
+        },
+        "date": 1752699395531,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": "8.179843268563136",
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": "14.789775642010229",
             "unit": "-logℒ"
           }
         ]
