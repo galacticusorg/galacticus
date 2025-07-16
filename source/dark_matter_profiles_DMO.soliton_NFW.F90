@@ -17,8 +17,6 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+    Contributions to this file made by: Yu Zhao
-
   !!{
   An implementation of fuzzy dark matter halo profiles using the soliton and NFW mass distribution.
   !!}
@@ -42,11 +40,12 @@
      !!}
      private
      double precision                                      :: massParticle
-     class           (darkMatterHaloScaleClass  ), pointer :: darkMatterHaloScale_   => null()
-     class           (cosmologyParametersClass  ), pointer :: cosmologyParameters_   => null()
-     class           (cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_    => null()
-     class           (darkMatterParticleClass   ), pointer :: darkMatterParticle_    => null()
-     class           (virialDensityContrastClass), pointer :: virialDensityContrast_ => null()
+     class           (darkMatterHaloScaleClass  ), pointer :: darkMatterHaloScale_               => null()
+     class           (cosmologyParametersClass  ), pointer :: cosmologyParameters_               => null()
+     class           (cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_                => null()
+     class           (darkMatterParticleClass   ), pointer :: darkMatterParticle_                => null()
+     class           (virialDensityContrastClass), pointer :: virialDensityContrast_             => null()
+     double precision                                      :: toleranceRelativeVelocityDispersion        , toleranceRelativeVelocityDispersionMaximum
    contains
      !![
      <methods>
@@ -85,15 +84,28 @@ contains
     class(cosmologyFunctionsClass       ), pointer       :: cosmologyFunctions_
     class(cosmologyParametersClass      ), pointer       :: cosmologyParameters_
     class(virialDensityContrastClass    ), pointer       :: virialDensityContrast_
+    double precision                                     :: toleranceRelativeVelocityDispersion , toleranceRelativeVelocityDispersionMaximum
 
     !![
+    <inputParameter>
+      <name>toleranceRelativeVelocityDispersion</name>
+      <defaultValue>1.0d-6</defaultValue>
+      <source>parameters</source>
+      <description>The relative tolerance to use in numerical solutions for the velocity dispersion.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>toleranceRelativeVelocityDispersionMaximum</name>
+      <defaultValue>1.0d-3</defaultValue>
+      <source>parameters</source>
+      <description>The maximum relative tolerance to use in numerical solutions for the velocity dispersion.</description>
+    </inputParameter>
     <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="parameters"/>
     <objectBuilder class="darkMatterParticle"    name="darkMatterParticle_"    source="parameters"/>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
     <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     !!]
-    self = darkMatterProfileDMOSolitonNFW(darkMatterHaloScale_,darkMatterParticle_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_)
+    self = darkMatterProfileDMOSolitonNFW(darkMatterHaloScale_,darkMatterParticle_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_"  />
@@ -105,7 +117,7 @@ contains
     return
   end function solitonNFWConstructorParameters
 
-  function solitonNFWConstructorInternal(darkMatterHaloScale_,darkMatterParticle_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_) result(self)
+  function solitonNFWConstructorInternal(darkMatterHaloScale_,darkMatterParticle_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum) result(self)
     !!{
     Generic constructor for the \refClass{darkMatterProfileDMOSolitonNFW} dark matter halo profile class.
     !!}
@@ -120,8 +132,9 @@ contains
     class(cosmologyFunctionsClass       ), intent(in), target :: cosmologyFunctions_
     class(cosmologyParametersClass      ), intent(in), target :: cosmologyParameters_
     class(virialDensityContrastClass    ), intent(in), target :: virialDensityContrast_
+    double precision                     , intent(in)         :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
     !![
-    <constructorAssign variables="*darkMatterHaloScale_, *darkMatterParticle_, *cosmologyFunctions_, *cosmologyParameters_, *virialDensityContrast_"/>
+    <constructorAssign variables="*darkMatterHaloScale_, *darkMatterParticle_, *cosmologyFunctions_, *cosmologyParameters_, *virialDensityContrast_, toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum"/>
     !!]
 
     select type (darkMatterParticle__ => self%darkMatterParticle_)
@@ -164,20 +177,20 @@ contains
     !!{
     Return the soliton plus NFW fuzzy dark matter mass distribution for the given {\normalfont \ttfamily node}.
     !!}
-    use :: Galactic_Structure_Options, only : componentTypeDarkHalo     , massTypeDark                                , weightByMass
-    use :: Mass_Distributions        , only : massDistributionSolitonNFW, kinematicsDistributionCollisionlessTabulated
+    use :: Galactic_Structure_Options, only : componentTypeDarkHalo     , massTypeDark                    , weightByMass
+    use :: Mass_Distributions        , only : massDistributionSolitonNFW, kinematicsDistributionSolitonNFW, kinematicsDistributionClass
     implicit none
-    class           (darkMatterProfileDMOSolitonNFW              ), intent(inout)           :: self
-    class           (massDistributionClass                       ), pointer                 :: massDistribution_
-    type            (kinematicsDistributionCollisionlessTabulated), pointer                 :: kinematicsDistribution_
-    type            (treeNode                                    ), intent(inout)           :: node
-    type            (enumerationWeightByType                     ), intent(in   ), optional :: weightBy
-    integer                                                       , intent(in   ), optional :: weightIndex
-    type            (enumerationWeightByType                     )                          :: weightBy_
-    double precision                                                                        :: radiusCore             , radiusScale , &
-         &                                                                                     radiusSoliton          , radiusVirial, &
-         &                                                                                     densityScale           , densityCore  , &
-         &                                                                                     massHaloMinimum0       , massCore
+    class           (darkMatterProfileDMOSolitonNFW), intent(inout)           :: self
+    class           (massDistributionClass         ), pointer                 :: massDistribution_
+    class           (kinematicsDistributionClass   ), pointer                 :: kinematicsDistribution_
+    type            (treeNode                      ), intent(inout)           :: node
+    type            (enumerationWeightByType       ), intent(in   ), optional :: weightBy
+    integer                                         , intent(in   ), optional :: weightIndex
+    type            (enumerationWeightByType       )                          :: weightBy_
+    double precision                                                          :: radiusCore             , radiusScale , &
+         &                                                                       radiusSoliton          , radiusVirial, &
+         &                                                                       densityScale           , densityCore , &
+         &                                                                       massHaloMinimum0       , massCore
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
     !!]
@@ -188,7 +201,8 @@ contains
     ! Compute properties of the distribution.
     call self%computeProperties(node,radiusVirial,radiusScale,radiusCore,radiusSoliton,densityCore,densityScale,massHaloMinimum0,massCore)
     ! Construct the distribution.
-    allocate(massDistributionSolitonNFW :: massDistribution_)
+    allocate(massDistributionSolitonNFW       :: massDistribution_)
+    allocate(kinematicsDistributionSolitonNFW :: kinematicsDistribution_)
     select type(massDistribution_)
     type is (massDistributionSolitonNFW)
        !![
@@ -208,14 +222,19 @@ contains
        </referenceConstruct>
        !!]
     end select
-    allocate(kinematicsDistribution_)
-    !![
-    <referenceConstruct object="kinematicsDistribution_">
-      <constructor>
-        kinematicsDistributionCollisionlessTabulated()
-      </constructor>
-    </referenceConstruct>
-    !!]
+    select type (kinematicsDistribution_)
+    type is (kinematicsDistributionSolitonNFW)
+       !![
+       <referenceConstruct object="kinematicsDistribution_">
+	 <constructor>
+           kinematicsDistributionSolitonNFW(                                                                                            &amp;
+            &amp;                           toleranceRelativeVelocityDispersion       =self%toleranceRelativeVelocityDispersion       , &amp;
+            &amp;                           toleranceRelativeVelocityDispersionMaximum=self%toleranceRelativeVelocityDispersionMaximum  &amp;
+	    &amp;                          )
+	 </constructor>
+       </referenceConstruct>
+       !!]
+    end select
     call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
     !![
     <objectDestructor name="kinematicsDistribution_"/>
@@ -224,6 +243,7 @@ contains
   end function solitonNFWGet
 
   subroutine solitonNFWComputeProperties(self,node,radiusVirial,radiusScale,radiusCore,radiusSoliton,densityCore,densityScale,massHaloMinimum0,massCore)
+    use :: Display                         , only : displayMessage           , verbosityLevelSilent
     use :: Galacticus_Nodes                , only : treeNode           , nodeComponentBasic       , nodeComponentDarkMatterProfile
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Units       , only : electronVolt
@@ -231,6 +251,9 @@ contains
     use :: Numerical_Constants_Physical    , only : speedLight         , plancksConstant
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Cosmology_Parameters            , only : hubbleUnitsStandard, hubbleUnitsLittleH
+    use :: Error                           , only : Error_Report       , errorStatusSuccess       , GSL_Error_Details
+    use :: String_Handling                 , only : operator(//)
+    use :: Functions_Global                , only : State_Store_       , mergerTreeStateStore_    , State_Set_
     use :: Root_Finder                     , only : rootFinder         , rangeExpandMultiplicative, rangeExpandSignExpectPositive , rangeExpandSignExpectNegative
     implicit none
     class           (darkMatterProfileDMOSolitonNFW), intent(inout) :: self
@@ -254,6 +277,7 @@ contains
          &                                                             hubbleConstant                     , hubbleConstantLittle       , &
          &                                                             OmegaMatter                        , densityMatter              , &
          &                                                             zeta_0                             , zeta_z
+    integer                                                         :: status
     
     ! Get required components.
     basic             => node%basic            ()
@@ -322,22 +346,22 @@ contains
             &            toleranceAbsolute=toleranceAbsolute   , &
             &            toleranceRelative=toleranceRelative     &
             &           )
-       call finder%rangeExpand(                                                              &
-            &                  rangeExpandUpward            = 2.0d0             , &
-            &                  rangeExpandDownward          = 0.5d0                  , &
-            &                  rangeDownwardLimit           = 1.0d0*radiusCore             , &
-            &                  rangeUpwardLimit             = 1.0d1*radiusCore             , &
-            &                  rangeExpandDownwardSignExpect= rangeExpandSignExpectPositive, &
-            &                  rangeExpandUpwardSignExpect  = rangeExpandSignExpectNegative, &
-            &                  rangeExpandType              = rangeExpandMultiplicative      &
-            &                 )
        finderInitialized=.true.
     end if
+    call finder%rangeExpand(                                                              &
+         &                  rangeExpandUpward            = 2.0d0                        , &
+         &                  rangeExpandDownward          = 0.5d0                        , &
+         &                  rangeDownwardLimit           = 1.0d0*radiusCore             , &
+         &                  rangeUpwardLimit             = 1.0d1*radiusCore             , &
+         &                  rangeExpandDownwardSignExpect= rangeExpandSignExpectPositive, &
+         &                  rangeExpandUpwardSignExpect  = rangeExpandSignExpectNegative, &
+         &                  rangeExpandType              = rangeExpandMultiplicative      &
+         &                 )
     radiusCore_  =radiusCore
     radiusScale_ =radiusScale
     densityScale_=densityScale
     densityCore_ =densityCore
-    radiusSoliton=finder%find(rootGuess=2.0d0*radiusCore)    
+    radiusSoliton=finder%find(rootGuess=3.0d0*radiusCore)
     return
   end subroutine solitonNFWComputeProperties
 
