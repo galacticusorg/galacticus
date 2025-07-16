@@ -28,7 +28,7 @@
   !!]
   type, public, extends(kinematicsDistributionCollisionlessTabulated) :: kinematicsDistributionSolitonNFW
      !!{
-     A kinematics distribution for the Soliton-NFW  mass distribution.
+     A kinematics distribution for the Soliton-NFW mass distribution.
      !!}
    contains
      procedure :: velocityDispersion1D => solitonNFWKinematicsVelocityDispersion1D
@@ -143,13 +143,11 @@ contains
                   &               /massDistributionEmbedding%radiusScale
              if (radiusScaleFree < radiusScaleFreeSmall) then
                 ! Small radius. Use the tabulated solution at the small radius boundary, extrapolated to the actual
-                ! radius using the result for a power-law ρ(r) ∝ r^0 profile.
+                ! radius using the result for a power-law ρ(r) ∝ r⁰ profile.
                 coordinatesReference=[radiusScaleFreeSmall*massDistributionEmbedding%radiusScale,0.0d0,0.0d0]
                 velocityDispersion  =+massDistributionEmbedding%velocityDispersion1D         (coordinatesReference                                            ) &
-                     &               *(                                                                                                                         &
-                     &                 +radiusScaleFree                                                                                                         &
-                     &                 /radiusScaleFreeSmall                                                                                                    &
-                     &                )**1.0d0
+                     &               *radiusScaleFree                                                                                                           &
+                     &               /radiusScaleFreeSmall
              else
                 velocityDispersion  =+massDistributionEmbedding%velocityDispersion1D         (coordinates                                                     )
              end if
