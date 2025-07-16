@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Yu Zhao
+
   !!{
   An implementation of fuzzy dark matter halo profiles using the soliton and NFW mass distribution.
   !!}
@@ -243,7 +245,6 @@ contains
   end function solitonNFWGet
 
   subroutine solitonNFWComputeProperties(self,node,radiusVirial,radiusScale,radiusCore,radiusSoliton,densityCore,densityScale,massHaloMinimum0,massCore)
-    use :: Display                         , only : displayMessage           , verbosityLevelSilent
     use :: Galacticus_Nodes                , only : treeNode           , nodeComponentBasic       , nodeComponentDarkMatterProfile
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Units       , only : electronVolt
@@ -251,9 +252,6 @@ contains
     use :: Numerical_Constants_Physical    , only : speedLight         , plancksConstant
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Cosmology_Parameters            , only : hubbleUnitsStandard, hubbleUnitsLittleH
-    use :: Error                           , only : Error_Report       , errorStatusSuccess       , GSL_Error_Details
-    use :: String_Handling                 , only : operator(//)
-    use :: Functions_Global                , only : State_Store_       , mergerTreeStateStore_    , State_Set_
     use :: Root_Finder                     , only : rootFinder         , rangeExpandMultiplicative, rangeExpandSignExpectPositive , rangeExpandSignExpectNegative
     implicit none
     class           (darkMatterProfileDMOSolitonNFW), intent(inout) :: self
@@ -277,7 +275,6 @@ contains
          &                                                             hubbleConstant                     , hubbleConstantLittle       , &
          &                                                             OmegaMatter                        , densityMatter              , &
          &                                                             zeta_0                             , zeta_z
-    integer                                                         :: status
     
     ! Get required components.
     basic             => node%basic            ()
