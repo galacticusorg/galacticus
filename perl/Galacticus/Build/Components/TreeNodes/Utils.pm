@@ -73,13 +73,9 @@ if (present(skipEvent        )) skipEventActual        =skipEvent
 if (skipFormationNodeActual) targetNode%formationNode => null()
 if (skipEventActual        ) targetNode%event         => null()
 CODE
-    # Loop over all component classes
-    foreach $code::component ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
-	next
-	    unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
-	$function->{'content'} .=
-	    join("",map {"targetNode%component".ucfirst($_->{'name'})." = self%component".ucfirst($_->{'name'})."\n"} &List::ExtraUtils::hashList($build->{'componentClasses'}));
-    }
+    # Iterate over all component classes
+    $function->{'content'} .=
+	join("",map {"targetNode%component".ucfirst($_)." = self%component".ucfirst($_)."\n"} @{$build->{'componentClassListActive'}});
     # Update target node pointers.
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 select type (targetNode)
