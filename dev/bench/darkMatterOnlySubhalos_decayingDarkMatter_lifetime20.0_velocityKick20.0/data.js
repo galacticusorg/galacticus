@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1752699392142,
+  "lastUpdate": 1752793092357,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=20 km/s)": [
@@ -2503,6 +2503,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
             "value": "5.566924967826369",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9a2087d819666417d93d1130a7ceed4084b32454",
+          "message": "Merge pull request #881 from galacticusorg/fixRemoveWorkaroundPolyAssign\n\nRemove workaround for \"Assignment to an allocatable polymorphic variable is not yet supported\"",
+          "timestamp": "2025-07-17T14:58:09Z",
+          "tree_id": "3c50abe4888036bfdeef1d2b250b73f321afb3eb",
+          "url": "https://github.com/galacticusorg/galacticus/commit/9a2087d819666417d93d1130a7ceed4084b32454"
+        },
+        "date": 1752793091487,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - mass function",
+            "value": "4.5446356125196266",
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
+            "value": "1.7028123331044351",
             "unit": "-logℒ"
           }
         ]
