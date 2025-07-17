@@ -259,6 +259,51 @@
     	<presetMergerNodes value="true" parameterLevel="-1"/>
     	<satelliteMergingTimescalesSubresolution value="zero" parameterLevel="-1"/>
     	<satelliteMergingTimescalesSubresolution value="boylanKolchin2008" parameterLevel="-1"/>
+	<nodeOperator value="multi" parameterLevel="top">
+	  <!-- Cosmological epoch -->
+	  <nodeOperator value="cosmicTime" iterable="no"/>
+	  <!-- DMO evolution -->
+	  <nodeOperator value="DMOInterpolate" iterable="no"/>
+	  <!-- Halo concentrations -->
+	  <nodeOperator value="darkMatterProfileScaleSet" iterable="no"/>
+	  <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
+	  <!-- Halo spins -->
+	  <nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
+	  <nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
+	  <!-- Star formation -->
+	  <nodeOperator value="starFormationDisks" iterable="no"/>
+	  <nodeOperator value="starFormationSpheroids" iterable="no"/>
+	  <!--Stellar feedback outflows-->
+	  <nodeOperator value="stellarFeedbackDisks" iterable="no">
+	    <stellarFeedbackOutflows value="rateLimit">
+              <timescaleOutflowFractionalMinimum value="0.001"/>
+              <stellarFeedbackOutflows value="powerLaw">
+		<velocityCharacteristic value="250.0"/>
+		<exponent value="3.5"/>
+              </stellarFeedbackOutflows>
+	    </stellarFeedbackOutflows>
+	  </nodeOperator>
+	  <nodeOperator value="stellarFeedbackSpheroids" iterable="no">
+	    <stellarFeedbackOutflows value="rateLimit">
+              <timescaleOutflowFractionalMinimum value="0.001"/>
+              <stellarFeedbackOutflows value="powerLaw">
+		<velocityCharacteristic value="250.0"/>
+		<exponent value="3.5"/>
+              </stellarFeedbackOutflows>
+	    </stellarFeedbackOutflows>
+	  </nodeOperator>
+	  <!-- Black hole physics -->
+	  <nodeOperator value="blackHolesSeed" iterable="no">
+	    <blackHoleSeeds value="fixed">
+              <mass value="100.0"/>
+              <spin value="  0.0"/>
+	    </blackHoleSeeds>
+	  </nodeOperator>
+	  <nodeOperator value="blackHolesAccretion"  iterable="no"/>
+	  <nodeOperator value="blackHolesWinds"      iterable="no"/>
+	  <nodeOperator value="blackHolesCGMHeating" iterable="no"/>
+	  <nodeOperator value="satelliteOrphanize"   iterable="no"/>
+	</nodeOperator>
       </componentSatellite>
       <componentPosition value="cartesian" parameterLevel="top"/>
       <componentPosition value="cartesian" parameterLevel="top">
@@ -675,6 +720,57 @@
     <formatVersion>2</formatVersion>
     <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
     <componentBlackHole value="nonCentral"/>
+    <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime" iterable="no"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate" iterable="no"/>
+      <!-- Halo concentrations -->
+      <nodeOperator value="darkMatterProfileScaleSet" iterable="no"/>
+      <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
+      <!-- Halo shapes -->
+      <nodeOperator value="darkMatterProfileShapeSet" iterable="no"/>
+      <nodeOperator value="darkMatterProfileShapeInterpolate" iterable="no"/>
+      <!-- Halo spins -->
+      <nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
+      <nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
+      <!-- Satellite evolution -->
+      <nodeOperator value="satelliteMergingTime" iterable="no"/>
+      <nodeOperator value="satelliteMassLoss" iterable="no"/>
+      <!-- Star formation -->
+      <nodeOperator value="starFormationDisks" iterable="no"/>
+      <nodeOperator value="starFormationSpheroids" iterable="no"/>
+      <!--Stellar feedback outflows-->
+      <nodeOperator value="stellarFeedbackDisks" iterable="no">
+  	<stellarFeedbackOutflows value="rateLimit">
+          <timescaleOutflowFractionalMinimum value="0.001"/>
+          <stellarFeedbackOutflows value="powerLaw">
+            <velocityCharacteristic value="250.0"/>
+            <exponent value="3.5"/>
+          </stellarFeedbackOutflows>
+  	</stellarFeedbackOutflows>
+      </nodeOperator>
+      <nodeOperator value="stellarFeedbackSpheroids" iterable="no">
+  	<stellarFeedbackOutflows value="rateLimit">
+          <timescaleOutflowFractionalMinimum value="0.001"/>
+          <stellarFeedbackOutflows value="powerLaw">
+            <velocityCharacteristic value="250.0"/>
+            <exponent value="3.5"/>
+          </stellarFeedbackOutflows>
+  	</stellarFeedbackOutflows>
+      </nodeOperator>
+      <!-- Black hole physics -->
+      <nodeOperator value="blackHolesSeed" iterable="no">
+	<blackHoleSeeds value="fixed">
+          <mass value="100.0"/>
+          <spin value="  0.0"/>
+	</blackHoleSeeds>
+      </nodeOperator>
+      <nodeOperator value="blackHolesAccretion"       iterable="no"/>
+      <nodeOperator value="blackHolesWinds"           iterable="no"/>
+      <nodeOperator value="blackHolesCGMHeating"     iterable="no"/>
+      <nodeOperator value="blackHolesRadialMigration" iterable="no"/>
+    </nodeOperator>
     <blackHoleAccretionRate value="standard">
       <bondiHoyleAccretionEnhancementSpheroid value="5.0e0"/>
       <bondiHoyleAccretionEnhancementHotHalo value="6.0e0"/>
@@ -695,11 +791,111 @@
   	<blackHoleBinarySeparationGrowthRate value="zero" parameterLevel="top"/>
   	<blackHoleBinarySeparationGrowthRate value="standard" parameterLevel="top">
 	  <componentBlackHole value="nonCentral" parameterLevel="top">
-  	    <tripleInteraction value="false"/>
-  	    <tripleInteraction value="true">
+	    <nodeOperator value="multi" parameterLevel="top">
+	      <!-- Cosmological epoch -->
+	      <nodeOperator value="cosmicTime" iterable="no"/>
+	      <!-- DMO evolution -->
+	      <nodeOperator value="DMOInterpolate" iterable="no"/>
+	      <!-- Halo concentrations -->
+	      <nodeOperator value="darkMatterProfileScaleSet" iterable="no"/>
+	      <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
+	      <!-- Halo shapes -->
+	      <nodeOperator value="darkMatterProfileShapeSet" iterable="no"/>
+	      <nodeOperator value="darkMatterProfileShapeInterpolate" iterable="no"/>
+	      <!-- Halo spins -->
+	      <nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
+	      <nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
+	      <!-- Satellite evolution -->
+	      <nodeOperator value="satelliteMergingTime" iterable="no"/>
+	      <nodeOperator value="satelliteMassLoss" iterable="no"/>
+	      <!-- Star formation -->
+	      <nodeOperator value="starFormationDisks" iterable="no"/>
+	      <nodeOperator value="starFormationSpheroids" iterable="no"/>
+	      <!--Stellar feedback outflows-->
+	      <nodeOperator value="stellarFeedbackDisks" iterable="no">
+  		<stellarFeedbackOutflows value="rateLimit">
+		  <timescaleOutflowFractionalMinimum value="0.001"/>
+		  <stellarFeedbackOutflows value="powerLaw">
+		    <velocityCharacteristic value="250.0"/>
+		    <exponent value="3.5"/>
+		  </stellarFeedbackOutflows>
+  		</stellarFeedbackOutflows>
+	      </nodeOperator>
+	      <nodeOperator value="stellarFeedbackSpheroids" iterable="no">
+  		<stellarFeedbackOutflows value="rateLimit">
+		  <timescaleOutflowFractionalMinimum value="0.001"/>
+		  <stellarFeedbackOutflows value="powerLaw">
+		    <velocityCharacteristic value="250.0"/>
+		    <exponent value="3.5"/>
+		  </stellarFeedbackOutflows>
+  		</stellarFeedbackOutflows>
+	      </nodeOperator>
+	      <!-- Black hole physics -->
+	      <nodeOperator value="blackHolesSeed" iterable="no">
+		<blackHoleSeeds value="fixed">
+		  <mass value="100.0"/>
+		  <spin value="  0.0"/>
+		</blackHoleSeeds>
+	      </nodeOperator>
+	      <nodeOperator value="blackHolesAccretion"         iterable="no"/>
+	      <nodeOperator value="blackHolesWinds"             iterable="no"/>
+	      <nodeOperator value="blackHolesCGMHeating"        iterable="no"/>
+	      <nodeOperator value="blackHolesRadialMigration"   iterable="no"/>
+	    </nodeOperator>
+	    <nodeOperator value="multi" parameterLevel="top">
+	      <!-- Cosmological epoch -->
+	      <nodeOperator value="cosmicTime" iterable="no"/>
+	      <!-- DMO evolution -->
+	      <nodeOperator value="DMOInterpolate" iterable="no"/>
+	      <!-- Halo concentrations -->
+	      <nodeOperator value="darkMatterProfileScaleSet" iterable="no"/>
+	      <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
+	      <!-- Halo shapes -->
+	      <nodeOperator value="darkMatterProfileShapeSet" iterable="no"/>
+	      <nodeOperator value="darkMatterProfileShapeInterpolate" iterable="no"/>
+	      <!-- Halo spins -->
+	      <nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
+	      <nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
+	      <!-- Satellite evolution -->
+	      <nodeOperator value="satelliteMergingTime" iterable="no"/>
+	      <nodeOperator value="satelliteMassLoss" iterable="no"/>
+	      <!-- Star formation -->
+	      <nodeOperator value="starFormationDisks" iterable="no"/>
+	      <nodeOperator value="starFormationSpheroids" iterable="no"/>
+	      <!--Stellar feedback outflows-->
+	      <nodeOperator value="stellarFeedbackDisks" iterable="no">
+  		<stellarFeedbackOutflows value="rateLimit">
+		  <timescaleOutflowFractionalMinimum value="0.001"/>
+		  <stellarFeedbackOutflows value="powerLaw">
+		    <velocityCharacteristic value="250.0"/>
+		    <exponent value="3.5"/>
+		  </stellarFeedbackOutflows>
+  		</stellarFeedbackOutflows>
+	      </nodeOperator>
+	      <nodeOperator value="stellarFeedbackSpheroids" iterable="no">
+  		<stellarFeedbackOutflows value="rateLimit">
+		  <timescaleOutflowFractionalMinimum value="0.001"/>
+		  <stellarFeedbackOutflows value="powerLaw">
+		    <velocityCharacteristic value="250.0"/>
+		    <exponent value="3.5"/>
+		  </stellarFeedbackOutflows>
+  		</stellarFeedbackOutflows>
+	      </nodeOperator>
+	      <!-- Black hole physics -->
+	      <nodeOperator value="blackHolesSeed" iterable="no">
+		<blackHoleSeeds value="fixed">
+		  <mass value="100.0"/>
+		  <spin value="  0.0"/>
+		</blackHoleSeeds>
+	      </nodeOperator>
+	      <nodeOperator value="blackHolesAccretion"         iterable="no"/>
+	      <nodeOperator value="blackHolesWinds"             iterable="no"/>
+	      <nodeOperator value="blackHolesCGMHeating"        iterable="no"/>
+	      <nodeOperator value="blackHolesRadialMigration"   iterable="no"/>
+	      <nodeOperator value="blackHolesTripleInteraction" iterable="no"/>
   	      <outputMergers value="false" parameterLevel="-1"/>
   	      <outputMergers value="true" parameterLevel="-1"/>
-  	    </tripleInteraction>
+	    </nodeOperator>
 	  </componentBlackHole>
   	</blackHoleBinarySeparationGrowthRate>
       </blackHoleBinaryRecoil>
