@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1752699376386,
+  "lastUpdate": 1752793075274,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.5)": [
@@ -7806,6 +7806,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/d8c01b4a46e407e3d1285833cd41fd216d725966"
         },
         "date": 1752699375451,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteBoundMass",
+            "value": "40.84982299699363",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "22.39818530984652",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteVelocityMaximum",
+            "value": "20.39086332217875",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9a2087d819666417d93d1130a7ceed4084b32454",
+          "message": "Merge pull request #881 from galacticusorg/fixRemoveWorkaroundPolyAssign\n\nRemove workaround for \"Assignment to an allocatable polymorphic variable is not yet supported\"",
+          "timestamp": "2025-07-17T14:58:09Z",
+          "tree_id": "3c50abe4888036bfdeef1d2b250b73f321afb3eb",
+          "url": "https://github.com/galacticusorg/galacticus/commit/9a2087d819666417d93d1130a7ceed4084b32454"
+        },
+        "date": 1752793074401,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
