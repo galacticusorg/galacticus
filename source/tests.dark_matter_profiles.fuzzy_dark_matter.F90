@@ -33,7 +33,7 @@ program Test_Dark_Matter_Profiles_Fuzzy_Dark_Matter
   use :: Dark_Matter_Particles     , only : darkMatterParticleFuzzyDarkMatter
   use :: Virial_Density_Contrast   , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
   use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMOSolitonNFW
-  use :: Mass_Distributions        , only : kinematicsDistributionCollisionlessTabulated                  , massDistributionSolitonNFW
+  use :: Mass_Distributions        , only : kinematicsDistributionSolitonNFW                              , massDistributionSolitonNFW
   use :: Display                   , only : displayMessage                                                , displayVerbositySet              , &
        &                                    verbosityLevelStandard
   use :: Events_Hooks              , only : eventsHooksInitialize
@@ -66,7 +66,7 @@ program Test_Dark_Matter_Profiles_Fuzzy_Dark_Matter
   type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt)                            :: virialDensityContrast_
   type            (darkMatterProfileDMOSolitonNFW                                )                            :: darkMatterProfileChowdhury2021_
   type            (massDistributionSolitonNFW                                    )                            :: massDistribution_
-  type            (kinematicsDistributionCollisionlessTabulated                  )                            :: kinematicsDistribution_
+  type            (kinematicsDistributionSolitonNFW                              )                            :: kinematicsDistribution_
   type            (darkMatterParticleFuzzyDarkMatter                             )                            :: darkMatterParticle_
   type            (inputParameters                                               )                            :: parameters
   double precision                                                                                            :: radiusCoreChowdhury            =0.720d-03, radiusScaleChowdhury =1.0d-02, &
@@ -93,72 +93,76 @@ program Test_Dark_Matter_Profiles_Fuzzy_Dark_Matter
   !![
   <referenceConstruct object="cosmologyParameters_"           >
     <constructor>
-      cosmologyParametersSimple                                     (                                                             &amp;
-      &amp;                                                          OmegaMatter                         = 0.31530d0            , &amp;
-      &amp;                                                          OmegaBaryon                         = 0.04930d0            , &amp;
-      &amp;                                                          OmegaDarkEnergy                     = 0.68470d0            , &amp;
-      &amp;                                                          temperatureCMB                      = 2.72548d0            , &amp;
-      &amp;                                                          HubbleConstant                      =67.36d0                 &amp;
+      cosmologyParametersSimple                                     (                                                                    &amp;
+      &amp;                                                          OmegaMatter                                = 0.31530d0            , &amp;
+      &amp;                                                          OmegaBaryon                                = 0.04930d0            , &amp;
+      &amp;                                                          OmegaDarkEnergy                            = 0.68470d0            , &amp;
+      &amp;                                                          temperatureCMB                             = 2.72548d0            , &amp;
+      &amp;                                                          HubbleConstant                             =67.36d0                 &amp;
       &amp;                                                         )
     </constructor>
   </referenceConstruct>
   <referenceConstruct object="cosmologyFunctions_"            >
     <constructor>
-      cosmologyFunctionsMatterLambda                                (                                                             &amp;
-      &amp;                                                          cosmologyParameters_                =cosmologyParameters_    &amp;
+      cosmologyFunctionsMatterLambda                                (                                                                    &amp;
+      &amp;                                                          cosmologyParameters_                       =cosmologyParameters_    &amp;
       &amp;                                                         )
     </constructor>
   </referenceConstruct>
   <referenceConstruct object="darkMatterParticle_"            >
     <constructor>
-      darkMatterParticleFuzzyDarkMatter                             (                                                             &amp;
-      &amp;                                                          mass                                =massParticle          , &amp;
-      &amp;                                                          densityFraction                     =1.0d0                   &amp;
+      darkMatterParticleFuzzyDarkMatter                             (                                                                    &amp;
+      &amp;                                                          mass                                       =massParticle          , &amp;
+      &amp;                                                          densityFraction                            =1.0d0                   &amp;
       &amp;                                                         )
     </constructor>
   </referenceConstruct>
   <referenceConstruct object="virialDensityContrast_"         >
     <constructor>
-      virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(                                                             &amp;
-      &amp;                                                          tableStore                          =.true.,                 &amp;
-      &amp;                                                          cosmologyFunctions_                 =cosmologyFunctions_     &amp;
+      virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(                                                                    &amp;
+      &amp;                                                          tableStore                                 =.true.                , &amp;
+      &amp;                                                          cosmologyFunctions_                        =cosmologyFunctions_     &amp;
       &amp;                                                         )
     </constructor>
   </referenceConstruct>
   <referenceConstruct object="darkMatterHaloScale_"           >
     <constructor>
-      darkMatterHaloScaleVirialDensityContrastDefinition            (                                                             &amp;
-      &amp;                                                          cosmologyParameters_                =cosmologyParameters_  , &amp;
-      &amp;                                                          cosmologyFunctions_                 =cosmologyFunctions_   , &amp;
-      &amp;                                                          virialDensityContrast_              =virialDensityContrast_  &amp;
+      darkMatterHaloScaleVirialDensityContrastDefinition            (                                                                    &amp;
+      &amp;                                                          cosmologyParameters_                       =cosmologyParameters_  , &amp;
+      &amp;                                                          cosmologyFunctions_                        =cosmologyFunctions_   , &amp;
+      &amp;                                                          virialDensityContrast_                     =virialDensityContrast_  &amp;
       &amp;                                                         )
     </constructor>
   </referenceConstruct>
   <referenceConstruct object="kinematicsDistribution_"        >
     <constructor>
-      kinematicsDistributionCollisionlessTabulated                  (                                                             &amp;
+      kinematicsDistributionSolitonNFW                              (                                                                    &amp;
+      &amp;                                                          toleranceRelativeVelocityDispersion        =1.0d-6                , &amp;
+      &amp;                                                          toleranceRelativeVelocityDispersionMaximum =1.0d-3                  &amp;
       &amp;                                                         )
     </constructor>
   </referenceConstruct>
   <referenceConstruct object="massDistribution_"              >
     <constructor>
-      massDistributionSolitonNFW                                    (                                                             &amp;
-      &amp;                                                          radiusScale                         =radiusScaleChowdhury  , &amp;
-      &amp;                                                          radiusCore                          =radiusCoreChowdhury   , &amp;
-      &amp;                                                          radiusSoliton                       =radiusSolitonChowdhury, &amp;
-      &amp;                                                          densitySolitonCentral               =densityCoreChowdhury  , &amp;
-      &amp;                                                          densityNormalizationNFW             =densityNFWChowdhury     &amp;
+      massDistributionSolitonNFW                                    (                                                                    &amp;
+      &amp;                                                          radiusScale                                =radiusScaleChowdhury  , &amp;
+      &amp;                                                          radiusCore                                 =radiusCoreChowdhury   , &amp;
+      &amp;                                                          radiusSoliton                              =radiusSolitonChowdhury, &amp;
+      &amp;                                                          densitySolitonCentral                      =densityCoreChowdhury  , &amp;
+      &amp;                                                          densityNormalizationNFW                    =densityNFWChowdhury     &amp;
       &amp;                                                         )
     </constructor>
   </referenceConstruct>
   <referenceConstruct object="darkMatterProfileChowdhury2021_">
     <constructor>
-      darkMatterProfileDMOSolitonNFW                                (                                                             &amp;
-      &amp;                                                          darkMatterParticle_                 =darkMatterParticle_   , &amp;
-      &amp;                                                          darkMatterHaloScale_                =darkMatterHaloScale_  , &amp;
-      &amp;                                                          virialDensityContrast_              =virialDensityContrast_, &amp;
-      &amp;                                                          cosmologyFunctions_                 =cosmologyFunctions_   , &amp;
-      &amp;                                                          cosmologyParameters_                =cosmologyParameters_    &amp;
+      darkMatterProfileDMOSolitonNFW                                (                                                                    &amp;
+      &amp;                                                          darkMatterParticle_                        =darkMatterParticle_   , &amp;
+      &amp;                                                          darkMatterHaloScale_                       =darkMatterHaloScale_  , &amp;
+      &amp;                                                          virialDensityContrast_                     =virialDensityContrast_, &amp;
+      &amp;                                                          cosmologyFunctions_                        =cosmologyFunctions_   , &amp;
+      &amp;                                                          cosmologyParameters_                       =cosmologyParameters_  , &amp;
+      &amp;                                                          toleranceRelativeVelocityDispersion        =1.0d-6                , &amp;
+      &amp;                                                          toleranceRelativeVelocityDispersionMaximum =1.0d-3                  &amp;
       &amp;                                                         )
     </constructor>
   </referenceConstruct>
