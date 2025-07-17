@@ -728,9 +728,6 @@
       <!-- Halo concentrations -->
       <nodeOperator value="darkMatterProfileScaleSet" iterable="no"/>
       <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
-      <!-- Halo shapes -->
-      <nodeOperator value="darkMatterProfileShapeSet" iterable="no"/>
-      <nodeOperator value="darkMatterProfileShapeInterpolate" iterable="no"/>
       <!-- Halo spins -->
       <nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
       <nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
@@ -799,9 +796,6 @@
 	      <!-- Halo concentrations -->
 	      <nodeOperator value="darkMatterProfileScaleSet" iterable="no"/>
 	      <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
-	      <!-- Halo shapes -->
-	      <nodeOperator value="darkMatterProfileShapeSet" iterable="no"/>
-	      <nodeOperator value="darkMatterProfileShapeInterpolate" iterable="no"/>
 	      <!-- Halo spins -->
 	      <nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
 	      <nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
@@ -850,9 +844,6 @@
 	      <!-- Halo concentrations -->
 	      <nodeOperator value="darkMatterProfileScaleSet" iterable="no"/>
 	      <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
-	      <!-- Halo shapes -->
-	      <nodeOperator value="darkMatterProfileShapeSet" iterable="no"/>
-	      <nodeOperator value="darkMatterProfileShapeInterpolate" iterable="no"/>
 	      <!-- Halo spins -->
 	      <nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
 	      <nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
