@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1752699340431,
+  "lastUpdate": 1752793031573,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "a9a201aadd5f0738ce2a489c93be011eef2ebd47",
-          "message": "Merge pull request #687 from galacticusorg/fixSFHAdaptiveOffByOne\n\nFix an off-by-one error in the `starFormationHistoryAdaptive` class",
-          "timestamp": "2024-09-04T22:16:48Z",
-          "tree_id": "b635a27e6a8a7bde762aa4416d06fc89fe108e65",
-          "url": "https://github.com/galacticusorg/galacticus/commit/a9a201aadd5f0738ce2a489c93be011eef2ebd47"
-        },
-        "date": 1725510691182,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 52.836,
-            "unit": "seconds",
-            "range": 0.041381155131801
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8764,6 +8734,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": "22905.86320595173",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9a2087d819666417d93d1130a7ceed4084b32454",
+          "message": "Merge pull request #881 from galacticusorg/fixRemoveWorkaroundPolyAssign\n\nRemove workaround for \"Assignment to an allocatable polymorphic variable is not yet supported\"",
+          "timestamp": "2025-07-17T14:58:09Z",
+          "tree_id": "3c50abe4888036bfdeef1d2b250b73f321afb3eb",
+          "url": "https://github.com/galacticusorg/galacticus/commit/9a2087d819666417d93d1130a7ceed4084b32454"
+        },
+        "date": 1752793029094,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 60.779,
+            "unit": "seconds",
+            "range": 0.0975340966025342
           }
         ]
       }
