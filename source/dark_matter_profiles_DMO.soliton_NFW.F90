@@ -47,7 +47,7 @@
      class           (cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_                => null()
      class           (darkMatterParticleClass   ), pointer :: darkMatterParticle_                => null()
      class           (virialDensityContrastClass), pointer :: virialDensityContrast_             => null()
-     double precision                                      :: toleranceRelativeVelocityDispersion        , toleranceRelativeVelocityDispersionMaximum
+     double precision                                      :: toleranceRelativeVelocityDispersion         , toleranceRelativeVelocityDispersionMaximum
    contains
      !![
      <methods>
@@ -79,14 +79,14 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (darkMatterProfileDMOSolitonNFW)                :: self
-    type (inputParameters               ), intent(inout) :: parameters
-    class(darkMatterHaloScaleClass      ), pointer       :: darkMatterHaloScale_
-    class(darkMatterParticleClass       ), pointer       :: darkMatterParticle_
-    class(cosmologyFunctionsClass       ), pointer       :: cosmologyFunctions_
-    class(cosmologyParametersClass      ), pointer       :: cosmologyParameters_
-    class(virialDensityContrastClass    ), pointer       :: virialDensityContrast_
-    double precision                                     :: toleranceRelativeVelocityDispersion , toleranceRelativeVelocityDispersionMaximum
+    type            (darkMatterProfileDMOSolitonNFW)                :: self
+    type            (inputParameters               ), intent(inout) :: parameters
+    class           (darkMatterHaloScaleClass      ), pointer       :: darkMatterHaloScale_
+    class           (darkMatterParticleClass       ), pointer       :: darkMatterParticle_
+    class           (cosmologyFunctionsClass       ), pointer       :: cosmologyFunctions_
+    class           (cosmologyParametersClass      ), pointer       :: cosmologyParameters_
+    class           (virialDensityContrastClass    ), pointer       :: virialDensityContrast_
+    double precision                                                :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
 
     !![
     <inputParameter>
@@ -128,13 +128,13 @@ contains
     use :: Numerical_Constants_Prefixes  , only : kilo
     use :: Galacticus_Nodes              , only : defaultDarkMatterProfileComponent
     implicit none
-    type (darkMatterProfileDMOSolitonNFW)                     :: self
-    class(darkMatterHaloScaleClass      ), intent(in), target :: darkMatterHaloScale_
-    class(darkMatterParticleClass       ), intent(in), target :: darkMatterParticle_
-    class(cosmologyFunctionsClass       ), intent(in), target :: cosmologyFunctions_
-    class(cosmologyParametersClass      ), intent(in), target :: cosmologyParameters_
-    class(virialDensityContrastClass    ), intent(in), target :: virialDensityContrast_
-    double precision                     , intent(in)         :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
+    type            (darkMatterProfileDMOSolitonNFW)                     :: self
+    class           (darkMatterHaloScaleClass      ), intent(in), target :: darkMatterHaloScale_
+    class           (darkMatterParticleClass       ), intent(in), target :: darkMatterParticle_
+    class           (cosmologyFunctionsClass       ), intent(in), target :: cosmologyFunctions_
+    class           (cosmologyParametersClass      ), intent(in), target :: cosmologyParameters_
+    class           (virialDensityContrastClass    ), intent(in), target :: virialDensityContrast_
+    double precision                                , intent(in)         :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
     !![
     <constructorAssign variables="*darkMatterHaloScale_, *darkMatterParticle_, *cosmologyFunctions_, *cosmologyParameters_, *virialDensityContrast_, toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum"/>
     !!]
@@ -203,23 +203,23 @@ contains
     ! Compute properties of the distribution.
     call self%computeProperties(node,radiusVirial,radiusScale,radiusCore,radiusSoliton,densityCore,densityScale,massHaloMinimum0,massCore)
     ! Construct the distribution.
-    allocate(massDistributionSolitonNFW       :: massDistribution_)
+    allocate(massDistributionSolitonNFW       :: massDistribution_      )
     allocate(kinematicsDistributionSolitonNFW :: kinematicsDistribution_)
     select type(massDistribution_)
     type is (massDistributionSolitonNFW)
        !![
        <referenceConstruct object="massDistribution_">
 	 <constructor>
-           massDistributionSolitonNFW(                           &amp;
-           &amp; radiusScale            = radiusScale          , &amp;
-           &amp; radiusCore             = radiusCore           , &amp;
-           &amp; radiusSoliton          = radiusSoliton        , &amp;
-           &amp; densitySolitonCentral  = densityCore          , &amp;
-           &amp; densityNormalizationNFW= densityScale         , &amp;
-           &amp; radiusVirial           = radiusVirial         , &amp;
-           &amp; componentType          = componentTypeDarkHalo, &amp;
-           &amp; massType               = massTypeDark           &amp;
-           &amp;                     )
+           massDistributionSolitonNFW(                                                &amp;
+            &amp;                     radiusScale            = radiusScale          , &amp;
+            &amp;                     radiusCore             = radiusCore           , &amp;
+            &amp;                     radiusSoliton          = radiusSoliton        , &amp;
+            &amp;                     densitySolitonCentral  = densityCore          , &amp;
+            &amp;                     densityNormalizationNFW= densityScale         , &amp;
+            &amp;                     radiusVirial           = radiusVirial         , &amp;
+            &amp;                     componentType          = componentTypeDarkHalo, &amp;
+            &amp;                     massType               = massTypeDark           &amp;
+            &amp;                    )
 	 </constructor>
        </referenceConstruct>
        !!]
