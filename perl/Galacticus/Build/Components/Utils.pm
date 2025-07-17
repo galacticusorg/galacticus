@@ -8,7 +8,7 @@ use Data::Dumper;
 use List::Util qw(max);
 use Exporter qw(import);
 our $VERSION = 1.00;
-our @EXPORT_OK = qw($verbosityLevel $workaround @booleanLabel %intrinsicTypes %intrinsicNulls %outputTypeMap $classNameLengthMax $implementationNameLengthMax $fullyQualifiedNameLengthMax $propertyNameLengthMax $implementationPropertyNameLengthMax $linkedDataNameLengthMax applyDefaults isIntrinsic isOutputIntrinsic offsetName padClass padImplementation padFullyQualified padPropertyName padImplementationPropertyName padLinkedData);
+our @EXPORT_OK = qw($verbosityLevel @booleanLabel %intrinsicTypes %intrinsicNulls %outputTypeMap $classNameLengthMax $implementationNameLengthMax $fullyQualifiedNameLengthMax $propertyNameLengthMax $implementationPropertyNameLengthMax $linkedDataNameLengthMax applyDefaults isIntrinsic isOutputIntrinsic offsetName padClass padImplementation padFullyQualified padPropertyName padImplementationPropertyName padLinkedData);
 
 # Define a hash into which modules can insert their hooks.
 %Galacticus::Build::Component::Utils::componentUtils = 
@@ -21,9 +21,6 @@ our @EXPORT_OK = qw($verbosityLevel $workaround @booleanLabel %intrinsicTypes %i
 	     ]
      }
     );
-
-# Switch on compiler bug workarounds?
-our $workaround     = 1;
 
 # Global verbosity level.
 our $verbosityLevel = 1;
