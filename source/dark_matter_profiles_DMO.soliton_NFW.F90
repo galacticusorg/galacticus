@@ -48,14 +48,18 @@
      class           (darkMatterParticleClass   ), pointer :: darkMatterParticle_                => null()
      class           (virialDensityContrastClass), pointer :: virialDensityContrast_             => null()
      double precision                                      :: toleranceRelativeVelocityDispersion         , toleranceRelativeVelocityDispersionMaximum
+     integer         (kind_int8                 )          :: lastUniqueID
    contains
      !![
      <methods>
        <method method="computeProperties" description="Compute properties of the mass distribution."/>
+       <method method="calculationReset"  description="Reset memoized calculations."                />
      </methods>
      !!]
      final     ::                      solitonNFWDestructor
      procedure :: get               => solitonNFWGet
+     procedure :: autoHook          => solitonNFWAutoHook
+     procedure :: calculationReset  => solitonNFWCalculationReset
      procedure :: computeProperties => solitonNFWComputeProperties
   end type darkMatterProfileDMOSolitonNFW
 
@@ -139,6 +143,8 @@ contains
     <constructorAssign variables="*darkMatterHaloScale_, *darkMatterParticle_, *cosmologyFunctions_, *cosmologyParameters_, *virialDensityContrast_, toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum"/>
     !!]
 
+    self%lastUniqueID=-huge(1_kind_int8)
+
     select type (darkMatterParticle__ => self%darkMatterParticle_)
     class is (darkMatterParticleFuzzyDarkMatter)
        self%massParticle=+darkMatterParticle__%mass()*kilo
@@ -158,6 +164,18 @@ contains
     return
   end function solitonNFWConstructorInternal
 
+  subroutine solitonNFWAutoHook(self)
+    !!{
+    Attach to the calculation reset event.
+    !!}
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
+    implicit none
+    class(darkMatterProfileDMOSolitonNFW), intent(inout) :: self
+
+    call calculationResetEvent%attach(self,solitonNFWCalculationReset,openMPThreadBindingAllLevels,label='darkMatterProfileDMOSolitonNFW')
+    return
+  end subroutine solitonNFWAutoHook
+
   subroutine solitonNFWDestructor(self)
     !!{
     Destructor for the {\normalfont \ttfamily solitonNFW} dark matter halo profile class.
@@ -174,6 +192,21 @@ contains
     !!]
     return
   end subroutine solitonNFWDestructor
+
+  subroutine solitonNFWCalculationReset(self,node,uniqueID)
+    !!{
+    Reset the dark matter profile calculation.
+    !!}
+    use :: Kind_Numbers, only : kind_int8
+    implicit none
+    class  (darkMatterProfileDMOSolitonNFW), intent(inout) :: self
+    type   (treeNode                      ), intent(inout) :: node
+    integer(kind_int8                     ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
+
+    self%lastUniqueID            =uniqueID
+    return
+  end subroutine solitonNFWCalculationReset
 
   function solitonNFWGet(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
@@ -201,7 +234,7 @@ contains
     massDistribution_ => null()
     if (weightBy_ /= weightByMass) return
     ! Compute properties of the distribution.
-    call self%computeProperties(node,radiusVirial,radiusScale,radiusCore,radiusSoliton,densityCore,densityScale,massHaloMinimum0,massCore)
+    if (node%uniqueID() /= self%lastUniqueID) call self%computeProperties(node,radiusVirial,radiusScale,radiusCore,radiusSoliton,densityCore,densityScale,massHaloMinimum0,massCore)
     ! Construct the distribution.
     allocate(massDistributionSolitonNFW       :: massDistribution_      )
     allocate(kinematicsDistributionSolitonNFW :: kinematicsDistribution_)
@@ -275,7 +308,8 @@ contains
          &                                                             hubbleConstant                     , hubbleConstantLittle       , &
          &                                                             OmegaMatter                        , densityMatter              , &
          &                                                             zeta_0                             , zeta_z
-    
+    integer                                                         :: status
+
     ! Get required components.
     basic             => node%basic            ()
     darkMatterProfile => node%darkMatterProfile()
@@ -358,7 +392,32 @@ contains
     radiusScale_ =radiusScale
     densityScale_=densityScale
     densityCore_ =densityCore
-    radiusSoliton=finder%find(rootGuess=3.0d0*radiusCore)
+    !radiusSoliton=finder%find(rootGuess=3.0d0*radiusCore)
+
+    radiusSoliton=finder%find(rootGuess=3.0d0*radiusCore, status=status)
+
+    print *, 'uniqueID = ', node%uniqueID()
+    if (status == errorStatusSuccess) then
+       print *, "Success! radiusSoliton=", radiusSoliton
+       print *, "r_lo =", radiusCore, "    f(r_lo) =", radiusTransitionRoot(radiusCore)
+       print *, "r_hi =", 10.0d0 * radiusCore, "    f(r_hi) =", radiusTransitionRoot(10.0d0 * radiusCore)
+       print *, "densityScale =", densityScale, "  densityCore =", densityCore
+       print *, "radiusScale  =", radiusScale,   "  radiusCore  =", radiusCore
+       print *, "densityScale/densityCore =", densityScale/densityCore
+       print *, "radiusScale/radiusCore   =", radiusScale/radiusCore
+    end if
+
+    if (status /= errorStatusSuccess) then
+       print *, "RootFinder failed — trying fallback bracket scan..."
+       print *, "r_lo =", radiusCore, "    f(r_lo) =", radiusTransitionRoot(radiusCore)
+       print *, "r_hi =", 10.0d0 * radiusCore, "    f(r_hi) =", radiusTransitionRoot(10.0d0 * radiusCore)
+       print *, "densityScale =", densityScale, "  densityCore =", densityCore
+       print *, "radiusScale  =", radiusScale,   "  radiusCore  =", radiusCore
+       print *, "densityScale/densityCore =", densityScale/densityCore
+       print *, "radiusScale/radiusCore   =", radiusScale/radiusCore
+       radiusSoliton = 2.0d0*radiusCore
+    end if
+
     return
   end subroutine solitonNFWComputeProperties
 
