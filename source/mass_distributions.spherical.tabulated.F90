@@ -641,7 +641,7 @@ contains
 		  <objectDestructor name="instanceKinematicsDistribution"/>
                   !!]
                   ! Iterate over scaled radii.
-                  !$omp do
+                  !$omp do schedule(dynamic)
                   do iRadius=1,tabulation%countRadii
                      radius_             =exp(log(tabulation%radiusMinimum)+dble(iRadius-1_c_size_t)/tabulation%radiusInverseStep)
                      time_               = radius_
