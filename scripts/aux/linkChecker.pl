@@ -173,7 +173,7 @@ sub checkURLs {
 		unless (
 		    $url =~ m/^https:\/\/www\.drdobbs\.com\//
 		    ||
-		    $url =~ m/^https:\/\/www\.openmp\.com\//
+		    $url =~ m/^https:\/\/www\.openmp\.org\//
 		    ||
 		    $url =~ m/^https:\/\/git\-scm\.com\//
 		);

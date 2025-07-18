@@ -372,12 +372,13 @@ contains
     type            (treeNode                                     ), intent(inout)  :: node
     double precision                                               , dimension(0:1) :: hWavelength
     double precision                                               , parameter      :: timeTolerance=1.0d-3
+    logical                                                                         :: lockHeld
     character       (len=16                                       )                 :: timeCurrent         , timeNext
     integer         (c_size_t                                     )                 :: iWavelength         , jWavelength, &
          &                                                                             jTime
 
     if (node%hostTree%hostUniverse%uniqueID /= self%universeUniqueIDPrevious .or. self%timeCurrent /= self%timePrevious) then
-       !$omp critical (radiationFieldIntergalacticBackgroundInternalCritical)    
+       lockHeld=node%hostTree%hostUniverse%lock%setNonBlocking()
        ! Get the state of the radiation field.
        self%universeUniqueIDPrevious =  node%hostTree%hostUniverse%uniqueID
        self%timePrevious             =  self                      %timeCurrent
@@ -402,7 +403,7 @@ contains
        class default
           call Error_Report('state has unknown type'//{introspection:location})
        end select
-       !$omp end critical (radiationFieldIntergalacticBackgroundInternalCritical)
+       if (lockHeld) call node%hostTree%hostUniverse%lock%unset()
     end if
     ! Find interpolation in the array of wavelengths.
     call self%interpolatorWavelength%linearFactors(     wavelength ,iWavelength,hWavelength)
@@ -432,11 +433,12 @@ contains
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : universe    , universeEvent
     implicit none
-    class(*                                   ), intent(inout), target :: self
-    type (universe                            ), intent(inout)         :: universe_
-    type (universeEvent                       ), pointer               :: event
-    type (intergalacticBackgroundInternalState), pointer               :: state
-
+    class  (*                                   ), intent(inout), target :: self
+    type   (universe                            ), intent(inout)         :: universe_
+    type   (universeEvent                       ), pointer               :: event
+    type   (intergalacticBackgroundInternalState), pointer               :: state
+    logical                                                              :: lockHeld
+    
     select type (self)
     class is (radiationFieldIntergalacticBackgroundInternal)
        ! If the universe object already has an "radiationFieldIntergalacticBackgroundInternal" attribute, then do not add a new
@@ -447,14 +449,14 @@ contains
           event%time                  =  self     %time_      (1)
           event%creator               => self
           event%task                  => intergalacticBackgroundInternalUpdate
-          !$omp critical (radiationFieldIntergalacticBackgroundInternalCritical)
+          lockHeld=universe_%lock%setNonBlocking()
           allocate(state                                          )
           allocate(state%flux(self%wavelengthCount,self%timeCount))
           state%timeNext    =self%time_(1)
           state%timePrevious=0.0d0
           state%flux        =0.0d0
           call universe_%attributes%set('radiationFieldIntergalacticBackgroundInternal',state)
-          !$omp end critical (radiationFieldIntergalacticBackgroundInternalCritical)
+          if (lockHeld) call universe_%lock%unset()
           self%universeUniqueIDPrevious =  -1_kind_int8
           self%timePrevious             =  -1.0d0
           self%statePrevious            => null()
@@ -523,7 +525,7 @@ contains
     type            (hdf5Object                          )                :: outputGroup                          , outputDataset
     integer         (c_size_t                            )                :: iTime                                , iWavelength                             , &
          &                                                                   iNow
-    logical                                                               :: firstTime
+    logical                                                               :: firstTime                            , lockHeld
 
     ! Guard on event creator class.
     select type (self => event%creator)
@@ -620,8 +622,8 @@ contains
              timeEnd   =  self%time_(iNow  )
              solver    =  odeSolver(self%wavelengthCount,intergalacticBackgroundInternalODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
              call solver%solve(timeStart,timeEnd,self%spectrum)
-             ! Convert
-             !$omp critical (radiationFieldIntergalacticBackgroundInternalCritical)
+             ! Convert.
+             lockHeld=universe_%lock%setNonBlocking()
              state%flux(:,iNow)=max(                                   &
                   &                 +plancksConstant                   &
                   &                 *speedLight                   **2  &
@@ -634,10 +636,10 @@ contains
                   &                 /ergs                            , &
                   &                 +0.0d0                             &
                   &                )
-             !$omp end critical (radiationFieldIntergalacticBackgroundInternalCritical)
+             if (lockHeld) call universe_%lock%unset()
           end if
           ! Add the next event to the universe.
-          !$omp critical (radiationFieldIntergalacticBackgroundInternalCritical)
+          lockHeld=universe_%lock%setNonBlocking()
           state    %timePrevious=self%time_(iNow  )
           if (iNow < self%timeCount) then
              state%timeNext     =self%time_(iNow+1)
@@ -646,7 +648,7 @@ contains
              ! radiation field to slightly later times (which may occur due to numerical inaccuracies).
              state%timeNext     =self%time_(iNow  )*(1.0d0+timeTolerance)
           end if
-          !$omp end critical (radiationFieldIntergalacticBackgroundInternalCritical)
+          if (lockHeld) call universe_%lock%unset()
           self%universeUniqueIDPrevious =  -1_kind_int8
           self%timePrevious             =  -1.0d0
           self%statePrevious            => null()

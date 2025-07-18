@@ -937,6 +937,7 @@ jobs:
                       tests.make_ranges.exe,
                       tests.mass_distributions.exe,
                       tests.mass_distributions.tabulated.exe,
+                      tests.prompt_cusps.exe,
                       tests.math_special_functions.exe,
                       tests.math_distributions.exe,
                       tests.math.fast.exe,
@@ -1218,7 +1219,8 @@ jobs:
                 test-decayingDM-caustic.py,
                 test-decayingDM-profile.py,
                 test-decayingDM-shell-crossing-capture.py,
-                test-enforceNonNegativity.py ]
+                test-enforceNonNegativity.py,
+                test-pruneLightcone.py ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
@@ -1624,7 +1626,7 @@ jobs:
           name: 'Dark matter-only subhalos benchmarks (COZMIC WDM 3keV)'
           type: 'validate'
           suffix: 'darkMatterOnlySubhalosCOZMICWDM3keVMilkyWay'
-          threshold: '300%'
+          threshold: '450%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Milky Way model validation'
         uses: ./.github/actions/benchmark

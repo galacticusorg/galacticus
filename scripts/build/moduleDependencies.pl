@@ -204,7 +204,7 @@ foreach my $fileIdentifier ( keys(%{$modulesPerFile}) ) {
 }
 
 # Create the output Makefile.
-open(my $makefile,">".$sourceDirectoryName."/".$workDirectoryName."Makefile_Module_Dependencies");
+open(my $makefile,">".$workDirectoryName."Makefile_Module_Dependencies");
 foreach my $fileIdentifier ( sort(keys(%{$modulesPerFile})) ) {
     if ( exists($modulesPerFile->{$fileIdentifier}->{'modulesProvided'}) && scalar(@{$modulesPerFile->{$fileIdentifier}->{'modulesProvided'}}) > 0 ) {
 	foreach my $moduleFileName ( @{$modulesPerFile->{$fileIdentifier}->{'modulesProvided'}} ) {
