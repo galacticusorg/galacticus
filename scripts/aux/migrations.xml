@@ -242,6 +242,12 @@
       <value old="creasey2012" new="creasey2013"/>
     </translation>
   </migration>
+  <migration commit="9e30e6b7b20cde818f4d9e935b0a34f0b5c78c29">
+    <translation function="satelliteOrphanize"/>
+  </migration>
+  <migration commit="49430476890d1e0d92c686020f046e972952f81e">
+    <translation function="blackHoleNonCentral"/>
+  </migration>
 
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />
