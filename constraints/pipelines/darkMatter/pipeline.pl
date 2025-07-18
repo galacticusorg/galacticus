@@ -203,7 +203,7 @@ foreach my $task ( @tasks ) {
 	print "  Reading prior maximum likelihood parameters...\n";
 	open(my $resultsFile,"<".$options{'outputDirectory'}."/results.txt");
 	while ( my $line = <$resultsFile> ) {
-	    if ( $line =~ m/([a-zA-Z0-9:]+)\s+([\+\-\d\.e]+)/ ) {
+	    if ( $line =~ m/([a-zA-Z0-9:\/]+)\s+([\+\-\d\.e]+)/ ) {
 		$parametersDetermined{$1} = pdl $2;
 	    } else {
 		die("Can not parse results.txt file");
