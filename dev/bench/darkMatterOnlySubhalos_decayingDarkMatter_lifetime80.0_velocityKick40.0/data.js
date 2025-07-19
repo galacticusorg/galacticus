@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1752793108195,
+  "lastUpdate": 1752957216888,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=80 Gyr; vₖ=40 km/s)": [
@@ -2537,6 +2537,38 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
             "value": "44.732323816144415",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abensonca@gmail.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "26eeebdd348094c63813fd18840d939f574fc339",
+          "message": "Merge pull request #883 from galacticusorg/fixNodeOperatorRateCompute\n\nMove more physics into `nodeOperators`",
+          "timestamp": "2025-07-18T17:28:02Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/26eeebdd348094c63813fd18840d939f574fc339"
+        },
+        "date": 1752957215972,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": "33.68205730728314",
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": "37.26551780070774",
             "unit": "-logℒ"
           }
         ]
