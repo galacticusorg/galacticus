@@ -207,7 +207,9 @@
                 x: {
                     ticks: {
                       beginAtZero: false,
-                      callback: (val) => (val.toExponential(2))
+                      callback: (val) => (val.toExponential(2)),
+                      maxRotation: 45, // Rotate labels up to 45 degrees
+                      minRotation: 45  // Ensure labels are always rotated by at least 45 degrees
                     },
                     title: {
                       display: true,
