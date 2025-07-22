@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1752957186674,
+  "lastUpdate": 1753214074602,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=1.0)": [
@@ -7882,6 +7882,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/26eeebdd348094c63813fd18840d939f574fc339"
         },
         "date": 1752957186121,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteBoundMass",
+            "value": "30.592138411171724",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "16.757775564941944",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteVelocityMaximum",
+            "value": "17.51631865269663",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "934e2c2629c8e9c85b741a18ccdc949dd2080f6f",
+          "message": "Merge pull request #885 from galacticusorg/fixFilterNameLength\n\nCorrect the maximum filter name length",
+          "timestamp": "2025-07-22T13:10:03Z",
+          "tree_id": "8c05746d6d394158a5ea5d101d98b2770a632070",
+          "url": "https://github.com/galacticusorg/galacticus/commit/934e2c2629c8e9c85b741a18ccdc949dd2080f6f"
+        },
+        "date": 1753214073948,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
