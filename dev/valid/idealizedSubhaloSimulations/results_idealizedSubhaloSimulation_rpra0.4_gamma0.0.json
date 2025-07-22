@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "26eeebdd348094c63813fd18840d939f574fc339",
-        "message": "Merge pull request #883 from galacticusorg/fixNodeOperatorRateCompute\n\nMove more physics into `nodeOperators`\n",
-        "timestamp": "2025-07-18 17:28:02+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/26eeebdd348094c63813fd18840d939f574fc339"
+        "id": "934e2c2629c8e9c85b741a18ccdc949dd2080f6f",
+        "message": "Merge pull request #885 from galacticusorg/fixFilterNameLength\n\nCorrect the maximum filter name length\n",
+        "timestamp": "2025-07-22 13:10:03+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/934e2c2629c8e9c85b741a18ccdc949dd2080f6f"
     },
     "results": [
         {
