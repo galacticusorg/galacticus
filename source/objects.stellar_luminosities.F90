@@ -1162,7 +1162,7 @@ contains
        end if
     end do
     if (luminosityCount > 0) then
-       lengthNameMaximum =max(4,maxval(len(luminosityFilter)))
+       lengthNameMaximum =max(4,max(len(filterName),maxval(len(luminosityFilter))))
        countDigitsMaximum=int(log10(dble(luminosityCount)))+1
     else
        lengthNameMaximum =4
