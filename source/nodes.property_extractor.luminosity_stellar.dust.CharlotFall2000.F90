@@ -208,7 +208,7 @@ contains
     class           (nodeComponentSpheroid                 ), pointer                 :: spheroid
     double precision                                        , parameter               :: metallicityISMLocal      =+2.00d-02            ! Metallicity in the local ISM.
     double precision                                        , parameter               :: AVToEBV                  =+3.10d+00            ! (A_V/E(B-V); Savage & Mathis 1979)
-    double precision                                        , parameter               :: NHToEBV                  =+5.80d+21            ! (N_H/E(B-V); atoms/cm^2/mag; Savage & Mathis 1979)
+    double precision                                        , parameter               :: NHToEBV                  =+5.80d+21            ! (N_H/E(B-V); atoms/cm²/mag; Savage & Mathis 1979)
     double precision                                        , parameter               :: wavelengthZeroPoint      =+5.50d+03            ! Angstroms
     double precision                                        , parameter               :: depthOpticalToMagnitudes =+2.50d+00          & ! Conversion factor from optical depth to magnitudes of extinction.
          &                                                                                                         *log10(            &
