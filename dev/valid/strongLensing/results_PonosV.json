@@ -4,21 +4,21 @@ window.PONOSV_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@carnegiescience.edu"
         },
-        "id": "934e2c2629c8e9c85b741a18ccdc949dd2080f6f",
-        "message": "Merge pull request #885 from galacticusorg/fixFilterNameLength\n\nCorrect the maximum filter name length\n",
-        "timestamp": "2025-07-22 13:10:03+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/934e2c2629c8e9c85b741a18ccdc949dd2080f6f"
+        "id": "29e4587e65e5e50b3981d5de313f5cd28ef86f37",
+        "message": "fix(style): Formatting only\n",
+        "timestamp": "2025-07-22 16:57:44-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/29e4587e65e5e50b3981d5de313f5cd28ef86f37"
     },
     "surfaceDensity": {
-        "percentageBelow": 42.857142857142854,
-        "percentageAbove": 57.142857142857146,
+        "percentageBelow": 32.14285714285714,
+        "percentageAbove": 67.85714285714286,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 50.0,
-        "percentageAbove": 50.0,
+        "percentageBelow": 45.45454545454545,
+        "percentageAbove": 54.54545454545455,
         "target": 0.85
     }
 }
