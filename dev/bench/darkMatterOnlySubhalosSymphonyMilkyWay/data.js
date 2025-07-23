@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1753263099645,
+  "lastUpdate": 1753300717520,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (Symphony)": [
@@ -656,6 +656,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (Symphony Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": "2.552201146356501",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8e919952c5857d9cd126b859e6211a7d1160b7db",
+          "message": "Merge pull request #887 from galacticusorg/fixInterpolatePanuzzo2003\n\nUse fixed extrapolation in the Cloudy tables for the `nodePropertyExtractorLmnstyEmssnLinePanuzzo2003` class",
+          "timestamp": "2025-07-23T13:27:35Z",
+          "tree_id": "1ab91bada2b5322861af837fc5d95b90f2a8a058",
+          "url": "https://github.com/galacticusorg/galacticus/commit/8e919952c5857d9cd126b859e6211a7d1160b7db"
+        },
+        "date": 1753300716598,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (Symphony Milky Way) - Likelihood - subhaloMassFunction",
+            "value": "3.1714952884473515",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": "2.066322613104826",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": "2.524880328030834",
             "unit": "-logℒ"
           }
         ]
