@@ -4,21 +4,21 @@ window.PONOSV_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "29e4587e65e5e50b3981d5de313f5cd28ef86f37",
-        "message": "fix(style): Formatting only\n",
-        "timestamp": "2025-07-22 16:57:44-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/29e4587e65e5e50b3981d5de313f5cd28ef86f37"
+        "id": "8e919952c5857d9cd126b859e6211a7d1160b7db",
+        "message": "Merge pull request #887 from galacticusorg/fixInterpolatePanuzzo2003\n\nUse fixed extrapolation in the Cloudy tables for the `nodePropertyExtractorLmnstyEmssnLinePanuzzo2003` class\n",
+        "timestamp": "2025-07-23 13:27:35+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/8e919952c5857d9cd126b859e6211a7d1160b7db"
     },
     "surfaceDensity": {
-        "percentageBelow": 32.14285714285714,
-        "percentageAbove": 67.85714285714286,
+        "percentageBelow": 35.71428571428571,
+        "percentageAbove": 64.28571428571429,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 45.45454545454545,
-        "percentageAbove": 54.54545454545455,
+        "percentageBelow": 58.333333333333336,
+        "percentageAbove": 41.666666666666664,
         "target": 0.85
     }
 }
