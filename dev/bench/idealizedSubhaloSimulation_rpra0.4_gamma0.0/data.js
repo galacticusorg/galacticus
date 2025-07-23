@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1753263141792,
+  "lastUpdate": 1753300770416,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.4; γ=0.0)": [
@@ -7960,6 +7960,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/29e4587e65e5e50b3981d5de313f5cd28ef86f37"
         },
         "date": 1753263140795,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteBoundMass",
+            "value": "26.85204754908515",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "12.856479837303228",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteVelocityMaximum",
+            "value": "11.535714177834446",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8e919952c5857d9cd126b859e6211a7d1160b7db",
+          "message": "Merge pull request #887 from galacticusorg/fixInterpolatePanuzzo2003\n\nUse fixed extrapolation in the Cloudy tables for the `nodePropertyExtractorLmnstyEmssnLinePanuzzo2003` class",
+          "timestamp": "2025-07-23T13:27:35Z",
+          "tree_id": "1ab91bada2b5322861af837fc5d95b90f2a8a058",
+          "url": "https://github.com/galacticusorg/galacticus/commit/8e919952c5857d9cd126b859e6211a7d1160b7db"
+        },
+        "date": 1753300769497,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
