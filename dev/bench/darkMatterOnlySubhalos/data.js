@@ -1,45 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1753300702274,
+  "lastUpdate": 1753300712515,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "id": "66fa8b5748162c36bae4b122a19bba6a4045180b",
-          "message": "fix: Update constructor calls in test codes",
-          "timestamp": "2024-09-10T03:33:13Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/66fa8b5748162c36bae4b122a19bba6a4045180b"
-        },
-        "date": 1725960978482,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 16.8011062086334,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 9.67948207514388,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 20514.1935203283,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8766,6 +8729,45 @@ window.BENCHMARK_DATA = {
             "value": 59.628,
             "unit": "seconds",
             "range": 0.0861719211802592
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8e919952c5857d9cd126b859e6211a7d1160b7db",
+          "message": "Merge pull request #887 from galacticusorg/fixInterpolatePanuzzo2003\n\nUse fixed extrapolation in the Cloudy tables for the `nodePropertyExtractorLmnstyEmssnLinePanuzzo2003` class",
+          "timestamp": "2025-07-23T13:27:35Z",
+          "tree_id": "1ab91bada2b5322861af837fc5d95b90f2a8a058",
+          "url": "https://github.com/galacticusorg/galacticus/commit/8e919952c5857d9cd126b859e6211a7d1160b7db"
+        },
+        "date": 1753300711547,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": "17.290053944586642",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": "9.481348539275158",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": "22170.946549962384",
+            "unit": "-logℒ"
           }
         ]
       }
