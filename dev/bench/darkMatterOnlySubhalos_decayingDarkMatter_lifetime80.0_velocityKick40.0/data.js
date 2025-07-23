@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1753263168647,
+  "lastUpdate": 1753300801224,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=80 Gyr; vₖ=40 km/s)": [
@@ -2637,6 +2637,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
             "value": "31.345158206048715",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8e919952c5857d9cd126b859e6211a7d1160b7db",
+          "message": "Merge pull request #887 from galacticusorg/fixInterpolatePanuzzo2003\n\nUse fixed extrapolation in the Cloudy tables for the `nodePropertyExtractorLmnstyEmssnLinePanuzzo2003` class",
+          "timestamp": "2025-07-23T13:27:35Z",
+          "tree_id": "1ab91bada2b5322861af837fc5d95b90f2a8a058",
+          "url": "https://github.com/galacticusorg/galacticus/commit/8e919952c5857d9cd126b859e6211a7d1160b7db"
+        },
+        "date": 1753300800371,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": "36.303313321766844",
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": "36.083688430093446",
             "unit": "-logℒ"
           }
         ]
