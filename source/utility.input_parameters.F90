@@ -137,6 +137,7 @@ module Input_Parameters
        <method description="Build a tree of {\normalfont \ttfamily inputParameter} objects from the structure of an XML parameter file." method="buildTree" />
        <method description="Resolve references in the tree of {\normalfont \ttfamily inputParameter} objects." method="resolveReferences" />
        <method description="Evaluate conditionals in the tree of {\normalfont \ttfamily inputParameter} objects." method="evaluateConditionals" />
+       <method description="Return the HDF5 group to which this parameters content will be written." method="parametersGroup" />
        <method description="Open an output group for parameters in the given HDF5 object." method="parametersGroupOpen" />
        <method description="Copy the HDF5 output group for parameters from another parameters object." method="parametersGroupCopy" />
        <method description="Check that a given parameter name is a valid name, aborting if not." method="validateName" />
@@ -162,6 +163,7 @@ module Input_Parameters
      procedure :: resolveReferences    => inputParametersResolveReferences
      procedure :: evaluateConditionals => inputParametersEvaluateConditionals
      procedure :: destroy              => inputParametersDestroy
+     procedure :: parametersGroup      => inputParametersParametersGroup
      procedure :: parametersGroupOpen  => inputParametersParametersGroupOpen
      procedure :: parametersGroupCopy  => inputParametersParametersGroupCopy
      procedure :: validateName         => inputParametersValidateName
@@ -1520,6 +1522,18 @@ contains
     if (warningsFound .and. verbose) call displayUnindent('')
     return
   end subroutine inputParametersCheckParameters
+
+  function inputParametersParametersGroup(self) result(parametersGroup)
+    !!{
+    Return the HDF5 group to which this parameters content will be written.
+    !!}
+    implicit none
+    type(hdf5Object      )                :: parametersGroup
+    class(inputParameters), intent(inout) :: self
+
+    if (self%outputParameters%isOpen()) call self%outputParameters%deepCopy(parametersGroup)
+    return
+  end function inputParametersParametersGroup
 
   subroutine inputParametersParametersGroupOpen(self,outputGroup)
     !!{
