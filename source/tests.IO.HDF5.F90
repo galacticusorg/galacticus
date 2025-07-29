@@ -25,13 +25,14 @@ program Tests_IO_HDF5
   use :: HDF5              , only : HSIZE_T
   use :: IO_HDF5           , only : IO_HDF5_Is_HDF5    , hdf5Object            , hdf5VarDouble       , hdf5VarInteger8  , &
        &                            hdf5VarDouble2D
-  use :: ISO_Varying_String, only : assignment(=)      , trim                  , varying_string      , var_str
+  use :: ISO_Varying_String, only : assignment(=)      , trim                  , varying_string      , var_str          , char
   use :: Kind_Numbers      , only : kind_int8
   use :: System_Command    , only : System_Command_Do
   use :: Unit_Tests        , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (hdf5Object     ), target                                 :: datasetObject                  , fileObject           , &
        &                                                                       groupObject                    , groupObject2
+  type            (hdf5Object     )             , dimension( 5)             :: groupObjects
   integer                                                                   :: iPass                          , integerValue         , &
        &                                                                       integerValueReread             , i                    , &
        &                                                                       j                              , k
@@ -853,25 +854,32 @@ program Tests_IO_HDF5
      ! Close the group.
      call groupObject%close()
 
+     ! Open an entire path of groups.
+     groupObjects=fileObject%openGroupPath('open/groups/in/a/path')
+     call Assert("open an entire path of groups",char(groupObjects(5)%pathTo(includeFileName=.false.)),'open/groups/in/a/path')
+     do i=1,5
+        call groupObjects(i)%close()
+     end do
+     
      ! Close the file.
      call fileObject%close()
 
      ! Read a 32-bit unsigned integer 1-D array into a 64-bit signed integer 1-D array.
      if (iPass==2) then
-       ! Open the HDF5 file which stores the smallest and the largest 32-bit unsigned integers.
-       call fileObject%openFile ("testSuite/data/IntegerRangeU32.hdf5")
-       ! Open the root group.
-       groupObject=fileObject%openGroup("/",comment="Root group.")
-       ! Read the dataset.
-       call groupObject%readDataset('IntegerRangeU32',integerRangeU32)
-       call Assert("read 32-bit unsigned integers into 64-bit signed integers",[0_kind_int8,4294967295_kind_int8],integerRangeU32)
-       deallocate(integerRangeU32)
-
-       ! Close the group.
-       call groupObject%close()
-       ! Close the file.
-       call fileObject%close()
-    end if
+        ! Open the HDF5 file which stores the smallest and the largest 32-bit unsigned integers.
+        call fileObject%openFile ("testSuite/data/IntegerRangeU32.hdf5")
+        ! Open the root group.
+        groupObject=fileObject%openGroup("/",comment="Root group.")
+        ! Read the dataset.
+        call groupObject%readDataset('IntegerRangeU32',integerRangeU32)
+        call Assert("read 32-bit unsigned integers into 64-bit signed integers",[0_kind_int8,4294967295_kind_int8],integerRangeU32)
+        deallocate(integerRangeU32)
+        
+        ! Close the group.
+        call groupObject%close()
+        ! Close the file.
+        call fileObject%close()
+     end if
 
      ! End the pass and destroy objects.
      call Unit_Tests_End_Group()
