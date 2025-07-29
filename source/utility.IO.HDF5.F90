@@ -130,6 +130,7 @@ module IO_HDF5
        <method description="Return a report on the location of an object suitable for inclusion in an error message." method="locationReport" />
        <method description="Open an HDF5 file and return an appropriate HDF5 object." method="openFile" />
        <method description="Open an HDF5 group and return an appropriate HDF5 object." method="openGroup" />
+       <method description="Open all HDF5 groups along a path and return the appropriate HDF5 objects." method="openGroupPath" />
        <method description="Open an HDF5 dataset." method="openDataset" />
        <method description="Open an HDF5 attribute." method="openAttribute" />
        <method description="Copy an HDF5 object." method="copy" />
@@ -144,6 +145,7 @@ module IO_HDF5
      procedure :: locationReport                          =>IO_HDF5_Location_Report
      procedure :: openFile                                =>IO_HDF5_Open_File
      procedure :: openGroup                               =>IO_HDF5_Open_Group
+     procedure :: openGroupPath                           =>IO_HDF5_Open_Group_Path
      procedure :: openDataset                             =>IO_HDF5_Open_Dataset
      procedure :: openAttribute                           =>IO_HDF5_Open_Attribute
      procedure :: close                                   =>IO_HDF5_Close
@@ -1197,6 +1199,33 @@ contains
   end subroutine IO_HDF5_Open_File
 
   !! Group routines.
+
+  function IO_HDF5_Open_Group_Path(inObject,groupPath) result (groupObjects)
+    !!{
+    Open all HDF5 groups in the given path and return objects for all of them.
+    !!}
+    use :: String_Handling   , only : String_Split_Words, String_Count_Words
+    use :: ISO_Varying_String, only : char
+    implicit none
+    type     (hdf5Object    ), allocatable  , dimension(:) :: groupObjects
+    class    (hdf5Object    ), intent(in   ), target       :: inObject
+    character(len=*         ), intent(in   )               :: groupPath
+    type     (varying_string), allocatable  , dimension(:) :: groupNames
+    integer                                                :: i           , countGroups
+
+    countGroups=String_Count_Words(groupPath,"/")
+    allocate(groupNames  (countGroups))
+    allocate(groupObjects(countGroups))
+    call String_Split_Words(groupNames,groupPath,"/")
+    do i=1,size(groupNames)
+       if (i == 1) then
+          groupObjects(i)=inObject         %openGroup(char(groupNames(i)))
+       else
+          groupObjects(i)=groupObjects(i-1)%openGroup(char(groupNames(i)))
+       end if
+    end do
+    return
+  end function IO_HDF5_Open_Group_Path
 
   function IO_HDF5_Open_Group(inObject,groupName,comment,objectsOverwritable,overwriteOverride,chunkSize,compressionLevel,attributesCompactMaxiumum) result (groupObject)
     !!{
