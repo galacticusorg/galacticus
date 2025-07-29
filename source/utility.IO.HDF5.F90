@@ -87,6 +87,7 @@ module IO_HDF5
      logical                          :: isOverwritable
      logical                          :: readOnly
      integer(kind=HID_T    )          :: objectID
+     type   (varying_string)          :: objectFile
      type   (varying_string)          :: objectLocation
      type   (varying_string)          :: objectName
      integer                          :: hdf5ObjectType
@@ -633,6 +634,7 @@ contains
     implicit none
     class(hdf5Object), intent(inout) :: self
 
+    call self%objectFile    %destroy()
     call self%objectLocation%destroy()
     call self%objectName    %destroy()
     return
@@ -672,16 +674,26 @@ contains
     return
   end function IO_HDF5_Name
 
-  function IO_HDF5_Path_To(self) result (pathToObject)
+  function IO_HDF5_Path_To(self,includeFileName) result (pathToObject)
     !!{
     Returns the path to {\normalfont \ttfamily self}.
     !!}
-    use :: ISO_Varying_String, only : operator(//)
+    use :: ISO_Varying_String, only : operator(//), assignment(=), operator(/=)
     implicit none
-    class(hdf5Object    ), intent(in   ) :: self
-    type (varying_string)                :: pathToObject
+    class  (hdf5Object    ), intent(in   )           :: self
+    logical                , intent(in   ), optional :: includeFileName
+    type   (varying_string)                          :: pathToObject
+    !![
+    <optionalArgument name="includeFileName" defaultsTo=".true." />
+    !!]
 
-    pathToObject=self%objectLocation//"/"//self%objectName
+    if (includeFileName_) then
+       pathToObject=self%objectFile//"/"
+    else
+       pathToObject=""
+    end if
+    if (self%objectLocation /= "/") pathToObject=pathToObject//self%objectLocation//"/"
+    pathToObject=pathToObject//self%objectName
     return
   end function IO_HDF5_Path_To
 
@@ -1040,7 +1052,7 @@ contains
     use :: File_Utilities    , only : File_Exists
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5F_ACC_RDONLY_F   , H5F_ACC_RDWR_F        , H5F_ACC_TRUNC_F       , H5F_CLOSE_SEMI_F       , &
-          &                           H5F_LIBVER_V18_F  , H5F_LIBVER_LATEST_F   , H5P_FILE_ACCESS_F     , h5fcreate_f            , &
+          &                           H5F_LIBVER_V18_F   , H5F_LIBVER_LATEST_F   , H5P_FILE_ACCESS_F     , h5fcreate_f            , &
           &                           h5fopen_f          , h5pclose_f            , h5pcreate_f           , h5pset_cache_f         , &
           &                           h5pset_fapl_stdio_f, h5pset_fclose_degree_f, h5pset_libver_bounds_f, h5pset_sieve_buf_size_f, &
           &                           hid_t              , hsize_t               , size_t
@@ -1062,10 +1074,10 @@ contains
     call IO_HDF5_Initialize
 
     ! Store the location and name of this object.
-    fileObject%objectLocation=""
     if (present(fileName)) then
-       fileObject%objectLocation="."
-       fileObject%objectName    =trim(fileName)
+       fileObject%objectFile    =trim(fileName)
+       fileObject%objectLocation=""
+       fileObject%objectName    =""
     else
        if (len(fileObject%objectName) == 0) call Error_Report('object has no predefined file name'//{introspection:location})
     end if
@@ -1152,7 +1164,7 @@ contains
        ! Attempt to create the file.
        call h5fcreate_f(fileName,H5F_ACC_TRUNC_F,fileObject%objectID,errorCode,access_prp=accessList)
        if (errorCode /= 0) then
-          message="failed to create HDF5 file '"//fileObject%objectName//"'"
+          message="failed to create HDF5 file '"//fileObject%objectFile//"'"
           call Error_Report(message//{introspection:location})
        end if
     end if
@@ -1315,8 +1327,9 @@ contains
     groupObject%hdf5ObjectType=hdf5ObjectTypeGroup
 
     ! Store the name and location of the object.
-    groupObject%objectName=trim(groupName)
-    groupObject%objectLocation=groupObject%parentObject%pathTo()
+    groupObject%objectFile    =groupObject%parentObject%objectFile
+    groupObject%objectLocation=groupObject%parentObject%pathTo    (includeFileName=.false.)
+    groupObject%objectName    =trim(groupName)
 
     ! Set the chunk size if provided.
     if (present(chunkSize)) then
@@ -1436,11 +1449,11 @@ contains
     ! Ensure that the object is already open.
     if (inObject%isOpenValue) then
        locationID  =inObject%objectID
-       locationPath=inObject%objectLocation//"/"//inObject%objectName
+       locationPath=inObject%objectFile//"/"//inObject%objectLocation//"/"//inObject%objectName
        select type (inObject)
        type is (hdf5Object)
-       attributeObject%parentObject => inObject
-    end select
+          attributeObject%parentObject => inObject
+       end select
     else
        message="attempt to open attribute '"//trim(attributeName)//"' in unopen object '"//inObject%objectName//"'"
        call Error_Report(message//inObject%locationReport()//{introspection:location})
@@ -1522,8 +1535,9 @@ contains
     attributeObject%hdf5ObjectType=hdf5ObjectTypeAttribute
 
     ! Store the name and location of the object.
-    attributeObject%objectName=trim(attributeName)
-    attributeObject%objectLocation=attributeObject%parentObject%pathTo()
+    attributeObject%objectFile    =attributeObject%parentObject%objectFile
+    attributeObject%objectLocation=attributeObject%parentObject%pathTo    (includeFileName=.false.)
+    attributeObject%objectName    =trim(attributeName)
 
     ! Mark whether attribute is overwritable.
     if (present(isOverwritable)) then
@@ -4376,11 +4390,11 @@ attributeValue=trim(attributeValue)
     ! Ensure that the object is already open.
     if (inObject%isOpenValue) then
        locationID  =inObject%objectID
-       locationPath=inObject%objectLocation//"/"//inObject%objectName
+       locationPath=inObject%objectFile//"/"//inObject%objectLocation//"/"//inObject%objectName
        select type (inObject)
        type is (hdf5Object)
-       datasetObject%parentObject => inObject
-    end select
+          datasetObject%parentObject => inObject
+       end select
     else
        message="attempt to open dataset '"//trim(datasetName)//"' in unopen object '"//inObject%objectName//"'"
        call Error_Report(message//inObject%locationReport()//{introspection:location})
@@ -4413,8 +4427,9 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Store the name and location of the object.
+    datasetObject%objectFile    =datasetObject%parentObject%objectFile
+    datasetObject%objectLocation=datasetObject%parentObject%pathTo    (includeFileName=.false.)
     datasetObject%objectName    =trim(datasetName)
-    datasetObject%objectLocation=datasetObject%parentObject%pathTo()
 
     ! Check if the dataset exists.
     if (inObject%hasDataset(datasetName)) then
@@ -18308,7 +18323,7 @@ attributeValue=trim(attributeValue)
        case (hdf5ObjectTypeFile     )
           !![
           <conditionalCall>
-           <call>call destination                  %openFile     (char(self%objectName),overWrite=.false.,readOnly=self%readOnly,objectsOverwritable=self%isOverwritable{conditions})</call>
+           <call>call destination                  %openFile     (char(self%objectFile),overWrite=.false.,readOnly=self%readOnly,objectsOverwritable=self%isOverwritable{conditions})</call>
            <argument name="compressionLevel" value="self%compressionLevel" condition="self%compressionLevelSet"/>
            <argument name="chunkSize"        value="self%chunkSize"        condition="self%chunkSizeSet"/>
           </conditionalCall>
