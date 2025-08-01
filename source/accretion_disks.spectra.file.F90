@@ -52,6 +52,7 @@
      final     ::                     fileDestructor
      procedure :: spectrumNode     => fileSpectrumNode
      procedure :: spectrumMassRate => fileSpectrumMassRate
+     procedure :: wavelengths      => fileWavelengths
      procedure :: loadFile         => fileLoadFile
   end type accretionDiskSpectraFile
 
@@ -163,6 +164,22 @@ contains
     return
   end subroutine fileLoadFile
 
+  subroutine fileWavelengths(self,wavelengthsCount,wavelengths)
+    !!{
+    Return a list of wavelengths at which AGN spectra are tabulated.
+    !!}
+    implicit none
+    class           (accretionDiskSpectraFile)                           , intent(inout) :: self
+    integer                                                              , intent(  out) :: wavelengthsCount
+    double precision                          , allocatable, dimension(:), intent(  out) :: wavelengths
+
+    ! Return the relevant data.
+    wavelengthsCount=size(self%wavelength)
+    allocate(wavelengths(wavelengthsCount))
+    wavelengths     =self%wavelength
+    return
+  end subroutine fileWavelengths
+
   double precision function fileSpectrumNode(self,node,wavelength)
     !!{
     Return the accretion disk spectrum for tabulated spectra.
@@ -196,12 +213,12 @@ contains
     use            :: Numerical_Constants_Physical    , only : speedLight
     implicit none
     class           (accretionDiskSpectraFile), intent(inout)  :: self
-    double precision                          , intent(in   )  :: accretionRate       , efficiencyRadiative, &
+    double precision                          , intent(in   )  :: accretionRate       , efficiencyRadiative            , &
          &                                                        wavelength
     double precision                          , dimension(0:1) :: hLuminosity         , hWavelength
-    integer         (c_size_t                )                 :: iLuminosity         , iWavelength        , &
+    integer         (c_size_t                )                 :: iLuminosity         , iWavelength                    , &
          &                                                        jLuminosity         , jWavelength
-    double precision                                           :: luminosityBolometric
+    double precision                                           :: luminosityBolometric, luminosityBolometricLogarithmic
 
     ! Initialize to zero spectrum.
     fileSpectrumMassRate=0.0d0
@@ -221,8 +238,9 @@ contains
          &   wavelength > self%wavelength(size(self%wavelength)) &
          & ) return
     ! Get the interpolating factors.
-    call self%interpolatorLuminosity%linearFactors(log(luminosityBolometric),iLuminosity,hLuminosity)
-    call self%interpolatorWavelength%linearFactors(    wavelength           ,iWavelength,hWavelength)
+    luminosityBolometricLogarithmic=log(luminosityBolometric)
+    call self%interpolatorLuminosity%linearFactors(luminosityBolometricLogarithmic,iLuminosity,hLuminosity)
+    call self%interpolatorWavelength%linearFactors(wavelength                     ,iWavelength,hWavelength)
     ! Do the interpolation.
     do jLuminosity=0,1
        do jWavelength=0,1
@@ -235,6 +253,20 @@ contains
                &               *hWavelength     (            jWavelength)
        end do
     end do
+    ! Scale to bolometric luminosities lying outside of the tabulation bounds.
+    if      (luminosityBolometricLogarithmic < self%luminosity(                   1 )) then
+       fileSpectrumMassRate=+fileSpectrumMassRate                                             &
+            &               *exp(                                                             &
+            &                    +     luminosityBolometricLogarithmic                        &
+            &                    -self%luminosity                     (                   1 ) &
+            &                   )
+    else if (luminosityBolometricLogarithmic > self%luminosity(size(self%luminosity))) then
+       fileSpectrumMassRate=+fileSpectrumMassRate                                             &
+            &               *exp(                                                             &
+            &                    +     luminosityBolometricLogarithmic                        &
+            &                    -self%luminosity                     (size(self%luminosity)) &
+            &                   )
+    end if
     ! Prevent interpolation from returning negative fluxes.
     fileSpectrumMassRate=max(fileSpectrumMassRate,0.0d0)
     return
