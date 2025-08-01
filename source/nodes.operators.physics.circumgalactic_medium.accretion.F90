@@ -218,56 +218,61 @@ contains
 
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
-    ! Find the parent node and its hot halo component.
-    nodeParent    => node      %parent
-    hotHaloParent => nodeParent%hotHalo(autoCreate=.true.)
-    ! Get the basic components.
-    basic       => node      %basic()
-    basicParent => nodeParent%basic()
-    ! Any gas that failed to be accreted by this halo is always transferred to the parent.
-    call hotHaloParent%unaccretedMassSet(hotHaloParent%unaccretedMass()+hotHalo%unaccretedMass())
-    call       hotHalo%unaccretedMassSet(                                                  0.0d0)
-    ! Move the hot halo to the parent. We leave the hot halo in place even if it is starved, since outflows will accumulate
-    ! to this hot halo (and will be moved to the parent at the end of the evolution timestep).
-    call hotHaloParent%          massSet(hotHaloParent%          mass()+hotHalo%          mass())
-    call hotHaloParent%    abundancesSet(hotHaloParent%    abundances()+hotHalo%    abundances())
-    call       hotHalo%          massSet(                                                  0.0d0)
-    call       hotHalo%    abundancesSet(                                         zeroAbundances)
-    ! Finally, since the parent node is undergoing mass growth through this merger we potentially return some of the unaccreted
-    ! gas to the hot phase.
-    !! First, find the masses of hot and failed mass the node would have if it formed instantaneously.
-    massAccreted  =self%accretionHalo_%accretedMass      (nodeParent,accretionModeTotal)
-    massUnaccreted=self%accretionHalo_%failedAccretedMass(nodeParent,accretionModeTotal)
-    !! Find the fraction of mass that would be successfully accreted.
-    fractionAccreted=+  massAccreted   &
-         &           /(                &
-         &             +massAccreted   &
-         &             +massUnaccreted &
-         &            )
-    !! Find the change in the unaccreted mass.
-    massReaccreted=+hotHaloParent   %unaccretedMass() &
-         &         *fractionAccreted                  &
-         &         *basic           %          mass() &
-         &         /basicParent     %          mass()
-    !! Reaccrete the gas,
-    call hotHaloParent%unaccretedMassSet(hotHaloParent%unaccretedMass()-massReaccreted)
-    call hotHaloParent%          massSet(hotHaloParent%          mass()+massReaccreted)
-    ! Compute the reaccreted metals.
-    !! First, find the metal mass the node would have if it formed instantaneously.
-    massMetalsAccreted=self%accretionHalo_%accretedMassMetals(nodeParent,accretionModeHot)
-    !! Find the mass fraction of metals that would be successfully accreted.
-    fractionMetalsAccreted=+  massMetalsAccreted &
-         &                 /(                    &
-         &                   +massAccreted       &
-         &                   +massUnaccreted     &
-         &                  )
-    !! Find the change in the unaccreted mass.
-    massMetalsReaccreted=+hotHaloParent   %unaccretedMass() &
+    select type (hotHalo)
+    type is (nodeComponentHotHalo)
+       ! No hot halo exists - nothing to do.
+    class default
+       ! Find the parent node and its hot halo component.
+       nodeParent    => node      %parent
+       hotHaloParent => nodeParent%hotHalo(autoCreate=.true.)
+       ! Get the basic components.
+       basic       => node      %basic()
+       basicParent => nodeParent%basic()
+       ! Any gas that failed to be accreted by this halo is always transferred to the parent.
+       call hotHaloParent%unaccretedMassSet(hotHaloParent%unaccretedMass()+hotHalo%unaccretedMass())
+       call       hotHalo%unaccretedMassSet(                                                  0.0d0)
+       ! Move the hot halo to the parent. We leave the hot halo in place even if it is starved, since outflows will accumulate
+       ! to this hot halo (and will be moved to the parent at the end of the evolution timestep).
+       call hotHaloParent%          massSet(hotHaloParent%          mass()+hotHalo%          mass())
+       call hotHaloParent%    abundancesSet(hotHaloParent%    abundances()+hotHalo%    abundances())
+       call       hotHalo%          massSet(                                                  0.0d0)
+       call       hotHalo%    abundancesSet(                                         zeroAbundances)
+       ! Finally, since the parent node is undergoing mass growth through this merger we potentially return some of the unaccreted
+       ! gas to the hot phase.
+       !! First, find the masses of hot and failed mass the node would have if it formed instantaneously.
+       massAccreted  =self%accretionHalo_%accretedMass      (nodeParent,accretionModeTotal)
+       massUnaccreted=self%accretionHalo_%failedAccretedMass(nodeParent,accretionModeTotal)
+       !! Find the fraction of mass that would be successfully accreted.
+       fractionAccreted=+  massAccreted   &
+            &           /(                &
+            &             +massAccreted   &
+            &             +massUnaccreted &
+            &            )
+       !! Find the change in the unaccreted mass.
+       massReaccreted=+hotHaloParent   %unaccretedMass() &
+            &         *fractionAccreted                  &
+            &         *basic           %          mass() &
+            &         /basicParent     %          mass()
+       !! Reaccrete the gas,
+       call hotHaloParent%unaccretedMassSet(hotHaloParent%unaccretedMass()-massReaccreted)
+       call hotHaloParent%          massSet(hotHaloParent%          mass()+massReaccreted)
+       ! Compute the reaccreted metals.
+       !! First, find the metal mass the node would have if it formed instantaneously.
+       massMetalsAccreted=self%accretionHalo_%accretedMassMetals(nodeParent,accretionModeHot)
+       !! Find the mass fraction of metals that would be successfully accreted.
+       fractionMetalsAccreted=+  massMetalsAccreted &
+            &                 /(                    &
+            &                   +massAccreted       &
+            &                   +massUnaccreted     &
+            &                  )
+       !! Find the change in the unaccreted mass.
+       massMetalsReaccreted=+hotHaloParent   %unaccretedMass() &
          &               *fractionMetalsAccreted            &
          &               *basic           %          mass() &
          &               /basicParent     %          mass()
-    !! Reaccrete the metals.
-    call hotHaloParent%abundancesSet(hotHaloParent%abundances()+massMetalsReaccreted)
+       !! Reaccrete the metals.
+       call hotHaloParent%abundancesSet(hotHaloParent%abundances()+massMetalsReaccreted)
+    end select
     return
   end subroutine cgmAccretionNodesMerge
   
@@ -288,7 +293,7 @@ contains
     class is (nodeOperatorCGMAccretion)
        ! Get the hot halo component.
        hotHalo => node%hotHalo()
-        select type (hotHalo)
+       select type (hotHalo)
        type is (nodeComponentHotHalo)
           ! No hot halo exists - nothing to do.
        class default

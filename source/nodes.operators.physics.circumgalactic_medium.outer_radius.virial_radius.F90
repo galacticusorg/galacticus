@@ -113,7 +113,12 @@ contains
     class(nodeComponentHotHalo                  ), pointer       :: hotHalo
 
     hotHalo => node%hotHalo()
-    call hotHalo%outerRadiusAnalytic()
+    select type (hotHalo)
+    type is (nodeComponentHotHalo)
+       ! No hot halo exists - nothing to do.
+    class default
+       call hotHalo%outerRadiusAnalytic()
+    end select
     return
   end subroutine cgmOuterRadiusVirialRadiusDifferentialEvolutionAnalytics
 
@@ -130,7 +135,12 @@ contains
     !$GLC attributes unused :: time
     
     hotHalo => node%hotHalo()
-    call hotHalo%outerRadiusSet(self%darkMatterHaloScale_%radiusVirial(node))
+    select type (hotHalo)
+    type is (nodeComponentHotHalo)
+       ! No hot halo exists - nothing to do.
+    class default
+       call hotHalo%outerRadiusSet(self%darkMatterHaloScale_%radiusVirial(node))
+    end select
     return
   end subroutine cgmOuterRadiusVirialRadiusSolveAnalytics
 
@@ -145,7 +155,12 @@ contains
     class(nodeComponentHotHalo                  ), pointer       :: hotHalo
 
     hotHalo => node%hotHalo()
-    call hotHalo%outerRadiusSet(self%darkMatterHaloScale_%radiusVirial(node))
+    select type (hotHalo)
+    type is (nodeComponentHotHalo)
+       ! No hot halo exists - nothing to do.
+    class default
+       call hotHalo%outerRadiusSet(self%darkMatterHaloScale_%radiusVirial(node))
+    end select
     return
   end subroutine cgmOuterRadiusVirialRadiusNodesMerge
   
