@@ -54,6 +54,11 @@
           &                                                                    resolution                     , factorWavelength
      type            (enumerationFrameType     )                            :: frame
    contains
+     !![
+     <methods>
+       <method description="Return an array of the wavelengths at which the SED is computed." method="wavelengths"/>
+     </methods>
+     !!]
      final     ::                            sedAGNDestructor
      procedure :: wavelengths             => sedAGNWavelengths
      procedure :: columnDescriptions      => sedAGNColumnDescriptions
@@ -191,8 +196,6 @@ contains
     class           (nodePropertyExtractorSEDAGN), intent(inout)               :: self
     double precision                             , intent(in   )               :: time
     logical                                      , allocatable  , dimension(:) :: selection
-    integer         (c_size_t                   )                              :: indexTemplate  , countTemplates, &
-         &                                                                        i
     double precision                                                           :: expansionFactor
 
     if (self%resolution < 0.0d0) then
@@ -303,9 +306,8 @@ contains
     double precision                             , dimension(:) , allocatable :: wavelengths
     class           (nodePropertyExtractorSEDAGN), intent(inout)              :: self
     double precision                             , intent(in   )              :: time
-    integer         (c_size_t                   )                             :: i             , j              , &
-         &                                                                       indexTemplate , countTemplates
-    double precision                                                          :: wavelength    , expansionFactor
+    integer         (c_size_t                   )                             :: i          , j
+    double precision                                                          :: wavelength , expansionFactor
 
     allocate(wavelengths(self%size(time)))
     j=0
