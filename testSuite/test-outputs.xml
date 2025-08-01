@@ -126,4 +126,11 @@
     </mergerTreeOperator>
   </parameters>
 
+  <!-- AGN SEDs -->
+  <parameters>
+    <formatVersion>2</formatVersion>
+    <lastModified revision="49430476890d1e0d92c686020f046e972952f81e" time="2025-07-17T15:12:42"/>
+    <nodePropertyExtractor value="SEDAGN"/>
+  </parameters>
+
 </parameterGrid>
