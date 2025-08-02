@@ -51,6 +51,13 @@ module Accretion_Disk_Spectra
     <method>spectrumNode</method>
     <method>spectrumMassRate</method>
    </generic>
+   <method name="wavelengths" >
+    <description>Return a tabulation of wavelengths at which accretion disk spectra are defined.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>integer                                    , intent(  out) :: wavelengthsCount</argument>
+    <argument>double precision, allocatable, dimension(:), intent(  out) :: wavelengths</argument>
+   </method>
   </functionClass>
   !!]
 

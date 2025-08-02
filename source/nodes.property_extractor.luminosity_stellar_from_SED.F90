@@ -108,8 +108,8 @@ contains
   end function luminosityStellarFromSEDConstructorParameters
 
   function luminosityStellarFromSEDConstructorInternal(filterNames,nodePropertyExtractor_) result(self)
-    use, intrinsic :: ISO_C_Binding, only : c_size_t
-    use :: Instruments_Filters, only : Filter_Get_Index, Filter_Response_Function, Filter_Extent
+    use, intrinsic :: ISO_C_Binding      , only : c_size_t
+    use            :: Instruments_Filters, only : Filter_Get_Index, Filter_Response_Function, Filter_Extent
     implicit none
     type   (nodePropertyExtractorLuminosityStellarFromSED)                              :: self
     type   (varying_string                               ), intent(in   ), dimension(:) :: filterNames
@@ -228,7 +228,6 @@ contains
     end function integrandFilteredLuminosityAB
     
   end function luminosityStellarFromSEDExtract
-
 
   function luminosityStellarFromSEDQuantity(self)
     !!{
