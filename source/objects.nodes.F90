@@ -142,12 +142,12 @@ module Galacticus_Nodes
      !!{
      The universe object class.
      !!}
-     type   (mergerTreeList), pointer         :: trees         => null()
-     logical                                  :: allTreesBuilt =  .false.
-     type   (universeEvent ), pointer, public :: event         => null()
-     type   (genericHash   )                  :: attributes
-     integer(kind_int8     )                  :: uniqueID
-     type   (ompLock       )                  :: lock
+     type   (mergerTreeList), pointer             :: trees         => null()
+     logical                                      :: allTreesBuilt =  .false.
+     type   (universeEvent ), pointer    , public :: event         => null()
+     type   (genericHash   )                      :: attributes
+     integer(kind_int8     )                      :: uniqueID
+     type   (ompLock       ), allocatable         :: lock
    contains
      !![
      <methods>
@@ -1487,6 +1487,7 @@ module Galacticus_Nodes
     universeUniqueIdCount=universeUniqueIdCount+1
     self%uniqueID        =universeUniqueIdCount
     !$omp end critical(universeUniqueIDAssign)
+    allocate(self%lock)
     self%trees         => null   ()
     self%event         => null   ()
     self%allTreesBuilt =  .false.
