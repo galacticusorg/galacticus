@@ -81,6 +81,7 @@ jobs:
         with:
           file-path: diffs.md
       - name: Add a step summary
+        if: steps.check_files.outputs.files_exists == 'true'
         run: |
           cat diffs.md >> $GITHUB_STEP_SUMMARY
           
