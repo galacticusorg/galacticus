@@ -1,4 +1,4 @@
 [difftool "hdf5diff"]
-    cmd = "h5diff \"$LOCAL\" \"$REMOTE\""
+    cmd = "h5diff -r -c \"$LOCAL\" \"$REMOTE\""
 [difftool "xmldiff"]
     cmd = "xdiff \"$LOCAL\" \"$REMOTE\""
