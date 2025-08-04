@@ -1750,48 +1750,100 @@
     <componentHotHalo value="verySimple">
       <coolingRate value="simple" parameterLevel="top"/>
       <componentBlackHole value="null" parameterLevel="top"/>
+      <nodeOperator value="multi" parameterLevel="top">
+	<!-- Cosmological epoch -->
+	<nodeOperator value="cosmicTime" iterable="no"/>
+	<!-- DMO evolution -->
+	<nodeOperator value="DMOInterpolate" iterable="no"/>
+	<!-- Halo concentrations -->
+	<nodeOperator value="darkMatterProfileScaleSet" iterable="no"/>
+	<nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
+	<!-- Halo spins -->
+	<nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
+	<nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
+	<!-- Satellite evolution -->
+	<nodeOperator value="satelliteMergingTime" iterable="no"/>
+	<nodeOperator value="satelliteMassLoss" iterable="no"/>
+	<!-- Star formation -->
+	<nodeOperator value="starFormationDisks" iterable="no"/>
+	<nodeOperator value="starFormationSpheroids" iterable="no"/>
+	<!--Stellar feedback outflows-->
+	<nodeOperator value="stellarFeedbackDisks" iterable="no">
+  	  <stellarFeedbackOutflows value="rateLimit">
+            <timescaleOutflowFractionalMinimum value="0.001"/>
+            <stellarFeedbackOutflows value="powerLaw">
+              <velocityCharacteristic value="250.0"/>
+              <exponent value="3.5"/>
+            </stellarFeedbackOutflows>
+  	  </stellarFeedbackOutflows>
+	</nodeOperator>
+	<nodeOperator value="stellarFeedbackSpheroids" iterable="no">
+  	  <stellarFeedbackOutflows value="rateLimit">
+            <timescaleOutflowFractionalMinimum value="0.001"/>
+            <stellarFeedbackOutflows value="powerLaw">
+              <velocityCharacteristic value="250.0"/>
+              <exponent value="3.5"/>
+            </stellarFeedbackOutflows>
+  	  </stellarFeedbackOutflows>
+	</nodeOperator>
+	<!-- CGM physics -->
+	<nodeOperator value="CGMOuterRadiusVirialRadius" iterable="no"/>
+	<nodeOperator value="CGMCoolingInflow" iterable="no">
+	  <component value="disk"/>
+	</nodeOperator>
+	<nodeOperator value="CGMAccretion" iterable="no"/>
+	<nodeOperator value="CGMStarvation" iterable="no"/>
+      </nodeOperator>
     </componentHotHalo>
     <componentHotHalo value="verySimpleDelayed">
       <coolingRate value="simple" parameterLevel="top"/>
       <componentBlackHole value="null" parameterLevel="top"/>
+      <nodeOperator value="multi" parameterLevel="top">
+	<!-- Cosmological epoch -->
+	<nodeOperator value="cosmicTime" iterable="no"/>
+	<!-- DMO evolution -->
+	<nodeOperator value="DMOInterpolate" iterable="no"/>
+	<!-- Halo concentrations -->
+	<nodeOperator value="darkMatterProfileScaleSet" iterable="no"/>
+	<nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
+	<!-- Halo spins -->
+	<nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
+	<nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
+	<!-- Satellite evolution -->
+	<nodeOperator value="satelliteMergingTime" iterable="no"/>
+	<nodeOperator value="satelliteMassLoss" iterable="no"/>
+	<!-- Star formation -->
+	<nodeOperator value="starFormationDisks" iterable="no"/>
+	<nodeOperator value="starFormationSpheroids" iterable="no"/>
+	<!--Stellar feedback outflows-->
+	<nodeOperator value="stellarFeedbackDisks" iterable="no">
+  	  <stellarFeedbackOutflows value="rateLimit">
+            <timescaleOutflowFractionalMinimum value="0.001"/>
+            <stellarFeedbackOutflows value="powerLaw">
+              <velocityCharacteristic value="250.0"/>
+              <exponent value="3.5"/>
+            </stellarFeedbackOutflows>
+  	  </stellarFeedbackOutflows>
+	</nodeOperator>
+	<nodeOperator value="stellarFeedbackSpheroids" iterable="no">
+  	  <stellarFeedbackOutflows value="rateLimit">
+            <timescaleOutflowFractionalMinimum value="0.001"/>
+            <stellarFeedbackOutflows value="powerLaw">
+              <velocityCharacteristic value="250.0"/>
+              <exponent value="3.5"/>
+            </stellarFeedbackOutflows>
+  	  </stellarFeedbackOutflows>
+	</nodeOperator>
+	<!-- CGM physics -->
+	<nodeOperator value="CGMOuterRadiusVirialRadius" iterable="no"/>
+	<nodeOperator value="CGMCoolingInflow" iterable="no">
+	  <component value="disk"/>
+	</nodeOperator>
+	<nodeOperator value="CGMAccretion" iterable="no"/>
+	<nodeOperator value="CGMStarvation" iterable="no"/>
+	<nodeOperator value="CGMOutflowReincorporation" iterable="no"/>
+      </nodeOperator>
     </componentHotHalo>
-    <nodeOperator value="multi">
-      <!-- Cosmological epoch -->
-      <nodeOperator value="cosmicTime" iterable="no"/>
-      <!-- DMO evolution -->
-      <nodeOperator value="DMOInterpolate" iterable="no"/>
-      <!-- Halo concentrations -->
-      <nodeOperator value="darkMatterProfileScaleSet" iterable="no"/>
-      <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
-      <!-- Halo spins -->
-      <nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
-      <nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
-      <!-- Satellite evolution -->
-      <nodeOperator value="satelliteMergingTime" iterable="no"/>
-      <nodeOperator value="satelliteMassLoss" iterable="no"/>
-      <!-- Star formation -->
-      <nodeOperator value="starFormationDisks" iterable="no"/>
-      <nodeOperator value="starFormationSpheroids" iterable="no"/>
-      <!--Stellar feedback outflows-->
-      <nodeOperator value="stellarFeedbackDisks" iterable="no">
-  	<stellarFeedbackOutflows value="rateLimit">
-          <timescaleOutflowFractionalMinimum value="0.001"/>
-          <stellarFeedbackOutflows value="powerLaw">
-            <velocityCharacteristic value="250.0"/>
-            <exponent value="3.5"/>
-          </stellarFeedbackOutflows>
-  	</stellarFeedbackOutflows>
-      </nodeOperator>
-      <nodeOperator value="stellarFeedbackSpheroids" iterable="no">
-  	<stellarFeedbackOutflows value="rateLimit">
-          <timescaleOutflowFractionalMinimum value="0.001"/>
-          <stellarFeedbackOutflows value="powerLaw">
-            <velocityCharacteristic value="250.0"/>
-            <exponent value="3.5"/>
-          </stellarFeedbackOutflows>
-  	</stellarFeedbackOutflows>
-      </nodeOperator>
-    </nodeOperator>
   </parameters>
   
   <!-- Internal IGM evolution -->
