@@ -179,40 +179,45 @@ contains
     implicit none
     class           (darkMatterProfileScaleRadiusJohnson2021), intent(inout), target    :: self
     type            (treeNode                               ), intent(inout), target    :: node
-    type            (treeNode                               )               , pointer   :: nodeChild                                      , nodeSibling                      , &
+    type            (treeNode                               )               , pointer   :: nodeChild                                       , nodeSibling                      , &
          &                                                                                 nodeUnresolved
-    class           (nodeComponentBasic                     )               , pointer   :: basicChild                                     , basicSibling                     , &
-         &                                                                                 basic                                          , basicUnresolved
-    class           (nodeComponentDarkMatterProfile         )               , pointer   :: darkMatterProfile                              , darkMatterProfileSibling         , &
-         &                                                                                 darkMatterProfileChild                         , darkMatterProfileUnresolved
+    class           (nodeComponentBasic                     )               , pointer   :: basicChild                                      , basicSibling                     , &
+         &                                                                                 basic                                           , basicUnresolved
+    class           (nodeComponentDarkMatterProfile         )               , pointer   :: darkMatterProfile                               , darkMatterProfileSibling         , &
+         &                                                                                 darkMatterProfileChild                          , darkMatterProfileUnresolved
     class           (nodeComponentSatellite                 )               , pointer   :: satelliteSibling
     class           (massDistributionClass                  )               , pointer   :: massDistribution_
     double precision                                                        , parameter :: massFunctionSlopeLogarithmic            =1.90d0
     double precision                                                        , parameter :: energyInternalFormFactorSlopeLogarithmic=0.03d0
-    double precision                                                                    :: energyOrbital                                  , massRatio                        , &
-         &                                                                                 radiusScaleChild                               , radiusScaleOriginal              , &
-         &                                                                                 massUnresolved                                 , energyInternalSubresolutionFactor, &
-         &                                                                                 radiusScaleUnresolved                          , massResolution                   , &
-         &                                                                                 energyPotentialSubresolutionFactor             , energyKineticSubresolutionFactor , &
-         &                                                                                 a                                              , b                                , &
-         &                                                                                 energyPotential                                , energyKinetic                    , &
+    double precision                                                                    :: energyOrbital                                   , massRatio                        , &
+         &                                                                                 radiusScaleChild                                , radiusScaleOriginal              , &
+         &                                                                                 massUnresolved                                  , energyInternalSubresolutionFactor, &
+         &                                                                                 radiusScaleUnresolved                           , massResolution                   , &
+         &                                                                                 energyPotentialSubresolutionFactor              , energyKineticSubresolutionFactor , &
+         &                                                                                 a                                               , b                                , &
+         &                                                                                 energyPotential                                 , energyKinetic                    , &
          &                                                                                 radiusVirial
-    type            (rootFinder                             )                           :: finder
+    type            (rootFinder                             ), save                     :: finder
+    logical                                                  , save                     :: finderConstructed                       =.false.
+    !$omp threadprivate(finder,finderConstructed)
     type            (keplerOrbit                            )                           :: orbit
     
     ! Get the resolution of the tree.
     massResolution=self%mergerTreeMassResolution_%resolution(node%hostTree)
     ! Build a root finder to find scale radii.
-    finder=rootFinder(                                                             &
-         &            rootFunction                 =radiusScaleRoot              , &
-         &            toleranceAbsolute            =1.0d-6                       , &
-         &            toleranceRelative            =1.0d-3                       , &
-         &            rangeExpandDownward          =0.5d+0                       , &
-         &            rangeExpandUpward            =2.0d+0                       , &
-         &            rangeExpandType              =rangeExpandMultiplicative    , &
-         &            rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
-         &            rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative  &
-         &           )
+    if (.not.finderConstructed) then 
+       finder           =rootFinder(                                                             &
+            &                       rootFunction                 =radiusScaleRoot              , &
+            &                       toleranceAbsolute            =1.0d-6                       , &
+            &                       toleranceRelative            =1.0d-3                       , &
+            &                       rangeExpandDownward          =0.5d+0                       , &
+            &                       rangeExpandUpward            =2.0d+0                       , &
+            &                       rangeExpandType              =rangeExpandMultiplicative    , &
+            &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+            &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative  &
+            &                      )
+       finderConstructed=.true.
+    end if
     ! Create the dark matter profile component.
     darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
     ! If this node has no children, set its dark matter profile scale radius using the fallback method.

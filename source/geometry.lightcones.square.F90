@@ -888,7 +888,9 @@ contains
     logical                                                                                         :: isInFieldOfView
     integer                                                                                         :: i                           , j                 , &
          &                                                                                             k
-    type            (rootFinder             )                                                       :: finder
+    type            (rootFinder             ), save                                                 :: finder
+    logical                                  , save                                                 :: finderConstructed   =.false.
+    !$omp threadprivate(finder,finderConstructed)
 
     basic                       => node    %basic                               (          )
     position                    => node    %position                            (          ) 
@@ -906,8 +908,11 @@ contains
     ! Find the range of replicants in which this node might cross the lightcone.
     periodicRange=self%periodicRange(distanceMinimum,distanceMaximum,radiusBuffer)
     ! Iterate over replicants of interest.
+    if (.not.finderConstructed) then 
+       finder           =rootFinder(rootFunction=timeCrossingRoot,toleranceRelative=1.0d-9)
+       finderConstructed=.true.
+    end if
     squareTimeLightconeCrossing=huge(0.0d0)
-    finder                     =rootFinder(rootFunction=timeCrossingRoot,toleranceRelative=1.0d-9)
     do i=periodicRange(1,1),periodicRange(1,2)
        do j=periodicRange(2,1),periodicRange(2,2)
           do k=periodicRange(3,1),periodicRange(3,2)

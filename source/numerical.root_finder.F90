@@ -558,10 +558,10 @@ contains
     !!{
     Finds the root of the supplied {\normalfont \ttfamily root} function.
     !!}
+    use, intrinsic :: ISO_C_Binding     , only : c_funptr
     use            :: Display           , only : displayMessage            , verbosityLevelWarn   , displayIndent     , displayUnindent
     use            :: Error             , only : Error_Report              , errorStatusOutOfRange, errorStatusSuccess, GSL_Error_Handler_Abort_Off, &
          &                                       GSL_Error_Handler_Abort_On
-    use, intrinsic :: ISO_C_Binding     , only : c_funptr
     use            :: ISO_Varying_String, only : assignment(=)             , operator(//)         , varying_string
     use            :: Interface_GSL     , only : GSL_Success               , gslFunction          , gslFunctionFdF
     implicit none
