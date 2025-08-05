@@ -868,8 +868,9 @@ program Tests_IO_HDF5
             deallocate(integerRangeU32)
           end block
        end if
+     end block
   end do
-
+  
   ! Test identifying HDF5 file.
   call Assert("test if file is HDF5",IO_HDF5_Is_HDF5('testSuite/outputs/test.IO.HDF5.hdf5'),.true.)
 

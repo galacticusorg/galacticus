@@ -555,7 +555,7 @@ contains
        case (GSL_Failure)
           ! Generic failure - most likely a stepsize underflow.
           if (associated(self%errorHandler)) then
-             xStep_=GSL_ODEIV2_Driver_h(self%gsl_odeiv2_driver)
+             xStep_=GSL_ODEIV2_Driver_h(self%driver%gsl)
              call self%errorHandler(status_,x,xStep_,y)
           end if
           ! If ODE status was requested, then return it instead of aborting.

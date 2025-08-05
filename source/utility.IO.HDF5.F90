@@ -1045,12 +1045,12 @@ contains
 
   function hdf5FileOpen(fileName,overWrite,readOnly,objectsOverwritable,chunkSize,compressionLevel,sieveBufferSize,useLatestFormat,cacheElementsCount,cacheSizeBytes,isTemporary) result(self)
     !!{
-    Constructor for HDF5 object. Will ppen a file and return an appropriate HDF5 object.
+    Constructor for HDF5 object. Will open a file and return an appropriate HDF5 object.
     !!}
     use :: File_Utilities    , only : File_Exists
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5F_ACC_RDONLY_F   , H5F_ACC_RDWR_F        , H5F_ACC_TRUNC_F       , H5F_CLOSE_SEMI_F       , &
-          &                           H5F_LIBVER_V18_F  , H5F_LIBVER_LATEST_F   , H5P_FILE_ACCESS_F     , h5fcreate_f            , &
+          &                           H5F_LIBVER_V18_F   , H5F_LIBVER_LATEST_F   , H5P_FILE_ACCESS_F     , h5fcreate_f            , &
           &                           h5fopen_f          , h5pclose_f            , h5pcreate_f           , h5pset_cache_f         , &
           &                           h5pset_fapl_stdio_f, h5pset_fclose_degree_f, h5pset_libver_bounds_f, h5pset_sieve_buf_size_f, &
           &                           hid_t              , hsize_t               , size_t
@@ -1126,7 +1126,7 @@ contains
        call    h5pset_libver_bounds_f(accessList,H5F_LIBVER_V18_F   ,H5F_LIBVER_LATEST_F,errorCode)
     end if
     if (errorCode /= 0) then
-       message="failed to set file format for HDF5 file '"//fileObject%objectName//"'"
+       message="failed to set file format for HDF5 file '"//self%objectName//"'"
        call Error_Report(message//{introspection:location})
     end if
     if (present(cacheElementsCount).or.present(cacheSizeBytes)) then
