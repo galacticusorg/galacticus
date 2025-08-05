@@ -1156,6 +1156,7 @@ contains
     self%outputParametersContainer        => from%outputParametersContainer
     self%parameters                       => from%parameters
     self%parent                           => from%parent
+    self%original                         => from%original
     self%lock                             => from%lock
     self%outputParametersCopied           =  from%outputParametersCopied
     self%outputParametersTemporary        =  from%outputParametersTemporary
@@ -1740,13 +1741,15 @@ contains
        attributeName  =  getNodeName     (inputParametersNode%content        )
        identifierNode => getAttributeNode(inputParametersNode%content,'idRef')
        !$omp end critical (FoX_DOM_Access)
-       !$ call hdf5Access%set()
-       if (self%outputParameters%isOpen()) then
-          if (.not.self%outputParameters%hasAttribute(char(attributeName))) then
-             call self%outputParameters%writeAttribute("{idRef:"//getTextContent(identifierNode)//"}",char(attributeName))
+       if (associated(self%outputParameters)) then
+          !$ call hdf5Access%set()
+          if (self%outputParameters%isOpen()) then
+             if (.not.self%outputParameters%hasAttribute(char(attributeName))) then
+                call self%outputParameters%writeAttribute("{idRef:"//getTextContent(identifierNode)//"}",char(attributeName))
+             end if
           end if
+          !$ call hdf5Access%unset()
        end if
-       !$ call hdf5Access%unset()
        ! Return the referenced parameter.
        inputParametersNode => inputParametersNode%referenced
     end if
@@ -2013,7 +2016,6 @@ contains
     else
        inputParametersSubParameters%original => self
     end if
-    inputParametersSubParameters%parent        => self
     if (associated(self%outputParameters)) then
        !$ call hdf5Access%set()
        if (self%outputParameters%isOpen()) then
@@ -2103,10 +2105,12 @@ contains
        call parametersRoot%lock%unset()
        parameterValue=defaultValue
        ! Write the parameter file to an HDF5 object.
-       if (self%outputParameters%isOpen().and.writeOutput_) then
-          !$ call hdf5Access%set()
-          if (.not.self%outputParameters%hasAttribute(parameterName)) call self%outputParameters%writeAttribute({Type¦outputConverter¦parameterValue},parameterName)
-          !$ call hdf5Access%unset()
+       if (associated(self%outputParameters)) then
+          if (self%outputParameters%isOpen().and.writeOutput_) then
+             !$ call hdf5Access%set()
+             if (.not.self%outputParameters%hasAttribute(parameterName)) call self%outputParameters%writeAttribute({Type¦outputConverter¦parameterValue},parameterName)
+             !$ call hdf5Access%unset()
+          end if
        end if
     else if (present(errorStatus )) then
        errorStatus   =inputParameterErrorStatusNotPresent
@@ -2345,25 +2349,26 @@ contains
                    if (copyCount > 1) then
                       copyInstance =  copyCount
                       sibling      => parameterNode%sibling
+                      !$omp critical (FoX_DOM_Access)
                       do while (associated(sibling))
                          siblingName=getNodeName(sibling%content)
                          if (siblingName == attributeName) &
                               & copyInstance=copyInstance-1
                          sibling      => sibling%sibling
                       end do
+                      !$omp end critical (FoX_DOM_Access)
                       attributeName=attributeName//"["//copyInstance//"]"
                    end if
+                   !$omp critical (FoX_DOM_Access)
+                   if (hasAttribute(parameterNode%content,'id')) then
+                      identifierNode => getAttributeNode(parameterNode%content,'id')
+                      attributeName  =  attributeName//"{id:"//getTextContent(identifierNode)//"}"
+                   end if
+                   !$omp end critical (FoX_DOM_Access)
                    !$ call hdf5Access%set()
                    if (.not.self%outputParameters%hasAttribute(char(attributeName))) call self%outputParameters%writeAttribute({Type¦outputConverter¦parameterValue},char(attributeName))
                    !$ call hdf5Access%unset()
                 end if
-                if (hasAttribute(parameterNode%content,'id')) then
-                   identifierNode => getAttributeNode(parameterNode%content,'id')
-                   attributeName  =  attributeName//"{id:"//getTextContent(identifierNode)//"}"
-                end if
-                !$ call hdf5Access%set()
-                if (.not.self%outputParameters%hasAttribute(char(attributeName))) call self%outputParameters%writeAttribute({Type¦outputConverter¦parameterValue},char(attributeName))
-                !$ call hdf5Access%unset()
              end if
           end if
        end if
@@ -2562,10 +2567,12 @@ contains
        dummy           => appendChild  (self%rootNode,parameterNode)
        !$omp end critical(FoX_DOM_Access)
        ! Write the parameter file to an HDF5 object.
-       if (self%outputParameters%isOpen().and.writeOutput_) then
-          !$ call hdf5Access%set()
-          if (.not.self%outputParameters%hasAttribute(parameterName)) call self%outputParameters%writeAttribute(parameterValue,parameterName)
-          !$ call hdf5Access%unset()
+       if (associated(self%outputParameters)) then
+          if (self%outputParameters%isOpen().and.writeOutput_) then
+             !$ call hdf5Access%set()
+             if (.not.self%outputParameters%hasAttribute(parameterName)) call self%outputParameters%writeAttribute(parameterValue,parameterName)
+             !$ call hdf5Access%unset()
+          end if
        end if
        if (associated(self%parameters)) then
           if (associated(self%parameters%firstChild)) then
