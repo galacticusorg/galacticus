@@ -877,7 +877,7 @@ contains
     if (.not.allocated(tabulation%parametersInverseStep)) allocate(tabulation%parametersInverseStep(container%countParameters(tabulation)))
     if (.not.allocated(tabulation%countParameters      )) allocate(tabulation%countParameters      (container%countParameters(tabulation)))
     !$ call hdf5Access%set()
-    call    file%openFile     (char(fileName)                                                                                         ,readOnly=.true.                    )
+    file=hdf5Object(char(fileName),readOnly=.true.)
     call    file%readAttribute(char(quantityName)//'RadiusMinimum'                                                                    ,tabulation%radiusMinimum           )
     call    file%readAttribute(char(quantityName)//'RadiusMaximum'                                                                    ,tabulation%radiusMaximum           )
     call    file%readAttribute(char(quantityName)//'RadiusInverseStep'                                                                ,tabulation%radiusInverseStep       )

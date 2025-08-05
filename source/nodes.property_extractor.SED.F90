@@ -647,7 +647,7 @@ contains
              call displayMessage("storing SED tabulation for time "//trim(adjustl(label))//" Gyr to file '"//fileName//"'",verbosityLevelWorking)
           end if
           !$ call hdf5Access%set()
-          call    file%openFile(char(fileName),overWrite=.false.,readOnly=.false.)
+          file=hdf5Object(char(fileName),overWrite=.false.,readOnly=.false.)
           call    file%writeDataset(self %templates            (indexTemplate)%sed       ,'sedTemplate','A matrix mapping star formation history to SED.'                        )
           call    file%writeDataset(self %templates            (indexTemplate)%wavelength,'wavelength' ,'The wavelengths at which the SED is tabulated [Å]'                      )
           call    file%writeDataset(self %metallicityBoundaries                          ,'metallicity','The metallicities at which the star formation history is tabulated [Z☉]')

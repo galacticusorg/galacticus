@@ -269,7 +269,6 @@ contains
     do i=1,size(lineNames)
        dataset=lines%openDataset(char(lineNames(i)))
        call dataset%readAttribute    ('wavelength'      ,self%wavelengths (        i))
-       call dataset%close            (                                               )
        call lines  %readDatasetStatic(char(lineNames(i)),     luminosities(:,:,:,:,i))
     end do
     !$ call hdf5Access%unset()
@@ -598,7 +597,7 @@ contains
              call displayMessage("storing emission line luminosity tabulation for time "//trim(adjustl(label))//" Gyr to file '"//fileName//"'",verbosityLevelWorking)
           end if
           !$ call hdf5Access%set()
-          call    file%openFile(char(fileName),overWrite=.false.,readOnly=.false.)
+          file=hdf5Object(char(fileName),overWrite=.false.,readOnly=.false.)
           call    file%writeDataset(self %templates             (indexTemplate)%emissionLineLuminosity      ,'luminosityTemplate','A matrix mapping star formation history to emission line luminosities.' )
           call    file%writeDataset(self %lineNames                                                         ,'lineNames'         ,'The names of the emission lines'                                        )
           call    file%writeDataset(self %wavelengths                                                       ,'wavelengths'       ,'The wavelengths of the emission lines [Å]'                              )
