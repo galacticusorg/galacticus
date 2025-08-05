@@ -60,7 +60,7 @@ Implements a merger tree random number seed in which the seed is chosen at rando
 
   interface mergerTreeSeedsRandom
      !!{
-     Constructors for the {\normalfont \ttfamily random} merger tree seed class.
+     Constructors for the \refClass{mergerTreeSeedsRandom} merger tree seed class.
      !!}
      module procedure randomConstructorParameters
      module procedure randomConstructorInternal
@@ -72,7 +72,7 @@ contains
 
   function randomConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily random} merger tree seed class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeSeedsRandom} merger tree seed class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -93,7 +93,7 @@ contains
 
   function randomConstructorInternal(randomNumberGenerator_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily random} merger tree seed class.
+    Internal constructor for the \refClass{mergerTreeSeedsRandom} merger tree seed class.
     !!}
     implicit none
     type (mergerTreeSeedsRandom     )                        :: self
@@ -119,7 +119,7 @@ contains
 
   subroutine randomDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily random} merger tree seed class.
+    Destructor for the \refClass{mergerTreeSeedsRandom} merger tree seed class.
     !!}
     implicit none
     type(mergerTreeSeedsRandom), intent(inout) :: self

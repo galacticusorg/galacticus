@@ -63,7 +63,7 @@
 
   interface posteriorSampleSimulationStochasticDffrntlEvltn
      !!{
-     Constructors for the {\normalfont \ttfamily stochasticDifferentialEvolution} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleSimulationStochasticDffrntlEvltn} posterior sampling convergence class.
      !!}
      module procedure stochasticDifferentialEvolutionConstructorParameters
      module procedure stochasticDifferentialEvolutionConstructorInternal
@@ -73,7 +73,7 @@ contains
 
   function stochasticDifferentialEvolutionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily stochasticDifferentialEvolution} posterior sampling simulation class which builds the object from a
+    Constructor for the \refClass{posteriorSampleSimulationStochasticDffrntlEvltn} posterior sampling simulation class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters

@@ -3,15 +3,15 @@
 <!-- 06-January-2025                                         -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
+  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
 
   <verbosityLevel value="standard"/>
 
   <!-- Include required parameters -->
-  <xi:include href="../../../parameters/reference/cosmologyWMAP9DarkMatterOnly.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="../../../parameters/reference/powerSpectrumWMAP9.xml"           xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="../../../parameters/reference/structureFormation.xml"           xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="../../../parameters/reference/mergerTrees.xml"                  xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../../parameters/reference/cosmologyWMAP9DarkMatterOnly.xml" xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../../parameters/reference/powerSpectrumWMAP9.xml"           xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../../parameters/reference/structureFormation.xml"           xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../../parameters/reference/mergerTrees.xml"                  xpointer="xpointer(parameters/*)" />
 
   <!-- Random number generation -->
   <randomNumberGenerator value="GSL">

@@ -1049,12 +1049,12 @@ contains
     !!}
     use :: File_Utilities    , only : File_Exists
     use :: Error             , only : Error_Report
-    use :: HDF5              , only : H5F_ACC_RDONLY_F     , H5F_ACC_RDWR_F        , H5F_ACC_TRUNC_F       , H5F_CLOSE_SEMI_F       , &
-          &                           H5F_LIBVER_EARLIEST_F, H5F_LIBVER_LATEST_F   , H5P_FILE_ACCESS_F     , h5fcreate_f            , &
-          &                           h5fopen_f            , h5pclose_f            , h5pcreate_f           , h5pset_cache_f         , &
-          &                           h5pset_fapl_stdio_f  , h5pset_fclose_degree_f, h5pset_libver_bounds_f, h5pset_sieve_buf_size_f, &
-          &                           hid_t                , hsize_t               , size_t
-    use :: ISO_Varying_String, only : assignment(=)        , len                   , operator(//)
+    use :: HDF5              , only : H5F_ACC_RDONLY_F   , H5F_ACC_RDWR_F        , H5F_ACC_TRUNC_F       , H5F_CLOSE_SEMI_F       , &
+          &                           H5F_LIBVER_V18_F  , H5F_LIBVER_LATEST_F   , H5P_FILE_ACCESS_F     , h5fcreate_f            , &
+          &                           h5fopen_f          , h5pclose_f            , h5pcreate_f           , h5pset_cache_f         , &
+          &                           h5pset_fapl_stdio_f, h5pset_fclose_degree_f, h5pset_libver_bounds_f, h5pset_sieve_buf_size_f, &
+          &                           hid_t              , hsize_t               , size_t
+    use :: ISO_Varying_String, only : assignment(=)      , len                   , operator(//)
     implicit none
     type     (hdf5Object    )                          :: self
     character(len=*         ), intent(in   )           :: fileName
@@ -1114,14 +1114,20 @@ contains
     ! Set file format.
     if (present(useLatestFormat)) then
        if (useLatestFormat) then
-          call h5pset_libver_bounds_f(accessList,H5F_LIBVER_LATEST_F  ,H5F_LIBVER_LATEST_F,errorCode)
+          call h5pset_libver_bounds_f(accessList,H5F_LIBVER_LATEST_F,H5F_LIBVER_LATEST_F,errorCode)
        else
-          call h5pset_libver_bounds_f(accessList,H5F_LIBVER_EARLIEST_F,H5F_LIBVER_LATEST_F,errorCode)
+          call h5pset_libver_bounds_f(accessList,H5F_LIBVER_V18_F   ,H5F_LIBVER_LATEST_F,errorCode)
        end if
        if (errorCode /= 0) then
           message="failed to set file format for HDF5 file '"//self%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
+    else
+       call    h5pset_libver_bounds_f(accessList,H5F_LIBVER_V18_F   ,H5F_LIBVER_LATEST_F,errorCode)
+    end if
+    if (errorCode /= 0) then
+       message="failed to set file format for HDF5 file '"//fileObject%objectName//"'"
+       call Error_Report(message//{introspection:location})
     end if
     if (present(cacheElementsCount).or.present(cacheSizeBytes)) then
        if (.not.(present(cacheElementsCount).and.present(cacheSizeBytes))) call Error_Report('both or neither of "cacheElementsCount" and "cacheSizeBytes" must be specified'//{introspection:location})
@@ -1210,14 +1216,15 @@ contains
 
   !! Group routines.
 
-  function IO_HDF5_Open_Group(inObject,groupName,comment,objectsOverwritable,overwriteOverride,chunkSize,compressionLevel) result (self)
+  function IO_HDF5_Open_Group(inObject,groupName,comment,objectsOverwritable,overwriteOverride,chunkSize,compressionLevel,attributesCompactMaxiumum) result (self)
     !!{
     Open an HDF5 group and return an appropriate HDF5 object. The group name can be provided as an input parameter or, if
     not provided, will be taken from the stored object name in {\normalfont \ttfamily self}. The location at which to open the group is
     taken from either {\normalfont \ttfamily inObject} or {\normalfont \ttfamily inPath}.
     !!}
     use :: Error             , only : Error_Report
-    use :: HDF5              , only : HID_T        , h5gcreate_f , h5gopen_f, hsize_t
+    use :: HDF5              , only : HID_T        , h5gcreate_f               , h5gopen_f , hsize_t            , &
+         &                            h5pcreate_f  , h5pset_attr_phase_change_f, h5pclose_f, H5P_GROUP_CREATE_F
     use :: ISO_Varying_String, only : assignment(=), operator(//)
     implicit none
     type     (hdf5Object    )                          :: self
@@ -1225,7 +1232,7 @@ contains
     character(len=*         ), intent(in   ), optional :: comment
     logical                  , intent(in   ), optional :: objectsOverwritable, overwriteOverride
     integer  (hsize_t       ), intent(in   ), optional :: chunkSize
-    integer                  , intent(in   ), optional :: compressionLevel
+    integer                  , intent(in   ), optional :: compressionLevel   , attributesCompactMaxiumum
     class    (hdf5Object    ), intent(in   ), target   :: inObject
     ! <HDF5> Why are "message" and "locationPath" saved? Because if they are not then they get dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
@@ -1233,7 +1240,7 @@ contains
     ! deallocated. This is not an elegant solution, but it works.
     type     (varying_string), save                    :: locationPath       , message
     integer                                            :: errorCode
-    integer  (kind=HID_T    )                          :: locationID
+    integer  (kind=HID_T    )                          :: locationID         , propertyList
     class    (*             ), pointer                 :: dummyPointer_
 
     ! Check that this module is initialized.
@@ -1273,10 +1280,31 @@ contains
        end if
     else
        ! Create a group.
-       call h5gcreate_f(locationID,trim(groupName),self%objectID,errorCode)
+       call h5pcreate_f(H5P_GROUP_CREATE_F,propertyList,errorCode)
+       if (errorCode < 0) then
+          message="unable to create property list for group '"//trim(groupName)//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
+       end if
+       ! Set the number of attributes allowed in compact
+       ! storage. (Setting this to zero will force dense storage for
+       ! all attributes, which enable storing of attributes with
+       ! length exceeding 64KB.)
+       if (present(attributesCompactMaxiumum)) then
+          call h5pset_attr_phase_change_f(propertyList,attributesCompactMaxiumum,attributesCompactMaxiumum,errorCode)
+          if (errorCode /= 0) then
+             message="failed to set attribute phase change for group '"//trim(groupName)
+             call Error_Report(message//self%locationReport()//{introspection:location})
+          end if
+       end if
+       call h5gcreate_f(locationID,trim(groupName),self%objectID,errorCode,gcpl_id=propertyList)
        if (errorCode < 0) then
           message="failed to make group '"//trim(groupName)//"' at "//locationPath
           call Error_Report(message//inObject%locationReport()//{introspection:location})
+       end if
+       call h5pclose_f(propertyList,errorCode)
+       if (errorCode /= 0) then
+          message="failed to close property list for group '"//trim(groupName)//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -4238,21 +4266,23 @@ attributeValue=trim(attributeValue)
     character(len=*         )              , intent(in   )           :: datasetName
     character(len=*         )              , intent(in   ), optional :: comment
     integer  (hsize_t       )              , intent(in   ), optional :: chunkSize
-    integer                                , intent(in   ), optional :: compressionLevel        , datasetDataType, &
+    integer                                , intent(in   ), optional :: compressionLevel                           , datasetDataType, &
          &                                                              appendDimension
     integer  (kind=HSIZE_T  ), dimension(:), intent(in   ), optional :: datasetDimensions
-    logical                                , intent(in   ), optional :: appendTo                , isOverwritable
+    logical                                , intent(in   ), optional :: appendTo                                   , isOverwritable
     integer  (kind=HID_T    )              , intent(in   ), optional :: useDataType
     class    (hdf5Object    )              , intent(in   ), target   :: inObject
-    integer  (kind=HSIZE_T  ), dimension(7)                          :: chunkDimensions         , datasetDimensionsActual, &
+    integer  (kind=HSIZE_T  ), parameter                             :: chunkSizeMaximum        =4294967296_hsize_t ! Maximum chunk size of 4GB (see https://support.hdfgroup.org/documentation/hdf5-docs/advanced_topics/chunking_in_hdf5.html).
+    integer  (kind=HSIZE_T  ), dimension(7)                          :: chunkDimensions                            , datasetDimensionsActual, &
          &                                                              datasetDimensionsMaximum
     integer  (kind=HSIZE_T  )                                        :: chunkSizeActual
-    integer                                                          :: compressionLevelActual  , datasetRank            , &
-         &                                                              errorCode               , appendDimensionActual
-    integer  (kind=HID_T    )                                        :: dataSpaceID             , dataTypeID             , &
-         &                                                              locationID              , propertyList
+    integer                                                          :: compressionLevelActual                     , datasetRank            , &
+         &                                                              errorCode                                  , appendDimensionActual  , &
+         &                                                              iDimension
+    integer  (kind=HID_T    )                                        :: dataSpaceID                                , dataTypeID             , &
+         &                                                              locationID                                 , propertyList
     logical                                                          :: appendToActual
-    type     (varying_string)                                        :: locationPath            , message
+    type     (varying_string)                                        :: locationPath                               , message
     class    (*             ), pointer                               :: dummyPointer_
 
     ! Check that this module is initialized.
@@ -4410,6 +4440,13 @@ attributeValue=trim(attributeValue)
              ! Fixed dimension array, use smaller of chunk size and actual size.
              chunkDimensions(1:datasetRank)=min(datasetDimensionsActual(1:datasetRank),chunkSizeActual)
           end if
+          ! Reduce chunk size if needed to fit within HDF5's maximum chunk size.
+          iDimension=0
+          do while (product(chunkDimensions(1:datasetRank))*sizeof(0.0d0) > chunkSizeMaximum)
+             iDimension=iDimension+1
+             if (iDimension > datasetRank) iDimension=1
+             chunkDimensions(iDimension)=max(1_hsize_t,chunkDimensions(iDimension)/2_hsize_t)
+          end do
           call h5pset_chunk_f(propertyList,datasetRank,chunkDimensions,errorCode)
           if (errorCode < 0) then
              message="unable to set chunk size for dataset '"//trim(datasetName)//"'"

@@ -55,7 +55,7 @@
   
   interface nodeOperatorPositionTraceDarkMatter
      !!{
-     Constructors for the {\normalfont \ttfamily positionTraceDarkMatter} node operator class.
+     Constructors for the \refClass{nodeOperatorPositionTraceDarkMatter} node operator class.
      !!}
      module procedure positionTraceDarkMatterConstructorParameters
      module procedure positionTraceDarkMatterConstructorInternal
@@ -65,7 +65,7 @@ contains
   
   function positionTraceDarkMatterConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily positionTraceDarkMatter} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorPositionTraceDarkMatter} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -86,7 +86,7 @@ contains
 
   function positionTraceDarkMatterConstructorInternal(darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily positionTraceDarkMatter} node operator class.
+    Internal constructor for the \refClass{nodeOperatorPositionTraceDarkMatter} node operator class.
     !!}
     implicit none
     type (nodeOperatorPositionTraceDarkMatter)                        :: self
@@ -116,7 +116,7 @@ contains
 
   subroutine positionTraceDarkMatterDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily positionTraceDarkMatter} node operator class.
+    Destructor for the \refClass{nodeOperatorPositionTraceDarkMatter} node operator class.
     !!}
     use :: Events_Hooks, only : openMPThreadBindingAtLevel, satelliteHostChangeEvent
     implicit none

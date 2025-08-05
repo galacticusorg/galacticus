@@ -80,7 +80,7 @@
 
   interface linearGrowthBaryonsDarkMatter
      !!{
-     Constructors for the {\normalfont \ttfamily baryonsDarkMatter} linear growth class.
+     Constructors for the \refClass{linearGrowthBaryonsDarkMatter} linear growth class.
      !!}
      module procedure baryonsDarkMatterConstructorParameters
      module procedure baryonsDarkMatterConstructorInternal
@@ -110,7 +110,7 @@ contains
 
   function baryonsDarkMatterConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily baryonsDarkMatter} linear growth class which takes a parameter set as input.
+    Constructor for the \refClass{linearGrowthBaryonsDarkMatter} linear growth class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -174,7 +174,7 @@ contains
 
   function baryonsDarkMatterConstructorInternal(redshiftInitial,redshiftInitialDelta,cambCountPerDecade,darkMatterOnlyInitialConditions,cosmologyParameters_,cosmologyParametersInitialConditions_,cosmologyFunctions_,intergalacticMediumState_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily baryonsDarkMatter} linear growth class.
+    Internal constructor for the \refClass{linearGrowthBaryonsDarkMatter} linear growth class.
     !!}
     use :: File_Utilities, only : Directory_Make, File_Path
     use :: Error         , only : Error_Report
@@ -231,7 +231,7 @@ contains
 
   subroutine baryonsDarkMatterDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily baryonsDarkMatter} linear growth class.
+    Destructor for the \refClass{linearGrowthBaryonsDarkMatter} linear growth class.
     !!}
     implicit none
     type (linearGrowthBaryonsDarkMatter), intent(inout) :: self

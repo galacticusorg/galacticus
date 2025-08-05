@@ -39,7 +39,7 @@ Implements a galactic filter which applies another filter to the isolated host n
 
   interface galacticFilterIsolatedHostNode
      !!{
-     Constructors for the {\normalfont \ttfamily isolatedHostNode} galactic filter class.
+     Constructors for the \refClass{galacticFilterIsolatedHostNode} galactic filter class.
      !!}
      module procedure isolatedHostNodeConstructorParameters
      module procedure isolatedHostNodeConstructorInternal
@@ -49,7 +49,7 @@ contains
 
   function isolatedHostNodeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily isolatedHostNode} galactic filter class which takes a parameter set as input.
+    Constructor for the \refClass{galacticFilterIsolatedHostNode} galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -70,7 +70,7 @@ contains
   
   function isolatedHostNodeConstructorInternal(galacticFilter_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily isolatedHostNode} galactic filter class.
+    Internal constructor for the \refClass{galacticFilterIsolatedHostNode} galactic filter class.
     !!}
     implicit none
     type (galacticFilterIsolatedHostNode)                        :: self
@@ -84,7 +84,7 @@ contains
   
   subroutine isolatedHostNodeDestructor(self)
     !!{
-    Destructor for  the {\normalfont \ttfamily isolatedHostNode} galactic filter class.
+    Destructor for the \refClass{galacticFilterIsolatedHostNode} galactic filter class.
     !!}
     implicit none
     type(galacticFilterIsolatedHostNode), intent(inout) :: self

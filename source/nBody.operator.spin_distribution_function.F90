@@ -47,7 +47,7 @@
 
   interface nbodyOperatorSpinDistributionFunction
      !!{
-     Constructors for the {\normalfont \ttfamily spinDistributionFunction} N-body operator class.
+     Constructors for the \refClass{nbodyOperatorSpinDistributionFunction} N-body operator class.
      !!}
      module procedure spinDistributionFunctionConstructorParameters
      module procedure spinDistributionFunctionConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function spinDistributionFunctionConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily spinDistributionFunction} N-body operator class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyOperatorSpinDistributionFunction} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -123,7 +123,7 @@ contains
 
   function spinDistributionFunctionConstructorInternal(massMinimum,massMaximum,spinMinimum,spinMaximum,spinCountPerDecade,description,simulationReference,simulationURL,cosmologyParameters_) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily spinDistributionFunction} N-body operator class.
+    Internal constructor for the \refClass{nbodyOperatorSpinDistributionFunction} N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorSpinDistributionFunction)                        :: self
@@ -142,7 +142,7 @@ contains
   
   subroutine spinDistributionFunctionDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily spinDistributionFunction} N-body operator class.
+    Destructor for the \refClass{nbodyOperatorSpinDistributionFunction} N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorSpinDistributionFunction), intent(inout) :: self

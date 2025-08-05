@@ -34,7 +34,7 @@
   
   interface radiativeTransferConvergenceAlways
      !!{
-     Constructors for the {\normalfont \ttfamily always} radiative transfer matter class.
+     Constructors for the \refClass{radiativeTransferConvergenceAlways} radiative transfer matter class.
      !!}
      module procedure alwaysConstructorParameters
   end interface radiativeTransferConvergenceAlways
@@ -43,7 +43,7 @@ contains
 
   function alwaysConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily always} radiative transfer matter class which takes a parameter set as input.
+    Constructor for the \refClass{radiativeTransferConvergenceAlways} radiative transfer matter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

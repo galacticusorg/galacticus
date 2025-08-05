@@ -38,7 +38,7 @@
 
   interface outputAnalysisDistributionOperatorIdentity
      !!{
-     Constructors for the {\normalfont \ttfamily identity} output analysis class.
+     Constructors for the \refClass{outputAnalysisDistributionOperatorIdentity} output analysis class.
      !!}
      module procedure identityConstructorParameters
   end interface outputAnalysisDistributionOperatorIdentity
@@ -47,7 +47,7 @@ contains
 
   function identityConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily identity} output analysis distribution operator class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisDistributionOperatorIdentity} output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

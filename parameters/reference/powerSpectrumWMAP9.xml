@@ -3,7 +3,7 @@
 <!-- Hinshaw et al. (2013; ApJS; 208; 19; https://ui.adsabs.harvard.edu/abs/2013ApJS..208...19H) -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
+  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
   
   <!-- Power spectrum options -->
   <cosmologicalMassVariance value="filteredPower">
@@ -17,9 +17,9 @@
   <transferFunction                   value="CAMB"     >
     <redshift value="100.0"/>
     <!-- Specify a CDM particle explicitly here to allow this power spectrum to be used for models with non-CDM late-time physics. -->
-    <xi:include href="darkMatterParticleCDM.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="darkMatterParticleCDM.xml" xpointer="xpointer(parameters/*)" />
     <!-- Include cosmological model explicitly here so that baryons are included in the transfer function even for dark matter-only models. -->
-    <xi:include href="cosmologyWMAP9.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="cosmologyWMAP9.xml" xpointer="xpointer(parameters/*)" />
   </transferFunction>
   <powerSpectrumPrimordial            value="powerLaw" >
     <index               value="0.9608"/> <!-- Hinshaw et al. (2013; ApJS; 208; 19; https://ui.adsabs.harvard.edu/abs/2013ApJS..208...19H) -->

@@ -42,7 +42,7 @@ halo mass distribution.
 
   interface outputAnalysisWeightOperatorNbodyMass
      !!{
-     Constructors for the {\normalfont \ttfamily nbodyMass} output analysis class.
+     Constructors for the \refClass{outputAnalysisWeightOperatorNbodyMass} output analysis class.
      !!}
      module procedure nbodyMassConstructorParameters
      module procedure nbodyMassConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function nbodyMassConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily nbodyMass} output analysis weight operator class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisWeightOperatorNbodyMass} output analysis weight operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -91,7 +91,7 @@ contains
 
   function nbodyMassConstructorInternal(rangeLower,rangeUpper,nodePropertyExtractor_,outputAnalysisPropertyOperator_,nbodyHaloMassError_) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily nbodyMass} output analysis distribution operator class.
+    Internal constructor for the \refClass{outputAnalysisWeightOperatorNbodyMass} output analysis distribution operator class.
     !!}
     use :: Error                   , only : Error_Report
     use :: Node_Property_Extractors, only : nodePropertyExtractorClass, nodePropertyExtractorScalar
@@ -116,7 +116,7 @@ contains
 
   subroutine nbodyMassDestructor(self)
     !!{
-    Destructor for  the {\normalfont \ttfamily nbodyMass} output analysis weight operator class.
+    Destructor for the \refClass{outputAnalysisWeightOperatorNbodyMass} output analysis weight operator class.
     !!}
     type(outputAnalysisWeightOperatorNbodyMass), intent(inout) :: self
 

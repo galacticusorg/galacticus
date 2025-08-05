@@ -65,7 +65,7 @@ Implements a stellar mass output analysis property extractor class.
 
   interface nodePropertyExtractorLuminosityStellarFromSED
      !!{
-     Constructors for the {\normalfont \ttfamily luminosityStellarFromSED} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorLuminosityStellarFromSED} output analysis class.
      !!}
      module procedure luminosityStellarFromSEDConstructorParameters
      module procedure luminosityStellarFromSEDConstructorInternal
@@ -75,7 +75,7 @@ contains
 
   function luminosityStellarFromSEDConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily luminosityStellarFromSED} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorLuminosityStellarFromSED} output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -108,8 +108,8 @@ contains
   end function luminosityStellarFromSEDConstructorParameters
 
   function luminosityStellarFromSEDConstructorInternal(filterNames,nodePropertyExtractor_) result(self)
-    use, intrinsic :: ISO_C_Binding, only : c_size_t
-    use :: Instruments_Filters, only : Filter_Get_Index, Filter_Response_Function, Filter_Extent
+    use, intrinsic :: ISO_C_Binding      , only : c_size_t
+    use            :: Instruments_Filters, only : Filter_Get_Index, Filter_Response_Function, Filter_Extent
     implicit none
     type   (nodePropertyExtractorLuminosityStellarFromSED)                              :: self
     type   (varying_string                               ), intent(in   ), dimension(:) :: filterNames
@@ -132,7 +132,7 @@ contains
   
   subroutine luminosityStellarFromSEDDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily luminosityStellarFromSED} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorLuminosityStellarFromSED} output analysis property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorLuminosityStellarFromSED), intent(inout) :: self
@@ -228,7 +228,6 @@ contains
     end function integrandFilteredLuminosityAB
     
   end function luminosityStellarFromSEDExtract
-
 
   function luminosityStellarFromSEDQuantity(self)
     !!{

@@ -61,7 +61,7 @@
   
   interface nodeOperatorCoolingEnergyRadiated
      !!{
-     Constructors for the {\normalfont \ttfamily coolingEnergyRadiated} node operator class.
+     Constructors for the \refClass{nodeOperatorCoolingEnergyRadiated} node operator class.
      !!}
      module procedure coolingEnergyRadiatedConstructorParameters
      module procedure coolingEnergyRadiatedConstructorInternal
@@ -71,7 +71,7 @@ contains
 
   function coolingEnergyRadiatedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily coolingEnergyRadiated} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorCoolingEnergyRadiated} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -101,7 +101,7 @@ contains
 
   function coolingEnergyRadiatedConstructorInternal(cosmologyFunctions_,coolingFunction_,chemicalState_,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily coolingEnergyRadiated} node operator class.
+    Internal constructor for the \refClass{nodeOperatorCoolingEnergyRadiated} node operator class.
     !!}
     implicit none
     type (nodeOperatorCoolingEnergyRadiated)                        :: self
@@ -135,7 +135,7 @@ contains
 
   subroutine coolingEnergyRadiatedDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily coolingEnergyRadiated} node operator class.
+    Destructor for the \refClass{nodeOperatorCoolingEnergyRadiated} node operator class.
     !!}
     use :: Events_Hooks, only : hotHaloMassEjectionEvent
     implicit none

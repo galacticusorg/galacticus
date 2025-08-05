@@ -55,7 +55,7 @@
 
   interface taskExcursionSets
      !!{
-     Constructors for the {\normalfont \ttfamily excursionSets} task.
+     Constructors for the \refClass{taskExcursionSets} task.
      !!}
      module procedure excursionSetsConstructorParameters
      module procedure excursionSetsConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function excursionSetsConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily excursionSets} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskExcursionSets} task class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     use :: Input_Parameters, only : inputParameter              , inputParameters
@@ -201,7 +201,7 @@ contains
        &                                    powerSpectrum_              &
        &                                   ) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily excursionSets} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskExcursionSets} task class which takes a parameter set as input.
     !!}
     implicit none
     type            (taskExcursionSets             )                        :: self
@@ -227,7 +227,7 @@ contains
 
   subroutine excursionSetsDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily excursionSets} task class.
+    Destructor for the \refClass{taskExcursionSets} task class.
     !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none

@@ -48,7 +48,7 @@
 
   interface powerSpectrumWindowFunctionTopHat
      !!{
-     Constructors for the {\normalfont \ttfamily topHat} power spectrum window function class.
+     Constructors for the \refClass{powerSpectrumWindowFunctionTopHat} power spectrum window function class.
      !!}
      module procedure topHatConstructorParameters
      module procedure topHatConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function topHatConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily topHat} power spectrum window function class which takes a parameter set as input.
+    Constructor for the \refClass{powerSpectrumWindowFunctionTopHat} power spectrum window function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,7 +79,7 @@ contains
 
   function topHatConstructorInternal(cosmologyParameters_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily topHat} power spectrum window function class.
+    Internal constructor for the \refClass{powerSpectrumWindowFunctionTopHat} power spectrum window function class.
     !!}
     implicit none
     type (powerSpectrumWindowFunctionTopHat)                        :: self
@@ -93,7 +93,7 @@ contains
 
   subroutine topHatDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily topHat} power spectrum window function class.
+    Destructor for the \refClass{powerSpectrumWindowFunctionTopHat} power spectrum window function class.
     !!}
     implicit none
     type(powerSpectrumWindowFunctionTopHat), intent(inout) :: self

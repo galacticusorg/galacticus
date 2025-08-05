@@ -133,7 +133,7 @@
 
   interface massDistributionSphericalAdiabaticGnedin2004
      !!{
-     Constructors for the {\normalfont \ttfamily sphericalAdiabaticGnedin2004} mass distribution class.
+     Constructors for the \refClass{massDistributionSphericalAdiabaticGnedin2004} mass distribution class.
      !!}
      module procedure sphericalAdiabaticGnedin2004ConstructorParameters
      module procedure sphericalAdiabaticGnedin2004ConstructorInternal
@@ -165,7 +165,7 @@ contains
 
   function sphericalAdiabaticGnedin2004ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sphericalAdiabaticGnedin2004} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionSphericalAdiabaticGnedin2004} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameters
@@ -271,7 +271,7 @@ contains
   
   function sphericalAdiabaticGnedin2004ConstructorInternal(A,omega,radiusVirial,radiusFractionalPivot,darkMatterFraction,darkMatterDistributedFraction,massFractionInitial,toleranceRelative,nonAnalyticSolver,massDistribution_,massDistributionBaryonic,initializationFunction,initializationSelf,initializationArgument,componentType,massType) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily sphericalAdiabaticGnedin2004} mass distribution class.
+    Constructor for the \refClass{massDistributionSphericalAdiabaticGnedin2004} mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalAdiabaticGnedin2004)                          :: self
@@ -311,7 +311,7 @@ contains
 
   subroutine sphericalAdiabaticGnedin2004Destructor(self)
     !!{
-    Destructor for the abstract {\normalfont \ttfamily massDistributionSphericalAdiabaticGnedin2004} class.
+    Destructor for the abstract \refClass{massDistributionSphericalAdiabaticGnedin2004} class.
     !!}
     implicit none
     type(massDistributionSphericalAdiabaticGnedin2004), intent(inout) :: self

@@ -60,7 +60,7 @@
 
   interface starFormationTimescaleVelocityMaxScaling
      !!{
-     Constructors for the {\normalfont \ttfamily velocityMaxScaling} timescale for star formation class.
+     Constructors for the \refClass{starFormationTimescaleVelocityMaxScaling} timescale for star formation class.
      !!}
      module procedure velocityMaxScalingConstructorParameters
      module procedure velocityMaxScalingConstructorInternal
@@ -72,7 +72,7 @@ contains
 
   function velocityMaxScalingConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily velocityMaxScaling} timescale for star formation class which takes a parameter
+    Constructor for the \refClass{starFormationTimescaleVelocityMaxScaling} timescale for star formation class which takes a parameter
     set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -118,7 +118,7 @@ contains
 
   function velocityMaxScalingConstructorInternal(timescale,exponentVelocity,exponentRedshift,cosmologyFunctions_,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily velocityMaxScaling} timescale for star formation class.
+    Internal constructor for the \refClass{starFormationTimescaleVelocityMaxScaling} timescale for star formation class.
     !!}
     implicit none
     type            (starFormationTimescaleVelocityMaxScaling)                        :: self
@@ -160,7 +160,7 @@ contains
 
   subroutine velocityMaxScalingDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily velocityMaxScaling} timescale for star formation class.
+    Destructor for the \refClass{starFormationTimescaleVelocityMaxScaling} timescale for star formation class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none

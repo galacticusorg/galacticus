@@ -61,7 +61,7 @@
 
   interface posteriorSampleLikelihoodMultivariateNormal
      !!{
-     Constructors for the {\normalfont \ttfamily multivariateNormal} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleLikelihoodMultivariateNormal} posterior sampling convergence class.
      !!}
      module procedure multivariateNormalConstructorParameters
      module procedure multivariateNormalConstructorInternal
@@ -71,7 +71,7 @@ contains
 
   function multivariateNormalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily multivariateNormal} posterior sampling convergence class which builds the object from a
+    Constructor for the \refClass{posteriorSampleLikelihoodMultivariateNormal} posterior sampling convergence class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -104,7 +104,7 @@ contains
 
   function multivariateNormalConstructorInternal(means,covariance) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily multivariateNormal} convergence class.
+    Constructor for the \refClass{posteriorSampleLikelihoodMultivariateNormal} convergence class.
     !!}
     use :: Linear_Algebra, only : assignment(=)
     implicit none

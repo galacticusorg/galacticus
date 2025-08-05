@@ -42,7 +42,7 @@
 
   interface haloMassFunctionReed2007
      !!{
-     Constructors for the {\normalfont \ttfamily reed2007} halo mass function class.
+     Constructors for the \refClass{haloMassFunctionReed2007} halo mass function class.
      !!}
      module procedure reed2007ConstructorParameters
      module procedure reed2007ConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function reed2007ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily reed2007} halo mass function class which takes a parameter set as input.
+    Constructor for the \refClass{haloMassFunctionReed2007} halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -80,7 +80,7 @@ contains
 
   function reed2007ConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily reed2007} halo mass function class.
+    Internal constructor for the \refClass{haloMassFunctionReed2007} halo mass function class.
     !!}
     implicit none
     type (haloMassFunctionReed2007     )                        :: self
@@ -96,7 +96,7 @@ contains
 
   subroutine reed2007Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily reed2007} halo mass function class.
+    Destructor for the \refClass{haloMassFunctionReed2007} halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionReed2007), intent(inout) :: self

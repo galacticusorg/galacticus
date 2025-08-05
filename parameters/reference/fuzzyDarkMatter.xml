@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A set of changes to modify CDM reference parameter files to use a fuzzy dark matter particle. -->
+<changes>
+
+  <!-- Change the dark matter particle to a fuzzy dark matter particle -->
+  <change type="replace" path="darkMatterParticle">
+    <darkMatterParticle value="fuzzyDarkMatter">
+      <mass            value="10.0"/> <!-- In unis of 1.0e-22 eV -->
+      <densityFraction value=" 1.0"/>
+    </darkMatterParticle>
+  </change>
+
+  <!-- Replace the transfer function with one generated from AxionCAMB (https://github.com/dgrin1/axionCAMB). -->
+  <!-- Make a temporary copy of the cosmological parameters passed to the transfer function. -->
+  <change type="append" path="">
+    <axionCAMBTmp>
+      <cosmologyParameters/>
+    </axionCAMBTmp>
+  </change>
+  <change type="replaceWith" path="axionCAMBTmp/cosmologyParameters" target="transferFunction/cosmologyParameters"/>
+  <!-- Replace the transfer function with AxionCAMB. -->
+  <change type="replace" path="transferFunction">
+    <transferFunction value="axionCAMB">
+      <cosmologyParameters/>
+    </transferFunction>
+  </change>
+  <!-- Restore the original cosmological parameters into the transfer function. -->
+  <change type="replaceWith" path="transferFunction/cosmologyParameters" target="axionCAMBTmp/cosmologyParameters"/>
+  <change type="remove" path="axionCAMBTmp"/>
+
+  <!-- Use the soliton+NFW mass distribution for dark matter halo profiles. -->
+  <change type="append" path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius">
+    <darkMatterProfileDMO/>
+  </change>
+  <change type="replaceWith" path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileDMO" target="darkMatterProfileDMO/darkMatterProfileDMO"/>
+  <change type="update" path="darkMatterProfileDMO/darkMatterProfileDMO" value="solitonNFW"/>
+
+</changes>

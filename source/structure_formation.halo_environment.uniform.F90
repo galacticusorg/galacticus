@@ -41,11 +41,13 @@ Implements a uniform halo environment.
      procedure :: cdf                           => uniformCDF
      procedure :: overdensityLinearSet          => uniformOverdensityLinearSet
      procedure :: overdensityIsSettable         => uniformOverdensityIsSettable
+     procedure :: isNodeDependent               => uniformIsNodeDependent
+     procedure :: isTreeDependent               => uniformIsTreeDependent
   end type haloEnvironmentUniform
 
   interface haloEnvironmentUniform
      !!{
-     Constructors for the {\normalfont \ttfamily uniform} halo environment class.
+     Constructors for the \refClass{haloEnvironmentUniform} halo environment class.
      !!}
      module procedure uniformConstructorParameters
   end interface haloEnvironmentUniform
@@ -54,7 +56,7 @@ contains
 
   function uniformConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily uniform} halo environment class which takes a parameter set as input.
+    Constructor for the \refClass{haloEnvironmentUniform} halo environment class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -190,3 +192,27 @@ contains
     uniformOverdensityIsSettable=.false.
     return
   end function uniformOverdensityIsSettable
+
+  logical function uniformIsNodeDependent(self)
+    !!{
+    Return false as the environment is not dependent on the node.
+    !!}
+    implicit none
+    class(haloEnvironmentUniform), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    uniformIsNodeDependent=.false.
+    return
+  end function uniformIsNodeDependent
+
+  logical function uniformIsTreeDependent(self)
+    !!{
+    Return false as the environment is not dependent on the tree.
+    !!}
+    implicit none
+    class(haloEnvironmentUniform), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    uniformIsTreeDependent=.false.
+    return
+  end function uniformIsTreeDependent

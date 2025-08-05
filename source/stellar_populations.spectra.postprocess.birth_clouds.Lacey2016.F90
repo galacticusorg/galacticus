@@ -51,7 +51,7 @@ contains
 
   function birthCloudsLacey2016ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily birthCloudsLacey2016} spectrum postprocessor class which accepts a parameter set as input.
+    Constructor for the \refClass{stellarPopulationSpectraPostprocessorBirthCloudsLacey2016} spectrum postprocessor class which accepts a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -76,7 +76,7 @@ contains
 
   function birthCloudsLacey2016ConstructorInternal(timescale) result(self)
     !!{
-    Generic constructor for the {\normalfont \ttfamily birthCloudsLacey2016} spectrum postprocessor class.
+    Internal constructor for the \refClass{stellarPopulationSpectraPostprocessorBirthCloudsLacey2016} spectrum postprocessor class.
     !!}
     implicit none
     type            (stellarPopulationSpectraPostprocessorBirthCloudsLacey2016)                :: self

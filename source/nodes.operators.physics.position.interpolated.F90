@@ -56,7 +56,7 @@
   
   interface nodeOperatorPositionInterpolated
      !!{
-     Constructors for the {\normalfont \ttfamily positionInterpolated} node operator class.
+     Constructors for the \refClass{nodeOperatorPositionInterpolated} node operator class.
      !!}
      module procedure positionInterpolatedConstructorParameters
      module procedure positionInterpolatedConstructorInternal
@@ -81,7 +81,7 @@ contains
   
   function positionInterpolatedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily positionInterpolated} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorPositionInterpolated} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -116,7 +116,7 @@ contains
 
   function positionInterpolatedConstructorInternal(lengthBox,wrapPeriodic,cosmologyFunctions_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily positionInterpolated} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorPositionInterpolated} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -137,7 +137,7 @@ contains
 
   subroutine positionInterpolatedDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily positionInterpolated} node operator class.
+    Destructor for the \refClass{nodeOperatorPositionInterpolated} node operator class.
     !!}
     implicit none
     type(nodeOperatorPositionInterpolated), intent(inout) :: self
@@ -307,7 +307,7 @@ contains
          &                                                                              basicMergeTarget
     class           (nodeComponentPosition           )                 , pointer     :: position            , positionMergeTarget
     class           (nodeComponentSatellite          )                 , pointer     :: satellite
-    class           (nodeEvent                       )                 , pointer     :: event, eventPrior
+    class           (nodeEvent                       )                 , pointer     :: event               , eventPrior
     type            (nodeTrace                       )                 , pointer     :: traceTail           , traceHead 
     double precision                                  , dimension(   3)              :: positionReference
     double precision                                  , dimension(4 ,3)              :: coefficientsCubic

@@ -55,7 +55,7 @@ transforming a power spectrum.
 
   interface correlationFunctionTwoPointPowerSpectrumTransform
      !!{
-     Constructors for the {\normalfont \ttfamily powerSpectrumTransform} two-point correlation function class.
+     Constructors for the \refClass{correlationFunctionTwoPointPowerSpectrumTransform} two-point correlation function class.
      !!}
      module procedure powerSpectrumTransformConstructorParameters
      module procedure powerSpectrumTransformConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function powerSpectrumTransformConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily powerSpectrumTransform} two-point correlation function class which takes a
+    Constructor for the \refClass{correlationFunctionTwoPointPowerSpectrumTransform} two-point correlation function class which takes a
     parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -112,7 +112,7 @@ contains
 
   function powerSpectrumTransformConstructorInternal(powerSpectrumNonlinear_,powerSpectrum_,cosmologyFunctions_,linearGrowth_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily powerSpectrumTransform} two-point correlation function class.
+    Internal constructor for the \refClass{correlationFunctionTwoPointPowerSpectrumTransform} two-point correlation function class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -146,7 +146,7 @@ contains
 
   subroutine powerSpectrumTransformDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily powerSpectrumTransform} two-point correlation function class.
+    Destructor for the \refClass{correlationFunctionTwoPointPowerSpectrumTransform} two-point correlation function class.
     !!}
     implicit none
     type(correlationFunctionTwoPointPowerSpectrumTransform), intent(inout) :: self

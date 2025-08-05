@@ -40,7 +40,7 @@
 
   interface kinematicsDistributionTruncated
      !!{
-     Constructors for the {\normalfont \ttfamily truncated} kinematic distribution class.
+     Constructors for the \refClass{kinematicsDistributionTruncated} kinematic distribution class.
      !!}
      module procedure truncatedConstructorParameters
      module procedure truncatedConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function truncatedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily isothermal} kinematic distribution class which builds the object from a parameter
+    Constructor for the \refClass{kinematicsDistributionTruncated} kinematic distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -67,7 +67,7 @@ contains
 
   function truncatedConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily isothermal} kinematic distribution class.
+    Internal constructor for the \refClass{kinematicsDistributionTruncated} kinematic distribution class.
     !!}
     implicit none
     type(kinematicsDistributionTruncated) :: self

@@ -68,7 +68,7 @@
 
   interface transferFunctionEisensteinHu1998
      !!{
-     Constructors for the {\normalfont \ttfamily eisensteinHu1998} transfer function class.
+     Constructors for the \refClass{transferFunctionEisensteinHu1998} transfer function class.
      !!}
      module procedure eisensteinHu1998ConstructorParameters
      module procedure eisensteinHu1998ConstructorInternal
@@ -78,7 +78,7 @@ contains
 
   function eisensteinHu1998ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily eisensteinHu1998} transfer function class
+    Constructor for the \refClass{transferFunctionEisensteinHu1998} transfer function class
     which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -108,7 +108,7 @@ contains
 
   function eisensteinHu1998ConstructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily eisensteinHu1998} transfer function class.
+    Internal constructor for the \refClass{transferFunctionEisensteinHu1998} transfer function class.
     !!}
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleCDM
@@ -288,7 +288,7 @@ contains
     termBaryons3                    =+sin(wavenumber*st) &
          &                           /   (wavenumber*st)
     self%transferFunctionBaryons    =+(termBaryons1+termBaryons2)*termBaryons3
-    ! Evaluate derivatives of functons.
+    ! Evaluate derivatives of functions.
     DwavenumberScaleFree            =+1.0d0                   &
          &                           /self%wavenumberEquality &
          &                           /13.41d0
@@ -316,7 +316,7 @@ contains
     
     double precision function DT0(C,DC,beta)
       !!{
-      Evaluate derivatices of the $T_0$ factors.
+      Evaluate derivatives of the $T_0$ factors.
       !!}
       implicit none
       double precision, intent(in   ) :: C, DC, beta

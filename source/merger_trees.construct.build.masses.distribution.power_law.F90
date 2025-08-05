@@ -50,7 +50,7 @@
 
   interface mergerTreeBuildMassDistributionPowerLaw
      !!{
-     Constructors for the {\normalfont \ttfamily powerLaw} merger tree halo mass function sampling class.
+     Constructors for the \refClass{mergerTreeBuildMassDistributionPowerLaw} merger tree halo mass function sampling class.
      !!}
      module procedure powerLawConstructorParameters
      module procedure powerLawConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function powerLawConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily powerLaw} merger tree halo mass function sampling class which builds the object from a parameter set.
+    Constructor for the \refClass{mergerTreeBuildMassDistributionPowerLaw} merger tree halo mass function sampling class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -85,7 +85,7 @@ contains
 
   function powerLawConstructorInternal(exponent) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily powerLaw} merger tree halo mass function sampling class.
+    Internal constructor for the \refClass{mergerTreeBuildMassDistributionPowerLaw} merger tree halo mass function sampling class.
     !!}
     implicit none
     type            (mergerTreeBuildMassDistributionPowerLaw)                :: self

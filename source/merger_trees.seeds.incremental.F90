@@ -45,7 +45,7 @@ Implements a merger tree random number seed in which the seed increases incremen
 
   interface mergerTreeSeedsIncremental
      !!{
-     Constructors for the {\normalfont \ttfamily incremental} merger tree seed class.
+     Constructors for the \refClass{mergerTreeSeedsIncremental} merger tree seed class.
      !!}
      module procedure incrementalConstructorParameters
   end interface mergerTreeSeedsIncremental
@@ -54,7 +54,7 @@ contains
 
   function incrementalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily incremental} merger tree seed class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeSeedsIncremental} merger tree seed class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

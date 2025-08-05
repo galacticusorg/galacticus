@@ -71,7 +71,7 @@
 
   interface massDistributionSphericalShellOverdensities
      !!{
-     Constructors for the {\normalfont \ttfamily sphericalShellOverdensities} mass distribution class.
+     Constructors for the \refClass{massDistributionSphericalShellOverdensities} mass distribution class.
      !!}
      module procedure sphericalShellOverdensitiesConstructorParameters
      module procedure sphericalShellOverdensitiesConstructorInternal
@@ -81,7 +81,7 @@ contains
 
   function sphericalShellOverdensitiesConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sphericalShellOverdensities} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionSphericalShellOverdensities} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
@@ -150,7 +150,7 @@ contains
   
   function sphericalShellOverdensitiesConstructorInternal(halfWidth,densityContrast,volumeFillingFactor,radiusBoundary,massDistribution_,randomNumberGenerator_,dimensionless,componentType,massType) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily sphericalShellOverdensities} mass distribution class.
+    Constructor for the \refClass{massDistributionSphericalShellOverdensities} mass distribution class.
     !!}
     use :: Sorting      , only : sort
 #ifdef USEMPI
@@ -226,7 +226,7 @@ contains
   
   subroutine sphericalShellOverdensitiesDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily sphericalShellOverdensities} mass distribution class.
+    Destructor for the \refClass{massDistributionSphericalShellOverdensities} mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalShellOverdensities), intent(inout) :: self

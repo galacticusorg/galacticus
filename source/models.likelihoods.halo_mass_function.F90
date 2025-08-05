@@ -55,7 +55,7 @@
 
   interface posteriorSampleLikelihoodHaloMassFunction
      !!{
-     Constructors for the {\normalfont \ttfamily haloMassFunction} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleLikelihoodHaloMassFunction} posterior sampling convergence class.
      !!}
      module procedure haloMassFunctionConstructorParameters
      module procedure haloMassFunctionConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function haloMassFunctionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily haloMassFunction} posterior sampling convergence class which builds the object from a
+    Constructor for the \refClass{posteriorSampleLikelihoodHaloMassFunction} posterior sampling convergence class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -139,7 +139,7 @@ contains
 
   function haloMassFunctionConstructorInternal(fileName,redshift,massRangeMinimum,binCountMinimum,likelihoodPoisson,parametersModel,changeParametersFileNames,cosmologyFunctions_) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily haloMassFunction} posterior sampling likelihood class.
+    Constructor for the \refClass{posteriorSampleLikelihoodHaloMassFunction} posterior sampling likelihood class.
     !!}
     use :: Display          , only : displayMessage  , displayMagenta, displayReset
     use :: File_Utilities   , only : File_Name_Expand
@@ -280,7 +280,7 @@ contains
 
   subroutine haloMassFunctionDestructor(self)
     !!{
-    Destructor for {\normalfont \ttfamily haloMassFunction} posterior sampling likelihood class.
+    Destructor for the \refClass{posteriorSampleLikelihoodHaloMassFunction} posterior sampling likelihood class.
     !!}
     implicit none
     type(posteriorSampleLikelihoodHaloMassFunction), intent(inout) :: self

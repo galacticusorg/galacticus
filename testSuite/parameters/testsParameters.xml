@@ -3,7 +3,7 @@
 <!-- 30-October-2011                          -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
+  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
   <!-- Cosmological parameters and options -->
   <cosmologyParameters value="simple">
     <HubbleConstant value="70.2"/>
@@ -53,16 +53,25 @@
     <derivedValue3 value="=exp([fixedValue])"/>
   </derivedValue2>
   <wrapper1 value="" ignoreWarnings="true">
-    <derivedValue4 value="=[.::fixedValue1]"/>
+    <derivedValue4 value="=[.:fixedValue1]"/>
     <fixedValue1 value="33.42"/>
     <wrapper2 value="" ignoreWarnings="true">
-      <derivedValue5 value="=[.::fixedValue2]+[..::fixedValue1]+[.::..::wrapper2::fixedValue2]"/>
+      <derivedValue5 value="=[.:fixedValue2]+[..:fixedValue1]+[.:..:wrapper2:fixedValue2]"/>
       <fixedValue2 value="42.33"/>
     </wrapper2>
   </wrapper1>
   <derivedValue6 value="=min(1.0,2.0)"/>
   <derivedValue7 value="=max(1.0,2.0)"/>
   <derivedValue8 value="=[nonExistantParameter|1234.5]"/>
+  <container1 value="" ignoreWarnings="true">
+    <derivedValue9 value="=[derivedValue2]+1.0"/>
+  </container1>
+  <container2>
+    <container3>
+      <derivedValue10 value="=[container1:derivedValue9]+1.0"/>
+    </container3>
+  </container2>
+  <derivedValue11 value="=[container2:container3:derivedValue10]+1.0"/>
   <integerValue1 value="6"/>
   <derivedText1 value="=mouse_[%s|cosmologicalMassVariance]_[%4.2f|derivedValue6]_[%12.6e|derivedValue7]_[%4.4d|integerValue1]"/>
   <active1 value="0.1" active="[cosmologicalMassVariance:sigma_8] != 0.912"/>

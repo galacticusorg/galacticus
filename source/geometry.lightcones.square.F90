@@ -84,8 +84,9 @@
      double precision                          , dimension(3  )            :: origin                             , nodePositionCrossing   , &
           &                                                                   nodeVelocityCrossing               , unitVector1            , &
           &                                                                   unitVector2                        , unitVector3
-     double precision                          , dimension(:), allocatable :: outputTimes                        , distanceMinimum        , &
-          &                                                                   distanceMaximum
+     double precision                          , dimension(:), allocatable :: distanceMinimum                    , distanceMaximum        , &
+          &                                                                   timeMinimum_                       , timeMaximum_           , &
+          &                                                                   outputTimes
      double precision                                                      :: lengthReplication                  , angularSize            , &
           &                                                                   solidAngleSubtended                , lengthUnitsInSI
      integer                                                               :: lengthHubbleExponent
@@ -150,7 +151,7 @@
 
   interface geometryLightconeSquare
      !!{
-     Constructors for the {\normalfont \ttfamily square} dark matter halo spin distribution class.
+     Constructors for the \refClass{geometryLightconeSquare} dark matter halo spin distribution class.
      !!}
      module procedure squareConstructorParameters
      module procedure squareConstructorInternal
@@ -172,7 +173,7 @@ contains
 
   function squareConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily square} lightcone geometry distribution class which takes a parameter list as
+    Constructor for the \refClass{geometryLightconeSquare} lightcone geometry distribution class which takes a parameter list as
     input.
     !!}
     use :: Cosmology_Parameters            , only : cosmologyParameters   , cosmologyParametersClass, hubbleUnitsLittleH
@@ -286,7 +287,7 @@ contains
 
   function squareConstructorInternal(origin,unitVector,angularSize,lengthReplication,timeEvolvesAlongLightcone,cosmologyParameters_,cosmologyFunctions_,outputTimes_,nodeOperator_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily square} lightcone geometry distribution class.
+    Internal constructor for the \refClass{geometryLightconeSquare} lightcone geometry distribution class.
     !!}
     use :: Error                           , only : Error_Report
     use :: ISO_Varying_String              , only : var_str         , varying_string
@@ -330,6 +331,8 @@ contains
     ! Find the minimum and maximum distance associated with each output time.
     allocate(self%distanceMinimum(size(self%outputTimes)))
     allocate(self%distanceMaximum(size(self%outputTimes)))
+    allocate(self%timeMinimum_   (size(self%outputTimes)))
+    allocate(self%timeMaximum_   (size(self%outputTimes)))
     do iOutput=1,size(self%outputTimes)
        if (iOutput == 1                     ) then
           timeMinimum=                                 self%outputTimes(iOutput)
@@ -341,6 +344,8 @@ contains
        else
           timeMaximum=sqrt(self%outputTimes(iOutput+1)*self%outputTimes(iOutput))
        end if
+       self%timeMinimum_   (iOutput)=                                          timeMinimum
+       self%timeMaximum_   (iOutput)=                                          timeMaximum
        self%distanceMinimum(iOutput)=self%cosmologyFunctions_%distanceComoving(timeMaximum)
        self%distanceMaximum(iOutput)=self%cosmologyFunctions_%distanceComoving(timeMinimum)
     end do
@@ -368,6 +373,8 @@ contains
        outputTime     =self%outputTimes    (size(self%outputTimes))
        distanceMinimum=self%distanceMinimum(size(self%outputTimes))
        distanceMaximum=self%distanceMaximum(                    1 )
+       timeMaximum    =self%timeMinimum_   (size(self%outputTimes))
+       timeMinimum    =self%timeMaximum_   (                    1 )
        deallocate(self%outputTimes        )
        deallocate(self%distanceMinimum    )
        deallocate(self%distanceMaximum    )
@@ -375,6 +382,8 @@ contains
        allocate(self%distanceMinimum(1))
        allocate(self%distanceMaximum(1))
        self%outputTimes    =outputTime
+       self%timeMinimum_   =timeMinimum
+       self%timeMaximum_   =timeMaximum
        self%distanceMinimum=distanceMinimum
        self%distanceMaximum=distanceMaximum
     end if
@@ -448,7 +457,7 @@ contains
 
   subroutine squareDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily square} lightcone geometry distribution class.
+    Destructor for the \refClass{geometryLightconeSquare} lightcone geometry distribution class.
     !!}
     use :: Functions_Global, only : nodeOperatorDestruct_
     implicit none
@@ -515,9 +524,9 @@ contains
     time---there is no consideration of movement between output times. It is therefore recommended that some buffer is added to
     catch any nodes which may briefly enter the lightcone between output times.
     !!}
-    use            :: Arrays_Search       , only : searchArrayClosest
+    use            :: Arrays_Search       , only : searchArray
     use            :: Error               , only : Component_List          , Error_Report
-    use            :: Galacticus_Nodes    , only : defaultPositionComponent, defaultSatelliteComponent, nodeComponentBasic, nodeComponentPosition, &
+    use            :: Galacticus_Nodes    , only : defaultPositionComponent, defaultSatelliteComponent, nodeComponentBasic , nodeComponentPosition, &
           &                                        nodeComponentSatellite  , treeNode
     use, intrinsic :: ISO_C_Binding       , only : c_size_t
     use            :: ISO_Varying_String  , only : varying_string
@@ -548,8 +557,8 @@ contains
     basic => node%basic()
     ! Assume not in the lightcone by default.
     squareIsInLightcone=.false.
-    ! Check if this node exists prior to any lightcone time. If it does it will not be output.
-    if (basic%time() < self%outputTimes(1)*(1.0d0-timeTolerance)) return
+    ! If no output time exists after our node, so it can not be in the lightcone.
+    if (self%timeMaximum_(size(self%timeMaximum_)) < basic%time()) return
     ! Check that we can get the position of a node.
     if (.not.self%positionGettableChecked) then
        self%positionGettableChecked=.true.
@@ -565,7 +574,11 @@ contains
             &      )
     end if
     ! Determine to which output this galaxy corresponds.
-    outputMinimum=searchArrayClosest(self%outputTimes,basic%time())
+    if (basic%time() > self%timeMinimum_(size(self%timeMinimum_))) then
+       outputMinimum=size(self%timeMinimum_)
+    else
+       outputMinimum=searchArray(self%timeMinimum_,basic%time())
+    end if
     if (atPresentEpoch_) then
        ! We want to check only the current time for this node. Check that the node exists precisely at a lightcone snapshot time,
        ! and then set the maximum output to check to equal to minimum, such that we test only the current time.
@@ -605,16 +618,6 @@ contains
                &       {introspection:location}                                                                                                       &
                &      )
        end if
-       ! Ensure minimum output time is after when the node exists.
-       if (self%outputTimes(outputMinimum) < basic%time()) then
-          if (outputMinimum < size(self%outputTimes)) then
-             ! Increment the minimum output time.
-             outputMinimum=outputMinimum+1
-          else
-             ! No output time exists after our node, so it can not be in the lightcone.
-             return
-          end if
-       end if
        ! Get node position component.
        position => node%position()
        ! Test for primary progenitor status.
@@ -628,16 +631,13 @@ contains
           else
              timeFinal   =  basic      %time ()
           end if
-          outputMaximum=searchArrayClosest(self%outputTimes,timeFinal)
-          ! Ensure maximum output is before the final time.
-          if (self%outputTimes(outputMaximum) > timeFinal) then
-             if (outputMaximum > 1) then
-                outputMaximum=outputMaximum-1
-             else
-                ! The earliest output time is after the parent time, so the node can not be in the lightcone.
-                return
-             end if
+          if (timeFinal > self%timeMinimum_(size(self%timeMinimum_))) then
+             outputMaximum=size(self%timeMinimum_)
+          else
+             outputMaximum=searchArray(self%timeMinimum_,timeFinal)
           end if
+          ! If the earliest output time is after the parent time, so the node can not be in the lightcone.
+          if (self%timeMinimum_(1) > timeFinal) return
           ! Construct array of positions at output times.
           deallocate(nodePositionHistory)
           allocate(nodePositionHistory(3_c_size_t,outputMaximum-outputMinimum+1))
@@ -650,16 +650,7 @@ contains
           satellite => node     %satellite    ()
           timeMerge =  satellite%timeOfMerging()
           if (timeMerge < basic%time()) call Error_Report('can not determine if satellite is in lightcone without knowledge of its time of merging'//{introspection:location})
-          outputMaximum=searchArrayClosest(self%outputTimes,timeMerge)
-          ! Ensure maximum output is before the parent time.
-          if (self%outputTimes(outputMaximum) > timeMerge) then
-             if (outputMaximum > 1) then
-                outputMaximum=outputMaximum-1
-             else
-                ! The earliest output time is after the parent time, so the node can not be in the lightcone.
-                return
-             end if
-          end if
+          outputMaximum=searchArray(self%timeMinimum_,timeMerge)
           ! Construct array of positions at output times.
           deallocate(nodePositionHistory)
           allocate(nodePositionHistory(3_c_size_t,outputMaximum-outputMinimum+1))
@@ -972,7 +963,7 @@ contains
        else
           allocate(timesCrossing(0))
        end if
-    end if
+    end if    
     return
 
   contains

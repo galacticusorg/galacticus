@@ -234,6 +234,23 @@
   <migration commit="c71d2291b119918574bc006255028c62430b554b">
     <translation function="modelParameterXPath"/>
   </migration>
+  <migration commit="f483d9caf532e5f33cdbe46aad53d076316ec394">
+    <translation function="methodSuffixRemove"/>
+  </migration>
+  <migration commit="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15">
+    <translation xpath="//stellarFeedbackOutflows[@value]">
+      <value old="creasey2012" new="creasey2013"/>
+    </translation>
+  </migration>
+  <migration commit="9e30e6b7b20cde818f4d9e935b0a34f0b5c78c29">
+    <translation function="satelliteOrphanize"/>
+  </migration>
+  <migration commit="49430476890d1e0d92c686020f046e972952f81e">
+    <translation function="blackHoleNonCentral"/>
+  </migration>
+  <migration commit="c8ece7c25a69867343f09ac4c4c325380dbf8f21">
+    <translation function="hotHaloVerySimple"/>
+  </migration>
 
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />

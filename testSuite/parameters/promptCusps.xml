@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<!-- Parameter file used for testing the prompt cusp model. -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
+  <componentBasic             value="standard"/>
+  <componentDarkMatterProfile value="scale"   />
+</parameters>

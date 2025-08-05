@@ -56,7 +56,7 @@
 
   interface haloMassFunctionBhattacharya2011
      !!{
-     Constructors for the {\normalfont \ttfamily bhattacharya2011} halo mass function class.
+     Constructors for the \refClass{haloMassFunctionBhattacharya2011} halo mass function class.
      !!}
      module procedure bhattacharya2011ConstructorParameters
      module procedure bhattacharya2011ConstructorInternal
@@ -66,7 +66,7 @@ contains
 
   function bhattacharya2011ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily bhattacharya2011} halo mass function class which takes a parameter set as input.
+    Constructor for the \refClass{haloMassFunctionBhattacharya2011} halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -124,7 +124,7 @@ contains
 
   function bhattacharya2011ConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,a,p,q,normalization) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily bhattacharya2011} halo mass function class.
+    Internal constructor for the \refClass{haloMassFunctionBhattacharya2011} halo mass function class.
     !!}
     implicit none
     type            (haloMassFunctionBhattacharya2011)                        :: self
@@ -146,7 +146,7 @@ contains
 
   subroutine bhattacharya2011Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily bhattacharya2011} halo mass function class.
+    Destructor for the \refClass{haloMassFunctionBhattacharya2011} halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionBhattacharya2011), intent(inout) :: self

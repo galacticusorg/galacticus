@@ -103,6 +103,16 @@ class SLURMManager(QueueManager):
                         jobIDsToRemove.append(jobID)
                 for jobID in jobIDsToRemove:
                     print(f'Job "{activeJobs[jobID]["label"]}" has finished')
+                    scontrol = subprocess.run(['scontrol', 'show', 'job', jobID, '--json'], capture_output=True, text=True)
+                    if scontrol.returncode == 0:
+                        # Parse the JSON output from scontrol
+                        jobData = json.loads(scontrol.stdout)
+                        try:
+                            activeJobs[jobID]['exitStatus'] = jobData['jobs'][0]['exit_code']['return_code']['number']
+                        except IndexError:
+                            activeJobs[jobID]['exitStatus'] = -2
+                    else:
+                        activeJobs[jobID]['exitStatus'] = -1
                     if 'onCompletion' in activeJobs[jobID]:
                         activeJobs[jobID]['onCompletion'](activeJobs[jobID])
                     del activeJobs[jobID]
@@ -155,19 +165,29 @@ class SLURMManager(QueueManager):
                     fileBatch.write(f'exit\n')
                     fileBatch.close()
                     print(f'Submitting job "{job["label"]}"')
-                    sbatch = subprocess.run(['sbatch', job['launchFile']], capture_output=True, text=True)
-                    if sbatch.returncode == 0:
-                        # Extract the job ID.
-                        match = re.search("\d+", sbatch.stdout)
-                        if match:
-                            job['jobID'] = match.group(0)
-                            job['state'] = "PENDING"
-                            activeJobs[job['jobID']] = job
+                    countSubmitAttempts = 0
+                    submitSuccess       = False
+                    while not submitSuccess and countSubmitAttempts < 10:
+                        sbatch = subprocess.run(['sbatch', job['launchFile']], capture_output=True, text=True)
+                        if sbatch.returncode == 0:
+                            submitSuccess = True
+                            # Extract the job ID.
+                            match = re.search("\d+", sbatch.stdout)
+                            if match:
+                                job['jobID'] = match.group(0)
+                                job['state'] = "PENDING"
+                                activeJobs[job['jobID']] = job
+                            else:
+                                raise Exception(f"`sbatch` command did not return job ID")
                         else:
-                            raise Exception(f"`sbatch` command did not return job ID")
-                    else:
-                        print(sbatch.stderr)
-                        raise Exception(f"`sbatch` command failed with return code: {sbatch.returncode}")
+                            countSubmitAttempts += 1
+                            print(f"`sbatch` command failed with return code: {sbatch.returncode}")
+                            print(sbatch.stderr)
+                            timeSleep = max([1,self.options['waitOnSubmit']])*2**countSubmitAttempts
+                            print(f"waiting {timeSleep} s to try again....")
+                            time.sleep(timeSleep)
+                    if not submitSuccess:
+                        raise Exception("`sbatch` command failed after multiple attempts")
                     time.sleep(self.options['waitOnSubmit'])
                 elif len(activeJobs) > 0:
                     time.sleep(self.options['waitOnActive'])

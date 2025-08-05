@@ -56,7 +56,7 @@
 
   interface virialOrbitMassReduced
      !!{
-     Constructors for the {\normalfont \ttfamily massReduced} virial orbit class.
+     Constructors for the \refClass{virialOrbitMassReduced} virial orbit class.
      !!}
      module procedure massReducedConstructorParameters
      module procedure massReducedConstructorInternal
@@ -66,7 +66,7 @@ contains
 
   function massReducedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily massReduced} satellite virial orbit class which takes a parameter set as input.
+    Constructor for the \refClass{virialOrbitMassReduced} satellite virial orbit class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -99,7 +99,7 @@ contains
 
   function massReducedConstructorInternal(virialOrbit_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily massReduced} virial orbits class.
+    Internal constructor for the \refClass{virialOrbitMassReduced} virial orbits class.
     !!}
     implicit none
     type (virialOrbitMassReduced    )                        :: self
@@ -117,7 +117,7 @@ contains
 
   subroutine massReducedDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily massReduced} virial orbits class.
+    Destructor for the \refClass{virialOrbitMassReduced} virial orbits class.
     !!}
     implicit none
     type(virialOrbitMassReduced), intent(inout) :: self

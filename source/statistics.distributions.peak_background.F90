@@ -48,7 +48,7 @@
 
   interface distributionFunction1DPeakBackground
      !!{
-     Constructors for the {\normalfont \ttfamily peakBackground} 1D distribution function class.
+     Constructors for the \refClass{distributionFunction1DPeakBackground} 1D distribution function class.
      !!}
      module procedure peakBackgroundConstructorParameters
      module procedure peakBackgroundConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function peakBackgroundConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily peakBackground} 1D distribution function class which builds the object from a parameter
+    Constructor for the \refClass{distributionFunction1DPeakBackground} 1D distribution function class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -91,7 +91,7 @@ contains
 
   function peakBackgroundConstructorInternal(varianceBackground,thresholdCollapse,randomNumberGenerator_) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily peakBackground} 1D distribution function class.
+    Constructor for the \refClass{distributionFunction1DPeakBackground} 1D distribution function class.
     !!}
     use :: Error_Functions, only : Error_Function
     implicit none
@@ -146,7 +146,7 @@ contains
 
   subroutine peakBackgroundDestructor(self)
     !!{
-    Destructor for {\normalfont \ttfamily peakBackground} 1D distribution function class.
+    Destructor for the \refClass{distributionFunction1DPeakBackground} 1D distribution function class.
     !!}
     implicit none
     type(distributionFunction1DPeakBackground), intent(inout) :: self

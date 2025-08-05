@@ -37,7 +37,7 @@
 
   interface atomicRecombinationRateDielectronicZero
      !!{
-     Constructors for the {\normalfont \ttfamily zero} atomic dielectronic recombination rate class.
+     Constructors for the \refClass{atomicRecombinationRateDielectronicZero} atomic dielectronic recombination rate class.
      !!}
      module procedure zeroConstructorParameters
   end interface atomicRecombinationRateDielectronicZero
@@ -46,7 +46,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily zero} atomic dielectronic recombination class which builds the object from a
+    Constructor for the \refClass{atomicRecombinationRateDielectronicZero} atomic dielectronic recombination class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters

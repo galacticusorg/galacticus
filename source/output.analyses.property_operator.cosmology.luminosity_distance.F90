@@ -52,7 +52,7 @@ Implements a cosmological luminosity distance corrector analysis property operat
 
   interface outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc
      !!{
-     Constructors for the {\normalfont \ttfamily csmlgyLuminosityDistance} output analysis class.
+     Constructors for the \refClass{outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc} output analysis class.
      !!}
      module procedure csmlgyLuminosityDistanceConstructorParameters
      module procedure csmlgyLuminosityDistanceConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function csmlgyLuminosityDistanceConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily csmlgyLuminosityDistance} output analysis property operator class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc} output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -92,7 +92,7 @@ contains
 
   function csmlgyLuminosityDistanceConstructorInternal(cosmologyFunctionsModel,cosmologyFunctionsData,outputTimes_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily randomErrorPolynomial} output analysis property operator class.
+    Internal constructor for the \refClass{outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc} output analysis property operator class.
     !!}
     use            :: Error            , only : Error_Report
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
@@ -148,7 +148,7 @@ contains
 
   subroutine csmlgyLuminosityDistanceDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily randomErrorPolynomial} output analysis property operator class.
+    Destructor for the \refClass{outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc} output analysis property operator class.
     !!}
     implicit none
     type(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc), intent(inout) :: self

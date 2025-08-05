@@ -56,11 +56,12 @@
      procedure :: retabulate      => sphericalCollapseClsnlssMttrCsmlgclCnstntRetabulate
      procedure :: isMassDependent => sphericalCollapseClsnlssMttrCsmlgclCnstntIsMassDependent
      procedure :: isNodeDependent => sphericalCollapseClsnlssMttrCsmlgclCnstntIsNodeDependent
+     procedure :: isTreeDependent => sphericalCollapseClsnlssMttrCsmlgclCnstntIsTreeDependent
   end type criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt
 
   interface criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt
      !!{
-     Constructors for the {\normalfont \ttfamily sphericalCollapseClsnlssMttrCsmlgclCnstnt} critical overdensity for collapse class.
+     Constructors for the \refClass{criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt} critical overdensity for collapse class.
      !!}
      module procedure sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorParameters
      module procedure sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorInternal
@@ -70,7 +71,7 @@ contains
 
   function sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sphericalCollapseClsnlssMttrCsmlgclCnstnt} critical overdensity class
+    Constructor for the \refClass{criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt} critical overdensity class
     which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -115,7 +116,7 @@ contains
 
   function sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,tableStore,normalization) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily sphericalCollapseClsnlssMttrCsmlgclCnstnt} critical overdensity class.
+    Internal constructor for the \refClass{criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt} critical overdensity class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleCDM, darkMatterParticleClass
     use :: Error                , only : Error_Report
@@ -153,7 +154,7 @@ contains
 
   subroutine sphericalCollapseClsnlssMttrCsmlgclCnstntDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily sphericalCollapseClsnlssMttrCsmlgclCnstnt} critical overdensity for collapse class.
+    Destructor for the \refClass{criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt} critical overdensity for collapse class.
     !!}
     implicit none
     type(criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt), intent(inout) :: self
@@ -283,3 +284,15 @@ contains
     sphericalCollapseClsnlssMttrCsmlgclCnstntIsNodeDependent=.false.
     return
   end function sphericalCollapseClsnlssMttrCsmlgclCnstntIsNodeDependent
+
+  logical function sphericalCollapseClsnlssMttrCsmlgclCnstntIsTreeDependent(self)
+    !!{
+    Return whether the critical overdensity is tree dependent.
+    !!}
+    implicit none
+    class(criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    sphericalCollapseClsnlssMttrCsmlgclCnstntIsTreeDependent=.false.
+    return
+  end function sphericalCollapseClsnlssMttrCsmlgclCnstntIsTreeDependent

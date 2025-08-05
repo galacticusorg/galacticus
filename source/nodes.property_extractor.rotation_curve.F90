@@ -61,7 +61,7 @@
 
   interface nodePropertyExtractorRotationCurve
      !!{
-     Constructors for the {\normalfont \ttfamily rotationCurve} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRotationCurve} output analysis class.
      !!}
      module procedure rotationCurveConstructorParameters
      module procedure rotationCurveConstructorInternal
@@ -71,7 +71,7 @@ contains
 
   function rotationCurveConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily rotationCurve} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorRotationCurve} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -106,7 +106,7 @@ contains
 
   function rotationCurveConstructorInternal(radiusSpecifiers,includeRadii,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily rotationCurve} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorRotationCurve} property extractor class.
     !!}
     use :: Galactic_Structure_Radii_Definitions, only : Galactic_Structure_Radii_Definition_Decode
     implicit none
@@ -140,7 +140,7 @@ contains
 
   subroutine rotationCurveDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily rotationCurve} property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorRotationCurve} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRotationCurve), intent(inout) :: self

@@ -44,7 +44,7 @@
 
   interface darkMatterProfileDMOBurkert
      !!{
-     Constructors for the {\normalfont \ttfamily burkert} dark matter halo profile class.
+     Constructors for the \refClass{darkMatterProfileDMOBurkert} dark matter halo profile class.
      !!}
      module procedure burkertConstructorParameters
      module procedure burkertConstructorInternal
@@ -75,7 +75,7 @@ contains
 
   function burkertConstructorInternal(darkMatterHaloScale_) result(self)
     !!{
-    Generic constructor for the {\normalfont \ttfamily burkert} dark matter halo profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOBurkert} dark matter halo profile class.
     !!}
     use :: Error           , only : Component_List                   , Error_Report
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
@@ -102,7 +102,7 @@ contains
 
   subroutine burkertDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily burkert} dark matter halo profile class.
+    Destructor for the \refClass{darkMatterProfileDMOBurkert} dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOBurkert), intent(inout) :: self

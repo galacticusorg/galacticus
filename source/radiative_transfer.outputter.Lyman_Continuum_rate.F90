@@ -40,7 +40,7 @@
 
   interface radiativeTransferOutputterLymanContinuumRate
      !!{
-     Constructors for the {\normalfont \ttfamily lymanContinuumRate} radiative transfer outputter packet class.
+     Constructors for the \refClass{radiativeTransferOutputterLymanContinuumRate} radiative transfer outputter packet class.
      !!}
      module procedure lymanContinuumRateConstructorParameters
      module procedure lymanContinuumRateConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function lymanContinuumRateConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily lymanContinuumRate} radiative transfer outputter class which takes a parameter set as
+    Constructor for the \refClass{radiativeTransferOutputterLymanContinuumRate} radiative transfer outputter class which takes a parameter set as
     input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -67,7 +67,7 @@ contains
   
   function lymanContinuumRateConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily lymanContinuumRate} radiative transfer outputter class.
+    Internal constructor for the \refClass{radiativeTransferOutputterLymanContinuumRate} radiative transfer outputter class.
     !!}
     implicit none
     type(radiativeTransferOutputterLymanContinuumRate) :: self

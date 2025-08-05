@@ -37,7 +37,7 @@
 
   interface taskBuildTableCIECloudy
      !!{
-     Constructors for the {\normalfont \ttfamily buildTableCIECloudy} task.
+     Constructors for the \refClass{taskBuildTableCIECloudy} task.
      !!}
      module procedure buildTableCIECloudyParameters
      module procedure buildTableCIECloudyInternal
@@ -47,7 +47,7 @@ contains
 
   function buildTableCIECloudyParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily buildTableCIECloudy} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskBuildTableCIECloudy} task class which takes a parameter set as input.
     !!}
     use :: Input_Paths     , only : inputPath      , pathTypeDataDynamic
     use :: Input_Parameters, only : inputParameters
@@ -93,7 +93,7 @@ contains
 
   function buildTableCIECloudyInternal(fileNameCoolingFunction,fileNameChemicalState,metallicityLogarithmicMaximum,includeContinuum) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily buildTableCIECloudy} task class.
+    Internal constructor for the \refClass{taskBuildTableCIECloudy} task class.
     !!}
     implicit none
     type            (taskBuildTableCIECloudy)                :: self

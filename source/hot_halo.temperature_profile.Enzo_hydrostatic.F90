@@ -96,7 +96,7 @@ contains
 
   subroutine enzoHydrostaticDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily enzoHydrostatic} hot halo temperature profile class.
+    Destructor for the \refClass{hotHaloTemperatureProfileEnzoHydrostatic} hot halo temperature profile class.
     !!}
     implicit none
     type(hotHaloTemperatureProfileEnzoHydrostatic), intent(inout) :: self

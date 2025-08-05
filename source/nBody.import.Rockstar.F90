@@ -128,7 +128,7 @@ Implements an N-body data importer for Rockstar files.
 
   interface nbodyImporterRockstar
      !!{
-     Constructors for the {\normalfont \ttfamily rockstar} N-body importer class.
+     Constructors for the \refClass{nbodyImporterRockstar} N-body importer class.
      !!}
      module procedure rockstarConstructorParameters
      module procedure rockstarConstructorInternal
@@ -138,7 +138,7 @@ contains
 
   function rockstarConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily rockstar} N-body importer class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyImporterRockstar} N-body importer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -193,7 +193,7 @@ contains
 
   function rockstarConstructorInternal(fileName,label,cosmologyParameters_,readColumns) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily rockstar} N-body importer class.
+    Internal constructor for the \refClass{nbodyImporterRockstar} N-body importer class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -299,7 +299,7 @@ contains
 
   subroutine rockstarDestructor(self)
     !!{
-    Destructor for {\normalfont \ttfamily rockstar} importer class.
+    Destructor for the \refClass{nbodyImporterRockstar} importer class.
     !!}
     implicit none
     type(nbodyImporterRockstar), intent(inout) :: self

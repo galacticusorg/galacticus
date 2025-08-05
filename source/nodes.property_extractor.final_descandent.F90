@@ -39,7 +39,7 @@ Implements an ISM mass output analysis property extractor class.
 
   interface nodePropertyExtractorFinalDescendant
      !!{
-     Constructors for the {\normalfont \ttfamily finalDescendant} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorFinalDescendant} output analysis class.
      !!}
      module procedure finalDescendantConstructorParameters
   end interface nodePropertyExtractorFinalDescendant
@@ -48,7 +48,7 @@ contains
 
   function finalDescendantConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily finalDescendant} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorFinalDescendant} node property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

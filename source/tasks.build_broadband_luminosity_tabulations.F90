@@ -45,7 +45,7 @@
 
   interface taskBuildBroadbandLuminosityTabulations
      !!{
-     Constructors for the {\normalfont \ttfamily buildBroadbandLuminosityTabulations} task.
+     Constructors for the \refClass{taskBuildBroadbandLuminosityTabulations} task.
      !!}
      module procedure buildBroadbandLuminosityTabulationsParameters
      module procedure buildBroadbandLuminosityTabulationsInternal
@@ -55,7 +55,7 @@ contains
 
   function buildBroadbandLuminosityTabulationsParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily buildBroadbandLuminosityTabulations} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskBuildBroadbandLuminosityTabulations} task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     use :: Node_Components , only : Node_Components_Initialize
@@ -90,7 +90,7 @@ contains
 
   function buildBroadbandLuminosityTabulationsInternal(stellarPopulationBroadBandLuminosities_,stellarPopulation_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily buildBroadbandLuminosityTabulations} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskBuildBroadbandLuminosityTabulations} task class which takes a parameter set as input.
     !!}
     implicit none
     type (taskBuildBroadbandLuminosityTabulations    )                        :: self
@@ -105,7 +105,7 @@ contains
 
   subroutine buildBroadbandLuminosityTabulationsDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily buildBroadbandLuminosityTabulations} task class.
+    Destructor for the \refClass{taskBuildBroadbandLuminosityTabulations} task class.
     !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none

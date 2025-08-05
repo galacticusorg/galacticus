@@ -46,7 +46,7 @@
 
   interface darkMatterProfileHeatingSummation
      !!{
-     Constructors for the {\normalfont \ttfamily summation} dark matter profile heating class.
+     Constructors for the \refClass{darkMatterProfileHeatingSummation} dark matter profile heating class.
      !!}
      module procedure summationConstructorParameters
      module procedure summationConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function summationConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily summation} dark matter profile heating class which takes a parameter set as input.
+    Constructor for the \refClass{darkMatterProfileHeatingSummation} dark matter profile heating class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -86,7 +86,7 @@ contains
 
   function summationConstructorInternal(heatSources) result(self)
     !!{
-    Internal constructor for the ``summation'' dark matter profile heating class.
+    Internal constructor for the \refClass{darkMatterProfileHeatingSummation} dark matter profile heating class.
     !!}
     implicit none
     type(darkMatterProfileHeatingSummation)                        :: self
@@ -106,7 +106,7 @@ contains
 
   subroutine summationDestructor(self)
     !!{
-    Destructor for the ``summation'' dark matter profile heating class.
+    Destructor for the \refClass{darkMatterProfileHeatingSummation} dark matter profile heating class.
     !!}
     implicit none
     type(darkMatterProfileHeatingSummation), intent(inout) :: self

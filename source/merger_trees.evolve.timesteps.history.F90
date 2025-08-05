@@ -83,7 +83,7 @@ Implements a merger tree evolution timestepping class which limits the step the 
 
   interface mergerTreeEvolveTimestepHistory
      !!{
-     Constructors for the {\normalfont \ttfamily history} merger tree evolution timestep class.
+     Constructors for the \refClass{mergerTreeEvolveTimestepHistory} merger tree evolution timestep class.
      !!}
      module procedure historyConstructorParameters
      module procedure historyConstructorInternal
@@ -93,7 +93,7 @@ contains
 
   function historyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily history} merger tree evolution timestep class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeEvolveTimestepHistory} merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -144,7 +144,7 @@ contains
 
   function historyConstructorInternal(historyCount,timeBegin,timeEnd,cosmologyFunctions_,starFormationRateDisks_,starFormationRateSpheroids_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily history} merger tree evolution timestep class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeEvolveTimestepHistory} merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
@@ -204,7 +204,7 @@ contains
 
   subroutine historyDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily history} merger tree evolution timestep class.
+    Destructor for the \refClass{mergerTreeEvolveTimestepHistory} merger tree evolution timestep class.
     !!}
     use :: Events_Hooks, only : outputFileCloseEventGlobal
     implicit none

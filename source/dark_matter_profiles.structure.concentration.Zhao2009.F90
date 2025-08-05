@@ -70,7 +70,7 @@
 
   interface darkMatterProfileConcentrationZhao2009
      !!{
-     Constructors for the {\normalfont \ttfamily zhao2009} dark matter halo profile
+     Constructors for the \refClass{darkMatterProfileConcentrationZhao2009} dark matter halo profile
      concentration class.
      !!}
      module procedure zhao2009ConstructorParameters
@@ -81,7 +81,7 @@ contains
 
   function zhao2009ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily zhao2009} dark matter halo profile
+    Constructor for the \refClass{darkMatterProfileConcentrationZhao2009} dark matter halo profile
     concentration class which takes an input parameter list.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -111,7 +111,7 @@ contains
 
   function zhao2009ConstructorInternal(cosmologyFunctions_,cosmologyParameters_,darkMatterHaloMassAccretionHistory_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily zhao2009} dark matter halo profile
+    Internal constructor for the \refClass{darkMatterProfileConcentrationZhao2009} dark matter halo profile
     concentration class.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
@@ -162,7 +162,7 @@ contains
 
   subroutine zhao2009Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily zhao2009} dark matter halo profile concentration class.
+    Destructor for the \refClass{darkMatterProfileConcentrationZhao2009} dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationZhao2009), intent(inout) :: self

@@ -45,7 +45,7 @@ Implements a merger tree build controller class which follows branches only if t
 
   interface mergerTreeBuildControllerFiltered
      !!{
-     Constructors for the {\normalfont \ttfamily filtered} merger tree build controller class.
+     Constructors for the \refClass{mergerTreeBuildControllerFiltered} merger tree build controller class.
      !!}
      module procedure filteredConstructorParameters
      module procedure filteredConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function filteredConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily filtered} merger tree build controller class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeBuildControllerFiltered} merger tree build controller class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function filteredConstructorInternal(mergerTreeBranchingProbability_,galacticFilter_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily filtered} merger tree build controller class .
+    Internal constructor for the \refClass{mergerTreeBuildControllerFiltered} merger tree build controller class .
     !!}
     implicit none
     type (mergerTreeBuildControllerFiltered  )                        :: self
@@ -93,7 +93,7 @@ contains
 
   subroutine filteredDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily filtered} merger tree build controller class.
+    Destructor for the \refClass{mergerTreeBuildControllerFiltered} merger tree build controller class.
     !!}
     implicit none
     type(mergerTreeBuildControllerFiltered), intent(inout) :: self

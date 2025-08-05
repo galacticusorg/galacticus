@@ -80,6 +80,7 @@
      procedure :: rate                  => fixedAgesRate
      procedure :: scales                => fixedAgesScales
      procedure :: times                 => fixedAgesTimes
+     procedure :: timeNext              => fixedAgesTimeNext
      procedure :: masses                => fixedAgesMasses
      procedure :: metallicityBoundaries => fixedAgesMetallicityBoundaries
      procedure :: ageDistribution       => fixedAgesAgeDistribution
@@ -91,7 +92,7 @@
 
   interface starFormationHistoryFixedAges
      !!{
-     Constructors for the {\normalfont \ttfamily fixedAges} star formation history class.
+     Constructors for the \refClass{starFormationHistoryFixedAges} star formation history class.
      !!}
      module procedure fixedAgesConstructorParameters
      module procedure fixedAgesConstructorInternal
@@ -104,7 +105,7 @@ contains
 
   recursive function fixedAgesConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily fixedAges} star formation history class which takes a parameter set as input.
+    Constructor for the \refClass{starFormationHistoryFixedAges} star formation history class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -186,7 +187,7 @@ contains
 
   recursive function fixedAgesConstructorInternal(cosmologyFunctions_,geometryLightcone_,ageMinimum,countAges,metallicityBoundaries,countMetallicities,metallicityMinimum,metallicityMaximum) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily fixedAges} star formation history class.
+    Internal constructor for the \refClass{starFormationHistoryFixedAges} star formation history class.
     !!}
     use :: Error                     , only : Error_Report
     use :: Galactic_Structure_Options, only : componentTypeMax, componentTypeMin
@@ -258,7 +259,7 @@ contains
 
   subroutine fixedAgesDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily fixedAges} star formation histories class.
+    Destructor for the \refClass{starFormationHistoryFixedAges} star formation histories class.
     !!}
     implicit none
     type(starFormationHistoryFixedAges), intent(inout) :: self
@@ -683,7 +684,9 @@ contains
     Return the times used in this tabulation.
     !!}
     use :: Galacticus_Nodes    , only : nodeComponentBasic
+    use :: Geometry_Lightcones , only : geometryLightconeNull
     use :: Error               , only : Error_Report
+    use :: Display             , only : displayGreen      , displayReset
     use :: Numerical_Comparison, only : Values_Agree
     use :: ISO_Varying_String  , only : varying_string    , assignment(=), operator(//)
     use :: String_Handling     , only : operator(//)
@@ -711,6 +714,18 @@ contains
     ! Check that the current time matches the next tabulated time.
     basic         => node %basic                    (                    )
     timesCrossing =  basic%floatRank1MetaPropertyGet(self%timesCrossingID)
+    if (size(timesCrossing) == 0) then
+       message=                                            "no lightcone crossing times found"                                                   //char(10)// &
+            & displayGreen()//"    HELP:"//displayReset()//" the `starFormationHistoryFixedAges` class is intended for use with lightcone output"
+       select type (geometryLightcone_ => self%geometryLightcone_)
+       class is (geometryLightconeNull)
+          message=message//","//char(10)//"          but you have no lightcone geometry configured."
+       class default
+          message=message//"."
+       end select
+       message=message//char(10)//"          Consider using a different star formation history class."
+       call Error_Report(message//{introspection:location})
+    end if
     if (.not.Values_Agree(basic%time(),timesCrossing(1),relTol=1.0d-6)) then
        write (label,'(e16.10)') basic%time         ( )
        message="time ("//label//") "
@@ -738,12 +753,50 @@ contains
     return
   end function fixedAgesTimes
 
+  double precision function fixedAgesTimeNext(self,node,starFormationHistory) result(timeNext)
+    !!{
+    Return the next tabulation time boundary across all histories.
+    !!}
+    use, intrinsic :: ISO_C_Binding   , only : c_size_t
+    use            :: Galacticus_Nodes, only : nodeComponentBasic
+    use            :: Arrays_Search   , only : searchArray
+    implicit none
+    class           (starFormationHistoryFixedAges), intent(inout)               :: self
+    type            (treeNode                     ), intent(inout)               :: node
+    type            (history                      ), intent(in   )               :: starFormationHistory
+    double precision                               , allocatable  , dimension(:) :: timesCrossing
+    class           (nodeComponentBasic           ), pointer                     :: basic
+    integer         (c_size_t                     )                              :: i                   , j
+
+    ! Call the recursive copy if necessary.
+    if (self%isRecursive) then
+       timeNext=self%recursiveSelf%timeNext(node,starFormationHistory)
+       return
+    end if
+    ! Find the next boundary time across all histories.
+    basic         => node %basic                    (                    )
+    timesCrossing =  basic%floatRank1MetaPropertyGet(self%timesCrossingID)
+    timeNext      =  huge(0.0d0)
+    do i=1,size(timesCrossing)
+       j=searchArray(starFormationHistory%time,basic%time()-timesCrossing(i))
+       if     (                                                                 &
+            &   basic%time() >= starFormationHistory%time(j+1)+timesCrossing(i) &
+            &  .and.                                                            &
+            &   j+1          <  size(starFormationHistory%time)                 &
+            & ) j=j+1
+       timeNext=min(timeNext,starFormationHistory%time(j+1)+timesCrossing(i))
+    end do
+    return
+  end function fixedAgesTimeNext
+
   function fixedAgesMasses(self,node,starFormationHistory,allowTruncation) result(masses)
     !!{
     Return the times used in this tabulation.
     !!}
     use :: Galacticus_Nodes    , only : nodeComponentBasic
+    use :: Geometry_Lightcones , only : geometryLightconeNull
     use :: Error               , only : Error_Report
+    use :: Display             , only : displayGreen      , displayReset
     use :: Numerical_Comparison, only : Values_Agree
     use :: ISO_Varying_String  , only : varying_string    , assignment(=), operator(//)
     use :: String_Handling     , only : operator(//)
@@ -757,7 +810,7 @@ contains
     class           (nodeComponentBasic           ), pointer                       :: basic
     type            (varying_string               )                                :: message
     character       (len=16                       )                                :: label
-     !![
+    !![
     <optionalArgument name="allowTruncation" defaultsTo=".false."/>
     !!]
     
@@ -769,6 +822,18 @@ contains
     ! Check that the current time matches the next tabulated time.
     basic         => node %basic                    (                    )
     timesCrossing =  basic%floatRank1MetaPropertyGet(self%timesCrossingID)
+    if (size(timesCrossing) == 0) then
+       message=                                            "no lightcone crossing times found"                                                   //char(10)// &
+            & displayGreen()//"    HELP:"//displayReset()//" the `starFormationHistoryFixedAges` class is intended for use with lightcone output"
+       select type (geometryLightcone_ => self%geometryLightcone_)
+       class is (geometryLightconeNull)
+          message=message//","//char(10)//"          but you have no lightcone geometry configured."
+       class default
+          message=message//"."
+       end select
+       message=message//char(10)//"          Consider using a different star formation history class."
+       call Error_Report(message//{introspection:location})
+    end if
     if (.not.Values_Agree(basic%time(),timesCrossing(1),relTol=1.0d-6)) then
        write (label,'(e16.10)') basic%time         ( )
        message="time ("//label//") "

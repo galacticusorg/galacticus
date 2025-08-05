@@ -41,7 +41,7 @@
 
   interface stellarFeedbackInstantCanonical
      !!{
-     Constructors for the {\normalfont \ttfamily instantCanonical} stellar feedback class.
+     Constructors for the \refClass{stellarFeedbackInstantCanonical} stellar feedback class.
      !!}
      module procedure instantCanonicalConstructorParameters
   end interface stellarFeedbackInstantCanonical
@@ -50,7 +50,7 @@ contains
 
   function instantCanonicalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily instantCanonical} stellar feedback class which takes a parameter list as input.
+    Constructor for the \refClass{stellarFeedbackInstantCanonical} stellar feedback class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

@@ -49,7 +49,7 @@
 
   interface mergerTreeOperatorOutputStructure
      !!{
-     Constructors for the {\normalfont \ttfamily outputStructure} merger tree operator class.
+     Constructors for the \refClass{mergerTreeOperatorOutputStructure} merger tree operator class.
      !!}
      module procedure outputStructureConstructorParameters
      module procedure outputStructureConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function outputStructureConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily outputStructure} merger tree operator class which takes a parameter set as
+    Constructor for the \refClass{mergerTreeOperatorOutputStructure} merger tree operator class which takes a parameter set as
     input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -81,7 +81,7 @@ contains
 
   function outputStructureConstructorInternal(nodePropertyExtractor_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily outputStructure} merger tree operator class.
+    Internal constructor for the \refClass{mergerTreeOperatorOutputStructure} merger tree operator class.
     !!}
     implicit none
     type (mergerTreeOperatorOutputStructure)                        :: self
@@ -95,7 +95,7 @@ contains
 
   subroutine outputStructureDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily outputStructure} merger tree operator function class.
+    Destructor for the \refClass{mergerTreeOperatorOutputStructure} merger tree operator function class.
     !!}
     implicit none
     type(mergerTreeOperatorOutputStructure), intent(inout) :: self

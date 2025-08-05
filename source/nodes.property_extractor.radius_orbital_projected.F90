@@ -48,7 +48,7 @@
 
   interface nodePropertyExtractorRadiusOrbitalProjected
      !!{
-     Constructors for the {\normalfont \ttfamily radiusOrbitalProjected} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusOrbitalProjected} output analysis class.
      !!}
      module procedure radiusOrbitalProjectedConstructorParameters
      module procedure radiusOrbitalProjectedConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function radiusOrbitalProjectedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily radiusOrbitalProjected} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorRadiusOrbitalProjected} output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -74,7 +74,7 @@ contains
 
   function radiusOrbitalProjectedConstructorInternal(useLastIsolatedTime,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily radiusOrbitalProjected} output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorRadiusOrbitalProjected} output analysis property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRadiusOrbitalProjected) :: self
@@ -87,7 +87,7 @@ contains
 
   subroutine radiusOrbitalProjectedDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily mass} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorRadiusOrbitalProjected} output analysis property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRadiusOrbitalProjected), intent(inout) :: self

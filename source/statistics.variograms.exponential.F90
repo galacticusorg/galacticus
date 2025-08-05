@@ -55,7 +55,7 @@
 
   interface variogramExponential
      !!{
-     Constructors for the {\normalfont \ttfamily gaussianRegression} posterior sampling likelihood class.
+     Constructors for the \refClass{variogramExponential} posterior sampling likelihood class.
      !!}
      module procedure exponentialConstructorParameters
      module procedure exponentialConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function exponentialConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily exponential} variogram class which builds the object from a parameter set.
+    Constructor for the \refClass{variogramExponential} variogram class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -100,7 +100,7 @@ contains
 
   function exponentialConstructorInternal(variogramFitOption,assumeZeroVarianceAtZeroLag) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily exponential} variogram class.
+    Constructor for the \refClass{variogramExponential} variogram class.
     !!}
     implicit none
     type   (variogramExponential             )                :: self

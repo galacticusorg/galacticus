@@ -45,7 +45,7 @@
 
   interface outputAnalysisMassMetallicityBlanc2019
      !!{
-     Constructors for the {\normalfont \ttfamily massMetallicityBlanc2019} output analysis class.
+     Constructors for the \refClass{outputAnalysisMassMetallicityBlanc2019} output analysis class.
      !!}
      module procedure massMetallicityBlanc2019ConstructorParameters
      module procedure massMetallicityBlanc2019ConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function massMetallicityBlanc2019ConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily massMetallicityBlanc2019} output analysis class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisMassMetallicityBlanc2019} output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions                       , only : cosmologyFunctions             , cosmologyFunctionsClass
     use :: Input_Parameters                          , only : inputParameter                 , inputParameters
@@ -142,7 +142,7 @@ contains
 
   function massMetallicityBlanc2019ConstructorInternal(metallicitySystematicErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,fractionGasThreshold,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily massMetallicityBlanc2019} output analysis class for internal use.
+    Constructor for the \refClass{outputAnalysisMassMetallicityBlanc2019} output analysis class for internal use.
     !!}
     use :: Abundances_Structure                      , only : Abundances_Index_From_Name                         , abundances
     use :: Atomic_Data                               , only : Atomic_Mass
@@ -467,7 +467,7 @@ contains
 
   subroutine massMetallicityBlanc2019Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily massMetallicityAndrews2013} output analysis class.
+    Destructor for the \refClass{outputAnalysisMassMetallicityBlanc2019} output analysis class.
     !!}
     implicit none
     type(outputAnalysisMassMetallicityBlanc2019), intent(inout) :: self

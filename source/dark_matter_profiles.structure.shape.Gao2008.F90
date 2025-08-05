@@ -52,7 +52,7 @@
 
   interface darkMatterProfileShapeGao2008
      !!{
-     Constructors for the {\normalfont \ttfamily gao2008} dark matter halo profile shape class.
+     Constructors for the \refClass{darkMatterProfileShapeGao2008} dark matter halo profile shape class.
      !!}
      module procedure gao2008ConstructorParameters
      module procedure gao2008ConstructorInternal
@@ -87,7 +87,7 @@ contains
 
   function gao2008ConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily gao2008} dark matter halo profile
+    Constructor for the \refClass{darkMatterProfileShapeGao2008} dark matter halo profile
     shape class.
     !!}
     implicit none
@@ -103,7 +103,7 @@ contains
 
   subroutine gao2008Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily gao2008} dark matter halo profile shape class.
+    Destructor for the \refClass{darkMatterProfileShapeGao2008} dark matter halo profile shape class.
     !!}
     implicit none
     type(darkMatterProfileShapeGao2008), intent(inout) :: self

@@ -39,7 +39,7 @@
   
   interface nodeOperatorDMOUninterpolated
      !!{
-     Constructors for the {\normalfont \ttfamily dmoUninterpolated} node operator class.
+     Constructors for the \refClass{nodeOperatorDMOUninterpolated} node operator class.
      !!}
      module procedure dmoUninterpolatedConstructorParameters
   end interface nodeOperatorDMOUninterpolated
@@ -48,7 +48,7 @@ contains
   
   function dmoUninterpolatedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily dmoUninterpolated} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorDMOUninterpolated} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

@@ -48,7 +48,7 @@
 
   interface galacticStructureSolverEquilibrium
      !!{
-     Constructors for the {\normalfont \ttfamily equilibrium} galactic structure solver class.
+     Constructors for the \refClass{galacticStructureSolverEquilibrium} galactic structure solver class.
      !!}
      module procedure equilibriumConstructorParameters
      module procedure equilibriumConstructorInternal
@@ -66,7 +66,7 @@ contains
 
   function equilibriumConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily equilibrium} galactic structure solver class which takes a
+    Constructor for the \refClass{galacticStructureSolverEquilibrium} galactic structure solver class which takes a
     parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -124,7 +124,7 @@ contains
 
   function equilibriumConstructorInternal(convergenceFailureIsFatal,useFormationHalo,includeBaryonGravity,solutionTolerance,solveForInactiveProperties,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily equilibrium} galactic structure solver class.
+    Internal constructor for the \refClass{galacticStructureSolverEquilibrium} galactic structure solver class.
     !!}
     implicit none
     type            (galacticStructureSolverEquilibrium)                        :: self
@@ -160,7 +160,7 @@ contains
 
   subroutine equilibriumDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily equilibrium} galactic structure solver class.
+    Destructor for the \refClass{galacticStructureSolverEquilibrium} galactic structure solver class.
     !!}
     use :: Events_Hooks, only : nodePromotionEvent, postEvolveEvent, preDerivativeEvent, satelliteMergerEvent
     implicit none

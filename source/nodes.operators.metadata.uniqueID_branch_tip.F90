@@ -38,7 +38,7 @@ Implements a node operator class that records the index of the branch tip for ea
 
   interface nodeOperatorUniqueIDBranchTip
      !!{
-     Constructors for the {\normalfont \ttfamily uniqueIDBranchTip} node operator class.
+     Constructors for the \refClass{nodeOperatorUniqueIDBranchTip} node operator class.
      !!}
      module procedure uniqueIDBranchTipConstructorParameters
      module procedure uniqueIDBranchTipConstructorInternal
@@ -48,7 +48,7 @@ contains
 
   function uniqueIDBranchTipConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily uniqueIDBranchTip} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorUniqueIDBranchTip} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -64,7 +64,7 @@ contains
 
   function uniqueIDBranchTipConstructorInternal() result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily uniqueIDBranchTip} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorUniqueIDBranchTip} node operator class which takes a parameter set as input.
     !!}
     implicit none
     type(nodeOperatorUniqueIDBranchTip) :: self

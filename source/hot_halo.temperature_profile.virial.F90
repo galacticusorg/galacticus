@@ -89,7 +89,7 @@ contains
 
   subroutine virialDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily virial} hot halo temperature profile class.
+    Destructor for the \refClass{hotHaloTemperatureProfileVirial} hot halo temperature profile class.
     !!}
     implicit none
     type(hotHaloTemperatureProfileVirial), intent(inout) :: self

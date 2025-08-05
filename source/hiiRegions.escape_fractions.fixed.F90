@@ -54,7 +54,7 @@ contains
 
   function escapeFractionFixedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily dynamicalTime} timescale for star formation class which takes a parameter set as
+    Constructor for the \refClass{hiiRegionEscapeFractionFixed} timescale for star formation class which takes a parameter set as
     input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -85,7 +85,7 @@ contains
 
   function escapeFractionFixedConstructorInternal(escapeFraction_,ageLimit) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily fixed escape fraction} 
+    Internal constructor for the \refClass{hiiRegionEscapeFractionFixed} 
     !!}
     
     implicit none

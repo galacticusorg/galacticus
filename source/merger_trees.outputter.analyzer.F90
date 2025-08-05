@@ -44,7 +44,7 @@
 
   interface mergerTreeOutputterAnalyzer
      !!{
-     Constructors for the {\normalfont \ttfamily analyzer} merger tree outputter.
+     Constructors for the \refClass{mergerTreeOutputterAnalyzer} merger tree outputter.
      !!}
      module procedure analyzerConstructorParameters
      module procedure analyzerConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function analyzerConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily analyzer} merger tree outputter class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeOutputterAnalyzer} merger tree outputter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,7 +75,7 @@ contains
 
   function analyzerConstructorInternal(outputAnalysis_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily analyzer} merger tree outputter class.
+    Internal constructor for the \refClass{mergerTreeOutputterAnalyzer} merger tree outputter class.
     !!}
     implicit none
     type (mergerTreeOutputterAnalyzer)                        :: self

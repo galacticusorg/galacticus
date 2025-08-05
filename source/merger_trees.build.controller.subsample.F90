@@ -69,7 +69,7 @@ Implements a merger tree build controller class which performs subsampling of br
 
   interface mergerTreeBuildControllerSubsample
      !!{
-     Constructors for the {\normalfont \ttfamily subsample} merger tree build controller class.
+     Constructors for the \refClass{mergerTreeBuildControllerSubsample} merger tree build controller class.
      !!}
      module procedure subsampleConstructorParameters
      module procedure subsampleConstructorInternal
@@ -79,7 +79,7 @@ contains
 
   function subsampleConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily subsample} merger tree build controller class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeBuildControllerSubsample} merger tree build controller class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -130,7 +130,7 @@ contains
 
   function subsampleConstructorInternal(massThreshold,subsamplingRateAtThreshold,exponent,factorMassGrowthConsolidate,destroyStubs,mergerTreeBranchingProbability_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily subsample} merger tree build controller class.
+    Internal constructor for the \refClass{mergerTreeBuildControllerSubsample} merger tree build controller class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -152,7 +152,7 @@ contains
 
   subroutine subsampleDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily subsample} merger tree build controller class.
+    Destructor for the \refClass{mergerTreeBuildControllerSubsample} merger tree build controller class.
     !!}
     implicit none
     type(mergerTreeBuildControllerSubsample), intent(inout) :: self

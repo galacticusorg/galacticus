@@ -43,7 +43,7 @@ using data taken from Dima Verner's \href{https://web.archive.org/web/2022031313
 
   interface atomicIonizationPotentialVerner
      !!{
-     Constructors for the {\normalfont \ttfamily verner} atomic ionization potential class.
+     Constructors for the \refClass{atomicIonizationPotentialVerner} atomic ionization potential class.
      !!}
      module procedure vernerConstructorParameters
   end interface atomicIonizationPotentialVerner
@@ -526,7 +526,7 @@ contains
 
   function vernerConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily verner} atomic ionization potential class which builds the object from a parameter set.
+    Constructor for the \refClass{atomicIonizationPotentialVerner} atomic ionization potential class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

@@ -71,7 +71,7 @@
 
   interface posteriorSampleLikelihoodSpinDistribution
      !!{
-     Constructors for the {\normalfont \ttfamily spinDistribution} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleLikelihoodSpinDistribution} posterior sampling convergence class.
      !!}
      module procedure spinDistributionConstructorParameters
      module procedure spinDistributionConstructorInternal
@@ -81,7 +81,7 @@ contains
 
   function spinDistributionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily spinDistribution} posterior sampling convergence class which builds the object from a
+    Constructor for the \refClass{posteriorSampleLikelihoodSpinDistribution} posterior sampling convergence class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -162,7 +162,7 @@ contains
 
   function spinDistributionConstructorInternal(fileName,distributionType,redshift,logNormalRange,massHaloMinimum,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,cosmologyFunctions_,haloMassFunction_,nbodyHaloMassError_,darkMatterHaloScale_,darkMatterProfileScaleRadius_) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily spinDistribution} posterior sampling likelihood class.
+    Constructor for the \refClass{posteriorSampleLikelihoodSpinDistribution} posterior sampling likelihood class.
     !!}
     use :: HDF5_Access      , only : hdf5Access
     use :: IO_HDF5          , only : hdf5Object
@@ -219,7 +219,7 @@ contains
 
   subroutine spinDistributionDestructor(self)
     !!{
-    Destructor for {\normalfont \ttfamily spinDistribution} posterior sampling likelihood class.
+    Destructor for the \refClass{posteriorSampleLikelihoodSpinDistribution} posterior sampling likelihood class.
     !!}
     implicit none
     type(posteriorSampleLikelihoodSpinDistribution), intent(inout) :: self

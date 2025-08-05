@@ -37,7 +37,7 @@
 
   interface computationalDomainVolumeIntegratorCylindrical
      !!{
-     Constructors for the {\normalfont \ttfamily cylindrical} computational domain.
+     Constructors for the \refClass{computationalDomainVolumeIntegratorCylindrical} computational domain.
      !!}
      module procedure cylindricalConstructorParameters
      module procedure cylindricalConstructorInternal
@@ -47,7 +47,7 @@ contains
 
   function cylindricalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily cylindrical} computational domain volume integrator class which takes a
+    Constructor for the \refClass{computationalDomainVolumeIntegratorCylindrical} computational domain volume integrator class which takes a
     parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -82,7 +82,7 @@ contains
 
   function cylindricalConstructorInternal(boundaries) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily cylindrical} computational domain volume integrator class.
+    Internal constructor for the \refClass{computationalDomainVolumeIntegratorCylindrical} computational domain volume integrator class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

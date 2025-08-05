@@ -100,7 +100,7 @@
 
   interface stellarAstrophysicsFile
      !!{
-     Constructors for the {\normalfont \ttfamily file} stellar astrophysics class.
+     Constructors for the \refClass{stellarAstrophysicsFile} stellar astrophysics class.
      !!}
      module procedure fileConstructorParameters
      module procedure fileConstructorInternal
@@ -113,7 +113,7 @@ contains
 
   function fileConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily file} stellar astrophysics class which takes a parameter list as input.
+    Constructor for the \refClass{stellarAstrophysicsFile} stellar astrophysics class which takes a parameter list as input.
     !!}
     use :: Input_Paths     , only : inputPath     , pathTypeDataStatic
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -139,7 +139,7 @@ contains
 
   function fileConstructorInternal(fileName) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily file} stellar astrophysics class.
+    Internal constructor for the \refClass{stellarAstrophysicsFile} stellar astrophysics class.
     !!}
     use :: Atomic_Data      , only : Atomic_Data_Atoms_Count
     implicit none

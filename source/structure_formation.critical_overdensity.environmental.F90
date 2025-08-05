@@ -41,11 +41,12 @@ Implements an environmental critical overdensity class.
      procedure :: gradientMass    => environmentalGradientMass
      procedure :: isMassDependent => environmentalIsMassDependent
      procedure :: isNodeDependent => environmentalIsNodeDependent
+     procedure :: isTreeDependent => environmentalIsTreeDependent
   end type criticalOverdensityEnvironmental
 
   interface criticalOverdensityEnvironmental
      !!{
-     Constructors for the {\normalfont \ttfamily environmental} critical overdensity class.
+     Constructors for the \refClass{criticalOverdensityEnvironmental} critical overdensity class.
      !!}
      module procedure environmentalConstructorParameters
      module procedure environmentalConstructorInternal
@@ -55,7 +56,7 @@ contains
 
   function environmentalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily environmental} critical overdensity class which takes a parameter set as input.
+    Constructor for the \refClass{criticalOverdensityEnvironmental} critical overdensity class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -96,7 +97,7 @@ contains
 
   function environmentalConstructorInternal(a,criticalOverdensity_,haloEnvironment_,cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily environmental} critical overdensity class.
+    Internal constructor for the \refClass{criticalOverdensityEnvironmental} critical overdensity class.
     !!}
     implicit none
     type            (criticalOverdensityEnvironmental)                        :: self
@@ -116,7 +117,7 @@ contains
 
   subroutine environmentalDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily environmental} critical overdensity class.
+    Destructor for the \refClass{criticalOverdensityEnvironmental} critical overdensity class.
     !!}
     implicit none
     type(criticalOverdensityEnvironmental), intent(inout) :: self
@@ -248,8 +249,18 @@ contains
     !!}
     implicit none
     class(criticalOverdensityEnvironmental), intent(inout) :: self
-    !$GLC attributes unused :: self
 
-    environmentalIsNodeDependent=.true.
+    environmentalIsNodeDependent=self%haloEnvironment_%isNodeDependent()
     return
   end function environmentalIsNodeDependent
+
+  logical function environmentalIsTreeDependent(self)
+    !!{
+    Return whether the critical overdensity is tree dependent.
+    !!}
+    implicit none
+    class(criticalOverdensityEnvironmental), intent(inout) :: self
+
+    environmentalIsTreeDependent=self%haloEnvironment_%isTreeDependent()
+    return
+  end function environmentalIsTreeDependent

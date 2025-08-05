@@ -69,7 +69,7 @@ Implements a property extractor class for the mass and radii of spheres are spec
 
   interface nodePropertyExtractorDensityContrasts
      !!{
-     Constructors for the {\normalfont \ttfamily densityContrasts} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorDensityContrasts} output analysis class.
      !!}
      module procedure densityContrastsConstructorParameters
      module procedure densityContrastsConstructorInternal
@@ -84,7 +84,7 @@ contains
 
   function densityContrastsConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily densityContrasts} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorDensityContrasts} property extractor class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions, only : enumerationDensityCosmologicalEncode
     use :: Input_Parameters   , only : inputParameter                      , inputParameters
@@ -133,7 +133,7 @@ contains
 
   function densityContrastsConstructorInternal(densityContrasts,darkMatterOnly,densityContrastRelativeTo,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily densityContrasts} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorDensityContrasts} property extractor class.
     !!}
     use :: Galactic_Structure_Options, only : massTypeAll              , massTypeDark
     use :: Root_Finder               , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
@@ -173,7 +173,7 @@ contains
 
   subroutine densityContrastsDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily densityContrasts} property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorDensityContrasts} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorDensityContrasts), intent(inout) :: self

@@ -43,7 +43,7 @@
 
   interface distributionFunction1DGamma
      !!{
-     Constructors for the {\normalfont \ttfamily gamma} 1D distribution function class.
+     Constructors for the \refClass{distributionFunction1DGamma} 1D distribution function class.
      !!}
      module procedure gammaConstructorParameters
      module procedure gammaConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function gammaConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily gamma} 1D distribution function class which builds
+    Constructor for the \refClass{distributionFunction1DGamma} 1D distribution function class which builds
     the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -97,7 +97,7 @@ contains
 
   function gammaConstructorInternal(shape,rate,randomNumberGenerator_,limitLower,limitUpper) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily gamma} 1D distribution function class.
+    Constructor for the \refClass{distributionFunction1DGamma} 1D distribution function class.
     !!}
     use :: Error, only : Error_Report
     implicit none

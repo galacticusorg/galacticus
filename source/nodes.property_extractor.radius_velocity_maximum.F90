@@ -48,7 +48,7 @@
 
   interface nodePropertyExtractorRadiusVelocityMaximum
      !!{
-     Constructors for the {\normalfont \ttfamily radiusVelocityMaximum} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusVelocityMaximum} output analysis class.
      !!}
      module procedure radiusVelocityMaximumConstructorParameters
      module procedure radiusVelocityMaximumConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function radiusVelocityMaximumConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily radiusVelocityMaximum} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorRadiusVelocityMaximum} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -86,7 +86,7 @@ contains
 
   function radiusVelocityMaximumConstructorInternal(propertyName,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily radiusVelocityMaximum} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorRadiusVelocityMaximum} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorRadiusVelocityMaximum)                        :: self
@@ -101,7 +101,7 @@ contains
 
   subroutine radiusVelocityMaximumDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily radiusVelocityMaximum} property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorRadiusVelocityMaximum} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRadiusVelocityMaximum), intent(inout) :: self

@@ -110,7 +110,7 @@
 
   interface mergerTreeImporterSussingASCII
      !!{
-     Constructors for the {\normalfont \ttfamily sussing} ASCII format merger tree importer class.
+     Constructors for the \refClass{mergerTreeImporterSussingASCII} ASCII format merger tree importer class.
      !!}
      module procedure sussingASCIIConstructorParameters
      module procedure sussingASCIIConstructorInternal
@@ -131,7 +131,7 @@ contains
 
   function sussingASCIIConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``Sussing Merger Trees'' ASCII format \citep{srisawat_sussing_2013} merger tree importer which takes a
+    Constructor for the \refClass{mergerTreeImporterSussingASCII} ASCII format \citep{srisawat_sussing_2013} merger tree importer which takes a
     parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -193,7 +193,7 @@ contains
 
   function sussingASCIIConstructorInternal(fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption,convertToBinary,binaryFormatOld,forestFile,forestFirst,forestLast,forestReverseSnapshotOrder,cosmologyParameters_,cosmologyFunctions_,randomNumberGenerator_) result(self)
     !!{
-    Internal constructor for the ``Sussing Merger Trees'' ASCII format \citep{srisawat_sussing_2013} merger tree importer.
+    Internal constructor for the \refClass{mergerTreeImporterSussingASCII} ASCII format \citep{srisawat_sussing_2013} merger tree importer.
     !!}
     implicit none
     type            (mergerTreeImporterSussingASCII    )                              :: self

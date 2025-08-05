@@ -49,7 +49,7 @@ Implements a \cite{press_formation_1974} dark matter halo mass function class.
 
   interface haloMassFunctionPressSchechter
      !!{
-     Constructors for the {\normalfont \ttfamily pressSchechter} halo mass function class.
+     Constructors for the \refClass{haloMassFunctionPressSchechter} halo mass function class.
      !!}
      module procedure pressSchechterConstructorParameters
      module procedure pressSchechterConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function pressSchechterConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily pressSchechter} halo mass function class which takes a parameter set as input.
+    Constructor for the \refClass{haloMassFunctionPressSchechter} halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -86,7 +86,7 @@ contains
 
   function pressSchechterConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,excursionSetFirstCrossing_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily pressSchechter} halo mass function class.
+    Internal constructor for the \refClass{haloMassFunctionPressSchechter} halo mass function class.
     !!}
     implicit none
     type (haloMassFunctionPressSchechter)                        :: self
@@ -102,7 +102,7 @@ contains
 
   subroutine pressSchechterDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily pressSchechter} halo mass function class.
+    Destructor for the \refClass{haloMassFunctionPressSchechter} halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionPressSchechter), intent(inout) :: self

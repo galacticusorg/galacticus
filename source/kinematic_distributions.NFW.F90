@@ -38,7 +38,7 @@
 
   interface kinematicsDistributionNFW
      !!{
-     Constructors for the {\normalfont \ttfamily nfw} kinematic distribution class.
+     Constructors for the \refClass{kinematicsDistributionNFW} kinematic distribution class.
      !!}
      module procedure nfwConstructorParameters
      module procedure nfwConstructorInternal
@@ -48,7 +48,7 @@ contains
 
   function nfwConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily nfw} kinematic distribution class which builds the object from a parameter
+    Constructor for the \refClass{kinematicsDistributionNFW} kinematic distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -74,7 +74,7 @@ contains
 
   function nfwConstructorInternal(useSeriesApproximation) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily nfw} kinematic distribution class.
+    Internal constructor for the \refClass{kinematicsDistributionNFW} kinematic distribution class.
     !!}
     implicit none
     type   (kinematicsDistributionNFW)                :: self

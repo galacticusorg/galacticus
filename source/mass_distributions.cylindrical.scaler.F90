@@ -73,7 +73,7 @@
 
   interface massDistributionCylindricalScaler
      !!{
-     Constructors for the {\normalfont \ttfamily cylindricalScaler} mass distribution class.
+     Constructors for the \refClass{massDistributionCylindricalScaler} mass distribution class.
      !!}
      module procedure cylindricalScalerConstructorParameters
      module procedure cylindricalScalerConstructorInternal
@@ -83,7 +83,7 @@ contains
 
   function cylindricalScalerConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily cylindricalScaler} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionCylindricalScaler} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Error           , only : Error_Report
@@ -122,7 +122,7 @@ contains
 
   function cylindricalScalerConstructorInternal(factorScalingLength,factorScalingMass,massDistribution_) result(self)
     !!{
-    Internal constructor for ``cylindricalScaler'' mass distribution class.
+    Internal constructor for \refClass{massDistributionCylindricalScaler} mass distribution class.
     !!}
     implicit none
     type            (massDistributionCylindricalScaler)                        :: self
@@ -139,7 +139,7 @@ contains
 
   subroutine cylindricalScalerDestructor(self)
     !!{
-    Destructor for the ``cylindricalScaler'' mass distribution class.
+    Destructor for the \refClass{massDistributionCylindricalScaler} mass distribution class.
     !!}
     implicit none
     type(massDistributionCylindricalScaler), intent(inout) :: self

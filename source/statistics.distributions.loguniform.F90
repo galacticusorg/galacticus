@@ -52,7 +52,7 @@
 
   interface distributionFunction1DLogUniform
      !!{
-     Constructors for the {\normalfont \ttfamily logUniform} 1D distribution function class.
+     Constructors for the \refClass{distributionFunction1DLogUniform} 1D distribution function class.
      !!}
      module procedure logUniformConstructorParameters
      module procedure logUniformConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function logUniformConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily logUniform} 1D distribution function class which builds
+    Constructor for the \refClass{distributionFunction1DLogUniform} 1D distribution function class which builds
     the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -95,7 +95,7 @@ contains
 
   function logUniformConstructorInternal(limitLower,limitUpper,randomNumberGenerator_) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily logUniform} 1D distribution function class.
+    Constructor for the \refClass{distributionFunction1DLogUniform} 1D distribution function class.
     !!}
     type            (distributionFunction1DLogUniform)                                  :: self
     double precision                                  , intent(in   )                   :: limitLower            , limitUpper

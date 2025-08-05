@@ -82,7 +82,7 @@ program Tests_IO_HDF5
      ! Open an HDF5 file.
      block
        type(hdf5Object) :: fileObject, groupObject
-       fileObject=hdf5Object("testSuite/outputs/test.IO.HDF5.hdf5",overWrite=.true.,objectsOverwritable=.true.)
+       fileObject=hdf5Object("testSuite/outputs/test.IO.HDF5.hdf5",overWrite=.true.,objectsOverwritable=.true.,useLatestFormat=.true.)
        ! Open an HDF5 group.
        select case (iPass)
        case(1)
@@ -835,6 +835,24 @@ program Tests_IO_HDF5
             call Assert("recover names of datasets in group",datasetNames,datasetNamesReference)
           end block
        end if
+       
+       ! Write a very large (>4GB) dataset to test that chunking limits
+       ! the chunksize to less than the maximum allowed.
+       if (iPass == 2) then
+          if (allocated(doubleValueArray4dReread)) deallocate(doubleValueArray4dReread)
+          allocate(doubleValueArray4dReread(600,100,100,100))
+          call fileObject%writeDataset(doubleValueArray4dReread,'bigDataset','A dataset larger than 4GB.',chunkSize=1024_hsize_t)
+       end if
+       
+       ! Write an attribute of length >64KB by forcing dense storage of
+       ! attributes in s group.
+       block
+         type(hdf5Object) :: groupObject2
+         groupObject2=fileObject%openGroup("myGroup64k",comment="This is my group for 64k attributes.",objectsOverwritable=.true.,chunkSize=1024_hsize_t&
+              &,compressionLevel=9,attributesCompactMaxiumum=0)
+         varStringValue=repeat("rain day happy calm dog joy joy over bright falls rain lazy shin ",1025)
+         call groupObject2%writeAttribute(varStringValue,"varStringAttribute64k")
+       end block
 
        ! Read a 32-bit unsigned integer 1-D array into a 64-bit signed integer 1-D array.
        if (iPass==2) then
@@ -850,10 +868,6 @@ program Tests_IO_HDF5
             deallocate(integerRangeU32)
           end block
        end if
-
-       ! End the pass and destroy objects.
-       call Unit_Tests_End_Group()
-     end block     
   end do
 
   ! Test identifying HDF5 file.

@@ -93,7 +93,7 @@
 
   interface taskEvolveForests
      !!{
-     Constructors for the {\normalfont \ttfamily evolveForests} task.
+     Constructors for the \refClass{taskEvolveForests} task.
      !!}
      module procedure evolveForestsConstructorParameters
      module procedure evolveForestsConstructorInternal
@@ -112,7 +112,7 @@ contains
 
   function evolveForestsConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily evolveForests} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskEvolveForests} task class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     use :: Node_Components , only : Node_Components_Initialize
@@ -239,7 +239,7 @@ contains
 
   function evolveForestsConstructorInternal(evolveForestsInParallel,countForestsMaximum,walltimeMaximum,suspendToRAM,suspendPath,timeIntervalCheckpoint,fileNameCheckpoint,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,mergerTreeSeeds_,parameters) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily evolveForests} task class.
+    Internal constructor for the \refClass{taskEvolveForests} task class.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: Error        , only : Error_Report
@@ -375,7 +375,7 @@ contains
 
   subroutine evolveForestsDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily evolveForests} task class.
+    Destructor for the \refClass{taskEvolveForests} task class.
     !!}
     use :: Events_Hooks    , only : stateRestoreEventGlobal     , stateStoreEventGlobal
     use :: Node_Components , only : Node_Components_Uninitialize
@@ -494,7 +494,6 @@ contains
     ! Initialize universes which will act as tree stacks. We use two stacks: one for trees waiting to be processed, one for trees
     ! that have already been processed.
     self%universeWaiting  =universe()
-
     self%universeProcessed=universe()
 
     ! Set record of whether any trees were evolved to false initially.
@@ -646,7 +645,7 @@ contains
              ! perform the event task). Find the next output time.
              evolveToTime=self%outputTimes_%time(iOutput)
              ! Find the earliest universe event.
-             !$omp critical(universeTransform)
+             call self%universeWaiting%lock%set()
              event_                  => self%universeWaiting%event
              evolutionIsEventLimited =  .false.
              do while (associated(event_))
@@ -657,7 +656,7 @@ contains
                 end if
                 event_ => event_%next
              end do
-             !$omp end critical(universeTransform)
+             call self%universeWaiting%lock%unset()
              if (tree%earliestTime() <= evolveToTime) treesCouldEvolve=.true.
              ! Evolve the tree to the computed time.
              call mergerTreeEvolver_%evolve(tree,evolveToTime,treeDidEvolve,suspendTree,deadlockReport,systemClockMaximum,status=status)
@@ -820,7 +819,7 @@ contains
              ! reporting status to true and continue for one more pass through the universe.
              if (deadlockReport) then
                 message="Universe appears to be deadlocked"//char(10)
-                !$omp critical(universeTransform)
+                call self%universeProcessed%lock%set()
                 treeCount=0_c_size_t
                 if (associated(self%universeProcessed%trees)) then
                    do while (associated(self%universeProcessed%trees))
@@ -831,7 +830,7 @@ contains
                 else
                    message=message//" --> There are no trees pending further processing"
                 end if
-                !$omp end critical(universeTransform)
+                call self%universeProcessed%lock%unset()
                 call displayMessage(message)
                 call Inter_Tree_Event_Post_Evolve()
                 call Error_Report('exiting'//{introspection:location})
@@ -840,7 +839,8 @@ contains
              end if
           end if
           treesDidEvolve=.false.
-          !$omp critical(universeTransform)
+          call self%universeWaiting  %lock%set()
+          call self%universeProcessed%lock%set()
           universeUpdated=.false.
           if (associated(self%universeProcessed%trees)) then
              ! Transfer processed trees back to the waiting universe.
@@ -861,7 +861,8 @@ contains
              end do
              call displayMessage('Finished universe evolution pass')
           end if
-          !$omp end critical(universeTransform)
+          call self%universeWaiting  %lock%unset()
+          call self%universeProcessed%lock%unset()
           !$omp end master
           !$omp barrier
           if (universeUpdated) finished=.false.
@@ -951,9 +952,9 @@ contains
        ! Set the tree index to the base node unique ID so that we can resume from the correct file.
        tree%index=uniqueIDNodeBase
     end if
-    !$omp critical(universeTransform)
-    call self%universeProcessed%pushTree(tree)
-    !$omp end critical(universeTransform)
+    call self%universeProcessed%lock%set  (    )
+    call self%universeProcessed%pushTree  (tree)
+    call self%universeProcessed%lock%unset(    )
     tree => null()
     return
   end subroutine evolveForestsSuspendTree
@@ -970,9 +971,9 @@ contains
     type (mergerTree       ), pointer, intent(  out) :: tree
     type (varying_string   )                         :: fileName
 
-    !$omp critical(universeTransform)
+    call self%universeWaiting%lock%set  ()
     tree => self%universeWaiting%popTree()
-    !$omp end critical(universeTransform)
+    call self%universeWaiting%lock%unset()
     ! If the tree was suspended to file, restore it now.
     if (.not.self%suspendToRAM.and.associated(tree)) then
        ! Generate the file name.

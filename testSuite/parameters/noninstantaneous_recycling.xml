@@ -4,7 +4,7 @@
 <!-- 30-November-2020                                                                   -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
+  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
 
   <verbosityLevel value="working"/>
 
@@ -363,7 +363,7 @@
       <stellarFeedbackOutflows value="rateLimit">
         <timescaleOutflowFractionalMinimum value="0.0127606668366045"/>
         <stellarFeedbackOutflows value="powerLaw">
-          <velocityCharacteristic value="160.019897613397"/><!--160.019897613397-->
+          <velocityCharacteristic value="160.019897613397"/>
           <exponent value="1.7561921242039"/>
         </stellarFeedbackOutflows>
         
@@ -374,7 +374,7 @@
         <timescaleOutflowFractionalMinimum value="0.103745531708515"/>
         <stellarFeedbackOutflows value="powerLaw">
           <velocityCharacteristic value="151.06489745284"/>
-          <exponent value="0.33561921242039"/><!--0.23561921242039-->
+          <exponent value="0.33561921242039"/>
         </stellarFeedbackOutflows>
         
       </stellarFeedbackOutflows>

@@ -128,7 +128,7 @@
 
   interface darkMatterProfileConcentrationDuttonMaccio2014
      !!{
-     Constructors for the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class.
+     Constructors for the \refClass{darkMatterProfileConcentrationDuttonMaccio2014} dark matter halo profile concentration class.
      !!}
      module procedure duttonMaccio2014ConstructorParameters
      module procedure duttonMaccio2014ConstructorInternalType
@@ -209,7 +209,7 @@ contains
 
   function duttonMaccio2014ConstructorInternalType(fitType,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class.
+    Constructor for the \refClass{darkMatterProfileConcentrationDuttonMaccio2014} dark matter halo profile concentration class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -258,7 +258,7 @@ contains
 
   function duttonMaccio2014ConstructorInternalDefined(a1,a2,a3,a4,b1,b2,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class with user defined
+    Constructor for the \refClass{darkMatterProfileConcentrationDuttonMaccio2014} dark matter halo profile concentration class with user defined
     parameters.
     !!}
     implicit none
@@ -374,7 +374,7 @@ contains
 
   subroutine duttonMaccio2014Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily DuttonMaccio2014} dark matter profile concentration class.
+    Destructor for the \refClass{darkMatterProfileConcentrationDuttonMaccio2014} dark matter profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationDuttonMaccio2014), intent(inout) :: self

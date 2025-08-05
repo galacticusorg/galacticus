@@ -96,7 +96,7 @@
 
   interface starFormationHistoryAdaptive
      !!{
-     Constructors for the {\normalfont \ttfamily adaptive} star formation history class.
+     Constructors for the \refClass{starFormationHistoryAdaptive} star formation history class.
      !!}
      module procedure adaptiveConstructorParameters
      module procedure adaptiveConstructorInternal
@@ -109,7 +109,7 @@ contains
 
   function adaptiveConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily adaptive} star formation history class which takes a parameter set as input.
+    Constructor for the \refClass{starFormationHistoryAdaptive} star formation history class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -188,7 +188,7 @@ contains
 
   function adaptiveConstructorInternal(outputTimes_,timeStepMinimum,countTimeStepsMaximum,metallicityBoundaries,countMetallicities,metallicityMinimum,metallicityMaximum) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily adaptive} star formation history class.
+    Internal constructor for the \refClass{starFormationHistoryAdaptive} star formation history class.
     !!}
     use :: Error                     , only : Error_Report
     use :: Galactic_Structure_Options, only : componentTypeMax, componentTypeMin
@@ -384,7 +384,7 @@ contains
 
   subroutine adaptiveDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily adaptive} star formation histories class.
+    Destructor for the \refClass{starFormationHistoryAdaptive} star formation histories class.
     !!}
     implicit none
     type(starFormationHistoryAdaptive), intent(inout) :: self

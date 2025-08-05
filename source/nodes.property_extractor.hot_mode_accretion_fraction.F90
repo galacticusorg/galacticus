@@ -44,7 +44,7 @@ Implements a hot mode accretion fraction rate property extractor class.
 
   interface nodePropertyExtractorFractionAccretionHotMode
      !!{
-     Constructors for the {\normalfont \ttfamily fractionAccretionHotMode} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorFractionAccretionHotMode} output analysis class.
      !!}
      module procedure fractionAccretionHotModeConstructorParameters
      module procedure fractionAccretionHotModeConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function fractionAccretionHotModeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily fractionAccretionHotMode} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorFractionAccretionHotMode} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,7 +75,7 @@ contains
 
   function fractionAccretionHotModeConstructorInternal(accretionHalo_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily fractionAccretionHotMode} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorFractionAccretionHotMode} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorFractionAccretionHotMode)                        :: self
@@ -89,7 +89,7 @@ contains
 
   subroutine fractionAccretionHotModeDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily fractionAccretionHotMode} property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorFractionAccretionHotMode} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorFractionAccretionHotMode), intent(inout) :: self

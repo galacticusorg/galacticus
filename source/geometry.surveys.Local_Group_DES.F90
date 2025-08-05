@@ -40,7 +40,7 @@ Implements the geometry of the DES survey for Local Group dwarfs.
 
   interface surveyGeometryLocalGroupDES
      !!{
-     Constructors for the {\normalfont \ttfamily localGroupDES} survey geometry class.
+     Constructors for the \refClass{surveyGeometryLocalGroupDES} survey geometry class.
      !!}
      module procedure localGroupDESConstructorParameters
      module procedure localGroupDESConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function localGroupDESConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily localGroupDES} conditional mass function class which takes a parameter set as input.
+    Constructor for the \refClass{surveyGeometryLocalGroupDES} conditional mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function localGroupDESConstructorInternal(distanceMaximumSurvey) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily localGroupDES} survey geometry class.
+    Internal constructor for the \refClass{surveyGeometryLocalGroupDES} survey geometry class.
     !!}
     implicit none
     type            (surveyGeometryLocalGroupDES)                :: self

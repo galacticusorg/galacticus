@@ -49,7 +49,7 @@
 
   interface stellarSpectraDustAttenuationWittGordon2000
      !!{
-     Constructors for the {\normalfont \ttfamily wittGordon2003} stellar spectra dust attenuation class.
+     Constructors for the \refClass{stellarSpectraDustAttenuationWittGordon2000} stellar spectra dust attenuation class.
      !!}
      module procedure wittGordon2003ConstructorParameters
      module procedure wittGordon2003ConstructorInternal
@@ -84,7 +84,7 @@ contains
 
   function wittGordon2003ConstructorInternal(model) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily wittGordon2003} stellar spectra dust attenuation class.
+    Constructor for the \refClass{stellarSpectraDustAttenuationWittGordon2000} stellar spectra dust attenuation class.
     !!}
     use :: Array_Utilities                 , only : Array_Reverse
     use :: Error                           , only : Error_Report

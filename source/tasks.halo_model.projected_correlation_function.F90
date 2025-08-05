@@ -65,7 +65,7 @@
 
   interface taskHaloModelProjectedCorrelationFunction
      !!{
-     Constructors for the {\normalfont \ttfamily haloModelProjectedCorrelationFunction} task.
+     Constructors for the \refClass{taskHaloModelProjectedCorrelationFunction} task.
      !!}
      module procedure haloModelProjectedCorrelationFunctionConstructorParameters
      module procedure haloModelProjectedCorrelationFunctionConstructorInternal
@@ -75,7 +75,7 @@ contains
 
   function haloModelProjectedCorrelationFunctionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily haloModelProjectedCorrelationFunction} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskHaloModelProjectedCorrelationFunction} task class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     use :: Input_Parameters, only : inputParameter              , inputParameters
@@ -200,7 +200,7 @@ contains
 
   function haloModelProjectedCorrelationFunctionConstructorInternal(separationMinimum,separationMaximum,countSeparations,massMinimum,massMaximum,massHaloMinimum,massHaloMaximum,depthLineOfSight,halfIntegral,outputGroup,conditionalMassFunction_,powerSpectrum_,cosmologyFunctions_,surveyGeometry_,darkMatterHaloScale_,haloMassFunction_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterProfileScaleRadius_,parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily haloModelProjectedCorrelationFunction} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskHaloModelProjectedCorrelationFunction} task class which takes a parameter set as input.
     !!}
     use :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
     implicit none
@@ -235,7 +235,7 @@ contains
 
   subroutine haloModelProjectedCorrelationFunctionDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily haloModelProjectedCorrelationFunction} task class.
+    Destructor for the \refClass{taskHaloModelProjectedCorrelationFunction} task class.
     !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none

@@ -45,7 +45,7 @@
   
   interface nodeOperatorStellarFeedbackSpheroids
      !!{
-     Constructors for the {\normalfont \ttfamily stellarFeedbackSpheroids} node operator class.
+     Constructors for the \refClass{nodeOperatorStellarFeedbackSpheroids} node operator class.
      !!}
      module procedure stellarFeedbackSpheroidsConstructorParameters
      module procedure stellarFeedbackSpheroidsConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function stellarFeedbackSpheroidsConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily starFormation} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorStellarFeedbackSpheroids} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -82,7 +82,7 @@ contains
 
   function stellarFeedbackSpheroidsConstructorInternal(starFormationRateSpheroids_,stellarPopulationProperties_,stellarFeedbackOutflows_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily stellarFeedbackSpheroids} node operator class.
+    Internal constructor for the \refClass{nodeOperatorStellarFeedbackSpheroids} node operator class.
     !!}
     implicit none
     type (nodeOperatorStellarFeedbackSpheroids)                        :: self
@@ -98,7 +98,7 @@ contains
 
   subroutine stellarFeedbackSpheroidsDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily stellarFeedbackSpheroids} node operator class.
+    Destructor for the \refClass{nodeOperatorStellarFeedbackSpheroids} node operator class.
     !!}
     implicit none
     type(nodeOperatorStellarFeedbackSpheroids), intent(inout) :: self

@@ -70,7 +70,7 @@
 
   interface galacticDynamicsBarInstabilityEfstathiou1982Tidal
      !!{
-     Constructors for the {\normalfont \ttfamily efstathiou1982Tidal} model for galactic disk bar instability class.
+     Constructors for the \refClass{galacticDynamicsBarInstabilityEfstathiou1982Tidal} model for galactic disk bar instability class.
      !!}
      module procedure efstathiou1982TidalConstructorParameters
      module procedure efstathiou1982TidalConstructorInternal
@@ -80,7 +80,7 @@ contains
 
   function efstathiou1982TidalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily efstathiou1982Tidal} model for galactic disk bar instability class which takes a
+    Constructor for the \refClass{galacticDynamicsBarInstabilityEfstathiou1982Tidal} model for galactic disk bar instability class which takes a
     parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -107,7 +107,7 @@ contains
 
   function efstathiou1982TidalConstructorInternal(stabilityThresholdStellar,stabilityThresholdGaseous,timescaleMinimum,fractionAngularMomentumRetainedDisk_,fractionAngularMomentumRetainedSpheroid_,massThresholdHarrassment,satelliteTidalField_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily efstathiou1982Tidal} model for galactic disk bar instability class.
+    Internal constructor for the \refClass{galacticDynamicsBarInstabilityEfstathiou1982Tidal} model for galactic disk bar instability class.
     !!}
     implicit none
     type            (galacticDynamicsBarInstabilityEfstathiou1982Tidal)                        :: self
@@ -125,7 +125,7 @@ contains
 
   subroutine efstathiou1982Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily efstathiou1982} model for galactic disk bar instability class.
+    Destructor for the \refClass{galacticDynamicsBarInstabilityEfstathiou1982Tidal} model for galactic disk bar instability class.
     !!}
     implicit none
     type(galacticDynamicsBarInstabilityEfstathiou1982Tidal), intent(inout) :: self

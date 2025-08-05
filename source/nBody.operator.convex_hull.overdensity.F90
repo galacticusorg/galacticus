@@ -45,7 +45,7 @@ Implements an N-body data operator which computes the overdensity within the con
 
   interface nbodyOperatorConvexHullOverdensity
      !!{
-     Constructors for the {\normalfont \ttfamily overdensity} N-body operator class.
+     Constructors for the \refClass{nbodyOperatorConvexHullOverdensity} N-body operator class.
      !!}
      module procedure convexHullOverdensityConstructorParameters
      module procedure convexHullOverdensityConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function convexHullOverdensityConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily convexHullOverdensity} N-body operator class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyOperatorConvexHullOverdensity} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -82,7 +82,7 @@ contains
 
   function convexHullOverdensityConstructorInternal(cosmologyParameters_,cosmologyFunctions_,linearGrowth_) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily convexHullOverdensity} N-body operator class.
+    Internal constructor for the \refClass{nbodyOperatorConvexHullOverdensity} N-body operator class.
     !!}
     implicit none
     type (nbodyOperatorConvexHullOverdensity)                        :: self
@@ -98,7 +98,7 @@ contains
 
   subroutine convexHullOverdensityDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily convexHullOverdensity} N-body operator class.
+    Destructor for the \refClass{nbodyOperatorConvexHullOverdensity} N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorConvexHullOverdensity), intent(inout) :: self

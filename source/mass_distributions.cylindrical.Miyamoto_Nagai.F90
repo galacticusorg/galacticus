@@ -61,7 +61,7 @@
 
   interface massDistributionMiyamotoNagai
      !!{
-     Constructors for the {\normalfont \ttfamily miyamotoNagai} mass distribution class.
+     Constructors for the \refClass{massDistributionMiyamotoNagai} mass distribution class.
      !!}
      module procedure miyamotoNagaiConstructorParameters
      module procedure miyamotoNagaiConstructorInternal
@@ -71,7 +71,7 @@ contains
 
   function miyamotoNagaiConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily miyamotoNagai} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionMiyamotoNagai} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters

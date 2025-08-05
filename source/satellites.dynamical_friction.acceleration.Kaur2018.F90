@@ -78,7 +78,7 @@ contains
 
   function kaur2018ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily kaur2018} satellite dynamical friction class which builds the object from a parameter set.
+    Constructor for the \refClass{satelliteDynamicalFrictionKaur2018} satellite dynamical friction class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -102,7 +102,7 @@ contains
 
   function kaur2018ConstructorInternal(satelliteDynamicalFriction_,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily kaur2018} satellite dynamical friction class.
+    Internal constructor for the \refClass{satelliteDynamicalFrictionKaur2018} satellite dynamical friction class.
     !!}
     use :: Table_Labels, only : extrapolationTypeExtrapolate
     implicit none

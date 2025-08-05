@@ -2,17 +2,17 @@
 <!-- Baryonic suppression validation model - case excluding baryonic suppression. -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
+  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
   <verbosityLevel value="working"/>
 
   <!-- Include cosmological parameters -->
-  <xi:include href="validate_baryonicSuppression_cosmology.xml"       xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="validate_baryonicSuppression_cosmology.xml"       xpointer="xpointer(parameters/*)" />
 
   <!-- Include merger tree parameters -->
-  <xi:include href="validate_baryonicSuppression_mergerTrees.xml"     xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="validate_baryonicSuppression_mergerTrees.xml"     xpointer="xpointer(parameters/*)" />
 
   <!-- Include baryonic physics parameters -->
-  <xi:include href="validate_baryonicSuppression_baryonicPhysics.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="validate_baryonicSuppression_baryonicPhysics.xml" xpointer="xpointer(parameters/*)" />
 
   <!-- Random number generation -->
   <randomNumberGenerator value="GSL">

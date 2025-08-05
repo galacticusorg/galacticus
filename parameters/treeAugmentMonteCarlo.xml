@@ -3,7 +3,7 @@
 <!-- 30-October-2011                          -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
+  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
 
   <verbosityLevel value="working"/>
 
@@ -155,8 +155,7 @@
       <attemptsMaximum value="10000"/>
       <massCutOffAttemptsMaximum value="50"/>
       <massCutOffScaleFactor value="0.05"/>
-      <snapshotRedshifts>
-        <value>
+      <snapshotRedshifts value="
           19.915688 18.243723 16.724525 15.343073 14.085914 12.940780
           11.896569 10.943864 10.073462  9.277915  8.549912  7.883204
           7.272188  6.711586  6.196833  5.723864  5.288833  4.888449
@@ -167,8 +166,7 @@
           0.623590  0.564177  0.508591  0.456577  0.407899  0.362340
           0.319703  0.279802  0.242469  0.207549  0.174898  0.144383
           0.115883  0.089288  0.064493  0.041403  0.019933  0.000000
-        </value>
-      </snapshotRedshifts>
+	  "/>
       <mergerTreeBuilder value="cole2000">
         <accretionLimit value="0.1"/>
         <mergeProbability value="0.1"/>

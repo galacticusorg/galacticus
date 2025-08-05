@@ -45,7 +45,7 @@
 
   interface distributionFunction1DVoight
      !!{
-     Constructors for the {\normalfont \ttfamily voight} 1D distribution function class.
+     Constructors for the \refClass{distributionFunction1DVoight} 1D distribution function class.
      !!}
      module procedure voightConstructorParameters
      module procedure voightConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function voightConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily voight} 1D distribution function class which builds the object from a parameter
+    Constructor for the \refClass{distributionFunction1DVoight} 1D distribution function class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -107,7 +107,7 @@ contains
 
   function voightConstructorInternal(gamma,mu,sigma,limitLower,limitUpper,randomNumberGenerator_) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily voight} 1D distribution function class.
+    Constructor for the \refClass{distributionFunction1DVoight} 1D distribution function class.
     !!}
     type            (distributionFunction1DVoight)                                  :: self
     double precision                              , intent(in   )                   :: gamma                 , mu          , &

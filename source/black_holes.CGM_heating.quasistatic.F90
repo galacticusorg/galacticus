@@ -48,7 +48,7 @@
   
   interface blackHoleCGMHeatingQuasistatic
      !!{
-     Constructors for the {\normalfont \ttfamily quasistatic} black hole winds class.
+     Constructors for the \refClass{blackHoleCGMHeatingQuasistatic} black hole winds class.
      !!}
      module procedure quasistaticConstructorParameters
      module procedure quasistaticConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function quasistaticConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily quasistatic} black hole winds class which takes a parameter list as input.
+    Constructor for the \refClass{blackHoleCGMHeatingQuasistatic} black hole winds class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -92,7 +92,7 @@ contains
 
   function quasistaticConstructorInternal(efficiencyHeating,blackHoleAccretionRate_,darkMatterHaloScale_,coolingRadius_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily quasistatic} node operator class.
+    Internal constructor for the \refClass{blackHoleCGMHeatingQuasistatic} node operator class.
     !!}
     implicit none
     type            (blackHoleCGMHeatingQuasistatic)                        :: self

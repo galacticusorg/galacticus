@@ -446,7 +446,7 @@ contains
     return
   end function rootFinderIsInitialized
 
-  recursive double precision function rootFinderFindGuess(self,rootGuess,status)
+  recursive double precision function rootFinderFindGuess(self,rootGuess,report,status)
     !!{
     Wrapper function for root finder finding that accepts an initial guess for the root. Multiple, generic entry points are used
     here (instead of a single entry point with optional arguments) as it seems to result in faster performance, and this function
@@ -455,15 +455,16 @@ contains
     implicit none
     class           (rootFinder   ), intent(inout), target   :: self
     real            (kind=c_double), intent(in   )           :: rootGuess
+    logical                        , intent(in   ), optional :: report
     integer                        , intent(  out), optional :: status
     double precision               , dimension(2)            :: rootRange
 
     rootRange=rootGuess
-    rootFinderFindGuess=self%find(rootRange,status)
+    rootFinderFindGuess=self%find(rootRange,report,status)
     return
   end function rootFinderFindGuess
   
-  recursive double precision function rootFinderFindRange(self,rootRange,status)
+  recursive double precision function rootFinderFindRange(self,rootRange,report,status)
     !!{
     Wrapper function for root finder finding that accepts an initial range for the root. Multiple, generic entry points are used
     here (instead of a single entry point with optional arguments) as it seems to result in faster performance, and this function
@@ -472,6 +473,7 @@ contains
     implicit none
     class           (rootFinder   )              , intent(inout), target   :: self
     real            (kind=c_double), dimension(2), intent(in   )           :: rootRange
+    logical                                      , intent(in   ), optional :: report
     integer                                      , intent(  out), optional :: status
     double precision               , dimension(2)                          :: rootRangeValues
 
@@ -482,11 +484,11 @@ contains
        rootRangeValues(1)=self%finderFunction(rootRange(1))
        rootRangeValues(2)=self%finderFunction(rootRange(2))
     end if
-    rootFinderFindRange=self%find(rootRange,rootRangeValues,status)
+    rootFinderFindRange=self%find(rootRange,rootRangeValues,report,status)
     return
   end function rootFinderFindRange
   
-  recursive double precision function rootFinderFindRangeValueLow(self,rootRange,rootRangeValueLow,status)
+  recursive double precision function rootFinderFindRangeValueLow(self,rootRange,rootRangeValueLow,report,status)
     !!{
     Wrapper function for root finder finding that accepts an initial range for the root and function value at the lower end of that
     range. Multiple, generic entry points are used here (instead of a single entry point with optional arguments) as it seems to
@@ -496,6 +498,7 @@ contains
     class  (rootFinder   )              , intent(inout), target   :: self
     real   (kind=c_double), dimension(2), intent(in   )           :: rootRange
     real   (kind=c_double)              , intent(in   )           :: rootRangeValueLow
+    logical                             , intent(in   ), optional :: report
     integer                             , intent(  out), optional :: status
     double precision      , dimension(2)                          :: rootRangeValues
 
@@ -506,11 +509,11 @@ contains
        rootRangeValues(1)=                    rootRangeValueLow
        rootRangeValues(2)=self%finderFunction(rootRange        (2))
     end if
-    rootFinderFindRangeValueLow=self%find_(rootRange,rootRangeValues,status)
+    rootFinderFindRangeValueLow=self%find_(rootRange,rootRangeValues,report,status)
     return
   end function rootFinderFindRangeValueLow
 
-  recursive double precision function rootFinderFindRangeValueHigh(self,rootRange,rootRangeValueHigh,status)
+  recursive double precision function rootFinderFindRangeValueHigh(self,rootRange,rootRangeValueHigh,report,status)
     !!{
     Wrapper function for root finder finding that accepts an initial range for the root and function value at the upper end of that
     range. Multiple, generic entry points are used here (instead of a single entry point with optional arguments) as it seems to
@@ -520,6 +523,7 @@ contains
     class  (rootFinder   )              , intent(inout), target   :: self
     real   (kind=c_double), dimension(2), intent(in   )           :: rootRange
     real   (kind=c_double)              , intent(in   )           :: rootRangeValueHigh
+    logical                             , intent(in   ), optional :: report
     integer                             , intent(  out), optional :: status
     double precision      , dimension(2)                          :: rootRangeValues
 
@@ -530,11 +534,11 @@ contains
        rootRangeValues(1)=self%finderFunction(rootRange         (1))
        rootRangeValues(2)=                    rootRangeValueHigh
     end if
-    rootFinderFindRangeValueHigh=self%find_(rootRange,rootRangeValues,status)
+    rootFinderFindRangeValueHigh=self%find_(rootRange,rootRangeValues,report,status)
     return
   end function rootFinderFindRangeValueHigh
 
-  recursive double precision function rootFinderFindRangeValues(self,rootRange,rootRangeValues,status)
+  recursive double precision function rootFinderFindRangeValues(self,rootRange,rootRangeValues,report,status)
     !!{
     Wrapper function for root finder finding that accepts an initial range for the root and function values at the ends of that
     range. Multiple, generic entry points are used here (instead of a single entry point with optional arguments) as it seems to
@@ -543,17 +547,18 @@ contains
     implicit none
     class  (rootFinder   )              , intent(inout), target   :: self
     real   (kind=c_double), dimension(2), intent(in   )           :: rootRange, rootRangeValues
+    logical                             , intent(in   ), optional :: report
     integer                             , intent(  out), optional :: status
     
-    rootFinderFindRangeValues=self%find_(rootRange,rootRangeValues,status)
+    rootFinderFindRangeValues=self%find_(rootRange,rootRangeValues,report,status)
     return
   end function rootFinderFindRangeValues
 
-  recursive double precision function rootFinderFind(self,rootRange,rootRangeValues,status)
+  recursive double precision function rootFinderFind(self,rootRange,rootRangeValues,report,status)
     !!{
     Finds the root of the supplied {\normalfont \ttfamily root} function.
     !!}
-    use            :: Display           , only : displayMessage            , verbosityLevelWarn
+    use            :: Display           , only : displayMessage            , verbosityLevelWarn   , displayIndent     , displayUnindent
     use            :: Error             , only : Error_Report              , errorStatusOutOfRange, errorStatusSuccess, GSL_Error_Handler_Abort_Off, &
          &                                       GSL_Error_Handler_Abort_On
     use, intrinsic :: ISO_C_Binding     , only : c_funptr
@@ -562,6 +567,7 @@ contains
     implicit none
     class           (rootFinder          )              , intent(inout), target   :: self
     real            (kind=c_double       ), dimension(2), intent(in   )           :: rootRange             , rootRangeValues
+    logical                                             , intent(in   ), optional :: report
     integer                                             , intent(  out), optional :: status
     type            (rootFinderList      ), dimension(:), allocatable             :: currentFindersTmp
     integer                               , parameter                             :: iterationMaximum =1000
@@ -574,7 +580,12 @@ contains
     type            (varying_string      ), save                                  :: message
     !$omp threadprivate(message)
     character       (len= 30             )                                        :: label
+    !![
+    <optionalArgument name="report" defaultsTo=".false."/>
+    !!]
 
+    ! Begin reporting.
+    if (report_) call displayIndent("Root finder report:")
     ! Add the current finder to the list of finders. This allows us to track back to the previously used finder if this function is called recursively.
     currentFinderIndex=currentFinderIndex+1
     if (allocated(currentFinders)) then
@@ -621,6 +632,11 @@ contains
     ! Initialize range.
     xLow =rootRange(1)
     xHigh=rootRange(2)
+    if (report_) then
+       write (label,'(e12.6,a1,e12.6)') xLow,":",xHigh
+       message="initial range = "//trim(label)
+       call displayMessage(message)
+    end if
     ! If we have a downward limit, and know the sign to expect at the downward limit we can check if a solution can be found at
     ! all.
     if (self%testLimits .and. self%rangeDownwardLimitSet .and. self%rangeExpandDownwardSignExpect%ID /= rangeExpandSignExpectNone%ID) then
@@ -646,6 +662,10 @@ contains
              message=message//char(10)//'xDownwardLimit :f(xDownwardLimit)='//trim(label)
              call Error_Report(message)
           end if
+       else if (report_) then
+          write (label,'(e12.6,a1,e12.6)') self%rangeDownwardLimit ,":",fDownwardLimit
+          message="function at downward limit: x, f(x) = "//trim(label)
+          call displayMessage(message)
        end if
     end if
     ! If we have a upward limit, and know the sign to expect at the upward limit we can check if a solution can be found at
@@ -673,7 +693,16 @@ contains
              message=message//char(10)//'xUpwardLimit :f(xUpwardLimit)='//trim(label)
              call Error_Report(message)
           end if
+       else if (report_) then
+          write (label,'(e12.6,a1,e12.6)') self%rangeUpwardLimit ,":",fUpwardLimit
+          message="function at upward limit: x, f(x) = "//trim(label)
+          call displayMessage(message)
        end if
+    end if
+    ! Set error handler if necessary.
+    if (present(status)) then
+       call GSL_Error_Handler_Abort_Off()
+       statusActual=errorStatusSuccess
     end if
     ! Expand the range as necessary.
     if (self%useDerivative) then
@@ -689,6 +718,7 @@ contains
        else
           fHigh=rootRangeValues(2)
        end if
+       if (report_) call displayIndent("expanding range")
        do while (sign(1.0d0,fLow)*sign(1.0d0,fHigh) > 0.0d0 .and. fLow /= 0.0d0 .and. fHigh /= 0.0d0)
           rangeChanged=.false.
           select case (self%rangeExpandDownwardSignExpect%ID)
@@ -707,6 +737,7 @@ contains
           case default
              rangeUpperAsExpected=.false.
           end select
+          call reportState(includeExpectations=.true.)
           select case (self%rangeExpandType%ID)
           case (rangeExpandAdditive      %ID)
              if     (                                  &
@@ -825,6 +856,10 @@ contains
           end select
           if (.not.rangeChanged) then
              rootFinderFind=0.0d0
+             if (report_) then
+                call displayMessage ('failed to bracket root')
+                call displayUnindent('done'                  )
+             end if
              if (present(status)) then
                 status=errorStatusOutOfRange
                 currentFinderIndex=currentFinderIndex-1
@@ -863,6 +898,8 @@ contains
              end if
           end if
        end do
+       call reportState(includeExpectations=.false.)
+       if (report_) call displayUnindent("done")
        ! Store the values of the function at the lower and upper extremes of the range.
        currentFinders(currentFinderIndex)%xLowInitial    =xLow
        currentFinders(currentFinderIndex)%xHighInitial   =xHigh
@@ -872,11 +909,6 @@ contains
        currentFinders(currentFinderIndex)%highInitialUsed=.false.
        ! Set the initial range for the solver.
        statusActual=GSL_Root_fSolver_Set(self%solver,self%gslFunction,xLow,xHigh)
-    end if
-    ! Set error handler if necessary.
-    if (present(status)) then
-       call GSL_Error_Handler_Abort_Off()
-       statusActual=errorStatusSuccess
     end if
     ! Find the root.
     if (statusActual /= GSL_Success) then
@@ -889,6 +921,7 @@ contains
     else
        iteration=0
        xRoot    =0.0d0
+       if (report_) call displayIndent("seeking root")
        do
           iteration=iteration+1
           if (self%useDerivative) then
@@ -902,11 +935,24 @@ contains
              case (stoppingCriterionDelta   %ID)
                 xRootPrevious=xRoot
                 xRoot        =GSL_Root_fdfSolver_Root(self%solver)
+                if (report_) then
+                   write (label,'(e12.6,a2,e12.6)') xRoot,", ",self%finderFunction(xRoot)
+                   message="xRoot, fRoot  = "//trim(label)
+                   call displayMessage(message)
+                end if
                 statusActual =GSL_Root_Test_Delta(xRoot,xRootPrevious,self%toleranceAbsolute,self%toleranceRelative)
              case (stoppingCriterionInterval%ID)
                 xRoot =GSL_Root_fSolver_Root   (self%solver)
                 xLow  =GSL_Root_fSolver_x_Lower(self%solver)
                 xHigh =GSL_Root_fSolver_x_Upper(self%solver)
+                if (report_) then
+                   write (label,'(e12.6,a2,e12.6)') xRoot,", ",self%finderFunction(xRoot)
+                   message="xRoot, fRoot  = "//trim(label)
+                   call displayMessage(message)
+                   fLow =self%finderFunction(xLow )
+                   fHigh=self%finderFunction(xHigh)
+                   call reportState(includeExpectations=.false.)
+                end if
                 statusActual=GSL_Root_Test_Interval(xLow,xHigh,self%toleranceAbsolute,self%toleranceRelative)
              case default
                 call Error_Report('unknown stopping criterion'//{introspection:location})
@@ -918,19 +964,72 @@ contains
           rootFinderFind=0.0d0
           if (present(status)) then
              status=statusActual
+             call displayMessage("failed to find root")
           else
+             if (report_) call displayUnindent("done")
              call Error_Report('failed to find root'//{introspection:location})
           end if
        else
           if (present(status)) status=GSL_Success
           rootFinderFind=xRoot
        end if
+       if (report_) call displayUnindent("done")
     end if
     ! Reset error handler.
     if (present(status)) call GSL_Error_Handler_Abort_On()
     ! Restore state.
     currentFinderIndex=currentFinderIndex-1
+    ! Finish reporting.
+    if (report_) call displayUnindent("done")
     return
+
+  contains
+
+    subroutine reportState(includeExpectations)
+      !!{
+      Report on the state of the root finder.
+      !!}
+      implicit none
+      logical, intent(in   ) :: includeExpectations
+      
+      if (.not.report_) return
+      write (label,'(e12.6,a2,e12.6)') xLow,", ",fLow
+      message="xLow , fLow  = "//trim(label)
+      if (includeExpectations .and. self%rangeExpandDownwardSignExpect /= rangeExpandSignExpectNone) then
+         if (rangeLowerAsExpected) then
+            message=message//" [sign correct]"
+         else
+            message=message//" [sign incorrect]"
+         end if
+      end if
+      if (self%rangeDownwardLimitSet) then
+         if (xLow <= self%rangeDownwardLimit) then
+            message=message//" {at limit}"
+         else
+            message=message//" {not at limit}"
+         end if
+      end if
+      call displayMessage(message)      
+      write (label,'(e12.6,a2,e12.6)') xHigh,", ",fHigh
+      message="xHigh, fHigh = "//trim(label)
+      if (includeExpectations .and. self%rangeExpandUpwardSignExpect /= rangeExpandSignExpectNone) then
+         if (rangeUpperAsExpected) then
+            message=message//" [sign correct]"
+         else
+            message=message//" [sign incorrect]"
+         end if
+      end if
+      if (self%rangeUpwardLimitSet) then
+         if (xHigh >= self%rangeUpwardLimit) then
+            message=message//" {at limit}"
+         else
+            message=message//" {not at limit}"
+         end if
+      end if
+      call displayMessage(message)      
+      return
+    end subroutine reportState
+    
   end function rootFinderFind
 
   subroutine rootFinderRootFunction(self,rootFunction)

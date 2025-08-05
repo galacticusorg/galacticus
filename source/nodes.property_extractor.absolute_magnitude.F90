@@ -46,7 +46,7 @@ Implements a node property extractor class for absolute magnitudes.
 
   interface nodePropertyExtractorMagnitudesAbsolute
      !!{
-     Constructors for the {\normalfont \ttfamily magnitudesAbsolute} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMagnitudesAbsolute} output analysis class.
      !!}
      module procedure magnitudesAbsoluteConstructorParameters
      module procedure magnitudesAbsoluteConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function magnitudesAbsoluteConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily magnitudesAbsolute} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorMagnitudesAbsolute} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode
@@ -81,7 +81,7 @@ contains
 
   function magnitudesAbsoluteConstructorInternal(component) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily magnitudesAbsolute} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorMagnitudesAbsolute} property extractor class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

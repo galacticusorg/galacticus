@@ -57,7 +57,7 @@
 
   interface ramPressureStrippingSimpleCylindrical
      !!{
-     Constructors for the {\normalfont \ttfamily simpleCylindrical} model of ram pressure stripping of .
+     Constructors for the \refClass{ramPressureStrippingSimpleCylindrical} model of ram pressure stripping of .
      !!}
      module procedure simpleCylindricalConstructorParameters
      module procedure simpleCylindricalConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function simpleCylindricalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily simpleCylindrical} timescale for star formation feedback in disks class which takes a
+    Constructor for the \refClass{ramPressureStrippingSimpleCylindrical} timescale for star formation feedback in disks class which takes a
     parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -102,7 +102,7 @@ contains
 
   function simpleCylindricalConstructorInternal(rateFractionalMaximum,beta,hotHaloRamPressureForce_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily simpleCylindrical} model of ram pressure stripping class.
+    Internal constructor for the \refClass{ramPressureStrippingSimpleCylindrical} model of ram pressure stripping class.
     !!}
     implicit none
     type            (ramPressureStrippingSimpleCylindrical)                        :: self
@@ -117,7 +117,7 @@ contains
 
   subroutine simpleCylindricalDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily simpleCylindrical} model of ram pressure stripping class.
+    Destructor for the \refClass{ramPressureStrippingSimpleCylindrical} model of ram pressure stripping class.
     !!}
     implicit none
     type(ramPressureStrippingSimpleCylindrical), intent(inout) :: self

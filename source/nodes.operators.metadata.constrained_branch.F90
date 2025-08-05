@@ -38,7 +38,7 @@ Implements a node operator class that shifts node constrained branch status at n
 
   interface nodeOperatorConstrainedBranch
      !!{
-     Constructors for the {\normalfont \ttfamily constrainedBranch} node operator class.
+     Constructors for the \refClass{nodeOperatorConstrainedBranch} node operator class.
      !!}
      module procedure constrainedBranchConstructorParameters
      module procedure constrainedBranchConstructorInternal
@@ -48,7 +48,7 @@ contains
 
   function constrainedBranchConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily constrainedBranch} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorConstrainedBranch} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -64,7 +64,7 @@ contains
 
   function constrainedBranchConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily constrainedBranch} node operator class.
+    Internal constructor for the \refClass{nodeOperatorConstrainedBranch} node operator class.
     !!}
     implicit none
     type(nodeOperatorConstrainedBranch) :: self

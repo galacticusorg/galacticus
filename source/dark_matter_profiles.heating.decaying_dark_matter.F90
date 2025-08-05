@@ -48,7 +48,7 @@
 
   interface darkMatterProfileHeatingDecayingDarkMatter
      !!{
-     Constructors for the {\normalfont \ttfamily decayingDarkMatter} dark matter profile heating class.
+     Constructors for the \refClass{darkMatterProfileHeatingDecayingDarkMatter} dark matter profile heating class.
      !!}
      module procedure decayingDarkMatterConstructorParameters
      module procedure decayingDarkMatterConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function decayingDarkMatterConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily decayingDarkMatter} dark matter profile heating scales class which takes a parameter set as input.
+    Constructor for the \refClass{darkMatterProfileHeatingDecayingDarkMatter} dark matter profile heating scales class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -94,7 +94,7 @@ contains
 
   function decayingDarkMatterConstructorInternal(gamma,includeKickHeating,darkMatterParticle_,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily decayingDarkMatter} dark matter profile heating scales class.
+    Internal constructor for the \refClass{darkMatterProfileHeatingDecayingDarkMatter} dark matter profile heating scales class.
     !!}
     implicit none
     type (darkMatterProfileHeatingDecayingDarkMatter)                        :: self
@@ -111,7 +111,7 @@ contains
 
   subroutine decayingDarkMatterDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily decaying} dark matter halo profile class.
+    Destructor for the \refClass{darkMatterProfileHeatingDecayingDarkMatter} dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileHeatingDecayingDarkMatter), intent(inout) :: self

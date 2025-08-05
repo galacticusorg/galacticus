@@ -46,7 +46,7 @@
 
   interface radiativeTransferOutputterContinuuaRates
      !!{
-     Constructors for the {\normalfont \ttfamily continuuaRates} radiative transfer outputter packet class.
+     Constructors for the \refClass{radiativeTransferOutputterContinuuaRates} radiative transfer outputter packet class.
      !!}
      module procedure continuuaRatesConstructorParameters
      module procedure continuuaRatesConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function continuuaRatesConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily continuuaRates} radiative transfer outputter class which takes a parameter set as
+    Constructor for the \refClass{radiativeTransferOutputterContinuuaRates} radiative transfer outputter class which takes a parameter set as
     input.
     !!}
     use :: Atomic_Data     , only : Atom_Lookup
@@ -95,7 +95,7 @@ contains
 
   function continuuaRatesConstructorInternal(elementIndices,atomicIonizationPotential_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily continuuaRates} radiative transfer outputter class.
+    Internal constructor for the \refClass{radiativeTransferOutputterContinuuaRates} radiative transfer outputter class.
     !!}
     use :: Atomic_Data                 , only : Atomic_Number, Atomic_Short_Label
     use :: Numerical_Constants_Physical, only : speedLight   , plancksConstant
@@ -140,7 +140,7 @@ contains
 
   subroutine continuuaRatesDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily continuuaRates} radiative transfer outputter class.
+    Destructor for the \refClass{radiativeTransferOutputterContinuuaRates} radiative transfer outputter class.
     !!}
     implicit none
     type(radiativeTransferOutputterContinuuaRates), intent(inout) :: self

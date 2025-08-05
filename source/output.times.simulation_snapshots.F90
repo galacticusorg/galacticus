@@ -33,7 +33,7 @@
 
   interface outputTimesSimulationSnapshots
      !!{
-     Constructors for the {\normalfont \ttfamily simulationSnapshots} output times class.
+     Constructors for the \refClass{outputTimesSimulationSnapshots} output times class.
      !!}
      module procedure simulationSnapshotsConstructorParameters
      module procedure simulationSnapshotsConstructorInternal
@@ -43,7 +43,7 @@ contains
 
   function simulationSnapshotsConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily simulationSnapshots} output times class which takes a parameter set as input.
+    Constructor for the \refClass{outputTimesSimulationSnapshots} output times class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -70,7 +70,7 @@ contains
 
   function simulationSnapshotsConstructorInternal(fileName,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily simulationSnapshots} output times class.
+    Internal constructor for the \refClass{outputTimesSimulationSnapshots} output times class.
     !!}
     use :: Error         , only : Error_Report
     use :: File_Utilities, only : File_Name_Expand

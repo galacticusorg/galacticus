@@ -47,7 +47,7 @@
   
   interface nodeOperatorStarFormationSpheroids
      !!{
-     Constructors for the {\normalfont \ttfamily starFormationSpheroids} node operator class.
+     Constructors for the \refClass{nodeOperatorStarFormationSpheroids} node operator class.
      !!}
      module procedure starFormationSpheroidsConstructorParameters
      module procedure starFormationSpheroidsConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function starFormationSpheroidsConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily starFormation} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorStarFormationSpheroids} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -91,7 +91,7 @@ contains
 
   function starFormationSpheroidsConstructorInternal(luminositiesStellarInactive,starFormationRateSpheroids_,stellarPopulationProperties_,starFormationHistory_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily starFormationSpheroids} node operator class.
+    Internal constructor for the \refClass{nodeOperatorStarFormationSpheroids} node operator class.
     !!}
     implicit none
     type   (nodeOperatorStarFormationSpheroids)                        :: self
@@ -108,7 +108,7 @@ contains
 
   subroutine starFormationSpheroidsDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily starFormationSpheroids} node operator class.
+    Destructor for the \refClass{nodeOperatorStarFormationSpheroids} node operator class.
     !!}
     implicit none
     type(nodeOperatorStarFormationSpheroids), intent(inout) :: self

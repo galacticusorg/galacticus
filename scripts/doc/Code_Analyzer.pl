@@ -230,7 +230,7 @@ sub processFile {
 
 		  # Check for source code comments.
 		  unless ( $lineProcessed || $fileStack[0]->{'inXML'} ) {
-		      if ( $bufferedComments =~ m/^\{/ ) {
+		      if ( $bufferedComments =~ m/^!\{/ ) {
 			  my $unitId = $unitIdList[-1];
 			  until ( eof($fileHandle) ) {
 			      my $commentLine = <$fileHandle>;

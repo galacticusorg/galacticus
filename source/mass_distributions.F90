@@ -89,6 +89,15 @@ module Mass_Distributions
         end if
       </code>
    </method>
+   <method name="describe" >
+    <description>Display a description of the mass distribution.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <modules>Display</modules>
+    <code>
+     call displayMessage('unknown')
+    </code>
+   </method>
    <method name="matches" >
     <description>Return true if this mass distribution matches the specified component and mass type.</description>
     <type>logical</type>
@@ -1069,6 +1078,7 @@ contains
     Solve the Jeans equation numerically to find the 1D velocity dispersion.
     !!}
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
+    use            :: Display                , only : displayIndent       , displayUnindent     , displayMessage
     use            :: Error                  , only : Error_Report        , errorStatusSuccess  , GSL_Error_Details
     use            :: Numerical_Integration  , only : integrator
     use            :: Numerical_Ranges       , only : Make_Range          , rangeTypeLogarithmic
@@ -1090,7 +1100,7 @@ contains
          &                                                                       radiusLower                     , radiusUpper                     , &
          &                                                                       radiusLowerJeansEquation        , radiusUpperJeansEquation        , &
          &                                                                       densityMaximum                  , densityOuter_                   , &
-         &                                                                       jeansIntegralPrevious
+         &                                                                       jeansIntegralPrevious           , toleranceRelativePrevious
     integer         (c_size_t                   )                             :: countRadii                      , iMinimum                        , &
          &                                                                       iMaximum                        , i
     integer                                                                   :: status
@@ -1108,7 +1118,8 @@ contains
             &       radius > self%velocityDispersionRadialRadiusMaximum__
     end if
     if (remakeTable) then
-       integrator_=integrator(jeansEquationIntegrand_,toleranceRelative=self%toleranceRelativeVelocityDispersion)
+       integrator_=integrator(jeansEquationIntegrand_,toleranceRelative=self%toleranceRelativeVelocityDispersion,intervalsMaximum=10000_c_size_t)
+       toleranceRelativePrevious=self%toleranceRelativeVelocityDispersion
        ! Find the range of radii at which to compute the velocity dispersion, and construct the arrays.
        call self%solverSet(massDistribution_,massDistributionEmbedding)
        !! Set an initial range of radii that brackets the requested radius.
@@ -1187,25 +1198,57 @@ contains
                 ! Integration failed.
                 toleranceRelative=+     toleranceFactor                     &
                      &            *self%toleranceRelativeVelocityDispersion
-                do while (toleranceRelative < self%toleranceRelativeVelocityDispersionMaximum)
+                do while (toleranceRelative <= self%toleranceRelativeVelocityDispersionMaximum)
                    call integrator_%toleranceSet(toleranceRelative=toleranceRelative)
+                   toleranceRelativePrevious=toleranceRelative
                    jeansIntegral=integrator_%integrate(radiusLowerJeansEquation,radiusUpperJeansEquation,status)
                    if (status == errorStatusSuccess) then
                       exit
                    else
-                      toleranceRelative=+toleranceFactor   &
-                           &            *toleranceRelative
+                      if (toleranceRelative >= self%toleranceRelativeVelocityDispersionMaximum) then
+                         exit
+                      else
+                         toleranceRelative=min(                                                  &
+                              &                +     toleranceFactor                             &
+                              &                *     toleranceRelative                         , &
+                              &                +self%toleranceRelativeVelocityDispersionMaximum  &
+                              &               )
+                      end if
                    end if
                 end do
                 if (status /= errorStatusSuccess) then
                    block
-                     integer                 :: line
-                     type   (varying_string) :: reason, file
+                     integer                   :: line
+                     type     (varying_string) :: reason, file
+                     character(len=24        ) :: label
                      call GSL_Error_Details(reason,file,line,status)
+                     call integrator_%toleranceSet(toleranceRelative=toleranceRelativePrevious)
+                     call displayIndent('Jeans equation integration failure report')
+                     call displayMessage(var_str('radius ')//i//' of '//countRadii)
+                     write (label,'(e24.16)') radiusLowerJeansEquation
+                     call displayMessage('radiusLowerJeansEquation = '//trim(label)//' Mpc'             )
+                     write (label,'(e24.16)') radiusUpperJeansEquation
+                     call displayMessage('radiusUpperJeansEquation = '//trim(label)//' Mpc'             )
+                     write (label,'(e24.16)') radiusOuter_
+                     call displayMessage('radiusOuter              = '//trim(label)//' Mpc'             )
+                     write (label,'(e24.16)') toleranceRelative
+                     call displayMessage('toleranceRelative        = '//trim(label)                     )
+                     write (label,'(e24.16)') jeansIntegral
+                     call displayMessage('jeansIntegral            = '//trim(label)//' M☉ Mpc⁻³ km² s⁻²')
+                     call displayIndent('Mass distribution properties:')
+                     call displayMessage('Type: '//massDistribution_%objectType())
+                     call massDistribution_        %describe()
+                     call displayUnindent('done')
+                     call displayIndent('Mass distribution embedding properties:')
+                     call displayMessage('Type: '//massDistributionEmbedding%objectType())
+                     call massDistributionEmbedding%describe()
+                     call displayUnindent('done')
+                     call displayUnindent('done')
                      call Error_Report(var_str('integration of Jeans equation failed - GSL Error ')//status//': "'//reason//'" at line '//line//' of file "'//file//'"'//{introspection:location})
                    end block
                 end if
                 call integrator_%toleranceSet(toleranceRelative=self%toleranceRelativeVelocityDispersion)
+                toleranceRelativePrevious=self%toleranceRelativeVelocityDispersion
              end if
              if (density <= 0.0d0) then
                 ! Density is zero - the velocity dispersion is undefined. If the Jeans integral is also zero this is acceptable - we've

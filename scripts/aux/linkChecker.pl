@@ -167,10 +167,16 @@ sub checkURLs {
 	    # An external link. Include a short sleep here to rate limit requests.
 	    sleep(1);
 	    ## --cipher 'DEFAULT:!DH' - this reduces the default security level which otherwise prevents some URLs from being downloaded.
-	    ## --range 0-0 - this causes no bytes to actually be downloaded - this is disabled on some sites as it seems to break them.
 	    my $options = "--max-time 60 --insecure --location --output /dev/null --fail-with-body --cipher 'DEFAULT:!DH'";
+	    ## --range 0-0 - this causes no bytes to actually be downloaded - this is disabled on some sites as it seems to break them.
 	    $options .= " --range 0-0"
-		unless ( $url =~ m/^https:\/\/www\.drdobbs\.com\// );
+		unless (
+		    $url =~ m/^https:\/\/www\.drdobbs\.com\//
+		    ||
+		    $url =~ m/^https:\/\/www\.openmp\.org\//
+		    ||
+		    $url =~ m/^https:\/\/git\-scm\.com\//
+		);
 	    $options .= " --user-agent \"Mozilla\""
 		if ( $url =~ m/sharepoint\.com/ );
 	    # docker.com issues a 403 unless we make cURL pretend to be wget...

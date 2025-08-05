@@ -83,7 +83,7 @@
 
   interface outputAnalysisScatterFunction1D
      !!{
-     Constructors for the {\normalfont \ttfamily scatterFunction1D} output analysis class.
+     Constructors for the \refClass{outputAnalysisScatterFunction1D} output analysis class.
      !!}
      module procedure scatterFunction1DConstructorParameters
      module procedure scatterFunction1DConstructorInternal
@@ -93,7 +93,7 @@ contains
 
   function scatterFunction1DConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily scatterFunction1D} output analysis class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisScatterFunction1D} output analysis class which takes a parameter set as input.
     !!}
     use :: Error                  , only : Error_Report
     use :: Input_Parameters       , only : inputParameter                                , inputParameters
@@ -367,7 +367,7 @@ contains
 
   function scatterFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,scatterLabel,scatterComment,scatterUnits,scatterUnitsInSI,binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisWeightPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisWeightPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,xAxisLabel,yAxisLabel,xAxisIsLog,yAxisIsLog,targetLabel,scatterValueTarget,scatterCovarianceTarget) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily scatterFunction1D} output analysis class for internal use.
+    Constructor for the \refClass{outputAnalysisScatterFunction1D} output analysis class for internal use.
     !!}
     use :: Output_Analysis_Property_Operators, only : outputAnalysisPropertyOperatorClass         , outputAnalysisPropertyOperatorSequence, outputAnalysisPropertyOperatorSquare, propertyOperatorList
     use :: Output_Analysis_Weight_Operators  , only : outputAnalysisWeightOperatorClass           , weightOperatorList
@@ -509,7 +509,7 @@ contains
 
   subroutine scatterFunction1DDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily scatterFunction1D} output analysis class.
+    Destructor for the \refClass{outputAnalysisScatterFunction1D} output analysis class.
     !!}
     implicit none
     type(outputAnalysisScatterFunction1D), intent(inout) :: self

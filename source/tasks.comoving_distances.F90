@@ -39,7 +39,7 @@
 
   interface taskComovingDistances
      !!{
-     Constructors for the {\normalfont \ttfamily comovingDistances} task.
+     Constructors for the \refClass{taskComovingDistances} task.
      !!}
      module procedure comovingDistancesConstructorParameters
      module procedure comovingDistancesConstructorInternal
@@ -49,7 +49,7 @@ contains
 
   function comovingDistancesConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily comovingDistances} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskComovingDistances} task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -73,7 +73,7 @@ contains
 
   function comovingDistancesConstructorInternal(cosmologyFunctions_,outputTimes_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily comovingDistances} task class.
+    Internal constructor for the \refClass{taskComovingDistances} task class.
     !!}
     implicit none
     type (taskComovingDistances  )                        :: self
@@ -88,7 +88,7 @@ contains
 
   subroutine comovingDistancesDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily comovingDistances} task class.
+    Destructor for the \refClass{taskComovingDistances} task class.
     !!}
     implicit none
     type(taskComovingDistances), intent(inout) :: self

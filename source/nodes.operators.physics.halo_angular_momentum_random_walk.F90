@@ -55,7 +55,7 @@
   
   interface nodeOperatorHaloAngularMomentumRandomWalk
      !!{
-     Constructors for the {\normalfont \ttfamily haloAngularMomentumRandomWalk} node operator class.
+     Constructors for the \refClass{nodeOperatorHaloAngularMomentumRandomWalk} node operator class.
      !!}
      module procedure haloAngularMomentumRandomWalkConstructorParameters
      module procedure haloAngularMomentumRandomWalkConstructorInternal
@@ -65,7 +65,7 @@ contains
   
   function haloAngularMomentumRandomWalkConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily haloAngularMomentumRandomWalk} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorHaloAngularMomentumRandomWalk} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -96,7 +96,7 @@ contains
 
   function haloAngularMomentumRandomWalkConstructorInternal(angularMomentumVarianceSpecific,haloSpinDistribution_,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily haloAngularMomentumRandomWalk} node operator class.
+    Internal constructor for the \refClass{nodeOperatorHaloAngularMomentumRandomWalk} node operator class.
     !!}
     implicit none
     type            (nodeOperatorHaloAngularMomentumRandomWalk)                        :: self
@@ -112,7 +112,7 @@ contains
 
   subroutine haloAngularMomentumRandomWalkDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily haloAngularMomentumRandomWalk} node operator class.
+    Destructor for the \refClass{nodeOperatorHaloAngularMomentumRandomWalk} node operator class.
     !!}
     implicit none
     type(nodeOperatorHaloAngularMomentumRandomWalk), intent(inout) :: self

@@ -34,7 +34,7 @@
 
   interface taskBuildToolFSPS
      !!{
-     Constructors for the {\normalfont \ttfamily buildToolFSPS} task.
+     Constructors for the \refClass{taskBuildToolFSPS} task.
      !!}
      module procedure buildToolFSPSParameters
   end interface taskBuildToolFSPS
@@ -43,7 +43,7 @@ contains
 
   function buildToolFSPSParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily buildToolFSPS} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskBuildToolFSPS} task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

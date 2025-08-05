@@ -64,7 +64,7 @@ Implements an output analysis class for the \cite{baldry_galaxy_2012} stellar ma
 
   interface outputAnalysisMassFunctionStellarBaldry2012GAMA
      !!{
-     Constructors for the {\normalfont \ttfamily massFunctionStellarBaldry2012GAMA} output analysis class.
+     Constructors for the \refClass{outputAnalysisMassFunctionStellarBaldry2012GAMA} output analysis class.
      !!}
      module procedure massFunctionStellarBaldry2012GAMAConstructorParameters
      module procedure massFunctionStellarBaldry2012GAMAConstructorInternal
@@ -74,7 +74,7 @@ contains
 
   function massFunctionStellarBaldry2012GAMAConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily massFunctionStellarBaldry2012GAMA} output analysis class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisMassFunctionStellarBaldry2012GAMA} output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -177,7 +177,7 @@ contains
 
   function massFunctionStellarBaldry2012GAMAConstructorInternal(cosmologyFunctions_,gravitationalLensing_,massFunctionIncompleteness_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily massFunctionStellarBaldry2012GAMA} output analysis class for internal use.
+    Constructor for the \refClass{outputAnalysisMassFunctionStellarBaldry2012GAMA} output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                             , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -344,7 +344,7 @@ contains
 
   subroutine massFunctionStellarBaldry2012GAMADestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily massFunctionStellarBaldry2012GAMA} output analysis class.
+    Destructor for the \refClass{outputAnalysisMassFunctionStellarBaldry2012GAMA} output analysis class.
     !!}
     implicit none
     type(outputAnalysisMassFunctionStellarBaldry2012GAMA), intent(inout) :: self

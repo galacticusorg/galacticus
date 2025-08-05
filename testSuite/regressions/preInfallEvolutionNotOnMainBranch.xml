@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Test pre-infall subhalo evolution is not applied to tj=he main branch. -->
 <parameters>
+  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
   <lastModified>acecf6cc0b0da2604d667e770b26c791aa2eafc9</lastModified>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
@@ -17,14 +18,27 @@
   <!-- Baryonic components are set to null since we are not modeling them here. -->
   <componentBasic value="standard"/>
   <componentBlackHole value="standard"/>
+  <blackHoleCGMHeating value="jetPower">
+    <efficiencyRadioMode value="1.0"/>
+  </blackHoleCGMHeating>
+  <blackHoleWind value="ciotti2009">
+    <efficiencyWind value="2.4e-3"/>
+    <efficiencyWindScalesWithEfficiencyRadiative value="false"/>
+  </blackHoleWind>
+  <blackHoleAccretionRate value="standard">
+    <bondiHoyleAccretionEnhancementSpheroid value="5.0e0"/>
+    <bondiHoyleAccretionEnhancementHotHalo value="6.0e0"/>
+    <bondiHoyleAccretionHotModeOnly value="true"/>
+    <bondiHoyleAccretionTemperatureSpheroid value="1.0e2"/>
+  </blackHoleAccretionRate>
   <componentDarkMatterProfile value="scale"/>
   <componentDisk value="standard">
-  <massDistributionDisk value="exponentialDisk">
-    <dimensionless value="true"/>
-  </massDistributionDisk>
+    <massDistributionDisk value="exponentialDisk">
+      <dimensionless value="true"/>
+    </massDistributionDisk>
   </componentDisk>
   <componentHotHalo value="standard">
-  <fractionLossAngularMomentum value="0.3"/>
+    <fractionLossAngularMomentum value="0.3"/>
     <starveSatellites value="false"/>
     <efficiencyStrippingOutflow value="0.1"/>
     <trackStrippedGas value="true"/>
@@ -40,16 +54,10 @@
   <componentSpin value="vector"/>
   <!-- Intergalactic background radiation -->
   <radiationFieldIntergalacticBackground value="summation">
-
-  <radiationField value="cosmicMicrowaveBackground"/>
-
-  <radiationField value="summation">
     <radiationField value="cosmicMicrowaveBackground"/>
     <radiationField value="intergalacticBackgroundFile">
       <fileName value="%DATASTATICPATH%/radiation/Cosmic_Background_Radiation_FG20.hdf5"/>
-   </radiationField>
-  </radiationField>
-
+    </radiationField>
   </radiationFieldIntergalacticBackground>
 
   <!-- Dark matter particle type -->
@@ -309,8 +317,6 @@
   <!-- Star formation rate options -->
   <starFormationRateDisks value="intgrtdSurfaceDensity"/>
   <starFormationRateSurfaceDensityDisks value="blitz2006">
-    <assumeMonotonicSurfaceDensity value="true"/>
-    <assumeExponentialDisk value="true"/>
     <useTabulation value="true"/>
   </starFormationRateSurfaceDensityDisks>
   <starFormationRateSpheroids value="timescale">
@@ -462,6 +468,9 @@
         <spin value="0"/>
       </blackHoleSeeds>
     </nodeOperator>
+    <nodeOperator value="blackHolesAccretion"/>
+    <nodeOperator value="blackHolesWinds"/>
+    <nodeOperator value="blackHolesCGMHeating"/>
     <nodeOperator value="blackHolesAccretion"/>
     <nodeOperator value="blackHolesWinds"/>
     <nodeOperator value="blackHolesCGMHeating"/>

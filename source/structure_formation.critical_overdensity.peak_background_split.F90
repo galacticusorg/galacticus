@@ -40,11 +40,12 @@ Implements an peak-background split critical overdensity class.
      procedure :: gradientMass    => peakBackgroundSplitGradientMass
      procedure :: isMassDependent => peakBackgroundSplitIsMassDependent
      procedure :: isNodeDependent => peakBackgroundSplitIsNodeDependent
+     procedure :: isTreeDependent => peakBackgroundSplitIsTreeDependent
   end type criticalOverdensityPeakBackgroundSplit
 
   interface criticalOverdensityPeakBackgroundSplit
      !!{
-     Constructors for the {\normalfont \ttfamily peakBackgroundSplit} critical overdensity class.
+     Constructors for the \refClass{criticalOverdensityPeakBackgroundSplit} critical overdensity class.
      !!}
      module procedure peakBackgroundSplitConstructorParameters
      module procedure peakBackgroundSplitConstructorInternal
@@ -54,7 +55,7 @@ contains
 
   function peakBackgroundSplitConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily peakBackgroundSplit} critical overdensity class which takes a parameter set as input.
+    Constructor for the \refClass{criticalOverdensityPeakBackgroundSplit} critical overdensity class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -88,7 +89,7 @@ contains
 
   function peakBackgroundSplitConstructorInternal(criticalOverdensity_,haloEnvironment_,cosmologyFunctions_,cosmologicalMassVariance_,linearGrowth_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily peakBackgroundSplit} critical overdensity class.
+    Internal constructor for the \refClass{criticalOverdensityPeakBackgroundSplit} critical overdensity class.
     !!}
     implicit none
     type (criticalOverdensityPeakBackgroundSplit)                        :: self
@@ -106,7 +107,7 @@ contains
 
   subroutine peakBackgroundSplitDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily peakBackgroundSplit} critical overdensity class.
+    Destructor for the \refClass{criticalOverdensityPeakBackgroundSplit} critical overdensity class.
     !!}
     implicit none
     type(criticalOverdensityPeakBackgroundSplit), intent(inout) :: self
@@ -191,8 +192,19 @@ contains
     !!}
     implicit none
     class(criticalOverdensityPeakBackgroundSplit), intent(inout) :: self
-    !$GLC attributes unused :: self
 
-    peakBackgroundSplitIsNodeDependent=.true.
+    peakBackgroundSplitIsNodeDependent=self%haloEnvironment_%isNodeDependent()
     return
   end function peakBackgroundSplitIsNodeDependent
+
+  logical function peakBackgroundSplitIsTreeDependent(self)
+    !!{
+    Return whether the critical overdensity is tree dependent.
+    !!}
+    implicit none
+    class(criticalOverdensityPeakBackgroundSplit), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    peakBackgroundSplitIsTreeDependent=self%haloEnvironment_%isTreeDependent()
+    return
+  end function peakBackgroundSplitIsTreeDependent

@@ -364,6 +364,7 @@ contains
     use    :: HDF5_Access               , only : hdf5Access
     use    :: IO_HDF5                   , only : hdf5Object
     use    :: ISO_Varying_String        , only : varying_string                   , var_str
+    use    :: Locks                     , only : ompLock
     use    :: Mass_Distributions        , only : massDistributionClass
     use    :: Merger_Tree_Walkers       , only : mergerTreeWalkerAllNodes
     use    :: Node_Components           , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
@@ -389,6 +390,7 @@ contains
     integer                                        , dimension(6  )              :: particleCounts
     double precision                               , dimension(:,:), allocatable :: particlePosition                     , particleVelocity
     integer         (kind_int8                    ), dimension(  :), allocatable :: particleIDs
+    type            (ompLock                      )                              :: lockSampling
     type            (mergerTreeWalkerAllNodes     )                              :: treeWalker
     double precision                                                             :: particleCountMean                    , distributionFunction       , &
          &                                                                          radiusVirial                         , radiusTruncate             , &
@@ -507,6 +509,7 @@ contains
           counter             =0
           positionRandomOffset=0.0d0
           velocityRandomOffset=0.0d0
+          lockSampling        =ompLock()
           !$omp parallel private(i,j,positionSpherical,positionCartesian,velocitySpherical,velocityCartesian,energy,energyPotential,speed,speedEscape,speedPrevious,distributionFunction,distributionFunctionMaximum,keepSample,radiusEnergy,positionVector,velocityVector,randomDeviates) copyin(node_,radiusTruncate_,lengthSoftening_,softeningKernel)
           call Node_Components_Thread_Initialize(self%parameters)
           allocate(self_,mold=self)
@@ -528,7 +531,7 @@ contains
              ! Sample particle positions from the halo density distribution. Currently, we assume that halos are spherically
              ! symmetric.
              randomDeviates=-1.0d0
-             !$omp critical (mergerTreeOperatorParticulateSample)
+             call lockSampling%set()
              do j=1,3
                 ! Ensure that the third random deviate (the enclosed mass fraction) is never precisely zero.
                 do while (                                           &
@@ -539,7 +542,7 @@ contains
                    randomDeviates(j)=tree%randomNumberGenerator_%uniformSample()
                 end do
              end do
-             !$omp end critical (mergerTreeOperatorParticulateSample)
+             call lockSampling%unset()
              call positionSpherical%  phiSet(     2.0d0*Pi       *randomDeviates(1)       )
              call positionSpherical%thetaSet(acos(2.0d0          *randomDeviates(2)-1.0d0))
              call positionSpherical%    rSet(     radiusTruncate_*randomDeviates(3)       )
@@ -601,19 +604,17 @@ contains
              keepSample=.false.
              do while (.not.keepSample)
                 ! Draw a speed uniformly at random between zero and the escape velocity.
-                !$omp critical (mergerTreeOperatorParticulateSample)
+                call lockSampling%set()
                 speed               =+tree%randomNumberGenerator_%uniformSample() &
                      &               *speedEscape
-                !$omp end critical (mergerTreeOperatorParticulateSample)
+                call lockSampling%unset()
                 energy              =+energyPotential    &
                      &               -0.5d0              &
                      &               *speed          **2
-                !$omp critical (mergerTreeOperatorParticulateRadius)
                 radiusEnergy        =+radiusDistribution%interpolate        (                                           &
                      &                                                             energy                             , &
                      &                                                       table=energyDistributionTablePotential     &
                      &                                                      )
-                !$omp end critical (mergerTreeOperatorParticulateRadius)
                 distributionFunction=+speed**2                                                                          &
                      &               *energyDistribution%interpolateGradient(                                           &
                      &                                                             radiusEnergy                       , &
@@ -631,18 +632,18 @@ contains
                    message=message//displayGreen()//'HELP:'//displayReset()//' the issue is probably caused by an inaccurate estimation of the maximum of the distribution function from tabulated values. To resolve this issue, increase the parameter [energyDistributionPointsPerDecade].'//char(10)
                    call Error_Report(message//{introspection:location})
                 end if
-                !$omp critical (mergerTreeOperatorParticulateSample)
+                call lockSampling%set()
                 keepSample=  +tree%randomNumberGenerator_%uniformSample() &
                      &      <                                             &
                      &       +distributionFunction                        &
                      &       /distributionFunctionMaximum
-                !$omp end critical (mergerTreeOperatorParticulateSample)
+                call lockSampling%unset()
              end do
              ! Choose a velocity vector in spherical coordinates with velocity chosen to give the required kinetic energy.
-             !$omp critical (mergerTreeOperatorParticulateSample)
+             call lockSampling%set()
              call velocitySpherical%  phiSet(     2.0d0*Pi*tree%randomNumberGenerator_%uniformSample()       )
              call velocitySpherical%thetaSet(acos(2.0d0   *tree%randomNumberGenerator_%uniformSample()-1.0d0))
-             !$omp end critical (mergerTreeOperatorParticulateSample)
+             call lockSampling%unset()
              call velocitySpherical%    rSet(speed                                                           )
              ! Get the corresponding cartesian coordinates.
              velocityCartesian=velocitySpherical

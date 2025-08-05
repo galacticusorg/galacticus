@@ -69,7 +69,7 @@
 
   interface galacticStructureSolverFixed
      !!{
-     Constructors for the {\normalfont \ttfamily fixed} galactic structure solver class.
+     Constructors for the \refClass{galacticStructureSolverFixed} galactic structure solver class.
      !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
@@ -79,7 +79,7 @@ contains
 
   function fixedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily fixed} galactic structure solver class which takes a
+    Constructor for the \refClass{galacticStructureSolverFixed} galactic structure solver class which takes a
     parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -119,7 +119,7 @@ contains
 
   function fixedConstructorInternal(factor,radiusFixed,darkMatterHaloScale_,virialDensityContrast_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily fixed} galactic structure solver class.
+    Internal constructor for the \refClass{galacticStructureSolverFixed} galactic structure solver class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -156,7 +156,7 @@ contains
 
   subroutine fixedDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily fixed} galactic structure solver class.
+    Destructor for the \refClass{galacticStructureSolverFixed} galactic structure solver class.
     !!}
     use :: Events_Hooks, only : nodePromotionEvent, postEvolveEvent, preDerivativeEvent, satelliteMergerEvent
     implicit none

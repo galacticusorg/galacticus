@@ -51,7 +51,7 @@ progenitors of the node on the main branch above a certain mass fraction.
 
   interface mergerTreeBuildControllerMainBranch
      !!{
-     Constructors for the {\normalfont \ttfamily mainBranch} merger tree build controller class.
+     Constructors for the \refClass{mergerTreeBuildControllerMainBranch} merger tree build controller class.
      !!}
      module procedure mainBranchConstructorParameters
      module procedure mainBranchConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function mainBranchConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily mainBranch} merger tree build controller class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeBuildControllerMainBranch} merger tree build controller class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -91,7 +91,7 @@ contains
 
   function mainBranchConstructorInternal(massFraction,mergerTreeBranchingProbability_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily mainBranch} merger tree build controller class.
+    Internal constructor for the \refClass{mergerTreeBuildControllerMainBranch} merger tree build controller class.
     !!}
     implicit none
     type            (mergerTreeBuildControllerMainBranch)                        :: self
@@ -106,7 +106,7 @@ contains
 
   subroutine mainBranchDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily mainBranch} merger tree build controller class.
+    Destructor for the \refClass{mergerTreeBuildControllerMainBranch} merger tree build controller class.
     !!}
     implicit none
     type(mergerTreeBuildControllerMainBranch), intent(inout) :: self

@@ -3,7 +3,7 @@
 <!-- defaults to the basicMass if no bound mass history is available. -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
+  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
   <verbosityLevel value="standard"/>
   <componentDarkMatterProfile value="scaleFree"/>
 
@@ -206,6 +206,15 @@
     </nodeOperator>
     <!-- Halo positions -->
     <nodeOperator value="positionDiscrete"/>
+    <!-- Satellite physics -->
+    <nodeOperator value="satelliteOrphanize"/>
+    <!-- CGM physics -->
+    <nodeOperator value="CGMOuterRadiusVirialRadius"/>
+    <nodeOperator value="CGMCoolingInflow">
+      <component value="disk"/>
+    </nodeOperator>
+    <nodeOperator value="CGMAccretion"/>
+    <nodeOperator value="CGMStarvation"/>
   </nodeOperator>
 
 </parameters>

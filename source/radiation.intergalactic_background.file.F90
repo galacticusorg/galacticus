@@ -94,7 +94,7 @@
 
   interface radiationFieldIntergalacticBackgroundFile
      !!{
-     Constructors for the {\normalfont \ttfamily intergalacticBackgroundFile} radiation field class.
+     Constructors for the \refClass{radiationFieldIntergalacticBackgroundFile} radiation field class.
      !!}
      module procedure intergalacticBackgroundFileConstructorParameters
      module procedure intergalacticBackgroundFileConstructorInternal
@@ -107,7 +107,7 @@ contains
 
   function intergalacticBackgroundFileConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily intergalacticBackgroundFile} radiation field class which takes a parameter list as input.
+    Constructor for the \refClass{radiationFieldIntergalacticBackgroundFile} radiation field class which takes a parameter list as input.
     !!}
     use :: File_Utilities  , only : File_Name_Expand
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -135,7 +135,7 @@ contains
 
   function intergalacticBackgroundFileConstructorInternal(fileName,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily intergalacticBackgroundFile} radiation field class.
+    Internal constructor for the \refClass{radiationFieldIntergalacticBackgroundFile} radiation field class.
     !!}
     use :: Array_Utilities, only : Array_Is_Monotonic               , Array_Reverse        , directionIncreasing
     use :: FoX_DOM        , only : destroy                          , extractDataContent   , node
@@ -254,7 +254,7 @@ contains
 
   subroutine intergalacticBackgroundFileDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily intergalacticBackgroundFile} radiation field class.
+    Destructor for the \refClass{radiationFieldIntergalacticBackgroundFile} radiation field class.
     !!}
     implicit none
     type(radiationFieldIntergalacticBackgroundFile), intent(inout) :: self

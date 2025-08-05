@@ -47,7 +47,7 @@
 
   interface outputAnalysisBlackHoleVelocityDispersionRelation
      !!{
-     Constructors for the {\normalfont \ttfamily blackHoleVelocityDispersionRelation} output analysis class.
+     Constructors for the \refClass{outputAnalysisBlackHoleVelocityDispersionRelation} output analysis class.
      !!}
      module procedure blackHoleVelocityDispersionRelationConstructorParameters
      module procedure blackHoleVelocityDispersionRelationConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function blackHoleVelocityDispersionRelationConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily blackHoleVelocityDispersionRelation} output analysis class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisBlackHoleVelocityDispersionRelation} output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -118,7 +118,7 @@ contains
 
   function blackHoleVelocityDispersionRelationConstructorInternal(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_,toleranceRelative,darkMatterHaloScale_) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily blackHoleVelocityDispersionRelation} output analysis class for internal use.
+    Constructor for the \refClass{outputAnalysisBlackHoleVelocityDispersionRelation} output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -368,7 +368,7 @@ contains
 
   subroutine blackHoleVelocityDispersionRelationDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily blackHoleVelocityDispersionRelation} output analysis class.
+    Destructor for the \refClass{outputAnalysisBlackHoleVelocityDispersionRelation} output analysis class.
     !!}
     implicit none
     type(outputAnalysisBlackHoleVelocityDispersionRelation), intent(inout) :: self

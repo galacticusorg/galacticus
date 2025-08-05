@@ -50,7 +50,7 @@
   
   interface massDistributionCoredNFW
      !!{
-     Constructors for the {\normalfont \ttfamily coredNFW} mass distribution class.
+     Constructors for the \refClass{massDistributionCoredNFW} mass distribution class.
      !!}
      module procedure coredNFWConstructorParameters
      module procedure coredNFWConstructorInternal
@@ -70,7 +70,7 @@ contains
 
   function coredNFWConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily coredNFW} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionCoredNFW} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
@@ -164,7 +164,7 @@ contains
 
   function coredNFWConstructorInternal(radiusScale,radiusCore,concentration,densityNormalization,mass,radiusVirial,dimensionless,componentType,massType,toleranceRelativePotential) result(self)
     !!{
-    Internal constructor for ``coreNFW'' mass distribution class.
+    Internal constructor for \refClass{massDistributionCoredNFW} mass distribution class.
     !!}
     use :: Error                   , only : Error_Report
     use :: Numerical_Constants_Math, only : Pi

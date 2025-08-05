@@ -58,7 +58,7 @@
 
   interface sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt
      !!{
-     Constructors for the {\normalfont \ttfamily cllsnlssMttCsmlgclCnstnt} spherical collapse solver class.
+     Constructors for the \refClass{sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt} spherical collapse solver class.
      !!}
      module procedure cllsnlssMttCsmlgclCnstntConstructorParameters
      module procedure cllsnlssMttCsmlgclCnstntConstructorInternal
@@ -89,7 +89,7 @@ contains
 
   function cllsnlssMttCsmlgclCnstntConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily cllsnlssMttCsmlgclCnstnt} spherical collapse solver class that takes a parameter set as
+    Constructor for the \refClass{sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt} spherical collapse solver class that takes a parameter set as
     input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -114,7 +114,7 @@ contains
 
   function cllsnlssMttCsmlgclCnstntConstructorInternal(cosmologyFunctions_,linearGrowth_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily cllsnlssMttCsmlgclCnstnt} spherical collapse solver class.
+    Internal constructor for the \refClass{sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt} spherical collapse solver class.
     !!}
     use :: Input_Paths       , only : inputPath   , pathTypeDataDynamic
     use :: ISO_Varying_String, only : operator(//)
@@ -149,7 +149,7 @@ contains
 
   subroutine cllsnlssMttCsmlgclCnstntDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily cllsnlssMttCsmlgclCnstnt} spherical collapse solver class.
+    Destructor for the \refClass{sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt} spherical collapse solver class.
     !!}
     implicit none
     type(sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt), intent(inout) :: self

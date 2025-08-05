@@ -66,11 +66,12 @@
      procedure :: gradientMass    => marsh2016FDMGradientMass
      procedure :: isMassDependent => marsh2016FDMIsMassDependent
      procedure :: isNodeDependent => marsh2016FDMIsNodeDependent
+     procedure :: isTreeDependent => marsh2016FDMIsTreeDependent
   end type criticalOverdensityMarsh2016FDM
 
   interface criticalOverdensityMarsh2016FDM
      !!{
-     Constructors for the {\normalfont \ttfamily marsh2016FDM} critical overdensity for collapse class.
+     Constructors for the \refClass{criticalOverdensityMarsh2016FDM} critical overdensity for collapse class.
      !!}
      module procedure marsh2016FDMConstructorParameters
      module procedure marsh2016FDMConstructorInternal
@@ -88,7 +89,7 @@ contains
 
   function marsh2016FDMConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily marsh2016FDM} critical overdensity for collapse class which takes a parameter set as input.
+    Constructor for the \refClass{criticalOverdensityMarsh2016FDM} critical overdensity for collapse class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -132,7 +133,7 @@ contains
 
   function marsh2016FDMConstructorInternal(criticalOverdensityCDM,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,linearGrowth_,useFittingFunction) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily marsh2016FDM} critical overdensity for collapse class.
+    Internal constructor for the \refClass{criticalOverdensityMarsh2016FDM} critical overdensity for collapse class.
     !!}
     use :: Cosmology_Parameters        , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles       , only : darkMatterParticleFuzzyDarkMatter
@@ -421,3 +422,15 @@ contains
     marsh2016FDMIsNodeDependent=.false.
     return
   end function marsh2016FDMIsNodeDependent
+
+  logical function marsh2016FDMIsTreeDependent(self)
+    !!{
+    Return whether the critical overdensity is tree dependent.
+    !!}
+    implicit none
+    class(criticalOverdensityMarsh2016FDM), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    marsh2016FDMIsTreeDependent=.false.
+    return
+  end function marsh2016FDMIsTreeDependent

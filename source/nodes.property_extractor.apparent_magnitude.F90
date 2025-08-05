@@ -49,7 +49,7 @@ Implements a node property extractor class for apparent magnitudes.
 
   interface nodePropertyExtractorMagnitudesApparent
      !!{
-     Constructors for the {\normalfont \ttfamily magnitudesApparent} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMagnitudesApparent} output analysis class.
      !!}
      module procedure magnitudesApparentConstructorParameters
      module procedure magnitudesApparentConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function magnitudesApparentConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily magnitudesApparent} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorMagnitudesApparent} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode
@@ -87,7 +87,7 @@ contains
 
   function magnitudesApparentConstructorInternal(component,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily magnitudesApparent} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorMagnitudesApparent} property extractor class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -103,7 +103,7 @@ contains
   
   subroutine magnitudesApparentDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily magnitudesApparent} property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorMagnitudesApparent} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorMagnitudesApparent), intent(inout) :: self

@@ -47,7 +47,7 @@
   
   interface nodeOperatorDarkMatterProfileScaleInterpolate
      !!{
-     Constructors for the {\normalfont \ttfamily darkMatterProfileScaleInterpolate} node operator class.
+     Constructors for the \refClass{nodeOperatorDarkMatterProfileScaleInterpolate} node operator class.
      !!}
      module procedure dmpScaleInterpolateConstructorParameters
      module procedure dmpScaleInterpolateConstructorInternal
@@ -57,7 +57,7 @@ contains
   
   function dmpScaleInterpolateConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily darkMatterProfileScaleInterpolate} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorDarkMatterProfileScaleInterpolate} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -73,7 +73,7 @@ contains
 
   function dmpScaleInterpolateConstructorInternal() result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily darkMatterProfileScaleInterpolate} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorDarkMatterProfileScaleInterpolate} node operator class which takes a parameter set as input.
     !!}
     implicit none
     type (nodeOperatorDarkMatterProfileScaleInterpolate) :: self

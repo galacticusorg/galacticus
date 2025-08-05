@@ -57,7 +57,7 @@
 
   interface distributionFunction1DNormal
      !!{
-     Constructors for the {\normalfont \ttfamily normal} 1D distribution function class.
+     Constructors for the \refClass{distributionFunction1DNormal} 1D distribution function class.
      !!}
      module procedure normalConstructorParameters
      module procedure normalConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function normalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily normal} 1D distribution function class which builds the object from a parameter
+    Constructor for the \refClass{distributionFunction1DNormal} 1D distribution function class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -123,7 +123,7 @@ contains
 
   function normalConstructorInternal(mean,variance,limitLower,limitUpper,randomNumberGenerator_) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily normal} 1D distribution function class.
+    Constructor for the \refClass{distributionFunction1DNormal} 1D distribution function class.
     !!}
     use :: Error_Functions, only : Error_Function
     implicit none

@@ -51,7 +51,7 @@
 
   interface outputAnalysisLocalGroupMassVelocityDispersionRelation
      !!{
-     Constructors for the {\normalfont \ttfamily localGroupMassVelocityDispersionRelation} output analysis class.
+     Constructors for the \refClass{outputAnalysisLocalGroupMassVelocityDispersionRelation} output analysis class.
      !!}
      module procedure localGroupMassVelocityDispersionRelationConstructorParameters
      module procedure localGroupMassVelocityDispersionRelationConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function localGroupMassVelocityDispersionRelationConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily localGroupMassVelocityDispersionRelation} output analysis class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisLocalGroupMassVelocityDispersionRelation} output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters            , only : inputParameter               , inputParameters
     use :: Output_Times                , only : outputTimes                  , outputTimesClass
@@ -160,7 +160,7 @@ contains
 
   function localGroupMassVelocityDispersionRelationConstructorInternal(outputTimes_,darkMatterHaloScale_,positionType,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,velocityDispersionSystematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily localGroupMassVelocityDispersionRelation} output analysis class for internal use.
+    Constructor for the \refClass{outputAnalysisLocalGroupMassVelocityDispersionRelation} output analysis class for internal use.
     !!}
     use :: Galactic_Filters                        , only : filterList                                          , galacticFilterAll                         , galacticFilterHaloNotIsolated         , galacticFilterHostMassRange                    , &
           &                                                 galacticFilterSurveyGeometry                        , galacticFilterHighPass                    , enumerationPositionTypeType
@@ -524,7 +524,7 @@ contains
 
   subroutine localGroupMassVelocityDispersionRelationDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily localGroupMassVelocityDispersionRelation} output analysis class.
+    Destructor for the \refClass{outputAnalysisLocalGroupMassVelocityDispersionRelation} output analysis class.
     !!}
     implicit none
     type(outputAnalysisLocalGroupMassVelocityDispersionRelation), intent(inout) :: self

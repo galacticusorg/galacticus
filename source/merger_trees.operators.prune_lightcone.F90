@@ -220,7 +220,7 @@ contains
     forestRootsNewLast      => null()
     forestRootsOriginalLast => null()
     ! Iterate over trees.
-    nodeParent => null()
+    nodeParent    => null()
     treeWalkerAll =  mergerTreeWalkerAllNodes(tree,spanForest=.true.)
     do while (treeWalkerAll%next(node))
        ! If buffering isolated halos, set a suitable buffer radius. For isolated halos this is the maximum extent of their
@@ -250,16 +250,12 @@ contains
           else
              ! For a central - set a suitable buffer.
              radiusBuffer=self%satelliteOrphanDistribution_%extent(node)
-             ! Also temporarily decouple from the tree.
-             node%parent => null()
           end if
        end if
        ! Test for intersection with the lightcone.
        nodeIntersectsLightcone=self%geometryLightcone_%isInLightcone(node,atPresentEpoch=.false.,radiusBuffer=radiusBuffer)
        ! Reset the time of merging if it was adjusted above.
        if (self%bufferIsolatedHalos) then
-          ! Recouple to the tree.
-          node%parent => nodeParent
           ! Reset time of merging.
           if (node%isSatellite()) call satellite%timeOfMergingSet(timeOfMergingCurrent)
        end if

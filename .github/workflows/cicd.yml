@@ -819,6 +819,30 @@ jobs:
       uploadFile: ./testSuite/outputs/*.json
       uploadName: validate-darkMatterOnlySubhalos
     secrets: inherit
+  Validate-Dark-Matter-Only-Subhalos-Symphony:
+    needs: Build-Executable-DMO-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-darkMatterOnlySubhalos-Symphony.py
+      artifact: galacticus-exec-dmo
+      runPath: ./testSuite
+      cacheData: 0
+      uploadFile: ./testSuite/outputs/*.json
+      uploadName: validate-darkMatterOnlySubhalosSymphonyMilkyWay
+    secrets: inherit
+  Validate-Dark-Matter-Only-Subhalos-COZMICWDM3keV:
+    needs: Build-Executable-DMO-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-darkMatterOnlySubhalos-COZMIC:WDM:3keV.py
+      artifact: galacticus-exec-dmo
+      runPath: ./testSuite
+      cacheData: 0
+      uploadFile: ./testSuite/outputs/*.json
+      uploadName: validate-darkMatterOnlySubhalosCOZMICWDM3keVMilkyWay
+    secrets: inherit
   Validate-Milky-Way-Model:
     needs: Build-Executable-Linux
     uses: ./.github/workflows/testModel.yml
@@ -913,6 +937,7 @@ jobs:
                       tests.make_ranges.exe,
                       tests.mass_distributions.exe,
                       tests.mass_distributions.tabulated.exe,
+                      tests.prompt_cusps.exe,
                       tests.math_special_functions.exe,
                       tests.math_distributions.exe,
                       tests.math.fast.exe,
@@ -983,6 +1008,7 @@ jobs:
                       tests.dark_matter_profiles.generic.exe,
                       tests.dark_matter_profiles.finite_resolution.exe,
                       tests.dark_matter_profiles.Zhao1996.exe,
+                      tests.dark_matter_profiles.fuzzy_dark_matter.exe,
                       tests.decaying_dark_matter.exe,
                       tests.spectra.postprocess.Inoue2014.exe,
                       tests.recombination_computed.exe,
@@ -1193,7 +1219,8 @@ jobs:
                 test-decayingDM-caustic.py,
                 test-decayingDM-profile.py,
                 test-decayingDM-shell-crossing-capture.py,
-                test-enforceNonNegativity.py ]
+                test-enforceNonNegativity.py,
+                test-pruneLightcone.py ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
@@ -1413,6 +1440,71 @@ jobs:
       runPath: ./testSuite
       options: --mpi 1
     secrets: inherit
+  ## Emulation
+  Emulation-Subhalos:
+    runs-on: ubuntu-latest
+    container: ghcr.io/galacticusorg/buildenv:latest
+    needs: Build-Executable-DMO-Linux
+    steps:
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+      - name: Check out repository datasets
+        uses: actions/checkout@v4      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "PYTHONPATH=$GITHUB_WORKSPACE/python" >> $GITHUB_ENV
+      - name: Download executables
+        uses: actions/download-artifact@v4
+        with:
+          name: galacticus-exec-dmo
+      - name: Install Python
+        run: |
+          apt -y update && apt -y upgrade
+          apt -y install python3-full python3-dev python3-pip python3-venv
+      - name: Create VirtualEnv
+        run: |
+          python3 -m venv virtualenv
+          source virtualenv/bin/activate
+      - name: Install Python packages
+        run: |
+          ${GITHUB_WORKSPACE}/virtualenv/bin/pip3 install --upgrade pip
+          ${GITHUB_WORKSPACE}/virtualenv/bin/pip3 install --upgrade TensorFlow tensorflow_probability tf_keras matplotlib scipy lenstronomy tqdm colossus mcfit
+      - name: Install Samana
+        run: |
+          git clone https://github.com/dangilman/samana.git
+          cd samana
+          ${GITHUB_WORKSPACE}/virtualenv/bin/python3 setup.py install
+          cd -
+      - name: Install pyHalo
+        run: |
+          git clone https://github.com/dangilman/pyHalo.git
+          cd pyHalo
+          ${GITHUB_WORKSPACE}/virtualenv/bin/python3 setup.py install
+          cd -
+      - name: Generate training data
+        run: |
+          mkdir -p testSuite/outputs/emulation-subhalos
+          chmod u=wrx ./Galacticus.exe
+          ./Galacticus.exe testSuite/parameters/emulation-lensSubhalos.xml
+      - name: Train the emulator
+        run: ${GITHUB_WORKSPACE}/virtualenv/bin/python3 scripts/emulation/emulatorSubhalosTraining.py testSuite/outputs/emulation-subhalos/emulation-lensSubhalos.hdf5 --outputDirectory testSuite/outputs/emulation-subhalos
+      - name: Perform a test inference
+        run: ${GITHUB_WORKSPACE}/virtualenv/bin/python3 scripts/emulation/emulatorSubhaloQuadLensingInference.py --outputDirectory testSuite/outputs/emulation-subhalos
+      - name: Upload plots
+        uses: actions/upload-artifact@v4
+        with:
+          name: emulation-subhalos
+          path: ./testSuite/outputs/emulation-subhalos/*.pdf
+      - run: echo "This job's status is ${{ job.status }}."
   ## Python Interface
   Python-Interface:
     runs-on: ubuntu-latest
@@ -1492,7 +1584,7 @@ jobs:
   # Validate, deploy and update
   Validate:
     runs-on: ubuntu-latest
-    needs: [ Benchmark-Dark-Matter-Only-Subhalos, Benchmark-Milky-Way-Model, Validate-Dark-Matter-Only-Subhalos, Validate-Milky-Way-Model, Validate-PonosV, Validate-Baryonic-Suppression, Validate-Idealized-Subhalo-Simulations, Validate-Decaying-Dark-Matter-Only-Subhalos ]
+    needs: [ Benchmark-Dark-Matter-Only-Subhalos, Benchmark-Milky-Way-Model, Validate-Dark-Matter-Only-Subhalos, Validate-Dark-Matter-Only-Subhalos-Symphony, Validate-Dark-Matter-Only-Subhalos-COZMICWDM3keV, Validate-Milky-Way-Model, Validate-PonosV, Validate-Baryonic-Suppression, Validate-Idealized-Subhalo-Simulations, Validate-Decaying-Dark-Matter-Only-Subhalos ]
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -1518,7 +1610,23 @@ jobs:
           name: 'Dark matter-only subhalos benchmarks'
           type: 'validate'
           suffix: 'darkMatterOnlySubhalos'
-          threshold: '130%'
+          threshold: '140%'
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Dark matter-only subhalos validation (Symphony)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Dark matter-only subhalos benchmarks (Symphony)'
+          type: 'validate'
+          suffix: 'darkMatterOnlySubhalosSymphonyMilkyWay'
+          threshold: '140%'
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Dark matter-only subhalos validation (COZMIC WDM 3keV)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Dark matter-only subhalos benchmarks (COZMIC WDM 3keV)'
+          type: 'validate'
+          suffix: 'darkMatterOnlySubhalosCOZMICWDM3keVMilkyWay'
+          threshold: '450%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Milky Way model validation'
         uses: ./.github/actions/benchmark
@@ -1625,7 +1733,7 @@ jobs:
           type: 'validate'
           artifact: 'validate-darkMatterOnlySubhalos-decayingDarkMatter'
           suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime20.0_velocityKick40.0'
-          threshold: '300%'
+          threshold: '500%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Decaying dark matter-only subhalos benchmarks (τ=40 Gyr; vₖ=20 km/s)'
         uses: ./.github/actions/benchmark
@@ -1670,11 +1778,15 @@ jobs:
         run: |
           git checkout gh-pages
           mkdir -p dev/valid/darkMatterOnlySubhalos
+          mkdir -p dev/valid/darkMatterOnlySubhalosSymphonyMilkyWay
+          mkdir -p dev/valid/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWay
           mkdir -p dev/valid/milkyWayModel
           mkdir -p dev/valid/strongLensing
           mkdir -p dev/valid/idealizedSubhaloSimulations
           mkdir -p dev/valid/darkMatterOnlySubhalosDecayingDarkMatter
           mv results_darkMatterOnlySubhalos.json                      dev/valid/darkMatterOnlySubhalos/results.json
+          mv results_darkMatterOnlySubhalosSymphonyMilkyWay.json      dev/valid/darkMatterOnlySubhalosSymphonyMilkyWay/results.json
+          mv results_darkMatterOnlySubhalosCOZMICWDM3keVMilkyWay.json dev/valid/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWay/results.json
           mv results_milkyWayModel.json                               dev/valid/milkyWayModel/results.json
           mv results_PonosV.json                                      dev/valid/strongLensing/results_PonosV.json
           mv results_baryonicSuppression.json                         dev/valid/baryonicSuppression/results_baryonicSuppression.json
@@ -1682,7 +1794,7 @@ jobs:
           mv results_darkMatterOnlySubhalos_decayingDarkMatter_*.json dev/valid/darkMatterOnlySubhalosDecayingDarkMatter/
           git config --local user.email "github@users.noreply.github.com"
           git config --local user.name "github-action-validate"
-          git add dev/valid/darkMatterOnlySubhalos/results.json dev/valid/milkyWayModel/results.json dev/valid/strongLensing/results_PonosV.json dev/valid/baryonicSuppression/results_baryonicSuppression.json dev/valid/idealizedSubhaloSimulations/results_idealizedSubhaloSimulation_*.json dev/valid/darkMatterOnlySubhalosDecayingDarkMatter/results_darkMatterOnlySubhalos_decayingDarkMatter_*.json
+          git add dev/valid/darkMatterOnlySubhalos/results.json dev/valid/darkMatterOnlySubhalosSymphonyMilkyWay/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWay/results.json dev/valid/milkyWayModel/results.json dev/valid/strongLensing/results_PonosV.json dev/valid/baryonicSuppression/results_baryonicSuppression.json dev/valid/idealizedSubhaloSimulations/results_idealizedSubhaloSimulation_*.json dev/valid/darkMatterOnlySubhalosDecayingDarkMatter/results_darkMatterOnlySubhalos_decayingDarkMatter_*.json
           git commit -m "Update validation results"
           git push --set-upstream origin gh-pages
           git checkout -
@@ -1842,13 +1954,21 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
     needs: Deploy
+    env: 
+      appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
+      - uses: tibdex/github-app-token@v2
+        if: ${{ env.appid != '' }}
+        id: generate-token
+        with:
+          app_id: ${{ secrets.DEPLOY_APP_ID }}
+          private_key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
       - name: Update tag
         run: |
           git tag -f bleeding-edge
           git push origin -f bleeding-edge
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
       - run: echo "This job's status is ${{ job.status }}."

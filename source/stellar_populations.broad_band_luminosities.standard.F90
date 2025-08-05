@@ -69,7 +69,7 @@
 
   interface stellarPopulationBroadBandLuminositiesStandard
      !!{
-     Constructors for the {\normalfont \ttfamily standard} stellar population broad band luminosities class.
+     Constructors for the \refClass{stellarPopulationBroadBandLuminositiesStandard} stellar population broad band luminosities class.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -89,7 +89,7 @@ contains
 
   function standardConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily standard} stellar population broad band luminosities class which takes a
+    Constructor for the \refClass{stellarPopulationBroadBandLuminositiesStandard} stellar population broad band luminosities class which takes a
     parameter set as input.
     !!}
     use :: Input_Paths     , only : inputPath      , pathTypeDataDynamic
@@ -143,7 +143,7 @@ contains
 
   function standardConstructorInternal(integrationToleranceRelative,integrationToleranceDegrade,maximumAgeExceededIsFatal,storeToFile,storeDirectory) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily standard} stellar population broad band luminosities class.
+    Internal constructor for the \refClass{stellarPopulationBroadBandLuminositiesStandard} stellar population broad band luminosities class.
     !!}
     implicit none
     type            (stellarPopulationBroadBandLuminositiesStandard)                :: self

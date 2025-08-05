@@ -40,7 +40,7 @@
 
   interface galacticDynamicsBarInstabilityStable
      !!{
-     Constructors for the {\normalfont \ttfamily stable} model for galactic disk bar instability class.
+     Constructors for the \refClass{galacticDynamicsBarInstabilityStable} model for galactic disk bar instability class.
      !!}
      module procedure stableConstructorParameters
   end interface galacticDynamicsBarInstabilityStable
@@ -49,7 +49,7 @@ contains
 
   function stableConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily stable} model for galactic disk bar instability class which takes a
+    Constructor for the \refClass{galacticDynamicsBarInstabilityStable} model for galactic disk bar instability class which takes a
     parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters

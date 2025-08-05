@@ -1,4 +1,5 @@
 <?xml version="1.0"?>
+<!-- Simple XML file used to test XML I/O functions in Galacticus -->
 <test>
   <array1>
     <datum>0.0</datum>

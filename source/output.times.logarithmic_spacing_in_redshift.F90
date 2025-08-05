@@ -37,7 +37,7 @@
 
   interface outputTimesLogarithmicSpacingInRedshift
      !!{
-     Constructors for the {\normalfont \ttfamily logarithmicSpacingInRedshift} output times class.
+     Constructors for the \refClass{outputTimesLogarithmicSpacingInRedshift} output times class.
      !!}
      module procedure logarithmicSpacingInRedshiftConstructorParameters
      module procedure logarithmicSpacingInRedshiftConstructorInternal
@@ -47,7 +47,7 @@ contains
 
   function logarithmicSpacingInRedshiftConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily logarithmicSpacingInRedshift} output times class which takes a parameter set as input.
+    Constructor for the \refClass{outputTimesLogarithmicSpacingInRedshift} output times class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -85,7 +85,7 @@ contains
 
   function logarithmicSpacingInRedshiftConstructorInternal(redshiftMinimum,redshiftMaximum,countRedshifts,cosmologyFunctions_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily logarithmicSpacingInRedshift} output times class which takes a parameter set as input.
+    Constructor for the \refClass{outputTimesLogarithmicSpacingInRedshift} output times class which takes a parameter set as input.
     !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLogarithmic
     implicit none

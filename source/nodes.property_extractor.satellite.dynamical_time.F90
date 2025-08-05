@@ -54,7 +54,7 @@ Provides a class that implements a satellite dynamical time extractor.
 
   interface nodePropertyExtractorSatelliteDynamicalTime
      !!{
-     Constructors for the {\normalfont \ttfamily satelliteDynamicalTime} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorSatelliteDynamicalTime} output analysis class.
      !!}
      module procedure dynamicalTimeConstructorParameters
      module procedure dynamicalTimeConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function dynamicalTimeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily satelliteDynamicalTime} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorSatelliteDynamicalTime} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -85,7 +85,7 @@ contains
 
   function dynamicalTimeConstructorInternal(satelliteTidalStrippingRadius_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily satelliteDynamicalTime} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorSatelliteDynamicalTime} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorSatelliteDynamicalTime)                        :: self
@@ -99,7 +99,7 @@ contains
 
   subroutine dynamicalTimeDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily satelliteDynamicalTime} property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorSatelliteDynamicalTime} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSatelliteDynamicalTime), intent(inout) :: self

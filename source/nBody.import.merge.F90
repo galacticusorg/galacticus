@@ -42,7 +42,7 @@ Implements an N-body data importer which merges data from other importers.
 
   interface nbodyImporterMerge
      !!{
-     Constructors for the {\normalfont \ttfamily merge} N-body importer class.
+     Constructors for the \refClass{nbodyImporterMerge} N-body importer class.
      !!}
      module procedure mergeConstructorParameters
      module procedure mergeConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function mergeConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily merge} N-body importer class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyImporterMerge} N-body importer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -92,7 +92,7 @@ contains
 
   function mergeConstructorInternal(label,importers) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily merge} N-body importer class.
+    Internal constructor for the \refClass{nbodyImporterMerge} N-body importer class.
     !!}
     implicit none
     type(nbodyImporterMerge)                         :: self
@@ -116,7 +116,7 @@ contains
 
   subroutine mergeDestructor(self)
     !!{
-    Destructor for {\normalfont \ttfamily merge} importer class.
+    Destructor for the \refClass{nbodyImporterMerge} importer class.
     !!}
     implicit none
     type(nbodyImporterMerge), intent(inout) :: self

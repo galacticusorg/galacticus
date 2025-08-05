@@ -37,7 +37,7 @@
 
   interface starFormationActiveMassTotalISM
      !!{
-     Constructors for the {\normalfont \ttfamily totalISM} active mass for star formation class.
+     Constructors for the \refClass{starFormationActiveMassTotalISM} active mass for star formation class.
      !!}
      module procedure totalISMConstructorParameters
   end interface starFormationActiveMassTotalISM
@@ -46,7 +46,7 @@ contains
 
   function totalISMConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily totalISM} active mass for star formation class which takes a parameter set as
+    Constructor for the \refClass{starFormationActiveMassTotalISM} active mass for star formation class which takes a parameter set as
     input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters

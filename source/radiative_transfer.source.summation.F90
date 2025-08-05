@@ -50,7 +50,7 @@
 
   interface radiativeTransferSourceSummation
      !!{
-     Constructors for the {\normalfont \ttfamily summation} radiative transfer source class.
+     Constructors for the \refClass{radiativeTransferSourceSummation} radiative transfer source class.
      !!}
      module procedure summationConstructorParameters
      module procedure summationConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function summationConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily summation} radiative transfer source class which takes a parameter set as input.
+    Constructor for the \refClass{radiativeTransferSourceSummation} radiative transfer source class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -97,7 +97,7 @@ contains
 
   function summationConstructorInternal(radiativeTransferSources,randomNumberGenerator_) result(self)
     !!{
-    Internal constructor for the ``summation'' radiative transfer source class.
+    Internal constructor for the \refClass{radiativeTransferSourceSummation} radiative transfer source class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -134,7 +134,7 @@ contains
 
   subroutine summationDestructor(self)
     !!{
-    Destructor for the ``summation'' radiative transfer source class.
+    Destructor for the \refClass{radiativeTransferSourceSummation} radiative transfer source class.
     !!}
     implicit none
     type(radiativeTransferSourceSummation), intent(inout) :: self

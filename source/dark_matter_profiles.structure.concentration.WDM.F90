@@ -57,7 +57,7 @@
 
   interface darkMatterProfileConcentrationWDM
      !!{
-     Constructors for the {\normalfont \ttfamily WDM} dark matter halo profile concentration
+     Constructors for the \refClass{darkMatterProfileConcentrationWDM} dark matter halo profile concentration
      class.
      !!}
      module procedure wdmConstructorParameters
@@ -92,7 +92,7 @@ contains
 
   function wdmConstructorInternal(cdmConcentration,transferFunction_) result(self)
     !!{
-    Generic constructor for the \gls{wdm} dark matter halo concentration class.
+    Internal constructor for the \gls{wdm} dark matter halo concentration class.
     !!}
     implicit none
     type (darkMatterProfileConcentrationWDM  )                        :: self
@@ -107,7 +107,7 @@ contains
 
   subroutine wdmDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily wdm} dark matter halo profile concentration class.
+    Destructor for the \refClass{darkMatterProfileConcentrationWDM} dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationWDM), intent(inout) :: self

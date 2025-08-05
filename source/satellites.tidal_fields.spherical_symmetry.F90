@@ -62,7 +62,7 @@ contains
 
   function sphericalSymmetryConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sphericalSymmetry} satellite tidal field class which builds the object from a parameter set.
+    Constructor for the \refClass{satelliteTidalFieldSphericalSymmetry} satellite tidal field class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -90,7 +90,7 @@ contains
 
   function sphericalSymmetryConstructorInternal(factorBoost,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily sphericalSymmetry} satellite tidal field class.
+    Internal constructor for the \refClass{satelliteTidalFieldSphericalSymmetry} satellite tidal field class.
     !!}
     implicit none
     type            (satelliteTidalFieldSphericalSymmetry)                        :: self
@@ -105,7 +105,7 @@ contains
 
   subroutine sphericalSymmetryDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily sphericalSymmetry} satellite tidal field class.
+    Destructor for the \refClass{satelliteTidalFieldSphericalSymmetry} satellite tidal field class.
     !!}
     implicit none
     type(satelliteTidalFieldSphericalSymmetry), intent(inout) :: self

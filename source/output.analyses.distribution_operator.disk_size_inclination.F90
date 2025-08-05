@@ -43,7 +43,7 @@
 
   interface outputAnalysisDistributionOperatorDiskSizeInclntn
      !!{
-     Constructors for the {\normalfont \ttfamily diskSizeInclination} output distribution operator class.
+     Constructors for the \refClass{outputAnalysisDistributionOperatorDiskSizeInclntn} output distribution operator class.
      !!}
      module procedure diskSizeInclinationConstructorParameters
      module procedure diskSizeInclinationConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function diskSizeInclinationConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily diskSizeInclination} output analysis distribution operator operator class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisDistributionOperatorDiskSizeInclntn} output analysis distribution operator operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -73,7 +73,7 @@ contains
 
   function diskSizeInclinationConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily diskSizeInclination} output analysis distribution operator class.
+    Internal constructor for the \refClass{outputAnalysisDistributionOperatorDiskSizeInclntn} output analysis distribution operator class.
     !!}
     use :: File_Utilities    , only : Directory_Make           , File_Exists                  , File_Lock                    , File_Unlock, &
           &                           lockDescriptor
@@ -151,7 +151,7 @@ contains
 
   subroutine diskSizeInclinationDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily diskSizeInclination} output analysis distribution operator operator class.
+    Destructor for the \refClass{outputAnalysisDistributionOperatorDiskSizeInclntn} output analysis distribution operator operator class.
     !!}
     implicit none
     type(outputAnalysisDistributionOperatorDiskSizeInclntn), intent(inout) :: self

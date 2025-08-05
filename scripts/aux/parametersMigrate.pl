@@ -30,6 +30,9 @@ my %options =
 # Parse options.
 my %optionsDefined = &Galacticus::Options::Parse_Options(\@ARGV,\%options);
 
+# Write starting message.
+print "Translating file: ".$inputFileName."\n";
+
 # Parse the input file.
 my $parser     = XML::LibXML->new();
 my $input      = $parser->parse_file($inputFileName);
@@ -44,10 +47,10 @@ if ( $input->findnodes('parameters') ) {
     if ( $parameterGrid->findnodes('parameters') ) {
 	@parameterSets = $parameterGrid->findnodes('parameters');
     } else {
-	die('can not find parameters')
+	die('can not find <parameters>')
     }
 } else {
-    die('can not find parameters')
+    die('can not find <parameters> in file `'.$inputFileName.'`')
 }
 
 # Find the ancestry of the given file. We find the hash at which is was last modified, the current HEAD hash, and then find the
@@ -55,7 +58,7 @@ if ( $input->findnodes('parameters') ) {
 ## Check if the file is under version control.
 &System::Redirect::tofile("git ls-files --error-unmatch ".$inputFileName,"/dev/null");
 my $isInGit = $? == 0;
-## Determine ancestry.
+
 ## Find the current hash.
 my $hashHead;
 {
@@ -63,60 +66,10 @@ my $hashHead;
     $hashHead = <$git>;
     chomp($hashHead);
 }
-## Find last modified hash.
-my $hashLastModified;
-my $elementLastModified = $root->findnodes('//lastModified')->[0];
-unless ( defined($elementLastModified) ) {
-    my $elementLastModifiedNode = $input->createElement("lastModified");
-    my $newBreak                = $input->createTextNode("\n  "   );
-    $root->insertBefore($elementLastModifiedNode,$root->firstChild());
-    $root->insertBefore($newBreak               ,$root->firstChild());
-    $elementLastModified = $root->findnodes('lastModified')->[0];
-}
-if ( exists($options{'lastModifiedRevision'}) ) {
-    $hashLastModified = $options{'lastModifiedRevision'};
-} else {
-    # Look for a last modification hash.
-    if ( defined($elementLastModified) && grep {$_->name() eq 'revision'} $elementLastModified->attributes() ) {
-	# A last modified element exists, extract the hash, and update.
-	$hashLastModified = $elementLastModified->getAttribute('revision');
-    } elsif ( $isInGit ) {
-	# File is in git index, use git to determine the last revision at which it was modified.
-	## Find the hash at which the file was last modified.
-	{
-	    open(my $git,"git log -n 1 --pretty=format:\%H -- ".$inputFileName."|");
-	    $hashLastModified = <$git>;
-	    chomp($hashLastModified);
-	}
-    } else {
-	$hashLastModified           = "6eab8997cd73cb0a474228ade542d133890ad138^";
-	my $elementLastModifiedNode = $input->createElement("lastModified");
-	my $newBreak                = $input->createTextNode("\n  "   );
-	$root->insertBefore($elementLastModifiedNode,$root->firstChild());
-	$root->insertBefore($newBreak               ,$root->firstChild());
-	$elementLastModified = $root->findnodes('lastModified')->[0];
-    }
-}
-## Update the last modified metadata.
-$elementLastModified->setAttribute('revision',$hashHead);
-$elementLastModified->setAttribute('time'    ,DateTime->now());
-
-## Find the ancestry.
-my @ancestry;
-{
-    open(my $git,"git rev-list --ancestry-path ".$hashLastModified."..".$hashHead."|");
-    while ( my $hash = <$git> ) {
-	chomp($hash);
-	push(@ancestry,$hash);
-    }
-}
 
 # Read migration rules.
 my $xml        = new XML::Simple();
 my $migrations = $xml->XMLin("scripts/aux/migrations.xml");
-
-# Write starting message.
-print "Translating file: ".$inputFileName."\n";
 
 # Iterate over parameter sets.
 foreach my $parameters ( @parameterSets ) {
@@ -164,7 +117,56 @@ sub Migrate {
 	die('input file "'.$inputFileName.'"is not a valid Galacticus parameter file')
 	    unless ( $? == 0 );
     }
-    
+
+    # Find last modified hash.
+    my $hashLastModified;
+    my $elementLastModified = $parameters->findnodes('lastModified')->[0];
+    unless ( defined($elementLastModified) ) {
+	my $elementLastModifiedNode = $input->createElement("lastModified");
+	my $newBreak                = $input->createTextNode("\n  "   );
+	$parameters->insertBefore($elementLastModifiedNode,$parameters->firstChild());
+	$parameters->insertBefore($newBreak               ,$parameters->firstChild());
+	$elementLastModified = $parameters->findnodes('lastModified')->[0];
+    }
+    if ( exists($options{'lastModifiedRevision'}) ) {
+	$hashLastModified = $options{'lastModifiedRevision'};
+    } else {
+	# Look for a last modification hash.
+	if ( defined($elementLastModified) && grep {$_->name() eq 'revision'} $elementLastModified->attributes() ) {
+	    # A last modified element exists, extract the hash, and update.
+	    $hashLastModified = $elementLastModified->getAttribute('revision');
+	} elsif ( $isInGit ) {
+	    # File is in git index, use git to determine the last revision at which it was modified.
+	    ## Find the hash at which the file was last modified.
+	    {
+		open(my $git,"git log -n 1 --pretty=format:\%H -- ".$inputFileName."|");
+		$hashLastModified = <$git>;
+		chomp($hashLastModified);
+	    }
+	} else {
+	    $hashLastModified           = "6eab8997cd73cb0a474228ade542d133890ad138^";
+	    my $elementLastModifiedNode = $input->createElement("lastModified");
+	    my $newBreak                = $input->createTextNode("\n  "   );
+	    $parameters->insertBefore($elementLastModifiedNode,$parameters->firstChild());
+	    $parameters->insertBefore($newBreak               ,$parameters->firstChild());
+	    $elementLastModified = $parameters->findnodes('lastModified')->[0];
+	}
+    }
+    ## Update the last modified metadata.
+    my $timeStamp = exists($options{'timeStamp'}) ? $options{'timeStamp'} : DateTime->now();
+    $elementLastModified->setAttribute('revision',$hashHead );
+    $elementLastModified->setAttribute('time'    ,$timeStamp);
+
+    ## Find the ancestry.
+    my @ancestry;
+    {
+	open(my $git,"git rev-list --ancestry-path ".$hashLastModified."..".$hashHead."|");
+	while ( my $hash = <$git> ) {
+	    chomp($hash);
+	    push(@ancestry,$hash);
+	}
+    }
+
     # Iterate over the revision ancestry.
     foreach my $hashAncestor ( reverse(@ancestry) ) {
 	my @matchedMigrations = grep {$_->{'commit'} eq $hashAncestor} &List::ExtraUtils::as_array($migrations->{'migration'});
@@ -302,7 +304,7 @@ sub Migrate {
     # Search for duplicated parameters.
     my %duplicates =
 	(
-	 mergerTreeOperatorMethod => "sequence"
+	 mergerTreeOperator => "sequence"
 	);
     for my $parameter ( $parameters->getChildrenByTagName("*") ) {
 	my $nodeName = $parameter->nodeName();
@@ -357,16 +359,20 @@ sub blackHoleSeedMass {
     my $input      = shift();
     my $parameters = shift();
     # Look for "componentBlackHole" parameters.
+    my $doTranslate = 0;
     my $massSeed = 100.0; # This was the default value, to be used if no value was explicitly set.
     my $componentBlackHole;
     foreach my $node ( $parameters->findnodes("//componentBlackHole[\@value='simple' or \@value='standard' or \@value='nonCentral']/massSeed[\@value]")->get_nodelist() ) {
 	print "   translate special '//componentBlackHole[\@value]/massSeed[\@value]'\n";
+	$doTranslate        = 1;
 	$componentBlackHole = $node->parentNode;
 	# Extract the seed mass.
 	$massSeed = $node->getAttribute('value');
 	# Delete this node.
 	$node->parentNode->removeChild($node);
     }
+    return
+	unless ( $doTranslate );
     # Find nodeOperators.
     my @nodeOperators = $parameters->findnodes("//nodeOperator[\@value='multi']")->get_nodelist();
     die("can not find any `nodeOperator[\@value='multi']` into which to insert a black hole seed operator")
@@ -423,8 +429,10 @@ sub blackHolePhysics {
     # Look for "componentBlackHole" parameters.
     my $componentProperties;
     my $componentNode;
+    my $doTranslate = 0;
     foreach my $node ( $parameters->findnodes("//componentBlackHole[\@value='simple' or \@value='standard' or \@value='nonCentral']")->get_nodelist() ) {
 	print "   translate special '//componentBlackHole[\@value]'\n";
+	$doTranslate   = 1;
 	$componentNode = $node;
 	# Extract the type of component.
 	my $componentType = $node->getAttribute('value');
@@ -446,6 +454,8 @@ sub blackHolePhysics {
 	    }
 	}
     }
+    return
+	unless ( $doTranslate );
     # Find nodeOperators.
     my @nodeOperators = $parameters->findnodes("//nodeOperator[\@value='multi']")->get_nodelist();
     die("can not find any `nodeOperator[\@value='multi']` into which to insert a black hole seed operator")
@@ -552,4 +562,133 @@ sub modelParameterXPath {
 	    $nameNode->setAttribute('value',$value);	    
 	}
     }
+}
+
+sub methodSuffixRemove {
+    # Special handling to remove the `Method` suffic from parameter names.
+    my $input      = shift();
+    my $parameters = shift();
+    # Iterate over all parameters.
+    print "   translate special - remove Method suffixes\n";
+    foreach my $parameter ( $parameters->findnodes("//*")->get_nodelist() ) {
+	my $nodeName = $parameter->nodeName();
+	# Skip cases where the method suffix persists.
+	next
+	    if
+	    (
+	     $nodeName eq "readSubhaloAngularMomentaMethod"
+	     ||
+	     $nodeName eq "subhaloAngularMomentaMethod"
+	     ||
+	     $nodeName eq "diskRadiusSolverCole2000Method"
+	     ||
+	     $nodeName eq "duttonMaccio2014DensityContrastMethod"
+	     ||
+	     $nodeName eq "duttonMaccio2014DensityProfileMethod"
+	    );
+	# Translate names.
+	if ( $nodeName =~ m/^treeNodeMethod(.*)$/ ) {
+	    my $componentName = $1;
+	    $nodeName = "component".$componentName;
+	    $parameter->setNodeName($nodeName);
+	} elsif ( $nodeName =~ m/^(.*)Method$/ ) {
+	    my $parameterName = $1;
+	    $parameter->setNodeName($parameterName);
+	}
+    }
+}
+
+sub satelliteOrphanize {
+    # Special handling to add a nodeOperator to orphanize satellites.
+    my $input      = shift();
+    my $parameters = shift();
+    # Look for "componentSatellite" parameters.
+    my @nodes = $parameters->findnodes("//componentSatellite[\@value='preset']")->get_nodelist();
+    return
+	if ( scalar(@nodes) <= 0 );
+    print "   translate special '//componentSatellite[\@value='preset']'\n";
+    # Find nodeOperators.
+    my @nodeOperators = $parameters->findnodes("//nodeOperator[\@value='multi']")->get_nodelist();
+    die("can not find any `nodeOperator[\@value='multi']` into which to insert a satellite orphanizer operator")
+     	if ( scalar(@nodeOperators) == 0 );
+    die("found multiple `nodeOperator[\@value='multi']` nodes - unknown into which to insert a satellite orphanizer operator")
+     	if ( scalar(@nodeOperators) >  1 );
+    # Build node operator.
+    my $operatorOrphanize = $input->createElement("nodeOperator");
+    $operatorOrphanize->setAttribute('value','satelliteOrphanize' );
+    $nodeOperators[0]->insertAfter($operatorOrphanize,$nodeOperators[0]->lastChild);
+}
+
+sub blackHoleNonCentral {
+    # Special handling to add nodeOperators for non-central black hole evolution.
+    my $input      = shift();
+    my $parameters = shift();
+    # Look for "componentBlackHole" parameters.
+    my @nodes = $parameters->findnodes("//componentBlackHole[\@value='nonCentral']")->get_nodelist();
+    return
+	if ( scalar(@nodes) <= 0 );
+    die("found multiple `//componentBlackHole[\@value='nonCentral']` nodes - unknown what should be done in this situation")
+	if ( scalar(@nodes) >  1 );
+    print "   translate special '//componentBlackHole[\@value='nonCentral']'\n";
+    # Look for any "tripleInteraction" option.
+    my @tripleInteractions = $nodes[0]->findnodes("tripleInteraction[\@value]")->get_nodelist();
+    die("found multiple `//tripleInteraction[\@value]` nodes - unknown what should be done in this situation")
+	if ( scalar(@tripleInteractions) > 1 );
+    my $tripleInteraction = scalar(@tripleInteractions) == 1 ? $tripleInteractions[0]->getAttribute('value') eq "true" : 1;
+    $_->parentNode->removeChild($_)
+	foreach ( @tripleInteractions );
+    # Find nodeOperators.
+    my @nodeOperators = $parameters->findnodes("//nodeOperator[\@value='multi']")->get_nodelist();
+    die("can not find any `nodeOperator[\@value='multi']` into which to insert a black hole operator")
+     	if ( scalar(@nodeOperators) == 0 );
+    die("found multiple `nodeOperator[\@value='multi']` nodes - unknown into which to insert a black hole operator")
+     	if ( scalar(@nodeOperators) > 1 );
+    # Build node operator.
+    my $operatorMigration = $input->createElement("nodeOperator");
+    my $operatorTriple    = $input->createElement("nodeOperator");
+    $operatorMigration->setAttribute('value','blackHolesRadialMigration');
+    $nodeOperators[0]->insertAfter($operatorMigration,$nodeOperators[0]->lastChild);
+    if ( $tripleInteraction ) {
+	$operatorTriple   ->setAttribute('value','blackHolesTripleInteraction');
+	$nodeOperators[0]->insertAfter($operatorTriple,$nodeOperators[0]->lastChild);
+    }
+}
+
+sub hotHaloVerySimple {
+    # Special handling to add nodeOperators for "very simple" hot halo evolution.
+    my $input      = shift();
+    my $parameters = shift();
+    # Look for "componentHotHalo" parameters.
+    my @nodes = $parameters->findnodes("//componentHotHalo[\@value='verySimple' or \@value='verySimpleDelayed']")->get_nodelist();
+    return
+	if ( scalar(@nodes) <= 0 );
+    die("found multiple `//componentHotHalo[\@value='verySimple' or \@value='verySimpleDelayed']` nodes - unknown what should be done in this situation")
+	if ( scalar(@nodes) >  1 );
+    print "   translate special '//componentHotHalo[\@value='verySimple' or \@value='verySimpleDelayed']'\n";
+    # Find nodeOperators.
+    my @nodeOperators = $parameters->findnodes("//nodeOperator[\@value='multi']")->get_nodelist();
+    die("can not find any `nodeOperator[\@value='multi']` into which to insert a CGM oeprators")
+     	if ( scalar(@nodeOperators) == 0 );
+    die("found multiple `nodeOperator[\@value='multi']` nodes - unknown into which to insert CGM operators")
+     	if ( scalar(@nodeOperators) > 1 );
+    # Build node operator.
+    my $operatorOuterRadius            = $input->createElement("nodeOperator");
+    my $operatorCooling                = $input->createElement("nodeOperator");
+    my $operatorAccretion              = $input->createElement("nodeOperator");
+    my $operatorStarvation             = $input->createElement("nodeOperator");
+    my $operatorOutflowReincorporation = $input->createElement("nodeOperator");
+    my $component                      = $input->createElement("component"   );
+    $operatorOuterRadius              ->setAttribute('value'                        ,'CGMOuterRadiusVirialRadius');
+    $operatorCooling                  ->setAttribute('value'                        ,'CGMCoolingInflow'          );
+    $operatorAccretion                ->setAttribute('value'                        ,'CGMAccretion'              );
+    $operatorStarvation               ->setAttribute('value'                        ,'CGMStarvation'             );
+    $operatorOutflowReincorporation   ->setAttribute('value'                        ,'CGMOutflowReincorporation' );
+    $component                        ->setAttribute('value'                        ,'disk'                      );
+    $operatorCooling                  ->appendChild ($component                                                  );
+    $nodeOperators                 [0]->insertAfter ($operatorOuterRadius           ,$nodeOperators[0]->lastChild);
+    $nodeOperators                 [0]->insertAfter ($operatorCooling               ,$nodeOperators[0]->lastChild);
+    $nodeOperators                 [0]->insertAfter ($operatorAccretion             ,$nodeOperators[0]->lastChild);
+    $nodeOperators                 [0]->insertAfter ($operatorStarvation            ,$nodeOperators[0]->lastChild);
+    $nodeOperators                 [0]->insertAfter ($operatorOutflowReincorporation,$nodeOperators[0]->lastChild)
+	if ( $nodes[0]->getAttribute('value') eq "verySimpleDelayed" );
 }

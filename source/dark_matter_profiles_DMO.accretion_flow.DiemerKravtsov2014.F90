@@ -54,7 +54,7 @@
 
   interface darkMatterProfileDMOAccretionFlowDiemerKravtsov2014
      !!{
-     Constructors for the {\normalfont \ttfamily accretionFlowDiemerKravtsov2014} dark matter halo profile class.
+     Constructors for the \refClass{darkMatterProfileDMOAccretionFlowDiemerKravtsov2014} dark matter halo profile class.
      !!}
      module procedure accretionFlowDiemerKravtsov2014ConstructorParameters
      module procedure accretionFlowDiemerKravtsov2014ConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function accretionFlowDiemerKravtsov2014ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily accretionFlowDiemerKravtsov2014} dark matter halo profile class which takes a parameter set as input.
+    Constructor for the \refClass{darkMatterProfileDMOAccretionFlowDiemerKravtsov2014} dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -139,7 +139,7 @@ contains
 
   function accretionFlowDiemerKravtsov2014ConstructorInternal(b0,bz,bnu,s0,sz,snu,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily accretionFlowDiemerKravtsov2014} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOAccretionFlowDiemerKravtsov2014} dark matter profile class.
     !!}
     implicit none
     type            (darkMatterProfileDMOAccretionFlowDiemerKravtsov2014)                        :: self
@@ -159,7 +159,7 @@ contains
 
   subroutine accretionFlowDiemerKravtsov2014Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily accretionFlowDiemerKravtsov2014} dark matter profile class.
+    Destructor for the \refClass{darkMatterProfileDMOAccretionFlowDiemerKravtsov2014} dark matter profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOAccretionFlowDiemerKravtsov2014), intent(inout) :: self

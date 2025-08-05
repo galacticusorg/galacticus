@@ -47,7 +47,7 @@
   
   interface outputAnalysisHIVsHaloMassRelationPadmanabhan2017
      !!{
-     Constructors for the {\normalfont \ttfamily hiVsHaloMassRelationPadmanabhan2017} output analysis class.
+     Constructors for the \refClass{outputAnalysisHIVsHaloMassRelationPadmanabhan2017} output analysis class.
      !!}
      module procedure hiVsHaloMassRelationPadmanabhan2017ConstructorParameters
      module procedure hiVsHaloMassRelationPadmanabhan2017ConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function hiVsHaloMassRelationPadmanabhan2017ConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily hiVsHaloMassRelationPadmanabhan2017} output analysis class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisHIVsHaloMassRelationPadmanabhan2017} output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions             , only : cosmologyFunctions                                      , cosmologyFunctionsClass
     use :: Cosmology_Parameters            , only : cosmologyParameters                                     , cosmologyParametersClass
@@ -120,7 +120,7 @@ contains
 
   function hiVsHaloMassRelationPadmanabhan2017ConstructorInternal(likelihoodBin,systematicErrorPolynomialCoefficient,darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,outputAnalysisMolecularRatio_,outputTimes_,percolationObjects_) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily hiVsHaloMassRelationPadmanabhan2017} output analysis class for internal use.
+    Constructor for the \refClass{outputAnalysisHIVsHaloMassRelationPadmanabhan2017} output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                           , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersClass                          , cosmologyParametersSimple                      , hubbleUnitsLittleH
@@ -472,7 +472,7 @@ contains
 
   subroutine hiVsHaloMassRelationPadmanabhan2017Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily hiVsHaloMassRelationPadmanabhan2017} output analysis class.
+    Destructor for the \refClass{outputAnalysisHIVsHaloMassRelationPadmanabhan2017} output analysis class.
     !!}
     implicit none
     type(outputAnalysisHIVsHaloMassRelationPadmanabhan2017), intent(inout) :: self

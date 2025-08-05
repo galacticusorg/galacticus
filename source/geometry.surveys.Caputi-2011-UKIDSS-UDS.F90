@@ -163,7 +163,7 @@ contains
 
   subroutine caputi2011UKIDSSUDSDestructor(self)
     !!{
-    Destructor for the ``caputi2011UKIDSSUDS'' survey geometry class.
+    Destructor for the \refClass{surveyGeometryCaputi2011UKIDSSUDS} survey geometry class.
     !!}
     implicit none
     type(surveyGeometryCaputi2011UKIDSSUDS), intent(inout) :: self

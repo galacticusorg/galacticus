@@ -49,7 +49,7 @@
 
   interface supernovaePopulationIIIHegerWoosley2002
      !!{
-     Constructors for the {\normalfont \ttfamily hegerWoosley2002} Population III supernovae class.
+     Constructors for the \refClass{supernovaePopulationIIIHegerWoosley2002} Population III supernovae class.
      !!}
      module procedure hegerWoosley2002ConstructorParameters
      module procedure hegerWoosley2002ConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function hegerWoosley2002ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily hegerWoosley2002} Population III supernovae class which takes a parameter list as input.
+    Constructor for the \refClass{supernovaePopulationIIIHegerWoosley2002} Population III supernovae class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -80,7 +80,7 @@ contains
 
   function hegerWoosley2002ConstructorInternal(stellarAstrophysics_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily hegerWoosley2002} Population III supernovae class.
+    Internal constructor for the \refClass{supernovaePopulationIIIHegerWoosley2002} Population III supernovae class.
     !!}
     use :: FoX_dom                         , only : destroy       , node                          , parseFile
     use :: Error                           , only : Error_Report
@@ -122,7 +122,7 @@ contains
 
   subroutine hegerWoosley2002Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily hegerWoosley2002} Population III supernovae class.
+    Destructor for the \refClass{supernovaePopulationIIIHegerWoosley2002} Population III supernovae class.
     !!}
     implicit none
     type(supernovaePopulationIIIHegerWoosley2002), intent(inout) :: self

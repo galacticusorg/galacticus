@@ -44,7 +44,7 @@
 
   interface mergerTreeImporterSussingHDF5
      !!{
-     Constructors for the {\normalfont \ttfamily sussing} HDF5 format merger tree importer class.
+     Constructors for the \refClass{mergerTreeImporterSussingHDF5} HDF5 format merger tree importer class.
      !!}
      module procedure sussingHDF5ConstructorParameters
      module procedure sussingHDF5ConstructorInternal
@@ -99,7 +99,7 @@ contains
 
   subroutine sussingHDF5Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily sussing} HDF5 format merger tree importer class.
+    Destructor for the \refClass{mergerTreeImporterSussingHDF5} HDF5 format merger tree importer class.
     !!}
     implicit none
     type(mergerTreeImporterSussingHDF5), intent(inout) :: self

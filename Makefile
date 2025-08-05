@@ -332,10 +332,14 @@ source/FFTlog/fftlog.f:
 	mkdir -p source/FFTlog
 	mkdir -p $(BUILDPATH)/FFTlog
 	if command -v wget &> /dev/null; then \
-	 wget --no-check-certificate http://jila.colorado.edu/~ajsh/FFTLog/fftlog.tgz -O - | tar xvz -C source/FFTlog -f -; \
+	 wget --no-check-certificate https://github.com/emsig/fftlog/archive/refs/heads/main.zip -O  source/FFTlog/main.zip; \
 	else \
-	 curl --insecure -L http://jila.colorado.edu/~ajsh/FFTLog/fftlog.tgz --output - | tar xvz -C source/FFTlog -f -;\
+	 curl --insecure -L https://github.com/emsig/fftlog/archive/refs/heads/main.zip --output source/FFTlog/main.zip;\
 	fi
+	cd source/FFTlog; \
+	unzip main.zip; \
+	mv fftlog-main/src/*.f .; \
+	cd -
 	if [ ! -e source/FFTlog/fftlog.f ]; then \
 	 echo "      subroutine fhti(n,mu,q,dlnr,kr,kropt,wsave,ok)" >  source/FFTlog/fftlog.f; \
 	 echo "      stop 'FFTlog was not downloaded - to try again" >> source/FFTlog/fftlog.f; \

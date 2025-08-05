@@ -45,7 +45,7 @@
   
   interface nodeOperatorStellarFeedbackDisks
      !!{
-     Constructors for the {\normalfont \ttfamily stellarFeedbackDisks} node operator class.
+     Constructors for the \refClass{nodeOperatorStellarFeedbackDisks} node operator class.
      !!}
      module procedure stellarFeedbackDisksConstructorParameters
      module procedure stellarFeedbackDisksConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function stellarFeedbackDisksConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily starFormation} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorStellarFeedbackDisks} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -82,7 +82,7 @@ contains
 
   function stellarFeedbackDisksConstructorInternal(starFormationRateDisks_,stellarPopulationProperties_,stellarFeedbackOutflows_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily stellarFeedbackDisks} node operator class.
+    Internal constructor for the \refClass{nodeOperatorStellarFeedbackDisks} node operator class.
     !!}
     implicit none
     type (nodeOperatorStellarFeedbackDisks)                        :: self
@@ -98,7 +98,7 @@ contains
 
   subroutine stellarFeedbackDisksDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily stellarFeedbackDisks} node operator class.
+    Destructor for the \refClass{nodeOperatorStellarFeedbackDisks} node operator class.
     !!}
     implicit none
     type(nodeOperatorStellarFeedbackDisks), intent(inout) :: self

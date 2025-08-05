@@ -38,7 +38,7 @@
 
   interface mergerTreeEvolveTimestepSatelliteDestruction
      !!{
-     Constructors for the {\normalfont \ttfamily satelliteDestruction} merger tree evolution timestep class.
+     Constructors for the \refClass{mergerTreeEvolveTimestepSatelliteDestruction} merger tree evolution timestep class.
      !!}
      module procedure satelliteDestructionConstructorParameters
      module procedure satelliteDestructionConstructorInternal
@@ -48,7 +48,7 @@ contains
 
   function satelliteDestructionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily satelliteDestruction} merger tree evolution timestep class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeEvolveTimestepSatelliteDestruction} merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -64,7 +64,7 @@ contains
 
   function satelliteDestructionConstructorInternal() result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily satelliteDestruction} merger tree evolution timestep class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeEvolveTimestepSatelliteDestruction} merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
     implicit none

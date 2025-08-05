@@ -85,7 +85,7 @@
 
   interface outputAnalysisMeanFunction1D
      !!{
-     Constructors for the {\normalfont \ttfamily meanFunction1D} output analysis class.
+     Constructors for the \refClass{outputAnalysisMeanFunction1D} output analysis class.
      !!}
      module procedure meanFunction1DConstructorParameters
      module procedure meanFunction1DConstructorInternal
@@ -95,7 +95,7 @@ contains
 
   function meanFunction1DConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily meanFunction1D} output analysis class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisMeanFunction1D} output analysis class which takes a parameter set as input.
     !!}
     use :: Error                  , only : Error_Report
     use :: Input_Parameters       , only : inputParameter                                , inputParameters
@@ -389,7 +389,7 @@ contains
 
   function meanFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,meanLabel,meanComment,meanUnits,meanUnitsInSI,binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisWeightPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisWeightPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,xAxisLabel,yAxisLabel,xAxisIsLog,yAxisIsLog,targetLabel,meanValueTarget,meanCovarianceTarget,binWidth) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily meanFunction1D} output analysis class for internal use.
+    Constructor for the \refClass{outputAnalysisMeanFunction1D} output analysis class for internal use.
     !!}
     use :: Output_Analysis_Distribution_Normalizers, only : outputAnalysisDistributionNormalizerIdentity
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorBoolean       , outputAnalysisPropertyOperatorClass , outputAnalysisPropertyOperatorSequence, propertyOperatorList
@@ -599,7 +599,7 @@ contains
 
   subroutine meanFunction1DDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily meanFunction1D} output analysis class.
+    Destructor for the \refClass{outputAnalysisMeanFunction1D} output analysis class.
     !!}
     implicit none
     type(outputAnalysisMeanFunction1D), intent(inout) :: self

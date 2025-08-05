@@ -102,7 +102,7 @@
 
   interface massDistributionSphericalSIDMIsothermal
      !!{
-     Constructors for the {\normalfont \ttfamily sphericalSIDMIsothermal} mass distribution class.
+     Constructors for the \refClass{massDistributionSphericalSIDMIsothermal} mass distribution class.
      !!}
      module procedure sphericalSIDMIsothermalConstructorParameters
      module procedure sphericalSIDMIsothermalConstructorInternal
@@ -121,7 +121,7 @@ contains
 
   function sphericalSIDMIsothermalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sidmIsothermal} mass distribution class which takes a parameter set as input.
+    Constructor for the \refClass{massDistributionSphericalSIDMIsothermal} mass distribution class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -177,7 +177,7 @@ contains
 
   function sphericalSIDMIsothermalConstructorInternal(timeAge,nonAnalyticSolver,massDistribution_,darkMatterParticle_,componentType,massType) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily sidmIsothermal} mass distribution class.
+    Internal constructor for the \refClass{massDistributionSphericalSIDMIsothermal} mass distribution class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
     implicit none
@@ -208,7 +208,7 @@ contains
 
   subroutine sphericalSIDMIsothermalDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily massDistributionSphericalSIDMIsothermal} class.
+    Destructor for the \refClass{massDistributionSphericalSIDMIsothermal} class.
     !!}
     implicit none
     type(massDistributionSphericalSIDMIsothermal), intent(inout) :: self

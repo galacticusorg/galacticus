@@ -41,7 +41,7 @@
   
   interface nodeOperatorTimeFirstInfall
      !!{
-     Constructors for the {\normalfont \ttfamily timeFirstInfall} node operator class.
+     Constructors for the \refClass{nodeOperatorTimeFirstInfall} node operator class.
      !!}
      module procedure timeFirstInfallConstructorParameters
      module procedure timeFirstInfallConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function timeFirstInfallConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily timeFirstInfall} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorTimeFirstInfall} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -67,7 +67,7 @@ contains
 
   function timeFirstInfallConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily timeFirstInfall} node operator class.
+    Internal constructor for the \refClass{nodeOperatorTimeFirstInfall} node operator class.
     !!}
     implicit none
     type(nodeOperatorTimeFirstInfall) :: self

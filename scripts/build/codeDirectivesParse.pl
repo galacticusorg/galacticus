@@ -191,7 +191,7 @@ foreach my $directive ( sort(keys(%{$includeDirectives})) ) {
     open(my $directiveFile,">".$ENV{'BUILDPATH'}."/".$directive.".xml.tmp");
     print $directiveFile $includeDirectives->{$directive}->{'xml'};
     close($directiveFile);
-    &File::Changes::Update($installDirectoryName."/".$ENV{'BUILDPATH'}."/".$directive.".xml",$installDirectoryName."/".$ENV{'BUILDPATH'}."/".$directive.".xml.tmp");
+    &File::Changes::Update($ENV{'BUILDPATH'}."/".$directive.".xml",$ENV{'BUILDPATH'}."/".$directive.".xml.tmp");
 }
 # Add additional dependencies for object files of source files that contain functionClass directives. These source files get other
 # source files incorporated into them via the source tree preprocessor.

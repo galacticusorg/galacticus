@@ -54,11 +54,13 @@ Implements a log-normal halo environment.
      procedure :: pdf                           => logNormalPDF
      procedure :: cdf                           => logNormalCDF
      procedure :: overdensityLinearSet          => logNormalOverdensityLinearSet
-  end type haloEnvironmentLogNormal
+     procedure :: isNodeDependent               => logNormalIsNodeDependent
+     procedure :: isTreeDependent               => logNormalIsTreeDependent
+   end type haloEnvironmentLogNormal
 
   interface haloEnvironmentLogNormal
      !!{
-     Constructors for the {\normalfont \ttfamily logNormal} halo environment class.
+     Constructors for the \refClass{haloEnvironmentLogNormal} halo environment class.
      !!}
      module procedure logNormalConstructorParameters
      module procedure logNormalConstructorInternal
@@ -68,7 +70,7 @@ contains
 
   function logNormalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily logNormal} halo environment class which takes a parameter set as input.
+    Constructor for the \refClass{haloEnvironmentLogNormal} halo environment class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -109,7 +111,7 @@ contains
 
   function logNormalConstructorInternal(radiusEnvironment,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,linearGrowth_,criticalOverdensity_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily logNormal} halo mass function class.
+    Internal constructor for the \refClass{haloEnvironmentLogNormal} halo mass function class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -153,7 +155,7 @@ contains
 
   subroutine logNormalDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily logNormal} halo mass function class.
+    Destructor for the \refClass{haloEnvironmentLogNormal} halo mass function class.
     !!}
     implicit none
     type(haloEnvironmentLogNormal), intent(inout) :: self
@@ -320,3 +322,26 @@ contains
     return
   end subroutine logNormalOverdensityLinearSet
 
+  logical function logNormalIsNodeDependent(self)
+    !!{
+    Return false as the environment is not dependent on the node.
+    !!}
+    implicit none
+    class(haloEnvironmentLogNormal), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    logNormalIsNodeDependent=.false.
+    return
+  end function logNormalIsNodeDependent
+
+  logical function logNormalIsTreeDependent(self)
+    !!{
+    Return false as the environment is dependent on the tree.
+    !!}
+    implicit none
+    class(haloEnvironmentLogNormal), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    logNormalIsTreeDependent=.true.
+    return
+  end function logNormalIsTreeDependent

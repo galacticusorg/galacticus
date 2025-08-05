@@ -57,7 +57,7 @@ contains
 
   function sampledDistributionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sampledDistribution} merger tree masses class which takes a parameter set as
+    Constructor for the \refClass{mergerTreeBuildMassesSampledDistribution} merger tree masses class which takes a parameter set as
     input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -99,7 +99,7 @@ contains
 
   function sampledDistributionConstructorInternal(massTreeMinimum,massTreeMaximum,treesPerDecade,mergerTreeBuildMassDistribution_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily sampledDistribution} merger tree masses class.
+    Internal constructor for the \refClass{mergerTreeBuildMassesSampledDistribution} merger tree masses class.
     !!}
     use :: Display, only : displayMessage, verbosityLevelWarn
     use :: Error  , only : Error_Report
@@ -128,7 +128,7 @@ contains
 
   subroutine sampledDistributionDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily sampledDistribution} merger tree masses class.
+    Destructor for the \refClass{mergerTreeBuildMassesSampledDistribution} merger tree masses class.
     !!}
     implicit none
     type(mergerTreeBuildMassesSampledDistribution), intent(inout) :: self

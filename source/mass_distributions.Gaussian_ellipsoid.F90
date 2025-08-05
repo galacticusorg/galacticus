@@ -67,7 +67,7 @@
 
   interface massDistributionGaussianEllipsoid
      !!{
-     Constructors for the {\normalfont \ttfamily gaussianEllipsoid} mass distribution class.
+     Constructors for the \refClass{massDistributionGaussianEllipsoid} mass distribution class.
      !!}
      module procedure gaussianEllipsoidConstructorParameters
      module procedure gaussianEllipsoidConstructorInternal
@@ -77,7 +77,7 @@ contains
 
   function gaussianEllipsoidConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily gaussianEllipsoid} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionGaussianEllipsoid} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
@@ -158,7 +158,7 @@ contains
   
   function gaussianEllipsoidConstructorInternal(scaleLength,axes,rotation,mass,dimensionless,componentType,massType) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily gaussianEllipsoid} convergence class.
+    Constructor for the \refClass{massDistributionGaussianEllipsoid} convergence class.
     !!}
     use :: Error               , only : Error_Report
     use :: Linear_Algebra      , only : vector       , assignment(=)

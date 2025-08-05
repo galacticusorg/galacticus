@@ -103,7 +103,7 @@
   
   interface massDistributionZhao1996
      !!{
-     Constructors for the {\normalfont \ttfamily zhao1996} mass distribution class.
+     Constructors for the \refClass{massDistributionZhao1996} mass distribution class.
      !!}
      module procedure massDistributionZhao1996ConstructorParameters
      module procedure massDistributionZhao1996ConstructorInternal
@@ -119,7 +119,7 @@ contains
 
   function massDistributionZhao1996ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily zhao1996} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionZhao1996} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters

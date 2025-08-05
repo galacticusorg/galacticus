@@ -48,7 +48,7 @@
 
   interface outputAnalysisSubhaloVMaxVsMass
      !!{
-     Constructors for the {\normalfont \ttfamily subhaloVMaxVsMass} output analysis class.
+     Constructors for the \refClass{outputAnalysisSubhaloVMaxVsMass} output analysis class.
      !!}
      module procedure subhaloVMaxVsMassConstructorParameters
      module procedure subhaloVMaxVsMassConstructorFile
@@ -59,7 +59,7 @@ contains
 
   function subhaloVMaxVsMassConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily subhaloVMaxVsMass} output analysis class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisSubhaloVMaxVsMass} output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters        , only : inputParameter            , inputParameters
     use :: Output_Times            , only : outputTimesClass
@@ -147,7 +147,7 @@ contains
   
   function subhaloVMaxVsMassConstructorFile(outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,fileName,redshift) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily subhaloVMaxVsMass} output analysis class for internal use.
+    Constructor for the \refClass{outputAnalysisSubhaloVMaxVsMass} output analysis class for internal use.
     !!}
     use :: HDF5_Access             , only : hdf5Access
     use :: IO_HDF5                 , only : hdf5Object
@@ -205,7 +205,7 @@ contains
 
   function subhaloVMaxVsMassConstructorInternal(outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,time,massMinimum,massMaximum,countMasses,functionTarget,functionCovarianceTarget,labelTarget) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily subhaloVMaxVsMass} output analysis class for internal use.
+    Constructor for the \refClass{outputAnalysisSubhaloVMaxVsMass} output analysis class for internal use.
     !!}
     use :: Galactic_Filters                      , only : galacticFilterHaloIsolated                , galacticFilterHaloNotIsolated      , galacticFilterLowPass                 , galacticFilterAll                , &
          &                                                filterList
@@ -382,7 +382,7 @@ contains
 
   subroutine subhaloVMaxVsMassDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily subhaloVMaxVsMass''} output analysis class.
+    Destructor for the \refClass{outputAnalysisSubhaloVMaxVsMass} output analysis class.
     !!}
     implicit none
     type(outputAnalysisSubhaloVMaxVsMass), intent(inout) :: self

@@ -56,7 +56,7 @@
 
   interface taskRadiativeTransfer
      !!{
-     Constructors for the {\normalfont \ttfamily radiativeTransfer} task.
+     Constructors for the \refClass{taskRadiativeTransfer} task.
      !!}
      module procedure radiativeTransferConstructorParameters
      module procedure radiativeTransferConstructorInternal
@@ -66,7 +66,7 @@ contains
 
   function radiativeTransferConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily radiativeTransfer} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskRadiativeTransfer} task class which takes a parameter set as input.
     !!}
     use :: ISO_Varying_String, only : var_str
     use :: Input_Parameters  , only : inputParameter              , inputParameters
@@ -179,7 +179,7 @@ contains
 
   function radiativeTransferConstructorInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,countPhotonsPerWavelength,countPhotonsPerWavelengthFinalIteration,countIterationsMinimum,countIterationsMaximum,outputGroupName,outputIterations,computationalDomain_,radiativeTransferPhotonPacket_,radiativeTransferSource_,radiativeTransferOutputter_,radiativeTransferConvergence_,randomNumberGenerator_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily radiativeTransfer} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskRadiativeTransfer} task class which takes a parameter set as input.
     !!}
     use :: ISO_Varying_String, only : char
     use :: Numerical_Ranges  , only : Make_Range, rangeTypeLogarithmic
@@ -216,7 +216,7 @@ contains
 
   subroutine radiativeTransferDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily radiativeTransfer} task class.
+    Destructor for the \refClass{taskRadiativeTransfer} task class.
     !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none

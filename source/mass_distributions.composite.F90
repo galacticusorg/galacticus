@@ -83,7 +83,7 @@
 
   interface massDistributionComposite
      !!{
-     Constructors for the {\normalfont \ttfamily composite} mass distribution class.
+     Constructors for the \refClass{massDistributionComposite} mass distribution class.
      !!}
      module procedure compositeConstructorParameters
      module procedure compositeConstructorInternal
@@ -93,7 +93,7 @@ contains
 
   function compositeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily composite} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionComposite} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameters

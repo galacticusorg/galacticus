@@ -42,7 +42,7 @@ Implements a galactic high-pass filter for stellar mass-weighted morphology (i.e
 
   interface galacticFilterStellarMassMorphology
      !!{
-     Constructors for the {\normalfont \ttfamily stellarMassMorphology} galactic filter class.
+     Constructors for the \refClass{galacticFilterStellarMassMorphology} galactic filter class.
      !!}
      module procedure stellarMassMorphologyConstructorParameters
      module procedure stellarMassMorphologyConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function stellarMassMorphologyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily stellarMassMorphology} galactic filter class which takes a parameter set as input.
+    Constructor for the \refClass{galacticFilterStellarMassMorphology} galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

@@ -44,7 +44,7 @@
 
   interface darkMatterProfileHeatingMonotonic
      !!{
-     Constructors for the {\normalfont \ttfamily monotonic} dark matter profile heating class.
+     Constructors for the \refClass{darkMatterProfileHeatingMonotonic} dark matter profile heating class.
      !!}
      module procedure monotonicConstructorParameters
      module procedure monotonicConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function monotonicConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily monotonic} dark matter profile heating class which takes a parameter set as input.
+    Constructor for the \refClass{darkMatterProfileHeatingMonotonic} dark matter profile heating class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -89,7 +89,7 @@ contains
 
   subroutine monotonicDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily monotonic} dark matter profile heating class.
+    Destructor for the \refClass{darkMatterProfileHeatingMonotonic} dark matter profile heating class.
     !!}
     implicit none
     type(darkMatterProfileHeatingMonotonic), intent(inout) :: self

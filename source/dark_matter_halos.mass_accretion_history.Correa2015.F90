@@ -48,7 +48,7 @@
 
   interface darkMatterHaloMassAccretionHistoryCorrea2015
      !!{
-     Constructors for the {\normalfont \ttfamily correa2015} dark matter halo mass accretion history class.
+     Constructors for the \refClass{darkMatterHaloMassAccretionHistoryCorrea2015} dark matter halo mass accretion history class.
      !!}
      module procedure correa2015ConstructorParameters
      module procedure correa2015ConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function correa2015ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily correa2015} dark matter halo mass accretion history class which takes a parameter
+    Constructor for the \refClass{darkMatterHaloMassAccretionHistoryCorrea2015} dark matter halo mass accretion history class which takes a parameter
     set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -86,7 +86,7 @@ contains
 
   function correa2015ConstructorInternal(cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_) result(self)
     !!{
-    Generic constructor for the {\normalfont \ttfamily correa2015} dark matter halo mass accretion history class.
+    Internal constructor for the \refClass{darkMatterHaloMassAccretionHistoryCorrea2015} dark matter halo mass accretion history class.
     !!}
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative
     implicit none
@@ -111,7 +111,7 @@ contains
 
   subroutine correa2015Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily correa2015} dark matter halo mass accretion history class.
+    Destructor for the \refClass{darkMatterHaloMassAccretionHistoryCorrea2015} dark matter halo mass accretion history class.
     !!}
     implicit none
     type(darkMatterHaloMassAccretionHistoryCorrea2015), intent(inout) :: self

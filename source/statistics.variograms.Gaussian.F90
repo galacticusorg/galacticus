@@ -55,7 +55,7 @@
 
   interface variogramGaussian
      !!{
-     Constructors for the {\normalfont \ttfamily gaussianRegression} posterior sampling likelihood class.
+     Constructors for the \refClass{variogramGaussian} posterior sampling likelihood class.
      !!}
      module procedure gaussianConstructorParameters
      module procedure gaussianConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function gaussianConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily gaussian} variogram class which builds the object from a parameter set.
+    Constructor for the \refClass{variogramGaussian} variogram class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -100,7 +100,7 @@ contains
 
   function gaussianConstructorInternal(variogramFitOption,assumeZeroVarianceAtZeroLag) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily gaussian} variogram class.
+    Constructor for the \refClass{variogramGaussian} variogram class.
     !!}
     implicit none
     type   (variogramGaussian                )                :: self

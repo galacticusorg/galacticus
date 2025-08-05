@@ -345,7 +345,7 @@
 
   interface mergerTreeConstructorRead
      !!{
-     Constructors for the {\normalfont \ttfamily read} merger tree constructor class.
+     Constructors for the \refClass{mergerTreeConstructorRead} merger tree constructor class.
      !!}
      module procedure readConstructorParameters
      module procedure readConstructorInternal
@@ -392,7 +392,7 @@ contains
 
   function readConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily read} merger tree constructor class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeConstructorRead} merger tree constructor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -704,7 +704,7 @@ contains
 
   function readConstructorInternal(fileNames,outputTimeSnapTolerance,forestSizeMaximum,beginAt,missingHostsAreFatal,treeIndexToRootNodeIndex,subhaloAngularMomentaMethod,allowBranchJumps,allowSubhaloPromotions,alwaysPromoteMostMassive,presetMergerTimes,presetMergerNodes,presetSubhaloMasses,presetSubhaloIndices,presetPositions,presetScaleRadii,presetScaleRadiiConcentrationMinimum,presetScaleRadiiConcentrationMaximum,presetScaleRadiiMinimumMass,scaleRadiiFailureIsFatal,presetUnphysicalAngularMomenta,presetAngularMomenta,presetAngularMomenta3D,presetOrbits,presetOrbitsSetAll,presetOrbitsAssertAllSet,presetOrbitsBoundOnly,presetNamedReals,presetNamedIntegers,cosmologyFunctions_,mergerTreeImporter_,mergerTreeSeeds_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileConcentration_,haloSpinDistribution_,satelliteMergingTimescales_,virialOrbit_,outputTimes_,darkMatterProfileScaleRadius_,nodeOperator_,randomNumberGenerator_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily read} merger tree constructor class.
+    Internal constructor for the \refClass{mergerTreeConstructorRead} merger tree constructor class.
     !!}
     use    :: Display                    , only : displayMagenta  , displayReset
     use    :: File_Utilities             , only : File_Name_Expand
@@ -928,7 +928,7 @@ contains
 
   subroutine readDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily read} merger tree constructor class.
+    Destructor for the \refClass{mergerTreeConstructorRead} merger tree constructor class.
     !!}
     implicit none
     type(mergerTreeConstructorRead), intent(inout) :: self

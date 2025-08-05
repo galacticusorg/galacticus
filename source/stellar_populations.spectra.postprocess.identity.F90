@@ -40,7 +40,7 @@
 
   interface stellarPopulationSpectraPostprocessorIdentity
      !!{
-     Constructors for the {\normalfont \ttfamily identity} stellar population spectra postprocessor class.
+     Constructors for the \refClass{stellarPopulationSpectraPostprocessorIdentity} stellar population spectra postprocessor class.
      !!}
      module procedure identityConstructorParameters
   end interface stellarPopulationSpectraPostprocessorIdentity
@@ -49,7 +49,7 @@ contains
 
   function identityConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily identity} stellar population spectra postprocessor class which takes a
+    Constructor for the \refClass{stellarPopulationSpectraPostprocessorIdentity} stellar population spectra postprocessor class which takes a
     parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters

@@ -99,7 +99,7 @@
 
   interface coolingFunctionMolecularHydrogenGalliPalla
      !!{
-     Constructors for the {\normalfont \ttfamily molecularHydrogenGalliPalla} cooling function class.
+     Constructors for the \refClass{coolingFunctionMolecularHydrogenGalliPalla} cooling function class.
      !!}
      module procedure molecularHydrogenGalliPallaConstructorParameters
      module procedure molecularHydrogenGalliPallaConstructorInternal
@@ -138,7 +138,7 @@ contains
 
   function molecularHydrogenGalliPallaConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily molecularHydrogenGalliPalla} cooling function class which takes a parameter set as input.
+    Constructor for the \refClass{coolingFunctionMolecularHydrogenGalliPalla} cooling function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -154,7 +154,7 @@ contains
 
   function molecularHydrogenGalliPallaConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily molecularHydrogenGalliPalla} cooling function class.
+    Internal constructor for the \refClass{coolingFunctionMolecularHydrogenGalliPalla} cooling function class.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     implicit none

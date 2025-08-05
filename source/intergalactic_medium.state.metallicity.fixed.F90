@@ -49,7 +49,7 @@
 
   interface intergalacticMediumStateMetallicityFixed
      !!{
-     Constructors for the {\normalfont \ttfamily metallicityFixed} intergalactic medium state class.
+     Constructors for the \refClass{intergalacticMediumStateMetallicityFixed} intergalactic medium state class.
      !!}
      module procedure metallicityFixedIGMConstructorParameters
      module procedure metallicityFixedIGMConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function metallicityFixedIGMConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily metallicityFixed} \gls{igm} state class which takes a parameter set as input.
+    Constructor for the \refClass{intergalacticMediumStateMetallicityFixed} \gls{igm} state class which takes a parameter set as input.
     !!}
     use :: Input_Parameters                , only : inputParameter  , inputParameters
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
@@ -92,7 +92,7 @@ contains
 
   function metallicityFixedIGMConstructorInternal(metallicity,intergalacticMediumState_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily metallicityFixed} \gls{igm} state class.
+    Constructor for the \refClass{intergalacticMediumStateMetallicityFixed} \gls{igm} state class.
     !!}
     implicit none
     type            (intergalacticMediumStateMetallicityFixed)                        :: self

@@ -89,7 +89,7 @@ Implements an emission line luminosity node property extractor class.
 
   interface nodePropertyExtractorLmnstyEmssnLinePanuzzo2003
      !!{
-     Constructors for the {\normalfont \ttfamily lmnstyEmssnLinePanuzzo2003} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorLmnstyEmssnLinePanuzzo2003} output analysis class.
      !!}
      module procedure lmnstyEmssnLinePanuzzo2003ConstructorParameters
      module procedure lmnstyEmssnLinePanuzzo2003ConstructorInternal
@@ -128,7 +128,7 @@ contains
 
   function lmnstyEmssnLinePanuzzo2003ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily lmnstyEmssnLinePanuzzo2003} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorLmnstyEmssnLinePanuzzo2003} output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -172,7 +172,7 @@ contains
 
   function lmnstyEmssnLinePanuzzo2003ConstructorInternal(starFormationRateDisks_,starFormationRateSpheroids_,stellarSpectraDustAttenuation_,outputTimes_,lineNames,depthOpticalISMCoefficient,outputMask) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily lmnstyEmssnLinePanuzzo2003} output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorLmnstyEmssnLinePanuzzo2003} output analysis property extractor class.
     !!}
     use            :: Error                         , only : Error_Report
     use            :: Input_Paths                   , only : inputPath              , pathTypeDataStatic
@@ -183,6 +183,7 @@ contains
     use            :: Output_Times                  , only : outputTimesClass
     use            :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     use            :: String_Handling               , only : String_Join            , char
+    use            :: Table_Labels                  , only : extrapolationTypeFix
     implicit none
     type            (nodePropertyExtractorLmnstyEmssnLinePanuzzo2003)                                        :: self
     double precision                                                 , intent(in   )                         :: depthOpticalISMCoefficient
@@ -258,11 +259,11 @@ contains
     self%filterExtent(:,ionizingContinuumOxygen  %ID)=Filter_Extent(Filter_Get_Index(var_str('OxygenContinuum')))
     ! Initialize interpolators.
     allocate(self%interpolator_(5))
-    self%interpolator_(interpolantMetallicity%ID)=interpolator(self%metallicity                 )
-    self%interpolator_(interpolantDensity    %ID)=interpolator(self%densityHydrogen             )
-    self%interpolator_(interpolantHydrogen   %ID)=interpolator(self%ionizingFluxHydrogen        )
-    self%interpolator_(interpolantHelium     %ID)=interpolator(self%ionizingFluxHeliumToHydrogen)
-    self%interpolator_(interpolantOxygen     %ID)=interpolator(self%ionizingFluxOxygenToHelium  )
+    self%interpolator_(interpolantMetallicity%ID)=interpolator(self%metallicity                 ,extrapolationType=extrapolationTypeFix)
+    self%interpolator_(interpolantDensity    %ID)=interpolator(self%densityHydrogen             ,extrapolationType=extrapolationTypeFix)
+    self%interpolator_(interpolantHydrogen   %ID)=interpolator(self%ionizingFluxHydrogen        ,extrapolationType=extrapolationTypeFix)
+    self%interpolator_(interpolantHelium     %ID)=interpolator(self%ionizingFluxHeliumToHydrogen,extrapolationType=extrapolationTypeFix)
+    self%interpolator_(interpolantOxygen     %ID)=interpolator(self%ionizingFluxOxygenToHelium  ,extrapolationType=extrapolationTypeFix)
     !$ call OMP_Init_Lock(self%interpolateLock)
     ! Construct name and description.
     self%name_       ="luminosityEmissionLine:"//String_Join(lineNames,"+")
@@ -274,7 +275,7 @@ contains
 
   subroutine lmnstyEmssnLinePanuzzo2003Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily lmnstyEmssnLinePanuzzo2003} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorLmnstyEmssnLinePanuzzo2003} output analysis property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorLmnstyEmssnLinePanuzzo2003), intent(inout) :: self

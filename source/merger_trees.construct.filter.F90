@@ -48,7 +48,7 @@
 
   interface mergerTreeConstructorFilter
      !!{
-     Constructors for the {\normalfont \ttfamily filter} merger tree constructor class.
+     Constructors for the \refClass{mergerTreeConstructorFilter} merger tree constructor class.
      !!}
      module procedure filterConstructorParameters
      module procedure filterConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function filterConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily augment} merger tree operator class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeConstructorFilter} merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -88,7 +88,7 @@ contains
 
   function filterConstructorInternal(mergerTreeConstructor_,mergerTreeFilter_,mergerTreeOperator_,nodeOperator_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily augment} merger tree operator class.
+    Internal constructor for the \refClass{mergerTreeConstructorFilter} merger tree operator class.
     !!}
     implicit none
     type (mergerTreeConstructorFilter)                        :: self
@@ -105,7 +105,7 @@ contains
 
   subroutine filterDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily filter} merger tree constructor class.
+    Destructor for the \refClass{mergerTreeConstructorFilter} merger tree constructor class.
     !!}
     implicit none
     type(mergerTreeConstructorFilter), intent(inout) :: self

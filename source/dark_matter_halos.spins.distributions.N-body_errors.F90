@@ -79,7 +79,7 @@
 
   interface haloSpinDistributionNbodyErrors
      !!{
-     Constructors for the {\normalfont \ttfamily nbodyErrors} dark matter halo spin
+     Constructors for the \refClass{haloSpinDistributionNbodyErrors} dark matter halo spin
      distribution class.
      !!}
      module procedure nbodyErrorsConstructorParameters
@@ -99,7 +99,7 @@ contains
 
   function nbodyErrorsConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily nbodyErrors} dark matter halo spin
+    Constructor for the \refClass{haloSpinDistributionNbodyErrors} dark matter halo spin
     distribution class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -187,7 +187,7 @@ contains
 
   function nbodyErrorsConstructorInternal(distributionIntrinsic,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,logNormalRange,time,nbodyHaloMassError_,cosmologyFunctions_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileScaleRadius_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily nbodyErrors} dark matter halo spin distribution class.
+    Internal constructor for the \refClass{haloSpinDistributionNbodyErrors} dark matter halo spin distribution class.
     !!}
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
@@ -787,7 +787,7 @@ contains
 
   subroutine nbodyErrorsDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily nbodyErrors} dark matter halo spin distribution class.
+    Destructor for the \refClass{haloSpinDistributionNbodyErrors} dark matter halo spin distribution class.
     !!}
     implicit none
     type(haloSpinDistributionNbodyErrors), intent(inout) :: self

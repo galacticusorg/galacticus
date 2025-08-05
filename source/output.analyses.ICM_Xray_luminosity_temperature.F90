@@ -42,7 +42,7 @@
 
   interface outputAnalysisICMXrayLuminosityTemperature
      !!{
-     Constructors for the {\normalfont \ttfamily icmXrayLuminosityTemperature} output analysis class.
+     Constructors for the \refClass{outputAnalysisICMXrayLuminosityTemperature} output analysis class.
      !!}
      module procedure icmXrayLuminosityTemperatureConstructorParameters
      module procedure icmXrayLuminosityTemperatureConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function icmXrayLuminosityTemperatureConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily icmXrayLuminosityTemperature} output analysis class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisICMXrayLuminosityTemperature} output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters       , only : inputParameter          , inputParameters
     use :: Cooling_Functions      , only : coolingFunctionClass
@@ -119,7 +119,7 @@ contains
 
   function icmXrayLuminosityTemperatureConstructorInternal(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,outputTimes_,cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily icmXrayLuminosityTemperature} output analysis class for internal use.
+    Constructor for the \refClass{outputAnalysisICMXrayLuminosityTemperature} output analysis class for internal use.
     !!}
     use :: Galactic_Filters                      , only : filterList                                         , galacticFilterAll                      , galacticFilterBasicMass               , galacticFilterHaloIsolated
     use :: Error                                 , only : Error_Report
@@ -310,7 +310,7 @@ contains
 
   subroutine icmXrayLuminosityTemperatureDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily icmXrayLuminosityTemperature} output analysis class.
+    Destructor for the \refClass{outputAnalysisICMXrayLuminosityTemperature} output analysis class.
     !!}
     implicit none
     type(outputAnalysisICMXrayLuminosityTemperature), intent(inout) :: self

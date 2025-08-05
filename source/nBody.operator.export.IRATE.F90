@@ -46,7 +46,7 @@ Implements an N-body data operator which exports N-body data to IRATE format.
 
   interface nbodyOperatorExportIRATE
      !!{
-     Constructors for the {\normalfont \ttfamily exportIRATE} N-body operator class.
+     Constructors for the \refClass{nbodyOperatorExportIRATE} N-body operator class.
      !!}
      module procedure exportIRATEConstructorParameters
      module procedure exportIRATEConstructorInternal
@@ -56,7 +56,7 @@ contains
   
   function exportIRATEConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily exportIRATE} N-body operator class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyOperatorExportIRATE} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -98,7 +98,7 @@ contains
 
   function exportIRATEConstructorInternal(fileName,snapshot,redshift,cosmologyParameters_,cosmologyFunctions_) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily exportIRATE} N-body operator class.
+    Internal constructor for the \refClass{nbodyOperatorExportIRATE} N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorExportIRATE)                        :: self
@@ -116,7 +116,7 @@ contains
 
   subroutine exportIRATEDestructor(self)
     !!{
-    Destructor for {\normalfont \ttfamily exportIRATE} importer class.
+    Destructor for the \refClass{nbodyOperatorExportIRATE} importer class.
     !!}
     implicit none
     type(nbodyOperatorExportIRATE), intent(inout) :: self

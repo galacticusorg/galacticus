@@ -64,7 +64,7 @@
 
   interface massDistributionIsothermal
      !!{
-     Constructors for the {\normalfont \ttfamily isothermal} mass distribution class.
+     Constructors for the \refClass{massDistributionIsothermal} mass distribution class.
      !!}
      module procedure massDistributionIsothermalConstructorParameters
      module procedure massDistributionIsothermalConstructorInternal
@@ -74,7 +74,7 @@ contains
 
   function massDistributionIsothermalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily isothermal} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionIsothermal} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters

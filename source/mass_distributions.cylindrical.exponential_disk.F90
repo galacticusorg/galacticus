@@ -95,7 +95,7 @@
 
   interface massDistributionExponentialDisk
      !!{
-     Constructors for the {\normalfont \ttfamily exponentialDisk} mass distribution class.
+     Constructors for the \refClass{massDistributionExponentialDisk} mass distribution class.
      !!}
      module procedure exponentialDiskConstructorParameters
      module procedure exponentialDiskConstructorInternal
@@ -114,7 +114,7 @@ contains
 
   function exponentialDiskConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily exponentialDisk} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionExponentialDisk} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters

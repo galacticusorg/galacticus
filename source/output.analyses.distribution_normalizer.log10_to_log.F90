@@ -37,7 +37,7 @@
 
   interface outputAnalysisDistributionNormalizerLog10ToLog
      !!{
-     Constructors for the {\normalfont \ttfamily log10ToLog} output analysis distribution normalizer class.
+     Constructors for the \refClass{outputAnalysisDistributionNormalizerLog10ToLog} output analysis distribution normalizer class.
      !!}
      module procedure log10ToLogConstructorParameters
   end interface outputAnalysisDistributionNormalizerLog10ToLog
@@ -46,7 +46,7 @@ contains
 
   function log10ToLogConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily log10ToLog} output analysis distribution normalizer class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisDistributionNormalizerLog10ToLog} output analysis distribution normalizer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

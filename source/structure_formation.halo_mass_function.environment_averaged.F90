@@ -47,7 +47,7 @@ environment.
 
   interface haloMassFunctionEnvironmentAveraged
      !!{
-     Constructors for the {\normalfont \ttfamily environmentAveraged} halo mass function class.
+     Constructors for the \refClass{haloMassFunctionEnvironmentAveraged} halo mass function class.
      !!}
      module procedure environmentAveragedConstructorParameters
      module procedure environmentAveragedConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function environmentAveragedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily environmentAveraged} halo mass function class which takes a parameter set as
+    Constructor for the \refClass{haloMassFunctionEnvironmentAveraged} halo mass function class which takes a parameter set as
     input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -98,7 +98,7 @@ contains
 
   function environmentAveragedConstructorInternal(includeUnoccupiedVolume,haloMassFunctionConditioned_,haloMassFunctionUnconditioned_,haloEnvironment_,cosmologyParameters_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily environmentAveraged} halo mass function class.
+    Internal constructor for the \refClass{haloMassFunctionEnvironmentAveraged} halo mass function class.
     !!}
     implicit none
     type   (haloMassFunctionEnvironmentAveraged)                        :: self
@@ -116,7 +116,7 @@ contains
 
   subroutine environmentAveragedDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily environmentAveraged} halo mass function class.
+    Destructor for the \refClass{haloMassFunctionEnvironmentAveraged} halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionEnvironmentAveraged), intent(inout) :: self

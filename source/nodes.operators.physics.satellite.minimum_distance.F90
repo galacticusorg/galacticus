@@ -65,7 +65,7 @@
   
   interface nodeOperatorSatelliteMinimumDistance
      !!{
-     Constructors for the {\normalfont \ttfamily satelliteMinimumDistance} node operator class.
+     Constructors for the \refClass{nodeOperatorSatelliteMinimumDistance} node operator class.
      !!}
      module procedure satelliteMinimumDistanceConstructorParameters
      module procedure satelliteMinimumDistanceConstructorInternal
@@ -75,7 +75,7 @@ contains
 
   function satelliteMinimumDistanceConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily satelliteMinimumDistance} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorSatelliteMinimumDistance} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -90,7 +90,7 @@ contains
       <description>
 	Specifies to which host halo the minimum distance should be referenced. ``{\normalfont \ttfamily immediateHost}'' computes
 	the minimum distance to the first host (so, for a sub-subhalo, this would be the subhalo in which it is
-	orbitting). ``{\normalfont \ttfamily isolatedHost}'' computes the minimum distance to the final (isolated halo) host.
+	orbiting). ``{\normalfont \ttfamily isolatedHost}'' computes the minimum distance to the final (isolated halo) host.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -104,7 +104,7 @@ contains
 
   function satelliteMinimumDistanceConstructorInternal(relativeTo) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily satelliteMinimumDistance} node operator class.
+    Internal constructor for the \refClass{nodeOperatorSatelliteMinimumDistance} node operator class.
     !!}
     implicit none
     type(nodeOperatorSatelliteMinimumDistance)                :: self
@@ -135,7 +135,7 @@ contains
 
   subroutine satelliteMinimumDistanceDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily satelliteMinimumDistance} node operator class.
+    Destructor for the \refClass{nodeOperatorSatelliteMinimumDistance} node operator class.
     !!}
     use :: Events_Hooks, only : satelliteHostChangeEvent, subhaloPromotionEvent
     implicit none

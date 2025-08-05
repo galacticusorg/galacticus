@@ -50,7 +50,7 @@
 
   interface powerSpectrumWindowFunctionHyperbolicTangent
      !!{
-     Constructors for the {\normalfont \ttfamily hyperbolicTangent} power spectrum window function class.
+     Constructors for the \refClass{powerSpectrumWindowFunctionHyperbolicTangent} power spectrum window function class.
      !!}
      module procedure hyperbolicTangentConstructorParameters
      module procedure hyperbolicTangentConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function hyperbolicTangentConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily hyperbolicTangent} power spectrum window function class which takes a parameter set as input.
+    Constructor for the \refClass{powerSpectrumWindowFunctionHyperbolicTangent} power spectrum window function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -94,7 +94,7 @@ contains
 
   function hyperbolicTangentConstructorInternal(cosmologyParameters_,c,beta) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily hyperbolicTangent} power spectrum window function class.
+    Internal constructor for the \refClass{powerSpectrumWindowFunctionHyperbolicTangent} power spectrum window function class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -110,7 +110,7 @@ contains
 
   subroutine hyperbolicTangentDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily hyperbolicTangent} power spectrum window function class.
+    Destructor for the \refClass{powerSpectrumWindowFunctionHyperbolicTangent} power spectrum window function class.
     !!}
     implicit none
     type(powerSpectrumWindowFunctionHyperbolicTangent), intent(inout) :: self

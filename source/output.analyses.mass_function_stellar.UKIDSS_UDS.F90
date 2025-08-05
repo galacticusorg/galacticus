@@ -65,7 +65,7 @@ Implements a stellar mass function output analysis class for the UKIDSS UDS surv
 
   interface outputAnalysisMassFunctionStellarUKIDSSUDS
      !!{
-     Constructors for the {\normalfont \ttfamily massFunctionStellarUKIDSSUDS} output analysis class.
+     Constructors for the \refClass{outputAnalysisMassFunctionStellarUKIDSSUDS} output analysis class.
      !!}
      module procedure massFunctionStellarUKIDSSUDSConstructorParameters
      module procedure massFunctionStellarUKIDSSUDSConstructorInternal
@@ -75,7 +75,7 @@ contains
 
   function massFunctionStellarUKIDSSUDSConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily massFunctionStellarUKIDSSUDS} output analysis class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisMassFunctionStellarUKIDSSUDS} output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -181,7 +181,7 @@ contains
 
   function massFunctionStellarUKIDSSUDSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily massFunctionStellarUKIDSSUDS} output analysis class for internal use.
+    Constructor for the \refClass{outputAnalysisMassFunctionStellarUKIDSSUDS} output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -350,7 +350,7 @@ contains
 
   subroutine massFunctionStellarUKIDSSUDSDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily massFunctionStellarUKIDSSUDS} output analysis class.
+    Destructor for the \refClass{outputAnalysisMassFunctionStellarUKIDSSUDS} output analysis class.
     !!}
     implicit none
     type(outputAnalysisMassFunctionStellarUKIDSSUDS), intent(inout) :: self

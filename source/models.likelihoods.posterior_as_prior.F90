@@ -79,7 +79,7 @@
 
   interface posteriorSampleLikelihoodPosteriorAsPrior
      !!{
-     Constructors for the {\normalfont \ttfamily posteriorAsPrior} posterior sampling likelihood class.
+     Constructors for the \refClass{posteriorSampleLikelihoodPosteriorAsPrior} posterior sampling likelihood class.
      !!}
      module procedure posteriorAsPriorConstructorParameters
      module procedure posteriorAsPriorConstructorInternal
@@ -89,7 +89,7 @@ contains
 
   function posteriorAsPriorConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily posteriorAsPrior} posterior sampling likelihood class which builds the object
+    Constructor for the \refClass{posteriorSampleLikelihoodPosteriorAsPrior} posterior sampling likelihood class which builds the object
     from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -136,7 +136,7 @@ contains
 
   function posteriorAsPriorConstructorInternal(chainBaseName,neighborCount,tolerance,exclusions,posteriorSampleLikelihood_) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily posteriorAsPrior} posterior sampling likelihood class.
+    Constructor for the \refClass{posteriorSampleLikelihoodPosteriorAsPrior} posterior sampling likelihood class.
     !!}
     use :: File_Utilities    , only : File_Exists
     use :: ISO_Varying_String, only : varying_string
@@ -230,7 +230,7 @@ contains
 
   subroutine posteriorAsPriorDestructor(self)
     !!{
-    Destructor for ``posterior as prior'' posterior sampling likelihood class.
+    Destructor for \refClass{posteriorSampleLikelihoodPosteriorAsPrior} posterior sampling likelihood class.
     !!}
     implicit none
     type(posteriorSampleLikelihoodPosteriorAsPrior), intent(inout) :: self
@@ -243,7 +243,7 @@ contains
 
   subroutine posteriorAsPriorInitialize(self,modelParametersActive_)
     !!{
-    Initialize a ``posterior as prior'' likelihood object.
+    Initialize a \refClass{posteriorSampleLikelihoodPosteriorAsPrior} likelihood object.
     !!}
     implicit none
     class           (posteriorSampleLikelihoodPosteriorAsPrior), intent(inout)               :: self
@@ -290,7 +290,7 @@ contains
 
   double precision function posteriorAsPriorEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !!{
-    Return the log-likelihood for a ``posterior as prior'' likelihood function.
+    Return the log-likelihood for a \refClass{posteriorSampleLikelihoodPosteriorAsPrior} likelihood function.
     !!}
     use :: Numerical_Constants_Math      , only : Pi
     use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass

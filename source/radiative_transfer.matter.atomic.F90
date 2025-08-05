@@ -93,7 +93,7 @@
   
   interface radiativeTransferMatterAtomic
      !!{
-     Constructors for the {\normalfont \ttfamily atomic} radiative transfer matter class.
+     Constructors for the \refClass{radiativeTransferMatterAtomic} radiative transfer matter class.
      !!}
      module procedure atomicConstructorParameters
      module procedure atomicConstructorInternal
@@ -137,7 +137,7 @@ contains
 
   function atomicConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily atomic} radiative transfer matter class which takes a parameter set as input.
+    Constructor for the \refClass{radiativeTransferMatterAtomic} radiative transfer matter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters                , only : inputParameter  , inputParameters
     use :: ISO_Varying_String              , only : var_str
@@ -245,7 +245,7 @@ contains
 
   function atomicConstructorInternal(abundancePattern,metallicity,elements,iterationAverageCount,temperatureMinimum,outputRates,outputAbsorptionCoefficients,convergencePercentile,massDistribution_,atomicCrossSectionIonizationPhoto_,atomicRecombinationRateRadiative_,atomicRecombinationRateRadiativeCooling_,atomicIonizationRateCollisional_,atomicRecombinationRateDielectronic_,atomicIonizationPotential_,atomicExcitationRateCollisional_,gauntFactor_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily atomic} radiative transfer matter class.
+    Internal constructor for the \refClass{radiativeTransferMatterAtomic} radiative transfer matter class.
     !!}
     use :: Abundances_Structure            , only : Abundances_Index_From_Name, abundances                   , adjustElementsReset          , metallicityTypeLinearByMassSolar
     use :: Atomic_Data                     , only : Abundance_Pattern_Lookup  , Atomic_Abundance             , Atomic_Mass                  , Atomic_Number
@@ -354,7 +354,7 @@ contains
 
   subroutine atomicDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily atomic} radiative transfer matter class.
+    Destructor for the \refClass{radiativeTransferMatterAtomic} radiative transfer matter class.
     !!}
     implicit none
     type(radiativeTransferMatterAtomic), intent(inout) :: self

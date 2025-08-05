@@ -105,7 +105,7 @@
 
   interface accretionHaloNaozBarkana2007
      !!{
-     Constructors for the {\normalfont \ttfamily naozBarkana2007} halo accretion class.
+     Constructors for the \refClass{accretionHaloNaozBarkana2007} halo accretion class.
      !!}
      module procedure naozBarkana2007ConstructorParameters
      module procedure naozBarkana2007ConstructorInternal
@@ -118,7 +118,7 @@ contains
 
   function naozBarkana2007ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily naozBarkana2007} halo accretion class which takes a parameter set as input.
+    Constructor for the \refClass{accretionHaloNaozBarkana2007} halo accretion class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -151,7 +151,7 @@ contains
 
   function naozBarkana2007ConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,rateAdjust,massMinimum,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_,intergalacticMediumFilteringMass_,virialDensityContrast_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily naozBarkana2007} halo accretion class.
+    Internal constructor for the \refClass{accretionHaloNaozBarkana2007} halo accretion class.
     !!}
     use :: Kind_Numbers, only : kind_int8
     use :: Error       , only : Error_Report
@@ -205,7 +205,7 @@ contains
 
   subroutine naozBarkana2007Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily naozBarkana2007} halo accretion class.
+    Destructor for the \refClass{accretionHaloNaozBarkana2007} halo accretion class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none

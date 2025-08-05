@@ -39,7 +39,7 @@
 
   interface hotHaloRamPressureForceZero
      !!{
-     Constructors for the {\normalfont \ttfamily zero} hot halo ram pressure force class.
+     Constructors for the \refClass{hotHaloRamPressureForceZero} hot halo ram pressure force class.
      !!}
      module procedure zeroConstructorParameters
   end interface hotHaloRamPressureForceZero
@@ -48,7 +48,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily zero} hot halo ram pressure force class which builds the object from a parameter set.
+    Constructor for the \refClass{hotHaloRamPressureForceZero} hot halo ram pressure force class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

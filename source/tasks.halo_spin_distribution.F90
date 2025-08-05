@@ -49,7 +49,7 @@
 
   interface taskHaloSpinDistribution
      !!{
-     Constructors for the {\normalfont \ttfamily haloSpinDistribution} task.
+     Constructors for the \refClass{taskHaloSpinDistribution} task.
      !!}
      module procedure haloSpinDistributionConstructorParameters
      module procedure haloSpinDistributionConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function haloSpinDistributionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily haloSpinDistribution} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskHaloSpinDistribution} task class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize, treeNode
     use :: Input_Parameters, only : inputParameter              , inputParameters
@@ -143,7 +143,7 @@ contains
 
   function haloSpinDistributionConstructorInternal(spinMinimum,spinMaximum,spinPointsPerDecade,haloMassMinimum,outputGroup,darkMatterHaloScale_,haloSpinDistribution_,outputTimes_,cosmologyFunctions_,parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily haloSpinDistribution} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskHaloSpinDistribution} task class which takes a parameter set as input.
     !!}
     implicit none
     type            (taskHaloSpinDistribution )                        :: self
@@ -165,7 +165,7 @@ contains
 
   subroutine haloSpinDistributionDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily haloSpinDistribution} task class.
+    Destructor for the \refClass{taskHaloSpinDistribution} task class.
     !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none

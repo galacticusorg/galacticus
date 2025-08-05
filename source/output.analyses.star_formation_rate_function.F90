@@ -51,7 +51,7 @@
 
   interface outputAnalysisStarFormationRateFunction
      !!{
-     Constructors for the {\normalfont \ttfamily starFormationRateFunction} output analysis class.
+     Constructors for the \refClass{outputAnalysisStarFormationRateFunction} output analysis class.
      !!}
      module procedure starFormationRateFunctionConstructorParameters
      module procedure starFormationRateFunctionConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function starFormationRateFunctionConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily starFormationRateFunction} output analysis class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisStarFormationRateFunction} output analysis class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -198,7 +198,7 @@ contains
 
   function starFormationRateFunctionConstructorFile(label,comment,fileName,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily starFormationRateFunction} output analysis class which reads bin information from a standard format file.
+    Constructor for the \refClass{outputAnalysisStarFormationRateFunction} output analysis class which reads bin information from a standard format file.
     !!}
     use :: HDF5_Access, only : hdf5Access
     use :: IO_HDF5    , only : hdf5Object
@@ -264,7 +264,7 @@ contains
 
   function starFormationRateFunctionConstructorInternal(label,comment,starFormationRates,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily starFormationRateFunction} output analysis class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisStarFormationRateFunction} output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions                     , only : cosmologyFunctionsClass
     use :: Galactic_Filters                        , only : galacticFilterClass
@@ -438,7 +438,7 @@ contains
 
   subroutine starFormationRateFunctionDestructor(self)
     !!{
-    Destructor for  the {\normalfont \ttfamily starFormationRateFunction} output analysis class.
+    Destructor for the \refClass{outputAnalysisStarFormationRateFunction} output analysis class.
     !!}
     type(outputAnalysisStarFormationRateFunction), intent(inout) :: self
 

@@ -42,7 +42,7 @@
 
   interface mergerTreeNodeMergerSingleLevelHierarchy
      !!{
-     Constructors for the {\normalfont \ttfamily singleLevelHierarchy} merger tree evolver.
+     Constructors for the \refClass{mergerTreeNodeMergerSingleLevelHierarchy} merger tree evolver.
      !!}
      module procedure singleLevelHierarchyConstructorParameters
   end interface mergerTreeNodeMergerSingleLevelHierarchy
@@ -51,7 +51,7 @@ contains
 
   function singleLevelHierarchyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily singleLevelHierarchy} merger tree evolver class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeNodeMergerSingleLevelHierarchy} merger tree evolver class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

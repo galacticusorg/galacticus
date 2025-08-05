@@ -54,7 +54,7 @@
    
   interface transferFunctionFuzzyDMPassaglia2022
      !!{
-     Constructors for the {\normalfont \ttfamily fuzzyDMPassaglia2022} transfer function class.
+     Constructors for the \refClass{transferFunctionFuzzyDMPassaglia2022} transfer function class.
      !!}
      module procedure fuzzyDMPassaglia2022ConstructorParameters
      module procedure fuzzyDMPassaglia2022ConstructorInternal
@@ -69,7 +69,7 @@ contains
 
   function fuzzyDMPassaglia2022ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily fuzzyDMPassaglia2022} transfer function class which takes a parameter set as input.
+    Constructor for the \refClass{transferFunctionFuzzyDMPassaglia2022} transfer function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -102,7 +102,7 @@ contains
 
   function fuzzyDMPassaglia2022ConstructorInternal(transferFunctionCDM,darkMatterParticle_,cosmologyFunctions_,cosmologyParameters_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily fuzzyDMPassaglia2022} transfer function class.
+    Internal constructor for the \refClass{transferFunctionFuzzyDMPassaglia2022} transfer function class.
     !!}
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
     use :: Dark_Matter_Particles         , only : darkMatterParticleFuzzyDarkMatter
@@ -143,7 +143,7 @@ contains
 
   subroutine fuzzyDMPassaglia2022Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily fuzzyDMPassaglia2022} transfer function class.
+    Destructor for the \refClass{transferFunctionFuzzyDMPassaglia2022} transfer function class.
     !!}
     implicit none
     type(transferFunctionFuzzyDMPassaglia2022), intent(inout) :: self

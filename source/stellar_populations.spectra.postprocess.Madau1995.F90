@@ -40,7 +40,7 @@
 
   interface stellarPopulationSpectraPostprocessorMadau1995
      !!{
-     Constructors for the {\normalfont \ttfamily madau1995} stellar population spectra postprocessor class.
+     Constructors for the \refClass{stellarPopulationSpectraPostprocessorMadau1995} stellar population spectra postprocessor class.
      !!}
      module procedure madau1995ConstructorParameters
   end interface stellarPopulationSpectraPostprocessorMadau1995
@@ -49,7 +49,7 @@ contains
 
   function madau1995ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily madau1995} stellar population spectra postprocessor class which takes a
+    Constructor for the \refClass{stellarPopulationSpectraPostprocessorMadau1995} stellar population spectra postprocessor class which takes a
     parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters

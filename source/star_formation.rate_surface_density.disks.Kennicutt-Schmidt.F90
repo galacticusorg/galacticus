@@ -77,7 +77,7 @@
 
   interface starFormationRateSurfaceDensityDisksKennicuttSchmidt
      !!{
-     Constructors for the {\normalfont \ttfamily kennicuttSchmidt} star formation surface density rate in disks class.
+     Constructors for the \refClass{starFormationRateSurfaceDensityDisksKennicuttSchmidt} star formation surface density rate in disks class.
      !!}
      module procedure kennicuttSchmidtConstructorParameters
      module procedure kennicuttSchmidtConstructorInternal
@@ -87,7 +87,7 @@ contains
 
   function kennicuttSchmidtConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily kennicuttSchmidt} star formation surface density rate in disks class which takes a parameter set as input.
+    Constructor for the \refClass{starFormationRateSurfaceDensityDisksKennicuttSchmidt} star formation surface density rate in disks class which takes a parameter set as input.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -149,7 +149,7 @@ contains
 
   function kennicuttSchmidtConstructorInternal(normalization,exponent,truncate,exponentTruncated,velocityDispersionDiskGas,toomreParameterCritical) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily kennicuttSchmidt} star formation surface density rate from disks class.
+    Internal constructor for the \refClass{starFormationRateSurfaceDensityDisksKennicuttSchmidt} star formation surface density rate from disks class.
     !!}
     use :: Numerical_Constants_Prefixes, only : mega
     implicit none

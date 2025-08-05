@@ -55,7 +55,7 @@ An implementation of the hot halo mass distribution class which uses the ``hydro
 
   interface hotHaloMassDistributionEnzoHydrostatic
      !!{
-     Constructors for the {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution class.
+     Constructors for the \refClass{hotHaloMassDistributionEnzoHydrostatic} hot halo mass distribution class.
      !!}
      module procedure enzoHydrostaticConstructorParameters
      module procedure enzoHydrostaticConstructorInternal
@@ -89,7 +89,7 @@ contains
 
   function enzoHydrostaticConstructorInternal(hotHaloTemperatureProfile_,hotHaloMassDistributionCoreRadius_) result(self)
     !!{
-    Generic constructor for the {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution class.
+    Internal constructor for the \refClass{hotHaloMassDistributionEnzoHydrostatic} hot halo mass distribution class.
     !!}
     implicit none
     type (hotHaloMassDistributionEnzoHydrostatic)                        :: self
@@ -104,7 +104,7 @@ contains
 
   subroutine enzoHydrostaticDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution class.
+    Destructor for the \refClass{hotHaloMassDistributionEnzoHydrostatic} hot halo mass distribution class.
     !!}
     implicit none
     type(hotHaloMassDistributionEnzoHydrostatic), intent(inout) :: self
