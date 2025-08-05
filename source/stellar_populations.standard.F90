@@ -398,7 +398,7 @@ contains
          &                                                                        loopCountTotal    , i
     double precision                                                           :: maximumMass       , minimumMass     , &
          &                                                                        metallicity
-    type            (hdf5Object                       )                        :: file              , dataset
+    type            (hdf5Object                       )                        :: file
     character       (len=20                           )                        :: progressMessage
     type            (varying_string                   )                        :: fileName          , descriptorString
     logical                                                                    :: makeFile
@@ -446,17 +446,20 @@ contains
           call self%descriptor(descriptor,includeClass=.true.)
           descriptorString=descriptor%serializeToString()
           call descriptor%destroy()
-          !$ call hdf5Access%set           (                                                                                                               )
-          file=hdf5Object(char(fileName))
-          call file   %writeAttribute(fileFormatCurrent                                                        ,'fileFormat'                         )
-          call file   %writeAttribute(char(property%label           )                                          ,'description'                        )
-          call file   %writeAttribute('Computed by Galacticus'                                                 ,'source'                             )
-          call file   %writeAttribute(char(Formatted_Date_and_Time())                                          ,'date'                               )
-          call file   %writeAttribute(char(descriptorString         )                                          ,'parameters'                         )
-          call file   %writeDataset  (property%age                                                             ,'age'        ,datasetReturned=dataset)
-          call dataset%writeAttribute('Age of the stellar population in Gyr'                                   ,'description'                        )
-          call file   %writeDataset  (property%metallicity                                                     ,'metallicity',datasetReturned=dataset)
-          call dataset%writeAttribute('Metallicity (fractional mass of total metals) of the stellar population','description'                        )
+          !$ call hdf5Access%set()
+          block
+            type(hdf5Object) :: dataset
+            file=hdf5Object(char(fileName))
+            call file   %writeAttribute(fileFormatCurrent                                                        ,'fileFormat'                         )
+            call file   %writeAttribute(char(property%label           )                                          ,'description'                        )
+            call file   %writeAttribute('Computed by Galacticus'                                                 ,'source'                             )
+            call file   %writeAttribute(char(Formatted_Date_and_Time())                                          ,'date'                               )
+            call file   %writeAttribute(char(descriptorString         )                                          ,'parameters'                         )
+            call file   %writeDataset  (property%age                                                             ,'age'        ,datasetReturned=dataset)
+            call dataset%writeAttribute('Age of the stellar population in Gyr'                                   ,'description'                        )
+            call file   %writeDataset  (property%metallicity                                                     ,'metallicity',datasetReturned=dataset)
+            call dataset%writeAttribute('Metallicity (fractional mass of total metals) of the stellar population','description'                        )
+          end block
           !$ call hdf5Access%unset()
           ! Loop over ages and metallicities and compute the property.
           call displayIndent('Tabulating property: '//char(property%label),verbosityLevelWorking)
