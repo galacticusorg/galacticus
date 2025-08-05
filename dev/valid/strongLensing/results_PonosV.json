@@ -4,21 +4,21 @@ window.PONOSV_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@obs.carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "d70a537902d2954a7acfd556f14560047563fc2d",
-        "message": "fix(style): Formatting only\n",
-        "timestamp": "2025-07-28 08:59:25-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/d70a537902d2954a7acfd556f14560047563fc2d"
+        "id": "b14516f47e2d6cb206f604507c35752cd433b17d",
+        "message": "Merge pull request #892 from galacticusorg/fixUniverseLock\n\nAvoid attempts to finalize uninitialized OpenMP locks\n",
+        "timestamp": "2025-08-05 14:15:51+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/b14516f47e2d6cb206f604507c35752cd433b17d"
     },
     "surfaceDensity": {
-        "percentageBelow": 32.14285714285714,
-        "percentageAbove": 67.85714285714286,
+        "percentageBelow": 35.71428571428571,
+        "percentageAbove": 64.28571428571429,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 66.66666666666666,
-        "percentageAbove": 33.333333333333336,
+        "percentageBelow": 54.54545454545455,
+        "percentageAbove": 45.45454545454545,
         "target": 0.85
     }
 }
