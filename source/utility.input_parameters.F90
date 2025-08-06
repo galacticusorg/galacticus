@@ -1528,7 +1528,6 @@ contains
                       !$omp critical (FoX_DOM_Access)
                       parameterMatched=regEx_%matches(getNodeName(node_))
                       !$omp end critical (FoX_DOM_Access)
-                      call regEx_%destroy()
                    else
                       !$omp critical (FoX_DOM_Access)
                       parameterMatched=(getNodeName(node_) == trim(allowedParameterName))
