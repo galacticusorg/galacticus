@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "b14516f47e2d6cb206f604507c35752cd433b17d",
-        "message": "Merge pull request #892 from galacticusorg/fixUniverseLock\n\nAvoid attempts to finalize uninitialized OpenMP locks\n",
-        "timestamp": "2025-08-05 14:15:51+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/b14516f47e2d6cb206f604507c35752cd433b17d"
+        "id": "192c2d083d99ce2cb0cba2e6cb49421fdf21c12b",
+        "message": "fix: Replace obsolete URL with an Internet Archive link\n",
+        "timestamp": "2025-08-06 13:22:00-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/192c2d083d99ce2cb0cba2e6cb49421fdf21c12b"
     },
     "results": [
         {
