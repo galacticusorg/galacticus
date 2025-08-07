@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1754427305154,
+  "lastUpdate": 1754535368243,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (COZMIC WDM 3keV)": [
@@ -773,6 +773,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (COZMIC WDM 3keV Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": "367.1097703046476",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "192c2d083d99ce2cb0cba2e6cb49421fdf21c12b",
+          "message": "fix: Replace obsolete URL with an Internet Archive link",
+          "timestamp": "2025-08-06T13:22:00-07:00",
+          "tree_id": "977514affeabfc6a06fa8ec46dac61b93bfc7223",
+          "url": "https://github.com/galacticusorg/galacticus/commit/192c2d083d99ce2cb0cba2e6cb49421fdf21c12b"
+        },
+        "date": 1754535367458,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM 3keV Milky Way) - Likelihood - subhaloMassFunction",
+            "value": "0.7437192954315981",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM 3keV Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": "1.9229121083835192",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM 3keV Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": "303.2513032934722",
             "unit": "-logℒ"
           }
         ]
