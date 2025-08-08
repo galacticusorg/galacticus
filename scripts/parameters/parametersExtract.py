@@ -78,6 +78,11 @@ def assignValues(name, node):
             if isTarget:
                 attributeName = isTarget.group(1)
                 idTarget      = isTarget.group(2)
+            # A prefix "meta:" indicates a non-parameter that was added as metadata. Include it but add an `ignoreWarnings`
+            # attribute to avoid triggering warnings.
+            isMeta = re.match(r'^meta:(.+)',attributeName)
+            if isMeta:
+                attributeName = isMeta.group(1)
             # Set the value of the parameter (creating the element first if needed).
             if attributeName in node:
                 child = parent.find(attributeName)
@@ -87,6 +92,8 @@ def assignValues(name, node):
                     child.set('value', value      )
                     if isTarget:
                         child.set('id',idTarget)
+                if isMeta:
+                    child.set('ignoreWarnings','true')
             else:
                 newChild = ET.SubElement(parent, attributeName)
                 if isReference:
@@ -95,6 +102,8 @@ def assignValues(name, node):
                     newChild.set('value', value      )
                     if isTarget:
                         newChild.set('id',idTarget)
+                if isMeta:
+                    newChild.set('ignoreWarnings','true')
 
 # Open the HDF5 file and get the `Parameters` group.
 fileIn = h5py.File(args.hdf5FileName,"r")
