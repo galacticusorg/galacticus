@@ -69,10 +69,10 @@ program Test_Biases
   type            (varying_string                                              ), dimension(countModels)              :: modelName                                                      , modelLabel    , &
        &                                                                                                                 modelDensityContrast
   double precision                                                              , dimension(countModels)              :: modelTolerance
-  type            (inputParameters                                             ), pointer                             :: parameters
   character       (len= 128                                                    ), dimension(4          )              :: columns
   double precision                                                              , dimension(:          ), allocatable :: mass                                                           , biasTarget    , &
        &                                                                                                                 bias                                                           , redshift
+  type            (inputParameters                                             )                                      :: parameters
   character       (len=1024                                                    )                                      :: line
   double precision                                                                                                    :: OmegaMatter                                                    , OmegaBaryon   , &
        &                                                                                                                 OmegaDarkEnergy                                                , temperatureCMB, &
@@ -102,7 +102,6 @@ program Test_Biases
   ! Iterate over models.
   call Unit_Tests_Begin_Group("Bias algorithms")
   do iModel=1,countModels
-     allocate(parameters)
      parameterFile=inputPath(pathTypeExec)//'testSuite/parameters/haloBias_'//modelDensityContrast(iModel)//'.xml'
      parameters   =inputParameters(parameterFile)
      call nodeClassHierarchyInitialize     (parameters)
@@ -344,7 +343,6 @@ program Test_Biases
      ! Clean up.
      call parameters%reset  ()
      call parameters%destroy()
-     deallocate(parameters)
      deallocate(mass      )
      deallocate(redshift  )
      deallocate(bias      )
