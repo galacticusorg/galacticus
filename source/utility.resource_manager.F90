@@ -28,7 +28,7 @@ module Resource_Manager
   \href{https://en.cppreference.com/w/cpp/memory/shared_ptr}{\normalfont \ttfamily shared\_ptr} in C++.
   !!}
   private
-  public :: resourceManager
+  public :: resourceManager, resourceManagerForceReportOn, resourceManagerForceReportOff
 
   type :: resourceManager
      !!{
@@ -62,8 +62,32 @@ module Resource_Manager
      !!}
      module procedure resourceManagerConstructor
   end interface resourceManager
+
+  ! Option to force reporting of resource state.
+  logical :: forceReportOn=.false.
+  !$omp threadprivate(forceReportOn)
   
 contains
+
+  subroutine resourceManagerForceReportOn()
+    !!{
+    Force all {\normalfont \ttfamily resourceManager} objects to be created with reporting enabled.
+    !!}
+    implicit none
+
+    forceReportOn=.true.
+    return
+  end subroutine resourceManagerForceReportOn
+
+  subroutine resourceManagerForceReportOff()
+    !!{
+    Cease forcing all {\normalfont \ttfamily resourceManager} objects to be created with reporting enabled.
+    !!}
+    implicit none
+
+    forceReportOn=.false.
+    return
+  end subroutine resourceManagerForceReportOff
 
   function resourceManagerConstructor(resource,reportOn) result(self)
     !!{
@@ -87,7 +111,7 @@ contains
     allocate(self%counter)
     self%counter=1
     ! Set reporting state.
-    self%reportOn_=reportOn_
+    self%reportOn_=reportOn_ .or. forceReportOn
     if (self%reportOn_) then
        call displayMessage(var_str('report on managed resource [loc:')//loc(self%resource)//' ] references - count = '//self%counter)
        call backtrace()
