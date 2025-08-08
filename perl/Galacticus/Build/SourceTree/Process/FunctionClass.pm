@@ -1204,8 +1204,20 @@ CODE
 				foreach my $object ( @{$declaration->{'variables'}} ) {
 				    (my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
 				    if ( $allocatable ) {
-					$assignment->{'code'} .= "    if (allocated(self%".$name.")) deallocate(self%".$name."                      )\n";
-					$assignment->{'code'} .= "    if (allocated(from%".$name."))   allocate(self%".$name.",source=from%".$name.")\n";
+					$assignment->{'code'} .= "    if (allocated(self%".$name.")) deallocate(self%".$name.")\n";
+					$assignment->{'code'} .= "    if (allocated(from%".$name.")) then\n";
+					# Use `mold=` to get the correct type. Then include a direct assignment after the `allocate`
+					# as this will trigger any defined assignment which is necessary for reference counting.
+					my $bounds = "";
+					if ( grep {$_ =~ m/^dimension\s*\([a-z0-9_:,\s]+\)/} @{$declaration->{'attributes'}} ) {
+					    # Non-scalar parameter - values must be concatenated.
+					    my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
+					    my $rank                = ($dimensionDeclarator =~ tr/,//)+1;
+					    $bounds = "(".join(",",map {"lbound(from%".$name.",dim=".$_."):ubound(from%".$name.",dim=".$_.")"} 1..$rank).")";
+					}
+					$assignment->{'code'} .= "      allocate(self%".$name.$bounds.",mold=from%".$name.")\n";
+					$assignment->{'code'} .= "      self%".$name."=from%".$name."\n";
+					$assignment->{'code'} .= "    end if\n";
 				    } else {
 					$assignment->{'code'} .= "    self%".$name.$assigner."from%".$name."\n";
 					$assignment->{'code'} .= "    ".($isPointer ? "if (associated(self%".$name.")) " : "")."call self%".$name."%referenceCountIncrement()\n"
@@ -1250,8 +1262,20 @@ CODE
 		foreach my $object ( @{$declaration->{'variables'}} ) {
 		    (my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
 		    if ( $allocatable ) {
-			$assignment->{'code'} .= "    if (allocated(self%".$name.")) deallocate(self%".$name."                      )\n";
-			$assignment->{'code'} .= "    if (allocated(from%".$name."))   allocate(self%".$name.",source=from%".$name.")\n";
+			$assignment->{'code'} .= "    if (allocated(self%".$name.")) deallocate(self%".$name.")\n";
+			$assignment->{'code'} .= "    if (allocated(from%".$name.")) then\n";
+			# Use `mold=` to get the correct type. Then include a direct assignment after the `allocate` as this will
+			# trigger any defined assignment which is necessary for reference counting.
+			my $bounds = "";
+			if ( grep {$_ =~ m/^dimension\s*\([a-z0-9_:,\s]+\)/} @{$declaration->{'attributes'}} ) {
+			    # Non-scalar parameter - values must be concatenated.
+			    my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
+			    my $rank                = ($dimensionDeclarator =~ tr/,//)+1;
+			    $bounds = "(".join(",",map {"lbound(from%".$name.",dim=".$_."):ubound(from%".$name.",dim=".$_.")"} 1..$rank).")";
+			}
+			$assignment->{'code'} .= "      allocate(self%".$name.$bounds.",mold=from%".$name.")\n";
+			$assignment->{'code'} .= "      self%".$name."=from%".$name."\n";
+			$assignment->{'code'} .= "    end if\n";
 		    } else {
 			$assignment->{'code'} .= "    self%".$name.$assigner."from%".$name."\n";
 		    }
@@ -1281,8 +1305,20 @@ CODE
 			    foreach my $object ( @{$declaration->{'variables'}} ) {
 				(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
 				if ( $allocatable ) {
-				    $assignment->{'code'} .= "    if (allocated(self%".$name.")) deallocate(self%".$name."                      )\n";
-				    $assignment->{'code'} .= "    if (allocated(from%".$name."))   allocate(self%".$name.",source=from%".$name.")\n";
+				    $assignment->{'code'} .= "    if (allocated(self%".$name.")) deallocate(self%".$name.")\n";
+				    $assignment->{'code'} .= "    if (allocated(from%".$name.")) then\n";
+				    # Use `mold=` to get the correct type. Then include a direct assignment after the `allocate`
+				    # as this will trigger any defined assignment which is necessary for reference counting.
+				    my $bounds = "";
+				    if ( grep {$_ =~ m/^dimension\s*\([a-z0-9_:,\s]+\)/} @{$declaration->{'attributes'}} ) {
+					# Non-scalar parameter - values must be concatenated.
+					my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
+					my $rank                = ($dimensionDeclarator =~ tr/,//)+1;
+					$bounds = "(".join(",",map {"lbound(from%".$name.",dim=".$_."):ubound(from%".$name.",dim=".$_.")"} 1..$rank).")";
+				    }
+				    $assignment->{'code'} .= "      allocate(self%".$name.",mold=from%".$name.")\n";
+				    $assignment->{'code'} .= "      self%".$name."=from%".$name."\n";
+				    $assignment->{'code'} .= "    end if\n";
 				} else {
 				    $assignment->{'code'} .= "    self%".$name.$assigner."from%".$name."\n";
 				}
