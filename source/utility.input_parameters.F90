@@ -1099,7 +1099,6 @@ contains
        call self%parameters%destroy()
        deallocate(self%parameters)
     end if
-    call inputParametersFinalize(self)
     return
   end subroutine inputParametersDestroy
 
