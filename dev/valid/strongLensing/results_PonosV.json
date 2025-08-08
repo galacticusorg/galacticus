@@ -4,21 +4,21 @@ window.PONOSV_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@obs.carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "192c2d083d99ce2cb0cba2e6cb49421fdf21c12b",
-        "message": "fix: Replace obsolete URL with an Internet Archive link\n",
-        "timestamp": "2025-08-06 13:22:00-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/192c2d083d99ce2cb0cba2e6cb49421fdf21c12b"
+        "id": "38f59d3f27b7708e28d6c5be09c7ba286e282c0b",
+        "message": "Merge pull request #888 from galacticusorg/featObjectMetaData\n\nStore the file name for SED matrix files in the Parameters group\n",
+        "timestamp": "2025-08-08 02:55:52+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/38f59d3f27b7708e28d6c5be09c7ba286e282c0b"
     },
     "surfaceDensity": {
-        "percentageBelow": 42.857142857142854,
-        "percentageAbove": 57.142857142857146,
+        "percentageBelow": 35.71428571428571,
+        "percentageAbove": 64.28571428571429,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 50.0,
-        "percentageAbove": 50.0,
+        "percentageBelow": 54.54545454545455,
+        "percentageAbove": 45.45454545454545,
         "target": 0.85
     }
 }
