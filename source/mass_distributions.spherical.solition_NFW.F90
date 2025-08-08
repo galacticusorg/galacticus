@@ -47,6 +47,7 @@
      procedure :: massEnclosedBySphere  => solitonNFWMassEnclosedBySphere
      procedure :: density               => solitonNFWDensity
      procedure :: densityGradientRadial => solitonNFWDensityGradientRadial
+     procedure :: radiusEnclosingDensity=> solitonNFWRadiusEnclosingDensity
      procedure :: parameters            => solitonNFWParameters
      procedure :: factoryTabulation     => solitonNFWFactoryTabulation
      procedure :: descriptor            => solitonNFWDescriptor
@@ -302,6 +303,10 @@ contains
         double precision                :: termArcTangent           , termPrefactor , &
              &                             termCore                 , termPolynomial
         
+        if (radius_ <= 0.0d0) then
+           print *, "WARNING: radius <= 0 in massEnclosedBySphere, returning 0."
+        end if
+
         if (radius_ < fractionRadiusSmall*self%radiusCore) then
            ! At small radii use a Taylor series for numerical accuracy.
            mass          =+  4.0d0/3.0d0*Pi                   *self%densitySolitonCentral*radius_**3                    &
@@ -350,6 +355,10 @@ contains
       class           (coordinate                ), intent(in   ) :: coordinates
       double precision                                            :: radiusScaleFree, radiusCoreFree
 
+      if (coordinates%rSpherical() <= 0.0d0) then
+           print *, "WARNING: radius <= 0 in Density, returning 0."
+      end if
+
       radiusScaleFree=+coordinates%rSpherical()/self%radiusScale
       radiusCoreFree =+coordinates%rSpherical()/self%radiusCore
       if (coordinates%rSpherical() < self%radiusSoliton) then
@@ -374,6 +383,10 @@ contains
       !![
       <optionalArgument name="logarithmic" defaultsTo=".false."/>
       !!]
+
+      if (coordinates%rSpherical() <= 0.0d0) then
+           print *, "WARNING: radius <= 0 in DensityGradientRadial, returning 0."
+      end if
 
       radiusScaleFree=+coordinates%rSpherical()/self%radiusScale
       radiusCoreFree =+coordinates%rSpherical()/self%radiusCore
@@ -406,6 +419,25 @@ contains
       end if
       return
    end function solitonNFWDensityGradientRadial
+
+   double precision function solitonNFWRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
+    !!{
+    Computes the radius enclosing a given mean density for soliton NFW mass distributions.
+    !!}
+    use :: Numerical_Ranges, only : Make_Range, rangeTypeLogarithmic
+    implicit none
+    class           (massDistributionSolitonNFW), intent(inout), target   :: self
+    double precision                            , intent(in   )           :: density
+    double precision                            , intent(in   ), optional :: radiusGuess
+
+    if (density >= self%densitySolitonCentral) then
+       radius=0.0d0
+    else
+       radius=self%massDistributionClass%radiusEnclosingDensity(density,radiusGuess)
+    end if
+
+    return
+  end function solitonNFWRadiusEnclosingDensity
 
    subroutine solitonNFWParameters(self,densityNormalization,radiusNormalization,parameters,container)
       !!{

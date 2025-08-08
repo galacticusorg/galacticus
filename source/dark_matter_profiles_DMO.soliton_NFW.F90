@@ -23,11 +23,12 @@
   An implementation of fuzzy dark matter halo profiles using the soliton and NFW mass distribution.
   !!}
 
-  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
-  use :: Dark_Matter_Particles  , only : darkMatterParticleClass
-  use :: Cosmology_Parameters   , only : cosmologyParametersClass
-  use :: Cosmology_Functions    , only : cosmologyFunctionsClass
-  use :: Virial_Density_Contrast, only : virialDensityContrastClass
+  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
+  use :: Dark_Matter_Particles   , only : darkMatterParticleClass
+  use :: Cosmology_Parameters    , only : cosmologyParametersClass
+  use :: Cosmology_Functions     , only : cosmologyFunctionsClass
+  use :: Virial_Density_Contrast , only : virialDensityContrastClass
+  use :: Statistics_Distributions, only : distributionFunction1DNormal
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOSolitonNFW">
    <description>
@@ -41,14 +42,21 @@
      A dark matter halo profile class implementing \gls{fdm} dark matter halos.
      !!}
      private
-     double precision                                      :: massParticle
-     class           (darkMatterHaloScaleClass  ), pointer :: darkMatterHaloScale_               => null()
-     class           (cosmologyParametersClass  ), pointer :: cosmologyParameters_               => null()
-     class           (cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_                => null()
-     class           (darkMatterParticleClass   ), pointer :: darkMatterParticle_                => null()
-     class           (virialDensityContrastClass), pointer :: virialDensityContrast_             => null()
-     double precision                                      :: toleranceRelativeVelocityDispersion         , toleranceRelativeVelocityDispersionMaximum
-     integer         (kind_int8                 )          :: lastUniqueID
+     double precision                                        :: massParticle
+     class           (darkMatterHaloScaleClass    ), pointer :: darkMatterHaloScale_               => null()
+     class           (cosmologyParametersClass    ), pointer :: cosmologyParameters_               => null()
+     class           (cosmologyFunctionsClass     ), pointer :: cosmologyFunctions_                => null()
+     class           (darkMatterParticleClass     ), pointer :: darkMatterParticle_                => null()
+     class           (virialDensityContrastClass  ), pointer :: virialDensityContrast_             => null()
+     type            (distributionFunction1DNormal)          :: alphaNormal
+     type            (distributionFunction1DNormal)          :: massCoreScatter
+     double precision                                        :: toleranceRelativeVelocityDispersion         , toleranceRelativeVelocityDispersionMaximum
+     double precision                                        :: radiusVirialPrevious                        , radiusScalePrevious                       , &
+          &                                                     radiusCorePrevious                          , radiusSolitonPrevious                     , &
+          &                                                     densityCorePrevious                         , densityScalePrevious                      , &
+          &                                                      massCorePrevious
+     integer          (kind_int8                  )          :: lastUniqueID
+     integer                                                 :: randomOffsetID                              , densityCoreID
    contains
      !![
      <methods>
@@ -141,9 +149,14 @@ contains
     double precision                                , intent(in)         :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
     !![
     <constructorAssign variables="*darkMatterHaloScale_, *darkMatterParticle_, *cosmologyFunctions_, *cosmologyParameters_, *virialDensityContrast_, toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum"/>
+    <addMetaProperty component="basic" name="randomOffset" id="self%randomOffsetID" isEvolvable="no" isCreator="yes"/>
+    <addMetaProperty component="basic" name="densityCore"  id="self%densityCoreID"  isEvolvable="no" isCreator="yes"/>
     !!]
 
     self%lastUniqueID=-huge(1_kind_int8)
+    self%alphaNormal = distributionFunction1DNormal(mean=0.326d0,variance=1.0d-2)
+    self%massCoreScatter = distributionFunction1DNormal(mean=0.0d0,variance = log10(1.5d0)**2) ! 50% log-normal scatter from Eq.(15) of Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
+
 
     select type (darkMatterParticle__ => self%darkMatterParticle_)
     class is (darkMatterParticleFuzzyDarkMatter)
@@ -180,6 +193,7 @@ contains
     !!{
     Destructor for the {\normalfont \ttfamily solitonNFW} dark matter halo profile class.
     !!}
+    use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(darkMatterProfileDMOSolitonNFW), intent(inout) :: self
 
@@ -190,6 +204,7 @@ contains
     <objectDestructor name="self%cosmologyParameters_"  />
     <objectDestructor name="self%virialDensityContrast_"/>
     !!]
+    if (calculationResetEvent%isAttached(self,solitonNFWCalculationReset)) call calculationResetEvent%detach(self,solitonNFWCalculationReset)
     return
   end subroutine solitonNFWDestructor
 
@@ -205,6 +220,13 @@ contains
     !$GLC attributes unused :: node
 
     self%lastUniqueID            =uniqueID
+    self%radiusVirialPrevious    =-huge(0.0d0)
+    self%radiusScalePrevious     =-huge(0.0d0)
+    self%radiusCorePrevious      =-huge(0.0d0)
+    self%radiusSolitonPrevious   =-huge(0.0d0)
+    self%densityCorePrevious     =-huge(0.0d0)
+    self%densityScalePrevious    =-huge(0.0d0)
+    self%massCorePrevious        =-huge(0.0d0)
     return
   end subroutine solitonNFWCalculationReset
 
@@ -225,7 +247,7 @@ contains
     double precision                                                          :: radiusCore             , radiusScale , &
          &                                                                       radiusSoliton          , radiusVirial, &
          &                                                                       densityScale           , densityCore , &
-         &                                                                       massHaloMinimum0       , massCore
+         &                                                                       massCore
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
     !!]
@@ -234,7 +256,25 @@ contains
     massDistribution_ => null()
     if (weightBy_ /= weightByMass) return
     ! Compute properties of the distribution.
-    if (node%uniqueID() /= self%lastUniqueID) call self%computeProperties(node,radiusVirial,radiusScale,radiusCore,radiusSoliton,densityCore,densityScale,massHaloMinimum0,massCore)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
+    if (self%radiusCorePrevious < 0.0d0) then
+       call self%computeProperties(node,radiusVirial,radiusScale,radiusCore,radiusSoliton,densityCore,densityScale,massCore)
+       self%radiusVirialPrevious    =+radiusVirial
+       self%radiusScalePrevious     =+radiusScale
+       self%radiusCorePrevious      =+radiusCore
+       self%radiusSolitonPrevious   =+radiusSoliton
+       self%densityCorePrevious     =+densityCore
+       self%densityScalePrevious    =+densityScale
+       self%massCorePrevious        =+massCore
+    end if
+    radiusVirial    =self%radiusVirialPrevious
+    radiusScale     =self%radiusScalePrevious
+    radiusCore      =self%radiusCorePrevious
+    radiusSoliton   =self%radiusSolitonPrevious
+    densityCore     =self%densityCorePrevious
+    densityScale    =self%densityScalePrevious
+    massCore        =self%massCorePrevious
+    
     ! Construct the distribution.
     allocate(massDistributionSolitonNFW       :: massDistribution_      )
     allocate(kinematicsDistributionSolitonNFW :: kinematicsDistribution_)
@@ -277,7 +317,7 @@ contains
     return
   end function solitonNFWGet
 
-  subroutine solitonNFWComputeProperties(self,node,radiusVirial,radiusScale,radiusCore,radiusSoliton,densityCore,densityScale,massHaloMinimum0,massCore)
+  subroutine solitonNFWComputeProperties(self,node,radiusVirial,radiusScale,radiusCore,radiusSoliton,densityCore,densityScale,massCore)
     use :: Galacticus_Nodes                , only : treeNode           , nodeComponentBasic       , nodeComponentDarkMatterProfile
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Units       , only : electronVolt
@@ -289,16 +329,16 @@ contains
     implicit none
     class           (darkMatterProfileDMOSolitonNFW), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
-    double precision                                , intent(  out) :: radiusVirial                       , radiusScale             , &
-         &                                                             radiusCore                         , radiusSoliton           , &
-         &                                                             densityCore                        , densityScale            , &
-         &                                                             massHaloMinimum0                   , massCore
+    double precision                                , intent(  out) :: radiusVirial                       , radiusScale                , &
+         &                                                             radiusCore                         , radiusSoliton              , &
+         &                                                             densityCore                        , densityScale               , &
+         &                                                             massCore
     class           (nodeComponentBasic            ), pointer       :: basic
     class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
     type            (rootFinder                    ), save          :: finder
-    logical                                         , save          :: finderInitialized =.false.
-    !$omp threadprivate(finder, finderInitialized)
-    double precision                                , parameter     :: toleranceAbsolute = 0.0d0          , toleranceRelative   =1.0d-3
+    logical                                         , save          :: finderInitialized =.false.         , radiusSolitonFound =.false.
+    !$omp threadprivate(finder, finderInitialized, radiusSolitonFound)
+    double precision                                , parameter     :: toleranceAbsolute = 0.0d0          , toleranceRelative  =1.0d-3
     double precision                                , parameter     :: plancksConstantBar=+plancksConstant                               & ! ℏ in units of eV s.
          &                                                                                /2.0d0                                         &
          &                                                                                /Pi                                            &
@@ -307,8 +347,12 @@ contains
          &                                                             redshift                           , concentration              , &
          &                                                             hubbleConstant                     , hubbleConstantLittle       , &
          &                                                             OmegaMatter                        , densityMatter              , &
-         &                                                             zeta_0                             , zeta_z
-    integer                                                         :: status
+         &                                                             zeta_0                             , zeta_z                     , &
+         &                                                             randomOffset                       , massCoreNormal
+    double precision                                , parameter     :: alpha             =0.515           , beta               =8.0d6  , &
+         &                                                             gamma             =10.0d0**(-5.73d0)                                ! Best-fitting parameters from Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
+    integer                                                         :: status                             , sampleCount                , &
+         &                                                             maxSamples = 100
 
     ! Get required components.
     basic             => node%basic            ()
@@ -339,37 +383,42 @@ contains
     ! Compute the core mass.
     zeta_0             =+self%virialDensityContrast_%densityContrast(massHalo,expansionFactor=1.0d0          )
     zeta_z             =+self%virialDensityContrast_%densityContrast(massHalo,expansionFactor=expansionFactor)
-    massHaloMinimum0   =+ 32.0d0               & ! Text after equation (6) of Schive et al. (2014; PRL; 113; 1302; https://ui.adsabs.harvard.edu/abs/2014PhRvL.113z1302S).
-         &              *Pi                    &
-         &              /375.0d0      **0.25d0 &
-         &              *zeta_0       **0.25d0 &
-         &              /OmegaMatter  **0.75d0 &
-         &              *densityMatter         &
-         &              *speedLight   **3      &
-         &              /megaParsec   **3      &
-         &              /(                     &
-         &                +kilo                &
-         &                /megaParsec          &
-         &                *hubbleConstant      &
-         &                *self%massParticle   &
-         &                /plancksConstantBar  &
-         &               )**1.5d0
-    massCore           =+0.25d0                                     & ! Equation (6) of Schive et al. (2014; PRL; 113; 1302; https://ui.adsabs.harvard.edu/abs/2014PhRvL.113z1302S).
-         &              *massHaloMinimum0                           &
-         &              /sqrt(expansionFactor)                      &
-         &              *(zeta_z  /zeta_0          )**(1.0d0/6.0d0) &
-         &              *(massHalo/massHaloMinimum0)**(1.0d0/3.0d0)
+    massCoreNormal     =(beta                     & ! Equation (15) of Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
+                        *(                        &
+                          +self%massParticle      &
+                          /8.0d-23                &
+                         )**(-1.5d0)              &
+                        +((+zeta_z                &
+                           /zeta_0                &
+                          )**0.5d0                &
+                          *massHalo               &
+                          /gamma                  &
+                         )**alpha                 &
+                         *(self%massParticle      &
+                           /8.0d-23               &
+                          )**(1.5d0*(alpha-1.0d0))&
+                        )/sqrt(expansionFactor)
+    randomOffset       = basic%floatRank0MetaPropertyGet(self%randomOffsetID)
+    if (randomOffset  == 0.0d0) then
+        randomOffset   = self%massCoreScatter%sample(randomNumberGenerator_=node%hostTree%randomNumberGenerator_)
+        call basic%floatRank0MetaPropertySet(self%randomOffsetID, randomOffset)
+    end if
+    print *, 'uniqueID / randomOffset', node%uniqueID(), randomOffset
+    massCore           = massCoreNormal*10.0d0**randomOffset
     ! Compute the core radius.
-    radiusCore         =+1.6d-3                           & ! Equation (7) of Schive et al. (2014; PRL; 113; 1302; https://ui.adsabs.harvard.edu/abs/2014PhRvL.113z1302S).
-         &              /(self%massParticle/1.0d-22)      &
-         &              *sqrt(expansionFactor)            &
-         &              /(zeta_z  /zeta_0)**(1.0d0/6.0d0) &
-         &              /(massHalo/1.0d9 )**(1.0d0/3.0d0)
+    radiusCore         =+5.5d6                           & ! Equation (14) of Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
+         &              /(self%massParticle/1.0d-23)**2  &
+         &              /expansionFactor                 &
+         &              /massCore
     ! Compute the core density normalization. Equation (3) of Schive et al. (2014; PRL; 113; 1302; https://ui.adsabs.harvard.edu/abs/2014PhRvL.113z1302S).
-    densityCore       =+1.9d6                          &
-         &             /(self%massParticle/1.0d-23)**2 &
-         &             /radiusCore                 **4 &
-         &             /expansionFactor
+    densityCore       =+massCore                         &
+         &             /0.413d0                          &
+         &             /(radiusCore               **3)   &
+         &             /Pi
+    radiusCore_       =radiusCore
+    radiusScale_      =radiusScale
+    densityScale_     =densityScale
+    densityCore_      =densityCore
     ! Solve for the soliton radius.
     if (.not.finderInitialized) then
        finder=rootFinder(                                        &
@@ -388,35 +437,46 @@ contains
          &                  rangeExpandUpwardSignExpect  = rangeExpandSignExpectNegative, &
          &                  rangeExpandType              = rangeExpandMultiplicative      &
          &                 )
-    radiusCore_  =radiusCore
-    radiusScale_ =radiusScale
-    densityScale_=densityScale
-    densityCore_ =densityCore
-    !radiusSoliton=finder%find(rootGuess=3.0d0*radiusCore)
-
     radiusSoliton=finder%find(rootGuess=3.0d0*radiusCore, status=status)
 
-    print *, 'uniqueID = ', node%uniqueID()
-    if (status == errorStatusSuccess) then
-       print *, "Success! radiusSoliton=", radiusSoliton
-       print *, "r_lo =", radiusCore, "    f(r_lo) =", radiusTransitionRoot(radiusCore)
-       print *, "r_hi =", 10.0d0 * radiusCore, "    f(r_hi) =", radiusTransitionRoot(10.0d0 * radiusCore)
-       print *, "densityScale =", densityScale, "  densityCore =", densityCore
-       print *, "radiusScale  =", radiusScale,   "  radiusCore  =", radiusCore
-       print *, "densityScale/densityCore =", densityScale/densityCore
-       print *, "radiusScale/radiusCore   =", radiusScale/radiusCore
-    end if
-
     if (status /= errorStatusSuccess) then
-       print *, "RootFinder failed — trying fallback bracket scan..."
-       print *, "r_lo =", radiusCore, "    f(r_lo) =", radiusTransitionRoot(radiusCore)
-       print *, "r_hi =", 10.0d0 * radiusCore, "    f(r_hi) =", radiusTransitionRoot(10.0d0 * radiusCore)
-       print *, "densityScale =", densityScale, "  densityCore =", densityCore
-       print *, "radiusScale  =", radiusScale,   "  radiusCore  =", radiusCore
-       print *, "densityScale/densityCore =", densityScale/densityCore
-       print *, "radiusScale/radiusCore   =", radiusScale/radiusCore
-       radiusSoliton = 2.0d0*radiusCore
+       do sampleCount = 1, maxSamples
+          randomOffset       = self%massCoreScatter%sample(randomNumberGenerator_=node%hostTree%randomNumberGenerator_)
+          massCore           = massCoreNormal*10.0d0**randomOffset
+          ! Compute the core radius.
+          radiusCore         =+5.5d6                           & ! Equation (14) of Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
+               &              /(self%massParticle/1.0d-23)**2  &
+               &              /expansionFactor                 &
+               &              /massCore
+          ! Compute the core density normalization. Equation (3) of Schive et al. (2014; PRL; 113; 1302; https://ui.adsabs.harvard.edu/abs/2014PhRvL.113z1302S).
+          densityCore       =+massCore                         &
+               &             /0.413d0                          &
+               &             /(radiusCore               **3)   &
+               &             /Pi
+          radiusCore_        =radiusCore
+          densityCore_       =densityCore
+          call finder%rangeExpand(                                                              &
+            &                     rangeExpandUpward            = 2.0d0                        , &
+            &                     rangeExpandDownward          = 0.5d0                        , &
+            &                     rangeDownwardLimit           = 1.0d0*radiusCore             , &
+            &                     rangeUpwardLimit             = 1.0d1*radiusCore             , &
+            &                     rangeExpandDownwardSignExpect= rangeExpandSignExpectPositive, &
+            &                     rangeExpandUpwardSignExpect  = rangeExpandSignExpectNegative, &
+            &                     rangeExpandType              = rangeExpandMultiplicative      &
+            &                    )
+          radiusSoliton=finder%find(rootGuess=3.0d0*radiusCore, status=status)
+          if (status == errorStatusSuccess) then
+              radiusSolitonFound = .true.
+              call basic%floatRank0MetaPropertySet(self%randomOffsetID, randomOffset)
+              exit
+          end if
+       end do
+       if (.not. radiusSolitonFound) then
+          print *, "Still failed after ", maxSamples, " times."
+       end if
+       radiusSolitonFound = .false.
     end if
+    call basic%floatRank0MetaPropertySet(self%densityCoreID, densityCore)
 
     return
   end subroutine solitonNFWComputeProperties
