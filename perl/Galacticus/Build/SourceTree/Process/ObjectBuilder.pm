@@ -117,7 +117,13 @@ sub Process_ObjectBuilder {
 		    $defaultXML                 =~ s/\s*\n\s*//g;
 		    $defaultXML                 =~ s/\s{2,}/ /g;
 		    $builderCode               .=  "   if (.not.parametersCurrent%isPresent('".$parameterName."')) then\n";
-		    $builderCode               .=  "    parametersDefault=inputParameters(var_str('".$defaultXML."'),allowedParameterNames=[var_str('".$parameterName."')],noOutput=.true.)\n";
+		    $builderCode               .=  "    block\n";
+		    $builderCode               .=  "     type(varying_string), dimension(1) :: allowedParameterName__\n";
+		    $builderCode               .=  "     type(varying_string)               :: defaultXML__\n";
+		    $builderCode               .=  "     defaultXML__=var_str('".$defaultXML."')\n";
+		    $builderCode               .=  "     allowedParameterName__(1)=var_str('".$parameterName."')\n";
+		    $builderCode               .=  "     parametersDefault=inputParameters(defaultXML__,allowedParameterNames=allowedParameterName__,noOutput=.true.)\n";
+		    $builderCode               .=  "    end block\n";
 		    $builderCode               .=  "    parametersCurrent => parametersDefault\n";
 		    $builderCode               .=  "    parametersDefaultCreated=.true.\n";
 		    $builderCode               .=  "  else\n";
