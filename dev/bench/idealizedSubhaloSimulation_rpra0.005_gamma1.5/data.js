@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1754535378426,
+  "lastUpdate": 1754645383124,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.005; γ=1.5)": [
@@ -8227,6 +8227,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/192c2d083d99ce2cb0cba2e6cb49421fdf21c12b"
         },
         "date": 1754535377505,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteBoundMass",
+            "value": "48.178341763109046",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "35.33237775519459",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteVelocityMaximum",
+            "value": "23.791744062057187",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "38f59d3f27b7708e28d6c5be09c7ba286e282c0b",
+          "message": "Merge pull request #888 from galacticusorg/featObjectMetaData\n\nStore the file name for SED matrix files in the Parameters group",
+          "timestamp": "2025-08-08T02:55:52Z",
+          "tree_id": "2f99ae6c739eeb3f393fcdef730812f6b1103b35",
+          "url": "https://github.com/galacticusorg/galacticus/commit/38f59d3f27b7708e28d6c5be09c7ba286e282c0b"
+        },
+        "date": 1754645382419,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
