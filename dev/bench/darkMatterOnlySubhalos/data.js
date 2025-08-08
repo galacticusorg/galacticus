@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1754535358222,
+  "lastUpdate": 1754645353384,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "id": "60ed585bb332898b6689bb3921dbbff11b883695",
-          "message": "feat: Support tolerating failures of potential integration and velocity maximum seeking",
-          "timestamp": "2024-09-14T16:28:41Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/60ed585bb332898b6689bb3921dbbff11b883695"
-        },
-        "date": 1726354166047,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 52.073,
-            "unit": "seconds",
-            "range": 0.0449455225814314
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8772,6 +8744,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": "21852.508604166487",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "38f59d3f27b7708e28d6c5be09c7ba286e282c0b",
+          "message": "Merge pull request #888 from galacticusorg/featObjectMetaData\n\nStore the file name for SED matrix files in the Parameters group",
+          "timestamp": "2025-08-08T02:55:52Z",
+          "tree_id": "2f99ae6c739eeb3f393fcdef730812f6b1103b35",
+          "url": "https://github.com/galacticusorg/galacticus/commit/38f59d3f27b7708e28d6c5be09c7ba286e282c0b"
+        },
+        "date": 1754645349779,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 59.621,
+            "unit": "seconds",
+            "range": 0.133367537279372
           }
         ]
       }
