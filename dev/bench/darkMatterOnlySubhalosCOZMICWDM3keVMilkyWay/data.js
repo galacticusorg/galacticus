@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1754535368243,
+  "lastUpdate": 1754645373482,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (COZMIC WDM 3keV)": [
@@ -812,6 +812,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (COZMIC WDM 3keV Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": "303.2513032934722",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "38f59d3f27b7708e28d6c5be09c7ba286e282c0b",
+          "message": "Merge pull request #888 from galacticusorg/featObjectMetaData\n\nStore the file name for SED matrix files in the Parameters group",
+          "timestamp": "2025-08-08T02:55:52Z",
+          "tree_id": "2f99ae6c739eeb3f393fcdef730812f6b1103b35",
+          "url": "https://github.com/galacticusorg/galacticus/commit/38f59d3f27b7708e28d6c5be09c7ba286e282c0b"
+        },
+        "date": 1754645372563,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM 3keV Milky Way) - Likelihood - subhaloMassFunction",
+            "value": "0.7245112880145339",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM 3keV Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": "1.804018626687487",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM 3keV Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": "304.0906242936607",
             "unit": "-logℒ"
           }
         ]
