@@ -54,6 +54,7 @@
      procedure :: randomPerturbation => activeRandomPerturbation
      procedure :: map                => activeMap
      procedure :: unmap              => activeUnmap
+     procedure :: mapJacobian        => activeMapJacobian
      procedure :: isSlow             => activeIsSlow
   end type modelParameterActive
 
@@ -248,6 +249,18 @@ contains
     activeUnmap=self%mapper%unoperate(x)
     return
   end function activeUnmap
+
+  double precision function activeMapJacobian(self,x)
+    !!{
+    Compute the Jacobian of the map for this parameter.
+    !!}
+    implicit none
+    class           (modelParameterActive), intent(inout) :: self
+    double precision                      , intent(in   ) :: x
+
+    activeMapJacobian=self%mapper%jacobian(x)
+    return
+  end function activeMapJacobian
 
   logical function activeIsSlow(self)
     !!{

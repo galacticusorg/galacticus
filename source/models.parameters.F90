@@ -83,6 +83,12 @@ module Model_Parameters
      <argument>double precision, intent(in   ) :: x</argument>
      <description>Unmap the parameter value.</description>
    </method>
+   <method name="mapJacobian">
+     <type>double precision</type>
+     <pass>yes</pass>
+     <argument>double precision, intent(in   ) :: x</argument>
+     <description>Compute the Jacobian of the map at the given parameter value.</description>
+   </method>
   </functionClass>
   !!]
 
@@ -106,21 +112,24 @@ contains
     class           (posteriorSampleStateClass), intent(inout)                                       :: posteriorSampleState_
     double precision                                          , dimension(size(modelParameterList_)) :: stateVector
     integer                                                                                          :: i
-    double precision                                                                                 :: logPrior
+    double precision                                                                                 :: logPrior             , valueUnmapped
 
     stateVector               =posteriorSampleState_%get()
     modelParameterListLogPrior=0.0d0
     do i=1,size(modelParameterList_)
-       logPrior=modelParameterList_(i)%modelParameter_%logPrior(                &
-            &   modelParameterList_(i)%modelParameter_%unmap    (               &
-            &                                                    stateVector(i) &
-            &                                                   )               &
-            &                                                  )
+       valueUnmapped=modelParameterList_(i)%modelParameter_%unmap(stateVector(i))
+       logPrior=modelParameterList_(i)%modelParameter_%logPrior   (valueUnmapped)
        if (logPrior <= logImpossible) then
-          modelParameterListLogPrior=logImpossible
+          modelParameterListLogPrior=+logImpossible
           exit
        else
-          modelParameterListLogPrior=modelParameterListLogPrior+logPrior
+          modelParameterListLogPrior=+modelParameterListLogPrior                                                &
+               &                     +logPrior                                                                  &
+               &                     -log(                                                                      &
+               &                          abs(                                                                  &
+               &                              modelParameterList_(i)%modelParameter_%mapJacobian(valueUnmapped) &
+               &                             )                                                                  &
+               &                         )
        end if
     end do
     return
