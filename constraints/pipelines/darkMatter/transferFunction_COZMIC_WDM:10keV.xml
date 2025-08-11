@@ -5,20 +5,11 @@
 
   <!-- Transfer function options -->
   <!-- Use a tabulated transfer function for WDM -->
-  <transferFunction value="bode2001">
-    <scaleCutOffModel value="vogel23SpinHalf"/>
-    <epsilon value="1.000"/>
-    <nu      value="1.049"/>
-    <eta     value="5.000"/>
-    <darkMatterParticle value="WDMThermal">
-      <degreesOfFreedomEffective value=" 1.5"/>
-      <mass                      value="10.0"/>
-    </darkMatterParticle>
-    <transferFunction value="CAMB">
-      <transferFunctionType value="total"/>
-      <darkMatterParticle   value="CDM"  />
-      <redshift             value="99.0" />
-    </transferFunction>
+  <transferFunction value="file">
+    <fileName                            value="constraints/pipelines/darkMatter/transferFunction_COZMIC_WDM:10keV.hdf5"/>
+    <redshift                            value="0.0"                                                                    />
+    <transferFunctionType                value="total"                                                                  />
+    <factorWavenumberSmoothExtrapolation value="2.0"                                                                    />
   </transferFunction>
 
 </parameters>
