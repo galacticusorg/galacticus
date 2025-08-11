@@ -640,7 +640,7 @@ my $configCloser = fill_in_string(<<'CODE', PACKAGE => 'content');
         <median value="0.0" />
         <scale value="1.0e-4" />
       </distributionFunction1DPerturber>
-      <distributionFunction1DPrior value="uniform">
+      <distributionFunction1DPrior value="logUniform">
         <limitLower value="0.1" />
         <limitUpper value="5.0" />
       </distributionFunction1DPrior>
