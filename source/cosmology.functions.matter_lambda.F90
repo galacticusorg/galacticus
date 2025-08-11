@@ -1242,7 +1242,7 @@ contains
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
     double precision                                , intent(in   ) :: time
-    type            (integrator                    ), allocatable   :: integrator_
+    type            (integrator                    )                :: integrator_
 
     integrator_                                =integrator           (integrandParticleHorizon,toleranceRelative=1.0d-6)
     matterLambdaDistanceParticleHorizonComoving=integrator_%integrate(0.0d0                   ,                  time  )
