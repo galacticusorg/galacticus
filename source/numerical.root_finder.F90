@@ -30,7 +30,8 @@ module Root_Finder
   !!{
   Implements root finding.
   !!}
-  use, intrinsic :: ISO_C_Binding, only : c_double, c_int, c_null_ptr, c_ptr
+  use, intrinsic :: ISO_C_Binding   , only : c_double       , c_int, c_null_ptr, c_ptr
+  use            :: Resource_Manager, only : resourceManager
   implicit none
   private
   public :: rootFinder
@@ -85,19 +86,39 @@ module Root_Finder
   integer, public, parameter :: gsl_root_fdfsolver_secant    =5
   integer, public, parameter :: gsl_root_fdfsolver_steffenson=6
 
+  type :: gslFunctionWrapper
+     !!{
+     Wrapper class for managing GSL functions.
+     !!}
+     type(c_ptr) :: gsl=c_null_ptr
+   contains
+     final :: gslFunctionWrapperDestructor
+  end type gslFunctionWrapper
+  
+  type :: gslSolverWrapper
+     !!{
+     Wrapper class for managing GSL solvers.
+     !!}
+     logical        :: useDerivative
+     type   (c_ptr) :: gsl          =c_null_ptr
+   contains
+     final :: gslSolverWrapperDestructor
+  end type gslSolverWrapper
+  
   type :: rootFinder
      !!{
      Type containing all objects required when calling the GSL root solver function.
      !!}
      private
-     type            (c_ptr                               )                  :: gslFunction                  =c_null_ptr
-     type            (c_ptr                               )                  :: solver                       =c_null_ptr
-     type            (c_ptr                               )                  :: solverType                   =c_null_ptr
+     type            (gslSolverWrapper                    ), pointer         :: solver                       => null()
+     type            (gslFunctionWrapper                  ), pointer         :: gslFunction                  => null()
+     type            (c_ptr                               )                  :: solverType                   =  c_null_ptr
+     type            (resourceManager                     )                  :: solverManager                             , functionManager
      integer                                                                 :: solverTypeID
      double precision                                                        :: toleranceAbsolute
      double precision                                                        :: toleranceRelative
      logical                                                                 :: initialized
-     logical                                                                 :: functionInitialized          =.false.
+     logical                                                                 :: functionInitialized          =  .false.
      logical                                                                 :: resetRequired
      logical                                                                 :: useDerivative
      logical                                                                 :: testLimits
@@ -127,12 +148,9 @@ module Root_Finder
        <method description="Wrapper function to find the root of the function given an initial guess or range plus the function value at the low end of the range." method="findWithFUpper"        />
        <method description="Find the root of the function given an initial guess or range."                                                                         method="find_"                 />
        <method description="Return the initialization state of a {\normalfont \ttfamily rootFinder} object."                                                        method="isInitialized"         />
-       <method description="Destroy the {\normalfont \ttfamily rootFinder} object."                                                                                 method="destroy"               />
        <method description="Return true if the solver type is valid."                                                                                               method="solverTypeIsValid"     />
      </methods>
      !!]
-     final     ::                            rootFinderDestructor
-     procedure :: destroy                 => rootFinderDestroy
      procedure :: rootFunction            => rootFinderRootFunction
      procedure :: rootFunctionDerivative  => rootFinderRootFunctionDerivative
      procedure :: type                    => rootFinderType
@@ -351,29 +369,29 @@ contains
     procedure       (rootFunctionBothTemplate            )               , optional :: rootFunctionBoth
     
     ! Initialize GSL objects to null pointers.
-    self%gslFunction                  =c_null_ptr
-    self%solver                       =c_null_ptr
-    self%solverType                   =c_null_ptr
+    self%gslFunction                  => null()
+    self%solver                       => null()
+    self%solverType                   =  c_null_ptr
     ! Initialize to a null solver type.
-    self%solverTypeID                 =0
+    self%solverTypeID                 =  0
     ! Initialize to tolerances at machine precision.
-    self%toleranceAbsolute            =        0.0d0
-    self%toleranceRelative            =epsilon(0.0d0)
+    self%toleranceAbsolute            =          0.0d0
+    self%toleranceRelative            =  epsilon(0.0d0)
     ! Initialize state.
-    self%initialized                  =.false.
-    self%functionInitialized          =.false.
-    self%resetRequired                =.false.
-    self%useDerivative                =.false.
+    self%initialized                  =  .false.
+    self%functionInitialized          =  .false.
+    self%resetRequired                =  .false.
+    self%useDerivative                =  .false.
     ! Initialize range expansion to no expansion.
-    self%rangeExpandType              =rangeExpandNull
-    self%rangeExpandUpward            =1.0d0
-    self%rangeExpandDownward          =1.0d0
-    self%rangeUpwardLimitSet          =.false.
-    self%rangeDownwardLimitSet        =.false.
-    self%rangeExpandDownwardSignExpect=rangeExpandSignExpectNone
-    self%rangeExpandUpwardSignExpect  =rangeExpandSignExpectNone
+    self%rangeExpandType              =  rangeExpandNull
+    self%rangeExpandUpward            =  1.0d0
+    self%rangeExpandDownward          =  1.0d0
+    self%rangeUpwardLimitSet          =  .false.
+    self%rangeDownwardLimitSet        =  .false.
+    self%rangeExpandDownwardSignExpect=  rangeExpandSignExpectNone
+    self%rangeExpandUpwardSignExpect  =  rangeExpandSignExpectNone
     ! Initialize stopping criterion to an interval test.
-    self%stoppingCriterion            =stoppingCriterionInterval
+    self%stoppingCriterion            =  stoppingCriterionInterval
     ! If functions are provided, set them.
     if (present(rootFunction)) then
        if (present(rootFunctionDerivative).or.present(rootFunctionBoth)) then
@@ -403,37 +421,33 @@ contains
     call self%rangeExpand(rangeExpandUpward,rangeExpandDownward,rangeExpandType,rangeUpwardLimit,rangeDownwardLimit,rangeExpandDownwardSignExpect,rangeExpandUpwardSignExpect,testLimits)
     return
   end function rootFinderConstructorInternal
-  
-  subroutine rootFinderDestroy(self)
+
+  subroutine gslFunctionWrapperDestructor(self)
     !!{
-    Destroy a root finder object.
+    Destroy a {\normalfont \ttfamily gslFunctionWrapper} object.
     !!}
     use :: Interface_GSL, only : gslFunctionDestroy
     implicit none
-    class(rootFinder), intent(inout) :: self
+    type(gslFunctionWrapper), intent(inout) :: self
 
-    if (self%functionInitialized) then
-       if (self%useDerivative) then
-          call GSL_Root_FdFSolver_Free(self%solver)
-       else
-          call GSL_Root_FSolver_Free  (self%solver)
-       end if
-       call gslFunctionDestroy(self%gslFunction)
-       self%functionInitialized=.false.
-    end if
+    call gslFunctionDestroy(self%gsl)
     return
-  end subroutine rootFinderDestroy
+  end subroutine gslFunctionWrapperDestructor
 
-  subroutine rootFinderDestructor(self)
+  subroutine gslSolverWrapperDestructor(self)
     !!{
-    Finalize a root finder object.
+    Destroy a {\normalfont \ttfamily gslSolverWrapper} object.
     !!}
     implicit none
-    type(rootFinder), intent(inout) :: self
+    type(gslSolverWrapper), intent(inout) :: self
 
-    call self%destroy()
+    if (self%useDerivative) then
+       call GSL_Root_FdFSolver_Free(self%gsl)
+    else
+       call GSL_Root_FSolver_Free  (self%gsl)
+    end if
     return
-  end subroutine rootFinderDestructor
+  end subroutine gslSolverWrapperDestructor
 
   logical function rootFinderIsInitialized(self)
     !!{
@@ -570,6 +584,7 @@ contains
     logical                                             , intent(in   ), optional :: report
     integer                                             , intent(  out), optional :: status
     type            (rootFinderList      ), dimension(:), allocatable             :: currentFindersTmp
+    class           (*                   ), pointer                               :: dummyPointer_
     integer                               , parameter                             :: iterationMaximum =1000
     integer                               , parameter                             :: findersIncrement =   3
     logical                                                                       :: rangeChanged          , rangeLowerAsExpected, rangeUpperAsExpected
@@ -602,32 +617,76 @@ contains
     ! Initialize the root finder variables if necessary.
     if (self%useDerivative) then
        if (.not.self%functionInitialized.or.self%resetRequired) then
-          if (     self%functionInitialized  ) call GSL_Root_fdfSolver_Free(self%solver)
+          if (     self%functionInitialized  ) call self%solverManager%release()
           if (.not.self%solverTypeIsValid()) then
-             self%solverTypeID    =gsl_root_fdfsolver_steffenson
-             self%solverType      =gsl_fdfsolver_type_get  (self%solverTypeID)
+             self%solverTypeID                  =gsl_root_fdfsolver_steffenson
+             self%solverType                    =gsl_fdfsolver_type_get  (self%solverTypeID)
           end if
-          self%gslFunction        =gslFunctionFdF          (                               &
-               &                                            rootFunctionWrapper          , &
-               &                                            rootFunctionDerivativeWrapper, &
-               &                                            rootFunctionBothWrapper        &    
-               &                                           )
-          self%solver             =GSL_Root_fdfSolver_Alloc(self%solverType)
-          self%resetRequired      =.false.
-          self%functionInitialized=.true.
+          allocate(self%gslFunction)
+          allocate(self%solver     )
+          self%gslFunction        %gsl          =gslFunctionFdF          (                               &
+               &                                                          rootFunctionWrapper          , &
+               &                                                          rootFunctionDerivativeWrapper, &
+               &                                                          rootFunctionBothWrapper        &    
+               &                                                         )
+          self%solver             %gsl          =GSL_Root_fdfSolver_Alloc(self%solverType)
+          self%solver             %useDerivative=.true.
+          self%resetRequired                    =.false.
+          self%functionInitialized              =.true.
+          ! Initialize resource managers.
+          !![
+	  <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	    <description>ICE when passing a derived type component to a class(*) function argument.</description>
+          !!]
+          dummyPointer_        => self%solver
+          self%solverManager   =  resourceManager(dummyPointer_)
+          !![
+	  </workaround>
+          !!]
+          !![
+	  <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	    <description>ICE when passing a derived type component to a class(*) function argument.</description>
+          !!]
+          dummyPointer_        => self%gslFunction
+          self%functionManager =  resourceManager(dummyPointer_)
+          !![
+	  </workaround>
+          !!]
        end if
     else
        if (.not.self%functionInitialized.or.self%resetRequired) then
-          if (     self%functionInitialized  ) call GSL_Root_fSolver_Free(self%solver)
+          if (     self%functionInitialized  ) call self%solverManager%release()
           if (.not.self%solverTypeIsValid()) then
-             self%solverTypeID    =gsl_root_fsolver_brent
-             self%solverType      =gsl_fsolver_type_get  (self%solverTypeID           )
+             self%solverTypeID              =gsl_root_fsolver_brent
+             self%solverType                =gsl_fsolver_type_get  (self%solverTypeID           )
           end if
-          self%gslFunction        =gslFunction           (rootFunctionWrapper)
-          self%solver             =GSL_Root_fSolver_Alloc(self%solverType             )
-          self%resetRequired      =.false.
-          self%functionInitialized=.true.
-      end if
+          allocate(self%gslFunction)
+          allocate(self%solver     )
+          self%gslFunction        %gsl          =gslFunction           (rootFunctionWrapper)
+          self%solver             %gsl          =GSL_Root_fSolver_Alloc(self%solverType             )
+          self%solver             %useDerivative=.false.
+          self%resetRequired                    =.false.
+          self%functionInitialized              =.true.
+          ! Initialize resource managers.
+          !![
+	  <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	    <description>ICE when passing a derived type component to a class(*) function argument.</description>
+          !!]
+          dummyPointer_        => self%solver
+          self%solverManager   =  resourceManager(dummyPointer_)
+          !![
+	  </workaround>
+          !!]
+          !![
+	  <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	    <description>ICE when passing a derived type component to a class(*) function argument.</description>
+          !!]
+          dummyPointer_        => self%gslFunction
+          self%functionManager =  resourceManager(dummyPointer_)
+          !![
+	  </workaround>
+          !!]
+       end if
     end if
     ! Initialize range.
     xLow =rootRange(1)
@@ -707,7 +766,7 @@ contains
     ! Expand the range as necessary.
     if (self%useDerivative) then
        xRoot       =0.5d0*(xLow+xHigh)
-       statusActual=GSL_Root_fdfSolver_Set(self%solver,self%gslFunction,xRoot)
+       statusActual=GSL_Root_fdfSolver_Set(self%solver%gsl,self%gslFunction%gsl,xRoot)
     else
        currentFinders(currentFinderIndex)%lowInitialUsed =.true.
        currentFinders(currentFinderIndex)%highInitialUsed=.true.
@@ -908,7 +967,7 @@ contains
        currentFinders(currentFinderIndex)%lowInitialUsed =.false.
        currentFinders(currentFinderIndex)%highInitialUsed=.false.
        ! Set the initial range for the solver.
-       statusActual=GSL_Root_fSolver_Set(self%solver,self%gslFunction,xLow,xHigh)
+       statusActual=GSL_Root_fSolver_Set(self%solver%gsl,self%gslFunction%gsl,xLow,xHigh)
     end if
     ! Find the root.
     if (statusActual /= GSL_Success) then
@@ -925,16 +984,16 @@ contains
        do
           iteration=iteration+1
           if (self%useDerivative) then
-             statusActual=GSL_Root_fdfSolver_Iterate(self%solver)
+             statusActual=GSL_Root_fdfSolver_Iterate(self%solver%gsl)
           else
-             statusActual=GSL_Root_fSolver_Iterate  (self%solver)
+             statusActual=GSL_Root_fSolver_Iterate  (self%solver%gsl)
           end if
           if (statusActual /= GSL_Success .or. iteration > iterationMaximum) exit
           if (iteration > 1) then
              select case (self%stoppingCriterion%ID)
              case (stoppingCriterionDelta   %ID)
                 xRootPrevious=xRoot
-                xRoot        =GSL_Root_fdfSolver_Root(self%solver)
+                xRoot        =GSL_Root_fdfSolver_Root(self%solver%gsl)
                 if (report_) then
                    write (label,'(e12.6,a2,e12.6)') xRoot,", ",self%finderFunction(xRoot)
                    message="xRoot, fRoot  = "//trim(label)
@@ -942,9 +1001,9 @@ contains
                 end if
                 statusActual =GSL_Root_Test_Delta(xRoot,xRootPrevious,self%toleranceAbsolute,self%toleranceRelative)
              case (stoppingCriterionInterval%ID)
-                xRoot =GSL_Root_fSolver_Root   (self%solver)
-                xLow  =GSL_Root_fSolver_x_Lower(self%solver)
-                xHigh =GSL_Root_fSolver_x_Upper(self%solver)
+                xRoot =GSL_Root_fSolver_Root   (self%solver%gsl)
+                xLow  =GSL_Root_fSolver_x_Lower(self%solver%gsl)
+                xHigh =GSL_Root_fSolver_x_Upper(self%solver%gsl)
                 if (report_) then
                    write (label,'(e12.6,a2,e12.6)') xRoot,", ",self%finderFunction(xRoot)
                    message="xRoot, fRoot  = "//trim(label)
@@ -1040,7 +1099,8 @@ contains
     class    (rootFinder          ), intent(inout) :: self
     procedure(rootFunctionTemplate)                :: rootFunction
 
-    call self%destroy()
+    call self%  solverManager%release()
+    call self%functionManager%release()
     self%finderFunction => rootFunction
     self%initialized    =  .true.
     self%useDerivative  =  .false.
@@ -1058,7 +1118,8 @@ contains
     procedure(rootFunctionDerivativeTemplate)                :: rootFunctionDerivative
     procedure(rootFunctionBothTemplate      )                :: rootFunctionBoth
 
-    call self%destroy()
+    call self%  solverManager%release()
+    call self%functionManager%release()
     self%finderFunction           => rootFunction
     self%finderFunctionDerivative => rootFunctionDerivative
     self%finderFunctionBoth       => rootFunctionBoth
