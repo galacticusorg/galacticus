@@ -296,52 +296,54 @@ contains
          &                                                                           countLocalMinima
     character       (len=32                          )                            :: datasetName
     type            (varying_string                  )                            :: limitTypeVar
-    type            (hdf5Object                      )                            :: fileObject                     , parametersObject         , &
-         &                                                                           extrapolationObject            , wavenumberObject         , &
-         &                                                                           darkMatterGroup
+    type            (hdf5Object                      )                            :: fileObject
 
     ! Open and read the HDF5 data file.
-    !$ call hdf5Access%set()
-    fileObject=hdf5Object(char(File_Name_Expand(fileName)),readOnly=.true.)
-    ! Check that the file has the correct format version number.
-    call fileObject%readAttribute('fileFormat',versionNumber,allowPseudoScalar=.true.)
-    if (versionNumber /= fileFormatVersionCurrent) call Error_Report('file has the incorrect version number'//{introspection:location})
-    ! Check that parameters match if any are present.
-    parametersObject=fileObject%openGroup('parameters')
-    allocate(cosmologyParametersSimple :: cosmologyParametersFile)
-    select type (cosmologyParametersFile)
-    type is (cosmologyParametersSimple)
-       call parametersObject%readAttribute('OmegaMatter'    ,OmegaMatter    )
-       call parametersObject%readAttribute('OmegaDarkEnergy',OmegaDarkEnergy)
-       call parametersObject%readAttribute('OmegaBaryon'    ,OmegaBaryon    )
-       call parametersObject%readAttribute('HubbleConstant' ,HubbleConstant )
-       call parametersObject%readAttribute('temperatureCMB' ,temperatureCMB )
-       cosmologyParametersFile=cosmologyParametersSimple(OmegaMatter,OmegaBaryon,OmegaDarkEnergy,temperatureCMB,HubbleConstant)
-       if (Values_Differ(cosmologyParametersFile%OmegaBaryon    (),self%cosmologyParameters_%OmegaBaryon    (),absTol=1.0d-3)) &
-            & call displayMessage(displayMagenta()//'WARNING: '//displayReset()//'OmegaBaryon from transfer function file does not match internal value'    )
-       if (Values_Differ(cosmologyParametersFile%OmegaMatter    (),self%cosmologyParameters_%OmegaMatter    (),absTol=1.0d-3)) &
-            & call displayMessage(displayMagenta()//'WARNING: '//displayReset()//'OmegaMatter from transfer function file does not match internal value'    )
-       if (Values_Differ(cosmologyParametersFile%OmegaDarkEnergy(),self%cosmologyParameters_%OmegaDarkEnergy(),absTol=1.0d-3)) &
-            & call displayMessage(displayMagenta()//'WARNING: '//displayReset()//'OmegaDarkEnergy from transfer function file does not match internal value')
-       if (Values_Differ(cosmologyParametersFile%HubbleConstant (),self%cosmologyParameters_%HubbleConstant (),relTol=1.0d-3)) &
-            & call displayMessage(displayMagenta()//'WARNING: '//displayReset()//'HubbleConstant from transfer function file does not match internal value' )
-       if (Values_Differ(cosmologyParametersFile%temperatureCMB (),self%cosmologyParameters_%temperatureCMB (),relTol=1.0d-3)) &
-            & call displayMessage(displayMagenta()//'WARNING: '//displayReset()//'temperatureCMB from transfer function file does not match internal value' )
-    end select
-    deallocate(cosmologyParametersFile)
-    ! Get extrapolation methods.
-    extrapolationObject=fileObject         %openGroup('extrapolation')
-    wavenumberObject   =extrapolationObject%openGroup('wavenumber'   )
-    call wavenumberObject%readAttribute('low' ,limitTypeVar)
-    extrapolateWavenumberLow =enumerationExtrapolationTypeEncode(char(limitTypeVar),includesPrefix=.false.)
-    call wavenumberObject%readAttribute('high',limitTypeVar)
-    extrapolateWavenumberHigh=enumerationExtrapolationTypeEncode(char(limitTypeVar),includesPrefix=.false.)
-    ! Read the transfer function from file.
-    darkMatterGroup=fileObject%openGroup('darkMatter')
-    call fileObject     %readDataset('wavenumber'                                   ,wavenumber)
-    write (datasetName,'(f9.4)') self%redshift
-    call darkMatterGroup%readDataset('transferFunctionZ'//trim(adjustl(datasetName)),transfer  )
-    !$ call hdf5Access%unset()
+    block
+      type(hdf5Object) :: darkMatterGroup    , parametersObject, &
+           &              extrapolationObject, wavenumberObject
+      !$ call hdf5Access%set()
+      fileObject=hdf5Object(char(File_Name_Expand(fileName)),readOnly=.true.)
+      ! Check that the file has the correct format version number.
+      call fileObject%readAttribute('fileFormat',versionNumber,allowPseudoScalar=.true.)
+      if (versionNumber /= fileFormatVersionCurrent) call Error_Report('file has the incorrect version number'//{introspection:location})
+      ! Check that parameters match if any are present.
+      parametersObject=fileObject%openGroup('parameters')
+      allocate(cosmologyParametersSimple :: cosmologyParametersFile)
+      select type (cosmologyParametersFile)
+      type is (cosmologyParametersSimple)
+         call parametersObject%readAttribute('OmegaMatter'    ,OmegaMatter    )
+         call parametersObject%readAttribute('OmegaDarkEnergy',OmegaDarkEnergy)
+         call parametersObject%readAttribute('OmegaBaryon'    ,OmegaBaryon    )
+         call parametersObject%readAttribute('HubbleConstant' ,HubbleConstant )
+         call parametersObject%readAttribute('temperatureCMB' ,temperatureCMB )
+         cosmologyParametersFile=cosmologyParametersSimple(OmegaMatter,OmegaBaryon,OmegaDarkEnergy,temperatureCMB,HubbleConstant)
+         if (Values_Differ(cosmologyParametersFile%OmegaBaryon    (),self%cosmologyParameters_%OmegaBaryon    (),absTol=1.0d-3)) &
+              & call displayMessage(displayMagenta()//'WARNING: '//displayReset()//'OmegaBaryon from transfer function file does not match internal value'    )
+         if (Values_Differ(cosmologyParametersFile%OmegaMatter    (),self%cosmologyParameters_%OmegaMatter    (),absTol=1.0d-3)) &
+              & call displayMessage(displayMagenta()//'WARNING: '//displayReset()//'OmegaMatter from transfer function file does not match internal value'    )
+         if (Values_Differ(cosmologyParametersFile%OmegaDarkEnergy(),self%cosmologyParameters_%OmegaDarkEnergy(),absTol=1.0d-3)) &
+              & call displayMessage(displayMagenta()//'WARNING: '//displayReset()//'OmegaDarkEnergy from transfer function file does not match internal value')
+         if (Values_Differ(cosmologyParametersFile%HubbleConstant (),self%cosmologyParameters_%HubbleConstant (),relTol=1.0d-3)) &
+              & call displayMessage(displayMagenta()//'WARNING: '//displayReset()//'HubbleConstant from transfer function file does not match internal value' )
+         if (Values_Differ(cosmologyParametersFile%temperatureCMB (),self%cosmologyParameters_%temperatureCMB (),relTol=1.0d-3)) &
+              & call displayMessage(displayMagenta()//'WARNING: '//displayReset()//'temperatureCMB from transfer function file does not match internal value' )
+      end select
+      deallocate(cosmologyParametersFile)
+      ! Get extrapolation methods.
+      extrapolationObject=fileObject         %openGroup('extrapolation')
+      wavenumberObject   =extrapolationObject%openGroup('wavenumber'   )
+      call wavenumberObject%readAttribute('low' ,limitTypeVar)
+      extrapolateWavenumberLow =enumerationExtrapolationTypeEncode(char(limitTypeVar),includesPrefix=.false.)
+      call wavenumberObject%readAttribute('high',limitTypeVar)
+      extrapolateWavenumberHigh=enumerationExtrapolationTypeEncode(char(limitTypeVar),includesPrefix=.false.)
+      ! Read the transfer function from file.
+      darkMatterGroup=fileObject%openGroup('darkMatter')
+      call fileObject     %readDataset('wavenumber'                                   ,wavenumber)
+      write (datasetName,'(f9.4)') self%redshift
+      call darkMatterGroup%readDataset('transferFunctionZ'//trim(adjustl(datasetName)),transfer  )
+      !$ call hdf5Access%unset()
+    end block
     ! Validate the transfer function.
     if (any(transfer == 0.0d0)) call Error_Report('tabulated transfer function contains points at which T(k) = 0 - all points must be non-zero'//{introspection:location})
     if (any(transfer <  0.0d0)) then
