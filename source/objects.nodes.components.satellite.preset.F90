@@ -29,8 +29,7 @@ module Node_Component_Satellite_Preset
   !!}
   implicit none
   private
-  public :: Node_Component_Satellite_Preset_Thread_Initialize, Node_Component_Satellite_Preset_Thread_Uninitialize, &
-       &    Node_Component_Satellite_Preset_Rate_Compute
+  public :: Node_Component_Satellite_Preset_Thread_Initialize, Node_Component_Satellite_Preset_Thread_Uninitialize
 
   !![
   <component>
@@ -107,8 +106,7 @@ contains
     !!{
     Initializes the tree node scale dark matter profile module.
     !!}
-    use :: Events_Hooks    , only : nodePromotionEvent           , satelliteHostChangeEvent     , branchJumpPostProcessEvent, interTreePostProcessEvent, &
-         &                          interTreeSatelliteInsertEvent, interTreeSatelliteAttachEvent, openMPThreadBindingAtLevel
+    use :: Events_Hooks    , only : nodePromotionEvent       , interTreeSatelliteInsertEvent, interTreeSatelliteAttachEvent, openMPThreadBindingAtLevel
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -117,9 +115,6 @@ contains
 
     if (defaultSatelliteComponent%presetIsActive()) then
        call            nodePromotionEvent%attach(thread,nodePromotion           ,openMPThreadBindingAtLevel,label='nodeComponentSatellitePreset')
-       call      satelliteHostChangeEvent%attach(thread,satelliteHostChange     ,openMPThreadBindingAtLevel,label='nodeComponentSatellitePreset')
-       call    branchJumpPostProcessEvent%attach(thread,interTreePostProcess    ,openMPThreadBindingAtLevel,label='nodeComponentSatellitePreset')
-       call     interTreePostProcessEvent%attach(thread,interTreePostProcess    ,openMPThreadBindingAtLevel,label='nodeComponentSatellitePreset')
        call interTreeSatelliteInsertEvent%attach(thread,interTreeSatelliteInsert,openMPThreadBindingAtLevel,label='nodeComponentSatellitePreset')
        call interTreeSatelliteAttachEvent%attach(thread,interTreeSatelliteAttach,openMPThreadBindingAtLevel,label='nodeComponentSatellitePreset')
     end if
@@ -135,16 +130,12 @@ contains
     !!{
     Uninitializes the tree node scale dark matter profile module.
     !!}
-    use :: Events_Hooks    , only : nodePromotionEvent           , satelliteHostChangeEvent     , branchJumpPostProcessEvent, interTreePostProcessEvent, &
-         &                          interTreeSatelliteInsertEvent, interTreeSatelliteAttachEvent
+    use :: Events_Hooks    , only : nodePromotionEvent       , interTreeSatelliteInsertEvent, interTreeSatelliteAttachEvent
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
     implicit none
 
     if (defaultSatelliteComponent%presetIsActive()) then
        if (           nodePromotionEvent%isAttached(thread,nodePromotion           )) call            nodePromotionEvent%detach(thread,nodePromotion           )
-       if (     satelliteHostChangeEvent%isAttached(thread,satelliteHostChange     )) call      satelliteHostChangeEvent%detach(thread,satelliteHostChange     )
-       if (   branchJumpPostProcessEvent%isAttached(thread,interTreePostProcess    )) call    branchJumpPostProcessEvent%detach(thread,interTreePostProcess    )
-       if (    interTreePostProcessEvent%isAttached(thread,interTreePostProcess    )) call     interTreePostProcessEvent%detach(thread,interTreePostProcess    )
        if (interTreeSatelliteInsertEvent%isAttached(thread,interTreeSatelliteInsert)) call interTreeSatelliteInsertEvent%detach(thread,interTreeSatelliteInsert)
        if (interTreeSatelliteAttachEvent%isAttached(thread,interTreeSatelliteAttach)) call interTreeSatelliteAttachEvent%detach(thread,interTreeSatelliteAttach)
     end if
@@ -234,11 +225,11 @@ contains
     ! Return immediately if the preset satellite implementation is not active.
     if (.not.defaultSatelliteComponent%presetIsActive()) return
     ! Get the node index histories attached to both the pulled node and its parent.
-    pullSatellite   => node                  %satellite       ()
-    attachSatellite => node           %parent%satellite       ()
+    pullSatellite      => node                  %satellite       ()
+    attachSatellite    => node           %parent%satellite       ()
     ! Combined node index histories.
-    pullHistoryIndex     =  pullSatellite         %nodeIndexHistory()
-    attachHistoryIndex   =  attachSatellite       %nodeIndexHistory()
+    pullHistoryIndex   =  pullSatellite         %nodeIndexHistory()
+    attachHistoryIndex =  attachSatellite       %nodeIndexHistory()
     ! Combine the histories.
     if (attachHistoryIndex%exists()) then
        ! The node has a history - combine it with our own.
@@ -274,225 +265,5 @@ contains
     call pullSatellite%  virialOrbitSet(attachSatellite%virialOrbit  ())
     return
   end subroutine interTreeSatelliteAttach
-
-  subroutine interTreePostProcess(self,node)
-    !!{    
-    For inter-tree node transfers and branch jumps, ensure that any orphaned mergees of the transferred node are transferred over
-    to the new branch.
-    !!}
-    use :: Display           , only : displayMessage        , displayVerbosity, verbosityLevelInfo
-    use :: Galacticus_Nodes  , only : nodeComponentSatellite, treeNode        , treeNodeLinkedList
-    use :: ISO_Varying_String, only : operator(//)          , var_str         , varying_string
-    use :: String_Handling   , only : operator(//)
-    implicit none
-    class(*                     ), intent(inout)          :: self
-    type (treeNode              ), intent(inout), pointer :: node
-    type (treeNode              )               , pointer :: mergee         , nodeWork
-    type (treeNodeLinkedList    )               , pointer :: nodeStack      , nodeNext, &
-         &                                                   nodeNew
-    class(nodeComponentSatellite)               , pointer :: satelliteMergee
-    type (varying_string        )                         :: message
-    !$GLC attributes unused :: self
-
-    nodeStack => null()
-    mergee => node%firstMergee
-    do while (associated(mergee))
-       satelliteMergee => mergee%satellite()
-       if (satelliteMergee%isOrphan()) then
-          if (displayVerbosity() >= verbosityLevelInfo) then
-             message=var_str('Satellite node [')//mergee%index()//'] will be orphanized due to event'
-             call displayMessage(message)
-          end if
-          allocate(nodeNew)
-          nodeNew  %node => mergee
-          nodeNew  %next => nodeStack
-          nodeStack      => nodeNew
-       end if
-       mergee => mergee%siblingMergee
-    end do
-    ! Process the stack.
-    do while (associated(nodeStack))
-       ! Pop a node from the stack.
-       nodeWork => nodeStack%node
-       nodeNext => nodeStack%next
-       deallocate(nodeStack)
-       nodeStack => nodeNext
-       ! Push any mergees onto the stack.
-       mergee => nodeWork%firstMergee
-       do while (associated(mergee))
-          ! Only push orphaned nodes onto the stack
-          satelliteMergee => mergee%satellite()
-          if (satelliteMergee%isOrphan()) then
-             allocate(nodeNew)
-             nodeNew  %node => mergee
-             nodeNew  %next => nodeStack
-             nodeStack      => nodeNew
-          end if
-          mergee => mergee%siblingMergee
-       end do
-       ! Process the node.
-       call Node_Component_Satellite_Preset_Orphanize(nodeWork)
-    end do
-    return
-  end subroutine interTreePostProcess
-
-  subroutine satelliteHostChange(self,node)
-    !!{
-    For satellite host changes, if the satellite is an orphan with a merge target ensure it remains in the branch of its merge
-    target.
-    !!}
-    use :: Display           , only : displayMessage        , displayVerbosity, verbosityLevelInfo
-    use :: Galacticus_Nodes  , only : nodeComponentSatellite, treeNode        , treeNodeLinkedList
-    use :: ISO_Varying_String, only : operator(//)          , var_str         , varying_string
-    use :: String_Handling   , only : operator(//)
-    implicit none
-    class(*                     ), intent(inout)          :: self
-    type (treeNode              ), intent(inout), target  :: node
-    class(nodeComponentSatellite)               , pointer :: satellite
-    type (treeNodeLinkedList    )               , pointer :: nodeStack, nodeNext, &
-         &                                                   nodeNew
-    type (treeNode              )               , pointer :: nodeWork , mergee
-    type (varying_string        )                         :: message
-    !$GLC attributes unused :: self                                                                                                                                                                                                                                                               
-    satellite => node%satellite()
-    if (satellite%isOrphan().and.associated(node%mergeTarget)) then
-       if (displayVerbosity() >= verbosityLevelInfo) then
-          message=var_str('Satellite node [')//node%index()//'] will be orphanized due to host change'
-          call displayMessage(message)
-       end if
-       ! Initialize a stack of nodes to allow us to process all mergees.
-       allocate(nodeStack)
-       nodeStack%node => node
-       nodeStack%next => null()
-       ! Process the stack.
-       do while (associated(nodeStack))
-          ! Pop a node from the stack.
-          nodeWork => nodeStack%node
-          nodeNext => nodeStack%next
-          deallocate(nodeStack)
-          nodeStack => nodeNext
-          ! Push any mergees onto the stack.
-          mergee => nodeWork%firstMergee
-          do while (associated(mergee))
-             ! Only push orphaned nodes onto the stack
-             satellite => mergee%satellite()
-             if (satellite%isOrphan()) then
-                allocate(nodeNew)
-                nodeNew  %node => mergee
-                nodeNew  %next => nodeStack
-                nodeStack      => nodeNew
-             end if
-             mergee => mergee%siblingMergee
-          end do
-          ! Process the node.
-          call Node_Component_Satellite_Preset_Orphanize(nodeWork)
-       end do
-    end if
-    return
-  end subroutine satelliteHostChange
-
-  !![
-  <rateComputeTask>
-   <unitName>Node_Component_Satellite_Preset_Rate_Compute</unitName>
-  </rateComputeTask>
-  !!]
-  subroutine Node_Component_Satellite_Preset_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
-    !!{
-    Interrupt differential evolution when a preset satellite becomes an orphan.
-    !!}
-    use :: Galacticus_Nodes, only : defaultSatelliteComponent, interruptTask, nodeComponentBasic, nodeComponentSatellite, &
-          &                         propertyInactive         , treeNode
-    use :: Histories       , only : history
-    implicit none
-    type     (treeNode              ), intent(inout)          :: node
-    logical                          , intent(inout)          :: interrupt
-    procedure(interruptTask         ), intent(inout), pointer :: interruptProcedure
-    integer                          , intent(in   )          :: propertyType
-    class    (nodeComponentBasic    )               , pointer :: basic
-    class    (nodeComponentSatellite)               , pointer :: satellite
-    type     (history               )                         :: historyBoundMass
-    logical                                                   :: exceedsHistoryTime
-    
-    ! Return immediately if the preset satellite implementation is not active.
-    if (.not.defaultSatelliteComponent%presetIsActive()) return
-    ! Return immediately if inactive variables are requested.
-    if (propertyInactive(propertyType)) return
-    basic            => node     %basic           ()
-    satellite        => node     %satellite       ()
-    historyBoundMass =  satellite%boundMassHistory()
-
-    if (historyBoundMass%exists()) then
-       exceedsHistoryTime=basic%time() >= historyBoundMass%time(size(historyBoundMass%time))
-    else
-       exceedsHistoryTime=.true.
-    end if
-
-    if (.not.satellite%isOrphan() .and. node%isSatellite() .and. associated(node%mergeTarget) .and. exceedsHistoryTime) then
-       interrupt          =  .true.
-       interruptProcedure => Node_Component_Satellite_Preset_Orphanize
-    end if
-    return
-  end subroutine Node_Component_Satellite_Preset_Rate_Compute
-
-  subroutine Node_Component_Satellite_Preset_Orphanize(node,timeEnd)
-    !!{
-    Handle orphanization of a preset satellite component. The satellite should be moved to the branch of its target node.
-    !!}
-    use :: Display           , only : displayMessage    , displayVerbosity      , verbosityLevelInfo
-    use :: Galacticus_Nodes  , only : nodeComponentBasic, nodeComponentSatellite, treeNode
-    use :: ISO_Varying_String, only : operator(//)      , var_str               , varying_string
-    use :: String_Handling   , only : operator(//)
-    implicit none
-    type            (treeNode              ), intent(inout), target   :: node
-    double precision                        , intent(in   ), optional :: timeEnd
-    type            (treeNode              )               , pointer  :: nodeHost
-    class           (nodeComponentBasic    )               , pointer  :: basic    , basicHost
-    class           (nodeComponentSatellite)               , pointer  :: satellite
-    type            (varying_string        )                          :: message
-    !$GLC attributes unused :: timeEnd
-    
-    satellite => node    %satellite  ()
-    call satellite%isOrphanSet(.true.)
-    nodeHost  => node    %mergeTarget
-    ! For satellite merge targets, step up through parents until an isolated host is found.
-    do while (nodeHost%isSatellite())
-       nodeHost => nodeHost%parent
-    end do
-    basic     => node    %basic      ()
-    basicHost => nodeHost%basic      ()
-    ! Trace the merge target progenitors back until one is found which exists at the time of the orphaned satellite.
-    do while (basicHost%time() > basic%time())
-       ! For satellite merge targets, step up through parents until an isolated host is found.
-       do while (nodeHost%isSatellite())
-          nodeHost => nodeHost%parent
-       end do
-       ! If a progenitor exists, move to it.
-       if (associated(nodeHost%firstChild)) then
-          nodeHost  => nodeHost%firstChild
-          basicHost => nodeHost%basic     ()
-       else
-          ! No further progenitors exist, so stop here.
-          exit
-       end if
-    end do
-    ! Report.
-    if (displayVerbosity() >= verbosityLevelInfo) then
-       message=var_str('Satellite node [')//node%index()//'] is being orphanized'
-       if (associated(node%parent,nodeHost)) then
-          message=message//' - remains in same host ['//nodeHost%index()//']'
-       else
-          message=message//' - moves from host ['//node%parent%index()//'] to host ['//nodeHost%index()//']'
-       end if
-       call displayMessage(message)
-    end if
-    ! Move to the new host. (If the new host is the same as the current host, do nothing.)
-    if (.not.associated(node%parent,nodeHost)) then
-       if (associated(node%parent)) call node%removeFromHost()
-       node    %sibling        => nodeHost%firstSatellite
-       node    %parent         => nodeHost
-       nodeHost%firstSatellite => node
-    end if
-    return
-  end subroutine Node_Component_Satellite_Preset_Orphanize
 
 end module Node_Component_Satellite_Preset

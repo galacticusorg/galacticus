@@ -28,41 +28,41 @@ program Test_Mass_Distributions_Tabulated
   use :: Coordinates                     , only : coordinateSpherical    , assignment(=)
   use :: Display                         , only : displayVerbositySet    , verbosityLevelWorking
   use :: Events_Hooks                    , only : eventsHooksInitialize
-  use :: Mass_Distributions              , only : massDistributionClass  , massDistributionSpherical      , massDistributionCoredNFW, kinematicsDistributionCollisionlessTabulated, &
-       &                                          massDistributionCuspNFW
+  use :: Mass_Distributions              , only : massDistributionClass  , massDistributionSpherical      , massDistributionCoredNFW   , kinematicsDistributionCollisionlessTabulated, &
+       &                                          massDistributionCuspNFW, kinematicsDistributionCuspNFW  , kinematicsDistributionClass
   use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr      , gravitationalConstant_internal
   use :: Numerical_Constants_Math        , only : Pi
-  use :: Unit_Tests                      , only : Assert                 , Unit_Tests_Begin_Group         , Unit_Tests_End_Group    , Unit_Tests_Finish                           , &
+  use :: Unit_Tests                      , only : Assert                 , Unit_Tests_Begin_Group         , Unit_Tests_End_Group       , Unit_Tests_Finish                           , &
        &                                          Skip
   implicit none
-  class           (massDistributionClass                       ), allocatable             :: massDistribution_
-  type            (kinematicsDistributionCollisionlessTabulated), pointer                 :: kinematicsDistribution_
-  double precision                                              , parameter               :: radiusVirial     =0.25d0, radiusScale               =0.025d0, &
-       &                                                                                     massVirial       =1.0d12, radiusCore                =0.010d0, &
-       &                                                                                     yCusp            =0.2d00
-  double precision                                                         , dimension(7) :: mass                    , densityMoment0                    , &
-       &                                                                                     densityMoment1          , densityMoment2                    , &
-       &                                                                                     densityMoment3          , energy                            , &
-       &                                                                                     radiusFreefall          , radiusFreefallIncreaseRate        , &
-       &                                                                                     potential               , fourierTransform                  , &
-       &                                                                                     velocityDispersion      , massTarget                        , &
-       &                                                                                     densityMoment0Target    , densityMoment1Target              , &
-       &                                                                                     densityMoment2Target    , densityMoment3Target
-  type            (coordinateSpherical                         )                          :: coordinates             , coordinatesReference
-  double precision                                                                        :: timeScale
-  integer                                                                                 :: i                       , iProfile
-  double precision                                              , parameter, dimension(7) :: radiiScaleFree      =[                                           &
-       &                                                                                                           0.010000000000000d00,0.030000000000000d00, &
-       &                                                                                                           0.100000000000000d00,0.300000000000000d00, &
-       &                                                                                                           1.000000000000000d00,3.000000000000000d00, &
-       &                                                                                                           1.000000000000000d01                       &
-       &                                                                                                          ]
-  double precision                                                         , dimension(7) :: energyTarget
-  double precision                                                         , dimension(7) :: radiusFreefallTarget
-  double precision                                                         , dimension(7) :: radiusFreefallIncreaseRateTarget
-  double precision                                                         , dimension(7) :: potentialTarget
-  double precision                                                         , dimension(7) :: fourierTransformTarget
-  double precision                                                         , dimension(7) :: velocityDispersionTarget
+  class           (massDistributionClass      ), allocatable             :: massDistribution_
+  class           (kinematicsDistributionClass), pointer                 :: kinematicsDistribution_
+  double precision                             , parameter               :: radiusVirial     =0.25d0, radiusScale               =0.025d0, &
+       &                                                                    massVirial       =1.0d12, radiusCore                =0.010d0, &
+       &                                                                    yCusp            =0.2d00
+  double precision                                        , dimension(7) :: mass                    , densityMoment0                    , &
+       &                                                                    densityMoment1          , densityMoment2                    , &
+       &                                                                    densityMoment3          , energy                            , &
+       &                                                                    radiusFreefall          , radiusFreefallIncreaseRate        , &
+       &                                                                    potential               , fourierTransform                  , &
+       &                                                                    velocityDispersion      , massTarget                        , &
+       &                                                                    densityMoment0Target    , densityMoment1Target              , &
+       &                                                                    densityMoment2Target    , densityMoment3Target
+  type            (coordinateSpherical        )                          :: coordinates             , coordinatesReference
+  double precision                                                       :: timeScale
+  integer                                                                :: i                       , iProfile
+  double precision                             , parameter, dimension(7) :: radiiScaleFree      =[                                           &
+       &                                                                                          0.010000000000000d00,0.030000000000000d00, &
+       &                                                                                          0.100000000000000d00,0.300000000000000d00, &
+       &                                                                                          1.000000000000000d00,3.000000000000000d00, &
+       &                                                                                          1.000000000000000d01                       &
+       &                                                                                         ]
+  double precision                                        , dimension(7) :: energyTarget
+  double precision                                        , dimension(7) :: radiusFreefallTarget
+  double precision                                        , dimension(7) :: radiusFreefallIncreaseRateTarget
+  double precision                                        , dimension(7) :: potentialTarget
+  double precision                                        , dimension(7) :: fourierTransformTarget
+  double precision                                        , dimension(7) :: velocityDispersionTarget
   
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelWorking)
@@ -143,14 +143,22 @@ program Test_Mass_Distributions_Tabulated
              &                8.112997987118110d09                       &
              &               ]
      end select
-     allocate(kinematicsDistribution_)
-     kinematicsDistribution_=kinematicsDistributionCollisionlessTabulated(toleranceRelativeVelocityDispersion=1.0d-3,toleranceRelativeVelocityDispersionMaximum=1.0d-3)
      select type (massDistribution_)
      type is (massDistributionCoredNFW)
-        massDistribution_   =massDistributionCoredNFW(mass=massVirial,radiusVirial=radiusVirial,radiusScale=radiusScale,radiusCore=radiusCore,dimensionless=.false.,toleranceRelativePotential=1.0d-3)
+        allocate(kinematicsDistributionCollisionlessTabulated :: kinematicsDistribution_)
+        select type (kinematicsDistribution_)
+        type is (kinematicsDistributionCollisionlessTabulated)
+           kinematicsDistribution_=kinematicsDistributionCollisionlessTabulated(toleranceRelativeVelocityDispersion=1.0d-3,toleranceRelativeVelocityDispersionMaximum=1.0d-3)
+        end select
+        massDistribution_=massDistributionCoredNFW(mass=massVirial,radiusVirial=radiusVirial,radiusScale=radiusScale,radiusCore=radiusCore,dimensionless=.false.,toleranceRelativePotential=1.0d-3)
         call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
      type is (massDistributionCuspNFW )
-        massDistribution_   =massDistributionCuspNFW (mass=massVirial,radiusVirial=radiusVirial,radiusScale=radiusScale,y         =yCusp     ,dimensionless=.false.,toleranceRelativePotential=1.0d-3)
+        allocate(kinematicsDistributionCuspNFW :: kinematicsDistribution_)
+        select type (kinematicsDistribution_)
+        type is (kinematicsDistributionCuspNFW)
+           kinematicsDistribution_=kinematicsDistributionCuspNFW               (toleranceRelativeVelocityDispersion=1.0d-3,toleranceRelativeVelocityDispersionMaximum=1.0d-3)
+        end select
+        massDistribution_=massDistributionCuspNFW (mass=massVirial,radiusVirial=radiusVirial,radiusScale=radiusScale,y         =yCusp     ,dimensionless=.false.,toleranceRelativePotential=1.0d-3)
         call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
      end select
      timeScale=+1.0d0                                &

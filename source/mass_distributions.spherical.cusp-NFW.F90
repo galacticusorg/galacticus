@@ -315,7 +315,7 @@ contains
     radiusScaleFree=+     radius      &
          &          /self%radiusScale
     if (radiusScaleFree < fractionSmall*self%y**2) then
-       ! Use a series expansion for small radii.
+       ! Use a series expansion for small radii r ≪ y².
        mass  =+8.0d0                            &
             & *Pi                               &
             & /3.0d0                            &
@@ -331,6 +331,32 @@ contains
             &   *(+1.0d0-4.0d0*self%y**2)       &
             &   /              self%y**2        &
             & )
+    else if (radiusScaleFree < fractionSmall) then
+       ! Use a simplified solution (approximating ρ = ρ₀ √(r+y²)/r^{3/2}) for small radii r ≪ 1.
+       mass  =+Pi                                                        &
+            & *self%densityNormalization                                 &
+            & *self%radiusScale         **3                              &
+            & *(                                                         &
+            &   +                     (2.0d0*radiusScaleFree+self%y**2)  &
+            &   *sqrt(radiusScaleFree*(      radiusScaleFree+self%y**2)) &
+            &   -self%y**4                                               &
+            &   *log(                                                    &
+            &        +sqrt(1.0d0+radiusScaleFree/self%y**2)              &
+            &        +sqrt(      radiusScaleFree          )/self%y       &
+            &       )                                                    &
+            &  )
+    else if (self%y**2 < fractionSmall*radiusScaleFree) then
+       ! For small cusps, y² ≪ r, use a series solution. This is essentially the NFW solution with the lowest order correction for
+       ! y.
+       mass  =+4.0d0*Pi                     &
+            & *self%densityNormalization    &
+            & *self%radiusScale         **3 &
+            & *(                            &
+            &   +log(1.0d0+radiusScaleFree) &
+            &   -(1.0d0-0.5d0*self%y**2)    &
+            &   *       radiusScaleFree     &
+            &   /(1.0d0+radiusScaleFree)    &
+            &  )
     else
        ! Use the full solution for larger radii.
        mass  =+4.0d0                                                                                                                &

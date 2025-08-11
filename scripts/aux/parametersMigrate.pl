@@ -597,3 +597,98 @@ sub methodSuffixRemove {
 	}
     }
 }
+
+sub satelliteOrphanize {
+    # Special handling to add a nodeOperator to orphanize satellites.
+    my $input      = shift();
+    my $parameters = shift();
+    # Look for "componentSatellite" parameters.
+    my @nodes = $parameters->findnodes("//componentSatellite[\@value='preset']")->get_nodelist();
+    return
+	if ( scalar(@nodes) <= 0 );
+    print "   translate special '//componentSatellite[\@value='preset']'\n";
+    # Find nodeOperators.
+    my @nodeOperators = $parameters->findnodes("//nodeOperator[\@value='multi']")->get_nodelist();
+    die("can not find any `nodeOperator[\@value='multi']` into which to insert a satellite orphanizer operator")
+     	if ( scalar(@nodeOperators) == 0 );
+    die("found multiple `nodeOperator[\@value='multi']` nodes - unknown into which to insert a satellite orphanizer operator")
+     	if ( scalar(@nodeOperators) >  1 );
+    # Build node operator.
+    my $operatorOrphanize = $input->createElement("nodeOperator");
+    $operatorOrphanize->setAttribute('value','satelliteOrphanize' );
+    $nodeOperators[0]->insertAfter($operatorOrphanize,$nodeOperators[0]->lastChild);
+}
+
+sub blackHoleNonCentral {
+    # Special handling to add nodeOperators for non-central black hole evolution.
+    my $input      = shift();
+    my $parameters = shift();
+    # Look for "componentBlackHole" parameters.
+    my @nodes = $parameters->findnodes("//componentBlackHole[\@value='nonCentral']")->get_nodelist();
+    return
+	if ( scalar(@nodes) <= 0 );
+    die("found multiple `//componentBlackHole[\@value='nonCentral']` nodes - unknown what should be done in this situation")
+	if ( scalar(@nodes) >  1 );
+    print "   translate special '//componentBlackHole[\@value='nonCentral']'\n";
+    # Look for any "tripleInteraction" option.
+    my @tripleInteractions = $nodes[0]->findnodes("tripleInteraction[\@value]")->get_nodelist();
+    die("found multiple `//tripleInteraction[\@value]` nodes - unknown what should be done in this situation")
+	if ( scalar(@tripleInteractions) > 1 );
+    my $tripleInteraction = scalar(@tripleInteractions) == 1 ? $tripleInteractions[0]->getAttribute('value') eq "true" : 1;
+    $_->parentNode->removeChild($_)
+	foreach ( @tripleInteractions );
+    # Find nodeOperators.
+    my @nodeOperators = $parameters->findnodes("//nodeOperator[\@value='multi']")->get_nodelist();
+    die("can not find any `nodeOperator[\@value='multi']` into which to insert a black hole operator")
+     	if ( scalar(@nodeOperators) == 0 );
+    die("found multiple `nodeOperator[\@value='multi']` nodes - unknown into which to insert a black hole operator")
+     	if ( scalar(@nodeOperators) > 1 );
+    # Build node operator.
+    my $operatorMigration = $input->createElement("nodeOperator");
+    my $operatorTriple    = $input->createElement("nodeOperator");
+    $operatorMigration->setAttribute('value','blackHolesRadialMigration');
+    $nodeOperators[0]->insertAfter($operatorMigration,$nodeOperators[0]->lastChild);
+    if ( $tripleInteraction ) {
+	$operatorTriple   ->setAttribute('value','blackHolesTripleInteraction');
+	$nodeOperators[0]->insertAfter($operatorTriple,$nodeOperators[0]->lastChild);
+    }
+}
+
+sub hotHaloVerySimple {
+    # Special handling to add nodeOperators for "very simple" hot halo evolution.
+    my $input      = shift();
+    my $parameters = shift();
+    # Look for "componentHotHalo" parameters.
+    my @nodes = $parameters->findnodes("//componentHotHalo[\@value='verySimple' or \@value='verySimpleDelayed']")->get_nodelist();
+    return
+	if ( scalar(@nodes) <= 0 );
+    die("found multiple `//componentHotHalo[\@value='verySimple' or \@value='verySimpleDelayed']` nodes - unknown what should be done in this situation")
+	if ( scalar(@nodes) >  1 );
+    print "   translate special '//componentHotHalo[\@value='verySimple' or \@value='verySimpleDelayed']'\n";
+    # Find nodeOperators.
+    my @nodeOperators = $parameters->findnodes("//nodeOperator[\@value='multi']")->get_nodelist();
+    die("can not find any `nodeOperator[\@value='multi']` into which to insert a CGM oeprators")
+     	if ( scalar(@nodeOperators) == 0 );
+    die("found multiple `nodeOperator[\@value='multi']` nodes - unknown into which to insert CGM operators")
+     	if ( scalar(@nodeOperators) > 1 );
+    # Build node operator.
+    my $operatorOuterRadius            = $input->createElement("nodeOperator");
+    my $operatorCooling                = $input->createElement("nodeOperator");
+    my $operatorAccretion              = $input->createElement("nodeOperator");
+    my $operatorStarvation             = $input->createElement("nodeOperator");
+    my $operatorOutflowReincorporation = $input->createElement("nodeOperator");
+    my $component                      = $input->createElement("component"   );
+    $operatorOuterRadius              ->setAttribute('value'                        ,'CGMOuterRadiusVirialRadius');
+    $operatorCooling                  ->setAttribute('value'                        ,'CGMCoolingInflow'          );
+    $operatorAccretion                ->setAttribute('value'                        ,'CGMAccretion'              );
+    $operatorStarvation               ->setAttribute('value'                        ,'CGMStarvation'             );
+    $operatorOutflowReincorporation   ->setAttribute('value'                        ,'CGMOutflowReincorporation' );
+    $component                        ->setAttribute('value'                        ,'disk'                      );
+    $operatorCooling                  ->appendChild ($component                                                  );
+    $nodeOperators                 [0]->insertAfter ($operatorOuterRadius           ,$nodeOperators[0]->lastChild);
+    $nodeOperators                 [0]->insertAfter ($operatorCooling               ,$nodeOperators[0]->lastChild);
+    $nodeOperators                 [0]->insertAfter ($operatorAccretion             ,$nodeOperators[0]->lastChild);
+    $nodeOperators                 [0]->insertAfter ($operatorStarvation            ,$nodeOperators[0]->lastChild);
+    $nodeOperators                 [0]->insertAfter ($operatorOutflowReincorporation,$nodeOperators[0]->lastChild)
+	if ( $nodes[0]->getAttribute('value') eq "verySimpleDelayed" );
+}

@@ -1,6 +1,7 @@
+<?xml version="1.0"?>
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="56900677a415e3dd389615616223a30e08341e18"/>
+  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
   <accretionDisks value="switched">
     <accretionDisksADAF value="ADAF">
       <adiabaticIndex value="1.444"/>
@@ -430,6 +431,7 @@
       <lengthBox value="1476.232654266312"/>
       <wrapPeriodic value="false"/>
     </nodeOperator>
+    <nodeOperator value="satelliteOrphanize"/>
   </nodeOperator>
   <nodePropertyExtractor value="multi">
     <nodePropertyExtractor value="radiusHalfMassStellar"/>

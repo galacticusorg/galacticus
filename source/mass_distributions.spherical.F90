@@ -955,18 +955,17 @@ contains
     use :: Ideal_Gases_Thermodynamics, only : Ideal_Gas_Sound_Speed
     use :: Error                     , only : Error_Report
     implicit none
-    double precision                              , dimension(3)  :: integral
-    class           (massDistributionSpherical   ), intent(inout) :: self
-    class           (massDistributionClass       ), intent(inout) :: massDistributionEmbedding            , massDistributionPerturber
-    double precision                              , intent(in   ) :: massPerturber
-    class           (coordinate                  ), intent(in   ) :: coordinates                          , velocity
-    double precision                              , dimension(3)  :: velocityCartesian_
-    double precision                              , parameter     :: XvMaximum                     =10.0d0
-    type            (coordinateCartesian         )                :: velocityCartesian
-    double precision                                              :: radius                               , velocity_                , &
-         &                                                           density                              , velocityDispersion       , &
-         &                                                           factorSuppressionExtendedMass        , xV
-    !$GLC attributes unused :: massDistributionPerturber, massPerturber
+    double precision                           , dimension(3)  :: integral
+    class           (massDistributionSpherical), intent(inout) :: self
+    class           (massDistributionClass    ), intent(inout) :: massDistributionEmbedding           , massDistributionPerturber
+    double precision                           , intent(in   ) :: massPerturber
+    class           (coordinate               ), intent(in   ) :: coordinates                         , velocity
+    double precision                           , dimension(3)  :: velocityCartesian_
+    double precision                           , parameter     :: XvMaximum                    =10.0d0
+    type            (coordinateCartesian      )                :: velocityCartesian
+    double precision                                           :: radius                              , velocity_                , &
+         &                                                        density                             , velocityDispersion       , &
+         &                                                        factorSuppressionExtendedMass       , xV
     
     integral =0.0d0
     velocity_=velocity%rSpherical()

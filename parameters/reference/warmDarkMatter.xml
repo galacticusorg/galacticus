@@ -25,7 +25,7 @@
   <!-- Include prompt cusps -->
   <change type="replace" path="darkMatterProfileDMO/darkMatterProfileDMO">
     <darkMatterProfileDMO value="cuspNFW">
-      <toleranceRelativeVelocityDispersion        value="1.0e-6"/>
+      <toleranceRelativeVelocityDispersion        value="1.0e-2"/>
       <toleranceRelativeVelocityDispersionMaximum value="1.0e-1"/>
     </darkMatterProfileDMO>
   </change>

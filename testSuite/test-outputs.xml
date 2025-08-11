@@ -18,7 +18,7 @@
   <!-- Density contrasts -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
+    <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
     <nodePropertyExtractor value="densityContrasts">
       <densityContrasts value="200"/>
       <densityContrasts value="200 500"/>
@@ -30,14 +30,14 @@
   <!-- Mass accretion histories -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
+    <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
     <mergerTreeOperator value="massAccretionHistory"/>
   </parameters>
 
   <!-- Cooling rates and radii -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
+    <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
     <nodePropertyExtractor value="multi">
       <nodePropertyExtractor value="rateCooling"/>
       <nodePropertyExtractor value="radiusCooling"/>
@@ -47,7 +47,7 @@
   <!-- Half mass radii -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
+    <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
     <nodePropertyExtractor value="radiusHalfMassStellar"/>
     <nodePropertyExtractor value="multi">
       <nodePropertyExtractor value="radiusHalfMassStellar"/>
@@ -58,7 +58,7 @@
   <!-- Rotation curves -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
+    <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
     <nodePropertyExtractor value="multi">
       <nodePropertyExtractor value="virialProperties"/>
       <nodePropertyExtractor value="rotationCurve">
@@ -70,7 +70,7 @@
   <!-- Velocity dispersions -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
+    <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
     <nodePropertyExtractor value="multi">
       <nodePropertyExtractor value="virialProperties"/>
       <nodePropertyExtractor value="velocityDispersion">
@@ -82,7 +82,7 @@
   <!-- Projected densities -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
+    <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
     <nodePropertyExtractor value="projectedDensity">
       <radiusSpecifiers value="virialRadius:all:dark:1.0  darkMatterScaleRadius:all:dark:1.0  "/>
     </nodePropertyExtractor>
@@ -91,7 +91,7 @@
   <!-- Enclosed masses -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
+    <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
     <nodePropertyExtractor value="massProfile">
       <radiusSpecifiers value="radius:all:all:10.0e-3  radius:all:all:100.0e-3  "/>
     </nodePropertyExtractor>
@@ -100,7 +100,7 @@
   <!-- Satellite orbits -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
+    <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
     <nodePropertyExtractor value="satelliteOrbitalExtrema">
       <extractPericenter value="true"/>
     </nodePropertyExtractor>
@@ -109,14 +109,14 @@
   <!-- Redshifts -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
+    <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
     <nodePropertyExtractor value="redshiftLastIsolated"/>
   </parameters>
 
   <!-- Merger tree structure -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="65c7326e2d0e0e85feea12ef933222871f069fb2" time="2025-06-10T15:59:50"/>
+    <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
     <mergerTreeOperator value="outputStructure">
       <nodePropertyExtractor value="multi">
         <nodePropertyExtractor value="time"/>
@@ -124,6 +124,13 @@
         <nodePropertyExtractor value="nodeIndices"/>
       </nodePropertyExtractor>
     </mergerTreeOperator>
+  </parameters>
+
+  <!-- AGN SEDs -->
+  <parameters>
+    <formatVersion>2</formatVersion>
+    <lastModified revision="49430476890d1e0d92c686020f046e972952f81e" time="2025-07-17T15:12:42"/>
+    <nodePropertyExtractor value="SEDAGN"/>
   </parameters>
 
 </parameterGrid>

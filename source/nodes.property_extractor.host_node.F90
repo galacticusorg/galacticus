@@ -122,7 +122,6 @@ contains
     return
   end function hostNodeExtract
 
-
   function hostNodeName(self)
     !!{
     Return the name of the hostNode property.
