@@ -130,9 +130,9 @@ contains
     parameters=inputParameters(self%fileName,noOutput=.true.)
     ! Read value for each parameter.
     do i=1,size(modelParameters_)
-       parameterCount=String_Count_Words(char(modelParameters_(i)%modelParameter_%name()),"::")
+       parameterCount=String_Count_Words(char(modelParameters_(i)%modelParameter_%name()),"/")
        allocate(parameterNames(parameterCount))
-       call String_Split_Words(parameterNames,char(modelParameters_(i)%modelParameter_%name()),"::")
+       call String_Split_Words(parameterNames,char(modelParameters_(i)%modelParameter_%name()),"/")
        parameters_=inputParameters(parameters)
        do j=1,parameterCount
           instance    =1
