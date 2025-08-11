@@ -388,7 +388,7 @@ jobs:
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "GALACTICUS_FCFLAGS+=\ -static" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: galacticus-exec
       - name: Build tools
@@ -1463,7 +1463,7 @@ jobs:
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "PYTHONPATH=$GITHUB_WORKSPACE/python" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: galacticus-exec-dmo
       - name: Install Python
@@ -1526,7 +1526,7 @@ jobs:
           apt -y update && apt -y upgrade
           apt -y install python3
       - name: Download library
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: galacticus-library
       - name: Test interface
@@ -1763,15 +1763,15 @@ jobs:
           threshold: '250%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Download artifacts (validate-PonosV)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: validate-PonosV
       - name: Download artifacts (validate-baryonicSuppression)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: validate-baryonicSuppression
       - name: Download artifacts (build-profile)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: build-profile
       - name: Push validation results
@@ -1865,19 +1865,19 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v4
       - name: Download artifacts (executable-linux)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: galacticus-exec
       - name: Download artifacts (library-linux)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: galacticus-library
       - name: Download artifacts (docs)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: galacticus-docs
       - name: Download artifacts (tools-linux)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: galacticus-tools
       - name: Upload assets to release
@@ -1887,31 +1887,31 @@ jobs:
           gh release upload bleeding-edge ./Galacticus.exe ./libgalacticus.tar.bz2 ./Galacticus_Usage.pdf ./Galacticus_Physics.pdf ./Galacticus_Development.pdf ./Galacticus_Source.pdf ./tools.tar.bz2 --clobber
           rm ./Galacticus.exe ./libgalacticus.tar.bz2 ./Galacticus_Usage.pdf ./Galacticus_Physics.pdf ./Galacticus_Development.pdf ./Galacticus_Source.pdf ./tools.tar.bz2
       - name: Download artifacts (executable-macos)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: galacticus-exec-MacOS
       - name: Download artifacts (debug-macos)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: galacticus-debug-MacOS
       - name: Download artifacts (executable-macos-m1)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: galacticus-exec-MacOS-M1
       - name: Download artifacts (debug-macos-m1)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: galacticus-debug-MacOS-M1
       - name: Download artifacts (library-macos)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: galacticus-library-MacOS
       - name: Download artifacts (tools-macos)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: galacticus-tools-MacOS
       - name: Download artifacts (tools-macos-m1)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: galacticus-tools-MacOS-M1
       - name: Upload assets to release
@@ -1921,27 +1921,27 @@ jobs:
           gh release upload bleeding-edge ./Galacticus_MacOS.exe ./Galacticus_MacOS-M1.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip ./toolsMacOSM1.zip ./debugSymbolsMacOS.zip ./debugSymbolsMacOS-M1.zip --clobber
           rm ./Galacticus_MacOS.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip ./toolsMacOSM1.zip ./debugSymbolsMacOS.zip
       - name: Download artifacts (perf-darkMatterOnlySubHalos)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: perf-darkMatterOnlySubHalos
       - name: Download artifacts (perf-milkyWay)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: perf-milkyWay
       - name: Download artifacts (perf-milkyWay_SIDM)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: perf-milkyWay_SIDM
       - name: Download artifacts (perf-darkMatterOnlySubHalos-gprof)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: perf-darkMatterOnlySubHalos-gprof
       - name: Download artifacts (perf-milkyWay-gprof)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: perf-milkyWay-gprof
       - name: Download artifacts (perf-milkyWay_SIDM-gprof)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: perf-milkyWay_SIDM-gprof
       - name: Upload assets to release
