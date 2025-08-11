@@ -45,6 +45,12 @@ module Math_Operators_Unary
      <argument>double precision, intent(in   ) :: f</argument>
      <description>Reverse the operation.</description>
    </method>
+   <method name="jacobian" >
+     <type>double precision</type>
+     <pass>yes</pass>
+     <argument>double precision, intent(in   ) :: x</argument>
+     <description>Compute the Jacobian of the operation.</description>
+   </method>
   </functionClass>
   !!]
 
