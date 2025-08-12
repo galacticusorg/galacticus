@@ -43,14 +43,14 @@ contains
     !!{
     Open the file for \glc\ output.
     !!}
-    use :: Output_HDF5       , only : hdf5SieveBufferSize , hdf5UseLatestFormat, hdf5CompressionLevel, hdf5CacheElementsCount, &
-         &                            outputFileIsOpen    , outputFile         , hdf5CacheSizeBytes  , hdf5ChunkSize         , &
+    use :: Output_HDF5       , only : hdf5SieveBufferSize , hdf5UseLatestFormat, hdf5CompressionLevel  , hdf5CacheElementsCount, &
+         &                            outputFileIsOpen    , outputFile         , hdf5CacheSizeBytes    , hdf5ChunkSize         , &
          &                            outputGroup
     use :: HDF5              , only : hsize_t             , size_t
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : IO_HDF5_Set_Defaults, hdf5Object
-    use :: ISO_Varying_String, only : var_str             , char                , operator(//)        , extract              , &
-         &                            len                 , operator(==)        , adjustl             , trim
+    use :: IO_HDF5           , only : IO_HDF5_Set_Defaults, hdf5Object          , ioHDF5AccessInitialize
+    use :: ISO_Varying_String, only : var_str             , char                , operator(//)          , extract              , &
+         &                            len                 , operator(==)        , adjustl               , trim
     use :: Input_Parameters  , only : inputParameters     , inputParameter
 #ifdef USEMPI
     use :: MPI_Utilities     , only : mpiSelf
@@ -138,6 +138,7 @@ contains
        end if
 #endif
        ! Open the file.
+       call ioHDF5AccessInitialize()
        !$ call hdf5Access%set()
        outputFile=hdf5Object(                                                 &
             &                                    char(outputScratchFileName), &
