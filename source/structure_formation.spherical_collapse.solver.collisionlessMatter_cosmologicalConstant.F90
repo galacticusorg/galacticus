@@ -614,6 +614,8 @@ contains
     overdensitiesLinear=Make_Range(overdensityLinearMinimum,overdensityLinearMaximum,overdensityLinearCount,rangeTypeLinear)
     ! Create the table.
     call linearNonlinearMap_%create(overdensitiesLinear,times)
+    ! Construct an integrator.
+    integrator_=integrator(cllsnlssMttCsmlgclCnstntPerturbationIntegrand,toleranceRelative=1.0d-6,hasSingularities=.true.)
     ! Iterate over times.
     do iTime=1,timeCount
        ! Get the current expansion factor.
@@ -653,7 +655,6 @@ contains
        epsilonPerturbationCollapsed=finderPerturbation%find(rootRange=[epsilonPerturbationMinimum,epsilonPerturbationMaximum])
        ! For non-collapsed regions, ε will be greater then that for a collapsed perturbation. Step through values until
        ! sufficiently low non-linear overdensity is reached.
-       integrator_        =integrator(cllsnlssMttCsmlgclCnstntPerturbationIntegrand,toleranceRelative=1.0d-6,hasSingularities =.true.)
        epsilonPerturbation=epsilonPerturbationCollapsed
        i=0
        do while (.true.)
