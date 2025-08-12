@@ -29,7 +29,7 @@ program Test_Decaying_Dark_Matter
   use :: Unit_Tests          , only : Assert                            , Unit_Tests_Begin_Group          , Unit_Tests_End_Group                         , Unit_Tests_Finish                          , &
        &                              compareLessThanOrEqual
   use :: HDF5_Access         , only : hdf5Access
-  use :: IO_HDF5             , only : hdf5Object
+  use :: IO_HDF5             , only : hdf5Object                        , ioHDF5AccessInitialize
   use :: Input_Paths         , only : inputPath                         , pathTypeExec
   use :: ISO_Varying_String  , only : char                              , operator(//)
   use :: Events_Hooks        , only : eventsHooksInitialize
@@ -51,6 +51,8 @@ program Test_Decaying_Dark_Matter
   call displayVerbositySet(verbosityLevelStandard)
   ! Initialize.
   call eventsHooksInitialize()
+  ! Initialize HDF5 lock.
+  call ioHDF5AccessInitialize()
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Decaying dark matter")
   ! Retention fractions.
