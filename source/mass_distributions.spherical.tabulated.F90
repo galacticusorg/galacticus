@@ -56,6 +56,7 @@
      procedure                                                :: interpolate                => sphericalTabulatedInterpolate
      procedure                                                :: isTabulating               => sphericalTabulatedIsTabulating
      procedure                                                :: massEnclosedBySphere       => sphericalTabulatedMassEnclosedBySphere
+     procedure                                                :: radiusEnclosingDensity     => sphericalTabulatedRadiusEnclosingDensity
      procedure                                                :: potential                  => sphericalTabulatedPotential
      procedure                                                :: potentialDifference        => sphericalTabulatedPotentialDifference
      procedure                                                :: fourierTransform           => sphericalTabulatedFourierTransform
@@ -72,6 +73,7 @@
    <description>Quantities for tabulation mass distributions.</description>
    <decodeFunction>yes</decodeFunction>
    <entry label="mass"                      />
+   <entry label="radiusEnclosingDensity"    />
    <entry label="potential"                 />
    <entry label="energy"                    />
    <entry label="fourierTransform"          />
@@ -108,6 +110,7 @@
      double precision                            , allocatable, dimension(:) :: parametersMinimumLimit, parametersMaximumLimit
      ! Tabulations for individual quantities.
      type            (massDistributionTabulation)                            :: mass                      =massDistributionTabulation(quantityMass                      ,.true. ,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
+     type            (massDistributionTabulation)                            :: radiusEnclosingDensity    =massDistributionTabulation(quantityRadiusEnclosingDensity    ,.true. ,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
      type            (massDistributionTabulation)                            :: potential                 =massDistributionTabulation(quantityPotential                 ,.false.,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
      type            (massDistributionTabulation)                            :: energy                    =massDistributionTabulation(quantityEnergy                    ,.false.,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
      type            (massDistributionTabulation)                            :: fourierTransform          =massDistributionTabulation(quantityFourierTransform          ,.false.,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
@@ -196,6 +199,35 @@ contains
     end if
     return
   end function sphericalTabulatedMassEnclosedBySphere
+
+  double precision function sphericalTabulatedRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
+    !!{
+    Computes the radius enclosing the given {\normalfont \ttfamily radius} for spherically-symmetric mass
+    distributions using a tabulation.
+    !!}
+    implicit none
+    class           (massDistributionSphericalTabulated), intent(inout) , target      :: self
+    double precision                                    , intent(in   )               :: density
+    double precision                                    , intent(in   ) , optional    :: radiusGuess
+    double precision                                    , dimension(:  ), allocatable :: parameters
+    type            (massDistributionContainer         )                , pointer     :: container
+    double precision                                                                  :: densityNormalization, radiusNormalization, &
+         &                                                                               densityScaled
+
+    if (tabulating) then
+       radius=self%radiusEnclosingDensityNumerical(density)
+    else
+       ! Get the tabulation properties.
+       call self%parameters(densityNormalization,radiusNormalization,parameters,container)
+       densityScaled=+density              &
+            &        /densityNormalization
+       call self%tabulate(densityScaled,parameters,container,container%radiusEnclosingDensity)
+       ! Perform the interpolation.
+       radius=+self%interpolate        (densityScaled,parameters,container%radiusEnclosingDensity) &
+            & *     radiusNormalization
+    end if
+    return
+  end function sphericalTabulatedRadiusEnclosingDensity
 
   double precision function sphericalTabulatedPotential(self,coordinates,status) result(potential)
     !!{
@@ -528,7 +560,7 @@ contains
          &                                                                                  i
     double precision                                                                     :: radius_                       , quantity_           , &
          &                                                                                  time_                         , wavenumber_         , &
-         &                                                                                  radiusOuter_
+         &                                                                                  radiusOuter_                  , density_
     logical                                                                              :: workRemains
     type            (multiCounter                       )                                :: counter
     character       (len= 8                             )                                :: labelLower                    , labelUpper
@@ -600,7 +632,7 @@ contains
                iterationCount     =0_c_size_t
                iterationCountTotal=product(tabulation%countParameters)
                ! Tabulate in parallel.
-               !$omp parallel private(iRadius,radius_,time_,radiusOuter_,wavenumber_,coordinates,coordinatesZeroPoint,quantity_,iParameters,parameters_,parametersReduced_,workRemains,counter)
+               !$omp parallel private(iRadius,radius_,time_,radiusOuter_,wavenumber_,density_,coordinates,coordinatesZeroPoint,quantity_,iParameters,parameters_,parametersReduced_,workRemains,counter)
                ! This is a new thread, so mark it as tabulating.
                tabulating         =.true.
                ! Initialize the counter and iterate over parameter states.
@@ -646,12 +678,15 @@ contains
                      radius_             =exp(log(tabulation%radiusMinimum)+dble(iRadius-1_c_size_t)/tabulation%radiusInverseStep)
                      time_               = radius_
                      wavenumber_         = radius_
+                     density_            = radius_
                      coordinates         =[radius_,0.0d0,0.0d0]
                      coordinatesZeroPoint=[1.0d0  ,0.0d0,0.0d0]
                      ! Compute the quantity numerically.
                      select case (tabulation%quantity%ID)
                      case (quantityMass                      %ID)
                         quantity_=+instance%massEnclosedBySphereNumerical      (             radius_                      )
+                     case (quantityRadiusEnclosingDensity    %ID)
+                        quantity_=+instance%radiusEnclosingDensityNumerical    (             density_                     )
                      case (quantityEnergy                    %ID)
                         quantity_=+instance%energyNumerical                    (             radius_             ,instance)
                      case (quantityPotential                 %ID)
@@ -946,6 +981,10 @@ contains
     allocate(self%mass                      %parametersMaximum     (countParameters  ))
     allocate(self%mass                      %parametersCountPer    (countParameters  ))
     allocate(self%mass                      %countParameters       (countParameters  ))
+    allocate(self%radiusEnclosingDensity    %parametersMinimum     (countParameters  ))
+    allocate(self%radiusEnclosingDensity    %parametersMaximum     (countParameters  ))
+    allocate(self%radiusEnclosingDensity    %parametersCountPer    (countParameters  ))
+    allocate(self%radiusEnclosingDensity    %countParameters       (countParameters  ))
     allocate(self%energy                    %parametersMinimum     (countParameters  ))
     allocate(self%energy                    %parametersMaximum     (countParameters  ))
     allocate(self%energy                    %parametersCountPer    (countParameters  ))
@@ -992,6 +1031,8 @@ contains
     self                           %parametersMaximumLimit=+huge(0.0d0)
     self%mass                      %radiusMinimum         =+huge(0.0d0)
     self%mass                      %radiusMaximum         =-huge(0.0d0)
+    self%radiusEnclosingDensity    %radiusMinimum         =+huge(0.0d0)
+    self%radiusEnclosingDensity    %radiusMaximum         =-huge(0.0d0)
     self%energy                    %radiusMinimum         =+huge(0.0d0)
     self%energy                    %radiusMaximum         =-huge(0.0d0)
     self%potential                 %radiusMinimum         =+huge(0.0d0)
@@ -1014,6 +1055,8 @@ contains
     self%fourierTransform          %radiusMaximum         =-huge(0.0d0)
     self%mass                      %parametersMinimum     =+huge(0.0d0)
     self%mass                      %parametersMaximum     =-huge(0.0d0)
+    self%radiusEnclosingDensity    %parametersMinimum     =+huge(0.0d0)
+    self%radiusEnclosingDensity    %parametersMaximum     =-huge(0.0d0)
     self%energy                    %parametersMinimum     =+huge(0.0d0)
     self%energy                    %parametersMaximum     =-huge(0.0d0)
     self%potential                 %parametersMinimum     =+huge(0.0d0)

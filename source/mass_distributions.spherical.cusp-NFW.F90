@@ -389,6 +389,8 @@ contains
        ! Specify the number of tabulation points per interval in radius and each parameter.
        containerCuspNFW%mass                      %radiusCountPer       =+20_c_size_t
        containerCuspNFW%mass                      %parametersCountPer   =+20_c_size_t
+       containerCuspNFW%radiusEnclosingDensity    %radiusCountPer       =+20_c_size_t
+       containerCuspNFW%radiusEnclosingDensity    %parametersCountPer   =+20_c_size_t
        containerCuspNFW%potential                 %radiusCountPer       =+20_c_size_t
        containerCuspNFW%potential                 %parametersCountPer   =+20_c_size_t
        containerCuspNFW%velocityDispersion1D      %radiusCountPer       =+20_c_size_t
