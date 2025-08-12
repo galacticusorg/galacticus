@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1754645403202,
+  "lastUpdate": 1755034708796,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.0)": [
@@ -8155,6 +8155,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/38f59d3f27b7708e28d6c5be09c7ba286e282c0b"
         },
         "date": 1754645402383,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteBoundMass",
+            "value": "13.93162972497932",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "6.553741456976611",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteVelocityMaximum",
+            "value": "5.001018843020751",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "79e9402720115057c0ebaa7b765a71432bd88e62",
+          "message": "Merge pull request #896 from galacticusorg/featTabulateRadiusEnclosingDensity\n\nAdd tabulation of the radius enclosing a given mean density",
+          "timestamp": "2025-08-12T15:05:13Z",
+          "tree_id": "2bd5eeeb7a05b40f8759d33d001fc70aa98716f9",
+          "url": "https://github.com/galacticusorg/galacticus/commit/79e9402720115057c0ebaa7b765a71432bd88e62"
+        },
+        "date": 1755034708082,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
