@@ -31,7 +31,6 @@ program Test_Stellar_Populations_Luminosities
   use :: Display                                   , only : displayVerbositySet                           , verbosityLevelWorking
   use :: Events_Hooks                              , only : eventsHooksInitialize
   use :: File_Utilities                            , only : File_Exists                                   , Directory_Make
-  use :: Output_HDF5_Open                          , only : Output_HDF5_Close_File                        , Output_HDF5_Open_File
   use :: Input_Paths                               , only : inputPath                                     , pathTypeDataDynamic                      , pathTypeDataStatic
   use :: ISO_Varying_String                        , only : char                                          , operator(//)                             , var_str
   use :: Input_Parameters                          , only : inputParameters
@@ -81,9 +80,8 @@ program Test_Stellar_Populations_Luminosities
   parameters=inputParameters()
   call eventsHooksInitialize()
   call displayVerbositySet  (verbosityLevelWorking)
-  call Output_HDF5_Open_File(parameters           )
   ! Ensure that we have the required stellar population spectra file.
-call Directory_Make(char(inputPath(pathTypeDataDynamic))//'stellarPopulations/SSP_Spectra_BC2003_lowResolution_imfSalpeter.hdf5')
+  call Directory_Make(char(inputPath(pathTypeDataDynamic))//'stellarPopulations/SSP_Spectra_BC2003_lowResolution_imfSalpeter.hdf5')
   if (.not.File_Exists(char(inputPath(pathTypeDataDynamic))//'stellarPopulations/SSP_Spectra_BC2003_lowResolution_imfSalpeter.hdf5'))  &
        & call download(                                                                                                                &
        &               "https://drive.google.com/uc?export=download&id=1DI52tMO4PEN-eGk79-0w2BHu9yaEcFMp"                            , &
@@ -225,7 +223,6 @@ call Directory_Make(char(inputPath(pathTypeDataDynamic))//'stellarPopulations/SS
   call Unit_Tests_End_Group  ()
   call Unit_Tests_Finish     ()
   call parameters%destroy()
-  call Output_HDF5_Close_File()
 
 end program Test_Stellar_Populations_Luminosities
 
