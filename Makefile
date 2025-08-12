@@ -345,6 +345,10 @@ source/FFTlog/fftlog.f:
 	 echo "      stop 'FFTlog was not downloaded - to try again" >> source/FFTlog/fftlog.f; \
 	 echo "     & remove the source/FFTlog directory'"           >> source/FFTlog/fftlog.f; \
 	 echo "      end subroutine fhti"                            >> source/FFTlog/fftlog.f; \
+	 echo "      subroutine fftl(n,ft,norm,dir,ws)"              >> source/FFTlog/fftlog.f; \
+	 echo "      stop 'FFTlog was not downloaded - to try again" >> source/FFTlog/fftlog.f; \
+	 echo "     & remove the source/FFTlog directory'"           >> source/FFTlog/fftlog.f; \
+	 echo "      end subroutine fftl"                            >> source/FFTlog/fftlog.f; \
 	 touch source/FFTlog/cdgamma.f; \
 	 touch source/FFTlog/drfftb.f; \
 	 touch source/FFTlog/drfftf.f; \
