@@ -6,19 +6,19 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "38f59d3f27b7708e28d6c5be09c7ba286e282c0b",
-        "message": "Merge pull request #888 from galacticusorg/featObjectMetaData\n\nStore the file name for SED matrix files in the Parameters group\n",
-        "timestamp": "2025-08-08 02:55:52+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/38f59d3f27b7708e28d6c5be09c7ba286e282c0b"
+        "id": "79e9402720115057c0ebaa7b765a71432bd88e62",
+        "message": "Merge pull request #896 from galacticusorg/featTabulateRadiusEnclosingDensity\n\nAdd tabulation of the radius enclosing a given mean density\n",
+        "timestamp": "2025-08-12 15:05:13+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/79e9402720115057c0ebaa7b765a71432bd88e62"
     },
     "surfaceDensity": {
-        "percentageBelow": 35.71428571428571,
-        "percentageAbove": 64.28571428571429,
+        "percentageBelow": 39.285714285714285,
+        "percentageAbove": 60.714285714285715,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 54.54545454545455,
-        "percentageAbove": 45.45454545454545,
+        "percentageBelow": 57.142857142857146,
+        "percentageAbove": 42.857142857142854,
         "target": 0.85
     }
 }
