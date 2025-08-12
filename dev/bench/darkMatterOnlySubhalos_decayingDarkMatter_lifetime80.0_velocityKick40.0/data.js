@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1754645450392,
+  "lastUpdate": 1755034751465,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=80 Gyr; vₖ=40 km/s)": [
@@ -2807,6 +2807,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
             "value": "34.17002078356424",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "79e9402720115057c0ebaa7b765a71432bd88e62",
+          "message": "Merge pull request #896 from galacticusorg/featTabulateRadiusEnclosingDensity\n\nAdd tabulation of the radius enclosing a given mean density",
+          "timestamp": "2025-08-12T15:05:13Z",
+          "tree_id": "2bd5eeeb7a05b40f8759d33d001fc70aa98716f9",
+          "url": "https://github.com/galacticusorg/galacticus/commit/79e9402720115057c0ebaa7b765a71432bd88e62"
+        },
+        "date": 1755034750527,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": "33.25437007635954",
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": "35.29824810438537",
             "unit": "-logℒ"
           }
         ]
