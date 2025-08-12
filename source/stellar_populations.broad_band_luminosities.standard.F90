@@ -333,8 +333,10 @@ contains
     type            (lockDescriptor                                )                                  :: lockFileDescriptor
     class           (stellarPopulationSpectraClass                 ), pointer                         :: stellarPopulationSpectra_
     class           (stellarPopulationSpectraPostprocessorClass    ), pointer                         :: stellarPopulationSpectraPostprocessorPrevious_
-    type            (integrator                                    ), allocatable                     :: integrator_                                   , integratorAB_
-    type            (inputParameters                               ), save                            :: descriptor
+    type            (integrator                                    ), allocatable                     :: integratorAB_
+    type            (integrator                                    ), allocatable  , save             :: integrator_
+    !$omp threadprivate(integrator_)
+    type            (inputParameters                               )               , save             :: descriptor
     !$omp threadprivate(descriptor)
     integer         (c_size_t                                      )                                  :: iAge                                          , iLuminosity                          , &
          &                                                                                               iMetallicity                                  , jLuminosity                          , &
@@ -344,7 +346,7 @@ contains
     logical                                                                                           :: computeTable                                  , calculateLuminosity                  , &
          &                                                                                               stellarPopulationHashedDescriptorComputed     , copyDone
     double precision                                                                                  :: toleranceRelative                             , normalization
-    type            (varying_string                                ), save                            :: message                                       , luminositiesFileName                 , &
+    type            (varying_string                                )               , save             :: message                                       , luminositiesFileName                 , &
          &                                                                                               descriptorString                              , stellarPopulationHashedDescriptor    , &
          &                                                                                               postprocessorHashedDescriptor
     !$omp threadprivate(message,luminositiesFileName,descriptorString,stellarPopulationHashedDescriptor,postprocessorHashedDescriptor)
@@ -388,7 +390,7 @@ contains
           luminosityIndexMaximum                         =  maxval(luminosityIndex)
           stellarPopulationHashedDescriptorComputed      =  .false.
           stellarPopulationSpectraPostprocessorPrevious_ => null()
-          !$omp parallel private(iAge,iMetallicity,integrator_,toleranceRelative,errorStatus,copyDone)
+          !$omp parallel private(iAge,iMetallicity,toleranceRelative,errorStatus,copyDone)
           copyDone=.false.
           do iLuminosity=1,size(luminosityIndex)
              !$omp single

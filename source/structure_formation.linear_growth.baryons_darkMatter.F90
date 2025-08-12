@@ -269,12 +269,12 @@ contains
     double precision                               , dimension(4)               :: growthFactorODEVariables
     double precision                               , dimension(2)               :: redshiftsInitial                         , timesInitial
     double precision                               , dimension(:) , allocatable :: linearGrowthFactorPresent
+    type            (odeSolver                    )               , allocatable :: solver
     integer                                                                     :: i                                        , j
     double precision                                                            :: growthFactorDerivativeBaryons            , growthFactorDerivativeDarkMatter             , &
          &                                                                         timeNow                                  , wavenumberLogarithmic                        , &
          &                                                                         timePresent                              , timeBigCrunch
     integer                                                                     :: growthTableNumberPoints
-    type            (odeSolver                    )                             :: solver
     type            (table1DGeneric               )                             :: transferFunctionDarkMatter               , transferFunctionBaryons
     integer                                                                     :: countWavenumbers
     !$ integer      (omp_lock_kind                )                             :: lockBaryons                              , lockDarkMatter
@@ -331,6 +331,7 @@ contains
        !$omp parallel private(i,j,wavenumberLogarithmic,growthFactorDerivativeDarkMatter,growthFactorDerivativeBaryons,timeNow,growthFactorODEVariables,solver)
        allocate(cosmologyFunctions_      ,mold=self%cosmologyFunctions_      )
        allocate(intergalacticMediumState_,mold=self%intergalacticMediumState_)
+       allocate(solver                                                       )
        !$omp critical(linearGrowthBaryonsDrkMttrDeepCopy)
        !![
        <deepCopyReset variables="self%cosmologyFunctions_ self%intergalacticMediumState_"/>
