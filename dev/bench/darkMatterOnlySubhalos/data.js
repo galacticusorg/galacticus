@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1754645363224,
+  "lastUpdate": 1755034665711,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "61a6ae9fe2e535e74ec71d3f97df5412f04d3921",
-          "message": "Merge pull request #702 from galacticusorg/fixConcentrationMeanSchneider2015\n\nfix: Correctly compute the mean concentration when using the `schneider2015` class",
-          "timestamp": "2024-09-17T01:31:21Z",
-          "tree_id": "0eee35b2f4bed4160d6a3b384bfa93bcdfb56bed",
-          "url": "https://github.com/galacticusorg/galacticus/commit/61a6ae9fe2e535e74ec71d3f97df5412f04d3921"
-        },
-        "date": 1726559670317,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 52.433,
-            "unit": "seconds",
-            "range": 0.107322411452439
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8776,6 +8746,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": "21981.98705502994",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "79e9402720115057c0ebaa7b765a71432bd88e62",
+          "message": "Merge pull request #896 from galacticusorg/featTabulateRadiusEnclosingDensity\n\nAdd tabulation of the radius enclosing a given mean density",
+          "timestamp": "2025-08-12T15:05:13Z",
+          "tree_id": "2bd5eeeb7a05b40f8759d33d001fc70aa98716f9",
+          "url": "https://github.com/galacticusorg/galacticus/commit/79e9402720115057c0ebaa7b765a71432bd88e62"
+        },
+        "date": 1755034662885,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 60.033,
+            "unit": "seconds",
+            "range": 0.0604491521866538
           }
         ]
       }
