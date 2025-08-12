@@ -167,6 +167,8 @@ module Tables
      procedure :: interpolateGradient      => Table_Generic_1D_Interpolate_Gradient
      procedure :: interpolatorInitialize   => Table_Generic_1D_Interpolator_Initialize
      procedure :: interpolatorReinitialize => Table_Generic_1D_Interpolator_Reinitialize
+     procedure ::                             Table_Generic_1D_Interpolator_Assignment
+     generic   :: assignment(=)            => Table_Generic_1D_Interpolator_Assignment
   end type table1DGeneric
 
   type, extends(table1D) :: table1DLinearLinear
@@ -769,6 +771,47 @@ contains
     return
   end subroutine Table_Generic_1D_Interpolator_Reinitialize
 
+  subroutine Table_Generic_1D_Interpolator_Assignment(to,from)
+    !!{
+    Assignment operator for the {\normalfont \ttfamily table1DGeneric} class.
+    !!}
+    implicit none
+    class  (table1DGeneric), intent(  out) :: to
+    class  (table1DGeneric), intent(in   ) :: from
+    integer                                :: i
+
+    if (allocated(from%xv)) then
+       allocate(to%xv(size(from%xv)))
+       to%xv=from%xv
+    end if
+    if (allocated(from%yv)) then
+       allocate(to%yv(size(from%yv,dim=1),size(from%yv,dim=2)))
+       to%yv=from%yv
+    end if
+    if (allocated(from%interpolator_)) then
+       allocate(to%interpolator_(size(from%interpolator_)))
+       !![
+       <workaround type="gfortran" PR="46897" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=46897">
+	 <seeAlso type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=57696"/>
+	 <description>Type-bound defined assignment not done because multiple part array references would occur in intermediate expressions.</description>
+       !!]
+       do i=1,size(from%interpolator_)
+          to%interpolator_(i)=from%interpolator_(i)
+       end do
+       !![
+       </workaround>
+       !!]
+    end if
+    if (allocated(from%interpolatorInitialized)) then
+       allocate(to%interpolatorInitialized(size(from%interpolatorInitialized)))
+       to%interpolatorInitialized=from%interpolatorInitialized
+    end if
+    to%xCount           =from%xCount
+    to%extrapolationType=from%extrapolationType
+    to%interpolationType=from%interpolationType
+    return
+  end subroutine Table_Generic_1D_Interpolator_Assignment
+  
   subroutine Table_Linear_1D_Create(self,xMinimum,xMaximum,xCount,tableCount,extrapolationType)
     !!{
     Create a 1-D linear table.
