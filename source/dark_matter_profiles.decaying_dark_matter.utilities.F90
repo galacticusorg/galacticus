@@ -351,7 +351,6 @@ contains
     block
       type     (varying_string) :: message     , fileName
       character(len=8         ) :: labelMinimum, labelMaximum
-      type     (hdf5Object    ) :: file
       type     (lockDescriptor) :: fileLock
 
       ! Get a lock on the file.
@@ -365,6 +364,7 @@ contains
          if (allocated(fractionRetained         )) deallocate(fractionRetained         )
          if (allocated(energyRetained           )) deallocate(energyRetained           )
          block
+           type(hdf5Object) :: file
            !$ call hdf5Access%set()
            file=hdf5Object(char(fileName),overWrite=.false.,readOnly=.true.)
            call file%readDataset('velocitiesEscape',velocitiesEscapeScaleFree)
@@ -489,6 +489,7 @@ contains
          call displayUnindent     ('done',verbosity=verbosityLevelStandard)
          ! Store results to file.
          block
+           type(hdf5Object) :: file
            !$ call hdf5Access%set()
            file=hdf5Object(char(fileName),overWrite=.true.,readOnly=.false.)
            call file%writeDataset(velocitiesEscapeScaleFree,'velocitiesEscape')
@@ -502,6 +503,8 @@ contains
       ! Build the interpolators.
       if (allocated(interpolatorVelocityEscape)) deallocate(interpolatorVelocityEscape)
       if (allocated(interpolatorVelocityKick  )) deallocate(interpolatorVelocityKick  )
+      allocate(interpolatorVelocityEscape)
+      allocate(interpolatorVelocityKick  )
       interpolatorVelocityEscape=interpolator(velocitiesEscapeScaleFree)
       interpolatorVelocityKick  =interpolator(velocitiesKickScaleFree  )
     end block
