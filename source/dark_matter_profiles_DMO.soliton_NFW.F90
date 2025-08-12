@@ -157,7 +157,6 @@ contains
     self%alphaNormal = distributionFunction1DNormal(mean=0.326d0,variance=1.0d-2)
     self%massCoreScatter = distributionFunction1DNormal(mean=0.0d0,variance = log10(1.5d0)**2) ! 50% log-normal scatter from Eq.(15) of Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
 
-
     select type (darkMatterParticle__ => self%darkMatterParticle_)
     class is (darkMatterParticleFuzzyDarkMatter)
        self%massParticle=+darkMatterParticle__%mass()*kilo

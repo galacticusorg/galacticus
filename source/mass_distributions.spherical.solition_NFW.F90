@@ -433,7 +433,7 @@ contains
     if (density >= self%densitySolitonCentral) then
        radius=0.0d0
     else
-       radius=self%massDistributionClass%radiusEnclosingDensity(density,radiusGuess)
+       radius=self%radiusEnclosingDensityNumerical(density,radiusGuess)
     end if
 
     return
