@@ -269,7 +269,8 @@ contains
     double precision                               , dimension(4)               :: growthFactorODEVariables
     double precision                               , dimension(2)               :: redshiftsInitial                         , timesInitial
     double precision                               , dimension(:) , allocatable :: linearGrowthFactorPresent
-    type            (odeSolver                    )               , allocatable :: solver
+    type            (odeSolver                    ), save         , allocatable :: solver
+    !$omp threadprivate(solver)
     integer                                                                     :: i                                        , j
     double precision                                                            :: growthFactorDerivativeBaryons            , growthFactorDerivativeDarkMatter             , &
          &                                                                         timeNow                                  , wavenumberLogarithmic                        , &
@@ -328,7 +329,7 @@ contains
        ! Iterate over wavenumber.
        !$ call OMP_Init_Lock(lockBaryons   )
        !$ call OMP_Init_Lock(lockDarkMatter)
-       !$omp parallel private(i,j,wavenumberLogarithmic,growthFactorDerivativeDarkMatter,growthFactorDerivativeBaryons,timeNow,growthFactorODEVariables,solver)
+       !$omp parallel private(i,j,wavenumberLogarithmic,growthFactorDerivativeDarkMatter,growthFactorDerivativeBaryons,timeNow,growthFactorODEVariables)
        allocate(cosmologyFunctions_      ,mold=self%cosmologyFunctions_      )
        allocate(intergalacticMediumState_,mold=self%intergalacticMediumState_)
        allocate(solver                                                       )
@@ -340,6 +341,7 @@ contains
        <deepCopyFinalize variables="cosmologyFunctions_ intergalacticMediumState_"/>
        !!]
        !$omp end critical(linearGrowthBaryonsDrkMttrDeepCopy)
+       solver=odeSolver(4_c_size_t,growthFactorODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)
        !$omp do
        do j=1,countWavenumbers
           wavenumber_          =self%growthFactor%y(j)
@@ -360,7 +362,6 @@ contains
              growthFactorDerivativeBaryons=(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=2)-transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=1))*exp(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=1))/(timesInitial(2)-timesInitial(1))
              !$ call OMP_Unset_Lock(lockBaryons   )
           end if
-          solver=odeSolver(4_c_size_t,growthFactorODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
           do i=2,growthTableNumberPoints
              timeNow                    =self%growthFactor                    %x(i-1                        )
              growthFactorODEVariables(1)=self%growthFactor                    %z(i-1,j,table=indexDarkMatter)
@@ -379,6 +380,7 @@ contains
        <objectDestructor name="cosmologyFunctions_"      />
        <objectDestructor name="intergalacticMediumState_"/>
        !!]
+       deallocate(solver)
        !$omp barrier
        !$omp single
        ! Get present day growth factor at every wavenumber.

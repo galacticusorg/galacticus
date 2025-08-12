@@ -248,7 +248,8 @@ contains
     double precision                                         , dimension(              :  ), allocatable :: xi                         , y0                         , &
          &                                                                                                  z0
     double precision                                                                                     :: x
-    type            (multiDMinimizer                        )                              , allocatable :: minimizer_
+    type            (multiDMinimizer                        ), save                        , allocatable :: minimizer_
+    !$omp threadprivate(minimizer_)
     integer                                                                                              :: countXi                    , count
     integer         (c_size_t                               )                                            :: i                          , j                          , &
          &                                                                                                  iteration
@@ -331,7 +332,7 @@ contains
        ! Start parallel region to solve for halo structure at each value of ξ.
        count=0
        call displayCounter(count,isNew=.true.,verbosity=verbosityLevelWorking)
-       !$omp parallel private(i,j,x,properties,locationMinimum,iteration,converged,minimizer_)
+       !$omp parallel private(i,j,x,properties,locationMinimum,iteration,converged)
        !! Allocate and construct objects needed by each thread.
        allocate(odeSolver_)
        allocate(minimizer_)

@@ -1056,23 +1056,23 @@ contains
     use :: Numerical_Integration   , only : integrator
     use :: Numerical_Ranges        , only : Make_Range             , rangeTypeLogarithmic
     implicit none
-    class           (massDistributionExponentialDisk), intent(inout) :: self
-    double precision                                 , parameter     :: radiusMinimum                    = 1.0d-2, radiusMaximum    =5.0d1
-    double precision                                 , parameter     :: radiiPerDecade                   =30.0d+0
-    double precision                                 , parameter     :: wavenumberMaximumFactor          =10.0d+0
-    integer                                          , parameter     :: xi                               = 2
-    type            (integrator                     ), save          :: integratorAccelerationRadial             , integratorAccelerationVertical       , &
-         &                                                              integratorTidalTensorRadialRadial        , integratorTidalTensorVerticalVertical, &
-         &                                                              integratorTidalTensorCross
-    logical                                          , save          :: converged
-    integer                                          , save          :: iBesselZero                              , besselOrder
-    double precision                                 , save          :: height                                   , accelerationDelta                    , &
-         &                                                              wavenumberLow                            , wavenumberHigh                       , &
-         &                                                              tidalTensorDelta                         , tidalTensorRadialRadial
+    class           (massDistributionExponentialDisk), intent(inout)              :: self
+    double precision                                 , parameter                  :: radiusMinimum                    = 1.0d-2, radiusMaximum    =5.0d1
+    double precision                                 , parameter                  :: radiiPerDecade                   =30.0d+0
+    double precision                                 , parameter                  :: wavenumberMaximumFactor          =10.0d+0
+    integer                                          , parameter                  :: xi                               = 2
+    type            (integrator                     ), save         , allocatable :: integratorAccelerationRadial             , integratorAccelerationVertical       , &
+         &                                                                           integratorTidalTensorRadialRadial        , integratorTidalTensorVerticalVertical, &
+         &                                                                           integratorTidalTensorCross
+    logical                                          , save                       :: converged
+    integer                                          , save                       :: iBesselZero                              , besselOrder
+    double precision                                 , save                       :: height                                   , accelerationDelta                    , &
+         &                                                                           wavenumberLow                            , wavenumberHigh                       , &
+         &                                                                           tidalTensorDelta                         , tidalTensorRadialRadial
     !$omp threadprivate(height,accelerationDelta,tidalTensorDelta,tidalTensorRadialRadial,wavenumberLow,wavenumberHigh,iBesselZero,besselOrder,converged,integratorAccelerationRadial,integratorAccelerationVertical,integratorTidalTensorRadialRadial,integratorTidalTensorVerticalVertical,integratorTidalTensorCross)
-    integer                                                          :: countRadii                               , iRadius                              , &
-         &                                                              iHeight                                  , countWork
-    double precision                                                 :: radius                                   , beta
+    integer                                                                       :: countRadii                               , iRadius                              , &
+         &                                                                           iHeight                                  , countWork
+    double precision                                                              :: radius                                   , beta
 
     ! Return if acceleration is initialized.
     if (self%accelerationInitialized) return
@@ -1139,6 +1139,11 @@ contains
          do iRadius=1,countRadii
             radius=self%accelerationRadii(iRadius)
             !$omp parallel
+            allocate(integratorAccelerationRadial         )
+            allocate(integratorAccelerationVertical       )
+            allocate(integratorTidalTensorRadialRadial    )
+            allocate(integratorTidalTensorVerticalVertical)
+            allocate(integratorTidalTensorCross           )
             integratorAccelerationRadial         =integrator(accelerationRadialIntegrand         ,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
             integratorAccelerationVertical       =integrator(accelerationVerticalIntegrand       ,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
             integratorTidalTensorRadialRadial    =integrator(tidalTensorRadialRadialIntegrand    ,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
@@ -1245,6 +1250,11 @@ contains
                end do
             end do
             !$omp end do
+            deallocate(integratorAccelerationRadial         )
+            deallocate(integratorAccelerationVertical       )
+            deallocate(integratorTidalTensorRadialRadial    )
+            deallocate(integratorTidalTensorVerticalVertical)
+            deallocate(integratorTidalTensorCross           )
             !$omp end parallel
          end do
          call displayCounterClear(       verbosityLevelWorking)
