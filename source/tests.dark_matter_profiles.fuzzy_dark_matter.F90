@@ -25,35 +25,38 @@ program Test_Dark_Matter_Profiles_Fuzzy_Dark_Matter
   !!{
   Test calculations for fuzzy dark matter halo density profiles.
   !!}
-  use :: Calculations_Resets       , only : Calculations_Reset
-  use :: Cosmology_Functions       , only : cosmologyFunctionsMatterLambda
-  use :: Cosmology_Parameters      , only : cosmologyParametersSimple
-  use :: Coordinates               , only : coordinateSpherical                                           , assignment(=)
-  use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleVirialDensityContrastDefinition
-  use :: Dark_Matter_Particles     , only : darkMatterParticleFuzzyDarkMatter
-  use :: Virial_Density_Contrast   , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
-  use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMOSolitonNFW
-  use :: Mass_Distributions        , only : kinematicsDistributionSolitonNFW                              , massDistributionSolitonNFW
-  use :: Display                   , only : displayMessage                                                , displayVerbositySet              , &
-       &                                    verbosityLevelStandard
-  use :: Events_Hooks              , only : eventsHooksInitialize
-  use :: Functions_Global_Utilities, only : Functions_Global_Set
-  use :: Galacticus_Nodes          , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize     , &
-       &                                    nodeComponentBasic                                            , nodeComponentDarkMatterProfile   , &
-       &                                    treeNode
-  use :: Input_Parameters          , only : inputParameters
-  use :: Node_Components           , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize, &
-       &                                    Node_Components_Thread_Uninitialize                           , Node_Components_Uninitialize
-  use :: Numerical_Ranges          , only : Make_Range                                                    , rangeTypeLogarithmic
-  use :: Unit_Tests                , only : Assert                                                        , Unit_Tests_Begin_Group           , &
-       &                                    Unit_Tests_End_Group                                          , Unit_Tests_Finish
-  use :: Error                     , only : Error_Report
-  use :: File_Utilities            , only : Count_Lines_in_File
-  use :: Input_Paths               , only : inputPath                                                     , pathTypeExec
-  use :: ISO_Varying_String        , only : varying_string                                                , char                             , &
-       &                                    operator(//)
+  use, intrinsic :: ISO_C_Binding             , only : c_long
+  use            :: Calculations_Resets       , only : Calculations_Reset
+  use            :: Cosmology_Functions       , only : cosmologyFunctionsMatterLambda
+  use            :: Cosmology_Parameters      , only : cosmologyParametersSimple
+  use            :: Coordinates               , only : coordinateSpherical                                           , assignment(=)
+  use            :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleVirialDensityContrastDefinition
+  use            :: Dark_Matter_Particles     , only : darkMatterParticleFuzzyDarkMatter
+  use            :: Virial_Density_Contrast   , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
+  use            :: Statistics_Distributions  , only : distributionFunction1DNormal
+  use            :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMOSolitonNFW
+  use            :: Mass_Distributions        , only : kinematicsDistributionSolitonNFW                              , massDistributionSolitonNFW
+  use            :: Display                   , only : displayMessage                                                , displayVerbositySet              , &
+    &                                                  verbosityLevelStandard
+  use            :: Events_Hooks              , only : eventsHooksInitialize, openMPThreadBindingAllLevels
+  use            :: Functions_Global_Utilities, only : Functions_Global_Set
+  use            :: Galacticus_Nodes          , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize     , &
+    &                                                  nodeComponentBasic                                            , nodeComponentDarkMatterProfile   , &
+    &                                                  treeNode                                                      , mergerTree
+  use            :: Input_Parameters          , only : inputParameters
+  use            :: Node_Components           , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize, &
+    &                                                  Node_Components_Thread_Uninitialize                           , Node_Components_Uninitialize
+  use            :: Numerical_Random_Numbers  , only : randomNumberGeneratorGSL
+  use            :: Unit_Tests                , only : Assert                                                        , Unit_Tests_Begin_Group           , &
+    &                                                  Unit_Tests_End_Group                                          , Unit_Tests_Finish
+  use            :: Error                     , only : Error_Report
+  use            :: File_Utilities            , only : Count_Lines_in_File
+  use            :: Input_Paths               , only : inputPath                                                     , pathTypeExec
+  use            :: ISO_Varying_String        , only : varying_string                                                , char                             , &
+    &                                                  operator(//)
   implicit none
   type            (treeNode                                                      ), pointer                   :: node_
+  type            (mergerTree                                                    ), target                    :: tree
   class           (nodeComponentBasic                                            ), pointer                   :: basic_
   class           (nodeComponentDarkMatterProfile                                ), pointer                   :: darkMatterProfile_
   double precision                                                                , parameter                 :: radiusScale                   =1.0d-2    , massVirial           =6.6d+09, &
@@ -78,8 +81,7 @@ program Test_Dark_Matter_Profiles_Fuzzy_Dark_Matter
        &                                                                                                         radiusVirial_                            , radiusScale_                 , &
        &                                                                                                         radiusCore_                              , radiusSoliton_               , &
        &                                                                                                         densityCore_                             , densityScale_                , &
-       &                                                                                                         massHaloMinimum0_                        , massCore_                    , &
-       &                                                                                                         radius
+       &                                                                                                         massCore_                                , radius
   type            (coordinateSpherical                                           )                            :: coordinates                              , coordinatesReference
   type            (varying_string                                                )                            :: fileName
   call displayVerbositySet(verbosityLevelStandard)
@@ -170,6 +172,7 @@ program Test_Dark_Matter_Profiles_Fuzzy_Dark_Matter
   call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
   ! Construct a node with properties matched to that in Chowdhury et al. (2021; https://ui.adsabs.harvard.edu/abs/2021ApJ...916...27D).
   node_              => treeNode                  (                 )
+  node_%hostTree     => tree
   basic_             => node_   %basic            (autoCreate=.true.)
   darkMatterProfile_ => node_   %darkMatterProfile(autoCreate=.true.)
   call basic_    %timeSet            (cosmologyFunctions_%cosmicTime(1.0d0))
@@ -177,12 +180,15 @@ program Test_Dark_Matter_Profiles_Fuzzy_Dark_Matter
   call basic_    %massSet            (massVirial                           )
   call darkMatterProfile_%scaleSet(radiusScale)
   call Calculations_Reset(node_)
+  allocate(randomNumberGeneratorGSL :: tree%randomNumberGenerator_)
+  select type (randomNumberGenerator_ => tree%randomNumberGenerator_)
+  type is (randomNumberGeneratorGSL)
+     randomNumberGenerator_=randomNumberGeneratorGSL(seed_=8322_c_long)
+  end select
+  call tree%properties%initialize()
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Chowdhury2021 profile")
-  ! Check that the minimum halo mass agrees with the simplified formula given below equation (6) in Schive et al. (2014;
-  ! https://ui.adsabs.harvard.edu/abs/2014PhRvL.113z1302S).
-  call darkMatterProfileChowdhury2021_%computeProperties(node_,radiusVirial_,radiusScale_,radiusCore_,radiusSoliton_,densityCore_,densityScale_,massHaloMinimum0_,massCore_)
-  call Assert("Minimum halo mass",massHaloMinimum0_,4.4d7/massParticle**1.5d0,relTol=3.0d-3)
+  call darkMatterProfileChowdhury2021_%computeProperties(node_,radiusVirial_,radiusScale_,radiusCore_,radiusSoliton_,densityCore_,densityScale_,massCore_)
   ! Test that the potential agrees with a numerical evaluation.
   coordinates         =[2.0d+0*radiusScale,0.0d0,0.0d0]
   coordinatesReference=[1.0d+3*radiusScale,0.0d0,0.0d0]
