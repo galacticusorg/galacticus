@@ -213,7 +213,7 @@ contains
 
 
 
-    print *, 'Test inside SIDM parametric NodeTreeInitialize ...'
+!    print *, 'Test inside SIDM parametric NodeTreeInitialize ...'
     call self%nodeInitialize(node)
 
 !    basicNode => node%basic()
@@ -485,6 +485,8 @@ contains
     r_s = get_r_s(r_sNFW0, tau)
     r_c = get_r_c(r_sNFW0, tau)
 
+    print *, 'r_s, r_c, rho_s, rho_sNFW0, r_sNFW0, VmaxNFW0, RmaxNFW0, VmaxSIDM, RmaxSIDM , tau: ', r_s, r_c, rho_s, rho_sNFW0, r_sNFW0, VmaxNFW0, RmaxNFW0, VmaxSIDM, RmaxSIDM , tau
+
 
     call darkMatterProfile%floatRank0MetaPropertySet(self%RhosSIDMID, rho_s)
     call darkMatterProfile%floatRank0MetaPropertySet(self%RsSIDMID, r_s)
@@ -753,13 +755,16 @@ contains
     ! Create a local copy of tau
     tau_local = tau
 
-    if (tau_local > 1.1d0) then
-      tau_local = 1.1d0
-    else if (tau_local < 0.0d0) then
-      tau_local = 0.0d0
-    end if
+    if (tau_local > 1.0d0) then
+!      tau_local = 1.0d0
+      dvmaxt = 0.0d0
+!    else if (tau_local < 0.0d0) then
+!      tau_local = 0.0d0
+!    end if
+    else if (tau_local <= 1.0d0) then
 
-    dvmaxt = 0.17774902d0 - 13.195824689999998d0 * tau_local ** 2 + 66.62092676d0 * tau_local ** 3 - 94.33706049999999d0 * tau_local ** 4 + 63.53766111d0 * tau_local ** 6 - 21.925108889999997d0 * tau_local ** 8
+      dvmaxt = 0.17774902d0 - 13.195824689999998d0 * tau_local ** 2 + 66.62092676d0 * tau_local ** 3 - 94.33706049999999d0 * tau_local ** 4 + 63.53766111d0 * tau_local ** 6 - 21.925108889999997d0 * tau_local ** 8
+    end if
     dvmaxt = dvmaxt * Vmaxt
   end function dvmaxt
 
@@ -769,13 +774,16 @@ contains
 
     tau_local = tau
 
-    if (tau_local > 1.1d0) then
-      tau_local = 1.1d0
-    else if (tau_local < 0.0d0) then
-      tau_local = 0.0d0
+    if (tau_local > 1.0d0) then
+!      tau_local = 1.0d0
+      drmaxt = 0.0d0
+!    else if (tau_local < 0.0d0) then
+!      tau_local = 0.0d0
+    else if (tau_local <= 1.0d0) then
+      drmaxt = 0.00762288d0 - 1.43996392d0 * tau_local + 1.01282643d0 * tau_local ** 2 - 0.55015288d0 * tau_local ** 3
     end if
 
-    drmaxt = 0.00762288d0 - 1.43996392d0 * tau_local + 1.01282643d0 * tau_local ** 2 - 0.55015288d0 * tau_local ** 3
+!    drmaxt = 0.00762288d0 - 1.43996392d0 * tau_local + 1.01282643d0 * tau_local ** 2 - 0.55015288d0 * tau_local ** 3
     drmaxt = drmaxt * Rmaxt 
   end function drmaxt
 
@@ -784,8 +792,8 @@ contains
     double precision :: tau_local
 
     tau_local = tau
-    if (tau_local > 1.1d0) then
-      tau_local = 1.1d0
+    if (tau_local > 1.0d0) then
+      tau_local = 1.0d0
     else if (tau_local < 0.0d0) then
       tau_local = 0.0d0
     end if
@@ -798,8 +806,8 @@ contains
     double precision :: tau_local
 
     tau_local = tau
-    if (tau_local > 1.1d0) then
-      tau_local = 1.1d0
+    if (tau_local > 1.0d0) then
+      tau_local = 1.0d0
     else if (tau_local < 0.0d0) then
       tau_local = 0.0d0
     end if
@@ -828,8 +836,8 @@ contains
     double precision :: tau_local
 
     tau_local = tau
-    if (tau_local > 1.1d0) then
-      tau_local = 1.1d0
+    if (tau_local > 1.0d0) then
+      tau_local = 1.0d0
     else if (tau_local < 0.0d0) then
       tau_local = 0.0d0
     end if
@@ -844,8 +852,8 @@ contains
     double precision :: tau_local
 
     tau_local = tau
-    if (tau_local > 1.1d0) then
-      tau_local = 1.1d0
+    if (tau_local > 1.0d0) then
+      tau_local = 1.0d0
     else if (tau_local < 0.0d0) then
       tau_local = 0.0d0
     end if
@@ -858,8 +866,8 @@ contains
     double precision :: tau_local
 
     tau_local = tau
-    if (tau_local > 1.1d0) then
-      tau_local = 1.1d0
+    if (tau_local > 1.0d0) then
+      tau_local = 1.0d0
     else if (tau_local < 0.0d0) then
       tau_local = 0.0d0
     end if
@@ -867,7 +875,7 @@ contains
 !    print *, "tau_local =", tau_local, "r_s0 =", r_s0
 
     get_r_c = r_s0 * (2.555d0 * sqrt(tau_local) - 3.632d0 * tau_local + 2.131d0 * tau_local ** 2 - 1.415d0 * tau_local ** 3 + 0.4683d0 * tau_local ** 4)
-    print *, 'tau, r_s0, get_r_c: ', tau_local, r_s0, get_r_c
+!    print *, 'tau, r_s0, get_r_c: ', tau_local, r_s0, get_r_c
   end function get_r_c
  
 !  double precision function SIDMDensityProfileIsolated(rho_s, r_s, r_c, r)
