@@ -53,13 +53,39 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(mergerTreeBuildMassesSampledDistributionPseudoRandom)                :: self
-    type(inputParameters                                     ), intent(inout) :: parameters
+    type            (mergerTreeBuildMassesSampledDistributionPseudoRandom)                :: self
+    type            (inputParameters                                     ), intent(inout) :: parameters
+    class           (randomNumberGeneratorClass                          ), pointer       :: randomNumberGenerator_
+    class           (mergerTreeBuildMassDistributionClass                ), pointer       :: mergerTreeBuildMassDistribution_
+    double precision                                                                      :: massTreeMinimum                 , massTreeMaximum, &
+         &                                                                                   treesPerDecade
 
-    self%mergerTreeBuildMassesSampledDistribution=mergerTreeBuildMassesSampledDistribution(parameters)
     !![
-    <objectBuilder class="randomNumberGenerator" name="self%randomNumberGenerator_" source="parameters"/>
+     <inputParameter>
+      <name>massTreeMinimum</name>
+      <defaultValue>1.0d10</defaultValue>
+      <description>The minimum mass of merger tree base halos to consider when sampled masses from a distribution, in units of $M_\odot$.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massTreeMaximum</name>
+      <defaultValue>1.0d15</defaultValue>
+      <description>The maximum mass of merger tree base halos to consider when sampled masses from a distribution, in units of $M_\odot$.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>treesPerDecade</name>
+      <defaultValue>10.0d0</defaultValue>
+      <description>The number of merger trees masses to sample per decade of base halo mass.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="mergerTreeBuildMassDistribution" name="mergerTreeBuildMassDistribution_" source="parameters"/>
+    <objectBuilder class="randomNumberGenerator"           name="randomNumberGenerator_"           source="parameters"/>
+    !!]
+    self=mergerTreeBuildMassesSampledDistributionPseudoRandom(massTreeMinimum,massTreeMaximum,treesPerDecade,mergerTreeBuildMassDistribution_,randomNumberGenerator_)
+    !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="mergerTreeBuildMassDistribution_"/>
     !!]
     return
   end function sampledDistributionPseudoRandomConstructorParameters
@@ -68,6 +94,8 @@ contains
     !!{
     Internal constructor for the \refClass{mergerTreeBuildMassesSampledDistributionPseudoRandom} merger tree masses class.
     !!}
+    use :: Display, only : displayMessage, verbosityLevelWarn
+    use :: Error  , only : Error_Report
     implicit none
     type            (mergerTreeBuildMassesSampledDistributionPseudoRandom)                        :: self
     class           (mergerTreeBuildMassDistributionClass                ), intent(in   ), target :: mergerTreeBuildMassDistribution_
@@ -78,6 +106,17 @@ contains
     <constructorAssign variables="massTreeMinimum, massTreeMaximum, treesPerDecade, *mergerTreeBuildMassDistribution_, *randomNumberGenerator_"/>
     !!]
 
+    if (self%massTreeMaximum >= 1.0d16              )                                               &
+         & call displayMessage(                                                                     &
+         &                     '[massHaloMaximum] > 10¹⁶ - this seems very large and may lead '//   &
+         &                     'to failures in merger tree construction'                         ,  &
+         &                     verbosityLevelWarn                                                   &
+         &                    )
+    if (self%massTreeMaximum <= self%massTreeMinimum)                                               &
+         & call Error_Report  (                                                                     &
+         &                     '[massHaloMaximum] > [massHaloMinimum] is required'             //   &
+         &                     {introspection:location}                                             &
+         &                    )
     return
   end function sampledDistributionPseudoRandomConstructorInternal
 
