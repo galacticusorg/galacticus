@@ -328,30 +328,30 @@ contains
     implicit none
     class           (darkMatterProfileDMOSolitonNFW), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
-    double precision                                , intent(  out) :: radiusVirial                       , radiusScale                , &
-         &                                                             radiusCore                         , radiusSoliton              , &
-         &                                                             densityCore                        , densityScale               , &
+    double precision                                , intent(  out) :: radiusVirial                        , radiusScale                , &
+         &                                                             radiusCore                          , radiusSoliton              , &
+         &                                                             densityCore                         , densityScale               , &
          &                                                             massCore
     class           (nodeComponentBasic            ), pointer       :: basic
     class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
     type            (rootFinder                    ), save          :: finder
-    logical                                         , save          :: finderInitialized =.false.         , radiusSolitonFound =.false.
-    !$omp threadprivate(finder, finderInitialized, radiusSolitonFound)
-    double precision                                , parameter     :: toleranceAbsolute = 0.0d0          , toleranceRelative  =1.0d-3
-    double precision                                , parameter     :: plancksConstantBar=+plancksConstant                               & ! ℏ in units of eV s.
-         &                                                                                /2.0d0                                         &
-         &                                                                                /Pi                                            &
+    logical                                         , save          :: finderInitialized =.false.
+    !$omp threadprivate(finder, finderInitialized)
+    double precision                                , parameter     :: toleranceAbsolute = 0.0d0           , toleranceRelative  =1.0d-3
+    double precision                                , parameter     :: plancksConstantBar=+plancksConstant                                & ! ℏ in units of eV s.
+         &                                                                                /2.0d0                                          &
+         &                                                                                /Pi                                             &
          &                                                                                /electronVolt
-    double precision                                                :: massHalo                           , expansionFactor            , &
-         &                                                             redshift                           , concentration              , &
-         &                                                             hubbleConstant                     , hubbleConstantLittle       , &
-         &                                                             OmegaMatter                        , densityMatter              , &
-         &                                                             zeta_0                             , zeta_z                     , &
-         &                                                             randomOffset                       , massCoreNormal
-    double precision                                , parameter     :: alpha             =0.515           , beta               =8.0d6  , &
+    double precision                                                :: massHalo                            , expansionFactor            , &
+         &                                                             redshift                            , concentration              , &
+         &                                                             hubbleConstant                      , hubbleConstantLittle       , &
+         &                                                             OmegaMatter                         , densityMatter              , &
+         &                                                             zeta_0                              , zeta_z                     , &
+         &                                                             randomOffset                        , massCoreNormal
+    double precision                                , parameter     :: alpha             =0.515            , beta               =8.0d6  , &
          &                                                             gamma             =10.0d0**(-5.73d0)                                ! Best-fitting parameters from Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
-    integer                                                         :: status                             , sampleCount                , &
-         &                                                             maxSamples = 100
+    integer                                                         :: status                              , sampleCount                , &
+         &                                                             maxSamples = 50
 
     ! Get required components.
     basic             => node%basic            ()
@@ -402,15 +402,14 @@ contains
         randomOffset   = self%massCoreScatter%sample(randomNumberGenerator_=node%hostTree%randomNumberGenerator_)
         call basic%floatRank0MetaPropertySet(self%randomOffsetID, randomOffset)
     end if
-    print *, 'uniqueID / randomOffset', node%uniqueID(), randomOffset
     massCore           = massCoreNormal*10.0d0**randomOffset
     ! Compute the core radius.
     radiusCore         =+5.5d6                           & ! Equation (14) of Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
          &              /(self%massParticle/1.0d-23)**2  &
          &              /expansionFactor                 &
          &              /massCore
-    ! Compute the core density normalization. Equation (3) of Schive et al. (2014; PRL; 113; 1302; https://ui.adsabs.harvard.edu/abs/2014PhRvL.113z1302S).
-    densityCore       =+massCore                         &
+    ! Compute the core density normalization.
+    densityCore       =+massCore                         & ! Equation (3) of Schive et al. (2014; PRL; 113; 1302; https://ui.adsabs.harvard.edu/abs/2014PhRvL.113z1302S).
          &             /0.413d0                          &
          &             /(radiusCore               **3)   &
          &             /Pi
@@ -447,8 +446,8 @@ contains
                &              /(self%massParticle/1.0d-23)**2  &
                &              /expansionFactor                 &
                &              /massCore
-          ! Compute the core density normalization. Equation (3) of Schive et al. (2014; PRL; 113; 1302; https://ui.adsabs.harvard.edu/abs/2014PhRvL.113z1302S).
-          densityCore       =+massCore                         &
+          ! Compute the core density normalization.
+          densityCore       =+massCore                         & ! Equation (3) of Schive et al. (2014; PRL; 113; 1302; https://ui.adsabs.harvard.edu/abs/2014PhRvL.113z1302S).
                &             /0.413d0                          &
                &             /(radiusCore               **3)   &
                &             /Pi
@@ -465,18 +464,12 @@ contains
             &                    )
           radiusSoliton=finder%find(rootGuess=3.0d0*radiusCore, status=status)
           if (status == errorStatusSuccess) then
-              radiusSolitonFound = .true.
               call basic%floatRank0MetaPropertySet(self%randomOffsetID, randomOffset)
               exit
           end if
        end do
-       if (.not. radiusSolitonFound) then
-          print *, "Still failed after ", maxSamples, " times."
-       end if
-       radiusSolitonFound = .false.
     end if
     call basic%floatRank0MetaPropertySet(self%densityCoreID, densityCore)
-
     return
   end subroutine solitonNFWComputeProperties
 

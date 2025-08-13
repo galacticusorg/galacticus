@@ -424,7 +424,6 @@ contains
     !!{
     Computes the radius enclosing a given mean density for soliton NFW mass distributions.
     !!}
-    use :: Numerical_Ranges, only : Make_Range, rangeTypeLogarithmic
     implicit none
     class           (massDistributionSolitonNFW), intent(inout), target   :: self
     double precision                            , intent(in   )           :: density
@@ -433,7 +432,7 @@ contains
     if (density >= self%densitySolitonCentral) then
        radius=0.0d0
     else
-       radius=self%radiusEnclosingDensityNumerical(density,radiusGuess)
+       radius=sphericalTabulatedRadiusEnclosingDensity(self,density,radiusGuess)
     end if
 
     return
