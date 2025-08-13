@@ -44,14 +44,14 @@
           &              radiusVirial           , radiusCoreScaleFree    , &
           &              radiusSolitonScaleFree , densitySolitonScaleFree
    contains
-     procedure :: massEnclosedBySphere  => solitonNFWMassEnclosedBySphere
-     procedure :: density               => solitonNFWDensity
-     procedure :: densityGradientRadial => solitonNFWDensityGradientRadial
-     procedure :: radiusEnclosingDensity=> solitonNFWRadiusEnclosingDensity
-     procedure :: parameters            => solitonNFWParameters
-     procedure :: factoryTabulation     => solitonNFWFactoryTabulation
-     procedure :: descriptor            => solitonNFWDescriptor
-     procedure :: suffix                => solitonNFWSuffix
+     procedure :: massEnclosedBySphere   => solitonNFWMassEnclosedBySphere
+     procedure :: density                => solitonNFWDensity
+     procedure :: densityGradientRadial  => solitonNFWDensityGradientRadial
+     procedure :: radiusEnclosingDensity => solitonNFWRadiusEnclosingDensity
+     procedure :: parameters             => solitonNFWParameters
+     procedure :: factoryTabulation      => solitonNFWFactoryTabulation
+     procedure :: descriptor             => solitonNFWDescriptor
+     procedure :: suffix                 => solitonNFWSuffix
   end type massDistributionSolitonNFW
   
    interface massDistributionSolitonNFW

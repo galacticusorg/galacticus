@@ -54,7 +54,7 @@
      double precision                                        :: radiusVirialPrevious                        , radiusScalePrevious                       , &
           &                                                     radiusCorePrevious                          , radiusSolitonPrevious                     , &
           &                                                     densityCorePrevious                         , densityScalePrevious                      , &
-          &                                                      massCorePrevious
+          &                                                     massCorePrevious
      integer          (kind_int8                  )          :: lastUniqueID
      integer                                                 :: randomOffsetID                              , densityCoreID
    contains
@@ -258,21 +258,21 @@ contains
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     if (self%radiusCorePrevious < 0.0d0) then
        call self%computeProperties(node,radiusVirial,radiusScale,radiusCore,radiusSoliton,densityCore,densityScale,massCore)
-       self%radiusVirialPrevious    =+radiusVirial
-       self%radiusScalePrevious     =+radiusScale
-       self%radiusCorePrevious      =+radiusCore
-       self%radiusSolitonPrevious   =+radiusSoliton
-       self%densityCorePrevious     =+densityCore
-       self%densityScalePrevious    =+densityScale
-       self%massCorePrevious        =+massCore
+       self%radiusVirialPrevious    =radiusVirial
+       self%radiusScalePrevious     =radiusScale
+       self%radiusCorePrevious      =radiusCore
+       self%radiusSolitonPrevious   =radiusSoliton
+       self%densityCorePrevious     =densityCore
+       self%densityScalePrevious    =densityScale
+       self%massCorePrevious        =massCore
     end if
-    radiusVirial    =self%radiusVirialPrevious
-    radiusScale     =self%radiusScalePrevious
-    radiusCore      =self%radiusCorePrevious
-    radiusSoliton   =self%radiusSolitonPrevious
-    densityCore     =self%densityCorePrevious
-    densityScale    =self%densityScalePrevious
-    massCore        =self%massCorePrevious
+    radiusVirial =self%radiusVirialPrevious
+    radiusScale  =self%radiusScalePrevious
+    radiusCore   =self%radiusCorePrevious
+    radiusSoliton=self%radiusSolitonPrevious
+    densityCore  =self%densityCorePrevious
+    densityScale =self%densityScalePrevious
+    massCore     =self%massCorePrevious
     
     ! Construct the distribution.
     allocate(massDistributionSolitonNFW       :: massDistribution_      )
@@ -349,7 +349,7 @@ contains
          &                                                             zeta_0                              , zeta_z                     , &
          &                                                             randomOffset                        , massCoreNormal
     double precision                                , parameter     :: alpha             =0.515            , beta               =8.0d6  , &
-         &                                                             gamma             =10.0d0**(-5.73d0)                                ! Best-fitting parameters from Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
+         &                                                             gamma             =10.0d0**(-5.73d0)                                 ! Best-fitting parameters from Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
     integer                                                         :: status                              , sampleCount                , &
          &                                                             maxSamples = 50
 
@@ -382,22 +382,27 @@ contains
     ! Compute the core mass.
     zeta_0             =+self%virialDensityContrast_%densityContrast(massHalo,expansionFactor=1.0d0          )
     zeta_z             =+self%virialDensityContrast_%densityContrast(massHalo,expansionFactor=expansionFactor)
-    massCoreNormal     =(beta                     & ! Equation (15) of Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
-                        *(                        &
-                          +self%massParticle      &
-                          /8.0d-23                &
-                         )**(-1.5d0)              &
-                        +((+zeta_z                &
-                           /zeta_0                &
-                          )**0.5d0                &
-                          *massHalo               &
-                          /gamma                  &
-                         )**alpha                 &
-                         *(self%massParticle      &
-                           /8.0d-23               &
-                          )**(1.5d0*(alpha-1.0d0))&
-                        )/sqrt(expansionFactor)
-    randomOffset       = basic%floatRank0MetaPropertyGet(self%randomOffsetID)
+    massCoreNormal     =+(                          & ! Equation (15) of Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
+         &                +beta                     &
+         &                *(                        &
+         &                  +self%massParticle      &
+         &                  /8.0d-23                &
+         &                 )**(-1.5d0)              &
+         &                +(                        &
+         &                  +sqrt(                  &
+         &                        +zeta_z           &
+         &                        /zeta_0           &
+         &                       )                  &
+         &                  *massHalo               &
+         &                  /gamma                  &
+         &                 )**alpha                 &
+         &                *(                        &
+         &                  +self%massParticle      &
+         &                  /8.0d-23                &
+         &                 )**(1.5d0*(alpha-1.0d0)) &
+         &               )&
+         &              /sqrt(expansionFactor)
+    randomOffset       =basic%floatRank0MetaPropertyGet(self%randomOffsetID)
     if (randomOffset  == 0.0d0) then
         randomOffset   = self%massCoreScatter%sample(randomNumberGenerator_=node%hostTree%randomNumberGenerator_)
         call basic%floatRank0MetaPropertySet(self%randomOffsetID, randomOffset)
@@ -411,7 +416,7 @@ contains
     ! Compute the core density normalization.
     densityCore       =+massCore                         & ! Equation (3) of Schive et al. (2014; PRL; 113; 1302; https://ui.adsabs.harvard.edu/abs/2014PhRvL.113z1302S).
          &             /0.413d0                          &
-         &             /(radiusCore               **3)   &
+         &             /radiusCore                 **3   &
          &             /Pi
     radiusCore_       =radiusCore
     radiusScale_      =radiusScale
@@ -426,19 +431,18 @@ contains
             &           )
        finderInitialized=.true.
     end if
-    call finder%rangeExpand(                                                              &
-         &                  rangeExpandUpward            = 2.0d0                        , &
-         &                  rangeExpandDownward          = 0.5d0                        , &
-         &                  rangeDownwardLimit           = 1.0d0*radiusCore             , &
-         &                  rangeUpwardLimit             = 1.0d1*radiusCore             , &
-         &                  rangeExpandDownwardSignExpect= rangeExpandSignExpectPositive, &
-         &                  rangeExpandUpwardSignExpect  = rangeExpandSignExpectNegative, &
-         &                  rangeExpandType              = rangeExpandMultiplicative      &
+    call finder%rangeExpand(                                                             &
+         &                  rangeExpandUpward            =2.0d0                        , &
+         &                  rangeExpandDownward          =0.5d0                        , &
+         &                  rangeDownwardLimit           =1.0d0*radiusCore             , &
+         &                  rangeUpwardLimit             =1.0d1*radiusCore             , &
+         &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+         &                  rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
+         &                  rangeExpandType              =rangeExpandMultiplicative      &
          &                 )
     radiusSoliton=finder%find(rootGuess=3.0d0*radiusCore, status=status)
-
     if (status /= errorStatusSuccess) then
-       do sampleCount = 1, maxSamples
+       do sampleCount=1,maxSamples
           randomOffset       = self%massCoreScatter%sample(randomNumberGenerator_=node%hostTree%randomNumberGenerator_)
           massCore           = massCoreNormal*10.0d0**randomOffset
           ! Compute the core radius.
@@ -454,22 +458,22 @@ contains
           radiusCore_        =radiusCore
           densityCore_       =densityCore
           call finder%rangeExpand(                                                              &
-            &                     rangeExpandUpward            = 2.0d0                        , &
-            &                     rangeExpandDownward          = 0.5d0                        , &
-            &                     rangeDownwardLimit           = 1.0d0*radiusCore             , &
-            &                     rangeUpwardLimit             = 1.0d1*radiusCore             , &
-            &                     rangeExpandDownwardSignExpect= rangeExpandSignExpectPositive, &
-            &                     rangeExpandUpwardSignExpect  = rangeExpandSignExpectNegative, &
-            &                     rangeExpandType              = rangeExpandMultiplicative      &
+            &                     rangeExpandUpward            =2.0d0                        , &
+            &                     rangeExpandDownward          =0.5d0                        , &
+            &                     rangeDownwardLimit           =1.0d0*radiusCore             , &
+            &                     rangeUpwardLimit             =1.0d1*radiusCore             , &
+            &                     rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+            &                     rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
+            &                     rangeExpandType              =rangeExpandMultiplicative      &
             &                    )
-          radiusSoliton=finder%find(rootGuess=3.0d0*radiusCore, status=status)
+          radiusSoliton=finder%find(rootGuess=3.0d0*radiusCore,status=status)
           if (status == errorStatusSuccess) then
-              call basic%floatRank0MetaPropertySet(self%randomOffsetID, randomOffset)
+              call basic%floatRank0MetaPropertySet(self%randomOffsetID,randomOffset)
               exit
           end if
        end do
     end if
-    call basic%floatRank0MetaPropertySet(self%densityCoreID, densityCore)
+    call basic%floatRank0MetaPropertySet(self%densityCoreID,densityCore)
     return
   end subroutine solitonNFWComputeProperties
 
