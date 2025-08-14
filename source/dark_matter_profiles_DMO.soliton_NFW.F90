@@ -401,26 +401,8 @@ contains
          &                 )**(1.5d0*(alpha-1.0d0)) &
          &               )&
          &              /sqrt(expansionFactor)
-    randomOffset       =darkMatterProfile%floatRank0MetaPropertyGet(self%randomOffsetID)
-    if (randomOffset  == 0.0d0) then
-        randomOffset   = self%massCoreScatter%sample(randomNumberGenerator_=node%hostTree%randomNumberGenerator_)
-        call darkMatterProfile%floatRank0MetaPropertySet(self%randomOffsetID, randomOffset)
-    end if
-    massCore           = massCoreNormal*10.0d0**randomOffset
-    ! Compute the core radius.
-    radiusCore         =+5.5d6                           & ! Equation (14) of Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
-         &              /(self%massParticle/1.0d-23)**2  &
-         &              /expansionFactor                 &
-         &              /massCore
-    ! Compute the core density normalization.
-    densityCore       =+massCore                         & ! Equation (3) of Schive et al. (2014; PRL; 113; 1302; https://ui.adsabs.harvard.edu/abs/2014PhRvL.113z1302S).
-         &             /0.413d0                          &
-         &             /radiusCore                 **3   &
-         &             /Pi
-    radiusCore_       =radiusCore
     radiusScale_      =radiusScale
     densityScale_     =densityScale
-    densityCore_      =densityCore
     ! Solve for the soliton radius.
     if (.not.finderInitialized) then
        finder=rootFinder(                                        &
@@ -430,48 +412,44 @@ contains
             &           )
        finderInitialized=.true.
     end if
-    call finder%rangeExpand(                                                             &
-         &                  rangeExpandUpward            =2.0d0                        , &
-         &                  rangeExpandDownward          =0.5d0                        , &
-         &                  rangeDownwardLimit           =1.0d0*radiusCore             , &
-         &                  rangeUpwardLimit             =1.0d1*radiusCore             , &
-         &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
-         &                  rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
-         &                  rangeExpandType              =rangeExpandMultiplicative      &
-         &                 )
-    radiusSoliton=finder%find(rootGuess=3.0d0*radiusCore, status=status)
-    if (status /= errorStatusSuccess) then
-       do sampleCount=1,maxSamples
-          randomOffset       = self%massCoreScatter%sample(randomNumberGenerator_=node%hostTree%randomNumberGenerator_)
-          massCore           = massCoreNormal*10.0d0**randomOffset
-          ! Compute the core radius.
-          radiusCore         =+5.5d6                           & ! Equation (14) of Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
-               &              /(self%massParticle/1.0d-23)**2  &
-               &              /expansionFactor                 &
-               &              /massCore
-          ! Compute the core density normalization.
-          densityCore       =+massCore                         & ! Equation (3) of Schive et al. (2014; PRL; 113; 1302; https://ui.adsabs.harvard.edu/abs/2014PhRvL.113z1302S).
-               &             /0.413d0                          &
-               &             /(radiusCore               **3)   &
-               &             /Pi
-          radiusCore_        =radiusCore
-          densityCore_       =densityCore
-          call finder%rangeExpand(                                                              &
-            &                     rangeExpandUpward            =2.0d0                        , &
-            &                     rangeExpandDownward          =0.5d0                        , &
-            &                     rangeDownwardLimit           =1.0d0*radiusCore             , &
-            &                     rangeUpwardLimit             =1.0d1*radiusCore             , &
-            &                     rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
-            &                     rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
-            &                     rangeExpandType              =rangeExpandMultiplicative      &
-            &                    )
-          radiusSoliton=finder%find(rootGuess=3.0d0*radiusCore,status=status)
-          if (status == errorStatusSuccess) then
-              call darkMatterProfile%floatRank0MetaPropertySet(self%randomOffsetID,randomOffset)
-              exit
-          end if
-       end do
-    end if
+
+    do sampleCount=1,maxSamples
+       if (sampleCount == 1) then
+           randomOffset     = darkMatterProfile%floatRank0MetaPropertyGet(self%randomOffsetID)
+           if (randomOffset == 0.0d0) then
+               randomOffset = self%massCoreScatter%sample(randomNumberGenerator_=node%hostTree%randomNumberGenerator_)
+           end if
+       else
+           randomOffset     = self%massCoreScatter%sample(randomNumberGenerator_=node%hostTree%randomNumberGenerator_)
+       end if
+       massCore             = massCoreNormal*10.0d0**randomOffset
+       ! Compute the core radius.
+       radiusCore         =+5.5d6                           & ! Equation (14) of Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
+            &              /(self%massParticle/1.0d-23)**2  &
+            &              /expansionFactor                 &
+            &              /massCore
+       ! Compute the core density normalization.
+       densityCore       =+massCore                         & ! Equation (3) of Schive et al. (2014; PRL; 113; 1302; https://ui.adsabs.harvard.edu/abs/2014PhRvL.113z1302S).
+            &             /0.413d0                          &
+            &             /(radiusCore               **3)   &
+            &             /Pi
+       radiusCore_        =radiusCore
+       densityCore_       =densityCore
+       call finder%rangeExpand(                                                              &
+         &                     rangeExpandUpward            =2.0d0                        , &
+         &                     rangeExpandDownward          =0.5d0                        , &
+         &                     rangeDownwardLimit           =1.0d0*radiusCore             , &
+         &                     rangeUpwardLimit             =1.0d1*radiusCore             , &
+         &                     rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+         &                     rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
+         &                     rangeExpandType              =rangeExpandMultiplicative      &
+         &                    )
+       radiusSoliton=finder%find(rootGuess=3.0d0*radiusCore,status=status)
+       if (status == errorStatusSuccess) then
+           call darkMatterProfile%floatRank0MetaPropertySet(self%randomOffsetID,randomOffset)
+           exit
+       end if
+    end do
     call basic%floatRank0MetaPropertySet(self%densityCoreID,densityCore)
     return
   end subroutine solitonNFWComputeProperties
