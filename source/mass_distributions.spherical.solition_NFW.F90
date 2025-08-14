@@ -268,7 +268,7 @@ contains
       double precision                                                    :: termLogarithmic, termInverse
 
       if (radius <= 0.0d0) then
-         !Zero radius.
+         ! Zero radius.
          mass           =+0.0d0
       else if (radius < self%radiusSoliton) then
          ! Soliton regime.

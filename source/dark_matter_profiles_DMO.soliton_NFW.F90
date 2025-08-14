@@ -257,13 +257,13 @@ contains
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     if (self%radiusCorePrevious < 0.0d0) then
        call self%computeProperties(node,radiusVirial,radiusScale,radiusCore,radiusSoliton,densityCore,densityScale,massCore)
-       self%radiusVirialPrevious    =radiusVirial
-       self%radiusScalePrevious     =radiusScale
-       self%radiusCorePrevious      =radiusCore
-       self%radiusSolitonPrevious   =radiusSoliton
-       self%densityCorePrevious     =densityCore
-       self%densityScalePrevious    =densityScale
-       self%massCorePrevious        =massCore
+       self%radiusVirialPrevious =radiusVirial
+       self%radiusScalePrevious  =radiusScale
+       self%radiusCorePrevious   =radiusCore
+       self%radiusSolitonPrevious=radiusSoliton
+       self%densityCorePrevious  =densityCore
+       self%densityScalePrevious =densityScale
+       self%massCorePrevious     =massCore
     end if
     radiusVirial =self%radiusVirialPrevious
     radiusScale  =self%radiusScalePrevious
