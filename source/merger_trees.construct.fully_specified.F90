@@ -312,12 +312,13 @@ contains
        end do
        !$omp end critical (FoX_DOM_Access)
        ! Initialize the tree root to null.
-       tree%index            =  int(treeNumber)
-       tree%volumeWeight     =  1.0d0
-       tree%initializedUntil =  0.0d0
-       tree%firstTree        => tree
-       tree%nodeBase         => null()
-       tree%event            => null()
+       tree%index             =  int(treeNumber)
+       tree%volumeWeight      =  1.0d0
+       tree%initializedUntil  =  0.0d0
+       tree%isTreeInitialized =  .false.
+       tree%firstTree         => tree
+       tree%nodeBase          => null()
+       tree%event             => null()
        call tree%properties%initialize()
        ! Restart the random number sequence.
        allocate(tree%randomNumberGenerator_,mold=self%randomNumberGenerator_)

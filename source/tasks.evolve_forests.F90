@@ -607,10 +607,13 @@ contains
              ! evolution of the tree (e.g. growth rates of scale radii, baryonic component initialization) are typically handled
              ! by the mergerTreeInitializor class which is called later.
              call    mergerTreeOperator_%operatePreInitialization(tree)
-             treeWalkerAll=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
-             do while (treeWalkerAll%next(node))
-                call nodeOperator_      %nodeTreeInitialize (node)
-             end do
+             if (.not.tree%isTreeInitialized) then
+                treeWalkerAll=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
+                do while (treeWalkerAll%next(node))
+                   call nodeOperator_      %nodeTreeInitialize (node)
+                end do
+                tree%isTreeInitialized=.true.
+             end if
              call    mergerTreeOperator_%operatePreEvolution(tree)
              message="Evolving tree number "
           else

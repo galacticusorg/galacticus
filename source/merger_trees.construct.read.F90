@@ -1042,8 +1042,9 @@ contains
        self%treeWeightCurrent=self%mergerTreeImporter_%treeWeight(int(treeNumberOffset))
        tree%volumeWeight     =self%treeWeightCurrent
        ! Initialize no events.
-       tree%event            => null()
-       tree%initializedUntil =  0.0d0
+       tree%event             => null()
+       tree%initializedUntil  =  0.0d0
+       tree%isTreeInitialized =  .false.
        call tree%properties%initialize()
        ! Restart the random number sequence for this tree. We use the tree index modulo the largest number representable by
        ! the integer type.
@@ -1929,16 +1930,17 @@ contains
                    treeCurrent => treeCurrent%nextTree
                 end do
                 ! Assign this node as the base node of the current tree.
-                treeCurrent   %firstTree        => tree
-                treeCurrent   %nodeBase         => nodeList(iIsolatedNode)%node
+                treeCurrent   %firstTree         => tree
+                treeCurrent   %nodeBase          => nodeList(iIsolatedNode)%node
                 if (self%treeIndexToRootNodeIndex) then
-                   treeCurrent%index            =  nodes   (iNode        )%nodeIndex
+                   treeCurrent%index             =  nodes   (iNode        )%nodeIndex
                 else
-                   treeCurrent%index            =  tree                   %index
+                   treeCurrent%index             =  tree                   %index
                 end if
-                treeCurrent   %volumeWeight     =  self%treeWeightCurrent
-                treeCurrent   %initializedUntil =  0.0d0
-                treeCurrent   %event            => null()
+                treeCurrent   %volumeWeight      =  self%treeWeightCurrent
+                treeCurrent   %initializedUntil  =  0.0d0
+                treeCurrent   %isTreeInitialized =  .false.
+                treeCurrent   %event             => null()
                 ! Initialize a new random number sequence for this tree, using the sum of the tree index and base node index as the seed increment.
                 if (.not.associated(treeCurrent,tree)) call treeCurrent%randomNumberGenerator_%seedSet(seed=tree%index+nodes(iNode)%nodeIndex,offset=.true.)
              end if
