@@ -125,19 +125,19 @@ contains
       <name>massLow</name>
       <defaultValue>+0.3895d0</defaultValue>
       <source>parameters</source>
-      <description>The parameter $\alph_0$ in the power-law scale radius model.</description>
+      <description>The parameter $\alpha_0$ in the power-law scale radius model.</description>
     </inputParameter>
     <inputParameter>
       <name>massHigh</name>
       <defaultValue>+0.2984d0</defaultValue>
       <source>parameters</source>
-      <description>The parameter $\alph_1$ in the power-law scale radius model.</description>
+      <description>The parameter $\alpha_1$ in the power-law scale radius model.</description>
     </inputParameter>
     <inputParameter>
       <name>massTransition</name>
       <defaultValue>-0.2583d0</defaultValue>
       <source>parameters</source>
-      <description>The parameter $\alph_\nu$ in the power-law scale radius model.</description>
+      <description>The parameter $\alpha_\nu$ in the power-law scale radius model.</description>
     </inputParameter>
     <inputParameter>
       <name>massWidth</name>
