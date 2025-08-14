@@ -10,21 +10,34 @@
     <concentrationMinimum value="  3.0"/>
     <concentrationMaximum value="100.0"/>
     <darkMatterProfileScaleRadius value="johnson2021">
-      <!-- Scale radii are computed using the energy random walk model of Johnson, Benson, & Grin (2021; ApJ; 908; 33; http://adsabs.harvard.edu/abs/2021ApJ...908...33J). -->
-      <!-- Best-fit values of the parameters are taken from https://github.com/galacticusorg/galacticus/wiki/Constraints:-Halo-spins-and-concentrations.                   -->
-      <energyBoost      value="0.797003643180003"/>
-      <massExponent     value="2.168409985653090"/>
-      <unresolvedEnergy value="0.550000000000000"/>
-      <darkMatterProfileScaleRadius value="ludlow2016"          >
-	<C                                  value="700.27000"    /> <!-- Best fit values from Johnson, Benson, & Grin (2020). -->
-	<f                                  value="  0.07534"    />
-	<timeFormationSeekDelta             value="  0.00000"    />
-	<darkMatterProfileScaleRadius value="concentration" >
-	  <correctForConcentrationDefinition    value="true"              />
-	  <darkMatterProfileConcentration value="diemerJoyce2019">
-	    <!-- Use the Diemer & Joyce (2019; ApJ; 871; 168; http://adsabs.harvard.edu/abs/2019ApJ...871..168D) model for concentrations. -->
-	  </darkMatterProfileConcentration>
-	</darkMatterProfileScaleRadius>
+      <!-- Scale radii are computed using the energy random walk model of Johnson, Benson, & Grin (2021; ApJ; 908; 33;
+           http://adsabs.harvard.edu/abs/2021ApJ...908...33J). -->
+      <!-- Best-fit values of the parameters are taken from
+           https://github.com/galacticusorg/galacticus/wiki/Constraints:-Halo-spins-and-concentrations.  -->
+      <energyBoost                 value="0.797003643180003"/>
+      <massExponent                value="2.168409985653090"/>
+      <peakHeightExponent          value="0.000000000000000"/>
+      <unresolvedEnergy            value="0.550000000000000"/>
+      <factorMassResolution        value="1.000000000000000"/>
+      <scatter                     value="0.160000000000000"/>
+      <scatterExcess               value="0.000000000000000"/>
+      <countSampleEnergyUnresolved value="1"                />
+      <applySubsamplingWeights     value="false"            />
+      <mainBranchOnly              value="false"            />
+      <darkMatterProfileScaleRadius value="concentration" >
+	<correctForConcentrationDefinition value="true"/>
+	<useMeanConcentration              value="true"/>
+	<darkMatterProfileConcentration value="diemerJoyce2019">
+	  <!-- Use the Diemer & Joyce (2019; ApJ; 871; 168; http://adsabs.harvard.edu/abs/2019ApJ...871..168D) model for
+	       concentrations. -->
+	  <scatter               value="0.16"/>
+	  <truncateConcentration value="true"/>
+	  <!-- Do not include the high mass upturn in concentrations. It remains dubious whether this is real, and it can cause
+	       problems if applied in models with truncated power spectra where we use the Schneider et al. (2015;
+	       http://adsabs.harvard.edu/abs/2015MNRAS.451.3117S) for concentrations which maps the concentrations of low mass
+	       halos in such models to very high mass halos in CDM. -->
+	  <includeUpturn         value="false"/>
+	</darkMatterProfileConcentration>
       </darkMatterProfileScaleRadius>
     </darkMatterProfileScaleRadius>
   </darkMatterProfileScaleRadius>
