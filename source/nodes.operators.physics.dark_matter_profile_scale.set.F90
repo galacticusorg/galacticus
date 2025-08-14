@@ -243,7 +243,7 @@ contains
        branchPrevious        => self          %branch%next
        deallocate(self%branch)
        self          %branch => branchPrevious
-   end if
+    end if
     return
   end subroutine darkMatterProfileScaleSetNodeTreeInitialize
     

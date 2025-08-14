@@ -144,7 +144,7 @@ contains
     densityFieldRootVariance        =   self%cosmologicalMassVariance_%rootVariance(mass=basic%mass(),time=basic%timeLastIsolated()          )
     peakHeightNu                    =  +criticalOverdensityLastIsolated                                                                        &
          &                             /densityFieldRootVariance
-    linearGrowthFactor              =   self%LinearGrowth_            %value        (                 time=basic%timeLastIsolated()          )
+    linearGrowthFactor              =   self%linearGrowth_            %value        (                 time=basic%timeLastIsolated()          )
     allocate(peakHeightExtract(4))
     peakHeightExtract=[                                 &
          &             criticalOverdensityLastIsolated, &
