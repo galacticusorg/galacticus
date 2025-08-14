@@ -128,11 +128,11 @@ module Node_Component_Satellite_Orbiting
   !$omp threadprivate(darkMatterHaloScale_,virialOrbit_,virialDensityContrast_,cosmologyParameters_,cosmologyFunctions_)
 
   ! Option controlling whether or not unbound virial orbits are acceptable.
-  logical                                                     , parameter :: acceptUnboundOrbits          =.false.
+  logical                                                      :: acceptUnboundOrbits
 
   ! Option controlling how to initialize the bound mass of satellite halos.
-  type            (enumerationInitializationTypeMassBoundType)            :: initializationTypeMassBound
-  double precision                                                        :: radiusMaximumOverRadiusVirial        , densityContrastMassBound
+  type            (enumerationInitializationTypeMassBoundType) :: initializationTypeMassBound
+  double precision                                             :: radiusMaximumOverRadiusVirial, densityContrastMassBound
 
   ! A threadprivate object used to track to which thread events are attached.
   integer :: thread
@@ -184,6 +184,12 @@ contains
          <name>densityContrastMassBound</name>
          <defaultValue>200.0d0</defaultValue>
          <description>The density contrast of the satellite halo. If {\normalfont \ttfamily [initializationTypeMassBound]} is set to 'densityContrast', this value will be used to compute the initial bound mass of the satellite halo.</description>
+         <source>subParameters</source>
+       </inputParameter>
+       <inputParameter>
+         <name>acceptUnboundOrbits</name>
+         <defaultValue>.false.</defaultValue>
+         <description>If true, accept unbound virial orbits for satellites, otherwise reject them.</description>
          <source>subParameters</source>
        </inputParameter>
        !!]
