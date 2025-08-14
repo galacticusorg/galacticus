@@ -26,7 +26,7 @@ program Tests_IO_HDF5
   use :: HDF5              , only : HSIZE_T
   use :: IO_HDF5           , only : IO_HDF5_Is_HDF5    , hdf5Object            , hdf5VarDouble       , hdf5VarInteger8  , &
        &                            hdf5VarDouble2D
-  use :: ISO_Varying_String, only : assignment(=)      , trim                  , varying_string      , var_str
+  use :: ISO_Varying_String, only : assignment(=)      , trim                  , varying_string      , var_str          , char
   use :: Kind_Numbers      , only : kind_int8
   use :: System_Command    , only : System_Command_Do
   use :: Unit_Tests        , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
@@ -854,6 +854,13 @@ program Tests_IO_HDF5
          call groupObject2%writeAttribute(varStringValue,"varStringAttribute64k")
        end block
 
+       ! Open an entire path of groups.
+       block
+         type(hdf5Object), allocatable, dimension(:) :: groupObjects
+         call fileObject%openGroupPath('open/groups/in/a/path',groupObjects)
+         call Assert("open an entire path of groups",char(groupObjects(5)%pathTo(includeFileName=.false.)),'open/groups/in/a/path')
+       end block
+     
        ! Read a 32-bit unsigned integer 1-D array into a 64-bit signed integer 1-D array.
        if (iPass==2) then
           block

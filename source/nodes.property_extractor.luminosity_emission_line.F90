@@ -60,6 +60,7 @@
      class           (hiiRegionDensityDistributionClass), pointer                       :: hiiRegionDensityDistribution_        => null()
      class           (hiiRegionEscapeFractionClass     ), pointer                       :: hiiRegionEscapeFraction_             => null()
      type            (enumerationComponentTypeType     )                                :: component
+     type            (varying_string                   )                                :: parametersGroupPath
      integer                                                                            :: countLines
      integer         (c_size_t                         )                                :: indexAge                                     , indexMetallicity            , &
           &                                                                                indexIonizingLuminosityHydrogen              , indexDensityHydrogen
@@ -112,6 +113,7 @@ contains
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode
+    use :: IO_HDF5                   , only : hdf5Object
     implicit none
     type            (nodePropertyExtractorLuminosityEmissionLine)                              :: self
     type            (inputParameters                            ), intent(inout)               :: parameters
@@ -122,6 +124,7 @@ contains
     class           (hiiRegionEscapeFractionClass               ), pointer                     :: hiiRegionEscapeFraction_
     type            (varying_string                             ), allocatable  , dimension(:) :: lineNames
     type            (varying_string                             )                              :: component                   , cloudyTableFileName
+    type            (hdf5Object                                 )                              :: parametersGroup
     double precision                                                                           :: toleranceRelative
     
     allocate(lineNames(parameters%count('lineNames')))
@@ -155,6 +158,8 @@ contains
     <objectBuilder class="hiiRegionEscapeFraction"      name="hiiRegionEscapeFraction_"      source="parameters"/>
     !!]
     self=nodePropertyExtractorLuminosityEmissionLine(cloudyTableFileName,enumerationComponentTypeEncode(char(component),includesPrefix=.false.),lineNames,toleranceRelative,starFormationHistory_,outputTimes_,hiiRegionLuminosityFunction_,hiiRegionDensityDistribution_,hiiRegionEscapeFraction_)
+    parametersGroup=parameters%parametersGroup()
+    self%parametersGroupPath=parametersGroup%pathTo(includeFileName=.false.)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="starFormationHistory_"        />
@@ -212,6 +217,8 @@ contains
          &  .and.                                                                                               &
          &   component /= componentTypeAll                                                                      &
          & ) call Error_Report("only 'disk' and 'spheroid' components are supported"//{introspection:location})
+    ! Initialize no output Parameters group.
+    self%parametersGroupPath=""
     ! Get details of the star formation rate tabulation.
     self%metallicityBoundaries=self%starFormationHistory_%metallicityBoundaries      ()
     !$ call hdf5Access%set()
@@ -513,6 +520,7 @@ contains
     use :: ISO_Varying_String      , only : var_str
     use :: HDF5_Access             , only : hdf5Access
     use :: IO_HDF5                 , only : hdf5Object
+    use :: Output_HDF5             , only : outputFile
     use :: Numerical_Comparison    , only : Values_Agree
     use :: File_Utilities          , only : File_Exists                  , File_Lock                             , File_Unlock, lockDescriptor
     use :: String_Handling         , only : operator(//)
@@ -525,6 +533,7 @@ contains
     type            (history                                    ), intent(in   )               :: starFormationHistory
     class           (nodeComponentBasic                         ), pointer                     :: basic
     double precision                                             , allocatable  , dimension(:) :: times
+    type            (hdf5Object                                 ), allocatable  , dimension(:) :: parametersGroups
     integer         (c_size_t                                   )                              :: indexOutput         , countTemplates
     type            (lockDescriptor                             )                              :: fileLock
     type            (hdf5Object                                 )                              :: file
@@ -566,6 +575,13 @@ contains
             &        '_'                                                                // &
             &        indexTemplate                                                      // &
             &        '.hdf5'
+       ! Store the file name used to the output file parameters group for this object.
+       !$ call hdf5Access%set()
+       if (self%parametersGroupPath /= "") then
+          call outputFile%openGroupPath(char(self%parametersGroupPath),parametersGroups)
+          call parametersGroups(size(parametersGroups))%writeAttribute(fileName,char(var_str('meta:luminosityEmissionLineMatrixFileName')//indexTemplate))
+       end if
+       !$ call hdf5Access%unset()
        ! Check if the templates can be retrieved from file.
        !! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),fileLock,lockIsShared=.false.)

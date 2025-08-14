@@ -54,6 +54,7 @@
      class           (outputTimesClass                          ), pointer                   :: outputTimes_                           => null()
      class           (cosmologyFunctionsClass                   ), pointer                   :: cosmologyFunctions_                    => null()
      type            (enumerationComponentTypeType              )                            :: component
+     type            (varying_string                            )                            :: parametersGroupPath
      integer                                                                                 :: countWavelengths
      double precision                                            , allocatable, dimension(:) :: wavelengths_                                    , metallicityBoundaries
      type            (sedTemplate                               ), allocatable, dimension(:) :: templates
@@ -102,20 +103,22 @@ contains
     !!{
     Constructor for the \refClass{nodePropertyExtractorSED} property extractor class which takes a parameter set as input.
     !!}
-    use :: Input_Parameters              , only : inputParameter                , inputParameters
+    use :: Input_Parameters              , only : inputParameters
     use :: Galactic_Structure_Options    , only : enumerationComponentTypeEncode
     use :: Stellar_Luminosities_Structure, only : enumerationFrameEncode
+    use :: IO_HDF5                       , only : hdf5Object
     implicit none
-    type            (nodePropertyExtractorSED                  )                :: self
-    type            (inputParameters                           ), intent(inout) :: parameters
-    class           (stellarPopulationSpectraClass             ), pointer       :: stellarPopulationSpectra_
-    class           (stellarPopulationSpectraPostprocessorClass), pointer       :: stellarPopulationSpectraPostprocessor_
-    class           (starFormationHistoryClass                 ), pointer       :: starFormationHistory_
-    class           (outputTimesClass                          ), pointer       :: outputTimes_
-    class           (cosmologyFunctionsClass                   ), pointer       :: cosmologyFunctions_
-    type            (varying_string                            )                :: component                             , frame
-    double precision                                                            :: wavelengthMinimum                     , wavelengthMaximum, &
-         &                                                                         resolution                            , toleranceRelative
+    type            (nodePropertyExtractorSED                  )                         :: self
+    type            (inputParameters                           ), intent(inout), target  :: parameters
+    class           (stellarPopulationSpectraClass             )               , pointer :: stellarPopulationSpectra_
+    class           (stellarPopulationSpectraPostprocessorClass)               , pointer :: stellarPopulationSpectraPostprocessor_
+    class           (starFormationHistoryClass                 )               , pointer :: starFormationHistory_
+    class           (outputTimesClass                          )               , pointer :: outputTimes_
+    class           (cosmologyFunctionsClass                   )               , pointer :: cosmologyFunctions_
+    type            (hdf5Object                                )                         :: parametersGroup
+    type            (varying_string                            )                         :: component                             , frame
+    double precision                                                                     :: wavelengthMinimum                     , wavelengthMaximum, &
+         &                                                                                  resolution                            , toleranceRelative
     
     !![
     <inputParameter>
@@ -160,6 +163,8 @@ contains
     <objectBuilder class="cosmologyFunctions"                    name="cosmologyFunctions_"                    source="parameters"/>
     !!]
     self=nodePropertyExtractorSED(enumerationComponentTypeEncode(char(component),includesPrefix=.false.),enumerationFrameEncode(char(frame),includesPrefix=.false.),wavelengthMinimum,wavelengthMaximum,resolution,toleranceRelative,stellarPopulationSpectra_,stellarPopulationSpectraPostprocessor_,starFormationHistory_,outputTimes_,cosmologyFunctions_)
+    parametersGroup=parameters%parametersGroup()
+    self%parametersGroupPath=parametersGroup%pathTo(includeFileName=.false.)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="stellarPopulationSpectra_"             />
@@ -210,6 +215,7 @@ contains
     self%metallicityPopulationMaximum=metallicities(metallicitiesCount)/metallicitySolar
     self%metallicityPopulationMinimum=metallicities(                 1)/metallicitySolar
     self%abundanceIndex              =Abundance_Pattern_Lookup(abundanceName="solar")
+    self%parametersGroupPath         =""
     ! Compute the factor by which the minimum/maximum wavelength in a resolution element differ from the central wavelength.
     if (resolution > 0.0d0) self%factorWavelength=(1.0d0+sqrt(1.0d0+4.0d0*resolution**2))/2.0d0/resolution
     return
@@ -556,6 +562,7 @@ contains
     use :: ISO_Varying_String            , only : var_str
     use :: HDF5_Access                   , only : hdf5Access
     use :: IO_HDF5                       , only : hdf5Object
+    use :: Output_HDF5                   , only : outputFile
     use :: Numerical_Comparison          , only : Values_Agree
     use :: File_Utilities                , only : File_Exists                  , File_Lock                             , File_Unlock, lockDescriptor
     use :: String_Handling               , only : operator(//)
@@ -570,6 +577,7 @@ contains
     integer         (c_size_t                ), intent(  out)               :: countTemplates 
     class           (nodeComponentBasic      ), pointer                     :: basic
     double precision                          , allocatable  , dimension(:) :: times
+    type            (hdf5Object              ), allocatable  , dimension(:) :: parametersGroups
     integer         (c_size_t                )                              :: indexOutput
     type            (lockDescriptor          )                              :: fileLock
     type            (hdf5Object              )                              :: file
@@ -616,6 +624,13 @@ contains
             &        '_'                                                                // &
             &        indexTemplate                                                      // &
             &        '.hdf5'
+       ! Store the file name used to the output file parameters group for this object.
+       !$ call hdf5Access%set()
+       if (self%parametersGroupPath /= "") then
+          call outputFile%openGroupPath(char(self%parametersGroupPath),parametersGroups)
+          call parametersGroups(size(parametersGroups))%writeAttribute(fileName,char(var_str('meta:sedMatrixFileName')//indexTemplate))
+       end if
+       !$ call hdf5Access%unset()
        ! Check if the templates can be retrieved from file.
        !! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),fileLock,lockIsShared=.false.)

@@ -1,0 +1,2 @@
+*.hdf5 diff=hdf5diff
+*.xml  diff=xmldiff

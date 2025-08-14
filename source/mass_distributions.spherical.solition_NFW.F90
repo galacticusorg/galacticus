@@ -422,6 +422,8 @@ contains
          call containerSolitonNFW%initialize(3)
          containerSolitonNFW%mass                      %radiusCountPer       =+20_c_size_t
          containerSolitonNFW%mass                      %parametersCountPer   =+20_c_size_t
+         containerSolitonNFW%radiusEnclosingDensity    %radiusCountPer       =+20_c_size_t
+         containerSolitonNFW%radiusEnclosingDensity    %parametersCountPer   =+20_c_size_t
          containerSolitonNFW%potential                 %radiusCountPer       =+20_c_size_t
          containerSolitonNFW%potential                 %parametersCountPer   =+20_c_size_t
          containerSolitonNFW%velocityDispersion1D      %radiusCountPer       =+20_c_size_t

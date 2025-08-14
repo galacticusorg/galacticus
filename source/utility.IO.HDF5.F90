@@ -90,6 +90,7 @@ module IO_HDF5
      logical                           :: isTemporary      =  .false.
      integer(hid_t          ), pointer :: objectID         => null()
      type   (resourceManager)          :: objectManager
+     type   (varying_string )          :: objectFile
      type   (varying_string )          :: objectLocation
      type   (varying_string )          :: objectName
      integer                           :: hdf5ObjectType
@@ -132,6 +133,7 @@ module IO_HDF5
        <method description="Return a report on the location of an object suitable for inclusion in an error message." method="locationReport" />
        <method description="Open an HDF5 file and return an appropriate HDF5 object." method="openFile" />
        <method description="Open an HDF5 group and return an appropriate HDF5 object." method="openGroup" />
+       <method description="Open all HDF5 groups along a path and return the appropriate HDF5 objects." method="openGroupPath" />
        <method description="Open an HDF5 dataset." method="openDataset" />
        <method description="Open an HDF5 attribute." method="openAttribute" />
        <method description="Copy an HDF5 object." method="copy" />
@@ -147,6 +149,7 @@ module IO_HDF5
      procedure :: fileName                                =>IO_HDF5_File_Name
      procedure :: locationReport                          =>IO_HDF5_Location_Report
      procedure :: openGroup                               =>IO_HDF5_Open_Group
+     procedure :: openGroupPath                           =>IO_HDF5_Open_Group_Path
      procedure :: openDataset                             =>IO_HDF5_Open_Dataset
      procedure :: openAttribute                           =>IO_HDF5_Open_Attribute
      procedure :: flush                                   =>IO_HDF5_Flush
@@ -630,7 +633,7 @@ contains
 
   !! Utility routines.
 
-  subroutine IO_HDF5_Finalize(self)
+  impure elemental subroutine IO_HDF5_Finalize(self)
     !!{
     Finalize an HDF5 object.
     !!}
@@ -771,6 +774,7 @@ contains
      to%objectID            => from%objectID
      to%objectManager       =  from%objectManager
      to%objectLocation      =  from%objectLocation
+     to%objectFile          =  from%objectFile
      to%objectName          =  from%objectName
      to%hdf5ObjectType      =  from%hdf5ObjectType
      to%chunkSize           =  from%chunkSize
@@ -793,16 +797,26 @@ contains
     return
   end function IO_HDF5_Name
 
-  function IO_HDF5_Path_To(self) result (pathToObject)
+  function IO_HDF5_Path_To(self,includeFileName) result (pathToObject)
     !!{
     Returns the path to {\normalfont \ttfamily self}.
     !!}
-    use :: ISO_Varying_String, only : operator(//)
+    use :: ISO_Varying_String, only : operator(//), assignment(=), operator(/=)
     implicit none
-    class(hdf5Object    ), intent(in   ) :: self
-    type (varying_string)                :: pathToObject
+    class  (hdf5Object    ), intent(in   )           :: self
+    logical                , intent(in   ), optional :: includeFileName
+    type   (varying_string)                          :: pathToObject
+    !![
+    <optionalArgument name="includeFileName" defaultsTo=".true." />
+    !!]
 
-    pathToObject=self%objectLocation//"/"//self%objectName
+    if (includeFileName_) then
+       pathToObject=self%objectFile//"/"
+    else
+       pathToObject=""
+    end if
+    if (self%objectLocation /= "/") pathToObject=pathToObject//self%objectLocation//"/"
+    pathToObject=pathToObject//self%objectName
     return
   end function IO_HDF5_Path_To
 
@@ -1072,8 +1086,9 @@ contains
     ! Initialize the HDF5 library.
     call IO_HDF5_Initialize()
     ! Store the location and name of this object.
-    self%objectLocation="."
-    self%objectName    =trim(fileName)
+    self%objectFile    =trim(fileName)
+    self%objectLocation=""
+    self%objectName    =""
     ! Mark whether this file is temporary.
     if (present(isTemporary)) then
        self%isTemporary=isTemporary
@@ -1175,7 +1190,7 @@ contains
        ! Attempt to create the file.
        call h5fcreate_f(fileName,H5F_ACC_TRUNC_F,self%objectID,errorCode,access_prp=accessList)
        if (errorCode /= 0) then
-          message="failed to create HDF5 file '"//self%objectName//"'"
+          message="failed to create HDF5 file '"//self%objectFile//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
@@ -1215,6 +1230,33 @@ contains
   end function hdf5FileOpen
 
   !! Group routines.
+
+ subroutine IO_HDF5_Open_Group_Path(inObject,groupPath,groupObjects)
+    !!{
+    Open all HDF5 groups in the given path and return objects for all of them.
+    !!}
+    use :: String_Handling   , only : String_Split_Words, String_Count_Words
+    use :: ISO_Varying_String, only : char
+    implicit none
+    class    (hdf5Object    ), intent(in   ), target                      :: inObject
+    character(len=*         ), intent(in   )                              :: groupPath
+    type     (hdf5Object    ), intent(inout), allocatable  , dimension(:) :: groupObjects
+    type     (varying_string)               , allocatable  , dimension(:) :: groupNames
+    integer                                                               :: i           , countGroups
+
+    countGroups=String_Count_Words(groupPath,"/")
+    allocate(groupNames  (countGroups))
+    allocate(groupObjects(countGroups))
+    call String_Split_Words(groupNames,groupPath,"/")
+    do i=1,size(groupNames)
+       if (i == 1) then
+          groupObjects(i)=inObject         %openGroup(char(groupNames(i)))
+       else
+          groupObjects(i)=groupObjects(i-1)%openGroup(char(groupNames(i)))
+       end if
+    end do
+    return
+  end subroutine IO_HDF5_Open_Group_Path
 
   function IO_HDF5_Open_Group(inObject,groupName,comment,objectsOverwritable,overwriteOverride,chunkSize,compressionLevel,attributesCompactMaxiumum) result (self)
     !!{
@@ -1315,8 +1357,9 @@ contains
     self%hdf5ObjectType=hdf5ObjectTypeGroup
 
     ! Store the name and location of the object.
-    self%objectName=trim(groupName)
-    self%objectLocation=self%parentObject%pathTo()
+    self%objectFile    =self%parentObject%objectFile
+    self%objectLocation=self%parentObject%pathTo    (includeFileName=.false.)
+    self%objectName    =trim(groupName)
 
     ! Set the chunk size if provided.
     if (present(chunkSize)) then
@@ -1436,7 +1479,7 @@ contains
     ! Ensure that the object is already open.
     if (inObject%isOpenValue) then
        locationID  =inObject%objectID
-       locationPath=inObject%objectLocation//"/"//inObject%objectName
+       locationPath=inObject%objectFile//"/"//inObject%objectLocation//"/"//inObject%objectName
        select type (inObject)
        type is (hdf5Object)
           self%parentObject => inObject
@@ -1532,8 +1575,9 @@ contains
     self%hdf5ObjectType=hdf5ObjectTypeAttribute
 
     ! Store the name and location of the object.
-    self%objectName=trim(attributeName)
-    self%objectLocation=self%parentObject%pathTo()
+    self%objectFile    =self%parentObject%objectFile
+    self%objectLocation=self%parentObject%pathTo    (includeFileName=.false.)
+    self%objectName    =trim(attributeName)
 
     ! Mark whether attribute is overwritable.
     if (present(isOverwritable)) then
@@ -4291,7 +4335,7 @@ attributeValue=trim(attributeValue)
     ! Ensure that the object is already open.
     if (inObject%isOpenValue) then
        locationID  =inObject%objectID
-       locationPath=inObject%objectLocation//"/"//inObject%objectName
+       locationPath=inObject%objectFile//"/"//inObject%objectLocation//"/"//inObject%objectName
        select type (inObject)
        type is (hdf5Object)
           self%parentObject => inObject
@@ -4338,8 +4382,9 @@ attributeValue=trim(attributeValue)
     </workaround>
     !!]
     ! Store the name and location of the object.
+    self%objectFile    =self%parentObject%objectFile
+    self%objectLocation=self%parentObject%pathTo    (includeFileName=.false.)
     self%objectName    =trim(datasetName)
-    self%objectLocation=self%parentObject%pathTo()
     ! Check if the dataset exists.
     if (inObject%hasDataset(datasetName)) then
        ! Open the dataset.
@@ -17960,7 +18005,7 @@ attributeValue=trim(attributeValue)
        case (hdf5ObjectTypeFile     )
           !![
           <conditionalCall>
-           <call>destination=hdf5Object                          (char(self%objectName),overWrite=.false.,readOnly=self%readOnly,objectsOverwritable=self%isOverwritable{conditions})</call>
+           <call>destination=hdf5Object                          (char(self%objectFile),overWrite=.false.,readOnly=self%readOnly,objectsOverwritable=self%isOverwritable{conditions})</call>
            <argument name="compressionLevel" value="self%compressionLevel" condition="self%compressionLevelSet"/>
            <argument name="chunkSize"        value="self%chunkSize"        condition="self%chunkSizeSet"/>
           </conditionalCall>
