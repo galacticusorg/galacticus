@@ -33,7 +33,8 @@
   <darkMatterProfileDMO name="darkMatterProfileDMOSolitonNFW">
    <description>
     A dark matter profile DMO class which builds \refClass{massDistributionSolitonNFW} objects to implement the \gls{fdm}
-    profile. The calculation of soliton properties follows \cite{schive_understanding_2014}.
+    profile. The core-halo mass relation and core radius are computed following \cite{chan_diversity_2022}, while the core
+    density normalization follows \cite{schive_understanding_2014}.
    </description>
   </darkMatterProfileDMO>
   !!]
@@ -48,7 +49,6 @@
      class           (cosmologyFunctionsClass     ), pointer :: cosmologyFunctions_                => null()
      class           (darkMatterParticleClass     ), pointer :: darkMatterParticle_                => null()
      class           (virialDensityContrastClass  ), pointer :: virialDensityContrast_             => null()
-     type            (distributionFunction1DNormal)          :: alphaNormal
      type            (distributionFunction1DNormal)          :: massCoreScatter
      double precision                                        :: toleranceRelativeVelocityDispersion         , toleranceRelativeVelocityDispersionMaximum
      double precision                                        :: radiusVirialPrevious                        , radiusScalePrevious                       , &
@@ -149,12 +149,11 @@ contains
     double precision                                , intent(in)         :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
     !![
     <constructorAssign variables="*darkMatterHaloScale_, *darkMatterParticle_, *cosmologyFunctions_, *cosmologyParameters_, *virialDensityContrast_, toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum"/>
-    <addMetaProperty component="basic" name="randomOffset" id="self%randomOffsetID" isEvolvable="no" isCreator="yes"/>
-    <addMetaProperty component="basic" name="densityCore"  id="self%densityCoreID"  isEvolvable="no" isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="randomOffset" id="self%randomOffsetID" isEvolvable="no" isCreator="yes"/>
+    <addMetaProperty component="basic"             name="densityCore"  id="self%densityCoreID"  isEvolvable="no" isCreator="yes"/>
     !!]
 
     self%lastUniqueID=-huge(1_kind_int8)
-    self%alphaNormal = distributionFunction1DNormal(mean=0.326d0,variance=1.0d-2)
     self%massCoreScatter = distributionFunction1DNormal(mean=0.0d0,variance = log10(1.5d0)**2) ! 50% log-normal scatter from Eq.(15) of Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
 
     select type (darkMatterParticle__ => self%darkMatterParticle_)
@@ -402,10 +401,10 @@ contains
          &                 )**(1.5d0*(alpha-1.0d0)) &
          &               )&
          &              /sqrt(expansionFactor)
-    randomOffset       =basic%floatRank0MetaPropertyGet(self%randomOffsetID)
+    randomOffset       =darkMatterProfile%floatRank0MetaPropertyGet(self%randomOffsetID)
     if (randomOffset  == 0.0d0) then
         randomOffset   = self%massCoreScatter%sample(randomNumberGenerator_=node%hostTree%randomNumberGenerator_)
-        call basic%floatRank0MetaPropertySet(self%randomOffsetID, randomOffset)
+        call darkMatterProfile%floatRank0MetaPropertySet(self%randomOffsetID, randomOffset)
     end if
     massCore           = massCoreNormal*10.0d0**randomOffset
     ! Compute the core radius.
@@ -468,7 +467,7 @@ contains
             &                    )
           radiusSoliton=finder%find(rootGuess=3.0d0*radiusCore,status=status)
           if (status == errorStatusSuccess) then
-              call basic%floatRank0MetaPropertySet(self%randomOffsetID,randomOffset)
+              call darkMatterProfile%floatRank0MetaPropertySet(self%randomOffsetID,randomOffset)
               exit
           end if
        end do

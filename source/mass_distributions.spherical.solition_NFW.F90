@@ -267,7 +267,10 @@ contains
       double precision                            , intent(in   )         :: radius
       double precision                                                    :: termLogarithmic, termInverse
 
-      if (radius < self%radiusSoliton) then
+      if (radius <= 0.0d0) then
+         !Zero radius.
+         mass           =+0.0d0
+      else if (radius < self%radiusSoliton) then
          ! Soliton regime.
          mass           =+massSoliton(radius)
       else
@@ -302,10 +305,6 @@ contains
         double precision, parameter     :: fractionRadiusSmall=0.1d0
         double precision                :: termArcTangent           , termPrefactor , &
              &                             termCore                 , termPolynomial
-        
-        if (radius_ <= 0.0d0) then
-           print *, "WARNING: radius <= 0 in massEnclosedBySphere, returning 0."
-        end if
 
         if (radius_ < fractionRadiusSmall*self%radiusCore) then
            ! At small radii use a Taylor series for numerical accuracy.
@@ -355,13 +354,13 @@ contains
       class           (coordinate                ), intent(in   ) :: coordinates
       double precision                                            :: radiusScaleFree, radiusCoreFree
 
-      if (coordinates%rSpherical() <= 0.0d0) then
-           print *, "WARNING: radius <= 0 in Density, returning 0."
-      end if
-
       radiusScaleFree=+coordinates%rSpherical()/self%radiusScale
       radiusCoreFree =+coordinates%rSpherical()/self%radiusCore
-      if (coordinates%rSpherical() < self%radiusSoliton) then
+      
+      if (coordinates%rSpherical() <= 0.0d0) then
+         ! Zero radius.
+         density=+self%densitySolitonCentral
+      else if (coordinates%rSpherical() < self%radiusSoliton) then
          ! Soliton regime.
          density=+self%densitySolitonCentral                  /(+1.0d0+coefficientCore*radiusCoreFree**2)**8
       else
@@ -384,13 +383,13 @@ contains
       <optionalArgument name="logarithmic" defaultsTo=".false."/>
       !!]
 
-      if (coordinates%rSpherical() <= 0.0d0) then
-           print *, "WARNING: radius <= 0 in DensityGradientRadial, returning 0."
-      end if
-
       radiusScaleFree=+coordinates%rSpherical()/self%radiusScale
       radiusCoreFree =+coordinates%rSpherical()/self%radiusCore
-      if (coordinates%rSpherical() < self%radiusSoliton) then
+
+      if (coordinates%rSpherical() <= 0.0d0) then
+         ! Zero radius.
+         densityGradient   =0.0d0
+      else if (coordinates%rSpherical() < self%radiusSoliton) then
          ! Soliton regime.
          if (logarithmic) then
             densityGradient=-16.0d0                                       &
