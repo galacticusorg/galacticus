@@ -709,6 +709,7 @@ contains
              call nodeUnresolved%satelliteDestroy()
              satelliteUnresolved => nodeUnresolved     %satellite  (autoCreate=.true.)
              orbit               =  satelliteUnresolved%virialOrbit(                 )
+             if (.not.orbit%isDefined()) orbit=self%virialOrbit_%orbit(nodeUnresolved,node%firstChild,self%acceptUnboundOrbits)
              ! Determine the orbital and internal energies.
              energySample=+massUnresolved                                                                                                                           &
                   &       *self%unresolvedEnergy                                                                                                                    &
