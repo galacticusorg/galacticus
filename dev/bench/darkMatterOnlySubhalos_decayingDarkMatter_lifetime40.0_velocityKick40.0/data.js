@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1755034746851,
+  "lastUpdate": 1755290701023,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=40 Gyr; vₖ=40 km/s)": [
@@ -2841,6 +2841,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=40.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
             "value": "15.704244095460762",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "431e2304f95a27be5f2e24e7a832a934e9134ae2",
+          "message": "Merge pull request #898 from yzhaoastro/solitonNFW-radius-coreMass\n\nAdd a radiusEnclosingDensity function and scatter to core-Mass relation for the Soliton-NFW profile",
+          "timestamp": "2025-08-15T14:02:51Z",
+          "tree_id": "31d544f260d4f22b6ac47d7701eded379a463c76",
+          "url": "https://github.com/galacticusorg/galacticus/commit/431e2304f95a27be5f2e24e7a832a934e9134ae2"
+        },
+        "date": 1755290699820,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=40.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": "16.64435578040988",
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=40.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": "18.048323949346443",
             "unit": "-logℒ"
           }
         ]
