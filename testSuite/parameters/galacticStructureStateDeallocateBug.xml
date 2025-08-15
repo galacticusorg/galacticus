@@ -33,7 +33,7 @@
       <dimensionless value="true"/>
     </massDistributionSpheroid>
   </componentSpheroid>
-  <treeNodeMethodSpin3D value="vector"/>
+  <componentSpin value="vector"/>
   
   <!-- Cosmological parameters and options -->
   <cosmologyFunctions value="matterLambda"/>

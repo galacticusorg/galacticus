@@ -4,7 +4,7 @@
 <!-- 30-November-2020                                                                   -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
+  <lastModified revision="150aacee83614f7989048cc483a95d9020d948c2" time="2025-08-15T19:23:15"/>
 
   <verbosityLevel value="working"/>
 
@@ -17,16 +17,21 @@
   <!-- Component selection -->
   <componentBasic value="standard"/>
   <componentBlackHole value="standard"/>
+
   <componentDarkMatterProfile value="scale"/>
-  <componentDisk value="standard"/>
-  
+  <componentDisk value="standard">
+  <massDistributionDisk value="exponentialDisk">
+    <dimensionless value="true"/>
+  </massDistributionDisk>
+  </componentDisk>
   <componentHotHalo value="coldMode"/>
   <componentSatellite value="standard"/>
-  <componentSpheroid value="standard"/>
-  <spheroidMassDistribution value="hernquist">
+  <componentSpheroid value="standard">
+  <massDistributionSpheroid value="hernquist">
     <dimensionless value="true"/>
-  </spheroidMassDistribution>
-  <treeNodeMethodSpin3D value="vector"/>
+  </massDistributionSpheroid>
+  </componentSpheroid>
+  <componentSpin value="vector"/>
   
   <!-- Cosmological parameters and options -->
   <cosmologyFunctions value="matterLambda"/>
@@ -244,9 +249,6 @@
   <satelliteTidalStripping value="zentner2005"/>
   
   <!-- Galactic structure options -->
-  <diskMassDistribution value="exponentialDisk">
-    <dimensionless value="true"/>
-  </diskMassDistribution>
   <galacticStructureSolver value="simple"/>
   <darkMatterProfile value="darkMatterOnly"/>
   <spheroidAngularMomentumAtScaleRadius value="0.50"/>
@@ -289,6 +291,17 @@
     <efficiencyRadioMode value="00140338137883176"/>
   </blackHoleCGMHeating>
 
+  <blackHoleAccretionRate value="standard">
+
+  <bondiHoyleAccretionEnhancementSpheroid value="5.0e0"/>
+
+  <bondiHoyleAccretionEnhancementHotHalo value="6.0e0"/>
+
+  <bondiHoyleAccretionHotModeOnly value="true"/>
+
+  <bondiHoyleAccretionTemperatureSpheroid value="1.0e2"/>
+
+  </blackHoleAccretionRate>
   <stellarWinds value="leitherer1992"/>
   <initialMassForSupernovaTypeII value="8.0"/>
   <supernovaeTypeIa value="nagashima2005"/>
@@ -471,11 +484,11 @@
     <outputReferences value="false"/>
   </mergerTreeOutputter>
   
- <outputTimes value="uniformSpacingInRedshift">
-   <redshiftMinimum value="0.0"/>
-   <redshiftMaximum value="20.0"/>
-   <countRedshifts value="10"/>
- 
-</outputTimes>
+  <outputTimes value="uniformSpacingInRedshift">
+    <redshiftMinimum value="0.0"/>
+    <redshiftMaximum value="20.0"/>
+    <countRedshifts value="10"/>
+    
+  </outputTimes>
   <outputFileName value="testSuite/outputs/noninstantaneous_recycling.hdf5"/>
 </parameters>
