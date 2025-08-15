@@ -177,13 +177,14 @@
      class           (virialOrbitClass                 ), pointer :: virialOrbit_                  => null()
      class           (mergerTreeMassResolutionClass    ), pointer :: mergerTreeMassResolution_     => null()
      type            (branch                           ), pointer :: branches                      => null()
-     double precision                                             :: massExponent                           , energyBoost            , &
-          &                                                          unresolvedEnergy                       , factorMassResolution   , &
-          &                                                          scatter                                , scatterExcess          , &
-          &                                                          peakHeightExponent                     , correlationRateDecay   , &
+     double precision                                             :: massExponent                           , energyBoost              , &
+          &                                                          unresolvedEnergy                       , factorMassResolution     , &
+          &                                                          scatter                                , scatterExcess            , &
+          &                                                          peakHeightExponent                     , correlationRateDecay     , &
           &                                                          correlationExponent
      integer                                                      :: countSampleEnergyUnresolved
-     logical                                                      :: mainBranchOnly                         , applySubsamplingWeights
+     logical                                                      :: mainBranchOnly                         , applySubsamplingWeights  , &
+          &                                                          acceptUnboundOrbits                    , includeUnresolvedVariance
    contains
      final     ::           darkMatterProfileScaleJohnson2021Destructor
      procedure :: radius => darkMatterProfileScaleJohnson2021Radius
@@ -229,7 +230,8 @@ contains
          &                                                                      peakHeightExponent           , correlationRateDecay  , &
          &                                                                      correlationExponent
     integer                                                                  :: countSampleEnergyUnresolved
-    logical                                                                  :: mainBranchOnly               , applySubsamplingWeights
+    logical                                                                  :: mainBranchOnly               , applySubsamplingWeights, &
+         &                                                                      acceptUnboundOrbits          , includeUnresolvedVariance
     
     !![
     <inputParameter>
@@ -307,6 +309,18 @@ contains
       <source>parameters</source>
       <description>If true, account for halo subsampling weights.</description>
     </inputParameter>
+    <inputParameter>
+      <name>acceptUnboundOrbits</name>
+      <defaultValue>.false.</defaultValue>
+      <source>parameters</source>
+      <description>If true, allow unbound orbits when sampling orbits for unresolved halos.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>includeUnresolvedVariance</name>
+      <defaultValue>.false.</defaultValue>
+      <source>parameters</source>
+      <description>If true, account for the variance in the energy of unresolved halos.</description>
+    </inputParameter>
     <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
     <objectBuilder class="criticalOverdensity"          name="criticalOverdensity_"          source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance"     name="cosmologicalMassVariance_"     source="parameters"/>
@@ -316,7 +330,7 @@ contains
     <objectBuilder class="mergerTreeMassResolution"     name="mergerTreeMassResolution_"     source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
     !!]
-    self=darkMatterProfileScaleRadiusJohnson2021(massExponent,peakHeightExponent,energyBoost,unresolvedEnergy,factorMassResolution,scatter,scatterExcess,correlationRateDecay,correlationExponent,countSampleEnergyUnresolved,mainBranchOnly,applySubsamplingWeights,cosmologyFunctions_,darkMatterProfileScaleRadius_,darkMatterHaloScale_,darkMatterProfileDMO_,virialOrbit_,mergerTreeMassResolution_,criticalOverdensity_,cosmologicalMassVariance_)
+    self=darkMatterProfileScaleRadiusJohnson2021(massExponent,peakHeightExponent,energyBoost,unresolvedEnergy,factorMassResolution,scatter,scatterExcess,correlationRateDecay,correlationExponent,countSampleEnergyUnresolved,mainBranchOnly,applySubsamplingWeights,acceptUnboundOrbits,includeUnresolvedVariance,cosmologyFunctions_,darkMatterProfileScaleRadius_,darkMatterHaloScale_,darkMatterProfileDMO_,virialOrbit_,mergerTreeMassResolution_,criticalOverdensity_,cosmologicalMassVariance_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"          />
@@ -331,7 +345,7 @@ contains
     return
   end function darkMatterProfileScaleJohnson2021ConstructorParameters
 
-  function darkMatterProfileScaleJohnson2021ConstructorInternal(massExponent,peakHeightExponent,energyBoost,unresolvedEnergy,factorMassResolution,scatter,scatterExcess,correlationRateDecay,correlationExponent,countSampleEnergyUnresolved,mainBranchOnly,applySubsamplingWeights,cosmologyFunctions_,darkMatterProfileScaleRadius_,darkMatterHaloScale_,darkMatterProfileDMO_,virialOrbit_,mergerTreeMassResolution_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
+  function darkMatterProfileScaleJohnson2021ConstructorInternal(massExponent,peakHeightExponent,energyBoost,unresolvedEnergy,factorMassResolution,scatter,scatterExcess,correlationRateDecay,correlationExponent,countSampleEnergyUnresolved,mainBranchOnly,applySubsamplingWeights,acceptUnboundOrbits,includeUnresolvedVariance,cosmologyFunctions_,darkMatterProfileScaleRadius_,darkMatterHaloScale_,darkMatterProfileDMO_,virialOrbit_,mergerTreeMassResolution_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !!{
     Internal constructor for the \refClass{darkMatterProfileScaleRadiusJohnson2021} dark matter profile scale radius class.
     !!}
@@ -345,15 +359,16 @@ contains
     class           (virialOrbitClass                       ), intent(in   ), target :: virialOrbit_
     class           (mergerTreeMassResolutionClass          ), intent(in   ), target :: mergerTreeMassResolution_
     class           (darkMatterProfileDMOClass              ), intent(in   ), target :: darkMatterProfileDMO_
-    double precision                                         , intent(in   )         :: massExponent                 , energyBoost           , &
-         &                                                                              unresolvedEnergy             , factorMassResolution  , &
-         &                                                                              scatter                      , scatterExcess         , &
-         &                                                                              peakHeightExponent           , correlationRateDecay  , &
+    double precision                                         , intent(in   )         :: massExponent                 , energyBoost             , &
+         &                                                                              unresolvedEnergy             , factorMassResolution    , &
+         &                                                                              scatter                      , scatterExcess           , &
+         &                                                                              peakHeightExponent           , correlationRateDecay    , &
          &                                                                              correlationExponent
     integer                                                  , intent(in   )         :: countSampleEnergyUnresolved
-    logical                                                  , intent(in   )         :: mainBranchOnly               , applySubsamplingWeights
+    logical                                                  , intent(in   )         :: mainBranchOnly               , applySubsamplingWeights  , &
+         &                                                                              acceptUnboundOrbits          , includeUnresolvedVariance
     !![
-    <constructorAssign variables="massExponent, peakHeightExponent, energyBoost, unresolvedEnergy, factorMassResolution, scatter, scatterExcess, correlationRateDecay, correlationExponent, countSampleEnergyUnresolved, mainBranchOnly, applySubsamplingWeights, *cosmologyFunctions_, *darkMatterProfileScaleRadius_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *virialOrbit_, *mergerTreeMassResolution_, *criticalOverdensity_, *cosmologicalMassVariance_"/>
+    <constructorAssign variables="massExponent, peakHeightExponent, energyBoost, unresolvedEnergy, factorMassResolution, scatter, scatterExcess, correlationRateDecay, correlationExponent, countSampleEnergyUnresolved, mainBranchOnly, applySubsamplingWeights, acceptUnboundOrbits, includeUnresolvedVariance, *cosmologyFunctions_, *darkMatterProfileScaleRadius_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *virialOrbit_, *mergerTreeMassResolution_, *criticalOverdensity_, *cosmologicalMassVariance_"/>
     !!]
 
     return
@@ -623,7 +638,7 @@ contains
                &                       +1.0d0                                                                                &
                &                       +self%energyBoost                                                                     &
                &                      )                                                                                      &
-               &                       *peakHeight**self%peakHeightExponent                                                  &
+               &                     *peakHeight**self%peakHeightExponent                                                    &
                &                     *weightSubsampling                                                                      &
                &                     *10.0d0**(                                                                              &
                &                               +self         %scatterExcess                                                  &
@@ -717,15 +732,15 @@ contains
                   &         +orbit            %energy(                              )                       *energyOrbitalSubresolutionFactor *factorGrowthOrbital  &
                   &         +massDistribution_%energy(radiusVirial,massDistribution_)/basicUnresolved%mass()*energyInternalSubresolutionFactor*factorGrowthInternal &
                   &        )                                                                                                                                        &
-                  &                      /(                                                                                     &
-                  &                        +1.0d0                                                                               &
-                  &                        +massRatio                                                                           &
-                  &                       )**self%massExponent &
+                  &       /(                                                                                                                                        &
+                  &         +1.0d0                                                                                                                                  &
+                  &         +massRatio                                                                                                                              &
+                  &        )**self%massExponent                                                                                                                     &
                   &       *(                                                                                                                                        &
                   &         +1.0d0                                                                                                                                  &
                   &         +self%energyBoost                                                                                                                       &
-                  &        )&
-                  &         *peakHeight**self%peakHeightExponent
+                  &        )                                                                                                                                        &
+                  &       *peakHeight**self%peakHeightExponent
              !![
 	     <objectDestructor name="massDistribution_"/>
 	     !!]
@@ -740,7 +755,7 @@ contains
           ! Evaluate the mean and scatter in energy.
           energyMean    =+energyMean   /dble(self%countSampleEnergyUnresolved)
           energyVariance=+energyScatter/dble(self%countSampleEnergyUnresolved)-energyMean**2
-          if (energyVariance > 0.0d0) then
+          if (energyVariance > 0.0d0 .and. self%includeUnresolvedVariance) then
              energyScatter=sqrt(energyVariance)
           else
              energyScatter=0.0d0

@@ -77,6 +77,7 @@ parser.add_argument('--factorMassResolution'       ,action='store'              
 parser.add_argument('--factorMassTrust'            ,action='store'     ,default=100.0      ,type=restricted_real,help='the factor above the mass scale at which the Johnson et al. (2021) model is applied that the results can be trusted')
 parser.add_argument('--countSampleEnergyUnresolved',action='store'                                              ,help='the number of samples in Monte Carlo estimates of unresolved energy in the Johnson et al. (2021) model'             )
 parser.add_argument('--acceptUnboundOrbits'        ,action='store'     ,default="false"    ,type=restricted_bool,help='if true, allow unbound orbits in the Johnson et al. (2021) model'                                                   )
+parser.add_argument('--includeUnresolvedVariance'  ,action='store'     ,default="false"    ,type=restricted_bool,help='if true, include variance in the energy of unresolved orbits in the Johnson et al. (2021) model'                    )
 parser.add_argument('--orbitModel'                 ,action='store'     ,default="unchanged"                     ,help='the orbit model to use in the Johnson et al. (2021) model (or "unchanged" to leave it unchanged)'                   )
 parser.add_argument('--mainBranchOnly'             ,action='store_true'                                         ,help='if present apply to model to the main branch only'                                                                  )
 parser.add_argument('--removeConcentrationLimits'  ,action='store_true'                                         ,help='if present remove any imposed limits on concentration'                                                              )
@@ -613,6 +614,15 @@ for massTrees in massesTree:
                 change.attrib['type' ] = "update"
                 change.attrib['path' ] = "componentSatellite/acceptUnboundOrbits"
                 change.attrib['value'] = args.acceptUnboundOrbits
+                change                 = ET.SubElement(parameters,'change')
+                change.attrib['type' ] = "update"
+                change.attrib['path' ] = "darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/acceptUnboundOrbits"
+                change.attrib['value'] = args.acceptUnboundOrbits
+            if args.includeUnresolvedVariance is not None:
+                change                 = ET.SubElement(parameters,'change')
+                change.attrib['type' ] = "update"
+                change.attrib['path' ] = "darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/includeUnresolvedVariance"
+                change.attrib['value'] = args.includeUnresolvedVariance
             if args.countSampleEnergyUnresolved is not None:
                 change                 = ET.SubElement(parameters,'change')
                 change.attrib['type' ] = "update"

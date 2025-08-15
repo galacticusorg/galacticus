@@ -22,6 +22,8 @@
       <scatter                     value="0.160000000000000"/>
       <scatterExcess               value="0.000000000000000"/>
       <countSampleEnergyUnresolved value="1"                />
+      <acceptUnboundOrbits         value="false"            />
+      <includeUnresolvedVariance   value="false"            />
       <applySubsamplingWeights     value="false"            />
       <mainBranchOnly              value="false"            />
       <darkMatterProfileScaleRadius value="concentration" >
