@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1755034691670,
+  "lastUpdate": 1755290637629,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.005; γ=1.5)": [
@@ -8305,6 +8305,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/79e9402720115057c0ebaa7b765a71432bd88e62"
         },
         "date": 1755034690677,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteBoundMass",
+            "value": "48.178341763109046",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "35.33237775519459",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteVelocityMaximum",
+            "value": "23.791744062057187",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "431e2304f95a27be5f2e24e7a832a934e9134ae2",
+          "message": "Merge pull request #898 from yzhaoastro/solitonNFW-radius-coreMass\n\nAdd a radiusEnclosingDensity function and scatter to core-Mass relation for the Soliton-NFW profile",
+          "timestamp": "2025-08-15T14:02:51Z",
+          "tree_id": "31d544f260d4f22b6ac47d7701eded379a463c76",
+          "url": "https://github.com/galacticusorg/galacticus/commit/431e2304f95a27be5f2e24e7a832a934e9134ae2"
+        },
+        "date": 1755290636571,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
