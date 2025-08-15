@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1755034678612,
+  "lastUpdate": 1755290621701,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (Symphony)": [
@@ -890,6 +890,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (Symphony Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": "2.6199283784055725",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "431e2304f95a27be5f2e24e7a832a934e9134ae2",
+          "message": "Merge pull request #898 from yzhaoastro/solitonNFW-radius-coreMass\n\nAdd a radiusEnclosingDensity function and scatter to core-Mass relation for the Soliton-NFW profile",
+          "timestamp": "2025-08-15T14:02:51Z",
+          "tree_id": "31d544f260d4f22b6ac47d7701eded379a463c76",
+          "url": "https://github.com/galacticusorg/galacticus/commit/431e2304f95a27be5f2e24e7a832a934e9134ae2"
+        },
+        "date": 1755290620668,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (Symphony Milky Way) - Likelihood - subhaloMassFunction",
+            "value": "3.1718571484227978",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": "2.0765386950190816",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": "2.5458726888490744",
             "unit": "-logℒ"
           }
         ]
