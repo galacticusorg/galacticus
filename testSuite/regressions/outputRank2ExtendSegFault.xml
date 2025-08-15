@@ -297,8 +297,8 @@
  
   <stellarWinds value="leitherer1992"/>
   <initialMassForSupernovaTypeII value="8.0"/>
-  <supernovaeIa value="nagashima"/>
-  <supernovaePopIII value="Heger-Woosley2002"/>
+  <supernovaeTypeIa value="nagashima2005"/>
+  <supernovaePopulationIII value="hegerWoosley2002"/>
   <stellarFeedback value="standard"/>
   
   <!-- Black hole options -->
