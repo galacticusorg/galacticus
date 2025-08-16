@@ -91,6 +91,7 @@ program Test_Hearin2021_Stochastic_MAH
   ! Construct early-forming tree.
   treeEarly %index                     =  1
   treeEarly %initializedUntil          =  0.0d0
+  treeEarly %isTreeInitialized         =  .false.
   treeEarly %event                     => null()
   treeEarly %firstTree                 => treeEarly
   treeEarly %nodeBase                  => treeNode                (                 )
@@ -106,6 +107,7 @@ program Test_Hearin2021_Stochastic_MAH
   ! Construct late-forming tree.
   treeLate  %index=2
   treeLate  %initializedUntil          =  0.0d0
+  treeLate  %isTreeInitialized         =  .false.
   treeLate  %event                     => null()
   treeLate  %firstTree                 => treeLate
   treeLate  %nodeBase                  => treeNode                (                 )

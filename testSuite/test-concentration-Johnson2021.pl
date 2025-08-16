@@ -16,31 +16,31 @@ use File::Slurp qw(slurp);
 # Make output directory.
 system("mkdir -p outputs/");
 
-# Specify the tests to run. Mean and tolerance targets are taken from Table 2 of Benson, Ludlow, & Cole (2019).
+# Specify the tests to run. Mean and tolerance targets are taken from Table 1 of Johnson, Benson & Grin (2021).
 my @tests =
     (
      {
 	 # Model with no subsampling.
 	 suffix           => "",
-	 mean             => 1.104,
-	 meanTolerance    => 0.040,
-	 scatter          => 0.103,
+	 mean             => 1.084,
+	 meanTolerance    => 0.065,
+	 scatter          => 0.134,
 	 scatterTolerance => 0.040
      },
      {
 	 # Model with subsampling below 10⁸M☉.
 	 suffix           => "Subsample1e8",
-	 mean             => 1.104,
-	 meanTolerance    => 0.040,
-	 scatter          => 0.103,
+	 mean             => 1.084,
+	 meanTolerance    => 0.065,
+	 scatter          => 0.134,
 	 scatterTolerance => 0.040
      },
      {
 	 # Model with subsampling below 10⁷M☉.
 	 suffix           => "Subsample1e7",
-	 mean             => 1.104,
-	 meanTolerance    => 0.040,
-	 scatter          => 0.103,
+	 mean             => 1.084,
+	 meanTolerance    => 0.065,
+	 scatter          => 0.134,
 	 scatterTolerance => 0.040
      }
     );

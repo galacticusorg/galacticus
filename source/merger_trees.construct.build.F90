@@ -292,8 +292,9 @@ contains
        message=var_str('Storing state for tree #')//treeNumber
        call State_Store_(message)
        ! Initialize.
-       tree%event            => null()
-       tree%initializedUntil =  0.0d0
+       tree%event             => null()
+       tree%initializedUntil  =  0.0d0
+       tree%isTreeInitialized =  .false.
        call tree%properties%initialize()
        ! Create the base node.
        tree%firstTree => tree

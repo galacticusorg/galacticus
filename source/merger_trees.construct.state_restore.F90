@@ -259,7 +259,7 @@ contains
     ! Write basic tree information.
     treeCurrent => tree
     do while (associated(treeCurrent))
-       write (fileUnit) treeCurrent%index,treeCurrent%volumeWeight,treeCurrent%initializedUntil,nodeArrayPosition(treeCurrent%nodeBase,nodeIndices)
+       write (fileUnit) treeCurrent%index,treeCurrent%volumeWeight,treeCurrent%initializedUntil,treeCurrent%isTreeInitialized,nodeArrayPosition(treeCurrent%nodeBase,nodeIndices)
        treeCurrent => treeCurrent%nextTree
     end do
     ! Output nodes.
@@ -397,7 +397,7 @@ contains
     iNode       =  0
     do iTree=1,treeCount
        ! Read basic tree information.
-       read (treeUnit,iostat=fileStatus) treeCurrent%index,treeCurrent%volumeWeight,treeCurrent%initializedUntil,nodeArrayIndex
+       read (treeUnit,iostat=fileStatus) treeCurrent%index,treeCurrent%volumeWeight,treeCurrent%initializedUntil,treeCurrent%isTreeInitialized,nodeArrayIndex
        ! Create nodes.
        do iNodeTree=1,nodeCountTree(iTree)
           iNode             =  iNode                         +1
