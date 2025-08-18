@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes" />
+    <style>
+      html {
+        font-family: BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",Helvetica,Arial,sans-serif;
+        -webkit-font-smoothing: antialiased;
+        background-color: #fff;
+        font-size: 16px;
+      }
+      body {
+        color: #4a4a4a;
+        margin: 8px;
+        font-size: 1em;
+        font-weight: 400;
+      }
+      header {
+        margin-bottom: 8px;
+        display: flex;
+        flex-direction: column;
+      }
+      main {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+      a {
+        color: #3273dc;
+        cursor: pointer;
+        text-decoration: none;
+      }
+      a:hover {
+        color: #000;
+      }
+      button {
+        color: #fff;
+        background-color: #3298dc;
+        border-color: transparent;
+        cursor: pointer;
+        text-align: center;
+      }
+      button:hover {
+        background-color: #2793da;
+        flex: none;
+      }
+      .spacer {
+        flex: auto;
+      }
+      .small {
+        font-size: 0.75rem;
+      }
+      footer {
+        margin-top: 16px;
+        display: flex;
+        align-items: center;
+      }
+        table {
+            width: fit-content;
+            table-layout: auto;
+            border-spacing: 10px 5px;
+        }
+      td {
+            text-align: right;
+      }
+      .header-label {
+        margin-right: 4px;
+      }
+      .benchmark-set {
+        margin: 8px 0;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+      .benchmark-title {
+        font-size: 3rem;
+        font-weight: 600;
+        word-break: break-word;
+        text-align: center;
+      }
+      .benchmark-graphs {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-around;
+        align-items: center;
+        flex-wrap: wrap;
+        width: 100%;
+      }
+      .benchmark-chart {
+        max-width: 1000px;
+      }
+    </style>
+    <title>Validation - Halo Concentrations</title>
+  </head>
+
+  <body>
+    <header id="header">
+      <div class="header-item">
+        <strong class="header-label">Last Update:</strong>
+        <span id="last-update"></span>
+      </div>
+      <div class="header-item">
+        <strong class="header-label">Repository:</strong>
+        <a id="repository-link" rel="noopener"></a>
+      </div>
+      <div class="header-item">
+        <strong class="header-label">Commit:</strong>
+        <a id="commit-link" rel="noopener"></a>
+      </div>
+      <div class="header-item">
+        <strong class="header-label">Parameter File:</strong>
+        <a id="parameter-link" rel="noopener"></a>
+      </div>
+      <div class="header-item">
+        <strong class="header-label">Command Line:</strong>
+        <tt id="command-line"></tt>
+      </div>
+    </header>
+    <main id="main">
+      <div>
+	<p>This page contains a collection of results used to assess the convergence properties of halo scale radii (and, therefore, concentrations) as implemented in <a href="https://github.com/galacticusorg/galacticus">Galacticus</a> by the <a href="https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf#physics.darkMatterProfileScaleRadiusJohnson2021"><tt>darkMatterProfileScaleRadiusJohnson2021</tt></a> class which implements the model of <a href="https://ui.adsabs.harvard.edu/abs/2021ApJ...908...33J">Johnson, Benson & Grin (2021)</a>.</p>
+	<p>All calculations were performed using <span id="trees-number"></span> merger trees at the masses and redshifts shown for each convergence plot. Parameters for the <a href="https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf#physics.darkMatterProfileScaleRadiusJohnson2021"><tt>darkMatterProfileScaleRadiusJohnson2021</tt></a> model were set to:</p>
+
+
+
+      <table>
+      <tr><td><tt>energyBoost</tt>:</td><td><tt id="model-energyBoost"> </tt></td></tr>
+      <tr><td><tt>massExponent</tt>:</td><td><tt id="model-massExponent"> </tt></td></tr>
+      <tr><td><tt>peakHeightExponent</tt>:</td><td><tt id="model-peakHeightExponent"> </tt></td></tr>
+      <tr><td><tt>scatterExcess</tt>:</td><td><tt id="model-scatterExcess"> </tt></td></tr>
+      <tr><td><tt>unresolvedEnergy</tt>:</td><td><tt id="model-unresolvedEnergy"> </tt></td></tr>
+      <tr><td><tt>factorMassResolution</tt>:</td><td><tt id="model-factorMassResolution"> </tt></td></tr>
+      </table>
+
+
+	<p><i>Note that this model does not currently produce scale radii which match those measured in N-body simulations - it has not been calibrated to do so. The goal here is simply to explore the convergence properties.</i></p>
+
+	<p>Information on the initial conditions model (used to set concentrations in insufficiently well-resolved branches of merger trees) can be found <a href="#initialConditions">below</a>.</p>
+
+	<p>Convergence was tested for the following parameters:</p>
+	<ul>
+	  <li><a href="#analysis-massResolution"/><tt>massResolution</a></tt> - mass resolution of the merger tree</li>
+          <li><a href="#analysis-mergeProbability"/><tt>mergeProbability</a></tt> - maximum merging probability in a timestep</li>
+	  <li><a href="#analysis-accretionLimit"/><tt>accretionLimit</a></tt> - maximum subresolution accretion fraction in a timestep</li>
+	  <li><a href="#analysis-accuracyFirstOrder"/><tt>accuracyFirstOrder</a></tt> - limit timestep size to ensure the first-order expansion of the merging rate is accurate</li>
+	  <li><a href="#analysis-branchIntervalStep"/><tt>branchIntervalStep</a></tt> - controls whether the "interval step" algorithm of <a href="http://adsabs.harvard.edu/abs/2019MNRAS.485.5010B"/>Benson, Ludlow & Cole (2019)</a> is used</li>
+	  <li><a href="#analysis-massThreshold"/><tt>massThreshold</a></tt> - the mass below which subsampling is applied following the algorithm of <a href="https://ui.adsabs.harvard.edu/abs/2024arXiv240611989M">Menker & Benson (2024)</a></li>
+        </ul>
+      </div>
+
+      <div class="analysis" id="analysis-massResolution">
+	<p>The mass resolution sets the minimum halo mass that is tracked in a merger tree. Here, the minimum halo mass is defined as \( f_\mathrm{res} M \) where \( M \) is the mass of the merger tree, and \( f_\mathrm{res} \) is therefore the fractional resolution.</p>
+      </div>
+      
+      <div class="analysis" id="analysis-mergeProbability">
+	<p>The <tt>mergeProbability</tt> numerical parameter controls the size of timesteps taken when constructing merger trees using the <a href="https://ui.adsabs.harvard.edu/abs/2000MNRAS.319..168C">Cole et al. (2000)</a> algorithm, implemented in Galacticus by the <a href="https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf#physics.mergerTreeBuilderCole2000"><tt>mergerTreeBuilderCole2000</tt></a> class. Specifically, <tt>mergeProbability</tt> sets the maximum probability for a binary branching event to occur in a timestep. A smaller value of <tt>mergeProbability</tt> will therefore result in smaller timesteps, and reduce the likelihood that multiple mergers that should have occurred in a timestep are missed.</p>
+	<p>Convergence results are shown relative to a default reference model, and were run with <span id="fres-mergeProbability">. Convergence requires that all points agree (within the statistical uncertainties).</a>
+      </div>
+      
+      <div class="analysis" id="analysis-accretionLimit">
+	<p>The <tt>accretionLimit</tt> numerical parameter controls the size of timesteps taken when constructing merger trees using the <a href="https://ui.adsabs.harvard.edu/abs/2000MNRAS.319..168C">Cole et al. (2000)</a> algorithm, implemented in Galacticus by the <a href="https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf#physics.mergerTreeBuilderCole2000"><tt>mergerTreeBuilderCole2000</tt></a> class. Specifically, <tt>accretionLimit</tt> sets the maximum fraction of mass in subresolution accretion that is allowed occur in a timestep. A smaller value of <tt>accretionLimit</tt> will therefore result in smaller timesteps, and increase the accuracy of the mass evolution along each branch.</p>
+	<p>Convergence results are shown relative to a default reference model, and were run with <span id="fres-accretionLimit">. Convergence requires that all points agree (within the statistical uncertainties).</a>
+      </div>
+      
+      <div class="analysis" id="analysis-accuracyFirstOrder">
+	<p>The <tt>accuracyFirstOrder</tt> numerical parameter controls the size of timesteps taken when constructing merger trees using branching rate of <a href="http://adsabs.harvard.edu/abs/2008MNRAS.383..557P">Parkinson, Cole & Helly. (2008)</a>, implemented in Galacticus by the <a href="https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf#physics.mergerTreeBranchingProbabilityParkinsonColeHelly"><tt>mergerTreeBranchingProbabilityParkinsonColeHelly</tt></a> class. Specifically, <tt>accuracyFirstOrder</tt> limits the timestep to <tt>accuracyFirstOrder</tt>\(\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}\), which ensures
+    the the first order expansion of the merging rate that is assumed is accurate. A smaller value of <tt>accuracyFirstOrder</tt> will therefore result in smaller timesteps, and increase the accuracy of the mass evolution along each branch.</p>
+	<p>Convergence results are shown relative to a default reference model, and were run with <span id="fres-accuracyFirstOrder">. Convergence requires that all points agree (within the statistical uncertainties).</a>
+      </div>
+      
+      <div class="analysis" id="analysis-branchIntervalStep">
+	<p>The <tt>branchIntervalStep</tt> numerical parameter controls the algorithm used for taking steps when constructing merger trees using the <a href="https://ui.adsabs.harvard.edu/abs/2000MNRAS.319..168C">Cole et al. (2000)</a> algorithm, implemented in Galacticus by the <a href="https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf#physics.mergerTreeBuilderCole2000"><tt>mergerTreeBuilderCole2000</tt></a> class. Specifically, if <tt>branchIntervalStep=true</tt> timesteps are drawn from a negative exponential distribution following the algorithm of <a href="http://adsabs.harvard.edu/abs/2019MNRAS.485.5010B"/>Benson, Ludlow & Cole (2019)</a>, otherwise the original algorithm of <a href="https://ui.adsabs.harvard.edu/abs/2000MNRAS.319..168C">Cole et al. (2000)</a> is used instead.</p>
+	<p>Convergence results are shown relative to a default reference model, and were run with <span id="fres-branchIntervalStep">. Convergence requires that all points agree (within the statistical uncertainties).</a>
+      </div>
+
+      <div class="analysis" id="analysis-massThreshold">
+	<p>The <tt>massThreshold</tt> numerical parameter controls the halo mass below which subsampling of merger tree branches occurs, following the algorithm of <a href="https://ui.adsabs.harvard.edu/abs/2024arXiv240611989M">Menker & Benson (2024)</a>. Below this mass, a branch of the merger tree is kept with probability \( p = M/\mathtt{[massThreshold]}\,\mathrm{M}_\odot \). The progenitor mass function is weighted by the subsampling weight (as defined in <a href="https://ui.adsabs.harvard.edu/abs/2024arXiv240611989M">Menker & Benson; 2024)</a>) to correct for the effects of subsampling.</p>
+	<p>Convergence results are shown relative to a default reference model, and were run with <span id="fres-massThreshold">. Convergence requires that all points agree (within the statistical uncertainties).</a>
+      </div>
+
+      <h1 id="initialConditions">Initial Conditions</h1>
+
+      <p>For insufficiently well-resolved branches of a merger tree (any branch for which the halo masses are below <tt>factorMassResolution</tt> times the mass resolution of the tree), the scale radius is set by an initial conditions model. This must produce results that are consistent with what the <a href="https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf#physics.darkMatterProfileScaleRadiusJohnson2021"><tt>darkMatterProfileScaleRadiusJohnson2021</tt></a> class <i>would</i> produce in these halos if they were sufficiently well resolved. We use a simple power-law model of the form</p>
+      $$
+      r_\mathrm{s} = r(\nu) \left(\frac{M}{M_0}\right)^{\alpha(\nu)} (1+z)^{-\beta(\nu)}
+      $$
+      <p>where \(r(\nu)\), \(\alpha(\nu)\), and \(\beta(\nu)\) are sigmoid functions of the peak height, \(\nu\), of the form:</p>
+      $$
+      y(x) = y_0+(y_1-y_0)/(1+\exp[-(x-x_\nu)/\Delta x]),
+      $$
+      <p>where \(r_0\)=<tt>radiusLow</tt>, \(r_1\)=<tt>radiusHigh</tt>, \(r_\nu\)=<tt>radiusTransition</tt>, \(\Delta r\)=<tt>radiusWidth</tt>, \(\alpha_0\)=<tt>massLow</tt>,
+      \(\alpha_1\)=<tt>massHigh</tt>, \(\alpha_\nu\)=<tt>massTransition</tt>, \(\Delta
+      \alpha\)=<tt>massWidth</tt>, \(\beta_0\)=<tt>expansionFactorLow</tt>, \(\beta_1\)=<tt>expansionFactorHigh</tt>, \(\beta_\nu\)=<tt>expansionFactorTransition</tt>, and \(\Delta
+      \beta\)=<tt>expansionFactorWidth</tt> with values determined by fitting this model to the results from the <a href="https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf#physics.darkMatterProfileScaleRadiusJohnson2021"><tt>darkMatterProfileScaleRadiusJohnson2021</tt></a> class in well-resolved branches, as given in the following table:</p>
+      
+      <table>
+      <tr><td><tt>radiusLow</tt>:</td><td><tt id="ics-radiusLow"> </tt></td></tr>
+      <tr><td><tt>radiusHigh</tt>:</td><td><tt id="ics-radiusHigh"> </tt></td></tr>
+      <tr><td><tt>radiusTransition</tt>:</td><td><tt id="ics-radiusTransition"> </tt></td></tr>
+      <tr><td><tt>radiusWidth</tt>:</td><td><tt id="ics-radiusWidth"> </tt></td></tr>
+      <tr><td><tt>massLow</tt>:</td><td><tt id="ics-massLow"> </tt></td></tr>
+      <tr><td><tt>massHigh</tt>:</td><td><tt id="ics-massHigh"> </tt></td></tr>
+      <tr><td><tt>massTransition</tt>:</td><td><tt id="ics-massTransition"> </tt></td></tr>
+      <tr><td><tt>massWidth</tt>:</td><td><tt id="ics-massWidth"> </tt></td></tr>
+      <tr><td><tt>expansionFactorLow</tt>:</td><td><tt id="ics-expansionFactorLow"> </tt></td></tr>
+      <tr><td><tt>expansionFactorHigh</tt>:</td><td><tt id="ics-expansionFactorHigh"> </tt></td></tr>
+      <tr><td><tt>expansionFactorTransition</tt>:</td><td><tt id="ics-expansionFactorTransition"> </tt></td></tr>
+      <tr><td><tt>expansionFactorWidth</tt>:</td><td><tt id="ics-expansionFactorWidth"> </tt></td></tr>
+      </table>
+
+      <h2>Correlation Model</h2>
+      
+      <p>A correlated set of random, log-normal deviates are applied to the scale radii of these halos. That is, the scale radius of the <i>i</i><sup>th</sup> halo in such a sub-branch will be \( r_\mathrm{s} = \bar{r}_{\mathrm{s}, i} 10^{x_i} \) where \( x_i \) is a normally-distributed random variate with mean zero and dispersion \( \sigma^\prime \) = <tt>modelScatter</tt>. The deviates \( x_i \) are assumed to be correlated with correlation matrix:     
+      $$
+      C_{i,j} = \exp\left( -\gamma \left| \log_{10} \frac{M_i}{M_j} \right|^\mu \right),
+      $$
+<p>where \( \gamma \) = <tt>correlationRateDecay</tt>, and \( \mu \) = <tt>correlationExponent</tt> with values found by fitting to the behavior measured from the <a href="https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf#physics.darkMatterProfileScaleRadiusJohnson2021"><tt>darkMatterProfileScaleRadiusJohnson2021</tt></a> class in well-resolved branches, as given in the following table, and shown in the following plot:</p>
+
+      <table>
+      <tr><td><tt>correlationRateDecay</tt>:</td><td><tt id="ics-correlationRateDecay"> </tt></td></tr>
+      <tr><td><tt>correlationExponent</tt>:</td><td><tt id="ics-correlationExponent"> </tt></td></tr>
+      <tr><td><tt>modelScatter</tt>:</td><td><tt id="ics-modelScatter"> </tt></td></tr>
+      </table>
+
+      <div id="correlation-model">
+      </div>
+
+    </main>
+    <footer>
+      <button id="dl-button">Download data as JSON</button>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-error-bars@3.9.1/build/index.umd.min.js"></script>
+    <script type="text/javascript"
+	    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <script type="text/x-mathjax-config">
+      MathJax = {
+      tex: {
+      inlineMath: [['$', '$'], ["\\(", "\\)"]],
+      processEscapes: true,
+      }
+      }
+    </script>
+   <script src="results.json"></script>
+    <script id="main-script">
+      'use strict';
+      (function() {
+        // Colors from https://github.com/github/linguist/blob/master/lib/linguist/languages.yml
+        const toolColors = {
+          cargo: '#dea584',
+          go: '#00add8',
+          benchmarkjs: '#f1e05a',
+          benchmarkluau: '#000080',
+          pytest: '#3572a5',
+          googlecpp: '#f34b7d',
+          catch2: '#f34b7d',
+          julia: '#a270ba',
+          benchmarkdotnet: '#178600',
+          customBiggerIsBetter: '#38ff38',
+          customSmallerIsBetter: '#ff3838',
+          _: '#333333'
+        };
+
+        function init() {
+
+          const data = window.VALIDATION_DATA;
+
+          // Render header
+          document.getElementById('last-update').textContent = new Date(data.commit.timestamp).toString();
+          const repoLink = document.getElementById('repository-link');
+          repoLink.href = data.repoUrl;
+          repoLink.textContent = data.repoUrl;
+          const commitLink = document.getElementById('commit-link');
+          commitLink.href = data.commit.url;
+          commitLink.textContent = data.commit.id;
+          const parameterLink = document.getElementById('parameter-link');
+          parameterLink.href = data.repoUrl+'/blob/'+data.commit.id+'/'+data.parameterFile;
+          parameterLink.textContent = data.parameterFile;
+          document.getElementById('command-line').textContent = data.commandLine;
+
+          // Render footer
+          document.getElementById('dl-button').onclick = () => {
+            const dataUrl = 'data:,' + JSON.stringify(data, null, 2);
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = 'validation_data.json';
+            a.click();
+          };
+
+          // Render fits
+          <!-- const elemFitMassResolution = document.getElementById('fit-massResolution'); -->
+	  <!-- const elemFitEquation       = document.getElementById('fit-equation'      ); -->
+	  <!-- elemFitMassResolution.textContent = "\\( M_\\mathrm{res} = 10^{"+Math.log10(data['massResolutionFit']['massResolution']).toFixed(1)+"} \\mathrm{M}_\\odot \\)"; -->
+	  <!-- elemFitEquation.textContent = "$$\n\\frac{N(m_\\mathrm{prog})}{N_0(m_\\mathrm{prog})}=\\exp\\left(-\\frac{"+floatToLatex(data['massResolutionFit']['a'],2)+" w}{[m_\\mathrm{prog}/m_\\mathrm{res}-1]^{"+data['massResolutionFit']['b'].toFixed(3)+"}}\\right)$$\n"; -->
+
+          const elemTreesCount = document.getElementById('trees-number');
+	  elemTreesCount.textContent = data['countTrees'];
+
+          // Prepare data points for charts
+          return data;
+        }
+
+        function floatToElements(num,digits) {
+          return num.toExponential(digits).split("e");
+        }
+	
+        function floatToLatex(num,digits, forceFloat=false) {
+          if (Number.isInteger(num) && ! forceFloat) {
+            return num.toString() + ".0";
+          } else if (Math.abs(num) < 1e-1 || Math.abs(num) > 1e1) {
+             return num.toExponential(digits).replace("e", "\\times 10^{") + "}";
+          } else {
+            return num.toString();
+          }
+        }
+	
+        function renderAllChars(data) {
+
+          function renderGraphResolution(parent, dataset) {
+            const canvas = document.createElement('canvas');
+            canvas.className = 'benchmark-chart';
+            parent.appendChild(canvas);
+
+            const borderColor     = [ '#AF4D98', '#D66BA0', '#E5A9A9', '#F4E4BA', '#9DF7E5' ];
+            const backgroundColor = [ '#8E3E7B', '#CA3F85', '#D98181', '#ECCE83', '#68F3D7' ];
+
+            const datasets = [];
+            let iColor = 0;
+            for(let j = 0; j < dataset.results.length; j++) {
+              const data = [];
+              for (let i = 0; i < dataset.results[j].radius.length; i++) {
+                  const p = {x: dataset.results[j].radius[i], y: dataset.results[j].pdf[i], yMin: dataset.results[j].pdf[i]-dataset.results[j].error[i], yMax: dataset.results[j].pdf[i]+dataset.results[j].error[i]};
+	          data.push(p);
+	      }
+	      datasets.push(
+			    {
+			     type: "scatterWithErrorBars",
+			     label: 'fᵣₑₛ='+dataset.results[j].massResolutionFractional.toExponential(1),
+		   	     data: data,
+			     borderColor: borderColor[iColor],
+			     backgroundColor: backgroundColor[iColor]
+			    }
+			   );
+
+             iColor++;
+            }
+
+	    const options = {
+              scales: {
+                x: {
+                    title: {
+                      display: true,
+                      text: "log₁₀rₛ"
+                    },
+                    min: 0.0,
+                    max: 3.0
+                   },
+                y: {
+                    title: {
+                      display: true,
+                      text: "df/dlog₁₀rₛ"
+                    }
+                   }
+		}
+            };
+
+            new Chart(canvas, {
+              data: {
+	             datasets: datasets,
+		    },
+              options: options
+            });
+          }
+
+          function renderGraphGeneric(parent, dataset) {
+            const canvas = document.createElement('canvas');
+            canvas.className = 'benchmark-chart';
+            parent.appendChild(canvas);
+
+            const data        = [];
+            const dataDefault = [];
+            for (let i = 0; i < dataset.radius.length; i++) {
+                const p        = {x: dataset.radius[i], y: dataset.pdf[i], yMin: dataset.pdf[i]-dataset.error[i], yMax: dataset.pdf[i]+dataset.error[i]};
+	        data.push(p);
+                const pDefault = {x: dataset.radius[i], y: dataset.pdfDefault[i], yMin: dataset.pdfDefault[i]-dataset.errorDefault[i], yMax: dataset.pdfDefault[i]+dataset.errorDefault[i]};
+	        dataDefault.push(pDefault);
+	    }
+	    const options = {
+              scales: {
+                 x: {
+                    title: {
+                      display: true,
+                      text: "log₁₀rₛ"
+                    },
+                    min: 0.0,
+                    max: 3.0
+                   },
+                y: {
+                    title: {
+                      display: true,
+                      text: "df/dlog₁₀rₛ"
+                    }
+                   }
+	        }
+            };
+
+            new Chart(canvas, {
+              type: 'scatterWithErrorBars',
+              data: {
+                datasets:
+                  [
+                    {
+                      label: 'updated',
+                      data: data,
+                      borderColor: '#AF4D98',
+                      backgroundColor: '#8E3E7B'
+                    },
+                    {
+                      label: 'default',
+                      data: dataDefault,
+                      borderColor: '#F4E4BA',
+                      backgroundColor: '#ECCE83'
+                    }
+                  ]
+              },
+              options: options
+            });
+          }
+
+          function renderResolution(setElem, dataSet) {
+
+            const titleElem = document.createElement('h1');
+            titleElem.className = 'analysis-title';
+  	    titleElem.textContent = 'massResolution';	   
+	    setElem.prepend(titleElem);
+
+            for (let i = 0; i < dataSet.length; i++) {
+                const massRedshiftElem = document.createElement('h2');
+		massRedshiftElem.className = 'analysis-title';
+		const components = floatToElements(dataSet[i].massTrees,1);
+		const headerM = document.createElement('i');
+		const headerEquals = document.createElement('span');
+		const headerMantissa = document.createElement('span');
+		const headerTimes = document.createElement('span');
+		const headerExponent = document.createElement('sup');
+		const headerUnit = document.createElement('span');
+		const headerSolar = document.createElement('sub');
+		const headerZ = document.createElement('i');
+		const headerRedshift = document.createElement('span');
+		headerM.textContent = "M";
+		headerEquals.textContent = " = ";
+		headerMantissa.textContent = components[0];
+		headerTimes.textContent = " × 10";
+		headerExponent.textContent = components[1];
+		headerUnit.textContent = "M";
+		headerSolar.textContent = "☉";
+		headerZ.textContent = "; z";
+		headerRedshift.textContent = " = "+dataSet[i].redshift.toFixed(1);
+		massRedshiftElem.appendChild(headerM);
+		massRedshiftElem.appendChild(headerEquals);
+		massRedshiftElem.appendChild(headerMantissa);
+		massRedshiftElem.appendChild(headerTimes);
+		massRedshiftElem.appendChild(headerExponent);
+		massRedshiftElem.appendChild(headerUnit);
+		massRedshiftElem.appendChild(headerSolar);
+		massRedshiftElem.appendChild(headerZ);
+		massRedshiftElem.appendChild(headerRedshift);
+		setElem.appendChild(massRedshiftElem);
+
+		const graphsElem = document.createElement('div');
+                graphsElem.className = 'analysis-graphs';
+                setElem.appendChild(graphsElem);
+		renderGraphResolution(graphsElem, dataSet[i])
+
+	    }
+          }
+
+          function renderGeneric(setElem, fresElem, name, dataSet) {
+
+            const titleElem = document.createElement('h1');
+            titleElem.className = 'analysis-title';
+            if (typeof dataSet.default === "number") {
+  	      titleElem.textContent = name+" = "+dataSet.default.toExponential(1)+" → "+dataSet.updated.toExponential(1);
+	    } else {
+  	      titleElem.textContent = name+" = "+dataSet.default                 +" → "+dataSet.updated                 ;
+            }
+	    setElem.prepend(titleElem);
+
+	    fresElem.textContent = "\\(f_\\mathrm{res}="+floatToLatex(dataSet.massResolutionFractional)+"\\)"
+
+            const massRedshiftElem = document.createElement('h2');
+	    massRedshiftElem.className = 'analysis-title';
+	    const components = floatToElements(dataSet.massTrees,1);
+	    const headerM = document.createElement('i');
+	    const headerEquals = document.createElement('span');
+	    const headerMantissa = document.createElement('span');
+	    const headerTimes = document.createElement('span');
+	    const headerExponent = document.createElement('sup');
+	    const headerUnit = document.createElement('span');
+	    const headerSolar = document.createElement('sub');
+	    const headerZ = document.createElement('i');
+	    const headerRedshift = document.createElement('span');
+	    headerM.textContent = "M";
+	    headerEquals.textContent = " = ";
+	    headerMantissa.textContent = components[0];
+	    headerTimes.textContent = " × 10";
+	    headerExponent.textContent = components[1];
+	    headerUnit.textContent = "M";
+	    headerSolar.textContent = "☉";
+	    headerZ.textContent = "; z";
+	    headerRedshift.textContent = " = "+dataSet.redshift.toFixed(1);
+	    massRedshiftElem.appendChild(headerM);
+	    massRedshiftElem.appendChild(headerEquals);
+	    massRedshiftElem.appendChild(headerMantissa);
+	    massRedshiftElem.appendChild(headerTimes);
+	    massRedshiftElem.appendChild(headerExponent);
+	    massRedshiftElem.appendChild(headerUnit);
+	    massRedshiftElem.appendChild(headerSolar);
+	    massRedshiftElem.appendChild(headerZ);
+	    massRedshiftElem.appendChild(headerRedshift);
+	    setElem.appendChild(massRedshiftElem);
+
+	    const graphsElem = document.createElement('div');
+            graphsElem.className = 'analysis-graphs';
+            setElem.appendChild(graphsElem);
+	    renderGraphGeneric(graphsElem, dataSet)
+          }
+
+          function renderCorrelationModel(dataset) {
+            const modelElem      = document.getElementById('correlation-model');
+	    const graphsElem     = document.createElement('div');
+            graphsElem.className = 'analysis-graphs';
+	    modelElem.appendChild(graphsElem);
+            const canvas = document.createElement('canvas');
+            canvas.className = 'benchmark-chart';
+	    graphsElem.appendChild(canvas);
+
+            const data = [];
+            for (let i = 0; i < dataset.deltaLogMass.length; i++) {
+                const p        = {x: dataset.deltaLogMass[i], y: dataset.correlation[i]};
+	        data.push(p);
+	    }
+            const dataFit = [];
+            for (let i = 0; i < dataset.deltaLogMassFit.length; i++) {
+                const p        = {x: dataset.deltaLogMassFit[i], y: dataset.correlationFit[i]};
+	        dataFit.push(p);
+	    }
+	    const options = {
+              scales: {
+                 x: {
+                    title: {
+                      display: true,
+                      text: "Δ|log₁₀M|"
+                    }
+                   },
+                y: {
+                    title: {
+                      display: true,
+                      text: "C_{Δlog₁₀rₛ}"
+                    }
+                   }
+	        }
+				};
+           new Chart(canvas, {
+              data: {
+                datasets:
+                  [
+                    {
+		      type: 'scatter',
+                      label: 'measured',
+                      data: data,
+                      borderColor: '#AF4D98',
+                      backgroundColor: '#8E3E7B'
+                    },
+                    {
+		      type: 'line',
+		      elements: {
+		       point:{
+		        radius: 0
+		        }
+		       },
+                      label: 'fit',
+                      data: dataFit,
+                      borderColor: '#F4E4BA',
+                      backgroundColor: '#ECCE83'
+                    }
+                  ]
+              },
+              options: options
+				});
+          }
+
+          const setElemMassResolution      = document.getElementById('analysis-massResolution'    );
+          const setElemMergeProbability    = document.getElementById('analysis-mergeProbability'  );
+          const setElemAccretionLimit      = document.getElementById('analysis-accretionLimit'    );
+          const setElemAccuracyFirstOrder  = document.getElementById('analysis-accuracyFirstOrder');
+          const setElemBranchIntervalStep  = document.getElementById('analysis-branchIntervalStep');
+          const setElemMassThreshold       = document.getElementById('analysis-massThreshold'     );
+          const fresElemMergeProbability   = document.getElementById('fres-mergeProbability'      );
+          const fresElemAccretionLimit     = document.getElementById('fres-accretionLimit'        );
+          const fresElemAccuracyFirstOrder = document.getElementById('fres-accuracyFirstOrder'    );
+          const fresElemBranchIntervalStep = document.getElementById('fres-branchIntervalStep'    );
+          const fresElemMassThreshold      = document.getElementById('fres-massThreshold'         );
+	  renderResolution(setElemMassResolution                                                    ,data['results']['massResolutionFractional']);
+	  renderGeneric   (setElemMergeProbability  ,fresElemMergeProbability  ,'mergeProbability'  ,data['results']['mergeProbability'        ]);
+	  renderGeneric   (setElemAccretionLimit    ,fresElemAccretionLimit    ,'accretionLimit'    ,data['results']['accretionLimit'          ]);
+	  renderGeneric   (setElemAccuracyFirstOrder,fresElemAccuracyFirstOrder,'accuracyFirstOrder',data['results']['accuracyFirstOrder'      ]);
+	  renderGeneric   (setElemBranchIntervalStep,fresElemBranchIntervalStep,'branchIntervalStep',data['results']['branchIntervalStep'      ]);
+	  renderGeneric   (setElemMassThreshold     ,fresElemMassThreshold     ,'massThreshold'     ,data['results']['massThreshold'           ]);
+
+	  renderCorrelationModel(data['correlationModel']);
+
+
+	  document.getElementById('ics-radiusLow'                ).textContent = data['parametersInitialConditions']['radiusLow'                ];
+	  document.getElementById('ics-radiusHigh'               ).textContent = data['parametersInitialConditions']['radiusHigh'               ];
+	  document.getElementById('ics-radiusTransition'         ).textContent = data['parametersInitialConditions']['radiusTransition'         ];
+	  document.getElementById('ics-radiusWidth'              ).textContent = data['parametersInitialConditions']['radiusWidth'              ];
+	  document.getElementById('ics-massLow'                  ).textContent = data['parametersInitialConditions']['massLow'                  ];
+	  document.getElementById('ics-massHigh'                 ).textContent = data['parametersInitialConditions']['massHigh'                 ];
+	  document.getElementById('ics-massTransition'           ).textContent = data['parametersInitialConditions']['massTransition'           ];
+	  document.getElementById('ics-massWidth'                ).textContent = data['parametersInitialConditions']['massWidth'                ];
+	  document.getElementById('ics-expansionFactorLow'       ).textContent = data['parametersInitialConditions']['expansionFactorLow'       ];
+	  document.getElementById('ics-expansionFactorHigh'      ).textContent = data['parametersInitialConditions']['expansionFactorHigh'      ];
+	  document.getElementById('ics-expansionFactorTransition').textContent = data['parametersInitialConditions']['expansionFactorTransition'];
+	  document.getElementById('ics-expansionFactorWidth'     ).textContent = data['parametersInitialConditions']['expansionFactorWidth'     ];
+	  document.getElementById('ics-modelScatter'             ).textContent = data['parametersInitialConditions']['modelScatter'             ];
+	  document.getElementById('ics-correlationRateDecay'     ).textContent = data['parametersInitialConditions']['correlationRateDecay'     ];
+	  document.getElementById('ics-correlationExponent'      ).textContent = data['parametersInitialConditions']['correlationExponent'      ];
+
+	  document.getElementById('model-energyBoost'            ).textContent = data['parametersJohnson'          ]['energyBoost'              ];
+	  document.getElementById('model-massExponent'           ).textContent = data['parametersJohnson'          ]['massExponent'             ];
+	  document.getElementById('model-peakHeightExponent'     ).textContent = data['parametersJohnson'          ]['peakHeightExponent'       ];
+	  document.getElementById('model-scatterExcess'          ).textContent = data['parametersJohnson'          ]['scatterExcess'            ];
+	  document.getElementById('model-unresolvedEnergy'       ).textContent = data['parametersJohnson'          ]['unresolvedEnergy'         ];
+	  document.getElementById('model-factorMassResolution'   ).textContent = data['parametersJohnson'          ]['factorMassResolution'     ];
+        }
+
+	renderAllChars(init());
+
+      })();
+    </script>
+
+  </body>
+</html>
