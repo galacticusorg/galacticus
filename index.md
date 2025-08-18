@@ -32,6 +32,7 @@ Here you can find:
 	    * [rₚ/rₐ=0.4; γ=0.0](https://galacticusorg.github.io/galacticus/dev/bench/idealizedSubhaloSimulation_rpra0.4_gamma0.0)
 * Validation plots and data for:
     * [Merger tree builder convergence](https://galacticusorg.github.io/galacticus/dev/valid/mergerTreeConvergence)
+    * [Halo concentration convergence](https://galacticusorg.github.io/galacticus/dev/valid/concentrationConvergence)
     * [Dark matter-only subhalos](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalos/)
     * [Dark matter-only subhalos (Symphony Milky Way)](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosSymphonyMilkyWay/)
     * [Dark matter-only subhalos (COZMIC Milky Way WDM 3keV)](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWay/)
