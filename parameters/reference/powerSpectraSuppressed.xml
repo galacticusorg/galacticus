@@ -70,7 +70,15 @@
   </change>
   
   <!-- Change the concentration model to use one appropriate for WDM -->
-  <!-- First, copy the existing concentration model into a temporary location so that we can later use it in our reference
+  <!-- First, make changes to the Dimemer & Joyce (2019) concentration model to make it better behaved for suppressed power spectra. -->
+  <!-- Do not include the high mass upturn in concentrations. It remains dubious whether this is real, and it can cause
+       problems if applied in models with truncated power spectra where we use the Schneider et al. (2015;
+       http://adsabs.harvard.edu/abs/2015MNRAS.451.3117S) for concentrations which maps the concentrations of low mass
+       halos in such models to very high mass halos in CDM. -->
+  <change type="update" path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileConcentration/includeUpturn"         value="false"/>
+  <change type="update" path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileConcentration/truncateConcentration" value="true" />
+
+  <!-- Next, copy the existing concentration model into a temporary location so that we can later use it in our reference
        model. -->
   <change type="append" path="">
     <concentrationTmp>

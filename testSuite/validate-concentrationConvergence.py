@@ -78,6 +78,8 @@ parser.add_argument('--factorMassTrust'            ,action='store'     ,default=
 parser.add_argument('--countSampleEnergyUnresolved',action='store'                                              ,help='the number of samples in Monte Carlo estimates of unresolved energy in the Johnson et al. (2021) model'             )
 parser.add_argument('--acceptUnboundOrbits'        ,action='store'     ,default="false"    ,type=restricted_bool,help='if true, allow unbound orbits in the Johnson et al. (2021) model'                                                   )
 parser.add_argument('--includeUnresolvedVariance'  ,action='store'     ,default="false"    ,type=restricted_bool,help='if true, include variance in the energy of unresolved orbits in the Johnson et al. (2021) model'                    )
+parser.add_argument('--includeUpturn'              ,action='store'     ,default="true"     ,type=restricted_bool,help='if true, include the high mass upturn in concentration in the Diemer & Joyce (2017) concentration model'            )
+parser.add_argument('--truncateConcentration'      ,action='store'     ,default="false"    ,type=restricted_bool,help='if true, truncate the concentration in the Diemer & Joyce (2017) concentration model'                               )
 parser.add_argument('--orbitModel'                 ,action='store'     ,default="unchanged"                     ,help='the orbit model to use in the Johnson et al. (2021) model (or "unchanged" to leave it unchanged)'                   )
 parser.add_argument('--mainBranchOnly'             ,action='store_true'                                         ,help='if present apply to model to the main branch only'                                                                  )
 parser.add_argument('--removeConcentrationLimits'  ,action='store_true'                                         ,help='if present remove any imposed limits on concentration'                                                              )
@@ -633,6 +635,16 @@ for massTrees in massesTree:
                 change.attrib['type' ] = "update"
                 change.attrib['path' ] = "darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/countSampleEnergyUnresolved"
                 change.attrib['value'] = args.countSampleEnergyUnresolved
+            if args.includeUpturn is not None:
+                change                 = ET.SubElement(parameters,'change')
+                change.attrib['type' ] = "update"
+                change.attrib['path' ] = "darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileConcentration/includeUpturn"
+                change.attrib['value'] = args.includeUpturn
+            if args.truncateConcentration is not None:
+                change                 = ET.SubElement(parameters,'change')
+                change.attrib['type' ] = "update"
+                change.attrib['path' ] = "darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileConcentration/truncateConcentration"
+                change.attrib['value'] = args.truncateConcentration
             if args.orbitModel                  is not None:
                 if args.orbitModel == "unchanged":
                     # Nothing to do.
