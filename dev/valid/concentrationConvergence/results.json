@@ -13383,5 +13383,5 @@ window.VALIDATION_DATA = {
             0.008309059870921578
         ]
     },
-    "commandLine": "./testSuite/validate_concentrationConvergence.py --jobMaximum 1000 --waitOnSubmit 1 --waitOnActive 30 --countSampleEnergyUnresolved 100 --unresolvedEnergy 1.0 --factorMassResolution 100.0 --acceptUnboundOrbits true --includeUnresolvedVariance true --orbitModel li2020 --energyBoost 0.0 --massExponent 0.0 --peakHeightExponent 0.0 --scatterExcess 0.08 --removeConcentrationLimits --outputPath /central/scratch/abenson/concentration_convergence_energyBoost0.0_massExponent0.0_peakHeightExponent0.0_scatterExcess0.08"
+    "commandLine": "./testSuite/validate_concentrationConvergence.py --jobMaximum 1000 --waitOnSubmit 1 --waitOnActive 30 --countSampleEnergyUnresolved 100 --unresolvedEnergy 1.0 --factorMassResolution 100.0 --acceptUnboundOrbits true --includeUnresolvedVariance true --orbitModel li2020 --energyBoost 0.0 --massExponent 0.0 --peakHeightExponent 0.0 --scatterExcess 0.08 --includeUpturn false --truncateConcentration true --removeConcentrationLimits --outputPath /central/scratch/abenson/concentration_convergence_energyBoost0.0_massExponent0.0_peakHeightExponent0.0_scatterExcess0.08"
 }
