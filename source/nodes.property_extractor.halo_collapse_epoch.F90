@@ -32,7 +32,7 @@
      \cite{schneider_structure_2015}, which is based on the conditional first crossing distribution from excursion set theory:     
      \begin{equation}
       \delta_\mathrm{c}(z_\mathrm{c}) = \left( {\pi \over 2} \left[ \sigma^2(f M) - \sigma^2(M) \right]
-      \right)^{1/2}+\delta_\mathrm{c})(z_0),
+      \right)^{1/2}+\delta_\mathrm{c}(z_0),
     \end{equation}
     where $\delta_\mathrm{c}(z)$ is the critical overdensity for collapse at redshift $z$, and $f$ is the fraction of a halo's
     mass assembled at formation time (given by the {\normalfont \ttfamily [massFractionFormation]} parameter.
