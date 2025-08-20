@@ -1150,7 +1150,7 @@ contains
        ! Attempt to open the file.
        call h5fopen_f(fileName,fileAccess,fileObject%objectID,errorCode,access_prp=accessList)
        if (errorCode /= 0) then
-          message="failed to open HDF5 file '"//fileObject%objectName//"'"
+          message="failed to open HDF5 file '"//fileObject%objectFile//"'"
           call Error_Report(message//{introspection:location})
        end if
     else
