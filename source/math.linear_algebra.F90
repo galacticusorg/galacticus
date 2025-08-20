@@ -62,6 +62,8 @@ module Linear_Algebra
        <method description="Return a C pointer to the GSL vector object."                                      method="gslObject"        />
      </methods>
      !!]
+     procedure ::                        vectorAssign
+     generic   :: assignment(=)       => vectorAssign
      procedure :: magnitude           => vectorMagnitude
      procedure ::                        vectorDotProduct
      generic   :: operator  (.dot.  ) => vectorDotProduct
@@ -117,6 +119,8 @@ module Linear_Algebra
        <method description="Compute the Cholesky decomposition of the matrix in place."                                        method="choleskyDecomposition" />
      </methods>
      !!]
+     procedure ::                           matrixAssign
+     generic   :: assignment(=)          => matrixAssign
      procedure ::                           matrixMatrixProduct
      procedure ::                           matrixMatrixAdd
      generic   :: operator(*)            => matrixMatrixProduct
@@ -613,6 +617,20 @@ contains
     return
   end subroutine vectorUnassignment
 
+  subroutine vectorAssign(self,from)
+    !!{
+    Perform assignment of vectors.
+    !!}
+    implicit none
+    class(vector), intent(inout) :: self
+    class(vector), intent(in   ) :: from
+
+    self%vectorManager =  from%vectorManager
+    self%vector_       => from%vector_
+    self%size_         =  from%size_
+    return
+  end subroutine vectorAssign
+
   function vectorAdd(vector1,vector2)
     !!{
     Add one vector to another.
@@ -826,6 +844,21 @@ contains
     end do
     return
   end subroutine matrixUnassignment
+
+  subroutine matrixAssign(self,from)
+    !!{
+    Perform assignment of matrices.
+    !!}
+    implicit none
+    class(matrix), intent(inout) :: self
+    class(matrix), intent(in   ) :: from
+
+    self%matrixManager =  from%matrixManager
+    self%matrix_       => from%matrix_
+    self%size_         =  from%size_
+    self%isSquare      =  from%isSquare
+    return
+  end subroutine matrixAssign
 
   function matrixMatrixProduct(matrix1,matrix2)
     !!{
