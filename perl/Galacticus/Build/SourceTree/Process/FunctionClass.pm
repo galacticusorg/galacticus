@@ -1170,6 +1170,7 @@ CODE
 	    
 	    # Add "assignment(=)" operator.
 	    my $assignment;
+	    my $rankMaximumAssigner = 0;
             $assignment->{'code'        } .= "select type (self)\n";
 	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
 		# Add type guards.
@@ -1209,14 +1210,35 @@ CODE
 					# Use `mold=` to get the correct type. Then include a direct assignment after the `allocate`
 					# as this will trigger any defined assignment which is necessary for reference counting.
 					my $bounds = "";
+					my $rank   = 0;
 					if ( grep {$_ =~ m/^dimension\s*\([a-z0-9_:,\s]+\)/} @{$declaration->{'attributes'}} ) {
 					    # Non-scalar parameter - values must be concatenated.
 					    my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
-					    my $rank                = ($dimensionDeclarator =~ tr/,//)+1;
+					    $rank                   = ($dimensionDeclarator =~ tr/,//)+1;
 					    $bounds = "(".join(",",map {"lbound(from%".$name.",dim=".$_."):ubound(from%".$name.",dim=".$_.")"} 1..$rank).")";
 					}
 					$assignment->{'code'} .= "      allocate(self%".$name.$bounds.",mold=from%".$name.")\n";
-					$assignment->{'code'} .= "      self%".$name."=from%".$name."\n";
+					if ( $rank > 0 && $declaration->{'intrinsic'} eq "type" ) {
+					    # <workaround type="gfortran" PR="46897" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=46897">
+					    #   <seeAlso type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=57696"/>
+					    #   <description>
+					    #     Type-bound defined assignment not done because multiple part array references would occur in intermediate expressions.
+					    #   </description>
+					    # </workaround>
+					    for(my $i=1;$i<=$rank;++$i) {
+						$assignment->{'code'} .= "      do i".$i."__=lbound(from%".$name.",dim=".$i."),ubound(from%".$name.",dim=".$i.")\n";
+					    }
+					    my $indices = join(",",map {"i".$_."__"} 1..$rank);
+					    $assignment->{'code'} .= "      self%".$name."(".$indices.")=from%".$name."(".$indices.")\n";
+					    for(my $i=1;$i<=$rank;++$i) {
+						$assignment->{'code'} .= "      end do\n";
+					    }
+					    $rankMaximumAssigner = $rank
+						if ( $rank > $rankMaximumAssigner );
+					} else {
+					    # Simple assignment.
+					    $assignment->{'code'} .= "      self%".$name."=from%".$name."\n";
+					}
 					$assignment->{'code'} .= "    end if\n";
 				    } else {
 					$assignment->{'code'} .= "    self%".$name.$assigner."from%".$name."\n";
@@ -1267,14 +1289,35 @@ CODE
 			# Use `mold=` to get the correct type. Then include a direct assignment after the `allocate` as this will
 			# trigger any defined assignment which is necessary for reference counting.
 			my $bounds = "";
+			my $rank   = 0;
 			if ( grep {$_ =~ m/^dimension\s*\([a-z0-9_:,\s]+\)/} @{$declaration->{'attributes'}} ) {
 			    # Non-scalar parameter - values must be concatenated.
 			    my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
-			    my $rank                = ($dimensionDeclarator =~ tr/,//)+1;
+			    $rank                   = ($dimensionDeclarator =~ tr/,//)+1;
 			    $bounds = "(".join(",",map {"lbound(from%".$name.",dim=".$_."):ubound(from%".$name.",dim=".$_.")"} 1..$rank).")";
 			}
 			$assignment->{'code'} .= "      allocate(self%".$name.$bounds.",mold=from%".$name.")\n";
-			$assignment->{'code'} .= "      self%".$name."=from%".$name."\n";
+			if ( $rank > 0 && $declaration->{'intrinsic'} eq "type" ) {
+			    # <workaround type="gfortran" PR="46897" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=46897">
+			    #   <seeAlso type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=57696"/>
+			    #   <description>
+			    #     Type-bound defined assignment not done because multiple part array references would occur in intermediate expressions.
+			    #   </description>
+			    # </workaround>
+			    for(my $i=1;$i<=$rank;++$i) {
+				$assignment->{'code'} .= "      do i".$i."__=lbound(from%".$name.",dim=".$i."),ubound(from%".$name.",dim=".$i.")\n";
+			    }
+			    my $indices = join(",",map {"i".$_."__"} 1..$rank);
+				$assignment->{'code'} .= "      self%".$name."(".$indices.")=from%".$name."(".$indices.")\n";
+			    for(my $i=1;$i<=$rank;++$i) {
+				$assignment->{'code'} .= "      end do\n";
+			    }
+			    $rankMaximumAssigner = $rank
+				if ( $rank > $rankMaximumAssigner );
+			} else {
+			    # Simple assignment.
+			    $assignment->{'code'} .= "      self%".$name."=from%".$name."\n";
+			}
 			$assignment->{'code'} .= "    end if\n";
 		    } else {
 			$assignment->{'code'} .= "    self%".$name.$assigner."from%".$name."\n";
@@ -1310,14 +1353,35 @@ CODE
 				    # Use `mold=` to get the correct type. Then include a direct assignment after the `allocate`
 				    # as this will trigger any defined assignment which is necessary for reference counting.
 				    my $bounds = "";
+				    my $rank   = 0;
 				    if ( grep {$_ =~ m/^dimension\s*\([a-z0-9_:,\s]+\)/} @{$declaration->{'attributes'}} ) {
 					# Non-scalar parameter - values must be concatenated.
 					my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
-					my $rank                = ($dimensionDeclarator =~ tr/,//)+1;
+					$rank                   = ($dimensionDeclarator =~ tr/,//)+1;
 					$bounds = "(".join(",",map {"lbound(from%".$name.",dim=".$_."):ubound(from%".$name.",dim=".$_.")"} 1..$rank).")";
 				    }
 				    $assignment->{'code'} .= "      allocate(self%".$name.",mold=from%".$name.")\n";
-				    $assignment->{'code'} .= "      self%".$name."=from%".$name."\n";
+				    if ( $rank > 0 && $declaration->{'intrinsic'} eq "type" ) {
+					# <workaround type="gfortran" PR="46897" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=46897">
+					#   <seeAlso type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=57696"/>
+					#   <description>
+					#     Type-bound defined assignment not done because multiple part array references would occur in intermediate expressions.
+					#   </description>
+					# </workaround>
+					for(my $i=1;$i<=$rank;++$i) {
+					    $assignment->{'code'} .= "      do i".$i."__=lbound(from%".$name.",dim=".$i."),ubound(from%".$name.",dim=".$i.")\n";
+					}
+					my $indices = join(",",map {"i".$_."__"} 1..$rank);
+					$assignment->{'code'} .= "      self%".$name."(".$indices.")=from%".$name."(".$indices.")\n";
+					for(my $i=1;$i<=$rank;++$i) {
+					    $assignment->{'code'} .= "      end do\n";
+					}
+					$rankMaximumAssigner = $rank
+					    if ( $rank > $rankMaximumAssigner );
+				    } else {
+					# Simple assignment.
+					$assignment->{'code'} .= "      self%".$name."=from%".$name."\n";
+				    }
 				    $assignment->{'code'} .= "    end if\n";
 				} else {
 				    $assignment->{'code'} .= "    self%".$name.$assigner."from%".$name."\n";
@@ -1333,6 +1397,11 @@ CODE
 	    $assignment->{'code'} .= "self%isDefaultOfClass=from%isDefaultOfClass\n";
 	    $assignment->{'code'} .= "self%referenceCount=from%referenceCount\n";
 	    $assignment->{'code'} .= "return\n";
+	    # Insert any variables required.
+	    if ( $rankMaximumAssigner > 0 ) {
+		$assignment->{'code'} = "integer :: ".join(",",map {"i".$_."__"} 1..$rankMaximumAssigner)."\n".$assignment->{'code'}
+	    }
+	    # Construct the method.
 	    $methods{'assignment(=)'} =
 	    {
 		description => "Assign the object.",
