@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "8cac82e56070c4783a7614093e18a308e048f52c",
-        "message": "Merge pull request #900 from galacticusorg/fixUpdateParameterFiles\n\nMigrate some parameter files which had previously been missed\n",
-        "timestamp": "2025-08-16 16:21:37+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/8cac82e56070c4783a7614093e18a308e048f52c"
+        "id": "b9f09f4ab2061c3134c221a207a564efec828763",
+        "message": "Merge pull request #902 from galacticusorg/fixHDF5ErrorFileName\n\nFix a bug that prevented the file name being reported in HDF5 file open errors\n",
+        "timestamp": "2025-08-20 02:18:19+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/b9f09f4ab2061c3134c221a207a564efec828763"
     },
     "results": [
         {
