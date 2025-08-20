@@ -3,7 +3,7 @@
 <!-- No baryonic physics is included - a purely dark matter universe is assumed. -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
+  <lastModified revision="150aacee83614f7989048cc483a95d9020d948c2" time="2025-08-15T19:23:15"/>
 
   <!-- Set verbosity to show when background work is being performed -->
   <verbosityLevel value="working"/>
@@ -21,24 +21,30 @@
   <!-- Baryonic components are set to null since we are not modeling them here. -->
   <componentBasic             value="standard"/>
   <componentBlackHole         value="standard"/>
+
+ 
   <componentDarkMatterProfile value="scale"   />
-  <componentDisk              value="standard"/>
+  <componentDisk value="standard">
+  <massDistributionDisk value="exponentialDisk">
+    <dimensionless value="true"/>
+  </massDistributionDisk>
+  </componentDisk>
   <componentHotHalo           value="standard"/>
   <componentSatellite         value="orbiting"/>
-  <componentSpheroid          value="standard"/>
-  <componentSpin              value="vector"  />
-  <diskMassDistribution value="exponentialDisk">
+  <componentSpheroid value="standard">
+  <massDistributionSpheroid value="hernquist">
     <dimensionless value="true"/>
-  </diskMassDistribution>
-  <spheroidMassDistribution value="hernquist">
-    <dimensionless value="true"/>
-  </spheroidMassDistribution>
-
+  </massDistributionSpheroid>
+  </componentSpheroid>
+  <componentSpin value="vector"/>
   <!-- Intergalactic background radiation -->
   <radiationFieldIntergalacticBackground value="summation">
     <radiationField value="cosmicMicrowaveBackground"/>
-    <radiationField value="intergalacticBackgroundFile">
-      <fileName value="%DATASTATICPATH%/radiation/Cosmic_Background_Radiation_FG20.hdf5"/>
+    <radiationField value="summation">
+      <radiationField value="cosmicMicrowaveBackground"/>
+      <radiationField value="intergalacticBackgroundFile">
+	<fileName value="%DATASTATICPATH%/radiation/Cosmic_Background_Radiation_FG20.hdf5"/>
+      </radiationField>
     </radiationField>
   </radiationFieldIntergalacticBackground>
   
@@ -341,6 +347,12 @@
   <blackHoleCGMHeating value="jetPower">
     <efficiencyRadioMode value="1.0"/>
   </blackHoleCGMHeating>
+  <blackHoleAccretionRate value="standard">
+    <bondiHoyleAccretionEnhancementSpheroid value="5.0e0"/>
+    <bondiHoyleAccretionEnhancementHotHalo value="6.0e0"/>
+    <bondiHoyleAccretionHotModeOnly value="true"/>
+    <bondiHoyleAccretionTemperatureSpheroid value="1.0e2"/>
+  </blackHoleAccretionRate>
 
   <!-- Accretion disk properties -->
   <accretionDisks value="switched">

@@ -227,7 +227,8 @@ contains
                &              *(                                                                  &
                &                +(1.0d0+self%energyBoost                     )                    &
                &                /(1.0d0+basicSibling%mass()/basicChild%mass())**self%exponentMass &
-               &               )
+               &               )                                                                  &
+               &              *nodeSibling%subsamplingWeight()
           matrixIntermediate5= energyTensorPrimary    +matrixIntermediate4
           energyTensorPrimary= matrix(matrixIntermediate5)
        end do

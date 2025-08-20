@@ -3,7 +3,7 @@
 <!-- 30-October-2011                          -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
+  <lastModified revision="150aacee83614f7989048cc483a95d9020d948c2" time="2025-08-15T19:23:15"/>
 
   <verbosityLevel value="2"/>
 
@@ -16,22 +16,14 @@
   <componentBasic value="standard"/>
   <componentBlackHole value="null"/>
   <componentDarkMatterProfile value="scale"/>
-  <componentDisk value="null"/>
-  <!--
-  <diskMassDistribution value="exponentialDisk">
-    <dimensionless value="true"/>
-  </diskMassDistribution>
-  -->
-  <diskMassDistribution value="null"/>
+  <componentDisk value="null">
+  <massDistributionDisk value="null"/>
+  </componentDisk>
   <componentHotHalo value="null"/>
   <componentSatellite value="orbiting"/>
-  <componentSpheroid value="null"/>
-  <!--
-  <spheroidMassDistribution value="hernquist">
-    <dimensionless value="true"/>
-  </spheroidMassDistribution>
-  -->
-  <spheroidMassDistribution value="null"/>
+  <componentSpheroid value="null">
+  <massDistributionSpheroid value="null"/>
+  </componentSpheroid>
   <componentSpin value="null"/>
   <componentMergingStatistics value="standard"/>
 
@@ -50,11 +42,6 @@
     <sigma_8 value="0.82"/>     	<!-- Mao et al. 2015 -->
   </cosmologicalMassVariance>
 
-  <!--
-  <transferFunction value="eisensteinHu1999">
-    <neutrinoNumberEffective value="3.046"/>
-    <neutrinoMassSummed value="0.000"/>
-  -->
   <transferFunction value="CAMB">
     <darkMatterParticle value="CDM"/>
     <cosmologyParameters value="simple">
@@ -79,9 +66,6 @@
   <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt">
     <darkMatterParticle value="CDM"/>
   </criticalOverdensity>
-  <!--
-  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
-  -->
   <virialDensityContrast value="bryanNorman1998"/>
 
   <!-- Merger tree building options -->
@@ -91,9 +75,6 @@
   <mergerTreeBuilder value="cole2000">
     <accretionLimit value="0.1"/>
     <mergeProbability value="0.1"/>
-    <!--
-    <redshiftMaximum value="5.0"/>
-    -->
   </mergerTreeBuilder>
   <mergerTreeBranchingProbability value="parkinsonColeHelly">
     <G0 value="+0.57"/>
@@ -102,17 +83,7 @@
     <accuracyFirstOrder value="+0.10"/>
   </mergerTreeBranchingProbability>
 
-  <!-- Uniform distribution of halo massses -->
-  <!--
-  <mergerTreeBuildMasses value="sampledDistributionUniform">
-    <massTreeMinimum value="0.8161d12"/>
-    <massTreeMaximum value="1.1020d12"/>
-    <treesPerDecade value="4000"/>
-  </mergerTreeBuildMasses>
-  -->
-
   <!-- Fixed halo masses -->
-  
   <mergerTreeBuildMasses value="fixedMass">
     <massTree value="1.0e10"/>
     <treeCount value="1"/>
@@ -123,9 +94,6 @@
   </mergerTreeMassResolution>
 
   <!-- Substructure hierarchy options -->
-  <!--
-  <nodeMergers value="singleLevelHierarchy"/>
-  -->
   <mergerTreeNodeMerger value="multiLevelHierarchy"/>
 
   <darkMatterParticle value="decayingDarkMatter">
@@ -157,19 +125,7 @@
   </darkMatterProfileHeating>
 
   <!-- Halo concentration  --> 
-  <!--
-  <darkMatterProfileConcentration value="diemerKravtsov2014"/>
-  -->
   <darkMatterProfileMinimumConcentration value="1.0"/>
-  <!--
-  <darkMatterProfileScaleRadius value="concentration">
-    <correctForConcentrationDefinition value="true"/>
-  </darkMatterProfileScaleRadius>
-  <darkMatterProfileConcentration value="diemerJoyce2019">
-    <scatter value="0.16"/>
-  </darkMatterProfileConcentration>
-  -->
-
   <darkMatterProfileScaleRadius value="ludlow2016">
     <C value="625.0" />
     <f value="0.061" />
@@ -204,12 +160,6 @@
     <efficiency value="2.86" />
   </satelliteTidalStripping>
 
-  <!--
-  <satelliteDynamicalFriction value="zero"/>
-  <satelliteTidalHeatingRate value="zero"/>
-  <satelliteTidalStripping value="zero"/>
-  -->
-
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
     <!-- Cosmological epoch -->
@@ -219,21 +169,6 @@
     <!-- Halo concentrations -->
     <nodeOperator value="darkMatterProfileScaleSet"        />
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
-    <!-- Subhalo hierarchy -->
-    <!--
-    <nodeOperator value="subsubhaloPromotion"   />
-    <nodeOperator value="satelliteOrbit"                   />
-    <nodeOperator value="satelliteDynamicalFriction"       />
-    <nodeOperator value="satelliteTidalMassLoss"           />
-    <nodeOperator value="satelliteTidalHeating"            />
-    <nodeOperator value="satelliteMergingRadiusTrigger"     >
-      <radiusVirialFraction      value="0.01"/>
-    </nodeOperator>
-    <nodeOperator value="satelliteDestructionMassThreshold" >
-      <massDestructionAbsolute       value="3.0e5"/>
-      <massDestructionMassInfallFraction value="0.0"/>
-    </nodeOperator>
-    -->
   </nodeOperator>
 
   <!-- Halo accretion options -->

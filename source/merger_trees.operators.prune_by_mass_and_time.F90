@@ -227,14 +227,15 @@ contains
              currentTree => tree
           else
              allocate(currentTree%nextTree)
-             currentTree                  => currentTree%nextTree
-             currentTree%firstTree        => tree
-             currentTree%hostUniverse     => tree%hostUniverse
-             currentTree%event            => null()
-             currentTree%nextTree         => null()
-             currentTree%index            =  tree%index
-             currentTree%volumeWeight     =  tree%volumeWeight
-             currentTree%initializedUntil =  tree%initializedUntil
+             currentTree                   => currentTree%nextTree
+             currentTree%firstTree         => tree
+             currentTree%hostUniverse      => tree%hostUniverse
+             currentTree%event             => null()
+             currentTree%nextTree          => null()
+             currentTree%index             =  tree%index
+             currentTree%volumeWeight      =  tree%volumeWeight
+             currentTree%initializedUntil  =  tree%initializedUntil
+             currentTree%isTreeInitialized =  .false.
              call currentTree%properties%initialize()
              allocate(currentTree%randomNumberGenerator_,mold=tree%randomNumberGenerator_)
              !$omp critical(mergerTreeOperatorMassAndTimeeepCopyReset)
