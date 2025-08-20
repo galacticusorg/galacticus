@@ -259,7 +259,7 @@ module Mass_Distributions
     <modules>Root_Finder</modules>
     <code>
       type            (rootFinder)            :: finder
-      double precision            , parameter :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-6
+      double precision            , parameter :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
       double precision                        :: massTarget
 
       if      (present(mass          )) then

@@ -28,7 +28,7 @@ module Input_Parameters
   !!{
   Implements reading of parameters from an XML file.
   !!}
-  use, intrinsic :: ISO_C_Binding     , only : c_char        , c_int
+  use, intrinsic :: ISO_C_Binding     , only : c_char         , c_int
   use            :: FoX_dom           , only : node
   use            :: Function_Classes  , only : functionClass
   use            :: IO_HDF5           , only : hdf5Object
@@ -123,7 +123,7 @@ module Input_Parameters
     
   type :: documentWrapper
      !!{
-     Wrapper class for managing GSL interpolators.
+     Wrapper class for managing XML documents.
      !!}
      private
      type(node), pointer, public :: document => null()
