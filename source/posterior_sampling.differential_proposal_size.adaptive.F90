@@ -44,15 +44,15 @@
      Implementation of a posterior sampling differential evolution proposal size class in which the proposal size is adaptive.
      !!}
      private
-     double precision                 :: gammaCurrent            , gammaAdjustFactor    , &
+     double precision                 :: gammaCurrent                     , gammaAdjustFactor    , &
           &                              gammaInitial
-     double precision                 :: gammaMinimum            , gammaMaximum
-     double precision                 :: acceptanceRateMinimum   , acceptanceRateMaximum
-     integer                          :: updateCount             , lastUpdateCount
-     logical                          :: outliersInAcceptanceRate, appendLog            , &
-          &                              restoreFromLog          , flushLog
+     double precision                 :: gammaMinimum                     , gammaMaximum
+     double precision                 :: acceptanceRateMinimum            , acceptanceRateMaximum
+     integer                          :: updateCount                      , lastUpdateCount
+     logical                          :: outliersInAcceptanceRate         , appendLog            , &
+          &                              restoreFromLog                   , flushLog
      type            (varying_string) :: logFileName
-     integer                          :: logFileUnit
+     integer                          :: logFileUnit             =-huge(0)
    contains
      final     ::          adaptiveDestructor
      procedure :: gamma => adaptiveGamma
