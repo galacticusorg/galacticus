@@ -244,13 +244,14 @@ contains
        nodeSibling          =>  nodeChild
        do while(associated(nodeSibling%sibling))
           nodeSibling                =>  nodeSibling %sibling
-          basicSibling               =>  nodeSibling %basic         (                 )
-          spinSibling                =>  nodeSibling %spin          (                 )
-          satelliteSibling           =>  nodeSibling %satellite     (autoCreate=.true.)
-          massRatio                  =  +basicSibling%mass          (                 ) &
-               &                        /basicChild  %mass          (                 )
-          massUnresolved             =  +             massUnresolved                    &
-               &                        -basicSibling%mass          (                 )
+          basicSibling               =>  nodeSibling %basic            (                 )
+          spinSibling                =>  nodeSibling %spin             (                 )
+          satelliteSibling           =>  nodeSibling %satellite        (autoCreate=.true.)
+          massRatio                  =  +basicSibling%mass             (                 ) &
+               &                        /basicChild  %mass             (                 )
+          massUnresolved             =  +             massUnresolved                       &
+               &                        -basicSibling%mass             (                 ) &
+               &                        *nodeSibling %subsamplingWeight(                 )
           ! Add orbital angular momentum of this sibling scaled by the reduced mass to correct to the center of mass of the
           ! sibling-child binary system.                
           angularMomentumTotal=+angularMomentumTotal                &
@@ -258,10 +259,12 @@ contains
                &               /(                                   &
                &                 +1.0d0                             &
                &                 +massRatio                         &
-               &                )**self%exponentMass
+               &                )**self%exponentMass                &
+               &               *nodeSibling%subsamplingWeight()
           ! Add the spin angular momentum of the sibling.
           angularMomentumTotal=+            angularMomentumTotal    &
-               &               +spinSibling%angularMomentumVector()
+               &               +spinSibling%angularMomentumVector() &
+               &               *nodeSibling%subsamplingWeight   ()
        end do
        ! Add in the spin angular momentum of the primary child.
        angularMomentumTotal=+           angularMomentumTotal   &

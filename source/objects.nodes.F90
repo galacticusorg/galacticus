@@ -71,6 +71,7 @@ module Galacticus_Nodes
      integer         (kind=kind_int8            )                  :: index
      type            (hdf5Object                )                  :: hdf5Group
      double precision                                              :: volumeWeight                    , initializedUntil
+     logical                                                       :: isTreeInitialized
      type            (treeNode                  ), pointer         :: nodeBase               => null()
      type            (mergerTree                ), pointer         :: nextTree               => null(), firstTree        => null()
      type            (universe                  ), pointer         :: hostUniverse           => null()

@@ -136,11 +136,14 @@ contains
     tree => self%mergerTreeConstructor_%construct(treeNumber,finished)
     if (associated(tree)) then
        ! Apply any tree initialization operators.
-       call self%mergerTreeOperator_%operatePreInitialization(tree)
-       treeWalkerAll=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
-       do while (treeWalkerAll%next(nodeWork))
-          call self%nodeOperator_%nodeTreeInitialize(nodeWork)
-       end do
+       if (.not.tree%isTreeInitialized) then
+          call self%mergerTreeOperator_%operatePreInitialization(tree)
+          treeWalkerAll=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
+          do while (treeWalkerAll%next(nodeWork))
+             call self%nodeOperator_%nodeTreeInitialize(nodeWork)
+          end do
+          tree%isTreeInitialized=.true.
+       end if
        if (.not.self%mergerTreeFilter_%passes(tree)) then
           call tree%destroy()
           deallocate(tree)

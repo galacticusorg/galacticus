@@ -2,7 +2,7 @@
 <!-- Model used to test that adaptive SFHs all have the same lengths -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
+  <lastModified revision="150aacee83614f7989048cc483a95d9020d948c2" time="2025-08-15T19:23:15"/>
   <!-- Task and work control -->
   <task value="evolveForests">
     <walltimeMaximum value="-1"/> 
@@ -13,21 +13,19 @@
   <componentBasic value="standard"/>
   <componentBlackHole value="standard"/>
   <componentDarkMatterProfile value="scale"/>
-  <componentDisk value="standard"/>
-
-  <componentHotHalo           value="standard"/>
+  <componentDisk value="standard">
+  <massDistributionDisk value="exponentialDisk">
+    <dimensionless value="true"/>
+  </massDistributionDisk>
+  </componentDisk>
+  <componentHotHalo value="standard"/>
   <componentSatellite value="standard"/>
-  <componentSpheroid value="standard"/>
-
-  <diskMassDistribution value="exponentialDisk">
+  <componentSpheroid value="standard">
+  <massDistributionSpheroid value="hernquist">
     <dimensionless value="true"/>
-  </diskMassDistribution>
-  
-  <spheroidMassDistribution value="hernquist">
-    <dimensionless value="true"/>
-  </spheroidMassDistribution>
-
-  <treeNodeMethodSpin3D value="vector"/>
+  </massDistributionSpheroid>
+  </componentSpheroid>
+  <componentSpin value="vector"/>
   
   <!-- Cosmological parameters and options -->
   <cosmologyFunctions value="matterLambda"/>
@@ -100,12 +98,14 @@
   <mergerTreeOperator value="sequence">
     <mergerTreeOperator value="massAccretionHistory"/>
   </mergerTreeOperator>
-
-
+  
   <radiationFieldIntergalacticBackground value="summation">
     <radiationField value="cosmicMicrowaveBackground"/>
-    <radiationField value="intergalacticBackgroundFile">
-      <fileName value="%DATASTATICPATH%/radiation/Cosmic_Background_Radiation_FG20.hdf5"/>
+    <radiationField value="summation">
+      <radiationField value="cosmicMicrowaveBackground"/>
+      <radiationField value="intergalacticBackgroundFile">
+	<fileName value="%DATASTATICPATH%/radiation/Cosmic_Background_Radiation_FG20.hdf5"/>
+    </radiationField>
     </radiationField>
   </radiationFieldIntergalacticBackground>
 
@@ -308,11 +308,17 @@
   <blackHoleCGMHeating value="jetPower">
     <efficiencyRadioMode value="0.00140338137883176"/>
   </blackHoleCGMHeating>
-
+  <blackHoleAccretionRate value="standard">
+    <bondiHoyleAccretionEnhancementSpheroid value="5.0e0"/>
+    <bondiHoyleAccretionEnhancementHotHalo value="6.0e0"/>
+    <bondiHoyleAccretionHotModeOnly value="true"/>
+    <bondiHoyleAccretionTemperatureSpheroid value="1.0e2"/>
+  </blackHoleAccretionRate>
+  
   <stellarWinds value="leitherer1992"/>
   <initialMassForSupernovaTypeII value="8.0"/>
-  <supernovaeIa value="nagashima"/>
-  <supernovaePopIII value="Heger-Woosley2002"/>
+  <supernovaeTypeIa value="nagashima2005"/>
+  <supernovaePopulationIII value="hegerWoosley2002"/>
   <stellarFeedback value="standard"/>
   
   <!-- Black hole options -->

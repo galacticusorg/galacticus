@@ -1176,7 +1176,7 @@ contains
        ! Attempt to open the file.
        call h5fopen_f(fileName,fileAccess,self%objectID,errorCode,access_prp=accessList)
        if (errorCode /= 0) then
-          message="failed to open HDF5 file '"//self%objectName//"'"
+          message="failed to open HDF5 file '"//self%objectFile//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else

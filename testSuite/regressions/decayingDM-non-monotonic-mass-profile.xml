@@ -2,7 +2,7 @@
 <!-- Regression test for non-monotonic behavior in decaying dark matter mass profiles -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
+  <lastModified revision="150aacee83614f7989048cc483a95d9020d948c2" time="2025-08-15T19:23:15"/>
 
   <verbosityLevel value="2"/>
 
@@ -15,22 +15,14 @@
   <componentBasic value="standard"/>
   <componentBlackHole value="null"/>
   <componentDarkMatterProfile value="scale"/>
-  <componentDisk value="null"/>
-  <!--
-  <diskMassDistribution value="exponentialDisk">
-    <dimensionless value="true"/>
-  </diskMassDistribution>
-  -->
-  <diskMassDistribution value="null"/>
+  <componentDisk value="null">
+    <massDistributionDisk value="null"/>
+  </componentDisk>
   <componentHotHalo value="null"/>
   <componentSatellite value="orbiting"/>
-  <componentSpheroid value="null"/>
-  <!--
-  <spheroidMassDistribution value="hernquist">
-    <dimensionless value="true"/>
-  </spheroidMassDistribution>
-  -->
-  <spheroidMassDistribution value="null"/>
+  <componentSpheroid value="null">
+    <massDistributionSpheroid value="null"/>
+  </componentSpheroid>
   <componentSpin value="null"/>
   <componentMergingStatistics value="standard"/>
 
@@ -78,9 +70,6 @@
   <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt">
     <darkMatterParticle value="CDM"/>
   </criticalOverdensity>
-  <!--
-  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
-  -->
   <virialDensityContrast value="bryanNorman1998"/>
 
   <!-- Merger tree building options -->

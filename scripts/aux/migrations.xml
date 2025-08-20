@@ -248,6 +248,16 @@
   <migration commit="49430476890d1e0d92c686020f046e972952f81e">
     <translation function="blackHoleNonCentral"/>
   </migration>
+  <migration commit="65c7326e2d0e0e85feea12ef933222871f069fb2">
+    <translation xpath="//scaleCutOffModel[@value]">
+      <value old="vogel22SpinHalf" new="vogel23SpinHalf"/>
+    </translation>
+  </migration>
+  <migration commit="65c7326e2d0e0e85feea12ef933222871f069fb2">
+    <translation xpath="//scaleCutOffModel[@value]">
+      <value old="vogel22SpinThreeHalves" new="vogel22SpinThreeHalves"/>
+    </translation>
+  </migration>
   <migration commit="c8ece7c25a69867343f09ac4c4c325380dbf8f21">
     <translation function="hotHaloVerySimple"/>
   </migration>
