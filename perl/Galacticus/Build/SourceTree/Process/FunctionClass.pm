@@ -2064,8 +2064,8 @@ CODE
 		    $modulePostContains->{'content'} .= "      if (.not.addLockInitialized) then\n";
 		    $modulePostContains->{'content'} .= "      !\$omp critical (addLockInitialize".ucfirst($directive->{'default'}).")\n";
 		    $modulePostContains->{'content'} .= "          if (.not.addLockInitialized) then\n";
-		    $modulePostContains->{'content'} .= "          addLockInitialized=.true.\n";
 		    $modulePostContains->{'content'} .= "          addLock=ompLock()\n";
+		    $modulePostContains->{'content'} .= "          addLockInitialized=.true.\n";
 		    $modulePostContains->{'content'} .= "      end if\n";
 		    $modulePostContains->{'content'} .= "      !\$omp end critical (addLockInitialize".ucfirst($directive->{'default'}).")\n";
 		    $modulePostContains->{'content'} .= "      end if\n";
