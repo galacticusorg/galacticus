@@ -45,9 +45,9 @@ module Radiation_Fields
      !!}
      private
      procedure       (crossSectionFunctionTemplate), pointer     , nopass :: crossSectionFunction => null(     )
-     double precision                  , dimension(2)         :: wavelengthRange
-     double precision                                         :: timeMinimum          =  huge(0.0d0), timeMaximum=-huge(0.0d0)
-     type            (interpolator    ), allocatable          :: interpolator_
+     double precision                              , dimension(2)         :: wavelengthRange
+     double precision                                                     :: timeMinimum          =  huge(0.0d0), timeMaximum=-huge(0.0d0)
+     type            (interpolator                )                       :: interpolator_
    contains
      !![
      <methods>
@@ -102,9 +102,9 @@ module Radiation_Fields
   !!]
 
   ! Module global variables for use in integrand routines.
-  class    (radiationFieldClass), pointer :: self_
-  type     (treeNode           ), pointer :: node_
-  procedure(crossSectionFunctionTemplate   ), pointer :: crossSectionFunction_
+  class    (radiationFieldClass         ), pointer :: self_
+  type     (treeNode                    ), pointer :: node_
+  procedure(crossSectionFunctionTemplate), pointer :: crossSectionFunction_
   !$omp threadprivate(self_,node_,crossSectionFunction_)
 
   abstract interface
@@ -130,19 +130,19 @@ contains
     use :: Numerical_Integration       , only : integrator     , GSL_Integ_Gauss15
     use :: Numerical_Ranges            , only : Make_Range     , rangeTypeLogarithmic
     implicit none
-    class           (radiationFieldClass), target      , intent(inout) :: self
-    double precision                     , dimension(2), intent(in   ) :: wavelengthRange
-    procedure       (crossSectionFunctionTemplate   ), pointer                     :: crossSectionFunction
-    type            (treeNode           ), target      , intent(inout) :: node
-    type            (integrator         ), save                        :: integrator_
-    type            (rateCoefficient    ), dimension(:), allocatable   :: rateCoefficients
-    double precision                     , dimension(:), allocatable   :: time                         , rateCoefficient_
-    double precision                     , parameter                   :: countTimesPerDecade  =30.0d0
-    logical                                                            :: integratorInitialized=.false., matched         , &
-         &                                                                recompute
-    double precision                                                   :: timeCurrent
-    integer                                                            :: countTimes                   , i               , &
-         &                                                                indexRateCoefficient
+    class           (radiationFieldClass         ), target      , intent(inout) :: self
+    double precision                              , dimension(2), intent(in   ) :: wavelengthRange
+    procedure       (crossSectionFunctionTemplate), pointer                     :: crossSectionFunction
+    type            (treeNode                    ), target      , intent(inout) :: node
+    type            (integrator                  ), save                        :: integrator_
+    type            (rateCoefficient             ), dimension(:), allocatable   :: rateCoefficients
+    double precision                              , dimension(:), allocatable   :: time                         , rateCoefficient_
+    double precision                              , parameter                   :: countTimesPerDecade  =30.0d0
+    logical                                                                     :: integratorInitialized=.false., matched         , &
+         &                                                                         recompute
+    double precision                                                            :: timeCurrent
+    integer                                                                     :: countTimes                   , i               , &
+         &                                                                         indexRateCoefficient
     !$omp threadprivate(integrator_,integratorInitialized)
 
     ! Construct the integrator if necessary.
@@ -189,8 +189,8 @@ contains
           if (allocated(self%rateCoefficients)) then
              call move_alloc(self%rateCoefficients,rateCoefficients)
              allocate(self%rateCoefficients(size(rateCoefficients)+1))
-             self%rateCoefficients(1:size(rateCoefficients))=rateCoefficients
              do i=1,size(rateCoefficients)
+                self%rateCoefficients(i)=rateCoefficients(i)
                 call self%rateCoefficients(i)%interpolator_%GSLReallocate()
              end do
              deallocate(rateCoefficients)
@@ -203,8 +203,6 @@ contains
        end if
        ! (Re)compute the table if necessary.
        if (recompute) then
-          if (allocated(self%rateCoefficients(indexRateCoefficient)%interpolator_)) deallocate(self%rateCoefficients(indexRateCoefficient)%interpolator_)
-          allocate(self%rateCoefficients(indexRateCoefficient)%interpolator_)
           self%rateCoefficients(indexRateCoefficient)%timeMinimum=min(self%rateCoefficients(indexRateCoefficient)%timeMinimum,timeCurrent/2.0d0)
           self%rateCoefficients(indexRateCoefficient)%timeMaximum=max(self%rateCoefficients(indexRateCoefficient)%timeMaximum,timeCurrent*2.0d0)
           countTimes=int(log10(self%rateCoefficients(indexRateCoefficient)%timeMaximum/self%rateCoefficients(indexRateCoefficient)%timeMinimum)*countTimesPerDecade+1.0d0)
