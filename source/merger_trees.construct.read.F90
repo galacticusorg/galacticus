@@ -933,10 +933,6 @@ contains
     implicit none
     type(mergerTreeConstructorRead), intent(inout) :: self
 
-    if (self%importerOpen) then
-       call self%mergerTreeImporter_%close()
-       self%importerOpen=.false.
-    end if
     !![
     <objectDestructor name="self%cosmologyFunctions_"            />
     <objectDestructor name="self%mergerTreeImporter_"            />
@@ -1014,7 +1010,6 @@ contains
        do while (treeNumber-self%treeNumberOffset > treeNumberMaximum .and. self%fileCurrent < size(self%fileNames))
           self%fileCurrent     =self%fileCurrent     +1
           self%treeNumberOffset=self%treeNumberOffset+treeNumberMaximum
-          call self%mergerTreeImporter_%close(                                                        )
           call self%mergerTreeImporter_%open (File_Name_Expand(char(self%fileNames(self%fileCurrent))))
           treeNumberMaximum=int(self%mergerTreeImporter_%treeCount(),kind=c_size_t)
        end do
