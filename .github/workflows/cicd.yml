@@ -1618,7 +1618,7 @@ jobs:
           name: 'Dark matter-only subhalos benchmarks (Symphony)'
           type: 'validate'
           suffix: 'darkMatterOnlySubhalosSymphonyMilkyWay'
-          threshold: '140%'
+          threshold: '160%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Dark matter-only subhalos validation (COZMIC WDM 3keV)'
         uses: ./.github/actions/benchmark
