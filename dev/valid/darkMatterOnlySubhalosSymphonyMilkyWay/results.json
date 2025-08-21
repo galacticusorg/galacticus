@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "b9f09f4ab2061c3134c221a207a564efec828763",
-        "message": "Merge pull request #902 from galacticusorg/fixHDF5ErrorFileName\n\nFix a bug that prevented the file name being reported in HDF5 file open errors\n",
-        "timestamp": "2025-08-20 02:18:19+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/b9f09f4ab2061c3134c221a207a564efec828763"
+        "id": "e245e9c3fbe495696e7f95f4d6d217c5a9ecab14",
+        "message": "Merge pull request #904 from galacticusorg/fixPromptCusps\n\nCompute rₛ consistently in cusp-NFW profiles\n",
+        "timestamp": "2025-08-21 01:16:35+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/e245e9c3fbe495696e7f95f4d6d217c5a9ecab14"
     },
     "results": [
         {
@@ -22,7 +22,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Symphony (Nadler et al. 2023)",
                 "comment": "Analysis of subhalo mass functions",
                 "description": "Subhalo mass function",
-                "logLikelihood": "3.053042986896064",
+                "logLikelihood": "3.060707584778908",
                 "type": "function1D",
                 "xDataset": "massRatio",
                 "yCovariance": "massFunctionCovariance",
@@ -46,12 +46,12 @@ window.ANALYSES_DATA = {
                     0.7079457843841377
                 ],
                 "yDataset": [
-                    17.333333333333332,
-                    9.833333333333334,
-                    5.511111111111111,
-                    3.1055555555555556,
-                    1.7333333333333334,
-                    0.8444444444444444,
+                    17.322222222222223,
+                    9.86111111111111,
+                    5.5,
+                    3.1166666666666667,
+                    1.7055555555555555,
+                    0.8555555555555555,
                     0.42777777777777776,
                     0.23333333333333334,
                     0.09444444444444444,
@@ -74,12 +74,12 @@ window.ANALYSES_DATA = {
                     0.0
                 ],
                 "yError": [
-                    0.3103164454170876,
-                    0.23372982186625144,
-                    0.17497795275581804,
-                    0.13135100463929877,
-                    0.09813067629253164,
-                    0.06849348892187751,
+                    0.31021696907363816,
+                    0.23405971592156552,
+                    0.17480147469502524,
+                    0.13158576980363346,
+                    0.09734119704408462,
+                    0.06894263136661587,
                     0.04874980215217846,
                     0.03600411499115478,
                     0.02290614236454256,
@@ -113,7 +113,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Symphony (Nadler et al. 2023)",
                 "comment": "Analysis of subhalo mass functions",
                 "description": "Subhalo radial distribution",
-                "logLikelihood": "1.7313152574850728",
+                "logLikelihood": "2.6960792600889296",
                 "type": "function1D",
                 "xDataset": "radiusFractional",
                 "yCovariance": "radialDistributionCovariance",
@@ -136,15 +136,15 @@ window.ANALYSES_DATA = {
                 ],
                 "yDataset": [
                     0.0,
-                    0.0,
-                    0.03888888888888889,
-                    0.12222222222222222,
+                    0.005555555555555556,
+                    0.016666666666666666,
+                    0.1111111111111111,
                     0.4166666666666667,
-                    1.0333333333333334,
-                    3.088888888888889,
-                    6.655555555555556,
-                    11.85,
-                    17.494444444444444
+                    1.0055555555555555,
+                    3.066666666666667,
+                    6.705555555555556,
+                    11.777777777777779,
+                    17.572222222222223
                 ],
                 "yDatasetTarget": [
                     0.0,
@@ -160,15 +160,15 @@ window.ANALYSES_DATA = {
                 ],
                 "yError": [
                     0.0,
-                    0.0,
-                    0.014698618394803282,
-                    0.026057865332352385,
+                    0.005555555555555556,
+                    0.009622504486493762,
+                    0.024845199749997663,
                     0.048112522432468816,
-                    0.07576767609436587,
-                    0.13099806802835107,
-                    0.19228964777640867,
-                    0.25658007197234417,
-                    0.31175528547996
+                    0.07474235581707617,
+                    0.13052600138300813,
+                    0.19301058628933565,
+                    0.25579698740491863,
+                    0.31244752645864143
                 ],
                 "yErrorTarget": [
                     0.0,
@@ -194,7 +194,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Symphony (Nadler et al. 2023)",
                 "comment": "Subhalo mean maximum velocity vs. bound mass relation",
                 "description": "Subhalo mean maximum velocity vs. bound mass relation",
-                "logLikelihood": "-5.041450958147434",
+                "logLikelihood": "-5.022075766440101",
                 "type": "function1D",
                 "xDataset": "massBound",
                 "yCovariance": "velocityMaximumMeanCovariance",
@@ -216,16 +216,16 @@ window.ANALYSES_DATA = {
                     74989420933.24559
                 ],
                 "yDataset": [
-                    19.309726207413316,
-                    23.01921262144287,
-                    27.860218579675198,
-                    33.57693716502735,
-                    39.70156107448588,
-                    47.392235167887165,
-                    54.5725949627158,
-                    65.16476309389985,
-                    79.09465595575212,
-                    86.98939436676818
+                    19.31529342267287,
+                    23.03081603080554,
+                    27.789180727679426,
+                    33.52562951097654,
+                    39.89462495010087,
+                    47.17749602279598,
+                    54.5759519169438,
+                    65.16778948660749,
+                    79.09911457030945,
+                    86.98204579173068
                 ],
                 "yDatasetTarget": [
                     18.46228412256267,
@@ -240,16 +240,16 @@ window.ANALYSES_DATA = {
                     76.8325
                 ],
                 "yError": [
-                    0.09797017857991103,
-                    0.13845047461156698,
-                    0.2090063030748657,
-                    0.29161735161822777,
-                    0.42048042848816064,
-                    0.6387409939977672,
-                    0.9452753748010607,
-                    1.4228825356601478,
-                    2.100809019622685,
-                    2.5873579658633408
+                    0.09830725907539065,
+                    0.1385472124190297,
+                    0.2090448704950458,
+                    0.2885235589170099,
+                    0.4270747337426188,
+                    0.6343857309908527,
+                    0.9529304608502072,
+                    1.4230933645253356,
+                    2.1008473431909516,
+                    2.5868118844179007
                 ],
                 "yErrorTarget": [
                     0.6799575664072215,
