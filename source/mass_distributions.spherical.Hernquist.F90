@@ -159,6 +159,7 @@ contains
        if      (present(scaleLength         )) then
           self%scaleLength=scaleLength
        else
+          self%scaleLength=0.0d0
           call Error_Report('"scaleLength" must be specified'//{introspection:location})
        end if
        if      (present(densityNormalization)) then
@@ -168,6 +169,8 @@ contains
           self%densityNormalization=mass                /2.0d0/Pi/scaleLength**3
           self%mass                =mass
        else
+          self%densityNormalization=0.0d0
+          self%mass                =0.0d0
           call Error_Report('one of "densityNormalization" or "mass" must be specified'//{introspection:location})
        end if
     end if

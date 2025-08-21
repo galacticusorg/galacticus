@@ -137,12 +137,15 @@ contains
     type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
     !![
-    <constructorAssign variables="radiusScale, radiusOuter, mass, truncateAtOuterRadius, componentType, massType"/>
+    <constructorAssign variables="radiusScale, radiusOuter, mass, componentType, massType"/>
+    <optionalArgument name="truncateAtOuterRadius" defaultsTo=".false."/>
     !!]
 
     ! This distribution profile is never dimensionless.
     self%dimensionless               =.false.
+    self%truncateAtOuterRadius       =truncateAtOuterRadius_
     self%normalizationDensityComputed=.false.
+    self%normalizationDensity_       =-huge(0.0d0)
     return
   end function enzoHydrostaticConstructorInternal
 

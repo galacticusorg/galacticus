@@ -240,6 +240,7 @@ contains
        radiusScaleFree          =+radiusOuter/self%scaleLength
        self%densityNormalization=+mass/self%scaleLength**3*(3.0d0-gamma)/4.0d0/Pi/radiusScaleFree**(3.0d0-gamma)/Hypergeometric_2F1([(3.0d0-gamma)/alpha,(beta-gamma)/alpha],[1.0d0+(3.0d0-gamma)/alpha],-radiusScaleFree**alpha)
     else
+       self%densityNormalization=+0.0d0
        call Error_Report('either "densityNormalization", or "mass" and "radiusOuter" must be specified'//{introspection:location})
     end if
     ! Determine if profile is dimensionless.

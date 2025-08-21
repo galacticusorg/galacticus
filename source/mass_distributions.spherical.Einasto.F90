@@ -200,13 +200,14 @@ contains
     if      (                            &
          &   present(scaleLength  )      &
          &  ) then
-       self%scaleLength         =scaleLength
+       self%scaleLength=scaleLength
     else if (                            &
          &   present(concentration).and. &
          &   present(virialRadius )      &
          &  ) then
        self%scaleLength=virialRadius/concentration
     else
+       self%scaleLength=0.0d0
        call Error_Report('no means to determine scale length'//{introspection:location})
     end if
     ! Determine density normalization.
@@ -223,6 +224,8 @@ contains
        self%densityNormalization=+mass/4.0d0/Pi/self%scaleLength**3*shapeParameter*exp(-2.0d0/shapeParameter)*(2.0d0/shapeParameter)**(3.0d0/shapeParameter)/Gamma_Function(3.0d0/shapeParameter)
        self%massTotal_          =+mass
     else
+       self%densityNormalization=+0.0d0
+       self%massTotal_          =+0.0d0
        call Error_Report('either "densityNormalization", or "mass" and "virialRadius" must be specified'//{introspection:location})
     end if
     ! Determine if profile is dimensionless.
