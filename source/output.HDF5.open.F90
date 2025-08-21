@@ -139,6 +139,8 @@ contains
 #endif
        ! Open the file.
        call ioHDF5AccessInitialize()
+       allocate(outputFile )
+       allocate(outputGroup)
        !$ call hdf5Access%set()
        outputFile=hdf5Object(                                                 &
             &                                    char(outputScratchFileName), &
@@ -205,10 +207,12 @@ contains
 	  <eventHookStatic name="outputFileClose"/>
           <eventHook       name="outputFileClose"/>
           !!]
-          ! Close the file.
           !$ call hdf5Access%set()
           call outputFile%writeAttribute(statusCompletion,"statusCompletion")
           !$ call hdf5Access%unset()
+          ! Destroy the file object.
+          deallocate(outputGroup)
+          deallocate(outputFile )
           ! Move the scratch file to the final file if necessary.
           if (outputFileName /= outputScratchFileName) call File_Rename(outputScratchFileName,outputFileName,overwrite=.true.)
           ! Record that the file is now closed.
