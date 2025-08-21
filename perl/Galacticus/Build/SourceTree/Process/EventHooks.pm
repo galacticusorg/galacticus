@@ -132,7 +132,7 @@ CODE
     procedure (interface{$interfaceType}         )                                           :: function_
     type      (hookList                          )               , allocatable, dimension(:) :: hooksTmp
     type      (hook{$interfaceType}              )                            , pointer      :: hook_
-    type      (varying_string                    )                                           :: threadLabel
+    type      (varying_string                    )                                           :: threadLabel      , message
     integer                                                                                  :: ompLevelEffective
     !$ integer                                                                               :: i
     !![
@@ -192,7 +192,8 @@ CODE
     self%count_=self%count_+1
     call self%resolveDependencies(hook_,dependencies)
     ! Report
-    call displayMessage(var_str("attaching '")//trim(hook_%label)//"' ["//hook_%eventID//"] to event"//trim(self%label)//threadLabel//" [count="//self%count_//"]",verbosityLevelInfo)
+    message=var_str("attaching '")//trim(hook_%label)//"' ["//hook_%eventID//"] to event"//trim(self%label)//threadLabel//" [count="//self%count_//"]"
+    call displayMessage(message,verbosityLevelInfo)
     !$ if (self%isGlobal) call self%unlock()
     return
   end subroutine eventHook{$interfaceType}Attach
@@ -215,7 +216,7 @@ CODE
     class    (*                        ), intent(in   ), target       :: object_
     procedure(                         )                              :: function_
     type     (hookList                 ), allocatable  , dimension(:) :: hooksTmp
-    type     (varying_string           )                              :: threadLabel
+    type     (varying_string           )                              :: threadLabel, message
     integer                                                           :: i          , j
     
     !$ if (self%isGlobal) call self%lock()
@@ -231,7 +232,8 @@ CODE
                 !$    if (j > 0) threadLabel=threadLabel//" -> "
                 !$    threadLabel=threadLabel//OMP_Get_Ancestor_Thread_Num(j)
                 !$ end do
-                call displayMessage(var_str("detaching '")//trim(self%hooks_(i)%hook_%label)//"' ["//self%hooks_(i)%hook_%eventID//"] from event"//trim(self%label)//threadLabel//" [count="//self%count_//"]",verbosityLevelInfo)
+                message=var_str("detaching '")//trim(self%hooks_(i)%hook_%label)//"' ["//self%hooks_(i)%hook_%eventID//"] from event"//trim(self%label)//threadLabel//" [count="//self%count_//"]"
+                call displayMessage(message,verbosityLevelInfo)
                 deallocate(self%hooks_(i)%hook_)
                 if (self%count_ > 1) then
                    call move_alloc(self%hooks_,hooksTmp)
@@ -331,7 +333,7 @@ subroutine eventsHooksFilterCopyIn_()
    !$ use :: OMP_Lib           , only : OMP_Get_Ancestor_Thread_Num, OMP_Get_Level
    implicit none
    type   (eventHookList ), pointer :: eventHookBackup
-   type   (varying_string)          :: threadLabel
+   type   (varying_string)          :: threadLabel    , message
    integer                          :: i
 
    threadLabel=""
@@ -349,7 +351,8 @@ CODE
    eventHookBackup%eventHook_ =  {$name}Event_
    if (associated({$name}EventBackups)) eventHookBackup%next => {$name}EventBackups
    {$name}EventBackups        => eventHookBackup
-   call displayMessage(var_str("{$name}: storing ")//eventHookBackup%eventHook_%count_//" hooks"//threadLabel,verbosityLevelInfo)
+   message=var_str("{$name}: storing ")//eventHookBackup%eventHook_%count_//" hooks"//threadLabel
+   call displayMessage(message,verbosityLevelInfo)
    nullify(eventHookBackup)
 CODE
             }
@@ -376,7 +379,7 @@ subroutine eventsHooksFilterRestore_()
    !$ use :: OMP_Lib           , only : OMP_Get_Ancestor_Thread_Num, OMP_Get_Level
    implicit none
    type   (eventHookList ), pointer :: eventHookBackup
-   type   (varying_string)          :: threadLabel
+   type   (varying_string)          :: threadLabel    , message
    integer                          :: i
 
    threadLabel=""
@@ -400,7 +403,8 @@ CODE
    class default
       call Error_Report('eventHook has incorrect class'//{$location})
    end select
-   call displayMessage(var_str("{$name}: restoring ")//eventHookBackup%eventHook_%count_//" hooks"//threadLabel,verbosityLevelInfo)
+   message=var_str("{$name}: restoring ")//eventHookBackup%eventHook_%count_//" hooks"//threadLabel
+   call displayMessage(message,verbosityLevelInfo)
    deallocate(eventHookBackup)
    nullify   (eventHookBackup)
 CODE
