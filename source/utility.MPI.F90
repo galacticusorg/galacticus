@@ -219,7 +219,7 @@ contains
 #ifdef USEMPI
     integer                          :: iError             , mpiThreadingProvided
     !![
-    <optionalArgument name="mpiThreadingRequired" defaultsTo="MPI_Thread_Funneled" />
+    <optionalArgument name="mpiThreadingRequired" defaultsTo="MPI_Thread_Funneled" if="USEMPI"/>
     !!]
 
     if (mpiThreadingRequired_ == MPI_Thread_Single) then
