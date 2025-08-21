@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1755684637591,
+  "lastUpdate": 1755764197770,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "b27a1a226fa7ac24d0e27c822e0b9c979c784133",
-          "message": "fix: Remove debugging comments",
-          "timestamp": "2024-10-01T08:27:04-07:00",
-          "tree_id": "556c56a99a05d8f17f6360e5197d3593c6973e32",
-          "url": "https://github.com/galacticusorg/galacticus/commit/b27a1a226fa7ac24d0e27c822e0b9c979c784133"
-        },
-        "date": 1727836370085,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 466.294,
-            "unit": "seconds",
-            "range": 0.48832816834935
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10696,6 +10666,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": "5.683995246128327",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e245e9c3fbe495696e7f95f4d6d217c5a9ecab14",
+          "message": "Merge pull request #904 from galacticusorg/fixPromptCusps\n\nCompute rₛ consistently in cusp-NFW profiles",
+          "timestamp": "2025-08-21T01:16:35Z",
+          "tree_id": "c26f8b4490470be18fd1d70d49b2334403b6f9ef",
+          "url": "https://github.com/galacticusorg/galacticus/commit/e245e9c3fbe495696e7f95f4d6d217c5a9ecab14"
+        },
+        "date": 1755764196756,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 91.508,
+            "unit": "seconds",
+            "range": 0.102154784520091
           }
         ]
       }
