@@ -291,13 +291,10 @@ contains
     class(surveyGeometryDavidzon2013VIPERS)                           , intent(inout) :: self
     type (varying_string                  ), allocatable, dimension(:), intent(inout) :: mangleFiles
 
-    allocate(mangleFiles(3))
-    mangleFiles=                                                       &
-         &      [                                                      &
-         &       "+"//self%mangleDirectory()//"/maskCombinedBU.ply:"// &
-         &       "-"//self%mangleDirectory()//"/photoW1.BU2.ply:"   // &
-         &       "-"//self%mangleDirectory()//"/photoW4.BU2.ply"       &
-         &      ]
+    allocate(mangleFiles(1))
+    mangleFiles(1)="+"//self%mangleDirectory()//"/maskCombinedBU.ply:"// &
+         &         "-"//self%mangleDirectory()//"/photoW1.BU2.ply:"   // &
+         &         "-"//self%mangleDirectory()//"/photoW4.BU2.ply"
     return
   end subroutine davidzon2013VIPERSMangleFiles
 
