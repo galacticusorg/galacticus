@@ -30,7 +30,16 @@
     </darkMatterProfileDMO>
   </change>
   <change type="insertAfter" path="nodeOperator/nodeOperator[@value='darkMatterProfileScaleSet']">
-    <nodeOperator value="darkMatterProfilePromptCusps"/>
+    <nodeOperator value="darkMatterProfilePromptCusps">
+      <alpha              value="24.000"/>
+      <beta               value=" 7.300"/>
+      <C                  value=" 0.800"/>
+      <kappa              value=" 4.500"/>
+      <coefficientScatter value=" 0.195"/>
+    </nodeOperator>
+  </change>
+  <change type="insertAfter" path="nodeOperator/nodeOperator[@value='darkMatterProfileScaleInterpolate']">
+    <nodeOperator value="darkMatterProfilePromptCuspsUpdate"/>
   </change>
   
 </changes>

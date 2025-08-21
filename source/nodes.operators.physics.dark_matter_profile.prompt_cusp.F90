@@ -22,15 +22,20 @@
   \cite{delos_cusp-halo_2025}.
   !!}
 
-  use :: Cosmology_Functions    , only : cosmologyFunctionsClass
-  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
-  use :: Power_Spectra          , only : powerSpectrumClass
-  use :: Linear_Growth          , only : linearGrowthClass
-  
+  use :: Cosmology_Parameters    , only : cosmologyParametersClass
+  use :: Cosmology_Functions     , only : cosmologyFunctionsClass
+  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Power_Spectra           , only : powerSpectrumClass
+  use :: Linear_Growth           , only : linearGrowthClass
+  use :: Virial_Density_Contrast , only : virialDensityContrastClass
+
   !![
   <nodeOperator name="nodeOperatorDarkMatterProfilePromptCusps">
    <description>
-    A node operator class that evaluates the properties of prompt cusps following the model of \cite{delos_cusp-halo_2025}.
+    A node operator class that evaluates the properties of prompt cusps following the model of \cite{delos_cusp-halo_2025}, with a
+    log-normal scatter of $\mu \exp(-1/\sigma_0)$~dex added to the cusp amplitude, where $\mu=${\normalfont \ttfamily
+    [coefficientScatter]}.
    </description>
   </nodeOperator>
   !!]
@@ -39,27 +44,29 @@
      A node operator class that evaluates the properties of prompt cusps following the model of \cite{delos_cusp-halo_2025}.
      !!}
      private
-     class           (powerSpectrumClass      ), pointer                   :: powerSpectrum_              => null()
-     class           (linearGrowthClass       ), pointer                   :: linearGrowth_               => null()
-     class           (cosmologyFunctionsClass ), pointer                   :: cosmologyFunctions_         => null()
-     class           (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_        => null()
-     double precision                          , allocatable, dimension(:) :: sigma_
-     logical                                                               :: growthIsWavenumberDependent
-     double precision                                                      :: alpha                                , beta                 , &
-          &                                                                   kappa                                , C                    , &
-          &                                                                   p
-     integer                                                               :: promptCuspMassID                     , promptCuspAmplitudeID, &
-          &                                                                   promptCuspNFWYID
+     class           (powerSpectrumClass        ), pointer                   :: powerSpectrum_              => null()
+     class           (linearGrowthClass         ), pointer                   :: linearGrowth_               => null()
+     class           (cosmologyParametersClass  ), pointer                   :: cosmologyParameters_        => null()
+     class           (cosmologyFunctionsClass   ), pointer                   :: cosmologyFunctions_         => null()
+     class           (darkMatterHaloScaleClass  ), pointer                   :: darkMatterHaloScale_        => null()
+     class           (darkMatterProfileDMOClass ), pointer                   :: darkMatterProfileDMO_       => null()
+     class           (virialDensityContrastClass), pointer                   :: virialDensityContrast_      => null()
+     double precision                            , allocatable, dimension(:) :: sigma_
+     logical                                                                 :: growthIsWavenumberDependent
+     double precision                                                        :: alpha                                , beta                 , &
+          &                                                                     kappa                                , C                    , &
+          &                                                                     p                                    , coefficientScatter
+     integer                                                                 :: promptCuspMassID                     , promptCuspAmplitudeID, &
+          &                                                                     promptCuspNFWYID
    contains
      !![
      <methods>
        <method method="sigma" description="Evaluate $\sigma_j^2 = \int_0^\infty \frac{\mathrm{d}k}{k} \mathcal{P}(k,t) k^{2j}$ where $\mathcal{P}(k) = k^3 P(k) / 2 \pi^2$ is the dimensionless form of the power spectrum."/>
      </methods>
      !!]
-     final     ::                                        darkMatterProfilePromptCuspsConstructorDestructor
-     procedure :: nodeTreeInitialize                  => darkMatterProfilePromptCuspsNodeTreeInitialize
-     procedure :: differentialEvolutionSolveAnalytics => darkMatterProfilePromptCuspsSolveAnalytics
-     procedure :: sigma                               => darkMatterProfilePromptCuspsNodeSigma
+     final     ::                       darkMatterProfilePromptCuspsDestructor
+     procedure :: nodeTreeInitialize => darkMatterProfilePromptCuspsNodeTreeInitialize
+     procedure :: sigma              => darkMatterProfilePromptCuspsNodeSigma
   end type nodeOperatorDarkMatterProfilePromptCusps
   
   interface nodeOperatorDarkMatterProfilePromptCusps
@@ -72,9 +79,9 @@
 
   ! Submodule-scope variables used in root-finding.
   class           (nodeOperatorDarkMatterProfilePromptCusps), pointer   :: self_
-  double precision                                                      :: sigma0Collapse          , time_ ,&
+  double precision                                                      :: sigma0Collapse          , time_, &
        &                                                                   expansionFactor_
-  integer                                                               :: j_
+  integer                                                               :: j_ 
   !$omp threadprivate(self_,sigma0Collapse,time_,expansionFactor_,j_)
 
   ! Maximum allowed value of the y-parameter in the cusp-NFW profile. Values of 1 or greater are not valid. We limit here to a
@@ -94,11 +101,14 @@ contains
     type            (inputParameters                         ), intent(inout) :: parameters
     class           (linearGrowthClass                       ), pointer       :: linearGrowth_
     class           (powerSpectrumClass                      ), pointer       :: powerSpectrum_
+    class           (cosmologyParametersClass                ), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass                 ), pointer       :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass                ), pointer       :: darkMatterHaloScale_
-    double precision                                                          :: alpha               , beta, &
-         &                                                                       kappa               , C   , &
-         &                                                                       p
+    class           (darkMatterProfileDMOClass               ), pointer       :: darkMatterProfileDMO_
+    class           (virialDensityContrastClass              ), pointer       :: virialDensityContrast_
+    double precision                                                          :: alpha                 , beta              , &
+         &                                                                       kappa                 , C                 , &
+         &                                                                       p                     , coefficientScatter
 
     !![
     <inputParameter>
@@ -136,23 +146,36 @@ contains
       <defaultSource>\citep[][Table 3]{delos_cusp-halo_2025}</defaultSource>
       <description>The parameter, $\kappa$, of the mass growth factor in the \cite{delos_cusp-halo_2025} prompt cusp model.</description>
     </inputParameter>
-    <objectBuilder class="linearGrowth"        name="linearGrowth_"        source="parameters"/>
-    <objectBuilder class="powerSpectrum"       name="powerSpectrum_"       source="parameters"/>
-    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    <inputParameter>
+      <name>coefficientScatter</name>
+      <source>parameters</source>
+      <defaultValue>0.195d0</defaultValue>
+      <defaultSource>Delos (private communication)</defaultSource>
+      <description>The parameter, $\mu$, in the expression for the scatter in cusp amplitude.</description>
+    </inputParameter>
+    <objectBuilder class="linearGrowth"          name="linearGrowth_"          source="parameters"/>
+    <objectBuilder class="powerSpectrum"         name="powerSpectrum_"         source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters"/>
+    <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
+    <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     !!]
-    self=nodeOperatorDarkMatterProfilePromptCusps(alpha,beta,kappa,C,p,linearGrowth_,powerSpectrum_,cosmologyFunctions_,darkMatterHaloScale_)
+    self=nodeOperatorDarkMatterProfilePromptCusps(alpha,beta,kappa,C,p,coefficientScatter,linearGrowth_,powerSpectrum_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterHaloScale_,darkMatterProfileDMO_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="linearGrowth_"       />
-    <objectDestructor name="powerSpectrum_"      />
-    <objectDestructor name="cosmologyFunctions_" />
-    <objectDestructor name="darkMatterHaloScale_"/>
+    <objectDestructor name="linearGrowth_"         />
+    <objectDestructor name="powerSpectrum_"        />
+    <objectDestructor name="cosmologyFunctions_"   />
+    <objectDestructor name="darkMatterHaloScale_"  />
+    <objectDestructor name="darkMatterProfileDMO_" />
+    <objectDestructor name="cosmologyParameters_"  />
+    <objectDestructor name="virialDensityContrast_"/>
     !!]
     return
   end function darkMatterProfilePromptCuspsConstructorParameters
 
-  function darkMatterProfilePromptCuspsConstructorInternal(alpha,beta,kappa,C,p,linearGrowth_,powerSpectrum_,cosmologyFunctions_,darkMatterHaloScale_) result(self)
+  function darkMatterProfilePromptCuspsConstructorInternal(alpha,beta,kappa,C,p,coefficientScatter,linearGrowth_,powerSpectrum_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{
     Constructor for the \refClass{nodeOperatorDarkMatterProfilePromptCusps} node operator class which takes a parameter set as input.
     !!}
@@ -161,13 +184,16 @@ contains
     type            (nodeOperatorDarkMatterProfilePromptCusps)                        :: self
     class           (linearGrowthClass                       ), intent(in   ), target :: linearGrowth_
     class           (powerSpectrumClass                      ), intent(in   ), target :: powerSpectrum_
+    class           (cosmologyParametersClass                ), intent(in   ), target :: cosmologyParameters_
     class           (cosmologyFunctionsClass                 ), intent(in   ), target :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass                ), intent(in   ), target :: darkMatterHaloScale_
-    double precision                                          , intent(in   )         :: alpha               , beta, &
-         &                                                                               kappa               , C   , &
-         &                                                                               p
+    class           (darkMatterProfileDMOClass               ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (virialDensityContrastClass              ), intent(in   ), target :: virialDensityContrast_
+    double precision                                          , intent(in   )         :: alpha                 , beta              , &
+         &                                                                               kappa                 , C                 , &
+         &                                                                               p                     , coefficientScatter
     !![
-    <constructorAssign variables="alpha, beta, kappa, C, p, *linearGrowth_, *powerSpectrum_, *cosmologyFunctions_, *darkMatterHaloScale_"/>
+    <constructorAssign variables="alpha, beta, kappa, C, p, coefficientScatter, *linearGrowth_, *powerSpectrum_, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *virialDensityContrast_"/>
     !!]
 
     !![
@@ -179,7 +205,7 @@ contains
     return
   end function darkMatterProfilePromptCuspsConstructorInternal
 
-  subroutine darkMatterProfilePromptCuspsConstructorDestructor(self)
+  subroutine darkMatterProfilePromptCuspsDestructor(self)
     !!{
     Destructor for the \refClass{nodeOperatorDarkMatterProfilePromptCusps} dark matter halo profile scale radius class.
     !!}
@@ -187,51 +213,78 @@ contains
     type(nodeOperatorDarkMatterProfilePromptCusps), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%linearGrowth_"       />
-    <objectDestructor name="self%powerSpectrum_"      />
-    <objectDestructor name="self%cosmologyFunctions_" />
-    <objectDestructor name="self%darkMatterHaloScale_"/>
+    <objectDestructor name="self%linearGrowth_"         />
+    <objectDestructor name="self%powerSpectrum_"        />
+    <objectDestructor name="self%cosmologyFunctions_"   />
+    <objectDestructor name="self%darkMatterHaloScale_"  />
+    <objectDestructor name="self%darkMatterProfileDMO_" />
+    <objectDestructor name="self%cosmologyParameters_"  />
+    <objectDestructor name="self%virialDensityContrast_"/>
     !!]
     return
-  end subroutine darkMatterProfilePromptCuspsConstructorDestructor
+  end subroutine darkMatterProfilePromptCuspsDestructor
 
   subroutine darkMatterProfilePromptCuspsNodeTreeInitialize(self,node)
     !!{
     Initialize dark matter profile prompt cusp properties.
     !!}
-    use :: Galacticus_Nodes        , only : nodeComponentBasic, nodeComponentDarkMatterProfile
-    use :: Lambert_Ws              , only : Lambert_W0
-    use :: Numerical_Constants_Math, only : Pi
-    use :: Root_Finder             , only : rootFinder        , rangeExpandMultiplicative     , rangeExpandSignExpectPositive, rangeExpandSignExpectNegative
+    use :: Calculations_Resets                 , only : Calculations_Reset
+    use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
+    use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , nodeComponentDarkMatterProfile
+    use :: Lambert_Ws                          , only : Lambert_W0
+    use :: Numerical_Constants_Math            , only : Pi
+    use :: Numerical_Comparison                , only : Values_Agree
+    use :: Root_Finder                         , only : rootFinder                         , rangeExpandMultiplicative     , rangeExpandSignExpectPositive, rangeExpandSignExpectNegative
     implicit none
     class           (nodeOperatorDarkMatterProfilePromptCusps), intent(inout), target  :: self
     type            (treeNode                                ), intent(inout), target  :: node
+    type            (treeNode                                )               , pointer :: nodeChild
     class           (nodeComponentBasic                      )               , pointer :: basic
     class           (nodeComponentDarkMatterProfile          )               , pointer :: darkMatterProfile
-    type            (rootFinder                              )               , save    :: finder
-    logical                                                                  , save    :: finderInitialized=.false.
-    !$omp threadprivate(finder,finderInitialized)
-    double precision                                                                   :: sigma0                   , sigma2             , &
-         &                                                                                densityMean              , densityMeanCollapse, &
-         &                                                                                sigma2Collapse           , timeCollapse       , &
-         &                                                                                amplitude                , mass               , &
-         &                                                                                y                        , radiusScale        , &
-         &                                                                                concentration            , densityScale
+    integer                                                   , parameter              :: iterationCountMaximum    =10
+    type            (rootFinder                              )               , save    :: finderCollapse
+    logical                                                                  , save    :: finderCollapseInitialized=.false.
+    !$omp threadprivate(finderCollapse,finderCollapseInitialized)
+    logical                                                                            :: computeCusp
+    integer                                                                            :: iterationCount
+    double precision                                                                   :: sigma0                           , sigma2             , &
+         &                                                                                densityMean                      , densityMeanCollapse, &
+         &                                                                                sigma2Collapse                   , timeCollapse       , &
+         &                                                                                amplitude                        , mass               , &
+         &                                                                                y                                , radiusScale        , &
+         &                                                                                concentration                    , densityScale       , &
+         &                                                                                radiusScalePrevious              , mass200Critical    , &
+         &                                                                                gamma                            , zeta               , &
+         &                                                                                radiusMinus2                     , densityContrast
     
-    ! Only initialize prompt cusp properties in leaf nodes.
-    if (associated(node%firstChild)) return
+    ! Compute cusp properties for leaf nodes.
+    computeCusp=.not.associated(node%firstChild)
+    if (.not.computeCusp) then
+       ! For non-leaf nodes, use the cusp properties from the leaf node.
+       nodeChild => node
+       do while (associated(nodeChild%firstChild))
+          nodeChild => nodeChild%firstChild
+       end do
+       darkMatterProfile =>  nodeChild        %darkMatterProfile        (                          )
+       amplitude         =   darkMatterProfile%floatRank0MetaPropertyGet(self%promptCuspAmplitudeID)
+       mass              =   darkMatterProfile%floatRank0MetaPropertyGet(self%promptCuspMassID     )
+       y                 =   darkMatterProfile%floatRank0MetaPropertyGet(self%promptCuspNFWYID     )
+    else
+       ! For leaf nodes, assume no cusp on the initial iteration.
+       y                 =   0.0d0
+    end if
     ! Initialize the root finder.
-    if (.not.finderInitialized) then
-       finder=rootFinder(                                                             &
-            &            rootFunction                 =timeCollapseRoot             , &
-            &            toleranceRelative            =1.0d-6                       , &
-            &            rangeExpandUpward            =2.0d+0                       , &
-            &            rangeExpandDownward          =0.5d+0                       , &
-            &            rangeExpandType              =rangeExpandMultiplicative    , &
-            &            rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-            &            rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
-            &           )
-       finderInitialized=.true.
+    if (.not.finderCollapseInitialized) then
+       finderCollapse=rootFinder(                                                             &
+            &                    rootFunction                 =timeCollapseRoot             , &
+            &                    toleranceRelative            =1.0d-6                       , &
+            &                    rangeExpandUpward            =2.0d+0                       , &
+            &                    rangeExpandDownward          =0.5d+0                       , &
+            &                    rangeExpandType              =rangeExpandMultiplicative    , &
+            &                    rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+            &                    rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
+            &                   )
+      finderCollapseInitialized=.true.
     end if
     ! Evaluate the required integrals over the power spectrum at the time of this node.
     self_             =>  self
@@ -240,46 +293,119 @@ contains
     sigma0            =   self                                  %sigma               (0,     basic%time())
     sigma2            =   self                                  %sigma               (2,     basic%time())
     densityMean       =   self             %cosmologyFunctions_ %matterDensityEpochal(  time=basic%time())
-    radiusScale       =   darkMatterProfile%scale()
-    concentration     =  +self             %darkMatterHaloScale_%radiusVirial        (       node        ) &
-         &               /                                       radiusScale
-    densityScale      =  +basic                                 %mass                (                   ) &
-         &               /4.0d0                                                                            &
-         &               /Pi                                                                               &                                 
-         &               /radiusScale**3                                                                   &
-         &               /(                                                                                &
-         &                 +              log(1.0d0+concentration)                                         &
-         &                 -concentration/   (1.0d0+concentration)                                         &
-         &                )
-    ! Find the collapse time of this node.
-    sigma0Collapse     =+            (2.0d0*self%p-1.0d0)*self%kappa/3.0d0              &
-         &              /Lambert_W0(                                                    &
-         &                          +(2.0d0*self%p-1.0d0)*self%kappa/3.0d0              &
-         &                          *(self%beta*self%C**2/self%alpha**2)**(1.0d0/3.0d0) &
-         &                          *(                                                  &
-         &                            +exp(self%kappa/sigma0)                           &
-         &                            *basic%mass()                                     &
-         &                            /densityMean                                      &
-         &                            /(sigma0/sigma2)**1.5d0                           &
-         &                           )**((2.0d0*self%p-1.0d0)/3.0d0)                    &
-         &                         )
-    timeCollapse       =finder                    %find(                  rootGuess=basic%time        ())
-    sigma2Collapse     =self                      %sigma               (2,time     =      timeCollapse  )
-    densityMeanCollapse=self  %cosmologyFunctions_%matterDensityEpochal(  time     =      timeCollapse  )
-    ! Evaluate the prompt cusp parameters.
-    amplitude=self%alpha*(self%alpha/self%C/self%beta**self%p)**(1.0d0/(2.0d0*self%p-1.0d0))*densityMeanCollapse*sigma0Collapse**((9.0d0-6.0d0*self%p)/(4.0d0-8.0d0*self%p))/sigma2Collapse**0.75d0
-    mass     =self%beta *(self%alpha/self%C/self%beta**self%p)**(2.0d0/(2.0d0*self%p-1.0d0))*densityMeanCollapse*sigma0Collapse**((9.0d0-6.0d0*self%p)/(2.0d0-4.0d0*self%p))/sigma2Collapse**1.50d0
-    y        =min(                     &
-         &        +amplitude           &
-         &        /densityScale        &
-         &        /radiusScale**1.5d0, &
-         &        +yMaximum            &
-         &       )
-    ! Store prompt cusp parameters.
-    call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspAmplitudeID,amplitude)
-    call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspMassID     ,mass     )
-    call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWYID     ,y        )
-   return
+    ! We assume (following Delos 2025) that the "scale radius" that has been set is actually r₋₂. We must iteratively solve for
+    ! the actual scale radius. We use rₛ=r₋₂ as our initial guess.
+    radiusMinus2       =darkMatterProfile%scale()
+    radiusScale        =radiusMinus2
+    radiusScalePrevious=huge(0.0d0)
+    iterationCount     =0
+    ! Begin iteration.
+    do while (.not.Values_Agree(radiusScale,radiusScalePrevious,relTol=1.0d-6) .and. iterationCount < iterationCountMaximum)
+       iterationCount     =iterationCount+1
+       radiusScalePrevious=radiusScale
+       if (computeCusp) then
+          ! Compute the mass following the 200 times critical density definition as used by Delos (2025; note that Delos actually
+          ! states 200 times mean density, but these are Einstein-de Sitter cosmologies where mean and critical are equivalent -
+          ! when comparing with other simulations Sten Delos uses 200 times critical).
+          call Calculations_Reset(node)
+          densityContrast=+200.0d0                                                                    & ! 200 ρ_crit/ρ_mean since the density contrast is relative to mean density.
+               &          /self%cosmologyFunctions_%OmegaMatterEpochal(time=basic%timeLastIsolated())
+          mass200Critical=Dark_Matter_Profile_Mass_Definition(                                                    &
+               &                                              node                  =node                       , &
+               &                                              densityContrast       =densityContrast            , &
+               &                                              cosmologyParameters_  =self%cosmologyParameters_  , &
+               &                                              cosmologyFunctions_   =self%cosmologyFunctions_   , &
+               &                                              virialDensityContrast_=self%virialDensityContrast_, &
+               &                                              darkMatterProfileDMO_ =self%darkMatterProfileDMO_ , &
+               &                                              useLastIsolatedTime   =.true.                       &
+               &                                             )
+          ! Find the collapse time of this node.
+          sigma0Collapse     =+            (2.0d0*self%p-1.0d0)*self%kappa/3.0d0              &
+               &              /Lambert_W0(                                                    &
+               &                          +(2.0d0*self%p-1.0d0)*self%kappa/3.0d0              &
+               &                          *(self%beta*self%C**2/self%alpha**2)**(1.0d0/3.0d0) &
+               &                          *(                                                  &
+               &                            +exp(self%kappa/sigma0)                           &
+               &                            *mass200Critical                                  &
+               &                            /densityMean                                      &
+               &                            /(sigma0/sigma2)**1.5d0                           &
+               &                           )**((2.0d0*self%p-1.0d0)/3.0d0)                    &
+               &                         )
+          timeCollapse       =finderCollapse            %find(                  rootGuess=basic%time        ())
+          sigma2Collapse     =self                      %sigma               (2,time     =      timeCollapse  )
+          densityMeanCollapse=self  %cosmologyFunctions_%matterDensityEpochal(  time     =      timeCollapse  )
+          ! Evaluate the prompt cusp parameters.
+          amplitude=self%alpha*(self%alpha/self%C/self%beta**self%p)**(1.0d0/(2.0d0*self%p-1.0d0))*densityMeanCollapse*sigma0Collapse**((9.0d0-6.0d0*self%p)/(4.0d0-8.0d0*self%p))/sigma2Collapse**0.75d0
+          mass     =self%beta *(self%alpha/self%C/self%beta**self%p)**(2.0d0/(2.0d0*self%p-1.0d0))*densityMeanCollapse*sigma0Collapse**((9.0d0-6.0d0*self%p)/(2.0d0-4.0d0*self%p))/sigma2Collapse**1.50d0
+          ! Add scatter to the cusp amplitude.
+          if (self%coefficientScatter > 0.0d0)                                                    &
+               & amplitude=+amplitude                                                             &
+               &           *10.0d0**(                                                             &
+               &                     +self%coefficientScatter                                     &
+               &                     *exp(                                                        &
+               &                          -1.0d0                                                  &
+               &                          /sigma0                                                 &
+               &                         )                                                        &
+               &                     *node%hostTree%randomNumberGenerator_%standardNormalSample() &
+               &                    )
+       end if
+       ! Compute the normalization of the cusp-NFW profile. Handle the case of y=0 here (which is assumed on the first iteration).
+       concentration=+self%darkMatterHaloScale_%radiusVirial(node) &
+            &        /                          radiusScale
+       if (y > 0.0d0) then
+          ! Cusp-NFW (y>0) case.
+          densityScale=+basic%mass()                                                                                 &
+               &       /radiusScale**3                                                                               &
+               &       /4.0d0                                                                                        &
+               &       /Pi                                                                                           &
+               &       /(                                                                                            &
+               &         + 2.0d0                       *asinh(sqrt(concentration            )/               y     ) &
+               &         -(2.0d0-y**2)/sqrt(1.0d0-y**2)*atanh(sqrt(concentration*(1.0d0-y**2)/(concentration+y**2))) &
+               &         -sqrt(concentration*(concentration+y**2))/(1.0d0+concentration)                             &
+               &        )
+       else
+          ! NFW (y=0) case.
+          densityScale=+basic%mass()                             &
+               &       /4.0d0                                    &
+               &       /Pi                                       &                                 
+               &       /radiusScale**3                           &
+               &       /(                                        &
+               &         +              log(1.0d0+concentration) &
+               &         -concentration/   (1.0d0+concentration) &
+               &        )
+       end if
+       ! Compute a new scale radius to obtain the target r₋₂, using equations (23) from Delos (2025).
+       gamma      =+amplitude           &
+            &      /densityScale        &
+            &      /radiusMinus2**1.5d0
+       zeta       =+(                         &
+            &        +        1.00d0          &
+            &        +       18.00d0*gamma**2 &
+            &        +        0.75d0*gamma    &
+            &        *sqrt(                   &
+            &              + 72.00d0          &
+            &              +564.00d0*gamma**2 &
+            &              +  6.00d0*gamma**4 &
+            &             )                   &
+            &       )**(1.0d0/3.0d0)
+       radiusScale=+(                                     &
+            &        +(+1.0d0/3.0d0-gamma**2/2.0d0)/zeta  &
+            &        +(+1.0d0      +zeta          )/3.0d0 &
+            &       )                                     &
+            &      *radiusMinus2
+       ! Enforce a maximum scale radius (minimum concentration) as required to ensure that y<1 in the cusp-NFW profile.
+       radiusScale=max(radiusScale,(amplitude/densityScale/yMaximum)**(2.0d0/3.0d0))
+       ! Evaluate the prompt cusp y-parameter.
+       y          =+amplitude           &
+            &      /densityScale        &
+            &      /radiusScale **1.5d0       
+       ! Store prompt cusp parameters.
+       call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspAmplitudeID,amplitude  )
+       call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspMassID     ,mass       )
+       call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWYID     ,y          )
+       call darkMatterProfile%scaleSet                 (                           radiusScale)
+    end do
+    return
   end subroutine darkMatterProfilePromptCuspsNodeTreeInitialize
 
   double precision function timeCollapseRoot(timeCollapse)
@@ -293,7 +419,7 @@ contains
          &           -      sigma0Collapse
     return
   end function timeCollapseRoot
-  
+
   double precision function darkMatterProfilePromptCuspsNodeSigma(self,j,time) result(sigma)
     !!{
     Evaluate the integral
@@ -388,41 +514,3 @@ contains
          &             *                                        wavenumberPhysical**(2*j_)
     return
   end function integrand
-
-  subroutine darkMatterProfilePromptCuspsSolveAnalytics(self,node,time)
-    !!{
-    Compute the value of the $y$-parameter in the prompt cusp.
-    !!}
-    use :: Galacticus_Nodes        , only : nodeComponentBasic, nodeComponentDarkMatterProfile
-    use :: Numerical_Constants_Math, only : Pi
-    implicit none
-    class           (nodeOperatorDarkMatterProfilePromptCusps), intent(inout) :: self
-    type            (treeNode                                ), intent(inout) :: node
-    double precision                                          , intent(in   ) :: time
-    class           (nodeComponentBasic                      ), pointer       :: basic
-    class           (nodeComponentDarkMatterProfile          ), pointer       :: darkMatterProfile
-    double precision                                                          :: radiusScale      , concentration, &
-         &                                                                       densityScale     , y
-
-    basic             =>  node                                  %basic               (    )
-    darkMatterProfile =>  node                                  %darkMatterProfile   (    )
-    radiusScale       =   darkMatterProfile%scale()
-    concentration     =  +self             %darkMatterHaloScale_%radiusVirial        (node)         &
-         &               /                                       radiusScale
-    densityScale      =  +basic                                 %mass                (    )         &
-         &               /4.0d0                                                                     &
-         &               /Pi                                                                        &
-         &               /radiusScale**3                                                            &
-         &               /(                                                                         &
-         &                 +              log(1.0d0+concentration)                                  &
-         &                 -concentration/   (1.0d0+concentration)                                  &
-         &                )
-    y                 =min(                                                                         &
-         &                 +darkMatterProfile%floatRank0MetaPropertyGet(self%promptCuspAmplitudeID) &
-         &                 /densityScale                                                            &
-         &                 /radiusScale**1.5d0                                                    , &
-         &                 +yMaximum                                                                &
-         &                )
-    call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWYID,y)
-    return
-  end subroutine darkMatterProfilePromptCuspsSolveAnalytics
