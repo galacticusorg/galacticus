@@ -88,8 +88,8 @@ module IO_HDF5
      logical                           :: isOverwritable
      logical                           :: readOnly
      logical                           :: isTemporary      =  .false.
-     integer(hid_t          ), pointer :: objectID         => null()
-     type   (resourceManager)          :: objectManager
+     integer(hid_t          ), pointer :: objectID         => null() , fileID             => null()
+     type   (resourceManager)          :: objectManager              , fileManager
      type   (varying_string )          :: objectFile
      type   (varying_string )          :: objectLocation
      type   (varying_string )          :: objectName
@@ -663,55 +663,7 @@ contains
        ! Close the object.
        select case (self%hdf5ObjectType)
        case (hdf5ObjectTypeFile     )
-          ! Check for still-open objects.
-          call h5fget_obj_count_f(self%objectID,h5f_obj_all_f,openObjectCount,errorCode)
-          if (errorCode /= 0) then
-             message="unable to count open objects in file object '"//self%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          allocate(openObjectIDs(openObjectCount))
-          call h5fget_obj_ids_f(self%objectID,h5f_obj_all_f,openObjectCount,openObjectIDs,errorCode)
-          if (errorCode /= 0) then
-             message="unable to get IDs of open objects in file object '"//self%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          nonRootOpenObjectCount=0
-          if (openObjectCount > 1) then
-             do i=1,openObjectCount
-                call h5iget_name_f(openObjectIDs(i),objectName,objectNameSizeMaximum,objectNameSize,errorCode)
-                if (errorCode /= 0) then
-                   message="unable to get name of open object in file object '"//self%objectName//"'"
-                   call Error_Report(message//self%locationReport()//{introspection:location})
-                end if
-                
-                if (trim(objectName) /= "/") nonRootOpenObjectCount=nonRootOpenObjectCount+1
-             end do
-          end if
-          if (nonRootOpenObjectCount > 0 .and. openObjectCount-nonRootOpenObjectCount == 1) then
-             message=""
-             message=message//nonRootOpenObjectCount//" open object(s) remain in file object '"//self%objectName//"'"
-             call displayIndent('Problem closing HDF5 file',verbosityLevelSilent)
-             call displayMessage(message,verbosityLevelSilent)
-             do i=1,openObjectCount
-                call h5iget_name_f(openObjectIDs(i),objectName,objectNameSizeMaximum,objectNameSize,errorCode)
-                if (errorCode /= 0) then
-                   message="unable to get name of open object in file object '"//self%objectName//"'"
-                   call Error_Report(message//self%locationReport()//{introspection:location})
-                end if
-                message="Object: "//trim(objectName)//" ["
-                message=message//openObjectIDs(i)//"]"
-                if (trim(objectName) /= "/") call displayMessage(message,verbosityLevelSilent)
-             end do
-             call displayUnindent('done',verbosityLevelSilent)
-          end if
-          call h5fclose_f(self%objectID,errorCode)
-          if (errorCode /= 0) then
-             message="unable to close file object '"//self%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          if (self%isTemporary) call File_Remove(char(self%objectName))
-          ! Uninitialize the HDF5 library (will only uninitialize if this is the last file to be closed).
-          call IO_HDF5_Uninitialize()
+          ! Do not close file objects as these are a shared resource.
        case (hdf5ObjectTypeGroup    )
           call h5gclose_f(self%objectID,errorCode)
           if (errorCode /= 0) then
@@ -733,6 +685,61 @@ contains
        end select
        !$ if (.not.haveLock) call hdf5Access%unset()
        nullify(self%parentObject)
+    end if
+    ! If this is the last reference to the file, close it now.
+    if (self%fileManager%count() == 1) then
+       !$ haveLock=hdf5Access%ownedByThread()
+       !$ if (.not.haveLock) call hdf5Access%set  ()
+       ! Check for still-open objects.
+       call h5fget_obj_count_f(self%fileID,h5f_obj_all_f,openObjectCount,errorCode)
+       if (errorCode /= 0) then
+          message="unable to count open objects in file object '"//self%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
+       end if
+       allocate(openObjectIDs(openObjectCount))
+       call h5fget_obj_ids_f(self%fileID,h5f_obj_all_f,openObjectCount,openObjectIDs,errorCode)
+       if (errorCode /= 0) then
+          message="unable to get IDs of open objects in file object '"//self%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
+       end if
+       nonRootOpenObjectCount=0
+       if (openObjectCount > 1) then
+          do i=1,openObjectCount
+             call h5iget_name_f(openObjectIDs(i),objectName,objectNameSizeMaximum,objectNameSize,errorCode)
+             if (errorCode /= 0) then
+                message="unable to get name of open object in file object '"//self%objectName//"'"
+                call Error_Report(message//self%locationReport()//{introspection:location})
+             end if
+             
+             if (trim(objectName) /= "/") nonRootOpenObjectCount=nonRootOpenObjectCount+1
+          end do
+       end if
+       if (nonRootOpenObjectCount > 0 .and. openObjectCount-nonRootOpenObjectCount == 1) then
+          message=""
+          message=message//nonRootOpenObjectCount//" open object(s) remain in file object '"//self%objectName//"'"
+          call displayIndent('Problem closing HDF5 file',verbosityLevelSilent)
+          call displayMessage(message,verbosityLevelSilent)
+          do i=1,openObjectCount
+             call h5iget_name_f(openObjectIDs(i),objectName,objectNameSizeMaximum,objectNameSize,errorCode)
+             if (errorCode /= 0) then
+                message="unable to get name of open object in file object '"//self%objectName//"'"
+                call Error_Report(message//self%locationReport()//{introspection:location})
+             end if
+             message="Object: "//trim(objectName)//" ["
+             message=message//openObjectIDs(i)//"]"
+             if (trim(objectName) /= "/") call displayMessage(message,verbosityLevelSilent)
+          end do
+          call displayUnindent('done',verbosityLevelSilent)
+       end if
+       call h5fclose_f(self%fileID,errorCode)
+       if (errorCode /= 0) then
+          message="unable to close file object '"//self%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
+       end if
+       if (self%isTemporary) call File_Remove(char(self%objectName))
+       ! Uninitialize the HDF5 library (will only uninitialize if this is the last file to be closed).
+       call IO_HDF5_Uninitialize()
+       !$ if (.not.haveLock) call hdf5Access%unset()
     end if
     return
   end subroutine IO_HDF5_Finalize
@@ -773,6 +780,8 @@ contains
      to%isTemporary         =  from%isTemporary
      to%objectID            => from%objectID
      to%objectManager       =  from%objectManager
+     to%fileID              => from%fileID
+     to%fileManager         =  from%fileManager
      to%objectLocation      =  from%objectLocation
      to%objectFile          =  from%objectFile
      to%objectName          =  from%objectName
@@ -815,7 +824,7 @@ contains
     else
        pathToObject=""
     end if
-    if (self%objectLocation /= "/") pathToObject=pathToObject//self%objectLocation//"/"
+    if (self%objectLocation /= "") pathToObject=pathToObject//self%objectLocation//"/"
     pathToObject=pathToObject//self%objectName
     return
   end function IO_HDF5_Path_To
@@ -1148,14 +1157,17 @@ contains
        if (.not.(present(cacheElementsCount).and.present(cacheSizeBytes))) call Error_Report('both or neither of "cacheElementsCount" and "cacheSizeBytes" must be specified'//{introspection:location})
        call h5pset_cache_f(accessList,0,cacheElementsCount,cacheSizeBytes,0.75,errorCode)
     end if
-    ! Allocate an object ID.
+    ! Allocate object and file IDs.
     allocate(self%objectID)
+    allocate(self%fileID  )
     !![
     <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
       <description>ICE when passing a derived type component to a class(*) function argument.</description>
     !!]
     dummyPointer_      => self%objectID
     self%objectManager =  resourceManager(dummyPointer_)
+    dummyPointer_      => self%fileID
+    self%fileManager   =  resourceManager(dummyPointer_)
     !![
     </workaround>
     !!]
@@ -1200,6 +1212,8 @@ contains
        message="failed to close access property list for HDF5 file '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
+    ! Store the file ID.
+    self%fileID     =self%objectID
     ! Mark this object as open.
     self%isOpenValue=.true.
     ! Object has no parent.
@@ -1301,6 +1315,9 @@ contains
     type is (hdf5Object)
        self%parentObject => inObject
     end select
+    ! Obtain a reference to the file ID.
+    self%fileID      => inObject%fileID
+    self%fileManager =  inObject%fileManager
     ! Create an ID for this group.
     allocate(self%objectID)
     !![
@@ -1457,7 +1474,7 @@ contains
     use :: HDF5              , only : H5T_NATIVE_CHARACTER, H5T_NATIVE_DOUBLE , H5T_NATIVE_INTEGER, h5screate_simple_f, &
           &                           HID_T               , HSIZE_T           , h5acreate_f       , h5aopen_f         , &
           &                           h5sclose_f
-    use :: ISO_Varying_String, only : assignment(=)       , operator(//)
+    use :: ISO_Varying_String, only : assignment(=)       , operator(//)      , operator(/=)
     implicit none
     class    (hdf5Object    )              , intent(in   ), target   :: inObject
     type     (hdf5Object    )                                        :: self
@@ -1478,8 +1495,10 @@ contains
 
     ! Ensure that the object is already open.
     if (inObject%isOpenValue) then
-       locationID  =inObject%objectID
-       locationPath=inObject%objectFile//"/"//inObject%objectLocation//"/"//inObject%objectName
+       locationID                                     =inObject    %objectID
+       locationPath                                   =inObject    %objectFile
+       if (inObject%objectLocation /= "") locationPath=locationPath           //"/"//inObject%objectLocation
+       if (inObject%objectName     /= "") locationPath=locationPath           //"/"//inObject%objectName
        select type (inObject)
        type is (hdf5Object)
           self%parentObject => inObject
@@ -1502,7 +1521,10 @@ contains
        ! No dimensions specified, assume a scalar.
        attributeRank=0
     end if
-    ! Create an ID for this group.
+    ! Obtain a reference to the file ID.
+    self%fileID      => inObject%fileID
+    self%fileManager =  inObject%fileManager
+    ! Create an ID for this attribute.
     allocate(self%objectID)
     !![
     <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
@@ -4304,7 +4326,7 @@ attributeValue=trim(attributeValue)
           &                           h5dcreate_f         , h5dget_create_plist_f, h5dopen_f           , h5eset_auto_f     , &
           &                           hsize_t             , h5pclose_f           , h5pcreate_f         , h5pget_chunk_f    , &
           &                           h5pset_chunk_f      , h5pset_deflate_f     , h5sclose_f
-    use :: ISO_Varying_String, only : assignment(=)       , operator(//)
+    use :: ISO_Varying_String, only : assignment(=)       , operator(//)         , operator(/=)
     implicit none
     type     (hdf5Object    )                                        :: self
     character(len=*         )              , intent(in   )           :: datasetName
@@ -4334,8 +4356,10 @@ attributeValue=trim(attributeValue)
 
     ! Ensure that the object is already open.
     if (inObject%isOpenValue) then
-       locationID  =inObject%objectID
-       locationPath=inObject%objectFile//"/"//inObject%objectLocation//"/"//inObject%objectName
+       locationID                                     =inObject    %objectID
+       locationPath                                   =inObject    %objectFile
+       if (inObject%objectLocation /= "") locationPath=locationPath           //"/"//inObject%objectLocation
+       if (inObject%objectName     /= "") locationPath=locationPath           //"/"//inObject%objectName
        select type (inObject)
        type is (hdf5Object)
           self%parentObject => inObject
@@ -4370,7 +4394,10 @@ attributeValue=trim(attributeValue)
     else
        appendDimensionActual=1
     end if
-    ! Create an ID for this group.
+    ! Obtain a reference to the file ID.
+    self%fileID      => inObject%fileID
+    self%fileManager =  inObject%fileManager
+    ! Create an ID for this dataset.
     allocate(self%objectID)
     !![
     <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
