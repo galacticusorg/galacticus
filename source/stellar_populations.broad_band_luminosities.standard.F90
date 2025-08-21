@@ -365,7 +365,19 @@ contains
           if (size(self%luminosityTables) < populationID) then
              call Move_Alloc(self%luminosityTables,luminosityTablesTemporary)
              allocate(self%luminosityTables(populationID))
-             self%luminosityTables(1:size(luminosityTablesTemporary))=luminosityTablesTemporary
+             !![
+	     <workaround type="gfortran" PR="46897" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=46897">
+	       <seeAlso type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=57696"/>
+	       <description>
+		 Type-bound defined assignment not done because multiple part array references would occur in intermediate expressions.
+	       </description>
+	     !!]
+             do iLuminosity=1,size(luminosityTablesTemporary)
+                self%luminosityTables(iLuminosity)=luminosityTablesTemporary(iLuminosity)
+             end do
+             !![
+	     </workaround>
+             !!]
              self%luminosityTables(size(luminosityTablesTemporary)+1:populationID)%isTabulatedMaximum=0
              deallocate(luminosityTablesTemporary)
           end if
