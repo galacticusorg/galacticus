@@ -3462,12 +3462,14 @@ contains
        ! If parent is cloned, we need to make a temporary progenitor node.
        if (parentIsCloned) then
           allocate(primaryProgenitor)
-          basic                       => nodeList(lastSeenNode%isolatedNodeIndex)%node%parent%firstChild%basic   ()
-          position                    => nodeList(lastSeenNode%isolatedNodeIndex)%node%parent%firstChild%position()
-          primaryProgenitor%nodeIndex =  nodeList(lastSeenNode%isolatedNodeIndex)%node%parent%firstChild%index   ()
-          primaryProgenitor%nodeMass  =  basic                                                          %mass    ()
-          primaryProgenitor%position  =  position                                                       %position()
-          primaryProgenitor%velocity  =  position                                                       %velocity()
+          basic                          => nodeList(lastSeenNode%isolatedNodeIndex)%node%parent%firstChild%basic   ()
+          position                       => nodeList(lastSeenNode%isolatedNodeIndex)%node%parent%firstChild%position()
+          primaryProgenitor%nodeIndex    =  nodeList(lastSeenNode%isolatedNodeIndex)%node%parent%firstChild%index   ()
+          primaryProgenitor%nodeMass     =  basic                                                          %mass    ()
+          if (self%presetPositions) then
+             primaryProgenitor%position  =  position                                                       %position()
+             primaryProgenitor%velocity  =  position                                                       %velocity()
+          end if
        else
           primaryProgenitor     => null()
           primaryProgenitorMass =  0.0d0
