@@ -2479,10 +2479,9 @@
     <darkMatterProfileDMO value="isothermal"/>
     <hotHaloMassDistribution value="null"/>
     <mergerRemnantSize value="null"/>
-    <mergerTreeBuildMasses value="sampledDistributionUniform">
-      <massTreeMaximum value="6.0e12"/>
-      <massTreeMinimum value="2.0e12"/>
-      <treesPerDecade value="10"/>
+    <mergerTreeBuildMasses value="fixedMass">
+      <massTree value="4.0e12"/>
+      <treeCount value="1"/>
     </mergerTreeBuildMasses>
     <mergerTreeBuilder value="cole2000">
       <accretionLimit value="0.1"/>
