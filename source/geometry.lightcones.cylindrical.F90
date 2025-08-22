@@ -630,8 +630,8 @@ contains
     !!}
     use :: Error, only : Error_Report
     implicit none
-    class           (geometryLightconeCylindrical), intent(inout)                                      :: self
-    type            (treeNode                    ), intent(inout)                                      :: node
+    class           (geometryLightconeCylindrical), intent(inout), target                              :: self
+    type            (treeNode                    ), intent(inout), target                              :: node
     double precision                              , intent(in   )                                      :: timeStart    , timeEnd
     double precision                              , intent(inout), dimension(:), allocatable, optional :: timesCrossing
    !$GLC attributes unused :: self, node, timeStart, timeEnd, timesCrossing
