@@ -263,7 +263,7 @@ sub Process_FunctionClass {
 		    # Search the node for declarations.
 		    $node = $node->{'firstChild'};
 		    while ( $node ) {
-			&potentialDescriptorParameters($node->{'declarations'},$nonAbstractClass,$potentialNames)
+			&potentialDescriptorParameters($node->{'declarations'},$nonAbstractClass,$class,$potentialNames)
 			    if ( $node->{'type'} eq "declaration" );
 			$node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
 		    }
@@ -284,14 +284,14 @@ sub Process_FunctionClass {
 		    my $declaration = &Fortran::Utils::Unformat_Variables($declarationSource);
 		    die("Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass(): unable to parse variable declaration")
 			unless ( defined($declaration) );
-		    &potentialDescriptorParameters($declaration,$nonAbstractClass,$potentialNames);
+		    &potentialDescriptorParameters($declaration,$nonAbstractClass,undef(),$potentialNames);
 		}
 		# Add any names declared in the functionClassType.
 		if ( defined($functionClassType) ) {
 		    # Search the node for declarations.
 		    my $node = $functionClassType->{'node'}->{'firstChild'};
 		    while ( $node ) {
-			&potentialDescriptorParameters($node->{'declarations'},$nonAbstractClass,$potentialNames)
+			&potentialDescriptorParameters($node->{'declarations'},$nonAbstractClass,undef(),$potentialNames)
 			    if ( $node->{'type'} eq "declaration" );
 			$node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
 		    }
@@ -441,8 +441,8 @@ sub Process_FunctionClass {
 				    $name =~ s/\s//g;
 				    if ( grep {$_ eq lc($name)} @{$potentialNames->{'objects'}} ) {
 					push(@{$descriptorParameters->{'objects'}},{name => $name, source => $constructorNode->{'directive'}->{'source'}});
-				    } elsif ( exists($nonAbstractClass->{'linkedList'}) && grep {$_ eq $name} split(" ",$nonAbstractClass->{'linkedList'}->{'object'}) ) {
-					push(@{$descriptorParameters->{'linkedLists'}},$nonAbstractClass->{'linkedList'});
+				    } elsif ( grep {$_ eq $name} @{$potentialNames->{'linkedListObjects'}} ) {
+					push(@{$descriptorParameters->{'linkedLists'}},$potentialNames->{'linkedLists'}->{$name});
 				    } else {
 					$supported = -5;
 					push(@failureMessage,"could not find a matching internal object for object [".$name."]");
@@ -1171,6 +1171,9 @@ CODE
 	    # Add "assignment(=)" operator.
 	    my $assignment;
 	    my $rankMaximumAssigner = 0;
+	    my %assignerModules = ( "Error" => 1 );
+	    my $assignerLinkedListVariables;
+	    @{$assignerLinkedListVariables} = ();
             $assignment->{'code'        } .= "select type (self)\n";
 	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
 		# Add type guards.
@@ -1240,6 +1243,8 @@ CODE
 					    $assignment->{'code'} .= "      self%".$name."=from%".$name."\n";
 					}
 					$assignment->{'code'} .= "    end if\n";
+				    } elsif ( exists($class->{'linkedList'}) && grep {$_ eq $name} split(" ",$class->{'linkedList'}->{'variable'}) ) {
+					# Linked list - will be handled later.
 				    } else {
 					$assignment->{'code'} .= "    self%".$name.$assigner."from%".$name."\n";
 					$assignment->{'code'} .= "    ".($isPointer ? "if (associated(self%".$name.")) " : "")."call self%".$name."%referenceCountIncrement()\n"
@@ -1249,6 +1254,13 @@ CODE
 			    }
 			}
 			$node = $node->{'sibling'};
+		    }
+		    # Handle any linked lists.
+		    if ( exists($class->{'linkedList'}) ) {
+			(my $linkedListCode, my $linkedListModule) = &assignerLinkedList($class->{'linkedList'},$assignerLinkedListVariables);
+			$assignment->{'code'} .= $linkedListCode;
+			$assignerModules{$linkedListModule} = 1
+			    if ( $linkedListModule );
 		    }
 		    # Move to the parent class.
 		    $class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
@@ -1401,6 +1413,9 @@ CODE
 	    if ( $rankMaximumAssigner > 0 ) {
 		$assignment->{'code'} = "integer :: ".join(",",map {"i".$_."__"} 1..$rankMaximumAssigner)."\n".$assignment->{'code'}
 	    }
+	    if ( scalar(@{$assignerLinkedListVariables}) > 0 ) {
+           	$assignment->{'code'} = &Fortran::Utils::Format_Variable_Definitions($assignerLinkedListVariables).$assignment->{'code'};
+	    }
 	    # Construct the method.
 	    $methods{'assignment(=)'} =
 	    {
@@ -1409,7 +1424,7 @@ CODE
 		recursive   => "yes",
 		pass        => "yes",
 		selfIntent  => "out",
-		modules     => "Error",
+		modules     => join(" ",sort(keys(%assignerModules))),
 		argument    => [ "class(".$directive->{'name'}."Class), intent(in   ) :: from" ],
 		code        => $assignment->{'code'}
 	    };
@@ -3343,6 +3358,55 @@ CODE
     return ($iterator,$deepCopyModule);
 }
 
+sub assignerLinkedList {
+    # Create assignment instructions for linked list objects.
+    my $linkedList          = shift();
+    my $linkedListVariables = shift();
+    # Get object names.
+    my @objects = split(" ",$linkedList->{'object'});
+    # Add variables needed for linked list processing.
+    push(
+	@{$linkedListVariables},
+	{
+	    intrinsic  => 'type',
+	    type       => $linkedList->{'type'},
+	    attributes => [ 'pointer' ],
+	    variables  => [ $linkedList->{'type'}.'itemSelf', $linkedList->{'type'}.'itemFrom' ]
+	}
+	)
+	unless ( grep {$_->{'type'} eq $linkedList->{'type'}} @{$linkedListVariables} );
+    # Generate code for the walk through the linked list.
+    my $iterator;
+    for(my $i=0;$i<scalar(@objects);++$i) {
+	$code::type     = $linkedList->{'type'    };
+	$code::variable = $linkedList->{'variable'};
+	$code::next     = $linkedList->{'next'    };
+	$code::object   = $objects[$i];
+	$iterator .= fill_in_string(<<'CODE', PACKAGE => 'code');
+nullify(self%{$variable})
+{$type}itemFrom => from%{$variable}
+if (associated({$type}itemFrom)) then
+   allocate(self%{$variable})
+   {$type}itemSelf => self%{$variable}
+   do while (associated({$type}itemFrom))
+      {$type}itemSelf%{$object} => {$type}itemFrom%{$object}
+      call {$type}itemSelf%{$object}%referenceCountIncrement()
+      {$type}itemFrom => {$type}itemFrom%{$next}
+      if (associated({$type}itemFrom)) allocate({$type}itemSelf%{$next})
+      {$type}itemSelf => {$type}itemSelf%{$next}
+   end do
+end if
+CODE
+    }
+    my $deepCopyModule = exists($linkedList->{'module'}) ? $linkedList->{'module'} : undef();
+    return ($iterator,$deepCopyModule);
+}
+
+
+
+
+
+
 sub stateStoreExplicitFunction {
     # Create state store/restore instructions for objects with explicit functions.
     my $nonAbstractClass  = shift();
@@ -3377,9 +3441,10 @@ sub stateStoreExplicitFunction {
 
 sub potentialDescriptorParameters {
     # Process variable declarations for potential parameters to include in descriptors.
-    my $declarations   = shift();
-    my $class          = shift();
-    my $potentialNames = shift();
+    my  $declarations     = shift();
+    my  $nonAbstractClass = shift();
+    my  $class            = shift();
+    my  $potentialNames   = shift();
     our $stateStorables;
     foreach my $declaration ( &List::ExtraUtils::as_array($declarations) ) {
 	# Identify object pointers.
@@ -3424,13 +3489,23 @@ sub potentialDescriptorParameters {
 	      trimlc($declaration->{'type'     }) eq "varying_string"
 	     )
 	    );
-	$class->{'hasCustomDescriptor'} = 1
+	$nonAbstractClass->{'hasCustomDescriptor'} = 1
 	    if
 	    (
 	     $declaration->{'intrinsic'} eq "procedure"
 	     &&
 	     $declaration->{'variables'}->[0] =~ m/^descriptor=>/
 	    );
+    }
+    # Identify linked lists parameters.
+    if ( defined($class) ) {
+	if ( exists($class->{'linkedList'}) ) {
+	    foreach my $object ( split(" ",$class->{'linkedList'}->{'object'}) ) {
+		push(@{$potentialNames->{'linkedListObjects'}},$object)
+		    unless ( grep {$_ eq $object} @{$potentialNames->{'linkedListObjects'}} );
+		$potentialNames->{'linkedLists'}->{$object} = $class->{'linkedList'};
+	    }
+	}
     }
 }
     
