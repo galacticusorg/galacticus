@@ -536,6 +536,8 @@ contains
        call displayIndent(message)
        ! Find the current timestep.
        iNow=searchArrayClosest(self%time_,event%time)
+       ! Construct an integrator.
+       integrator_=integrator(stellarSpectraConvolution,toleranceAbsolute=integrationToleranceAbsolute,toleranceRelative=integrationToleranceRelative)
        ! Iterate over all nodes.
        call displayMessage('Accumulating emissivity')
        treeTimeLatest=0.0d0
@@ -577,7 +579,6 @@ contains
                          ageStart=max(self%time_(iTime-1)-event%time,0.0d0)
                       end if
                       ! Iterate over wavelength
-                      integrator_=integrator(stellarSpectraConvolution,toleranceAbsolute=integrationToleranceAbsolute,toleranceRelative=integrationToleranceRelative)
                       do iWavelength=1,self%wavelengthCount
                          wavelength                =  self%wavelength(iWavelength)
                          stellarPopulationSpectra_ => stellarPopulationSpectraDisk_

@@ -810,7 +810,8 @@ contains
     end if
     if (tableRebuild) then
        ! Build tables of potential and density.
-       radiusCount=int(energyDistributionPointsPerDecade*log10(radiusTruncate_/radiusMinimum))+1
+       radiusCount         =int(energyDistributionPointsPerDecade*log10(radiusTruncate_/radiusMinimum))+1
+       intergatorSmoothingZ=integrator(particulateSmoothingIntegrandZ,toleranceRelative=self_%toleranceRelativeSmoothing)
        call energyDistribution%create(                                                                &
             &                                           +radiusMinimum                              , &
             &                                           +radiusTruncate_                            , &
@@ -855,7 +856,6 @@ contains
              end select
              ! The integral here is performed in two parts - below and above the current radius where the integrand has a
              ! discontinuous gradient - for improved speed and stability.
-             intergatorSmoothingZ=integrator(particulateSmoothingIntegrandZ,toleranceRelative=self_%toleranceRelativeSmoothing)
              if (particulateSmoothingIntegrationRangeLower < radius_) then
                 densitySmoothedIntegralLower=intergatorSmoothingZ%integrate(                                               &
                      &                                                          particulateSmoothingIntegrationRangeLower, &
@@ -1035,10 +1035,9 @@ contains
     !!}
     use :: Numerical_Integration, only : integrator
     implicit none
-    double precision            , intent(in   ) :: height
-    type            (integrator)                :: integrator_
-    double precision                            :: radiusMaximum, heightOffset, &
-         &                                         argumentSqrt
+    double precision, intent(in   ) :: height
+    double precision                :: radiusMaximum, heightOffset, &
+         &                             argumentSqrt
 
     heightOffset=height-radius_ ! Height in the profile (not the kernel).
     argumentSqrt=+radiusTruncate_**2-heightOffset**2
@@ -1051,9 +1050,12 @@ contains
        case (particulateKernelGadget %ID)
           radiusMaximum=min(radiusMaximum,sqrt(+(2.8d0*lengthSoftening_)**2-height_**2))
        end select
-       integrator_                   =integrator           (particulateSmoothingIntegrandR,toleranceRelative=self_%toleranceRelativeSmoothing)
-       particulateSmoothingIntegrandZ=integrator_%integrate(0.0d0                         ,                        radiusMaximum             )
-    end if
+       block
+         type(integrator) :: integrator_
+         integrator_                   =integrator           (particulateSmoothingIntegrandR,toleranceRelative=self_%toleranceRelativeSmoothing)
+         particulateSmoothingIntegrandZ=integrator_%integrate(0.0d0                         ,                        radiusMaximum             )
+       end block
+     end if
     return
   end function particulateSmoothingIntegrandZ
 
