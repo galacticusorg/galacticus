@@ -820,12 +820,18 @@ contains
     !!]
 
     if (includeFileName_) then
-       pathToObject=self%objectFile//"/"
+       pathToObject=self%objectFile
     else
        pathToObject=""
     end if
-    if (self%objectLocation /= "") pathToObject=pathToObject//self%objectLocation//"/"
-    pathToObject=pathToObject//self%objectName
+    if (self%objectLocation /= "") then
+       if (pathToObject /= "") pathToObject=pathToObject//"/"
+       pathToObject=pathToObject//self%objectLocation
+    end if
+    if (self%objectName     /= "") then
+       if (pathToObject /= "") pathToObject=pathToObject//"/"
+       pathToObject=pathToObject//self%objectName
+    end if
     return
   end function IO_HDF5_Path_To
 
@@ -856,7 +862,7 @@ contains
     class(hdf5Object    ), intent(in   ), target :: self
     type (varying_string)                        :: report
 
-    report=char(10)//"   object is located in:"//self%pathTo()
+    report=char(10)//"   object is located in: "//self%pathTo()
     return
   end function IO_HDF5_Location_Report
 
