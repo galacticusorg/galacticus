@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Build CIE cooling and ionization tables using Cloudy -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
+  <task value="buildTableCIECloudy">
+    <includeContinuum value="false"/>
+  </task>
+</parameters>
