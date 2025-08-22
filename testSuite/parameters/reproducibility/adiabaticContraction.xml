@@ -73,9 +73,9 @@
     <omega value="1.0"/>
   </darkMatterProfile>
 
-  <galacticusStructureSolver value="equilibrium">
+  <galacticStructureSolver value="equilibrium">
     <solutionTolerance value="1.0e-4"/>
-  </galacticusStructureSolver>
+  </galacticStructureSolver>
 
   <!-- Numerical tolerances -->
   <mergerTreeNodeEvolver value="standard">
