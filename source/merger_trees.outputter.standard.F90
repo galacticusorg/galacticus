@@ -1216,6 +1216,7 @@ contains
     type            (outputGroup                ), allocatable  , dimension(:) :: outputGroupsTemporary
     type            (varying_string             )                              :: description          , groupName
     double precision                                                           :: expansionFactor      , distanceComoving
+    integer                                                                    :: i
     
     !$ call hdf5Access%set()
     ! Ensure group ID space is large enough.
@@ -1224,7 +1225,19 @@ contains
           call Move_Alloc(self%outputGroups,outputGroupsTemporary)
           self%outputGroupsCount=max(self%outputGroupsCount+standardOutputGroupsIncrement,(indexOutput/standardOutputGroupsIncrement+1)*standardOutputGroupsIncrement)
           allocate(self%outputGroups(self%outputGroupsCount))
-          self%outputGroups(1:size(outputGroupsTemporary))=outputGroupsTemporary
+          !![
+	  <workaround type="gfortran" PR="46897" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=46897">
+	    <seeAlso type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=57696"/>
+	    <description>
+	      Type-bound defined assignment not done because multiple part array references would occur in intermediate expressions.
+	    </description>
+	  !!]
+          do i=1,size(outputGroupsTemporary)
+             self%outputGroups(i)=outputGroupsTemporary(i)
+          end do
+          !![
+	  </workaround>
+          !!]
           self%outputGroups(size(outputGroupsTemporary)+1:size(self%outputGroups))%opened                  =.false.
           self%outputGroups(size(outputGroupsTemporary)+1:size(self%outputGroups))%integerAttributesWritten=.false.
           self%outputGroups(size(outputGroupsTemporary)+1:size(self%outputGroups))%doubleAttributesWritten =.false.
