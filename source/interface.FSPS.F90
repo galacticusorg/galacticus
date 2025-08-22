@@ -176,8 +176,6 @@ contains
          &                                                                          iAge                , ageCount         , &
          &                                                                          wavelengthCount
     character       (len=256       )                                             :: line
-    type            (hdf5Object    )                                             :: spectraFile         , imfGroup         , &
-         &                                                                          dataset
 
     ! Validate file format.
     if (fileFormat /= fileFormatCurrent) call Error_Report(var_str("FSPS interface supports file format version ")//fileFormatCurrent//" but version "//fileFormat//" was requested"//{introspection:location})
@@ -241,32 +239,36 @@ contains
     ! Write output file.
     call Directory_Make(char(File_Path(char(spectraFileName))))
     !$ call hdf5Access%set()
-    spectraFile=hdf5Object(char(spectraFileName))
-    ! Add metadata.
-    call spectraFile%writeAttribute('Galacticus'                                                                           ,'createdBy'  )
-    call spectraFile%writeAttribute(Formatted_Date_and_Time()                                                              ,'timestep'   )
-    call spectraFile%writeAttribute(fileFormatCurrent                                                                      ,'fileFormat' )
-    call spectraFile%writeAttribute(fspsVersion                                                                            ,'fspsVersion')
-    call spectraFile%writeAttribute("Simple stellar population spectra from FSPS for a "//imfName//" initial mass function",'description')
-    ! Add IMF.
-    imfGroup=spectraFile%openGroup('initialMassFunction')
-    call imfGroup%writeDataset  (imf%xs(),'mass'                  ,datasetReturned=dataset)
-    call dataset %writeAttribute('M☉'                 ,'units'                           )
-    call dataset %writeAttribute(      massSolar      ,'unitsInSI'                       )
-    call imfGroup%writeDataset  (imf%ys()   ,'initialMassFunction',datasetReturned=dataset)
-    call dataset %writeAttribute('M☉⁻¹'               ,'units'                           )
-    call dataset %writeAttribute(1.0d0/massSolar      ,'unitsInSI'                       )
-    ! Write datasets.
-    call spectraFile%writeDataset  (wavelength ,'wavelengths'        ,datasetReturned=dataset)
-    call dataset    %writeAttribute('Å'                  ,'units'                            )
-    call dataset    %writeAttribute(1.0d0/metersToAngstroms             ,'unitsInSI'         )
-    call spectraFile%writeDataset  (age        ,'ages'         ,      datasetReturned=dataset)
-    call dataset    %writeAttribute('Gyr'                ,'units'                            )
-    call dataset    %writeAttribute(gigaYear             ,'unitsInSI'                        )
-    call spectraFile%writeDataset  (metallicity,'metallicities'                              )
-    call spectraFile%writeDataset  (spectrum   ,'spectra'            ,datasetReturned=dataset)
-    call dataset    %writeAttribute('L☉ Hz⁻¹'            ,'units'                            )
-    call dataset    %writeAttribute(luminositySolar      ,'unitsInSI'                        )
+    block
+      type(hdf5Object) :: spectraFile, imfGroup, &
+           &              dataset
+      spectraFile=hdf5Object(char(spectraFileName))
+      ! Add metadata.
+      call spectraFile%writeAttribute('Galacticus'                                                                           ,'createdBy'  )
+      call spectraFile%writeAttribute(Formatted_Date_and_Time()                                                              ,'timestep'   )
+      call spectraFile%writeAttribute(fileFormatCurrent                                                                      ,'fileFormat' )
+      call spectraFile%writeAttribute(fspsVersion                                                                            ,'fspsVersion')
+      call spectraFile%writeAttribute("Simple stellar population spectra from FSPS for a "//imfName//" initial mass function",'description')
+      ! Add IMF.
+      imfGroup=spectraFile%openGroup('initialMassFunction')
+      call imfGroup%writeDataset  (imf%xs(),'mass'                  ,datasetReturned=dataset)
+      call dataset %writeAttribute('M☉'                 ,'units'                           )
+      call dataset %writeAttribute(      massSolar      ,'unitsInSI'                       )
+      call imfGroup%writeDataset  (imf%ys()   ,'initialMassFunction',datasetReturned=dataset)
+      call dataset %writeAttribute('M☉⁻¹'               ,'units'                           )
+      call dataset %writeAttribute(1.0d0/massSolar      ,'unitsInSI'                       )
+      ! Write datasets.
+      call spectraFile%writeDataset  (wavelength ,'wavelengths'        ,datasetReturned=dataset)
+      call dataset    %writeAttribute('Å'                  ,'units'                            )
+      call dataset    %writeAttribute(1.0d0/metersToAngstroms             ,'unitsInSI'         )
+      call spectraFile%writeDataset  (age        ,'ages'         ,      datasetReturned=dataset)
+      call dataset    %writeAttribute('Gyr'                ,'units'                            )
+      call dataset    %writeAttribute(gigaYear             ,'unitsInSI'                        )
+      call spectraFile%writeDataset  (metallicity,'metallicities'                              )
+      call spectraFile%writeDataset  (spectrum   ,'spectra'            ,datasetReturned=dataset)
+      call dataset    %writeAttribute('L☉ Hz⁻¹'            ,'units'                            )
+      call dataset    %writeAttribute(luminositySolar      ,'unitsInSI'                        )
+    end block
     !$ call hdf5Access%unset()
   return
   end subroutine Interface_FSPS_SSPs_Tabulate

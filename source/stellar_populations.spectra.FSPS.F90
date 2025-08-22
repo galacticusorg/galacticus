@@ -132,7 +132,6 @@ contains
     class  (table1D                     ), allocatable   :: imf
     logical                                              :: remakeFile
     integer                                              :: fileFormatVersion
-    type   (hdf5Object                  )                :: spectraFile
     type   (lockDescriptor              )                :: fileLock
     integer                                              :: i
 
@@ -146,9 +145,12 @@ contains
           call File_Lock(char(self%fileName),fileLock,lockIsShared=i == 1)
           if (File_Exists(char(self%fileName))) then
              !$ call hdf5Access%set()
-             spectraFile=hdf5Object(char(self%fileName),readOnly=.true.)
-             call spectraFile%readAttribute('fileFormat',fileFormatVersion)
-             if (fileFormatVersion /= fileFormatVersionCurrent) remakeFile=.true.
+             block
+               type(hdf5Object) :: spectraFile
+               spectraFile=hdf5Object(char(self%fileName),readOnly=.true.)
+               call spectraFile%readAttribute('fileFormat',fileFormatVersion)
+               if (fileFormatVersion /= fileFormatVersionCurrent) remakeFile=.true.
+             end block
              !$ call hdf5Access%unset()
           else
              remakeFile=.true.

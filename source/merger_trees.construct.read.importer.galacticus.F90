@@ -262,7 +262,6 @@ contains
     implicit none
     class           (mergerTreeImporterGalacticus ), intent(inout) :: self
     type            (varying_string               ), intent(in   ) :: fileName
-    type            (hdf5Object                   )                :: cosmologicalParametersGroup, unitsGroup, angularMomentumDataset, spinDataset
     type            (varying_string               )                :: message
     character       (len=14                       )                :: valueString
     double precision                                               :: localLittleH0, localOmegaMatter, localOmegaDE, localOmegaBaryon, localSigma8, cosmologicalParameter
@@ -282,185 +281,189 @@ contains
     localOmegaBaryon=self%cosmologyParameters_     %OmegaBaryon    (                  )
     localSigma8     =self%cosmologicalMassVariance_%sigma8         (                  )
     !$ call hdf5Access%set()
-    ! Open the file.
-    self%file=hdf5Object(char(fileName),readOnly=.true.)
-    ! Get the file format version number.
-    if (self%file%hasAttribute('formatVersion')) then
-       call self%file%readAttribute('formatVersion',self%formatVersion,allowPseudoScalar=.true.)
-    else
-       self%formatVersion=1
-    end if
-    ! Validate format version number and set appropriate group names.
-    select case (self%formatVersion)
-    case (1)
-       ! This version will be deprecated.
-       !![
-       <expiry version="1.0.0"/>
-       !!]
-       call Warn(displayMagenta()//'WARNING:'//displayReset()//' merger tree file format version is outdated - this format will soon be deprecated')
-       self%forestHalosGroupName          ='haloTrees'
-       self%forestContainmentAttributeName='treesAreSelfContained'
-       self%forestIndexGroupName          ='treeIndex'
-       self%forestIndexDatasetName        ='treeIndex'
-       self%forestWeightDatasetName       ='treeWeight'
-    case (2)
-       ! This is the current version - no problems.
-       self%forestHalosGroupName          ='forestHalos'
-       self%forestContainmentAttributeName='forestsAreSelfContained'
-       self%forestIndexGroupName          ='forestIndex'
-       self%forestIndexDatasetName        ='forestIndex'
-       self%forestWeightDatasetName       ='forestWeight'
-    case default
-       ! Unknown version - abort.
-       call Error_Report('unknown file format version number'//{introspection:location})
-    end select
-    ! Open the merger trees group.
-    self%forestHalos=self%file%openGroup(trim(self%forestHalosGroupName))
-    ! Check that cosmological parameters are consistent with the internal ones.
-    cosmologicalParametersGroup=self%file%openGroup("cosmology")
-    if (cosmologicalParametersGroup%hasAttribute("OmegaMatter")) then
-       call cosmologicalParametersGroup%readAttribute("OmegaMatter",cosmologicalParameter,allowPseudoScalar=.true.)
-       if (Values_Differ(cosmologicalParameter,localOmegaMatter,absTol=0.001d0)) then
-          message='Omega_Matter in merger tree file ['
-          write (valueString,'(e14.8)') cosmologicalParameter
-          message=message//trim(valueString)//'] differs from the internal value ['
-          write (valueString,'(e14.8)') localOmegaMatter
-          message=message//trim(valueString)//']'
-          if (self%fatalMismatches) then
-             call Error_Report(message//{introspection:location})
-          else
-             call displayMessage(message,verbosityLevelWarn)
-          end if
-       end if
-    end if
-    if (cosmologicalParametersGroup%hasAttribute("OmegaBaryon")) then
-       call cosmologicalParametersGroup%readAttribute("OmegaBaryon",cosmologicalParameter,allowPseudoScalar=.true.)
-       if (Values_Differ(cosmologicalParameter,localOmegaBaryon,absTol=0.001d0)) then
-          message='Omega_b in merger tree file ['
-          write (valueString,'(e14.8)') cosmologicalParameter
-          message=message//trim(valueString)//'] differs from the internal value ['
-          write (valueString,'(e14.8)') localOmegaBaryon
-          message=message//trim(valueString)//']'
-          if (self%fatalMismatches) then
-             call Error_Report(message//{introspection:location})
-          else
-             call displayMessage(message,verbosityLevelWarn)
-          end if
-       end if
-    end if
-    if (cosmologicalParametersGroup%hasAttribute("OmegaLambda")) then
-       call cosmologicalParametersGroup%readAttribute("OmegaLambda",cosmologicalParameter,allowPseudoScalar=.true.)
-       if (Values_Differ(cosmologicalParameter,localOmegaDE,absTol=0.001d0)) then
-          message='Omega_DE in merger tree file ['
-          write (valueString,'(e14.8)') cosmologicalParameter
-          message=message//trim(valueString)//'] differs from the internal value ['
-          write (valueString,'(e14.8)') localOmegaDE
-          message=message//trim(valueString)//']'
-          if (self%fatalMismatches) then
-             call Error_Report(message//{introspection:location})
-          else
-             call displayMessage(message,verbosityLevelWarn)
-          end if
-       end if
-    end if
-    if (cosmologicalParametersGroup%hasAttribute("HubbleParam")) then
-       call cosmologicalParametersGroup%readAttribute("HubbleParam",cosmologicalParameter,allowPseudoScalar=.true.)
-       if (Values_Differ(cosmologicalParameter,localLittleH0,absTol=0.00001d0)) then
-          message='H_0 in merger tree file ['
-          write (valueString,'(e14.8)') cosmologicalParameter
-          message=message//trim(valueString)//'] differs from the internal value ['
-          write (valueString,'(e14.8)') localLittleH0
-          message=message//trim(valueString)//']'
-          if (self%fatalMismatches) then
-             call Error_Report(message//{introspection:location})
-          else
-             call displayMessage(message,verbosityLevelWarn)
-          end if
-       end if
-    end if
-    if (cosmologicalParametersGroup%hasAttribute("sigma_8")) then
-       call cosmologicalParametersGroup%readAttribute("sigma_8",cosmologicalParameter,allowPseudoScalar=.true.)
-       if (Values_Differ(cosmologicalParameter,localSigma8,absTol=0.00001d0)) then
-          message='sigma_8 in merger tree file ['
-          write (valueString,'(e14.8)') cosmologicalParameter
-          message=message//trim(valueString)//'] differs from the internal value ['
-          write (valueString,'(e14.8)') localSigma8
-          message=message//trim(valueString)//'] - may not matter if sigma_8 is not used in other functions'
-          call displayMessage(message)
-       end if
-    end if
-    ! Read units.
-    unitsGroup=self%file%openGroup("units")
-    self%massUnit    %status=unitsGroup%hasAttribute("massUnitsInSI")
-    if (self%massUnit    %status) then
-       call unitsGroup%readAttribute("massUnitsInSI"              ,self%massUnit    %unitsInSI          ,allowPseudoScalar=.true.)
-       call unitsGroup%readAttribute("massScaleFactorExponent"    ,self%massUnit    %scaleFactorExponent,allowPseudoScalar=.true.)
-       call unitsGroup%readAttribute("massHubbleExponent"         ,self%massUnit    %hubbleExponent     ,allowPseudoScalar=.true.)
-    end if
-    self%lengthUnit  %status=unitsGroup%hasAttribute("lengthUnitsInSI")
-    if (self%lengthUnit  %status) then
-       call unitsGroup%readAttribute("lengthUnitsInSI"            ,self%lengthUnit  %unitsInSI          ,allowPseudoScalar=.true.)
-       call unitsGroup%readAttribute("lengthScaleFactorExponent"  ,self%lengthUnit  %scaleFactorExponent,allowPseudoScalar=.true.)
-       call unitsGroup%readAttribute("lengthHubbleExponent"       ,self%lengthUnit  %hubbleExponent     ,allowPseudoScalar=.true.)
-    end if
-    self%timeUnit    %status=unitsGroup%hasAttribute("timeUnitsInSI")
-    if (self%timeUnit    %status) then
-       call unitsGroup%readAttribute("timeUnitsInSI"              ,self%timeUnit    %unitsInSI          ,allowPseudoScalar=.true.)
-       call unitsGroup%readAttribute("timeScaleFactorExponent"    ,self%timeUnit    %scaleFactorExponent,allowPseudoScalar=.true.)
-       call unitsGroup%readAttribute("timeHubbleExponent"         ,self%timeUnit    %hubbleExponent     ,allowPseudoScalar=.true.)
-    end if
-    self%velocityUnit%status=unitsGroup%hasAttribute("velocityUnitsInSI")
-    if (self%velocityUnit%status) then
-       call unitsGroup%readAttribute("velocityUnitsInSI"          ,self%velocityUnit%unitsInSI          ,allowPseudoScalar=.true.)
-       call unitsGroup%readAttribute("velocityScaleFactorExponent",self%velocityUnit%scaleFactorExponent,allowPseudoScalar=.true.)
-       call unitsGroup%readAttribute("velocityHubbleExponent"     ,self%velocityUnit%hubbleExponent     ,allowPseudoScalar=.true.)
-    end if
-    ! Check for availability of particle data.
-    if (self%file%hasGroup("particles")) then
-       self%particles=self%file%openGroup("particles")
-       if      (self%particles%hasDataset("time"           )) then
-          self%particleEpochType       =galacticusParticleEpochTypeTime
-          self%particleEpochDatasetName="time"
-       else if (self%particles%hasDataset("expansionFactor")) then
-          self%particleEpochType       =galacticusParticleEpochTypeExpansionFactor
-          self%particleEpochDatasetName="expansionFactor"
-       else if (self%particles%hasDataset("redshift"       )) then
-          self%particleEpochType       =galacticusParticleEpochTypeRedshift
-          self%particleEpochDatasetName="redshift"
-       else
-          call Error_Report("particles group must have one of time, redshift or expansionFactor datasets"//{introspection:location})
-       end if
-    end if
-    ! Check for type of angular momenta data available.
-    self%angularMomentaIsScalar=.false.
-    self%angularMomentaIsVector=.false.
-    if (self%forestHalos%hasDataset("angularMomentum")) then
-       angularMomentumDataset=self%forestHalos%openDataset("angularMomentum")
-       select case (angularMomentumDataset%rank())
-       case (1)
-          self%angularMomentaIsScalar=.true.
-       case (2)
-          if (angularMomentumDataset%size(1) /= 3) call Error_Report('2nd dimension of rank-2 angularMomentum dataset must be 3'//{introspection:location})
-          self%angularMomentaIsVector=.true.
-       case default
-          call Error_Report('angularMomentum dataset must be rank 1 or 2'//{introspection:location})
-       end select
-    end if
-    ! Check for type of spin data available.
-    self%spinIsScalar=.false.
-    self%spinIsVector=.false.
-    if (self%forestHalos%hasDataset("spin")) then
-       spinDataset=self%forestHalos%openDataset("spin")
-       select case (spinDataset%rank())
-       case (1)
-          self%spinIsScalar=.true.
-       case (2)
-          if (spinDataset%size(1) /= 3) call Error_Report('2nd dimension of rank-2 spin dataset must be 3'//{introspection:location})
-          self%spinIsVector=.true.
-       case default
-          call Error_Report('spin dataset must be rank 1 or 2'//{introspection:location})
-       end select
-    end if
+    block
+      type(hdf5Object) :: cosmologicalParametersGroup, unitsGroup , &
+           &              angularMomentumDataset     , spinDataset
+      ! Open the file.
+      self%file=hdf5Object(char(fileName),readOnly=.true.)
+      ! Get the file format version number.
+      if (self%file%hasAttribute('formatVersion')) then
+         call self%file%readAttribute('formatVersion',self%formatVersion,allowPseudoScalar=.true.)
+      else
+         self%formatVersion=1
+      end if
+      ! Validate format version number and set appropriate group names.
+      select case (self%formatVersion)
+      case (1)
+         ! This version will be deprecated.
+         !![
+	 <expiry version="1.0.0"/>
+         !!]
+         call Warn(displayMagenta()//'WARNING:'//displayReset()//' merger tree file format version is outdated - this format will soon be deprecated')
+         self%forestHalosGroupName          ='haloTrees'
+         self%forestContainmentAttributeName='treesAreSelfContained'
+         self%forestIndexGroupName          ='treeIndex'
+         self%forestIndexDatasetName        ='treeIndex'
+         self%forestWeightDatasetName       ='treeWeight'
+      case (2)
+         ! This is the current version - no problems.
+         self%forestHalosGroupName          ='forestHalos'
+         self%forestContainmentAttributeName='forestsAreSelfContained'
+         self%forestIndexGroupName          ='forestIndex'
+         self%forestIndexDatasetName        ='forestIndex'
+         self%forestWeightDatasetName       ='forestWeight'
+      case default
+         ! Unknown version - abort.
+         call Error_Report('unknown file format version number'//{introspection:location})
+      end select
+      ! Open the merger trees group.
+      self%forestHalos=self%file%openGroup(trim(self%forestHalosGroupName))
+      ! Check that cosmological parameters are consistent with the internal ones.
+      cosmologicalParametersGroup=self%file%openGroup("cosmology")
+      if (cosmologicalParametersGroup%hasAttribute("OmegaMatter")) then
+         call cosmologicalParametersGroup%readAttribute("OmegaMatter",cosmologicalParameter,allowPseudoScalar=.true.)
+         if (Values_Differ(cosmologicalParameter,localOmegaMatter,absTol=0.001d0)) then
+            message='Omega_Matter in merger tree file ['
+            write (valueString,'(e14.8)') cosmologicalParameter
+            message=message//trim(valueString)//'] differs from the internal value ['
+            write (valueString,'(e14.8)') localOmegaMatter
+            message=message//trim(valueString)//']'
+            if (self%fatalMismatches) then
+               call Error_Report(message//{introspection:location})
+            else
+               call displayMessage(message,verbosityLevelWarn)
+            end if
+         end if
+      end if
+      if (cosmologicalParametersGroup%hasAttribute("OmegaBaryon")) then
+         call cosmologicalParametersGroup%readAttribute("OmegaBaryon",cosmologicalParameter,allowPseudoScalar=.true.)
+         if (Values_Differ(cosmologicalParameter,localOmegaBaryon,absTol=0.001d0)) then
+            message='Omega_b in merger tree file ['
+            write (valueString,'(e14.8)') cosmologicalParameter
+            message=message//trim(valueString)//'] differs from the internal value ['
+            write (valueString,'(e14.8)') localOmegaBaryon
+            message=message//trim(valueString)//']'
+            if (self%fatalMismatches) then
+               call Error_Report(message//{introspection:location})
+            else
+               call displayMessage(message,verbosityLevelWarn)
+            end if
+         end if
+      end if
+      if (cosmologicalParametersGroup%hasAttribute("OmegaLambda")) then
+         call cosmologicalParametersGroup%readAttribute("OmegaLambda",cosmologicalParameter,allowPseudoScalar=.true.)
+         if (Values_Differ(cosmologicalParameter,localOmegaDE,absTol=0.001d0)) then
+            message='Omega_DE in merger tree file ['
+            write (valueString,'(e14.8)') cosmologicalParameter
+            message=message//trim(valueString)//'] differs from the internal value ['
+            write (valueString,'(e14.8)') localOmegaDE
+            message=message//trim(valueString)//']'
+            if (self%fatalMismatches) then
+               call Error_Report(message//{introspection:location})
+            else
+               call displayMessage(message,verbosityLevelWarn)
+            end if
+         end if
+      end if
+      if (cosmologicalParametersGroup%hasAttribute("HubbleParam")) then
+         call cosmologicalParametersGroup%readAttribute("HubbleParam",cosmologicalParameter,allowPseudoScalar=.true.)
+         if (Values_Differ(cosmologicalParameter,localLittleH0,absTol=0.00001d0)) then
+            message='H_0 in merger tree file ['
+            write (valueString,'(e14.8)') cosmologicalParameter
+            message=message//trim(valueString)//'] differs from the internal value ['
+            write (valueString,'(e14.8)') localLittleH0
+            message=message//trim(valueString)//']'
+            if (self%fatalMismatches) then
+               call Error_Report(message//{introspection:location})
+            else
+               call displayMessage(message,verbosityLevelWarn)
+            end if
+         end if
+      end if
+      if (cosmologicalParametersGroup%hasAttribute("sigma_8")) then
+         call cosmologicalParametersGroup%readAttribute("sigma_8",cosmologicalParameter,allowPseudoScalar=.true.)
+         if (Values_Differ(cosmologicalParameter,localSigma8,absTol=0.00001d0)) then
+            message='sigma_8 in merger tree file ['
+            write (valueString,'(e14.8)') cosmologicalParameter
+            message=message//trim(valueString)//'] differs from the internal value ['
+            write (valueString,'(e14.8)') localSigma8
+            message=message//trim(valueString)//'] - may not matter if sigma_8 is not used in other functions'
+            call displayMessage(message)
+         end if
+      end if
+      ! Read units.
+      unitsGroup=self%file%openGroup("units")
+      self%massUnit    %status=unitsGroup%hasAttribute("massUnitsInSI")
+      if (self%massUnit    %status) then
+         call unitsGroup%readAttribute("massUnitsInSI"              ,self%massUnit    %unitsInSI          ,allowPseudoScalar=.true.)
+         call unitsGroup%readAttribute("massScaleFactorExponent"    ,self%massUnit    %scaleFactorExponent,allowPseudoScalar=.true.)
+         call unitsGroup%readAttribute("massHubbleExponent"         ,self%massUnit    %hubbleExponent     ,allowPseudoScalar=.true.)
+      end if
+      self%lengthUnit  %status=unitsGroup%hasAttribute("lengthUnitsInSI")
+      if (self%lengthUnit  %status) then
+         call unitsGroup%readAttribute("lengthUnitsInSI"            ,self%lengthUnit  %unitsInSI          ,allowPseudoScalar=.true.)
+         call unitsGroup%readAttribute("lengthScaleFactorExponent"  ,self%lengthUnit  %scaleFactorExponent,allowPseudoScalar=.true.)
+         call unitsGroup%readAttribute("lengthHubbleExponent"       ,self%lengthUnit  %hubbleExponent     ,allowPseudoScalar=.true.)
+      end if
+      self%timeUnit    %status=unitsGroup%hasAttribute("timeUnitsInSI")
+      if (self%timeUnit    %status) then
+         call unitsGroup%readAttribute("timeUnitsInSI"              ,self%timeUnit    %unitsInSI          ,allowPseudoScalar=.true.)
+         call unitsGroup%readAttribute("timeScaleFactorExponent"    ,self%timeUnit    %scaleFactorExponent,allowPseudoScalar=.true.)
+         call unitsGroup%readAttribute("timeHubbleExponent"         ,self%timeUnit    %hubbleExponent     ,allowPseudoScalar=.true.)
+      end if
+      self%velocityUnit%status=unitsGroup%hasAttribute("velocityUnitsInSI")
+      if (self%velocityUnit%status) then
+         call unitsGroup%readAttribute("velocityUnitsInSI"          ,self%velocityUnit%unitsInSI          ,allowPseudoScalar=.true.)
+         call unitsGroup%readAttribute("velocityScaleFactorExponent",self%velocityUnit%scaleFactorExponent,allowPseudoScalar=.true.)
+         call unitsGroup%readAttribute("velocityHubbleExponent"     ,self%velocityUnit%hubbleExponent     ,allowPseudoScalar=.true.)
+      end if
+      ! Check for availability of particle data.
+      if (self%file%hasGroup("particles")) then
+         self%particles=self%file%openGroup("particles")
+         if      (self%particles%hasDataset("time"           )) then
+            self%particleEpochType       =galacticusParticleEpochTypeTime
+            self%particleEpochDatasetName="time"
+         else if (self%particles%hasDataset("expansionFactor")) then
+            self%particleEpochType       =galacticusParticleEpochTypeExpansionFactor
+            self%particleEpochDatasetName="expansionFactor"
+         else if (self%particles%hasDataset("redshift"       )) then
+            self%particleEpochType       =galacticusParticleEpochTypeRedshift
+            self%particleEpochDatasetName="redshift"
+         else
+            call Error_Report("particles group must have one of time, redshift or expansionFactor datasets"//{introspection:location})
+         end if
+      end if
+      ! Check for type of angular momenta data available.
+      self%angularMomentaIsScalar=.false.
+      self%angularMomentaIsVector=.false.
+      if (self%forestHalos%hasDataset("angularMomentum")) then
+         angularMomentumDataset=self%forestHalos%openDataset("angularMomentum")
+         select case (angularMomentumDataset%rank())
+         case (1)
+            self%angularMomentaIsScalar=.true.
+         case (2)
+            if (angularMomentumDataset%size(1) /= 3) call Error_Report('2nd dimension of rank-2 angularMomentum dataset must be 3'//{introspection:location})
+            self%angularMomentaIsVector=.true.
+         case default
+            call Error_Report('angularMomentum dataset must be rank 1 or 2'//{introspection:location})
+         end select
+      end if
+      ! Check for type of spin data available.
+      self%spinIsScalar=.false.
+      self%spinIsVector=.false.
+      if (self%forestHalos%hasDataset("spin")) then
+         spinDataset=self%forestHalos%openDataset("spin")
+         select case (spinDataset%rank())
+         case (1)
+            self%spinIsScalar=.true.
+         case (2)
+            if (spinDataset%size(1) /= 3) call Error_Report('2nd dimension of rank-2 spin dataset must be 3'//{introspection:location})
+            self%spinIsVector=.true.
+         case default
+            call Error_Report('spin dataset must be rank 1 or 2'//{introspection:location})
+         end select
+      end if
+    end block
     !$ call hdf5Access%unset()
     return
   end subroutine galacticusOpen
