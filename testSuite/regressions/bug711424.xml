@@ -202,7 +202,7 @@
     <velocitySuppressionReionization value="30.0"/>
   </accretionHalo>
   <stellarPopulationProperties value="noninstantaneous"/>
-  <outputFileName value="testSuite/outputs/regressions/test.hdf5"/>
+  <outputFileName value="testSuite/outputs/regressions/test711424.hdf5"/>
   <componentSatellite value="standard"/>
 
   <initialMassFunction value="salpeter1955"/>

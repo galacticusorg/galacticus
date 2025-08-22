@@ -239,15 +239,12 @@
   <coolingTimeAvailable value="whiteFrenk1991">
     <ageFactor value="0.774282113742516"/>
   </coolingTimeAvailable>
-  <hotHaloAngularMomentumLossFraction value="0.0871188291891892"/>
   <starveSatellites value="false"/>
 
   <!-- Hot halo ram pressure stripping options -->
   <hotHaloRamPressureStripping value="font2008"/>
   <hotHaloRamPressureForce value="font2008"/>
   <hotHaloRamPressureTimescale value="ramPressureAcceleration"/>
-  <hotHaloOutflowStrippingEfficiency value="0.1"/>
-  <hotHaloTrackStrippedGas value="true"/>
   
   <satelliteTidalField value="sphericalSymmetry"/>
   <satelliteTidalStripping value="zentner2005"/>
@@ -255,7 +252,6 @@
   <!-- Galactic structure options -->
   <galacticStructureSolver value="simple"/>
   <darkMatterProfile value="darkMatterOnly"/>
-  <spheroidAngularMomentumAtScaleRadius value="0.50"/>
 
   <!-- Star formation rate options -->
   <starFormationRateSurfaceDensityDisks value="blitz2006">
@@ -296,12 +292,8 @@
   <blackHoleCGMHeating value="jetPower">
     <efficiencyRadioMode value="0.00140338137883176"/>
   </blackHoleCGMHeating>
-   <blackHoleCGMHeating value="jetPower">
-    <efficiencyRadioMode value="1.0"/>
-  </blackHoleCGMHeating>
 
   <stellarWinds value="leitherer1992"/>
-  <initialMassForSupernovaTypeII value="8.0"/>
   <supernovaeTypeIa value="nagashima2005"/>
   <supernovaePopulationIII value="hegerWoosley2002"/>
   <stellarFeedback value="standard"/>
@@ -334,9 +326,6 @@
   <mergerRemnantSize value="cole2000">
     <energyOrbital value="1.41586769307318"/>
   </mergerRemnantSize>
-
-  <!-- Spheroid options -->
-  <spheroidEnergeticOutflowMassRate value="1.0e-2"/>
 
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
@@ -460,10 +449,6 @@
       <timeOffsetMaximumRelative value="0.001"/>
     </mergerTreeEvolveTimestep>
   </mergerTreeEvolveTimestep>
-  <diskMassToleranceAbsolute value="1.0e-6"/>
-  <spheroidMassToleranceAbsolute value="1.0e-6"/>
-  <diskLuminositiesStellarInactive value="true"/>
-  <spheroidLuminositiesStellarInactive value="true"/>
 
   <nodePropertyExtractor value="starFormationHistoryMass">
     <component value="disk"/>
