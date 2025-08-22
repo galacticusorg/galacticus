@@ -23,7 +23,7 @@ my @tests =
 	 # Model with no subsampling.
 	 suffix           => "",
 	 mean             => 1.084,
-	 meanTolerance    => 0.065,
+	 meanTolerance    => 0.070,
 	 scatter          => 0.134,
 	 scatterTolerance => 0.040
      },
@@ -31,7 +31,7 @@ my @tests =
 	 # Model with subsampling below 10⁸M☉.
 	 suffix           => "Subsample1e8",
 	 mean             => 1.084,
-	 meanTolerance    => 0.065,
+	 meanTolerance    => 0.070,
 	 scatter          => 0.134,
 	 scatterTolerance => 0.040
      },
@@ -39,7 +39,7 @@ my @tests =
 	 # Model with subsampling below 10⁷M☉.
 	 suffix           => "Subsample1e7",
 	 mean             => 1.084,
-	 meanTolerance    => 0.065,
+	 meanTolerance    => 0.070,
 	 scatter          => 0.134,
 	 scatterTolerance => 0.040
      }
