@@ -41,7 +41,8 @@ nodesStart =            treeProperties['mergerTreeStartIndex'][treeSelect][0]
 nodesEnd   = nodesStart+treeProperties['mergerTreeCount'     ][treeSelect][0]
 propertyNames = [ 'galaxyMergerTreeNodeIndex'          , 'galaxyMergerTreeCount'    , 'galaxyMergerTreeTotalStarFormationRate',
                   'galaxyMergerTreeMassStellarTotal'   , 'galaxyMergerTreeTime'     , 'galaxyMergerTreeMergeCentralIndex'     ,
-                  'galaxyMergerTreeMergeSatelliteIndex', 'galaxyMergerTreeMergeTime', 'nodeIsIsolated'                          ]
+                  'galaxyMergerTreeMergeSatelliteIndex', 'galaxyMergerTreeMergeTime', 'nodeIsIsolated'                        ,
+                  'mergerTreeIndex'                    , 'nodeIndex'                                                            ]
 properties = {}
 for property in propertyNames:
     properties[property] = nodes[property][nodesStart:nodesEnd]
@@ -50,11 +51,11 @@ for property in propertyNames:
 indexCentral = np.nonzero(properties['nodeIsIsolated'] == 1)[0][0]
 for property in propertyNames:
     properties[property] = properties[property][indexCentral]
-
+    
 # Generate a color map to color nodes by their star formation rate.
 colorMap    = mpl.colormaps['coolwarm_r']
 countColors = 100
-colors      = colorMap(np.linspace(1,0,countColors))
+colors      = colorMap(np.linspace(0,1,countColors))
 
 # Generate a range spanning the number of nodes in tree.
 indexNodes = np.array(list(range(len(properties['galaxyMergerTreeTime']))))
