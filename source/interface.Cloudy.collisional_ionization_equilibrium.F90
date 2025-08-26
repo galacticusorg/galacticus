@@ -195,7 +195,7 @@ contains
              if (includeContinuum_) &
                   & write (cloudyScript,'(a)') 'save emitted continuum units _keV "'//char(fileNameTempContinuum)//'"'
              close(cloudyScript)
-             call System_Command_Do("cd "//cloudyPath//"/source; cloudy.exe -r input",status);
+             call System_Command_Do("cd "//cloudyPath//"/source; ./cloudy.exe -r input",status);
              if (status /= 0) call Error_Report('Cloudy failed'//{introspection:location})
              ! Extract the cooling rate.
              open(newUnit=inputFile,file=char(cloudyPath//"/source/"//fileNameTempCooling),status='old')
