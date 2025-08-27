@@ -193,7 +193,7 @@ contains
              if (includeContinuum_) &
                   & write (cloudyScript,'(a)') 'save emitted continuum units _keV "'//char(fileNameTempContinuum)//'"'
              close(cloudyScript)
-             call System_Command_Do("cd "//cloudyPath//"/source; cloudy.exe -r input",status);
+             call System_Command_Do("cd "//cloudyPath//"/source; ./cloudy.exe -r input",status);
              if (status /= 0) call Error_Report('Cloudy failed'//{introspection:location})
              ! Extract the cooling rate.
              open(newUnit=inputFile,file=char(cloudyPath//"/source/"//fileNameTempCooling),status='old')
@@ -266,13 +266,13 @@ contains
              call    dataset   %writeAttribute('K'                                                       ,'units'                                                   )
              call    dataset   %writeAttribute(1.0d0                                                     ,'unitsInSI'                                               )
              call    outputFile%writeDataset  (10.0d0**temperaturesLogarithmic                           ,'temperature'                     ,datasetReturned=dataset)
-             call    dataset   %writeAttribute('powerLaw'                                                ,'extrapolateLow'                                          )
-             call    dataset   %writeAttribute('powerLaw'                                                ,'extrapolateHigh'                                         )
+             call    dataset   %writeAttribute('extrapolate'                                             ,'extrapolateLow'                                          )
+             call    dataset   %writeAttribute('extrapolate'                                             ,'extrapolateHigh'                                         )
              call    outputFile%writeDataset  (coolingFunction                                           ,'coolingRate'                     ,datasetReturned=dataset)
              if (includeContinuum_) then
                 call outputFile%writeDataset  (energyContinuum                                           ,'energyContinuum'                 ,datasetReturned=dataset)
-                call dataset   %writeAttribute('powerLaw'                                                ,'extrapolateLow'                                          )
-                call dataset   %writeAttribute('powerLaw'                                                ,'extrapolateHigh'                                         )
+                call dataset   %writeAttribute('extrapolate'                                             ,'extrapolateLow'                                          )
+                call dataset   %writeAttribute('extrapolate'                                             ,'extrapolateHigh'                                         )
                 call dataset   %writeAttribute('keV'                                                     ,'units'                                                   )
                 call dataset   %writeAttribute(kilo*electronVolt                                         ,'unitsInSI'                                               )
                 call outputFile%writeDataset  (powerEmittedFractionalCumulative                          ,'powerEmittedFractionalCumulative',datasetReturned=dataset)
@@ -293,8 +293,8 @@ contains
              call    dataset   %writeAttribute('K'                                                       ,'units'                                  )
              call    dataset   %writeAttribute(1.0d0                                                     ,'unitsInSI'                              )
              call    outputFile%writeDataset  (10.0d0**temperaturesLogarithmic                           ,'temperature'    ,datasetReturned=dataset)
-             call    dataset   %writeAttribute('powerLaw'                                                ,'extrapolateLow'                         )
-             call    dataset   %writeAttribute('powerLaw'                                                ,'extrapolateHigh'                        )
+             call    dataset   %writeAttribute('extrapolate'                                             ,'extrapolateLow'                         )
+             call    dataset   %writeAttribute('extrapolate'                                             ,'extrapolateHigh'                        )
              call    outputFile%writeDataset  (densityElectron                                           ,'electronDensity',datasetReturned=dataset)
              call    outputFile%writeDataset  (densityHydrogenI                                          ,'hiDensity'      ,datasetReturned=dataset)
              call    outputFile%writeDataset  (densityHydrogenII                                         ,'hiiDensity'     ,datasetReturned=dataset)
