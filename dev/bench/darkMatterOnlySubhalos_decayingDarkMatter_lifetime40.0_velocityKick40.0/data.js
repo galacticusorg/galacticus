@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1756307578949,
+  "lastUpdate": 1756337389169,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=40 Gyr; vₖ=40 km/s)": [
@@ -3009,6 +3009,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=40.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
             "value": "16.7579477867881",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "17fa7ddda84ff1326ad77aa37f8e200e331e092e",
+          "message": "fix: Adjust cooling function test targets in response to changes upgrading from Cloudy 23.00 to 25.00",
+          "timestamp": "2025-08-27T08:15:05-07:00",
+          "tree_id": "e33afb209eef7965dc9815cbb482efcaa1564c82",
+          "url": "https://github.com/galacticusorg/galacticus/commit/17fa7ddda84ff1326ad77aa37f8e200e331e092e"
+        },
+        "date": 1756337388355,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=40.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": "13.545882196557187",
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=40.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": "14.72006367762436",
             "unit": "-logℒ"
           }
         ]
