@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1755764206805,
+  "lastUpdate": 1756307490839,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (Symphony)": [
@@ -1046,6 +1046,43 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (Symphony Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": "5.022075766440101",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "643d41c374ae115f121bd061af8299b5aca90de5",
+          "message": "fix: Correct extrapolation type used in tables",
+          "timestamp": "2025-08-26T19:40:21Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/643d41c374ae115f121bd061af8299b5aca90de5"
+        },
+        "date": 1756307489536,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (Symphony Milky Way) - Likelihood - subhaloMassFunction",
+            "value": "3.0516045307791186",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": "1.7421762473213467",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": "5.047905253762756",
             "unit": "-logℒ"
           }
         ]
