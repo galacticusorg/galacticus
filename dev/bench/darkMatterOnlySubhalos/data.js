@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1755764202355,
+  "lastUpdate": 1756307473098,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "577e939fa7317dfbd3bff04028b2ace201c27310",
-          "message": "Merge pull request #712 from galacticusorg/featOutputMaximumMemory\n\nOutput the maximum memory usage",
-          "timestamp": "2024-10-02T13:07:34Z",
-          "tree_id": "3f9b44d66c354f198e48a29b61e01b2835eb53b4",
-          "url": "https://github.com/galacticusorg/galacticus/commit/577e939fa7317dfbd3bff04028b2ace201c27310"
-        },
-        "date": 1727898354515,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 52.435,
-            "unit": "seconds",
-            "range": 0.0576931538411121
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8776,6 +8746,34 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": "10195.167397193705",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "643d41c374ae115f121bd061af8299b5aca90de5",
+          "message": "fix: Correct extrapolation type used in tables",
+          "timestamp": "2025-08-26T19:40:21Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/643d41c374ae115f121bd061af8299b5aca90de5"
+        },
+        "date": 1756307469479,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 50.196,
+            "unit": "seconds",
+            "range": 0.15240209972284
           }
         ]
       }
