@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abenson@carnegiescience.edu"
         },
-        "id": "643d41c374ae115f121bd061af8299b5aca90de5",
-        "message": "fix: Correct extrapolation type used in tables\n",
-        "timestamp": "2025-08-26 12:40:21-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/643d41c374ae115f121bd061af8299b5aca90de5"
+        "id": "17fa7ddda84ff1326ad77aa37f8e200e331e092e",
+        "message": "fix: Adjust cooling function test targets in response to changes upgrading from Cloudy 23.00 to 25.00\n",
+        "timestamp": "2025-08-27 08:15:05-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/17fa7ddda84ff1326ad77aa37f8e200e331e092e"
     },
     "results": [
         {
