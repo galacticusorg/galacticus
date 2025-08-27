@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1756307484928,
+  "lastUpdate": 1756337319035,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "b5b68023ef964b251e13a79791ce095afb0dd7a5",
-          "message": "feat: Add a `galacticFilter` that filters on maximum depth in the subhalo hierarchy",
-          "timestamp": "2024-10-07T07:52:35-07:00",
-          "tree_id": "96e119c4357ca70d68b68f7896c8cfb1326c48e6",
-          "url": "https://github.com/galacticusorg/galacticus/commit/b5b68023ef964b251e13a79791ce095afb0dd7a5"
-        },
-        "date": 1728337905215,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 54.646,
-            "unit": "seconds",
-            "range": 0.124989599567441
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8772,6 +8742,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": "9689.586155319275",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "17fa7ddda84ff1326ad77aa37f8e200e331e092e",
+          "message": "fix: Adjust cooling function test targets in response to changes upgrading from Cloudy 23.00 to 25.00",
+          "timestamp": "2025-08-27T08:15:05-07:00",
+          "tree_id": "e33afb209eef7965dc9815cbb482efcaa1564c82",
+          "url": "https://github.com/galacticusorg/galacticus/commit/17fa7ddda84ff1326ad77aa37f8e200e331e092e"
+        },
+        "date": 1756337315953,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 50.958,
+            "unit": "seconds",
+            "range": 0.0670939639606855
           }
         ]
       }
