@@ -109,7 +109,7 @@ contains
     !!{
     Internal constructor for the \refClass{hiiRegionMassFunctionPowerLaw} luminosity function class.
     !!}
-    use :: Gamma_Functions, only Gamma_Function_Incomplete_Unnormalized
+    use :: Gamma_Functions, only : Gamma_Function_Incomplete_Unnormalized
     implicit none
     type            (hiiRegionMassFunctionPowerLaw)                :: self
     double precision                                     , intent(in   ) :: massMinimum, massMaximum, massCutOff, &
@@ -156,7 +156,7 @@ contains
     !!{
     Returns the total mass, $M_*$ of HII regions in the given range of mass.
     !!}
-    use :: Gamma_Functions, only Gamma_Function_Incomplete_Unnormalized
+    use :: Gamma_Functions, only : Gamma_Function_Incomplete_Unnormalized
     implicit none
     class           (hiiRegionMassFunctionPowerLaw), intent(inout) :: self
     double precision                                     , intent(in   ) :: massMinimum , massMaximum
