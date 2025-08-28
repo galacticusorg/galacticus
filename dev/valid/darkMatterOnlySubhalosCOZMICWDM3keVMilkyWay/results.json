@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "17fa7ddda84ff1326ad77aa37f8e200e331e092e",
-        "message": "fix: Adjust cooling function test targets in response to changes upgrading from Cloudy 23.00 to 25.00\n",
-        "timestamp": "2025-08-27 08:15:05-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/17fa7ddda84ff1326ad77aa37f8e200e331e092e"
+        "id": "b6e75bae3fddb09f16d78002d52dba2ef6fcfe94",
+        "message": "Merge pull request #908 from galacticusorg/fixPromptCuspRadii\n\nEnforce a limit on r₋₂ in prompt cusp calculations to ensure that a solution can be found\n",
+        "timestamp": "2025-08-28 14:37:45+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/b6e75bae3fddb09f16d78002d52dba2ef6fcfe94"
     },
     "results": [
         {
@@ -22,7 +22,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "COZMIC (Nadler et al. 2023)",
                 "comment": "Analysis of subhalo mass functions",
                 "description": "Subhalo mass function",
-                "logLikelihood": "-2.569975523805855",
+                "logLikelihood": "-2.1907724538617286",
                 "type": "function1D",
                 "xDataset": "massRatio",
                 "yCovariance": "massFunctionCovariance",
@@ -46,16 +46,16 @@ window.ANALYSES_DATA = {
                     0.7079457843841377
                 ],
                 "yDataset": [
-                    21.355555555555554,
-                    10.46111111111111,
-                    5.361111111111111,
-                    2.9444444444444446,
-                    1.8166666666666667,
-                    0.8722222222222222,
-                    0.3888888888888889,
-                    0.32222222222222224,
-                    0.08333333333333333,
-                    0.03333333333333333,
+                    21.022222222222222,
+                    10.216666666666667,
+                    5.227777777777778,
+                    2.7333333333333334,
+                    1.5611111111111111,
+                    0.75,
+                    0.36666666666666664,
+                    0.2777777777777778,
+                    0.1,
+                    0.03888888888888889,
                     0.022222222222222223,
                     0.0
                 ],
@@ -74,16 +74,16 @@ window.ANALYSES_DATA = {
                     0.0
                 ],
                 "yError": [
-                    0.34444444444444444,
-                    0.24107526615274594,
-                    0.1725802729667674,
-                    0.12789849370245931,
-                    0.1004618962223618,
-                    0.06961091158967593,
-                    0.046481112585226414,
-                    0.04230985058813282,
-                    0.02151657414559676,
-                    0.013608276348795434,
+                    0.3417456999828822,
+                    0.23824201824879518,
+                    0.1704206850019774,
+                    0.12322818340454908,
+                    0.0931280811902234,
+                    0.06454972243679027,
+                    0.045133546692422,
+                    0.039283710065919304,
+                    0.023570226039551584,
+                    0.014698618394803282,
                     0.011111111111111112,
                     0.0
                 ],
@@ -113,7 +113,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "COZMIC (Nadler et al. 2023)",
                 "comment": "Analysis of subhalo mass functions",
                 "description": "Subhalo radial distribution",
-                "logLikelihood": "-3.193030396002927",
+                "logLikelihood": "-1.9121267480650546",
                 "type": "function1D",
                 "xDataset": "radiusFractional",
                 "yCovariance": "radialDistributionCovariance",
@@ -136,15 +136,15 @@ window.ANALYSES_DATA = {
                 ],
                 "yDataset": [
                     0.0,
-                    0.0,
-                    0.022222222222222223,
+                    0.027777777777777776,
+                    0.05,
                     0.12777777777777777,
-                    0.43333333333333335,
-                    1.5444444444444445,
-                    3.8,
-                    8.122222222222222,
-                    13.266666666666667,
-                    18.25
+                    0.5166666666666667,
+                    1.3722222222222222,
+                    3.95,
+                    8.083333333333334,
+                    12.944444444444445,
+                    17.133333333333333
                 ],
                 "yDatasetTarget": [
                     0.0,
@@ -160,15 +160,15 @@ window.ANALYSES_DATA = {
                 ],
                 "yError": [
                     0.0,
-                    0.0,
-                    0.011111111111111112,
+                    0.012422599874998832,
+                    0.016666666666666666,
                     0.02664350846284844,
-                    0.04906533814626582,
-                    0.09262962222518371,
-                    0.1452966314513558,
-                    0.21242282549227956,
-                    0.27148426050823593,
-                    0.3184162195757133
+                    0.053575837561071975,
+                    0.08731240914167618,
+                    0.14813657362192648,
+                    0.21191367914178502,
+                    0.2681670752477149,
+                    0.30852096393144046
                 ],
                 "yErrorTarget": [
                     0.0,
@@ -194,7 +194,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "COZMIC (Nadler et al. 2023)",
                 "comment": "Subhalo mean maximum velocity vs. bound mass relation",
                 "description": "Subhalo mean maximum velocity vs. bound mass relation",
-                "logLikelihood": "-26.08485594100832",
+                "logLikelihood": "-349.26440893559527",
                 "type": "function1D",
                 "xDataset": "massBound",
                 "yCovariance": "velocityMaximumMeanCovariance",
@@ -216,16 +216,16 @@ window.ANALYSES_DATA = {
                     74989420933.24559
                 ],
                 "yDataset": [
-                    24.10600886094668,
-                    26.65389987011623,
-                    29.797162081633218,
-                    38.08924623629216,
-                    50.557613752435955,
-                    72.25108142119768,
-                    72.55466431112208,
-                    102.26801230980591,
-                    96.60360859866213,
-                    118.2092758761056
+                    24.081005174758452,
+                    26.668198473311826,
+                    29.921573366061214,
+                    34.68879721272638,
+                    40.255059811883065,
+                    48.04377986103552,
+                    54.838716810560506,
+                    65.57028910103705,
+                    70.48463028470587,
+                    78.37569116336584
                 ],
                 "yDatasetTarget": [
                     15.987391304347826,
@@ -240,16 +240,16 @@ window.ANALYSES_DATA = {
                     0.0
                 ],
                 "yError": [
-                    0.11121747939701698,
-                    0.19189272960920856,
-                    0.2780107002322963,
-                    1.2584510503296558,
-                    3.2155651936566776,
-                    5.739115249369004,
-                    7.227139477073402,
-                    14.728603497518883,
-                    11.189616874055968,
-                    19.750811821206977
+                    0.10447463590481355,
+                    0.17922204873897957,
+                    0.2809686213301109,
+                    0.461754425639927,
+                    0.6285260306726287,
+                    0.8770818205993299,
+                    1.5709482690056293,
+                    2.748675417734197,
+                    1.8129262451710775,
+                    2.9875390609961743
                 ],
                 "yErrorTarget": [
                     3.2990605009662857,

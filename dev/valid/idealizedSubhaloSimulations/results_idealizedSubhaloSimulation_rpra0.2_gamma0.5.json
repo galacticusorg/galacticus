@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "17fa7ddda84ff1326ad77aa37f8e200e331e092e",
-        "message": "fix: Adjust cooling function test targets in response to changes upgrading from Cloudy 23.00 to 25.00\n",
-        "timestamp": "2025-08-27 08:15:05-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/17fa7ddda84ff1326ad77aa37f8e200e331e092e"
+        "id": "b6e75bae3fddb09f16d78002d52dba2ef6fcfe94",
+        "message": "Merge pull request #908 from galacticusorg/fixPromptCuspRadii\n\nEnforce a limit on r₋₂ in prompt cusp calculations to ensure that a solution can be found\n",
+        "timestamp": "2025-08-28 14:37:45+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/b6e75bae3fddb09f16d78002d52dba2ef6fcfe94"
     },
     "results": [
         {
