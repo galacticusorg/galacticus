@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1756337334845,
+  "lastUpdate": 1756417258847,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (COZMIC WDM 3keV)": [
@@ -1122,6 +1122,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (COZMIC WDM 3keV Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": "26.08485594100832",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b6e75bae3fddb09f16d78002d52dba2ef6fcfe94",
+          "message": "Merge pull request #908 from galacticusorg/fixPromptCuspRadii\n\nEnforce a limit on r₋₂ in prompt cusp calculations to ensure that a solution can be found",
+          "timestamp": "2025-08-28T14:37:45Z",
+          "tree_id": "a2c532610f3c2ec442c10ea4c5077bf9ddf93e0c",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b6e75bae3fddb09f16d78002d52dba2ef6fcfe94"
+        },
+        "date": 1756417257797,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM 3keV Milky Way) - Likelihood - subhaloMassFunction",
+            "value": "2.1907724538617286",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM 3keV Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": "1.9121267480650546",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM 3keV Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": "349.26440893559527",
             "unit": "-logℒ"
           }
         ]
