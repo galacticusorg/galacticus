@@ -5,7 +5,7 @@
 <!-- density ratio in standard black hole model.                                       -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
+  <lastModified revision="8e1ca452b775faffbba73ded8deb7fb348523429" time="2025-08-29T17:09:39"/>
   <mergerTreeConstructor value="read">
     <missingHostsAreFatal value="false"/>
     <fileNames value="testSuite/data/mergerTrees/bug1053153.hdf5"/>
@@ -47,7 +47,7 @@
   </nodePropertyExtractor>
   <mergerTreeOperator value="massAccretionHistory"/>
   <componentHotHalo value="standard">
-    <angularMomentumAlwaysGrows value="true"/>
+    
   </componentHotHalo>
 
   <nodePromotionIndexShift value="false"/>
@@ -102,6 +102,14 @@
     <nodeOperator value="positionDiscrete"/>
     <!-- Satellite physics -->
     <nodeOperator value="satelliteOrphanize"/>
+    <!-- CGM physics -->
+    <nodeOperator value="CGMAccretion">
+      <allowNegativeCGMMass value="true"/>
+      <angularMomentumAlwaysGrows value="true"/>
+    </nodeOperator>
+    <nodeOperator value="CGMOutflowReincorporation">
+      <includeSatellites value="true"/>
+    </nodeOperator>
   </nodeOperator>
 
 </parameters>
