@@ -55,7 +55,7 @@
 <!-- 08-November-2011                                                           -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
+  <lastModified revision="8e1ca452b775faffbba73ded8deb7fb348523429" time="2025-08-29T17:09:39"/>
   <mergerTreeConstructor value="read">
     <fileNames value="testSuite/data/mergerTrees/treeWithNoPrimaryProgenitor.hdf5"/>
     <presetPositions value="false"/>
@@ -129,6 +129,15 @@
           <exponent value="3.5"/>
         </stellarFeedbackOutflows>
       </stellarFeedbackOutflows>
+    </nodeOperator>
+    <nodeOperator value="satelliteOrphanize"/>
+    <!-- CGM physics -->
+    <nodeOperator value="CGMAccretion">
+      <allowNegativeCGMMass value="true"/>
+      <angularMomentumAlwaysGrows value="false"/>
+    </nodeOperator>
+    <nodeOperator value="CGMOutflowReincorporation">
+      <includeSatellites value="true"/>
     </nodeOperator>
   </nodeOperator>
 

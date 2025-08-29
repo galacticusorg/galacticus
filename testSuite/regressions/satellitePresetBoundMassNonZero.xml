@@ -3,7 +3,7 @@
 <!-- defaults to the basicMass if no bound mass history is available. -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
+  <lastModified revision="8e1ca452b775faffbba73ded8deb7fb348523429" time="2025-08-29T17:09:39"/>
   <verbosityLevel value="standard"/>
   <componentDarkMatterProfile value="scaleFree"/>
 
@@ -213,8 +213,13 @@
     <nodeOperator value="CGMCoolingInflow">
       <component value="disk"/>
     </nodeOperator>
-    <nodeOperator value="CGMAccretion"/>
-    <nodeOperator value="CGMStarvation"/>
+    <nodeOperator value="CGMAccretion">
+      <allowNegativeCGMMass value="false"/>
+    </nodeOperator>
+    <nodeOperator value="CGMStarvation">
+      <starveOutflowsOnly value="false"/>
+      <fractionBaryonLimitInNodeMerger value="false"/>
+    </nodeOperator>
   </nodeOperator>
 
 </parameters>
