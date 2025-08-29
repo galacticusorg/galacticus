@@ -107,7 +107,7 @@ contains
 
   function powerLawCumulativeMassConstructorInternal(massMinimum,massMaximum,massCutOff,exponent) result(self)
     !!{
-    Internal constructor for the \refClass{hiiRegionMassFunctionPowerLaw} luminosity function class.
+    Internal constructor for the \refClass{hiiRegionMassFunctionPowerLaw} mass function class.
     !!}
     use :: Gamma_Functions, only : Gamma_Function_Incomplete_Unnormalized
     implicit none
@@ -131,7 +131,7 @@ contains
 
   double precision function powerLawCumulativeMassFunction(self,massMinimum,massMaximum) result(massFunction)
     !!{
-    Returns the fraction of HII regions in the given range of masses.
+    Returns the fraction of GMC in the given range of masses.
     !!}
     implicit none
     class           (hiiRegionMassFunctionPowerLaw), intent(inout) :: self
@@ -142,9 +142,9 @@ contains
     massMaximumScaled_=min(massMaximum/self%massCutOff,self%massMaximum/self%massCutOff)
     if (massMaximumScaled_ > massMinimumScaled_) then
        massFunction=+(                                                                                    &
-            &                +(massMaximumScaled_**self%exponent)*exp(-massMaximumScaled_)   &
-            &               -(massMinimumScaled_**self%exponent)*exp(-massMinimumScaled_)     &
-            &                )                                                                &
+            &               +Gamma_Function_Incomplete_Unnormalized((self%exponent+1.0d0),massMaximumScaled_)     &
+            &               -Gamma_Function_Incomplete_Unnormalized((self%exponent+1.0d0),massMinimumScaled_)     &
+            &                )                                                                  &
             &               /self%normalization
     else
        massFunction=+0.0d0
@@ -154,7 +154,7 @@ contains
 
   double precision function powerLawCumulativeMass(self,massMinimum,massMaximum) result(massHIIRegion)
     !!{
-    Returns the total mass, $M_*$ of HII regions in the given range of mass.
+    Returns the total mass, $M_GMC$ of GMC cloud in the given range of mass.
     !!}
     use :: Gamma_Functions, only : Gamma_Function_Incomplete_Unnormalized
     implicit none
@@ -165,13 +165,13 @@ contains
     massMinimumScaled_=max(massMinimum/self%massCutOff,self%massMinimum/self%massCutOff)
     massMaximumScaled_=min(massMaximum/self%massCutOff,self%massMaximum/self%massCutOff)
     if (massMaximumScaled_ > massMinimumScaled_) then
-       massHIIRegion=+(                                                                                    &
-            &               +Gamma_Function_Incomplete_Unnormalized((self%exponent+1.0d0),massMinimumScaled_)     &
-            &               -Gamma_Function_Incomplete_Unnormalized((self%exponent+1.0d0),massMaximumScaled_)     &
+       massGMC=+(                                                                                    &
+            &               +Gamma_Function_Incomplete_Unnormalized((self%exponent+2.0d0),massMaximumScaled_)     &
+            &               -Gamma_Function_Incomplete_Unnormalized((self%exponent+2.0d0),massMinimumScaled_)     &
             &                )                                                                  &
             &               /self%normalization
     else
-       massHIIRegion=+0.0d0
+       massGMC=+0.0d0
     end if
     return
   end function powerLawCumulativeMass
