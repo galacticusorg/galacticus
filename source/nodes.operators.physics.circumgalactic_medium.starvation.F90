@@ -170,7 +170,8 @@ contains
                &                                                /basicParent  %mass                    () &
                &                                               )
        end if
-       call           hotHaloParent%           outflowedMassSet(                                          &
+       if (hotHaloParent%           outflowedMassIsSettable()                                     )       &
+            & call    hotHaloParent%           outflowedMassSet(                                          &
             &                                                    hotHaloParent%outflowedMass           () &
             &                                                   +hotHalo      %outflowedMass           () &
             &                                                  )
@@ -190,10 +191,11 @@ contains
                &                                                 0.0d0                                    &
                &                                               )
        end if
-       call           hotHalo      %           outflowedMassSet(                                          &
+       if (hotHalo%                  outflowedMassIsSettable()                                   )        &
+            & call    hotHalo      %           outflowedMassSet(                                          &
             &                                                    0.0d0                                    &
             &                                                  )
-       if (hotHalo% outflowedAngularMomentumIsSettable()                                         )        &
+       if (hotHalo%       outflowedAngularMomentumIsSettable()                                   )        &
             & call    hotHalo      %outflowedAngularMomentumSet(                                          &
             &                                                    0.0d0                                    &
             &                                                  )

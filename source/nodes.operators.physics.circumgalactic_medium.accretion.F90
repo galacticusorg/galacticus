@@ -207,7 +207,7 @@ contains
     !!}
     use :: Abundances_Structure         , only : zeroAbundances
     use :: Chemical_Abundances_Structure, only : zeroChemicalAbundances
-    use :: Galacticus_Nodes             , only : nodeComponentHotHalo
+    use :: Galacticus_Nodes             , only : nodeComponentHotHalo, nodeComponentHotHaloStandard
     implicit none
     class(nodeOperatorCGMAccretion), intent(inout) :: self
     type (treeNode                ), intent(inout) :: node
@@ -215,7 +215,6 @@ contains
     class(nodeComponentHotHalo    ), pointer       :: hotHaloParent, hotHalo
 
     nodeParent    => node      %parent
-    hotHalo       => node      %hotHalo()
     hotHaloParent => nodeParent%hotHalo()
     ! If the parent node has a hot halo component, then add it to that of this node, and perform other changes needed prior to
     ! promotion.
@@ -223,6 +222,7 @@ contains
     type is (nodeComponentHotHalo)
        ! The parent has no hot halo component - nothing to do.
     class default
+       hotHalo => node%hotHalo(autoCreate=.true.)
        ! If mass is non-positive, set mass and all related quantities to zero.
        if (hotHalo%         mass() <= 0.0d0) then
           call        hotHalo%         massSet           (                 0.0d0)
