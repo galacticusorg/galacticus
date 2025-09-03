@@ -2195,6 +2195,7 @@ contains
     Destructor for the MPI counter class.
     !!}
 #ifdef USEMPI
+    use :: Error  , only : Error_Report
     use :: MPI_F08, only : MPI_Win_Free, MPI_Free_Mem
 #endif
     implicit none
@@ -2204,7 +2205,7 @@ contains
 
     if (self%initialized) then
        call MPI_Win_Free(self%window ,iError)
-       call MPI_Free_Mem(self%counter,iError)
+       if (iError /= 0) call Error_Report('failed to free RMA window'//{introspection:location})
        self%initialized=.false.
     end if
 #else
