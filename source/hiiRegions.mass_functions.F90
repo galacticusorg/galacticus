@@ -34,7 +34,7 @@ module HII_Region_Mass_Functions
    <name>hiiRegionMassFunction</name>
    <descriptiveName>HII region mass function.</descriptiveName>
    <description>Class providing models of mass function for HII region.</description>
-   <default>powerLaw</default>
+   <default>rosolowsky2021</default>
    <method name="cumulativeMassFunction">
     <description>Returns the cumulative distribution of the HII region luminosity function between a minimum and maximum mass.</description>
     <type>double precision</type>
