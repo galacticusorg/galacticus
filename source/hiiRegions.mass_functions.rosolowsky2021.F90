@@ -177,11 +177,10 @@ contains
     xMinimum=max(massMinimum/self%massCutOff,self%massMinimum/self%massCutOff)
     xMaximum=min(massMaximum/self%massCutOff,self%massMaximum/self%massCutOff)
     if (xMaximum > xMinimum) then
-       massHIIRegion = + self%epsilon                                                                   &
-            &               +*(                                                                         &
+       massHIIRegion =      (                                                                         &
             &               +Gamma_Function_Incomplete_Unnormalized((self%exponent+2.0d0),xMaximum)     &
             &               -Gamma_Function_Incomplete_Unnormalized((self%exponent+2.0d0),xMinimum)     &
-            &                )                                                                  &
+            &               )                                                                  &
             &               /self%normalization
     else
        massHIIRegion=+0.0d0
