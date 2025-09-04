@@ -176,6 +176,7 @@ contains
     type            (varying_string                     ), save                  :: message                              , reason          , &
          &                                                                          file
     !$omp threadprivate(message,reason,file)
+    integer                                                                      :: attempt
     character       (len=16                             )                        :: label
 
     ! Get the virial radius of the satellite.
@@ -185,105 +186,114 @@ contains
        ! Set a pointer to the satellite node.
        self_                 => self
        node_                 => node
-       ! Get the hot halo mass distributions.
-       massDistribution__    => node%massDistribution(componentTypeAll    ,massTypeAll    )
-       massDistributionGas__ => node%massDistribution(componentTypeHotHalo,massTypeGaseous)
-       ! Get the ram pressure force due to the hot halo.
-       forceRamPressure      =  self%hotHaloRamPressureForce_%force(node)
-       ! Find the radial range within which the ram pressure radius must lie.
-       radiusVirialRoot=font2008RadiusSolver(radiusVirial)
-       if      (radiusVirialRoot >= 0.0d0) then
-          ! The ram pressure force is not sufficiently strong to strip even at the satellite virial radius - simply return the
-          ! virial radius as the stripping radius in this case.
-          font2008RadiusStripped=radiusVirial
-       else
-          radiusSmallRoot=font2008RadiusSolver(radiusSmallestOverRadiusVirial*radiusVirial)
-          if (radiusSmallRoot <= 0.0d0) then
-             ! The ram pressure force can strip to (essentially) arbitrarily small radii.
-             font2008RadiusStripped=0.0d0
+       ! Make two attempts to find a solution. Very occasionally, something can change during our root seeking (e.g. a
+       ! retabulation may occur), leading to a failure to bracket the root. If this happens, make a second attempt (at which point
+       ! any tabulations should be fully updated). If that also fails, we either give up an accept the best solution we have, or
+       ! report an error.
+       do attempt=1,2
+          ! Get the hot halo mass distributions.
+          massDistribution__    => node%massDistribution(componentTypeAll    ,massTypeAll    )
+          massDistributionGas__ => node%massDistribution(componentTypeHotHalo,massTypeGaseous)
+          ! Get the ram pressure force due to the hot halo.
+          forceRamPressure      =  self%hotHaloRamPressureForce_%force(node)
+          ! Find the radial range within which the ram pressure radius must lie.
+          radiusVirialRoot=font2008RadiusSolver(radiusVirial)
+          if      (radiusVirialRoot >= 0.0d0) then
+             ! The ram pressure force is not sufficiently strong to strip even at the satellite virial radius - simply return the
+             ! virial radius as the stripping radius in this case.
+             font2008RadiusStripped=radiusVirial
+             status                =errorStatusSuccess
           else
-             ! If we have a previously found radius, and if the node is the same as the previous node for which this function was
-             ! called, then use that previous radius as a guess for the new solution. Note that we do not reset the previous
-             ! radius between ODE steps (i.e. we do not make use of "calculationReset" events to reset the radius) as we
-             ! specifically want to retain knowledge from the previous step.
-             if (self%radiusLast > 0.0d0 .and. node%uniqueID() == self%uniqueIDLast) then
-                call self%finder%rangeExpand(                                                                                                   &
-                     &                       rangeExpandDownward          =0.9d0                                                              , &
-                     &                       rangeExpandUpward            =1.1d0                                                              , &
-                     &                       rangeExpandType              =rangeExpandMultiplicative                                          , &
-                     &                       rangeDownwardLimit           =radiusSmallestOverRadiusVirial*radiusVirial/(1.0d0+radiusTolerance), &
-                     &                       rangeUpwardLimit             =                               radiusVirial*(1.0d0+radiusTolerance), &
-                     &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive                                      , &
-                     &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative                                        &
-                     &                      )
+             radiusSmallRoot=font2008RadiusSolver(radiusSmallestOverRadiusVirial*radiusVirial)
+             if (radiusSmallRoot <= 0.0d0) then
+                ! The ram pressure force can strip to (essentially) arbitrarily small radii.
+                font2008RadiusStripped=0.0d0
+                status                =errorStatusSuccess
              else
-                call self%finder%rangeExpand(                                                                                                   &
-                     &                       rangeExpandDownward          =0.5d0                                                              , &
-                     &                       rangeExpandType              =rangeExpandMultiplicative                                          , &
-                     &                       rangeDownwardLimit           =radiusSmallestOverRadiusVirial*radiusVirial/(1.0d0+radiusTolerance), &
-                     &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive                                        &
-                     &                      )
-                self%radiusLast  =radiusVirial
-                self%uniqueIDLast=node%uniqueID()
-             end if
-             font2008RadiusStripped=min(self%finder%find(rootGuess=min(self%radiusLast,radiusVirial),status=status),radiusVirial)
-             if (status /= errorStatusSuccess) then
-                message='virial radius / root function at virial radius = '
-                write (label,'(e12.6)') radiusVirial
-                message=message//trim(adjustl(label))
-                write (label,'(e12.6)') radiusVirialRoot
-                message=message//" / "//trim(adjustl(label))
-                write (label,'(e12.6)') font2008RadiusSolver(radiusVirial*(1.0d0+radiusTolerance))
-                message=message//" : "//trim(adjustl(label))
-                call displayMessage(message,verbosityLevelSilent)
-                message='small radius / root function at small radius = '
-                write (label,'(e12.6)') radiusSmallestOverRadiusVirial*radiusVirial
-                message=message//trim(adjustl(label))
-                write (label,'(e12.6)') radiusSmallRoot
-                message=message//" / "//trim(adjustl(label))
-                write (label,'(e12.6)') font2008RadiusSolver(radiusSmallestOverRadiusVirial*radiusVirial/(1.0d0+radiusTolerance))
-                message=message//" : "//trim(adjustl(label))
-                call displayMessage(message,verbosityLevelSilent)
-                select case (status)
-                case (errorStatusOutOfRange)
-                   call displayMessage('could not bracket the root',verbosityLevelSilent)
-                   call node_%serializeASCII()
-                   if (.not.self%solverFailureIsFatal) then
-                      call displayMessage('root finding failed'//{introspection:location})
-                      ! Take the limit closest to the root.
-                      if     (                                                                        &
-                           &   abs(font2008RadiusSolver(radiusSmallestOverRadiusVirial*radiusVirial)) &
-                           &  <                                                                       &
-                           &   abs(font2008RadiusSolver(                               radiusVirial)) &
-                           & ) then
-                         font2008RadiusStripped=radiusSmallestOverRadiusVirial*radiusVirial
-                      else
-                         font2008RadiusStripped=                               radiusVirial
-                      end if
-                   end if
-                case default
-                   call GSL_Error_Details(reason,file,line,status)
-                   call displayMessage(var_str('GSL error ')//status//': "'//reason//'" at line '//line//' of file "'//file//'"',verbosityLevelSilent)
-                end select
-                if     (                                 &
-                     &   self%solverFailureIsFatal       &
-                     &  .or.                             &
-                     &   status /= errorStatusOutOfRange &
-                     & ) then                   
-                   message="save state due to failure of hotHaloRamPressureStrippingFont2008 radius solver"
-                   call State_Set_           (var_str('debugState'))
-                   call State_Store_         (message)
-                   call mergerTreeStateStore_(node_%hostTree,'storedTree.dat')
-                   call Error_Report         ('root finding failed'//{introspection:location})
+                ! If we have a previously found radius, and if the node is the same as the previous node for which this function was
+                ! called, then use that previous radius as a guess for the new solution. Note that we do not reset the previous
+                ! radius between ODE steps (i.e. we do not make use of "calculationReset" events to reset the radius) as we
+                ! specifically want to retain knowledge from the previous step.
+                if (self%radiusLast > 0.0d0 .and. node%uniqueID() == self%uniqueIDLast) then
+                   call self%finder%rangeExpand(                                                                                                   &
+                        &                       rangeExpandDownward          =0.9d0                                                              , &
+                        &                       rangeExpandUpward            =1.1d0                                                              , &
+                        &                       rangeExpandType              =rangeExpandMultiplicative                                          , &
+                        &                       rangeDownwardLimit           =radiusSmallestOverRadiusVirial*radiusVirial/(1.0d0+radiusTolerance), &
+                        &                       rangeUpwardLimit             =                               radiusVirial*(1.0d0+radiusTolerance), &
+                        &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive                                      , &
+                        &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative                                        &
+                        &                      )
+                else
+                   call self%finder%rangeExpand(                                                                                                   &
+                        &                       rangeExpandDownward          =0.5d0                                                              , &
+                        &                       rangeExpandType              =rangeExpandMultiplicative                                          , &
+                        &                       rangeDownwardLimit           =radiusSmallestOverRadiusVirial*radiusVirial/(1.0d0+radiusTolerance), &
+                        &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive                                        &
+                        &                      )
+                   self%radiusLast  =radiusVirial
+                   self%uniqueIDLast=node%uniqueID()
                 end if
+                font2008RadiusStripped=min(self%finder%find(rootGuess=min(self%radiusLast,radiusVirial),status=status),radiusVirial)
+                if (status /= errorStatusSuccess .and. attempt == 2) then
+                   message='virial radius / root function at virial radius = '
+                   write (label,'(e12.6)') radiusVirial
+                   message=message//trim(adjustl(label))
+                   write (label,'(e12.6)') radiusVirialRoot
+                   message=message//" / "//trim(adjustl(label))
+                   write (label,'(e12.6)') font2008RadiusSolver(radiusVirial*(1.0d0+radiusTolerance))
+                   message=message//" : "//trim(adjustl(label))
+                   call displayMessage(message,verbosityLevelSilent)
+                   message='small radius / root function at small radius = '
+                   write (label,'(e12.6)') radiusSmallestOverRadiusVirial*radiusVirial
+                   message=message//trim(adjustl(label))
+                   write (label,'(e12.6)') radiusSmallRoot
+                   message=message//" / "//trim(adjustl(label))
+                   write (label,'(e12.6)') font2008RadiusSolver(radiusSmallestOverRadiusVirial*radiusVirial/(1.0d0+radiusTolerance))
+                   message=message//" : "//trim(adjustl(label))
+                   call displayMessage(message,verbosityLevelSilent)
+                   select case (status)
+                   case (errorStatusOutOfRange)
+                      call displayMessage('could not bracket the root',verbosityLevelSilent)
+                      call node_%serializeASCII()
+                      if (.not.self%solverFailureIsFatal) then
+                         call displayMessage('root finding failed'//{introspection:location})
+                         ! Take the limit closest to the root.
+                         if     (                                                                        &
+                              &   abs(font2008RadiusSolver(radiusSmallestOverRadiusVirial*radiusVirial)) &
+                              &  <                                                                       &
+                              &   abs(font2008RadiusSolver(                               radiusVirial)) &
+                              & ) then
+                            font2008RadiusStripped=radiusSmallestOverRadiusVirial*radiusVirial
+                         else
+                            font2008RadiusStripped=                               radiusVirial
+                         end if
+                      end if
+                   case default
+                      call GSL_Error_Details(reason,file,line,status)
+                      call displayMessage(var_str('GSL error ')//status//': "'//reason//'" at line '//line//' of file "'//file//'"',verbosityLevelSilent)
+                   end select
+                   if     (                                 &
+                        &   self%solverFailureIsFatal       &
+                        &  .or.                             &
+                        &   status /= errorStatusOutOfRange &
+                        & ) then                   
+                      message="save state due to failure of hotHaloRamPressureStrippingFont2008 radius solver"
+                      call State_Set_           (var_str('debugState'))
+                      call State_Store_         (message)
+                      call mergerTreeStateStore_(node_%hostTree,'storedTree.dat')
+                      call Error_Report         ('root finding failed'//{introspection:location})
+                   end if
+                end if
+                if (status == errorStatusSuccess .or. attempt == 2) self%radiusLast=font2008RadiusStripped
              end if
-             self%radiusLast=font2008RadiusStripped
           end if
-       end if
-       !![
-       <objectDestructor name="massDistribution__"   />
-       <objectDestructor name="massDistributionGas__"/>
-       !!]
+          !![
+	  <objectDestructor name="massDistribution__"   />
+	  <objectDestructor name="massDistributionGas__"/>
+          !!]
+          if (status == errorStatusSuccess) exit
+       end do
     else
        ! If node is not a satellite, or is not physically plausible, return a ram pressure stripping radius equal to the virial radius.
        font2008RadiusStripped=radiusVirial
