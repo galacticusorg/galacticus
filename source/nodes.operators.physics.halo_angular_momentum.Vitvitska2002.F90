@@ -357,7 +357,10 @@ contains
             &                                   -angularMomentumScaleChild**2, &
             &                                   +0.0d0                         &
             &                                  )                               &
-            &                              *factorMassUnresolved               &
+            &                              *max(                               &
+            &                                   +factorMassUnresolved       ,  &
+            &                                   +0.0d0                         &
+            &                                  )                               &
             &                             )                                    &
             &                           )
        do i=1,3
