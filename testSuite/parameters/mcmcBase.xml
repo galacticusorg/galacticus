@@ -130,7 +130,7 @@
     <redshiftInterval                     value="1"      />
     <computeScatter                       value="false"  />
     <systematicErrorPolynomialCoefficient value="0.0 0.0"/>
-    <likelihoodBin                        value="11"     />
+    <likelihoodBins                       value="9"      />
   </outputAnalysis>
 
 </parameters>
