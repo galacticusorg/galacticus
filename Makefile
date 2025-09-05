@@ -34,14 +34,22 @@ endif
 
 # Fortran compiler:
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'MPI'
+ifdef MPIFCCOMPILER
+FCCOMPILER = $(MPIFCCOMPILER)
+else
 FCCOMPILER ?= mpif90
+endif
 else
 FCCOMPILER ?= gfortran
 endif
 
 # C compiler:
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'MPI'
+ifdef MPICCOMPILER
+CCOMPILER = $(MPICCOMPILER)
+else
 CCOMPILER ?= mpicc
+endif
 else
 CCOMPILER ?= gcc
 endif
@@ -49,7 +57,11 @@ export CCOMPILER
 
 # C++ compiler:
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'MPI'
+ifdef MPICPPCOMPILER
+CPPCOMPILER = $(MPICPPCOMPILER)
+else
 CPPCOMPILER ?= mpic++
+endif
 else
 CPPCOMPILER ?= g++
 endif

@@ -107,11 +107,13 @@ module MPI_Utilities
           &                           mpiSumArrayTwoSizeT        , mpiSumArrayThreeSizeT
      procedure ::                     mpiSumScalarDouble         , mpiSumArrayDouble      , &
           &                           mpiSumArrayTwoDouble       , mpiSumArrayThreeDouble
+     procedure ::                     mpiSumArrayReal
      generic   :: sum              => mpiSumScalarInt            , mpiSumArrayInt         , &
           &                           mpiSumScalarDouble         , mpiSumArrayDouble      , &
           &                           mpiSumArrayTwoDouble       , mpiSumArrayThreeDouble , &
           &                           mpiSumScalarSizeT          , mpiSumArraySizeT       , &
-          &                           mpiSumArrayTwoSizeT        , mpiSumArrayThreeSizeT
+          &                           mpiSumArrayTwoSizeT        , mpiSumArrayThreeSizeT  , &
+          &                           mpiSumArrayReal
      procedure ::                     mpiAnyLogicalScalar
      generic   :: any              => mpiAnyLogicalScalar
      procedure ::                     mpiAllLogicalScalar
@@ -1167,6 +1169,42 @@ contains
     return
   end function mpiSumScalarSizeT
 
+  function mpiSumArrayReal(self,array,mask)
+    !!{
+    Sum a real array over all processes, returning it to all processes.
+    !!}
+    use :: Error  , only : Error_Report
+#ifdef USEMPI
+    use :: MPI_F08, only : MPI_AllReduce, MPI_Real, MPI_Sum
+#endif
+    implicit none
+    class           (mpiObject), intent(in   )                                    :: self
+    real                       , intent(in   ), dimension( :          )           :: array
+    logical                    , intent(in   ), dimension(0:          ), optional :: mask
+    real                                      , dimension(size(array))            :: mpiSumArrayReal
+#ifdef USEMPI
+    real                                      , dimension(size(array))            :: maskedArray
+    integer                                                                       :: iError          , activeCount
+#endif
+
+#ifdef USEMPI
+    ! Sum the array over all processes.
+    maskedArray=array
+    activeCount=self%count()
+    if (present(mask)) then
+       if (.not.mask(self%rank())) maskedArray=0.0
+       activeCount=count(mask)
+    end if
+    call MPI_AllReduce(maskedArray,mpiSumArrayReal,size(array),MPI_Real,MPI_Sum,mpiSelf%communicator,iError)
+    if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
+#else
+    !$GLC attributes unused :: self, array, mask
+    mpiSumArrayReal=0.0
+    call Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end function mpiSumArrayReal
+
   function mpiSumArrayDouble(self,array,mask)
     !!{
     Sum an integer array over all processes, returning it to all processes.
@@ -2157,6 +2195,7 @@ contains
     Destructor for the MPI counter class.
     !!}
 #ifdef USEMPI
+    use :: Error  , only : Error_Report
     use :: MPI_F08, only : MPI_Win_Free, MPI_Free_Mem
 #endif
     implicit none
@@ -2166,7 +2205,7 @@ contains
 
     if (self%initialized) then
        call MPI_Win_Free(self%window ,iError)
-       call MPI_Free_Mem(self%counter,iError)
+       if (iError /= 0) call Error_Report('failed to free RMA window'//{introspection:location})
        self%initialized=.false.
     end if
 #else
