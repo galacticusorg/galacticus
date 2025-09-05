@@ -41,18 +41,32 @@
     contributed by unresolved accretion is zero. The three components of the angular momentum vector of unresolved accretion are
     treated as independent Wiener processes with time-dependent variance. Specifically, each component of the angular momentum
     vector obeys:
-    \begin{eqnarray}
-    J_\mathrm{i}(t_2) &amp;=&amp; J_\mathrm{i}(t_1) + \left[ \sigma^2 \left( J_\mathrm{v}^2(t_2) - J_\mathrm{v}^2(t_1) \left\{ \frac{M(t_1)+M_\mathrm{r}}{M(t_1)} \right\}^2 \right) \right]^{1/2} N(0,1) \nonumber \\
-                      &amp;=&amp; J_\mathrm{i}(t_1) + \left[ \sigma^2 \left( J_\mathrm{v}^2(t_2) - J_\mathrm{v}^2(t_1) \left\{ \frac{M(t_2)-M_\mathrm{u}}{M(t_1)} \right\}^2 \right) \right]^{1/2} N(0,1)
-    \end{eqnarray}    
+    \begin{equation}
+    J_\mathrm{i}(t_2) = J_\mathrm{i}(t_1) + \left[ \sigma^2 \left\{ J_\mathrm{v}^2(t_2) - J_\mathrm{v}^2(t_1) \right\} f_\mathrm{u} \right]^{1/2} N(0,1)
+    \end{equation}
     where $J_\mathrm{v}(t) = M_\mathrm{v}(t) V_\mathrm{v}(t) R_\mathrm{v}(t)$ is the characteristic virial angular momentum,
     $M_\mathrm{v}(t)$, $V_\mathrm{v}(t)$, and $R_\mathrm{v}(t)$ are the virial mass, velocity, and radius respectively,
-    $M_\mathrm{r}$ and $M_\mathrm{u}$ are the resolved and unresolved mass between times $t_1$ and $t_2$r
-    respectively\footnote{Note that this assumes that the characteristic angular momentum scales in proportion to mass. In detail
-    this is not correct, as there is also some dependence on the change in redshift across the timestep due to the dependence of
-    virial densities on redshift. In practice, we ignore this dependence and absorb such effects into the parameter $\sigma$.},
-    $\sigma^2$ represents the variance in angular momentum per unit increase in $J_\mathrm{v}^2$, and $N(0,1)$ is a random
-    variable distributed as a standard normal. The parameter $\sigma=${\normalfont \ttfamily [angularMomentumVarianceSpecific]}.
+    $M_\mathrm{u}$ is the unresolved mass between times $t_1$ and $t_2$ respectively\footnote{Note that this assumes that the
+    characteristic angular momentum scales in proportion to mass. In detail this is not correct, as there is also some dependence
+    on the change in redshift across the timestep due to the dependence of virial densities on redshift. In practice, we ignore
+    this dependence and absorb such effects into the parameter $\sigma$.}, $\sigma^2$ represents the variance in angular momentum
+    per unit increase in $J_\mathrm{v}^2$, and $N(0,1)$ is a random variable distributed as a standard normal. The parameter
+    $\sigma=${\normalfont \ttfamily [angularMomentumVarianceSpecific]}.
+
+    The factor $f_\mathrm{u}$ can take on one of two forms. If {\normalfont \ttfamily
+    [useOriginalSubresolutionMethod]}={\normalfont \ttfamily false} (which should be preferred) then:
+    \begin{equation}
+    f_\mathrm{u} = \frac{M_\mathrm{u}}{M(t_2)},
+    \end{equation}
+    in which case the variance is proportional to the mass in unresolved accretion (i.e. the ``time'' variable in the Wiener
+    process is just mass). If {\normalfont \ttfamily [useOriginalSubresolutionMethod]}={\normalfont \ttfamily true} then the
+    original form,
+    \begin{equation}
+    f_\mathrm{u} = \left\{ \frac{M(t_1)+M_\mathrm{r}}{M(t_1)} \right\}^2 = \left\{ \frac{M(t_2)-M_\mathrm{u}}{M(t_1)} \right\}^2
+    \end{equation}
+    is used. In this, flawed, approach the variance arising from unresolved mass is, incorrectly, not proportional to the
+    unresolved mass accretion (and also has the incorrect scaling with mass). This approach should not be used for new
+    calculations, and is retained only for backward compatibility.
    </description>
   </nodeOperator>
   !!]
@@ -62,13 +76,14 @@
      \protect\citealt{benson_random-walk_2020}]{vitvitska_origin_2002}.     
      !!}
      private
-     class           (haloSpinDistributionClass        ), pointer :: haloSpinDistribution_         => null()
-     class           (virialOrbitClass                 ), pointer :: virialOrbit_                  => null()
-     class           (darkMatterHaloScaleClass         ), pointer :: darkMatterHaloScale_          => null()
-     class           (darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_ => null()
-     class           (darkMatterProfileDMOClass        ), pointer :: darkMatterProfileDMO_         => null()
-     class           (mergerTreeMassResolutionClass    ), pointer :: mergerTreeMassResolution_     => null()
-     double precision                                             :: exponentMass                           , angularMomentumVarianceSpecific
+     class           (haloSpinDistributionClass        ), pointer :: haloSpinDistribution_          => null()
+     class           (virialOrbitClass                 ), pointer :: virialOrbit_                   => null()
+     class           (darkMatterHaloScaleClass         ), pointer :: darkMatterHaloScale_           => null()
+     class           (darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_  => null()
+     class           (darkMatterProfileDMOClass        ), pointer :: darkMatterProfileDMO_          => null()
+     class           (mergerTreeMassResolutionClass    ), pointer :: mergerTreeMassResolution_      => null()
+     double precision                                             :: exponentMass                            , angularMomentumVarianceSpecific
+     logical                                                      :: useOriginalSubresolutionMethod
    contains
      final     ::                       haloAngularMomentumVitvitska2002Destructor
      procedure :: nodeTreeInitialize => haloAngularMomentumVitvitska2002NodeTreeInitialize
@@ -98,7 +113,8 @@ contains
     class           (darkMatterProfileScaleRadiusClass           ), pointer       :: darkMatterProfileScaleRadius_
     class           (darkMatterProfileDMOClass                   ), pointer       :: darkMatterProfileDMO_
     class           (mergerTreeMassResolutionClass               ), pointer       :: mergerTreeMassResolution_
-    double precision                                                              :: exponentMass                 , angularMomentumVarianceSpecific
+    double precision                                                              :: exponentMass                  , angularMomentumVarianceSpecific
+    logical                                                                       :: useOriginalSubresolutionMethod
 
     !![
     <inputParameter>
@@ -113,6 +129,12 @@ contains
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
     </inputParameter>
+    <inputParameter>
+      <name>useOriginalSubresolutionMethod</name>
+      <description>If true, the original (flawed) method for accounting for variance in the angular momentum of subresolution accretion will be used. Otherwise, the new method is used.</description>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+    </inputParameter>
     <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"          source="parameters"/>
     <objectBuilder class="haloSpinDistribution"         name="haloSpinDistribution_"         source="parameters"/>
@@ -120,7 +142,7 @@ contains
     <objectBuilder class="virialOrbit"                  name="virialOrbit_"                  source="parameters"/>
     <objectBuilder class="mergerTreeMassResolution"     name="mergerTreeMassResolution_"     source="parameters"/>
     !!]
-    self=nodeOperatorHaloAngularMomentumVitvitska2002(exponentMass,angularMomentumVarianceSpecific,darkMatterProfileScaleRadius_,haloSpinDistribution_,darkMatterHaloScale_,darkMatterProfileDMO_,virialOrbit_,mergerTreeMassResolution_)
+    self=nodeOperatorHaloAngularMomentumVitvitska2002(exponentMass,angularMomentumVarianceSpecific,useOriginalSubresolutionMethod,darkMatterProfileScaleRadius_,haloSpinDistribution_,darkMatterHaloScale_,darkMatterProfileDMO_,virialOrbit_,mergerTreeMassResolution_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="haloSpinDistribution_"        />
@@ -133,7 +155,7 @@ contains
     return
   end function haloAngularMomentumVitvitska2002ConstructorParameters
 
-  function haloAngularMomentumVitvitska2002ConstructorInternal(exponentMass,angularMomentumVarianceSpecific,darkMatterProfileScaleRadius_,haloSpinDistribution_,darkMatterHaloScale_,darkMatterProfileDMO_,virialOrbit_,mergerTreeMassResolution_) result(self)
+  function haloAngularMomentumVitvitska2002ConstructorInternal(exponentMass,angularMomentumVarianceSpecific,useOriginalSubresolutionMethod,darkMatterProfileScaleRadius_,haloSpinDistribution_,darkMatterHaloScale_,darkMatterProfileDMO_,virialOrbit_,mergerTreeMassResolution_) result(self)
     !!{
     Internal constructor for the \refClass{nodeOperatorHaloAngularMomentumVitvitska2002} node operator class.
     !!}
@@ -147,9 +169,10 @@ contains
     class           (darkMatterProfileScaleRadiusClass           ), intent(in   ), target :: darkMatterProfileScaleRadius_
     class           (darkMatterProfileDMOClass                   ), intent(in   ), target :: darkMatterProfileDMO_
     class           (mergerTreeMassResolutionClass               ), intent(in   ), target :: mergerTreeMassResolution_
-    double precision                                              , intent(in   )         :: exponentMass                 , angularMomentumVarianceSpecific
+    double precision                                              , intent(in   )         :: exponentMass                  , angularMomentumVarianceSpecific
+    logical                                                       , intent(in   )         :: useOriginalSubresolutionMethod
     !![
-    <constructorAssign variables="exponentMass, angularMomentumVarianceSpecific, *darkMatterProfileScaleRadius_, *haloSpinDistribution_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *virialOrbit_, *mergerTreeMassResolution_"/>
+    <constructorAssign variables="exponentMass, angularMomentumVarianceSpecific, useOriginalSubresolutionMethod, *darkMatterProfileScaleRadius_, *haloSpinDistribution_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *virialOrbit_, *mergerTreeMassResolution_"/>
     !!]
 
     ! Ensure that the spin component supports vector angular momentum.
@@ -219,7 +242,7 @@ contains
          &                                                                                      massResolution                    , angularMomentumSubresolutionFactor, &
          &                                                                                      a                                 , b                                 , &
          &                                                                                      angularMomentumScale              , angularMomentumScaleChild         , &
-         &                                                                                      angularMomentumRootVariance
+         &                                                                                      angularMomentumRootVariance       , factorMassUnresolved
     integer                                                                                  :: i
     
     basic => node%basic(                 )
@@ -308,12 +331,24 @@ contains
        call nodeUnresolved%destroy()
        deallocate(nodeUnresolved)
        ! Account for stochastic variations in the angular momentum contributed by the unresolved mass.
-       angularMomentumScale       =+self      %darkMatterHaloScale_%radiusVirial  (node ) &
-            &                      *self      %darkMatterHaloScale_%velocityVirial(node ) &
+       angularMomentumScale       =+self      %darkMatterHaloScale_%radiusVirial  (node     ) &
+            &                      *self      %darkMatterHaloScale_%velocityVirial(node     ) &
             &                      *basic                          %mass          (         )
        angularMomentumScaleChild  =+self      %darkMatterHaloScale_%radiusVirial  (nodeChild) &
             &                      *self      %darkMatterHaloScale_%velocityVirial(nodeChild) &
             &                      *basicChild                     %mass          (         )
+       if (self%useOriginalSubresolutionMethod) then
+          ! Use the original, flawed, calculation of the unresolved mass factor.
+          factorMassUnresolved=+(                              &
+               &                 +basic   %mass          ()    &
+               &                 -         massUnresolved      &
+               &                )                          **2 &
+               &               /basicChild%mass          ()**2
+       else
+          ! Use the new calculation of the unresolved mass factor.
+          factorMassUnresolved=+massUnresolved                 &
+               &               /basic     %mass          ()
+       end if
        angularMomentumRootVariance=+sqrt(                                      &
             &                            +self%angularMomentumVarianceSpecific &
             &                            *(                                    &
@@ -322,17 +357,16 @@ contains
             &                                   -angularMomentumScaleChild**2, &
             &                                   +0.0d0                         &
             &                                  )                               &
-            &                              *(                                  &
-            &                                +basic   %mass          ()        &
-            &                                -         massUnresolved          &
-            &                               )                          **2     &
-            &                              /basicChild%mass          ()**2     &
+            &                              *max(                               &
+            &                                   +factorMassUnresolved       ,  &
+            &                                   +0.0d0                         &
+            &                                  )                               &
             &                             )                                    &
             &                           )
        do i=1,3
-          angularMomentumTotal(i)=+angularMomentumTotal       (i)                                  &
-               &                  +angularMomentumRootVariance                                     &
-               &                  *node%hostTree%randomNumberGenerator_%standardNormalSample()
+          angularMomentumTotal(i)=+                                     angularMomentumTotal       (i) &
+               &                  +                                     angularMomentumRootVariance    &
+               &                  *node%hostTree%randomNumberGenerator_%standardNormalSample       ( )
        end do
        ! Compute the magnitude of the angular momentum.
        angularMomentumValue=Vector_Magnitude(angularMomentumTotal)

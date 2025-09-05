@@ -189,6 +189,7 @@
     <nodeOperator value="haloAngularMomentumVitvitska2002">
       <exponentMass                    value="1.92527794238468"/>
       <angularMomentumVarianceSpecific value="0.00100000000000"/>
+      <useOriginalSubresolutionMethod  value="false"           />
     </nodeOperator>
     <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Subhalo hierarchy -->
