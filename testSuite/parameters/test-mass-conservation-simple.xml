@@ -15,7 +15,7 @@
 
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
+    <lastModified revision="8e1ca452b775faffbba73ded8deb7fb348523429" time="2025-08-29T17:09:39"/>
     <accretionHalo value="bertschinger">
       <redshiftReionization value="10.5"/>
       <velocitySuppressionReionization value="47.370163695687651"/>
@@ -251,9 +251,16 @@
       <nodeOperator value="CGMCoolingInflow" iterable="no">
 	<component value="disk"/>
       </nodeOperator>
-      <nodeOperator value="CGMAccretion" iterable="no"/>
-      <nodeOperator value="CGMStarvation" iterable="no"/>
-      <nodeOperator value="CGMOutflowReincorporation" iterable="no"/>
+      <nodeOperator value="CGMAccretion" iterable="no">
+	<allowNegativeCGMMass value="false"/>
+      </nodeOperator>
+      <nodeOperator value="CGMStarvation" iterable="no">
+	<starveOutflowsOnly value="false"/>
+	<fractionBaryonLimitInNodeMerger value="false"/>
+      </nodeOperator>
+      <nodeOperator value="CGMOutflowReincorporation" iterable="no">
+	<includeSatellites value="false"/>
+      </nodeOperator>
     </nodeOperator>
 
     <nodePropertyExtractor value="multi">

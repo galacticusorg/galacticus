@@ -43,12 +43,12 @@ module Node_Component_Hot_Halo_Standard
   use :: Radiation_Fields                          , only : radiationFieldClass
   implicit none
   private
-  public :: Node_Component_Hot_Halo_Standard_Initialize  , Node_Component_Hot_Halo_Standard_Thread_Initialize  , &
-       &    Node_Component_Hot_Halo_Standard_Scale_Set   , Node_Component_Hot_Halo_Standard_Tree_Initialize    , &
-       &    Node_Component_Hot_Halo_Standard_Node_Merger , Node_Component_Hot_Halo_Standard_Thread_Uninitialize, &
-       &    Node_Component_Hot_Halo_Standard_Post_Step   , Node_Component_Hot_Halo_Standard_Reset              , &
-       &    Node_Component_Hot_Halo_Standard_Rate_Compute, Node_Component_Hot_Halo_Standard_Pre_Evolve         , &
-       &    Node_Component_Hot_Halo_Standard_State_Store , Node_Component_Hot_Halo_Standard_State_Restore
+  public :: Node_Component_Hot_Halo_Standard_Initialize         , Node_Component_Hot_Halo_Standard_Thread_Initialize, &
+       &    Node_Component_Hot_Halo_Standard_Scale_Set          , Node_Component_Hot_Halo_Standard_Tree_Initialize  , &
+       &    Node_Component_Hot_Halo_Standard_Post_Step          , Node_Component_Hot_Halo_Standard_Reset            , &
+       &    Node_Component_Hot_Halo_Standard_Rate_Compute       , Node_Component_Hot_Halo_Standard_Pre_Evolve       , &
+       &    Node_Component_Hot_Halo_Standard_State_Store        , Node_Component_Hot_Halo_Standard_State_Restore    , &
+       &    Node_Component_Hot_Halo_Standard_Thread_Uninitialize
 
   !![
   <component>
@@ -489,11 +489,11 @@ contains
     !!{
     Initializes the tree node hot halo methods module.
     !!}
-    use :: Events_Hooks    , only : nodePromotionEvent     , satelliteMergerEvent    , postEvolveEvent   , openMPThreadBindingAtLevel, &
-         &                          dependencyRegEx        , dependencyDirectionAfter, haloFormationEvent
+    use :: Events_Hooks    , only : haloFormationEvent      , postEvolveEvent, openMPThreadBindingAtLevel, dependencyRegEx, &
+         &                          dependencyDirectionAfter
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
-    use :: Input_Parameters, only : inputParameter         , inputParameters
+    use :: Input_Parameters, only : inputParameter          , inputParameters
     use :: Radiation_Fields, only : radiationFieldNull
     implicit none
     type(inputParameters), intent(inout) :: parameters
@@ -520,8 +520,6 @@ contains
        <objectBuilder class="coolingRate"                    name="coolingRate_"                    source="subParameters"/>
        !!]
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
-       call nodePromotionEvent  %attach(thread,nodePromotion  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard'                          )
-       call satelliteMergerEvent%attach(thread,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard',dependencies=dependencies)
        call postEvolveEvent     %attach(thread,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard'                          )
        call haloFormationEvent  %attach(thread,haloFormation  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard'                          )
        if (parameters%isPresent('radiationFieldIntergalacticBackground')) then
@@ -550,7 +548,7 @@ contains
     !!{
     Uninitializes the tree node hot halo methods module.
     !!}
-    use :: Events_Hooks    , only : nodePromotionEvent     , satelliteMergerEvent, postEvolveEvent, haloFormationEvent
+    use :: Events_Hooks    , only : haloFormationEvent     , postEvolveEvent
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
 
@@ -571,10 +569,8 @@ contains
        <objectDestructor name="coolingRate_"                      />
        <objectDestructor name="radiation"                         />
        !!]
-       if (nodePromotionEvent  %isAttached(thread,nodePromotion  )) call nodePromotionEvent  %detach(thread,nodePromotion  )
-       if (satelliteMergerEvent%isAttached(thread,satelliteMerger)) call satelliteMergerEvent%detach(thread,satelliteMerger)
-       if (postEvolveEvent     %isAttached(thread,postEvolve     )) call postEvolveEvent     %detach(thread,postEvolve     )
-       if (haloFormationEvent  %isAttached(thread,haloFormation  )) call haloFormationEvent  %detach(thread,haloFormation  )
+       if (postEvolveEvent   %isAttached(thread,postEvolve   )) call postEvolveEvent   %detach(thread,postEvolve   )
+       if (haloFormationEvent%isAttached(thread,haloFormation)) call haloFormationEvent%detach(thread,haloFormation)
     end if
     return
   end subroutine Node_Component_Hot_Halo_Standard_Thread_Uninitialize
@@ -710,11 +706,10 @@ contains
     !!{
     Do processing of the node required after evolution.
     !!}
-    use :: Abundances_Structure                 , only : zeroAbundances
-    use :: Chemical_Abundances_Structure        , only : zeroChemicalAbundances 
-    use :: Galacticus_Nodes                     , only : nodeComponentHotHalo  , nodeComponentHotHaloStandard, nodeComponentSpin, nodeComponentBasic, &
-         &                                               treeNode
-    use :: Node_Component_Hot_Halo_Standard_Data, only : starveSatellites      , starveSatellitesOutflowed
+    use :: Abundances_Structure         , only : zeroAbundances
+    use :: Chemical_Abundances_Structure, only : zeroChemicalAbundances 
+    use :: Galacticus_Nodes             , only : nodeComponentHotHalo  , nodeComponentHotHaloStandard, nodeComponentSpin, nodeComponentBasic, &
+         &                                       treeNode
     implicit none
     class(*                   ), intent(inout) :: self
     type (treeNode            ), intent(inout) :: node
@@ -726,50 +721,6 @@ contains
 
     ! Process hot gas for satellites.
     if (node%isSatellite()) then
-       if (starveSatellites.or.starveSatellitesOutflowed) then
-          hotHalo => node%hotHalo(autoCreate=.true.)
-          select type (hotHalo)
-          class is (nodeComponentHotHaloStandard)
-             ! Transfer any outflowed gas to the hot halo of the parent node.
-             nodeParent => node%parent
-             do while (nodeParent%isSatellite())
-                nodeParent => nodeParent%parent
-             end do
-             basicParent   => nodeParent%basic  (                 )
-             hotHaloParent => nodeParent%hotHalo(autoCreate=.true.)
-             spinParent    => nodeParent%spin   (                 )
-             call hotHaloParent%outflowedAngularMomentumSet(                                           &
-                  &                                          hotHaloParent %outflowedAngularMomentum() &
-                  &                                         +hotHalo       %outflowedMass           () &
-                  &                                         *spinParent    %angularMomentum         () &
-                  &                                         /basicParent   %mass                    () &
-                  &                                        )
-             call hotHalo      %outflowedAngularMomentumSet(                                           &
-                  &                                          0.0d0                                     &
-                  &                                        )
-             call hotHaloParent%outflowedMassSet           (                                           &
-                  &                                          hotHaloParent %outflowedMass           () &
-                  &                                         +hotHalo       %outflowedMass           () &
-                  &                                        )
-             call hotHalo      %outflowedMassSet           (                                           &
-                  &                                          0.0d0                                     &
-                  &                                        )
-             call hotHaloParent%outflowedAbundancesSet     (                                           &
-                  &                                          hotHaloParent %outflowedAbundances     () &
-                  &                                         +hotHalo       %outflowedAbundances     () &
-                  &                                        )
-             call hotHalo      %outflowedAbundancesSet     (                                           &
-                  &                                          zeroAbundances                            &
-                  &                                        )
-             call hotHaloParent%outflowedChemicalsSet      (                                           &
-                  &                                          hotHaloParent %outflowedChemicals      () &
-                  &                                         +hotHalo       %outflowedChemicals      () &
-                  &                                        )
-             call hotHalo      %outflowedChemicalsSet      (                                           &
-                  &                                          zeroChemicalAbundances                    &
-                  &                                        )
-          end select
-       end if
        ! Check if stripped mass is being tracked.
        if (trackStrippedGas) then
           hotHalo => node%hotHalo()
@@ -1235,9 +1186,9 @@ contains
     !!}
     use :: Abundances_Structure                 , only : abundances                        , abs
     use :: Accretion_Halos                      , only : accretionModeHot                  , accretionModeTotal
-    use :: Galacticus_Nodes                     , only : defaultHotHaloComponent           , interruptTask             , nodeComponentBasic, nodeComponentHotHalo, &
-          &                                              nodeComponentHotHaloStandard      , propertyInactive          , treeNode          , nodeComponentSpin
-    use :: Node_Component_Hot_Halo_Standard_Data, only : outerRadiusOverVirialRadiusMinimum, angularMomentumAlwaysGrows
+    use :: Galacticus_Nodes                     , only : defaultHotHaloComponent           , interruptTask             , nodeComponentHotHalo, &
+          &                                              nodeComponentHotHaloStandard      , propertyInactive          , treeNode
+    use :: Node_Component_Hot_Halo_Standard_Data, only : outerRadiusOverVirialRadiusMinimum
     use :: Numerical_Constants_Math             , only : Pi
     use :: Mass_Distributions                   , only : massDistributionClass
     use :: Coordinates                          , only : coordinateSpherical               , assignment(=)
@@ -1247,15 +1198,11 @@ contains
     logical                                , intent(inout)          :: interrupt
     procedure       (interruptTask        ), intent(inout), pointer :: interruptProcedure
     integer                                , intent(in   )          :: propertyType
-    class           (nodeComponentSpin    )               , pointer :: spin
     class           (nodeComponentHotHalo )               , pointer :: hotHalo
-    class           (nodeComponentBasic   )               , pointer :: basic
     class           (massDistributionClass)               , pointer :: massDistribution_
     type            (coordinateSpherical  )                         :: coordinates
-    double precision                                                :: angularMomentumAccretionRate, outerRadiusGrowthRate  , &
-         &                                                             densityAtOuterRadius        , rateAccretionMassFailed, &
-         &                                                             massLossRate                , rateAccretionMass      , &
-         &                                                             outerRadius
+    double precision                                                :: outerRadius         , outerRadiusGrowthRate, &
+         &                                                             densityAtOuterRadius, massLossRate
 
     ! Return immediately if inactive variables are requested.
     if (propertyInactive(propertyType)) return
@@ -1267,40 +1214,10 @@ contains
     hotHalo => node%hotHalo()
     ! Ensure that the standard hot halo implementation is active.
     if (defaultHotHaloComponent%standardIsActive()) then
-       ! Find the rate of gas mass accretion onto the halo. We take all of the unaccreted gas, including any which is nominally
-       ! cold mode, since we do not care what mode it should be in (since it is not actually accreted). It will be assigned to the
-       ! relevant mode later when reaccreted. Negative accretion is allowed here as (for example) we may need to record the amount
-       ! of negative accretion during periods where a halo is declining in mass, such that this loss of mass must be accounted for
-       ! when the halo starts growing again before we allow gas to actually accrete into the hot component.
-       rateAccretionMass      =accretionHalo_%      accretionRate(node,accretionModeHot  )
-       rateAccretionMassFailed=accretionHalo_%failedAccretionRate(node,accretionModeTotal)
-       ! Get the basic component.
-       basic => node%basic()
-       ! Apply accretion rates.
-       call hotHalo%          massRate(rateAccretionMass      ,interrupt,interruptProcedure)
-       call hotHalo%unaccretedMassRate(rateAccretionMassFailed,interrupt,interruptProcedure)
        ! Next compute the cooling rate in this halo.
        call Node_Component_Hot_Halo_Standard_Cooling_Rate(node)
        ! Pipe the cooling rate to which ever component claimed it.
        call Node_Component_Hot_Halo_Standard_Push_To_Cooling_Pipes(node,rateCooling,interrupt,interruptProcedure)
-       ! Get the rate at which abundances are accreted onto this halo.
-       call hotHalo%          abundancesRate(accretionHalo_%      accretionRateMetals(node,accretionModeHot),interrupt,interruptProcedure)
-       call hotHalo%unaccretedAbundancesRate(accretionHalo_%failedAccretionRateMetals(node,accretionModeHot),interrupt,interruptProcedure)
-       ! Next block of tasks occur only if the accretion rate is non-zero.
-       if (basic%accretionRate() /= 0.0d0) then
-          ! Compute the rate of accretion of angular momentum.
-          spin                         =>  node %spin                     ()
-          angularMomentumAccretionRate =  +spin %angularMomentumGrowthRate() &
-               &                          *      rateAccretionMass           &
-               &                          /basic%accretionRate            ()
-          if (angularMomentumAlwaysGrows) angularMomentumAccretionRate=abs(angularMomentumAccretionRate)
-          call hotHalo%angularMomentumRate(angularMomentumAccretionRate,interrupt,interruptProcedure)
-       end if
-       ! Next block of tasks occur only if chemicals are being tracked.
-       if (chemicalsCount > 0) then
-          ! Get the rate at which chemicals are accreted onto this halo.
-          call hotHalo%chemicalsRate(accretionHalo_%accretionRateChemicals(node,accretionModeHot),interrupt,interruptProcedure)
-       end if
        ! Perform return of outflowed material.
        select type (hotHalo)
        class is (nodeComponentHotHaloStandard)
@@ -1379,8 +1296,6 @@ contains
     !!{
     Return outflowed gas to the hot halo.
     !!}
-    use :: Abundances_Structure                 , only : abundances           , max
-    use :: Chemical_Abundances_Structure        , only : chemicalAbundances
     use :: Galacticus_Nodes                     , only : interruptTask        , nodeComponentBasic       , nodeComponentHotHaloStandard, treeNode
     use :: Node_Component_Hot_Halo_Standard_Data, only : starveSatellites     , starveSatellitesOutflowed
     use :: Numerical_Constants_Math             , only : Pi
@@ -1395,34 +1310,16 @@ contains
     class           (nodeComponentBasic          )               , pointer :: basic
     class           (massDistributionClass       )               , pointer :: massDistribution_
     type            (coordinateSpherical         )                         :: coordinates
-    double precision                                                       :: outflowedMass            , massReturnRate      , &
-         &                                                                    angularMomentumReturnRate, densityAtOuterRadius, &
-         &                                                                    radiusVirial             , outerRadius         , &
+    double precision                                                       :: densityAtOuterRadius, massReturnRate, &
+         &                                                                    radiusVirial        , outerRadius   , &
          &                                                                    densityMinimum
-    type            (abundances                  ), save                   :: abundancesReturnRate
-    !$omp threadprivate(abundancesReturnRate)
-    type            (chemicalAbundances          ), save                   :: chemicalsReturnRate
-    !$omp threadprivate(chemicalsReturnRate)
+    !$GLC attributes unused :: interrupt, interruptProcedure
 
     ! Get the hosting node.
     node => self%hostNode
     ! Next tasks occur only for systems in which outflowed gas is being recycled.
     if (.not.(starveSatellites.or.starveSatellitesOutflowed).or..not.node%isSatellite()) then
-       outflowedMass =self                          %outflowedMass(    )
        massReturnRate=hotHaloOutflowReincorporation_%rate         (node)
-       call self%              outflowedMassRate(-           massReturnRate,interrupt,interruptProcedure)
-       call self%                       massRate(+           massReturnRate,interrupt,interruptProcedure)
-       if (outflowedMass /= 0.0d0) then
-          angularMomentumReturnRate=self%outflowedAngularMomentum()*(massReturnRate/outflowedMass)
-          abundancesReturnRate     =self%outflowedAbundances     ()*(massReturnRate/outflowedMass)
-          chemicalsReturnRate      =self%outflowedChemicals      ()*(massReturnRate/outflowedMass)
-          call self%outflowedAngularMomentumRate(-angularMomentumReturnRate,interrupt,interruptProcedure)
-          call self%         angularMomentumRate( angularMomentumReturnRate,interrupt,interruptProcedure)
-          call self%     outflowedAbundancesRate(-     abundancesReturnRate,interrupt,interruptProcedure)
-          call self%              abundancesRate(      abundancesReturnRate,interrupt,interruptProcedure)
-          call self%      outflowedChemicalsRate(-      chemicalsReturnRate,interrupt,interruptProcedure)
-          call self%               chemicalsRate(       chemicalsReturnRate,interrupt,interruptProcedure)
-       end if
        ! The outer radius must be increased as the halo fills up with gas.
        outerRadius =self                %outerRadius (    )
        radiusVirial=darkMatterHaloScale_%radiusVirial(node)
@@ -1586,12 +1483,9 @@ contains
           &                         nodeEventSubhaloPromotion, treeNode          , nodeComponentSpin
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
-    class           (nodeComponentHotHalo)               , pointer :: currentHotHaloComponent, hotHalo
-    class           (nodeComponentBasic  )               , pointer :: basic
-    class           (nodeComponentSpin   )               , pointer :: spin
+    class           (nodeComponentHotHalo)               , pointer :: currentHotHaloComponent
     class           (nodeEvent           )               , pointer :: event
-    double precision                                               :: angularMomentum        , failedMass, &
-         &                                                            massHotHalo
+    double precision                                               :: failedMass             , massHotHalo
 
     ! If the node has a child or the standard hot halo is not active, then return immediately.
     if (associated(node%firstChild).or..not.defaultHotHaloComponent%standardIsActive()) return
@@ -1620,438 +1514,13 @@ contains
        failedMass =accretionHalo_%failedAccretedMass(node,accretionModeTotal)
        ! If either is non-zero, then create a hot halo component and add these masses to it.
        if (massHotHalo > 0.0d0 .or. failedMass > 0.0d0) then
+          ! NOTE: This call is required only to set up the initial outer radius. Once that is initialized by a nodeOperator, this
+          !       call (and the remainder of this function) can be removed.
           call Node_Component_Hot_Halo_Standard_Create(node)
-          hotHalo => node%hotHalo()
-          basic   => node%basic  ()
-          spin    => node%spin   ()
-          call hotHalo%           massSet(massHotHalo)
-          call hotHalo% unaccretedMassSet( failedMass)
-          ! Also add the appropriate angular momentum.
-          angularMomentum=massHotHalo*spin%angularMomentum()/basic%mass()
-          call hotHalo%angularMomentumSet(angularMomentum   )
-          ! Add the appropriate abundances.
-          call hotHalo%          abundancesSet(accretionHalo_%      accretedMassMetals(node,accretionModeHot))
-          call hotHalo%unaccretedAbundancesSet(accretionHalo_%failedAccretedMassMetals(node,accretionModeHot))
-          ! Also add the appropriate chemical masses.
-          call hotHalo%           chemicalsSet(accretionHalo_%accretedMassChemicals   (node,accretionModeHot))
        end if
     end select
     return
   end subroutine Node_Component_Hot_Halo_Standard_Tree_Initialize
-
-  !![
-  <nodeMergerTask>
-   <unitName>Node_Component_Hot_Halo_Standard_Node_Merger</unitName>
-  </nodeMergerTask>
-  !!]
-  subroutine Node_Component_Hot_Halo_Standard_Node_Merger(node)
-    !!{
-    Starve {\normalfont \ttfamily node} by transferring its hot halo to its parent.
-    !!}
-    use :: Abundances_Structure                 , only : abundances                          , operator(*)            , zeroAbundances              , operator(>)
-    use :: Accretion_Halos                      , only : accretionModeHot                    , accretionModeTotal
-    use :: Chemical_Abundances_Structure        , only : chemicalAbundances                  , operator(*)            , zeroChemicalAbundances      , operator(>)
-    use :: Galactic_Structure_Options           , only : componentTypeAll                    , massTypeBaryonic
-    use :: Galacticus_Nodes                     , only : nodeComponentBasic                  , nodeComponentHotHalo   , nodeComponentHotHaloStandard, nodeComponentSpin, &
-          &                                              treeNode                            , defaultHotHaloComponent
-    use :: Mass_Distributions                   , only : massDistributionClass
-    use :: Error                                , only : Error_Report 
-    use :: Node_Component_Hot_Halo_Standard_Data, only : fractionBaryonLimitInNodeMerger, starveSatellites       , starveSatellitesOutflowed
-    implicit none
-    type            (treeNode             ), intent(inout) :: node
-    type            (treeNode             ), pointer       :: nodeParent
-    class           (nodeComponentHotHalo ), pointer       :: hotHaloParent          , hotHalo
-    class           (nodeComponentSpin    ), pointer       :: spinParent
-    class           (nodeComponentBasic   ), pointer       :: basicParent            , basic
-    class           (massDistributionClass), pointer       :: massDistribution_
-    double precision                                       :: baryonicMassCurrent    , baryonicMassMaximum      , &
-         &                                                    fractionRemove         , massAccreted             , &
-         &                                                    massUnaccreted         , massReaccreted           , &
-         &                                                    fractionAccreted       , angularMomentumAccreted  , &
-         &                                                    massAccretedHot
-    logical                                                :: massTotalNonZero
-    type            (abundances           ), save          :: massMetalsReaccreted
-    !$omp threadprivate(massMetalsReaccreted)
-    type            (chemicalAbundances  ), save          :: massChemicalsAccreted  , fractionChemicalsAccreted, &
-         &                                                   massChemicalsReaccreted
-    !$omp threadprivate(massChemicalsAccreted,fractionChemicalsAccreted,massChemicalsReaccreted)
-
-    ! Return immediately if this class is not in use.
-    if (.not.defaultHotHaloComponent%standardIsActive()) return
-    ! Get the hot halo component.
-    hotHalo => node%hotHalo()
-    ! Ensure that it is of unspecified class.
-    select type (hotHalo)
-    class is (nodeComponentHotHaloStandard)
-       ! Find the parent node and its hot halo and halo angular momentum components.
-       nodeParent    => node      %parent
-       call Node_Component_Hot_Halo_Standard_Create(nodeParent)
-       hotHaloParent => nodeParent%hotHalo(autoCreate=.true.)
-       spinParent    => nodeParent%spin   (                 )
-       basicParent   => nodeParent%basic  (                 )
-       basic         => node      %basic  (                 )
-       ! Any gas that failed to be accreted by this halo is always transferred to the parent.
-       call hotHaloParent%      unaccretedMassSet(                                      &
-            &                                      hotHaloParent%unaccretedMass      () &
-            &                                     +hotHalo      %unaccretedMass      () &
-            &                                    )
-       call hotHalo      %      unaccretedMassSet(                                      &
-            &                                      0.0d0                                &
-            &                                    )
-       call hotHaloParent%unaccretedAbundancesSet(                                      &
-            &                                      hotHaloParent%unaccretedAbundances() &
-            &                                     +hotHalo      %unaccretedAbundances() &
-            &                                    )
-       call hotHalo      %unaccretedAbundancesSet(                                      &
-            &                                     zeroAbundances                        &
-            &                                    )
-       ! Since the parent node is undergoing mass growth through this merger we potentially return some of the unaccreted gas to
-       ! the hot phase.
-       !! First, find the masses of hot and failed mass the node would have if it formed instantaneously.
-       massAccretedHot =accretionHalo_%      accretedMass(nodeParent,accretionModeHot  )
-       massAccreted    =accretionHalo_%      accretedMass(nodeParent,accretionModeTotal)
-       massUnaccreted  =accretionHalo_%failedAccretedMass(nodeParent,accretionModeTotal)
-       massTotalNonZero=+massAccreted+massUnaccreted > 0.0d0
-       !! Find the fraction of mass that would be successfully accreted.
-       if (massAccretedHot > 0.0d0) then
-          if (.not.massTotalNonZero) call Error_Report('mass of hot-mode gas accreted is non-zero, but total mass is zero'//{introspection:location})
-          fractionAccreted=+  massAccretedHot &
-               &           /(                 &
-               &             +massAccreted    & 
-               &             +massUnaccreted  &
-               &            )
-          !! Find the change in the unaccreted mass.
-          massReaccreted=+hotHaloParent   %unaccretedMass() &
-               &         *fractionAccreted                  &
-               &         *basic           %          mass() &
-               &         /basicParent     %          mass() 
-          !! Reaccrete the gas.
-          call hotHaloParent%unaccretedMassSet(hotHaloParent%unaccretedMass()-massReaccreted)
-          call hotHaloParent%          massSet(hotHaloParent%          mass()+massReaccreted)
-          ! Compute the reaccreted abundances.
-          massMetalsReaccreted=+hotHaloParent   %unaccretedAbundances() &
-               &               *fractionAccreted                        &
-               &               *basic           %                mass() &
-               &               /basicParent     %                mass()
-          call hotHaloParent%unaccretedAbundancesSet(hotHaloParent%unaccretedAbundances()-massMetalsReaccreted)
-          call hotHaloParent%          abundancesSet(hotHaloParent%          abundances()+massMetalsReaccreted)
-          ! Compute the reaccreted angular momentum.
-          angularMomentumAccreted=+            massReaccreted    &
-               &                  *spinParent %angularMomentum() &
-               &                  /basicParent%mass           ()
-          call hotHaloParent%angularMomentumSet(hotHaloParent%angularMomentum()+angularMomentumAccreted)
-       end if
-       ! Compute the reaccreted chemicals.
-       !! First, find the chemicals mass that would be successfully accreted.
-       massChemicalsAccreted=accretionHalo_%accretedMassChemicals(nodeParent,accretionModeHot)
-       !! Find the mass fraction of chemicals that would be successfully accreted.
-       if (massChemicalsAccreted > zeroChemicalAbundances) then
-          if (.not.massTotalNonZero) call Error_Report('mass of hot-mode chemicals accreted is non-zero, but total mass is zero'//{introspection:location})
-          fractionChemicalsAccreted=+  massChemicalsAccreted &
-               &                    /(                       &
-               &                      +massAccreted          &
-               &                      +massUnaccreted        &
-               &                     )
-          !! Find the change in the unaccreted mass.
-          massChemicalsReaccreted=+hotHaloParent   %unaccretedMass() &
-               &                  *fractionChemicalsAccreted         &
-               &                  *basic           %          mass() &
-               &                  /basicParent     %          mass()
-          !! Reaccrete the chemicals.
-          call hotHaloParent%chemicalsSet(hotHaloParent%chemicals()+massChemicalsReaccreted)
-       end if
-       ! Determine if starvation is to be applied.
-       if (starveSatellites.or.starveSatellitesOutflowed) then
-          ! Move the hot halo to the parent. We leave the hot halo in place even if it is starved, since outflows will accumulate to
-          ! this hot halo (and will be moved to the parent at the end of the evolution timestep).
-          if (starveSatellites) then
-             call hotHaloParent%                    massSet(                                          &
-                  &                                          hotHaloParent%mass                    () &
-                  &                                         +hotHalo      %mass                    () &
-                  &                                        )
-             call hotHaloParent%         angularMomentumSet(                                          &
-                  &                                          hotHaloParent%angularMomentum         () &
-                  &                                         +hotHalo      %mass                    () &
-                  &                                         *spinParent   %angularMomentum         () &
-                  &                                         /basicParent  %mass                    () &
-                  &                                        )
-          end if
-          call    hotHaloParent%           outflowedMassSet(                                          &
-               &                                             hotHaloParent%outflowedMass           () &
-               &                                            +hotHalo      %outflowedMass           () &
-               &                                           )
-          call    hotHaloParent%outflowedAngularMomentumSet(                                          &
-               &                                             hotHaloParent%outflowedAngularMomentum() &
-               &                                            +hotHalo      %outflowedMass           () &
-               &                                            *spinParent   %angularMomentum         () &
-               &                                            /basicParent  %mass                    () &
-               &                                           )
-          if (starveSatellites) then
-             call hotHalo      %                    massSet(                                          &
-                  &                                          0.0d0                                    &
-                  &                                        )
-             call hotHalo      %         angularMomentumSet(                                          &
-                  &                                          0.0d0                                    &
-                  &                                        )
-          end if
-          call    hotHalo      %           outflowedMassSet(                                          &
-               &                                             0.0d0                                    &
-               &                                           )
-          call    hotHalo      %outflowedAngularMomentumSet(                                          &
-               &                                             0.0d0                                    &
-               &                                           )
-          if (starveSatellites) then
-             call hotHaloParent%              abundancesSet(                                          &
-                  &                                          hotHaloParent%abundances              () &
-                  &                                         +hotHalo      %abundances              () &
-                  &                                        )
-             call hotHalo      %              abundancesSet(                                          &
-                  &                                          zeroAbundances                           &
-                  &                                        )
-          end if
-          call    hotHaloParent%     outflowedAbundancesSet(                                          &
-               &                                             hotHaloParent%outflowedAbundances     () &
-               &                                            +hotHalo      %outflowedAbundances     () &
-               &                                           )
-          call    hotHalo      %     outflowedAbundancesSet(                                          &
-               &                                             zeroAbundances                           &
-               &                                           )
-          if (starveSatellites) then
-             call hotHaloParent%               chemicalsSet(                                          &
-                  &                                          hotHaloParent%chemicals               () &
-                  &                                         +hotHalo      %chemicals               () &
-                  &                                        )
-             call hotHalo      %               chemicalsSet(                                          &
-                  &                                          zeroChemicalAbundances                   &
-                  &                                        )
-          end if
-          call    hotHaloParent%      outflowedChemicalsSet(                                          &
-               &                                              hotHaloParent%outflowedChemicals     () &
-               &                                             +hotHalo      %outflowedChemicals     () &
-               &                                            )
-          call    hotHalo      %      outflowedChemicalsSet(                                          &
-               &                                             zeroChemicalAbundances                   &
-               &                                           )
-          ! Check if the baryon fraction in the parent hot halo exceeds the universal value. If it does, mitigate this by moving
-          ! some of the mass to the failed accretion reservoir.
-          if (fractionBaryonLimitInNodeMerger) then
-             ! Get the default cosmology.
-             massDistribution_   =>  nodeParent          %massDistribution(massType=massTypeBaryonic)
-             baryonicMassMaximum =  +basicParent         %mass            (                         ) &
-                  &                 *cosmologyParameters_%omegaBaryon     (                         ) &
-                  &                 /cosmologyParameters_%omegaMatter     (                         )
-             baryonicMassCurrent =  +massDistribution_   %massTotal       (                         )
-             !![
-	     <objectDestructor name="massDistribution_"/>
-	     !!]
-             if (baryonicMassCurrent > baryonicMassMaximum .and. hotHaloParent%mass() > 0.0d0) then
-                fractionRemove=min((baryonicMassCurrent-baryonicMassMaximum)/hotHaloParent%massTotal(),1.0d0)
-                call hotHaloParent%      unaccretedMassSet(                                                             &
-                     &                                      hotHaloParent%unaccretedMass      ()                        &
-                     &                                     +hotHaloParent%mass                ()*       fractionRemove  &
-                     &                                    )
-                call hotHaloParent%unaccretedAbundancesSet(                                                             &
-                     &                                      hotHaloParent%unaccretedAbundances()                        &
-                     &                                     +hotHaloParent%abundances          ()*       fractionRemove  &
-                     &                                    )
-                call hotHaloParent%                massSet( hotHaloParent%mass                ()*(1.0d0-fractionRemove))
-                call hotHaloParent%     angularMomentumSet( hotHaloParent%angularMomentum     ()*(1.0d0-fractionRemove))
-                call hotHaloParent%          abundancesSet( hotHaloParent%abundances          ()*(1.0d0-fractionRemove))
-                call hotHaloParent%          chemicalsSet ( hotHaloParent%chemicals           ()*(1.0d0-fractionRemove))
-             end if
-          end if
-       end if
-    end select
-    return
-  end subroutine Node_Component_Hot_Halo_Standard_Node_Merger
-
-  subroutine satelliteMerger(self,node)
-    !!{
-    Remove any hot halo associated with {\normalfont \ttfamily node} before it merges with its host halo.
-    !!}
-    use :: Abundances_Structure                 , only : abundances            , zeroAbundances
-    use :: Chemical_Abundances_Structure        , only : zeroChemicalAbundances
-    use :: Galacticus_Nodes                     , only : nodeComponentHotHalo  , nodeComponentHotHaloStandard, nodeComponentSpin, nodeComponentBasic, &
-         &                                               treeNode
-    use :: Node_Component_Hot_Halo_Standard_Data, only : starveSatellites
-    implicit none
-    class(*                   ), intent(inout) :: self
-    type (treeNode            ), intent(inout) :: node
-    type (treeNode            ), pointer       :: nodeHost
-    class(nodeComponentBasic  ), pointer       :: basicHost
-    class(nodeComponentHotHalo), pointer       :: hotHaloHost, hotHalo
-    class(nodeComponentSpin   ), pointer       :: spinHost
-    !$GLC attributes unused :: self
-
-    ! Return immediately if satellites are starved, as in that case there is no hot halo to transfer.
-    if (starveSatellites) return
-    ! Get the hot halo component.
-    hotHalo => node%hotHalo()
-    ! Ensure that it is of unspecified class.
-    select type (hotHalo)
-    class is (nodeComponentHotHaloStandard)
-       ! Find the node to merge with.
-       nodeHost    => node    %mergesWith(                 )
-       basicHost   => nodeHost%basic     (                 )
-       hotHaloHost => nodeHost%hotHalo   (autoCreate=.true.)
-       spinHost    => nodeHost%spin      (                 )
-       ! Move the hot halo to the host.
-       call hotHaloHost%                    massSet(                                                      &
-            &                                        hotHaloHost              %mass                    () &
-            &                                       +hotHalo                  %mass                    () &
-            &                                      )
-       call hotHaloHost%          unaccretedMassSet(                                                      &
-            &                                        hotHaloHost              %unaccretedMass          () &
-            &                                       +hotHalo                  %unaccretedMass          () &
-            &                                      )
-       call hotHaloHost%         angularMomentumSet(                                                      &
-            &                                        hotHaloHost              %angularMomentum         () &
-            &                                       +hotHalo                  %mass                    () &
-            &                                       *spinHost                 %angularMomentum         () &
-            &                                       /basicHost                %mass                    () &
-            &                                      )
-       call hotHaloHost%           outflowedMassSet(                                                      &
-            &                                        hotHaloHost              %outflowedMass           () &
-            &                                       +hotHalo                  %outflowedMass           () &
-            &                                      )
-       call hotHaloHost%outflowedAngularMomentumSet(                                                      &
-            &                                        hotHaloHost              %outflowedAngularMomentum() &
-            &                                       +hotHalo                  %outflowedMass           () &
-            &                                       *spinHost                 %angularMomentum         () &
-            &                                       /basicHost                %mass                    () &
-             &                                      )
-       call hotHalo    %                    massSet(                                                      &
-            &                                        0.0d0                                                &
-            &                                      )
-       call hotHalo    %         angularMomentumSet(                                                      &
-            &                                        0.0d0                                                &
-            &                                      )
-       call hotHalo    %           outflowedMassSet(                                                      &
-            &                                        0.0d0                                                &
-            &                                      )
-       call hotHalo    %outflowedAngularMomentumSet(                                                      &
-            &                                        0.0d0                                                &
-            &                                      )
-       call hotHaloHost%              abundancesSet(                                                      &
-            &                                        hotHaloHost           %abundances                 () &
-            &                                       +hotHalo               %abundances                 () &
-            &                                      )
-       call hotHalo    %              abundancesSet(                                                      &
-            &                                        zeroAbundances                                       &
-            &                                      )
-       call hotHaloHost%    unaccretedAbundancesSet(                                                      &
-            &                                        hotHaloHost           %unaccretedAbundances       () &
-            &                                       +hotHalo               %unaccretedAbundances       () &
-            &                                      )
-       call hotHalo    %    unaccretedAbundancesSet(                                                      &
-            &                                        zeroAbundances                                       &
-            &                                      )
- 
-
-       call hotHaloHost%     outflowedAbundancesSet(                                                      &
-            &                                        hotHaloHost           %outflowedAbundances        () &
-            &                                       +hotHalo               %outflowedAbundances        () &
-            &                                      )
-       call hotHalo    %     outflowedAbundancesSet(                                                      &
-            &                                        zeroAbundances                                       &
-            &                                      )
-       call hotHaloHost%               chemicalsSet(                                                      &
-            &                                        hotHaloHost           %chemicals                  () &
-            &                                       +hotHalo               %chemicals                  () &
-            &                                      )
-       call hotHalo    %               chemicalsSet(                                                      &
-            &                                        zeroChemicalAbundances                               &
-            &                                      )
-    end select
-    return
-  end subroutine satelliteMerger
-
-  subroutine nodePromotion(self,node)
-    !!{
-    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the hot halo mass of {\normalfont \ttfamily
-    node} to account for any hot halo already in the parent.
-    !!}
-    use :: Abundances_Structure         , only : zeroAbundances
-    use :: Chemical_Abundances_Structure, only : zeroChemicalAbundances, chemicalAbundances
-    use :: Galacticus_Nodes             , only : nodeComponentHotHalo  , nodeComponentHotHaloStandard, treeNode
-    implicit none
-    class(*                   ), intent(inout) :: self
-    type (treeNode            ), intent(inout) :: node
-    type (treeNode            ), pointer       :: nodeParent
-    class(nodeComponentHotHalo), pointer       :: hotHaloParent, hotHalo
-    !$GLC attributes unused :: self
-    
-    hotHalo => node%hotHalo(autoCreate=.true.)
-    ! Ensure that it is of specified class.
-    select type (hotHalo)
-    class is (nodeComponentHotHaloStandard)
-       nodeParent    => node      %parent
-       hotHaloParent => nodeParent%hotHalo(autoCreate=.true.)
-       ! Update the outer radius to match the virial radius of the parent halo.
-       call hotHalo%outerRadiusSet(                                              &
-            &                      darkMatterHaloScale_%radiusVirial(nodeParent) &
-            &                     )
-       ! If the parent node has a hot halo component, then add it to that of this node, and perform other changes needed prior to
-       ! promotion.
-       select type (hotHaloParent)
-       class is (nodeComponentHotHaloStandard)
-          ! If (outflowed) mass is non-positive, set mass and all related quantities to zero.
-          if (hotHalo%         mass() <= 0.0d0) then
-             call hotHalo%massSet           (0.0d0                 )
-             call hotHalo%angularMomentumSet(0.0d0                 )
-             call hotHalo%abundancesSet     (zeroAbundances        )
-             call hotHalo%chemicalsSet      (zeroChemicalAbundances)
-          end if
-          if (hotHalo%outflowedMass() <= 0.0d0) then
-             call hotHalo%outflowedMassSet           (                 0.0d0)
-             call hotHalo%outflowedAngularMomentumSet(                 0.0d0)
-             call hotHalo%outflowedAbundancesSet     (        zeroAbundances)
-             call hotHalo%outflowedChemicalsSet      (zeroChemicalAbundances)
-          end if
-          call    hotHalo%                    massSet(                                          &
-               &                                       hotHalo      %mass                    () &
-               &                                      +hotHaloParent%mass                    () &
-               &                                     )
-          call    hotHalo%         angularMomentumSet(                                          &
-               &                                       hotHalo      %angularMomentum         () &
-               &                                      +hotHaloParent%angularMomentum         () &
-               &                                     )
-          call    hotHalo%           outflowedMassSet(                                          &
-               &                                       hotHalo      %outflowedMass           () &
-               &                                      +hotHaloParent%outflowedMass           () &
-               &                                     )
-          call    hotHalo%outflowedAngularMomentumSet(                                          &
-               &                                       hotHalo      %outflowedAngularMomentum() &
-               &                                      +hotHaloParent%outflowedAngularMomentum() &
-               &                                     )
-          call    hotHalo%              abundancesSet(                                          &
-               &                                       hotHalo      %abundances              () &
-               &                                      +hotHaloParent%abundances              () &
-               &                                     )
-          call    hotHalo%     outflowedAbundancesSet(                                          &
-               &                                       hotHalo      %outflowedAbundances     () &
-               &                                      +hotHaloParent%outflowedAbundances     () &
-               &                                     )
-          call    hotHalo%               chemicalsSet(                                          &
-               &                                       hotHalo      %chemicals               () &
-               &                                      +hotHaloParent%chemicals               () &
-               &                                     )
-          call    hotHalo%      outflowedChemicalsSet(                                          &
-               &                                       hotHalo      %outflowedChemicals      () &
-               &                                      +hotHaloParent%outflowedChemicals      () &
-               &                                     )
-          call    hotHalo%          unaccretedMassSet(                                          &
-               &                                       hotHalo      %unaccretedMass          () &
-               &                                      +hotHaloParent%unaccretedMass          () &
-               &                                     )
-          call    hotHalo%    unaccretedAbundancesSet(                                          &
-               &                                       hotHalo      %unaccretedAbundances    () &
-               &                                      +hotHaloParent%unaccretedAbundances    () &
-               &                                     )
-       end select
-    end select
-    return
-  end subroutine nodePromotion
 
   subroutine Node_Component_Hot_Halo_Standard_Cooling_Rate(node)
     !!{
