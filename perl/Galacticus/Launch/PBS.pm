@@ -6,7 +6,6 @@ use warnings;
 use Cwd;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Data::Dumper;
-use Sys::CPU;
 use File::Which;
 use Galacticus::Options;
 use Galacticus::Launch::Hooks;
