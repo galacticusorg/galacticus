@@ -642,8 +642,9 @@ contains
     !!{
     Initialize trees prior to evolution.
     !!}
-    use    :: Display            , only : displayGreen            , displayReset
-    use    :: Galacticus_Nodes   , only : nodeComponentBasic      , nodeEvent     , nodeEventBranchJumpInterTree , nodeEventSubhaloPromotionInterTree
+    use    :: Display            , only : displayBlue             , displayYellow, displayGreen                , displayBold                       , &
+         &                                displayReset
+    use    :: Galacticus_Nodes   , only : nodeComponentBasic      , nodeEvent    , nodeEventBranchJumpInterTree, nodeEventSubhaloPromotionInterTree
     use    :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
     use    :: String_Handling    , only : operator(//)
     !$ use :: OMP_Lib            , only : OMP_Set_Lock            , OMP_Unset_Lock, omp_lock_kind
@@ -681,11 +682,14 @@ contains
                 if (self%allTreesExistAtFinalTime) then
                    ! It is not, write an error and exit.
                    vMessage='requested time exceeds the final time in the tree'//char(10)
-                   vMessage=vMessage//displayGreen()//' HELP:'//displayReset()//' If you expect that not all trees will exist at the latest requested'//char(10)
-                   vMessage=vMessage//                                         '       output time (this can happen when using trees extracted from N-body'//char(10)
-                   vMessage=vMessage//                                         '       simulations for example) set the following in your input parameter file:'//char(10)//char(10)
-                   vMessage=vMessage//                                         '         <allTreesExistAtFinalTime value="false" />'//char(10)
-                   call Error_Report(vMessage//{introspection:location})
+                   vMessage=vMessage//displayGreen()//' HELP:'//displayReset()//' If you expect that not all trees will exist at the latest requested output'//char(10)
+                   vMessage=vMessage//                                         '    time (this can happen when using trees extracted from N-body simulations for'//char(10)
+                   vMessage=vMessage//                                         '    example) set the highlighted option in your input parameter file as shown below:'//char(10)//char(10)
+                   vMessage=vMessage//                                         '      <'//displayBlue()//'mergerTreeEvolver'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"standard"'//displayReset()//' />'//char(10)
+                   vMessage=vMessage//                                         '         '//displayBold()//'<'//displayBlue()//'allTreesExistAtFinalTime'//displayReset()//displayBold()//' '//displayYellow()//'value'//displayReset()//displayBold()//'='//displayGreen()//'"false"'//displayReset()//displayBold()//' />'//displayReset()//char(10)
+                   vMessage=vMessage//                                         '         ....'//char(10)
+                   vMessage=vMessage//                                         '      </'//displayBlue()//'mergerTreeEvolver'//displayReset()//'>'//char(10)
+                  call Error_Report(vMessage//{introspection:location})
                 end if
              else
                 ! Not exceeded by a significant factor (can happen due to approximation errors). Unless there is an event
