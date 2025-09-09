@@ -685,7 +685,7 @@ contains
                    vMessage=vMessage//displayGreen()//' HELP:'//displayReset()//' If you expect that not all trees will exist at the latest requested output'//char(10)
                    vMessage=vMessage//                                         '    time (this can happen when using trees extracted from N-body simulations for'//char(10)
                    vMessage=vMessage//                                         '    example) set the highlighted option in your input parameter file as shown below:'//char(10)//char(10)
-                   vMessage=vMessage//                                         '      <'//displayBlue()//'mergerTreeEvolver'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"standard"'//displayReset()//' />'//char(10)
+                   vMessage=vMessage//                                         '      <'//displayBlue()//'mergerTreeEvolver'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"'//self%objectType(short=.true.)//'"'//displayReset()//' />'//char(10)
                    vMessage=vMessage//                                         '         '//displayBold()//'<'//displayBlue()//'allTreesExistAtFinalTime'//displayReset()//displayBold()//' '//displayYellow()//'value'//displayReset()//displayBold()//'='//displayGreen()//'"false"'//displayReset()//displayBold()//' />'//displayReset()//char(10)
                    vMessage=vMessage//                                         '         ....'//char(10)
                    vMessage=vMessage//                                         '      </'//displayBlue()//'mergerTreeEvolver'//displayReset()//'>'//char(10)
