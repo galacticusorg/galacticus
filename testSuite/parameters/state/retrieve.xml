@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
+  <lastModified revision="8e1ca452b775faffbba73ded8deb7fb348523429" time="2025-08-29T17:09:39"/>
   <errorWaitTime value="0"/>
   <!-- Use the "cyclic" work share method here - the alternative, "first-come-first-served", requires remote memory access under MPI, which currently seems to cause segfaults over Infinband -->
   <evolveForestsWorkShare value="cyclic"/>
@@ -73,7 +73,17 @@
         </stellarFeedbackOutflows>
       </stellarFeedbackOutflows>
     </nodeOperator>
+    <!-- CGM physics -->
+    <nodeOperator value="CGMAccretion">
+      <allowNegativeCGMMass value="true"/>
+      <angularMomentumAlwaysGrows value="false"/>
+    </nodeOperator>
+    <nodeOperator value="CGMOutflowReincorporation">
+      <includeSatellites value="true"/>
+    </nodeOperator>
   </nodeOperator>
 
   <verbosityLevel value="standard"/>
+<componentHotHalo value="standard"/>
+
 </parameters>

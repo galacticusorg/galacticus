@@ -25,7 +25,7 @@
   <!-- Tree construction methods -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
+    <lastModified revision="8e1ca452b775faffbba73ded8deb7fb348523429" time="2025-08-29T17:09:39"/>
     <errorWaitTime value="0"/>
     <evolveForestsWorkShare value="cyclic"/>
     <mergerTreeConstructor value="build">
@@ -104,6 +104,14 @@
 	<nodeOperator value="positionDiscrete" iterable="no"/>
 	<!-- Satellite physics -->
 	<nodeOperator value="satelliteOrphanize" iterable="no"/>
+	<!-- CGM physics -->
+	<nodeOperator value="CGMAccretion" iterable="no">
+	  <allowNegativeCGMMass value="true"/>
+	  <angularMomentumAlwaysGrows value="false"/>
+	</nodeOperator>
+	<nodeOperator value="CGMOutflowReincorporation" iterable="no">
+	  <includeSatellites value="true"/>
+	</nodeOperator>
       </nodeOperator>
     </mergerTreeConstructor>    
     <cosmologyParameters value="simple">
