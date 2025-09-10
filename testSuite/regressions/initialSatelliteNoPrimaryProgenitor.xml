@@ -6,7 +6,8 @@
 <!-- an infinite loop when trying to walk the tree (with satellites).        -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="8e1ca452b775faffbba73ded8deb7fb348523429" time="2025-08-29T17:09:39"/>
+  <lastModified revision="d4bf2d8db876eb8e44d94e1672bc36a6ea8135cc" time="2025-09-03T18:23:58"/>
+
   <verbosityLevel value="standard"/>
   <componentDarkMatterProfile value="scaleFree"/>
 

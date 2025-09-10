@@ -727,6 +727,29 @@ sub hotHaloVerySimple {
 	if ( $nodes[0]->getAttribute('value') eq "verySimpleDelayed" );
 }
 
+<<<<<<< HEAD
+sub collaborativeMPI {
+    # Special handling to migrate the `collaborativeMPI` parameter.
+    my $input      = shift();
+    my $parameters = shift();
+    # Look for "collaborativeMPI" parameters.
+    my @nodes = $parameters->findnodes("//posteriorSampleLikelihood[\@value='galaxyPopulation']/collaborativeMPI")->get_nodelist();
+    return
+	if ( scalar(@nodes) <= 0 );
+    print "   translate special '//posteriorSampleLikelihood[\@value='galaxyPopulation']/collaborativeMPI'\n";
+    # Replace each node.
+    foreach my $node ( @nodes ) {
+	my $countGroups = $node->getAttribute('value') eq "true" ? 1 : -1;
+	my $countCollaborativeGroups = $input->createElement("countCollaborativeGroups");
+	my $firstComeFirstServed     = $input->createElement("firstComeFirstServed"    );
+	$countCollaborativeGroups->setAttribute('value',str($countGroups));
+	$firstComeFirstServed    ->setAttribute('value','false'          );
+	$node->parentNode->insertAfter($node,$countCollaborativeGroups);
+	$node->parentNode->insertAfter($node,$firstComeFirstServed    );
+	$node->parentNode->removeChild($node                          );
+    }
+}
+
 sub hotHaloStandardAccretion {
     # Special handling to add and modify nodeOperators for CGM accretion in the standard hot halo component.
     my $input      = shift();
