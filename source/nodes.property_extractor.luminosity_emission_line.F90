@@ -27,6 +27,7 @@
   use            :: Output_Times                    , only : outputTimesClass
   use            :: Star_Formation_Histories        , only : starFormationHistoryClass
   use            :: HII_Region_Luminosity_Functions , only : hiiRegionLuminosityFunctionClass
+  use            :: HII_Region_Mass_Functions       , only : hiiRegionMassFunctionClass
   use            :: Star_Formation_Histories        , only : starFormationHistoryClass
   use            :: HII_Region_Density_Distributions, only : hiiRegionDensityDistributionClass  
   use            :: HII_Region_Escape_Fraction      , only : hiiRegionEscapeFractionClass
@@ -57,13 +58,15 @@
      class           (starFormationHistoryClass        ), pointer                       :: starFormationHistory_                => null()
      class           (outputTimesClass                 ), pointer                       :: outputTimes_                         => null()
      class           (hiiRegionLuminosityFunctionClass ), pointer                       :: hiiRegionLuminosityFunction_         => null()
+     class           (hiiRegionMassFunctionClass       ), pointer                       :: hiiRegionMassFunction_               => null()
      class           (hiiRegionDensityDistributionClass), pointer                       :: hiiRegionDensityDistribution_        => null()
      class           (hiiRegionEscapeFractionClass     ), pointer                       :: hiiRegionEscapeFraction_             => null()
      type            (enumerationComponentTypeType     )                                :: component
      type            (varying_string                   )                                :: parametersGroupPath
      integer                                                                            :: countLines
      integer         (c_size_t                         )                                :: indexAge                                     , indexMetallicity            , &
-          &                                                                                indexIonizingLuminosityHydrogen              , indexDensityHydrogen
+          &                                                                                indexIonizingLuminosityHydrogen              , indexDensityHydrogen        , &
+          &                                                                                indexMassStellar
      type            (varying_string                   ), allocatable, dimension(:    ) :: lineNames                                    , names_                      , &
           &                                                                                descriptions_
      double precision                                   , allocatable, dimension(:    ) :: metallicityBoundaries                        , metallicities               , &
@@ -74,8 +77,9 @@
      double precision                                                                   :: metallicityPopulationMinimum                 , metallicityPopulationMaximum, &
           &                                                                                agePopulationMaximum                         , resolution                  , &
           &                                                                                factorWavelength                             , toleranceRelative           , &
-          &                                                                                ionizingLuminosityHydrogenMean
+          &                                                                                ionizingLuminosityHydrogenMean               , massStellarMean
      type            (varying_string                   )                                :: cloudyTableFileName
+     logical                                                                            :: tabulatedByMass
    contains
      !![
      <methods>
@@ -120,6 +124,7 @@ contains
     class           (starFormationHistoryClass                  ), pointer                     :: starFormationHistory_
     class           (outputTimesClass                           ), pointer                     :: outputTimes_
     class           (hiiRegionLuminosityFunctionClass           ), pointer                     :: hiiRegionLuminosityFunction_
+    class           (hiiRegionMassFunctionClass                 ), pointer                     :: hiiRegionMassFunction_
     class           (hiiRegionDensityDistributionClass          ), pointer                     :: hiiRegionDensityDistribution_
     class           (hiiRegionEscapeFractionClass               ), pointer                     :: hiiRegionEscapeFraction_
     type            (varying_string                             ), allocatable  , dimension(:) :: lineNames
@@ -154,10 +159,11 @@ contains
     <objectBuilder class="starFormationHistory"         name="starFormationHistory_"         source="parameters"/>
     <objectBuilder class="outputTimes"                  name="outputTimes_"                  source="parameters"/>
     <objectBuilder class="hiiRegionLuminosityFunction"  name="hiiRegionLuminosityFunction_"  source="parameters"/>
+    <objectBuilder class="hiiRegionMassFunction"        name="hiiRegionMassFunction_"        source="parameters"/>
     <objectBuilder class="hiiRegionDensityDistribution" name="hiiRegionDensityDistribution_" source="parameters"/>
     <objectBuilder class="hiiRegionEscapeFraction"      name="hiiRegionEscapeFraction_"      source="parameters"/>
     !!]
-    self=nodePropertyExtractorLuminosityEmissionLine(cloudyTableFileName,enumerationComponentTypeEncode(char(component),includesPrefix=.false.),lineNames,toleranceRelative,starFormationHistory_,outputTimes_,hiiRegionLuminosityFunction_,hiiRegionDensityDistribution_,hiiRegionEscapeFraction_)
+    self=nodePropertyExtractorLuminosityEmissionLine(cloudyTableFileName,enumerationComponentTypeEncode(char(component),includesPrefix=.false.),lineNames,toleranceRelative,starFormationHistory_,outputTimes_,hiiRegionLuminosityFunction_,hiiRegionMassFunction_,hiiRegionDensityDistribution_,hiiRegionEscapeFraction_)
     parametersGroup=parameters%parametersGroup()
     self%parametersGroupPath=parametersGroup%pathTo(includeFileName=.false.)
     call parametersGroup%close()
@@ -166,13 +172,14 @@ contains
     <objectDestructor name="starFormationHistory_"        />
     <objectDestructor name="outputTimes_"                 />
     <objectDestructor name="hiiRegionLuminosityFunction_" />
+    <objectDestructor name="hiiRegionMassFunction_"       />
     <objectDestructor name="hiiRegionDensityDistribution_"/>
     <objectDestructor name="hiiRegionEscapeFraction_"     />
     !!]
     return
   end function emissionLineLuminosityConstructorParameters
 
-  function emissionLineLuminosityConstructorInternal(cloudyTableFileName,component,lineNames,toleranceRelative,starFormationHistory_,outputTimes_,hiiRegionLuminosityFunction_,hiiRegionDensityDistribution_,hiiRegionEscapeFraction_) result(self)
+  function emissionLineLuminosityConstructorInternal(cloudyTableFileName,component,lineNames,toleranceRelative,starFormationHistory_,outputTimes_,hiiRegionLuminosityFunction_,hiiRegionMassFunction_,hiiRegionDensityDistribution_,hiiRegionEscapeFraction_) result(self)
     !!{
     Internal constructor for the \refClass{nodePropertyExtractorLuminosityEmissionLine} property extractor class.
     !!}
@@ -194,22 +201,27 @@ contains
     class           (starFormationHistoryClass                  ), intent(in   ), target               :: starFormationHistory_
     class           (outputTimesClass                           ), intent(in   ), target               :: outputTimes_
     class           (hiiRegionLuminosityFunctionClass           ), intent(in   ), target               :: hiiRegionLuminosityFunction_
+    class           (hiiRegionMassFunctionClass                 ), intent(in   ), target               :: hiiRegionMassFunction_
     class           (hiiRegionDensityDistributionClass          ), intent(in   ), target               :: hiiRegionDensityDistribution_
     class           (hiiRegionEscapeFractionClass               ), intent(in   ), target               :: hiiRegionEscapeFraction_
     double precision                                             , intent(in   )                       :: toleranceRelative    
-    double precision                                             ,                                     :: deltaIonizingLuminosityHydrogen   , rateHydrogenIonizingPhotonsMinimum, &
-         &                                                                                                rateHydrogenIonizingPhotonsMaximum, densityHydrogenMinimum            , &
-         &                                                                                                densityHydrogenMaximum            , deltaDensityHydrogen 
-    double precision                                             , allocatable  , dimension(:        ) :: ionizingLuminosityHydrogen        , densityHydrogen
+    double precision                                             ,                                     :: deltaIonizingLuminosityHydrogen   , deltaMassStellar                  , &
+         &                                                                                                rateHydrogenIonizingPhotonsMinimum, rateHydrogenIonizingPhotonsMaximum, &
+         &                                                                                                massStellarMinimum                , massStellarMaximum                , &
+         &                                                                                                densityHydrogenMinimum            , densityHydrogenMaximum            , &
+         &                                                                                                deltaDensityHydrogen              , fractionNormalization
+    double precision                                             , allocatable  , dimension(:        ) :: ionizingLuminosityHydrogen        , densityHydrogen                   , &
+         &                                                                                                massStellar
     integer                                                                     , dimension(5        ) :: shapeLines
     double precision                                             , allocatable  , dimension(:,:,:,:,:) :: luminosities
     integer         (c_size_t                                   )               , dimension(2        ) :: permutation
     type            (hdf5Object                                 )                                      :: emissionLinesFile                 , lines                             , &
          &                                                                                                dataset
     integer         (c_size_t                                   )                                      :: i                                 , k                                 , &
-         &                                                                                                iAge
+         &                                                                                                iAge                              , indexNormalization                , &
+         &                                                                                                sizeNormalization
     !![
-    <constructorAssign variables="cloudyTableFileName, lineNames, component, toleranceRelative, *starFormationHistory_, *outputTimes_, *hiiRegionLuminosityFunction_, *hiiRegionDensityDistribution_, *hiiRegionEscapeFraction_"/>
+    <constructorAssign variables="cloudyTableFileName, lineNames, component, toleranceRelative, *starFormationHistory_, *outputTimes_, *hiiRegionLuminosityFunction_, *hiiRegionMassFunction_, *hiiRegionDensityDistribution_, *hiiRegionEscapeFraction_"/>
     !!]
     if     (                                                                                                    &
          &   component /= componentTypeDisk                                                                     &
@@ -228,38 +240,64 @@ contains
     do i=1,size(lineNames)
        if (.not.lines%hasDataset(char(self%lineNames(i)))) call Error_Report('line "'//char(self%lineNames(i))//'" not found'//{introspection:location})
     end do
-    call emissionLinesFile%readDataset('metallicity'                         ,self%metallicities                       )
-    call emissionLinesFile%readDataset('age'                                 ,self%ages                                )
-    call emissionLinesFile%readDataset('ionizingLuminosityHydrogen'          ,     ionizingLuminosityHydrogen          )
-    call emissionLinesFile%readDataset('ionizingLuminosityHydrogenNormalized',self%ionizingLuminosityHydrogenNormalized)
-    call emissionLinesFile%readDataset('densityHydrogen'                     ,     densityHydrogen                     )
+    ! Detect if the tabulation is by Qₕ or M⭑.
+    if      (emissionLinesFile%hasDataset('ionizingLuminosityHydrogen')) then
+       self%tabulatedByMass=.false.
+    else if (emissionLinesFile%hasDataset('massStellar'               )) then
+       self%tabulatedByMass=.true.
+    else
+       self%tabulatedByMass=.false.
+       call Error_Report('expected to find either `ionizingLuminosityHydrogen` or `massStellar` in the tabulation'//{introspection:location})
+    end if
+    call    emissionLinesFile%readDataset('ionizingLuminosityHydrogenNormalized',self%ionizingLuminosityHydrogenNormalized)
+    call    emissionLinesFile%readDataset('metallicity'                         ,self%metallicities                       )
+    call    emissionLinesFile%readDataset('age'                                 ,self%ages                                )
+    call    emissionLinesFile%readDataset('densityHydrogen'                     ,     densityHydrogen                     )
+    if (self%tabulatedByMass) then
+       call emissionLinesFile%readDataset('massStellar'                         ,     massStellar                         )
+    else
+       call emissionLinesFile%readDataset('ionizingLuminosityHydrogen'          ,     ionizingLuminosityHydrogen          )
+    end if
     ! Extract indexing into the lines arrays.
-    dataset=emissionLinesFile%openDataset('metallicity'               )
-    call dataset%readAttribute('index',self%indexMetallicity               )
-    call dataset%close        (                     )
-    dataset=emissionLinesFile%openDataset('age'                       )
-    call dataset%readAttribute('index',self%indexAge                       )
-    call dataset%close        (                     )
-    dataset=emissionLinesFile%openDataset('ionizingLuminosityHydrogen')
-    call dataset%readAttribute('index',self%indexIonizingLuminosityHydrogen)
-    call dataset%close        (                     )
-    dataset=emissionLinesFile%openDataset('densityHydrogen'           )
-    call dataset%readAttribute('index',self%indexDensityHydrogen           )
-    call dataset%close        (                     )
+    dataset   =emissionLinesFile%openDataset('metallicity'               )
+    call    dataset%readAttribute('index',self%indexMetallicity               )
+    call    dataset%close        (                     )
+    dataset   =emissionLinesFile%openDataset('age'                       )
+    call    dataset%readAttribute('index',self%indexAge                       )
+    call    dataset%close        (                     )
+    dataset=   emissionLinesFile%openDataset('densityHydrogen'           )
+    call    dataset%readAttribute('index',self%indexDensityHydrogen           )
+    call    dataset%close        (                     )
+    if (self%tabulatedByMass) then
+       dataset=emissionLinesFile%openDataset('massStellar'               )
+       call dataset%readAttribute('index',self%indexMassStellar               )
+       call dataset%close        (                     )
+       self%indexIonizingLuminosityHydrogen=-huge(0_c_size_t)
+    else
+       dataset=emissionLinesFile%openDataset('ionizingLuminosityHydrogen')
+       call dataset%readAttribute('index',self%indexIonizingLuminosityHydrogen)
+       call dataset%close        (                     )
+       self%indexMassStellar               =-huge(0_c_size_t)
+    end if
     ! Offset indexing to Fortran standard (i.e. starting from 1 instead of 0).
     self%indexMetallicity               =self%indexMetallicity               +1
     self%indexAge                       =self%indexAge                       +1
     self%indexIonizingLuminosityHydrogen=self%indexIonizingLuminosityHydrogen+1
+    self%indexMassStellar               =self%indexMassStellar               +1
     self%indexDensityHydrogen           =self%indexDensityHydrogen           +1
     ! Establish arrays.
     self%metallicityPopulationMinimum=minval(self%metallicities)
     self%metallicityPopulationMaximum=maxval(self%metallicities)
     self%agePopulationMaximum        =maxval(self%ages         )
-    shapeLines(self%indexMetallicity               )=size(self%metallicities             )
-    shapeLines(self%indexAge                       )=size(self%ages                      )
-    shapeLines(self%indexIonizingLuminosityHydrogen)=size(     ionizingLuminosityHydrogen)
-    shapeLines(self%indexDensityHydrogen           )=size(     densityHydrogen           )
-    shapeLines(     5                              )=size(     lineNames                 )
+    shapeLines   (self%indexMetallicity               )=size(self%metallicities             )
+    shapeLines   (self%indexAge                       )=size(self%ages                      )
+    if (self%tabulatedByMass) then
+       shapeLines(self%indexMassStellar               )=size(     massStellar               )
+    else
+       shapeLines(self%indexIonizingLuminosityHydrogen)=size(     ionizingLuminosityHydrogen)
+    end if
+    shapeLines   (self%indexDensityHydrogen           )=size(     densityHydrogen           )
+    shapeLines   (     5                              )=size(     lineNames                 )
     !![
     <allocate variable="luminosities" shape="shapeLines"/>
     !!]
@@ -288,53 +326,89 @@ contains
     call emissionLinesFile%close()
     !$ call hdf5Access%unset()
     ! Calculate emission line luminosities as a function of age and metallicity by averaging over the distribution of HII region
-    ! luminosities. Account for any needed permutation in the indexing needed to get our final array to be (age,metallicity,line)
-    ! ordered.
-    !! Find the width of Qₕ and nₕ bins.
-    deltaIonizingLuminosityHydrogen=+ionizingLuminosityHydrogen(2) &
-         &                          /ionizingLuminosityHydrogen(1)
-    deltaDensityHydrogen           =+densityHydrogen           (2) &
-         &                          /densityHydrogen           (1)
+    ! luminosities/masses. Account for any needed permutation in the indexing needed to get our final array to be
+    ! (age,metallicity,line) ordered.    
+    !! Find the width of Qₕ/M⭑ and nₕ bins.
+    if (self%tabulatedByMass) then
+       deltaMassStellar               =+massStellar               (2) &
+            &                          /massStellar               (1)
+       deltaIonizingLuminosityHydrogen=-huge(0.0d0)
+    else
+       deltaIonizingLuminosityHydrogen=+ionizingLuminosityHydrogen(2) &
+            &                          /ionizingLuminosityHydrogen(1)
+       deltaMassStellar               =-huge(0.0d0)
+    end if
+    deltaDensityHydrogen              =+densityHydrogen           (2) &
+         &                             /densityHydrogen           (1)
     !! Construct the permutation needed to convert the table read from file into the ordering needed internally.
     permutation(1)=self%indexMetallicity
     permutation(2)=     2
-    if (self%indexIonizingLuminosityHydrogen < self%indexMetallicity) permutation(1)=permutation(1)-1_c_size_t
-    if (self%indexDensityHydrogen            < self%indexMetallicity) permutation(1)=permutation(1)-1_c_size_t
-    if (self%indexAge                        < self%indexMetallicity) permutation(1)=permutation(1)-1_c_size_t
-    do i=1,size(ionizingLuminosityHydrogen)
-       rateHydrogenIonizingPhotonsMinimum=ionizingLuminosityHydrogen(i)/sqrt(deltaIonizingLuminosityHydrogen)
-       rateHydrogenIonizingPhotonsMaximum=ionizingLuminosityHydrogen(i)*sqrt(deltaIonizingLuminosityHydrogen)
+    if (self%tabulatedByMass) then
+       if (self%indexMassStellar                < self%indexMetallicity) permutation(1)=permutation(1)-1_c_size_t
+       indexNormalization=self%indexMassStellar
+       sizeNormalization =size(massStellar               )
+    else
+       if (self%indexIonizingLuminosityHydrogen < self%indexMetallicity) permutation(1)=permutation(1)-1_c_size_t
+       indexNormalization=self%indexIonizingLuminosityHydrogen
+       sizeNormalization =size(ionizingLuminosityHydrogen)
+    end if
+    if    (self%indexDensityHydrogen            < self%indexMetallicity) permutation(1)=permutation(1)-1_c_size_t
+    if    (self%indexAge                        < self%indexMetallicity) permutation(1)=permutation(1)-1_c_size_t
+    do i=1,sizeNormalization
+       if (self%tabulatedByMass) then
+          massStellarMinimum                =massStellar               (i)/sqrt(deltaMassStellar               )
+          massStellarMaximum                =massStellar               (i)*sqrt(deltaMassStellar               )
+       else
+          rateHydrogenIonizingPhotonsMinimum=ionizingLuminosityHydrogen(i)/sqrt(deltaIonizingLuminosityHydrogen)
+          rateHydrogenIonizingPhotonsMaximum=ionizingLuminosityHydrogen(i)*sqrt(deltaIonizingLuminosityHydrogen)
+       end if
        do k=1,size(densityHydrogen)
           densityHydrogenMinimum         =densityHydrogen           (k)/sqrt(deltaDensityHydrogen           )
           densityHydrogenMaximum         =densityHydrogen           (k)*sqrt(deltaDensityHydrogen           )
           do iAge=1,size(self%ages)
              ! Accumulate the luminosity weighted by the cumulative fraction of HII regions in this luminosity interval.
-             self%luminositiesReduced(iAge,:,:)=+        self%luminositiesReduced                                         (          iAge                    ,:,:                               ) &
-                  &                             +(+1.0d0-self%hiiRegionEscapeFraction_     %escapeFraction                (self%ages(iAge))                                                     ) & 
-                  &                             *        self%hiiRegionLuminosityFunction_ %cumulativeDistributionFunction(rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum) &
-                  &                             *        self%hiiRegionDensityDistribution_%cumulativeDensityDistribution (            densityHydrogenMinimum,            densityHydrogenMaximum) &
-                  &                             *reshape(                                                                                                                                         &
-                  &                                      slice5Dto2D(                                                                                                                             &
-                  &                                                   luminosities                                                                  ,                                             &
-                  &                                                   [self%indexIonizingLuminosityHydrogen,self%indexDensityHydrogen,self%indexAge],                                             &
-                  &                                                   [     i                              ,     k                   ,     iAge    ]                                              &
-                  &                                                  )                                                                              ,                                             &
-                  &                                                   [size(luminosities,dim=self%indexMetallicity),size(luminosities,dim=5)]       ,                                             &
-                  &                                       order=permutation                                                                                                                       &
+             if (self%tabulatedByMass) then
+                fractionNormalization=self%hiiRegionMassFunction_      %cumulativeDistributionFunction(massStellarMinimum                ,massStellarMaximum                )
+             else
+                fractionNormalization=self%hiiRegionLuminosityFunction_%cumulativeDistributionFunction(rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum)
+             end if
+             self%luminositiesReduced(iAge,:,:)=+        self%luminositiesReduced                                        (          iAge        ,:,:                   ) &
+                  &                             +(+1.0d0-self%hiiRegionEscapeFraction_     %escapeFraction               (self%ages(iAge))                             ) & 
+                  &                             *                                           fractionNormalization                                                        &
+                  &                             *        self%hiiRegionDensityDistribution_%cumulativeDensityDistribution(densityHydrogenMinimum,densityHydrogenMaximum) &
+                  &                             *reshape(                                                                                                                &
+                  &                                      slice5Dto2D(                                                                                                    &
+                  &                                                   luminosities                                                           ,                           &
+                  &                                                   [indexNormalization,self%indexDensityHydrogen,self%indexAge],                                      &
+                  &                                                   [i                 ,     k                   ,     iAge    ]                                       &
+                  &                                                  )                                                                       ,                           &
+                  &                                                   [size(luminosities,dim=self%indexMetallicity),size(luminosities,dim=5)],                           &
+                  &                                       order=permutation                                                                                              &
                   &                                      )
           end do
        end do
     end do
-    ! Normalize reduced luminosities to the total fraction of HII regions in the luminosity interval spanned by the table. Also,
-    ! find the mean ionizing luminosity of HII regions in this luminosity interval.
-    rateHydrogenIonizingPhotonsMinimum =+ionizingLuminosityHydrogen(                              1 )/sqrt(deltaIonizingLuminosityHydrogen) 
-    rateHydrogenIonizingPhotonsMaximum =+ionizingLuminosityHydrogen(size(ionizingLuminosityHydrogen))*sqrt(deltaIonizingLuminosityHydrogen)
-    densityHydrogenMinimum             =+densityHydrogen           (                              1 )/sqrt(deltaDensityHydrogen           )
-    densityHydrogenMaximum             =+densityHydrogen           (size(           densityHydrogen))*sqrt(deltaDensityHydrogen           )
-    self%luminositiesReduced           =+self%luminositiesReduced                                                                                                                 &
-         &                              /self%hiiRegionLuminosityFunction_ %cumulativeDistributionFunction(rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum) &
-         &                              /self%hiiRegionDensityDistribution_%cumulativeDensityDistribution (            densityHydrogenMinimum,            densityHydrogenMaximum)
-    self%ionizingLuminosityHydrogenMean=+self%hiiRegionLuminosityFunction_ %cumulativeLuminosity          (rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum)
+    ! Normalize reduced luminosities to the total fraction of HII regions in the luminosity/mass interval spanned by the table. Also,
+    ! find the mean ionizing luminosity of HII regions in this luminosity/mass interval.
+    if (self%tabulatedByMass) then
+       massStellarMinimum                 =+massStellar               (                              1 )/sqrt(deltaMassStellar               )
+       massStellarMaximum                 =+massStellar               (size(massStellar               ))*sqrt(deltaMassStellar               )
+       fractionNormalization              =+self%hiiRegionMassFunction_      %cumulativeDistributionFunction(                massStellarMinimum,                massStellarMaximum)
+    else
+       rateHydrogenIonizingPhotonsMinimum =+ionizingLuminosityHydrogen(                              1 )/sqrt(deltaIonizingLuminosityHydrogen)
+       rateHydrogenIonizingPhotonsMaximum =+ionizingLuminosityHydrogen(size(ionizingLuminosityHydrogen))*sqrt(deltaIonizingLuminosityHydrogen)
+       fractionNormalization              =+self%hiiRegionLuminosityFunction_%cumulativeDistributionFunction(rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum)
+    end if
+    densityHydrogenMinimum                =+densityHydrogen           (                              1 )/sqrt(deltaDensityHydrogen           )
+    densityHydrogenMaximum                =+densityHydrogen           (size(           densityHydrogen))*sqrt(deltaDensityHydrogen           )
+    self%luminositiesReduced              =+self%                              luminositiesReduced                                                                                   &
+         &                                 /                                   fractionNormalization                                                                                 &
+         &                                 /self%hiiRegionDensityDistribution_%cumulativeDensityDistribution (            densityHydrogenMinimum,            densityHydrogenMaximum)
+    if (self%tabulatedByMass) then
+       self%massStellarMean               =+self%hiiRegionMassFunction_       %cumulativeMass                (                massStellarMinimum,                massStellarMaximum)
+    else
+       self%ionizingLuminosityHydrogenMean=+self%hiiRegionLuminosityFunction_ %cumulativeLuminosity          (rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum)
+    end if
     ! Construct property names and descriptions.
     allocate(self%names_       (size(lineNames)))
     allocate(self%descriptions_(size(lineNames)))
@@ -364,6 +438,7 @@ contains
     <objectDestructor name="self%starFormationHistory_"        />
     <objectDestructor name="self%outputTimes_"                 />
     <objectDestructor name="self%hiiRegionLuminosityFunction_" />
+    <objectDestructor name="self%hiiRegionMassFunction_"       />
     <objectDestructor name="self%hiiRegionDensityDistribution_"/>
     <objectDestructor name="self%hiiRegionEscapeFraction_"     />
     !!]
@@ -403,7 +478,7 @@ contains
     double precision                                             , dimension(  :,:)          , allocatable :: masses
     type            (history                                    )                                          :: starFormationHistory
     integer(c_size_t)                                                                                      :: indexTemplate      
-    logical                                                                                                :: parallelize                                                                                     
+    logical                                                                                                :: parallelize
     integer                                                                                                :: iLines              , i
     !$GLC attributes unused :: instance
 
@@ -794,9 +869,10 @@ contains
       !!}
       implicit none
       double precision          , intent(in   )  :: timeBirth
-      integer                                    :: iTime                , iMetallicity
-      integer         (c_size_t), dimension(0:1) :: interpolateIndexTime , interpolateIndexMetallicity
-      double precision          , dimension(0:1) :: interpolateFactorTime, interpolateFactorMetallicity
+      integer                                    :: iTime                   , iMetallicity
+      integer         (c_size_t), dimension(0:1) :: interpolateIndexTime    , interpolateIndexMetallicity
+      double precision          , dimension(0:1) :: interpolateFactorTime   , interpolateFactorMetallicity
+      double precision                           :: massStellarNormalization
       
       age    =min(                            &
            &      +     time                  &
@@ -810,12 +886,18 @@ contains
       integrand                     =0.0d0
       do iTime=0,1
          do iMetallicity=0,1
-           integrand=+integrand                                                                                                              &
-                 &   +self%luminositiesReduced                 (interpolateIndexTime(iTime),interpolateIndexMetallicity(iMetallicity),iLine) &
-                 &   *self%ionizingLuminosityHydrogenNormalized(interpolateIndexTime(iTime),interpolateIndexMetallicity(iMetallicity)      ) &
-                 &   /self%ionizingLuminosityHydrogenMean                                                                                    &
-                 &   *     interpolateFactorTime                                    (iTime)                                                  &
-                 &   *     interpolateFactorMetallicity                                                                (iMetallicity)
+            if (self%tabulatedByMass) then
+               massStellarNormalization=+1.0d0                                                                                                            &
+                    &                   /self%massStellarMean
+            else
+               massStellarNormalization=+self%ionizingLuminosityHydrogenNormalized(interpolateIndexTime(iTime),interpolateIndexMetallicity(iMetallicity)) &
+                    &                   /self%ionizingLuminosityHydrogenMean
+            end if
+            integrand=+integrand                                                                                                     &
+                 &   +self%luminositiesReduced         (interpolateIndexTime(iTime),interpolateIndexMetallicity(iMetallicity),iLine) &
+                 &   *     massStellarNormalization                                                                                  &
+                 &   *     interpolateFactorTime                            (iTime)                                                  &
+                 &   *     interpolateFactorMetallicity                                                        (iMetallicity)
          end do
       end do
       return
