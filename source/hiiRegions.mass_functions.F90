@@ -32,20 +32,20 @@ module HII_Region_Mass_Functions
   !![
   <functionClass>
    <name>hiiRegionMassFunction</name>
-   <descriptiveName>HII region mass function.</descriptiveName>
-   <description>Class providing models of mass function for HII region.</description>
+   <descriptiveName>HII region mass functions</descriptiveName>
+   <description>Class providing models of mass functions for HII regions.</description>
    <default>rosolowsky2021</default>
-   <method name="cumulativeMassFunction">
-    <description>Returns the cumulative distribution of the HII region luminosity function between a minimum and maximum mass.</description>
+   <method name="cumulativeDistributionFunction">
+    <description>Returns the cumulative distribution of the HII region mass function between a minimum and maximum mass.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>double precision, intent(in   ) :: massMinimum, massMaximum, massCutoff</argument>
+    <argument>double precision, intent(in   ) :: massMinimum, massMaximum</argument>
    </method>
    <method name="cumulativeMass">
-    <description>Returns the cumulative mass from the HII region luminosity function between a minimum and maximum mass.</description>
+    <description>Returns the cumulative mass from the HII region mass function between a minimum and maximum mass.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>double precision, intent(in   ) :: massMinimum, massMaximum, massCutoff</argument>
+    <argument>double precision, intent(in   ) :: massMinimum, massMaximum</argument>
    </method>
   </functionClass>
   !!]
