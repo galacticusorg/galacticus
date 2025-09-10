@@ -57,16 +57,20 @@
           &                                                                     kappa                                , C                    , &
           &                                                                     p                                    , coefficientScatter
      integer                                                                 :: promptCuspMassID                     , promptCuspAmplitudeID, &
-          &                                                                     promptCuspNFWYID
+          &                                                                     promptCuspNFWYID                     , promptCuspNFWScaleID , &
+          &                                                                     promptCuspNFWGrowthRateID
    contains
      !![
      <methods>
        <method method="sigma" description="Evaluate $\sigma_j^2 = \int_0^\infty \frac{\mathrm{d}k}{k} \mathcal{P}(k,t) k^{2j}$ where $\mathcal{P}(k) = k^3 P(k) / 2 \pi^2$ is the dimensionless form of the power spectrum."/>
      </methods>
      !!]
-     final     ::                       darkMatterProfilePromptCuspsDestructor
-     procedure :: nodeTreeInitialize => darkMatterProfilePromptCuspsNodeTreeInitialize
-     procedure :: sigma              => darkMatterProfilePromptCuspsNodeSigma
+     final     ::                                        darkMatterProfilePromptCuspsDestructor
+     procedure :: nodeTreeInitialize                  => darkMatterProfilePromptCuspsNodeTreeInitialize
+     procedure :: nodeInitialize                      => darkMatterProfilePromptCuspsNodeInitialize
+     procedure :: nodePromote                         => darkMatterProfilePromptCuspsNodePromote
+     procedure :: differentialEvolutionSolveAnalytics => darkMatterProfilePromptCuspsSolveAnalytics
+     procedure :: sigma                               => darkMatterProfilePromptCuspsNodeSigma
   end type nodeOperatorDarkMatterProfilePromptCusps
   
   interface nodeOperatorDarkMatterProfilePromptCusps
@@ -80,9 +84,11 @@
   ! Submodule-scope variables used in root-finding.
   class           (nodeOperatorDarkMatterProfilePromptCusps), pointer   :: self_
   double precision                                                      :: sigma0Collapse          , time_                    , &
-       &                                                                   expansionFactor_        , concentrationFactorTarget
+       &                                                                   expansionFactor_        , concentrationFactorTarget, &
+       &                                                                   massHalo_               , amplitudeCusp_           , &
+       &                                                                   concentration_          , radiusScale_
   integer                                                               :: j_ 
-  !$omp threadprivate(self_,sigma0Collapse,time_,expansionFactor_,concentrationFactorTarget,j_)
+  !$omp threadprivate(self_,sigma0Collapse,time_,expansionFactor_,concentrationFactorTarget,massHalo_,concentration_,radiusScale_,amplitudeCusp_,j_)
 
   ! Maximum allowed value of the y-parameter in the cusp-NFW profile. Values of 1 or greater are not valid. We limit here to a
   ! value close to 1.
@@ -205,9 +211,11 @@ contains
     !!]
 
     !![
-    <addMetaProperty component="darkMatterProfile" name="promptCuspAmplitude" id="self%promptCuspAmplitudeID" isEvolvable="no" isCreator="yes"/>
-    <addMetaProperty component="darkMatterProfile" name="promptCuspMass"      id="self%promptCuspMassID"      isEvolvable="no" isCreator="yes"/>
-    <addMetaProperty component="darkMatterProfile" name="promptCuspNFWY"      id="self%promptCuspNFWYID"      isEvolvable="no" isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="promptCuspAmplitude"       id="self%promptCuspAmplitudeID"     isEvolvable="no" isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="promptCuspMass"            id="self%promptCuspMassID"          isEvolvable="no" isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="promptCuspNFWY"            id="self%promptCuspNFWYID"          isEvolvable="no" isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="promptCuspNFWScale"        id="self%promptCuspNFWScaleID"      isEvolvable="no" isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="promptCuspNFWGrowthRateID" id="self%promptCuspNFWGrowthRateID" isEvolvable="no" isCreator="yes"/>
     !!]
     self%growthIsWavenumberDependent=self%linearGrowth_%isWavenumberDependent()
     return
@@ -452,7 +460,7 @@ contains
        call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspAmplitudeID,amplitude  )
        call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspMassID     ,mass       )
        call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWYID     ,y          )
-       call darkMatterProfile%scaleSet                 (                           radiusScale)
+       call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWScaleID ,radiusScale)
     end do
     ! Check for convergence.
     if (.not.Values_Agree(radiusScale,radiusScalePrevious,relTol=toleranceRelative)) then
@@ -596,3 +604,175 @@ contains
          &             *                                        wavenumberPhysical**(2*j_)
     return
   end function integrand
+
+  subroutine darkMatterProfilePromptCuspsNodeInitialize(self,node)
+    !!{
+    Compute the rate of growth of dark matter profile scale radius assuming a constant growth rate.
+    !!}
+    use :: Display         , only : displayBlue       , displayGreen                  , displayYellow, displayBold, &
+         &                          displayReset
+    use :: Error           , only : Error_Report
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
+    implicit none
+    class           (nodeOperatorDarkMatterProfilePromptCusps), intent(inout), target  :: self
+    type            (treeNode                                ), intent(inout), target  :: node
+    class           (nodeComponentBasic                      )               , pointer :: basic            , basicParent
+    class           (nodeComponentDarkMatterProfile          )               , pointer :: darkMatterProfile, darkMatterProfileParent
+    double precision                                                                   :: timeInterval
+
+    ! Set the growth rate for the scale radius.
+    darkMatterProfile => node%darkMatterProfile()
+    select type (darkMatterProfile)
+    type is (nodeComponentDarkMatterProfile)
+       call Error_Report(                                                                                                                                                                                            &
+            &            displayBold()//'darkMatterProfile'//displayReset()//' component must be created prior to initialization cusp-NFW scale radius interpolation'                                   //char(10)// &
+            &            '   For example, by using the following nodeOperator'                                                                                                                          //char(10)// &
+            &            '    <'//displayBlue()//'nodeOperator'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"darkMatterProfileScaleSet"'//displayReset()//'/>'          // &
+            &            {introspection:location}                                                                                                                                                                    &
+            &           )
+    class default
+       if (node%isPrimaryProgenitor()) then
+          ! Node is the primary progenitor, so compute the scale radius growth rate.
+          basic        =>  node              %basic()
+          basicParent  =>  node       %parent%basic()
+          timeInterval =  +basicParent       %time () &
+               &          -basic             %time ()
+          if (timeInterval > 0.0d0) then
+             darkMatterProfileParent => node%parent%darkMatterProfile()
+             call darkMatterProfile%floatRank0MetaPropertySet(                                                                                 &
+                  &                                              self                   %promptCuspNFWGrowthRateID                           , &
+                  &                                           +(                                                                               &
+                  &                                             +darkMatterProfileParent%floatRank0MetaPropertyGet(self%promptCuspNFWScaleID)  &
+                  &                                             -darkMatterProfile      %floatRank0MetaPropertyGet(self%promptCuspNFWScaleID)  &
+                  &                                            )                                                                               &
+                  &                                           /                          timeInterval                                          &
+                  &                                          )
+          else
+             ! Time interval is non-positive - assume zero growth rate.
+             call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWGrowthRateID,0.0d0)
+          end if
+       else
+          ! Node is a non-primary progenitor - assume zero growth rate.
+          call    darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWGrowthRateID,0.0d0)
+       end if
+    end select
+    return
+  end subroutine darkMatterProfilePromptCuspsNodeInitialize
+
+  subroutine darkMatterProfilePromptCuspsNodePromote(self,node)
+    !!{
+    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the scale radius
+    growth rate of {\normalfont \ttfamily node} to be that of its parent.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
+    implicit none
+    class(nodeOperatorDarkMatterProfilePromptCusps), intent(inout) :: self
+    type (treeNode                                ), intent(inout) :: node
+    class(nodeComponentDarkMatterProfile          ), pointer       :: darkMatterProfile, darkMatterProfileParent
+
+    darkMatterProfile       => node       %darkMatterProfile()
+    darkMatterProfileParent => node%parent%darkMatterProfile()
+    call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWYID         ,darkMatterProfileParent%floatRank0MetaPropertyGet(self%promptCuspNFWYID         ))
+    call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWGrowthRateID,darkMatterProfileParent%floatRank0MetaPropertyGet(self%promptCuspNFWGrowthRateID))
+    call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWScaleID     ,darkMatterProfileParent%floatRank0MetaPropertyGet(self%promptCuspNFWScaleID     ))
+    return
+  end subroutine darkMatterProfilePromptCuspsNodePromote
+
+  subroutine darkMatterProfilePromptCuspsSolveAnalytics(self,node,time)
+    !!{
+    Compute the value of the $y$-parameter in the prompt cusp.
+    !!}
+    use :: Galacticus_Nodes        , only : nodeComponentBasic, nodeComponentDarkMatterProfile
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Root_Finder             , only : rootFinder        , rangeExpandMultiplicative     , rangeExpandSignExpectPositive, rangeExpandSignExpectNegative
+    implicit none
+    class           (nodeOperatorDarkMatterProfilePromptCusps), intent(inout) :: self
+    type            (treeNode                                ), intent(inout) :: node
+    double precision                                          , intent(in   ) :: time
+    class           (nodeComponentBasic                      ), pointer       :: basic                    , basicParent
+    class           (nodeComponentDarkMatterProfile          ), pointer       :: darkMatterProfile        , darkMatterProfileParent
+    type            (rootFinder                              ), save          :: finder
+    logical                                                   , save          :: finderInitialized=.false.
+    !$omp threadprivate(finder,finderInitialized)
+    double precision                                                          :: densityScale             , y
+
+    ! Primary progenitors do not evolve.
+    if (.not.node%isPrimaryProgenitor()) return
+    ! Initialize the root finder.
+    if (.not.finderInitialized) then
+       finder=rootFinder(                                                             &
+            &            rootFunction                 =densityNormalizationRoot     , &
+            &            toleranceRelative            =1.0d-6                       , &
+            &            rangeExpandUpward            =2.0d+0                       , &
+            &            rangeExpandDownward          =0.5d+0                       , &
+            &            rangeExpandType              =rangeExpandMultiplicative    , &
+            &            rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
+            &            rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive  &
+            &           )
+      finderInitialized=.true.
+    end if
+    ! Solve for the density normalization.
+    basic                   =>  node                                        %basic                    (                              )
+    basicParent             =>  node                   %parent              %basic                    (                              )
+    darkMatterProfile       =>  node                                        %darkMatterProfile        (                              )
+    darkMatterProfileParent =>  node                   %parent              %darkMatterProfile        (                              )
+    massHalo_               =   basic                                       %mass                     (                              )
+    amplitudeCusp_          =  +darkMatterProfile                           %floatRank0MetaPropertyGet(self%promptCuspAmplitudeID    )
+    y                       =  +darkMatterProfile                           %floatRank0MetaPropertyGet(self%promptCuspNFWYID         )
+    radiusScale_            =  +darkMatterProfileParent                     %floatRank0MetaPropertyGet(self%promptCuspNFWScaleID     ) &
+         &                     +(                                                                                                      &
+         &                       +                                           time                                                      &
+         &                       -basicParent                               %time                     (                              ) &
+         &                      )                                                                                                      &
+         &                     *darkMatterProfile                           %floatRank0MetaPropertyGet(self%promptCuspNFWGrowthRateID)
+    concentration_          =  +self                   %darkMatterHaloScale_%radiusVirial             (node                          ) &
+         &                     /                                             radiusScale_
+    densityScale            =  +massHalo_                                                                                      &
+         &                     /radiusScale_**3                                                                                &
+         &                     /4.0d0                                                                                          &
+         &                     /Pi                                                                                             &
+         &                     /(                                                                                              &
+         &                       + 2.0d0                       *asinh(sqrt(concentration_            )/                y     ) &
+         &                       -(2.0d0-y**2)/sqrt(1.0d0-y**2)*atanh(sqrt(concentration_*(1.0d0-y**2)/(concentration_+y**2))) &
+         &                       -sqrt(concentration_*(concentration_+y**2))/(1.0d0+concentration_)                            &
+         &                      )
+    densityScale            =   finder%find(rootGuess=densityScale)
+    ! Compute the cusp y parameter.
+    y                     =min(                      &
+         &                     +amplitudeCusp_       &
+         &                     /densityScale         &
+         &                     /radiusScale_**1.5d0, &
+         &                     +yMaximum             &
+         &                    )
+    call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWYID    ,y           )
+    call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWScaleID,radiusScale_)
+    return
+  end subroutine darkMatterProfilePromptCuspsSolveAnalytics
+
+  double precision function densityNormalizationRoot(densityScale)
+    !!{
+    Root function used in finding the density normalization for cusp-NFW density profiles.
+    !!}
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    double precision, intent(in   ) :: densityScale
+    double precision                :: y
+
+    y                 =min(                      &
+         &                 +amplitudeCusp_       &
+         &                 /densityScale         &
+         &                 /radiusScale_**1.5d0, &
+         &                 +yMaximum             &
+         &                )
+    densityNormalizationRoot=+massHalo_                                                                                      &
+         &                   /radiusScale_**3                                                                                &
+         &                   /4.0d0                                                                                          &
+         &                   /Pi                                                                                             &
+         &                   /(                                                                                              &
+         &                     + 2.0d0                       *asinh(sqrt(concentration_            )/                y     ) &
+         &                     -(2.0d0-y**2)/sqrt(1.0d0-y**2)*atanh(sqrt(concentration_*(1.0d0-y**2)/(concentration_+y**2))) &
+         &                     -sqrt(concentration_*(concentration_+y**2))/(1.0d0+concentration_)                            &
+         &                    )                                                                                              &
+         &                   -densityScale
+    return
+  end function densityNormalizationRoot
