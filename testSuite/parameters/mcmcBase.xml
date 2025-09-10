@@ -6,6 +6,7 @@
   <formatVersion>2</formatVersion>
   <lastModified revision="d4bf2d8db876eb8e44d94e1672bc36a6ea8135cc" time="2025-09-03T18:23:58"/>
 
+
   <!-- Task and work control -->
   <task                   value="evolveForests"/>
   <evolveForestsWorkShare value="cyclic"       />
@@ -99,6 +100,14 @@
     <nodeOperator value="cosmicTime"/>
     <!-- DMO evolution -->
     <nodeOperator value="DMOInterpolate"/>
+    <!-- CGM physics -->
+    <nodeOperator value="CGMAccretion">
+      <allowNegativeCGMMass value="true"/>
+      <angularMomentumAlwaysGrows value="false"/>
+    </nodeOperator>
+    <nodeOperator value="CGMOutflowReincorporation">
+      <includeSatellites value="true"/>
+    </nodeOperator>
   </nodeOperator>
   
   <!-- Numerical tolerances -->
@@ -132,5 +141,7 @@
     <systematicErrorPolynomialCoefficient value="0.0 0.0"/>
     <likelihoodBins                       value="9"      />
   </outputAnalysis>
+
+<componentHotHalo value="standard"/>
 
 </parameters>

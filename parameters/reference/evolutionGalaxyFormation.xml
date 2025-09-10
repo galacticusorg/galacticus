@@ -2,6 +2,7 @@
 <!-- Reference subhalo orbits model -->
 <parameters>
   <lastModified revision="d4bf2d8db876eb8e44d94e1672bc36a6ea8135cc" time="2025-09-03T18:23:58"/>
+
   <formatVersion>2</formatVersion>
   
   <!-- Component selection -->
@@ -189,6 +190,7 @@
     <nodeOperator value="haloAngularMomentumVitvitska2002">
       <exponentMass                    value="1.92527794238468"/>
       <angularMomentumVarianceSpecific value="0.00100000000000"/>
+      <useOriginalSubresolutionMethod  value="false"           />
     </nodeOperator>
     <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Subhalo hierarchy -->
@@ -256,6 +258,14 @@
     <nodeOperator value="blackHolesAccretion"/>
     <nodeOperator value="blackHolesWinds"/>
     <nodeOperator value="blackHolesCGMHeating"/>
+    <!-- CGM physics -->
+    <nodeOperator value="CGMAccretion">
+      <allowNegativeCGMMass value="true"/>
+      <angularMomentumAlwaysGrows value="false"/>
+    </nodeOperator>
+    <nodeOperator value="CGMOutflowReincorporation">
+      <includeSatellites value="true"/>
+    </nodeOperator>
   </nodeOperator>
 
   <!-- Merger tree evolution -->

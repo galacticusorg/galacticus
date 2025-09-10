@@ -3,6 +3,7 @@
 <parameters>
   <formatVersion>2</formatVersion>
   <lastModified revision="d4bf2d8db876eb8e44d94e1672bc36a6ea8135cc" time="2025-09-03T18:23:58"/>
+
   <verbosityLevel value="working"/>
   <mergerRemnantSize value="cole2000"/>
   <mergerTreeConstructor value="read">
@@ -48,7 +49,7 @@
   </nodePropertyExtractor>
   <mergerTreeOperator value="massAccretionHistory"/>
   <componentHotHalo value="standard">
-    <angularMomentumAlwaysGrows value="true"/>
+    
   </componentHotHalo>
 
   <nodePromotionIndexShift value="false"/>
@@ -106,6 +107,14 @@
     </nodeOperator>
     <!-- Satellite physics -->
     <nodeOperator value="satelliteOrphanize"/>
+    <!-- CGM physics -->
+    <nodeOperator value="CGMAccretion">
+      <allowNegativeCGMMass value="true"/>
+      <angularMomentumAlwaysGrows value="true"/>
+    </nodeOperator>
+    <nodeOperator value="CGMOutflowReincorporation">
+      <includeSatellites value="true"/>
+    </nodeOperator>
   </nodeOperator>
 
 </parameters>

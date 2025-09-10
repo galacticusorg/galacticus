@@ -320,6 +320,14 @@
       <nodeOperator value="blackHolesSeed" iterable="no"/>
       <nodeOperator value="blackHolesAccretion" iterable="no"/>
       <nodeOperator value="blackHolesWinds" iterable="no"/>
+      <!-- CGM physics -->
+      <nodeOperator value="CGMAccretion" iterable="no">
+	<allowNegativeCGMMass value="true"/>
+	<angularMomentumAlwaysGrows value="true"/>
+      </nodeOperator>
+      <nodeOperator value="CGMOutflowReincorporation" iterable="no">
+	<includeSatellites value="true"/>
+      </nodeOperator>
     </nodeOperator>
 
     <!-- Numerical tolerances -->

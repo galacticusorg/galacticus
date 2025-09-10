@@ -6,7 +6,7 @@ use warnings;
 use Config;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Data::Dumper;
-use Sys::CPU;
+use System::CPU;
 use Clone qw(clone);
 use Galacticus::Launch::Hooks;
 use Galacticus::Launch::PostProcess;
@@ -50,9 +50,9 @@ sub Validate {
 	unless ( exists($launchScript->{'local'}->{$_}) );
     }
     # Determine how many threads to launch.
-    $launchScript->{'local'}->{'threadCount'} = Sys::CPU::cpu_count() 
+    $launchScript->{'local'}->{'threadCount'} = System::CPU::get_ncpu() 
 	if ( $launchScript->{'local'}->{'threadCount'} eq "maximum" );
-    $launchScript->{'local'}->{'ompThreads'} = Sys::CPU::cpu_count() 
+    $launchScript->{'local'}->{'ompThreads'} = System::CPU::get_ncpu() 
 	if ( $launchScript->{'local'}->{'ompThreads'} eq "maximum" );
 }
 
@@ -137,7 +137,7 @@ sub jobArrayLaunch {
     # Find the appropriate PBS section.
     my $localConfig = &Galacticus::Options::Config("local");
     # Determine maximum number allowed in queue at once.
-    my $jobMaximum = Sys::CPU::cpu_count() ;
+    my $jobMaximum = System::CPU::get_ncpu() ;
     $jobMaximum = $localConfig->{'jobMaximum'}
        if ( exists($localConfig->{'jobMaximum'}) );
     $jobMaximum = $arguments{'threadMaximum'}

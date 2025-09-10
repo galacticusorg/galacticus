@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <parameters formatVersion="2" version="0.9.4">
   <lastModified revision="d4bf2d8db876eb8e44d94e1672bc36a6ea8135cc" time="2025-09-03T18:23:58"/>
-  <lastModified/>
   <formatVersion>2</formatVersion>
+  <componentHotHalo value="standard"/>
   <darkMatterProfileScaleVirialTheoremEnergyBoost value="0.797003643180003" />
   <darkMatterProfileScaleVirialTheoremMassExponent value="2.16840998565309" />
   <darkMatterProfileScaleVirialTheoremUnresolvedEnergy value="+0.5500" />
@@ -32,5 +32,14 @@
     <nodeOperator value="cosmicTime"/>
     <!-- DMO evolution -->
     <nodeOperator value="DMOInterpolate"/>
+    <!-- CGM physics -->
+    <nodeOperator value="CGMAccretion">
+      <allowNegativeCGMMass value="true"/>
+      <angularMomentumAlwaysGrows value="false"/>
+    </nodeOperator>
+    <nodeOperator value="CGMOutflowReincorporation">
+      <includeSatellites value="true"/>
+    </nodeOperator>
   </nodeOperator>
+
 </parameters>

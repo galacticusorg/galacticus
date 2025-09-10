@@ -264,6 +264,9 @@
   <migration commit="d4bf2d8db876eb8e44d94e1672bc36a6ea8135cc">
     <translation function="collaborativeMPI"/>
   </migration>
+  <migration commit="8e1ca452b775faffbba73ded8deb7fb348523429">
+    <translation function="hotHaloStandardAccretion"/>
+  </migration>
 
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />

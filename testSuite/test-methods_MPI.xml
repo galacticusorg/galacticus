@@ -104,6 +104,14 @@
 	<nodeOperator value="positionDiscrete" iterable="no"/>
 	<!-- Satellite physics -->
 	<nodeOperator value="satelliteOrphanize" iterable="no"/>
+	<!-- CGM physics -->
+	<nodeOperator value="CGMAccretion" iterable="no">
+	  <allowNegativeCGMMass value="true"/>
+	  <angularMomentumAlwaysGrows value="false"/>
+	</nodeOperator>
+	<nodeOperator value="CGMOutflowReincorporation" iterable="no">
+	  <includeSatellites value="true"/>
+	</nodeOperator>
       </nodeOperator>
     </mergerTreeConstructor>    
     <cosmologyParameters value="simple">

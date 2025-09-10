@@ -251,9 +251,16 @@
       <nodeOperator value="CGMCoolingInflow" iterable="no">
 	<component value="disk"/>
       </nodeOperator>
-      <nodeOperator value="CGMAccretion" iterable="no"/>
-      <nodeOperator value="CGMStarvation" iterable="no"/>
-      <nodeOperator value="CGMOutflowReincorporation" iterable="no"/>
+      <nodeOperator value="CGMAccretion" iterable="no">
+	<allowNegativeCGMMass value="false"/>
+      </nodeOperator>
+      <nodeOperator value="CGMStarvation" iterable="no">
+	<starveOutflowsOnly value="false"/>
+	<fractionBaryonLimitInNodeMerger value="false"/>
+      </nodeOperator>
+      <nodeOperator value="CGMOutflowReincorporation" iterable="no">
+	<includeSatellites value="false"/>
+      </nodeOperator>
     </nodeOperator>
 
     <nodePropertyExtractor value="multi">

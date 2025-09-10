@@ -28,8 +28,8 @@
       </massDistributionDisk>
     </componentDisk>
     <componentHotHalo value="standard">
-      <fractionBaryonLimitInNodeMerger value="true"/>
-      <angularMomentumAlwaysGrows value="true"/>
+      
+      
       <fractionLossAngularMomentum value="0.3"/>
       <starveSatellites value="false"/>
       <efficiencyStrippingOutflow value="0.1"/>
@@ -323,8 +323,16 @@
       <nodeOperator value="blackHolesSeed" iterable="no"/>
       <nodeOperator value="blackHolesAccretion" iterable="no"/>
       <nodeOperator value="blackHolesWinds" iterable="no"/>
+      <!-- CGM physics -->
+      <nodeOperator value="CGMAccretion" iterable="no">
+	<allowNegativeCGMMass value="true"/>	
+	<angularMomentumAlwaysGrows value="true"/>
+      </nodeOperator>
+      <nodeOperator value="CGMOutflowReincorporation" iterable="no">
+	<includeSatellites value="true"/>
+      </nodeOperator>   
     </nodeOperator>
-
+    
     <!-- Numerical tolerances -->
     <mergerTreeNodeEvolver value="standard">
       <odeToleranceAbsolute value="1.0e-5"/>

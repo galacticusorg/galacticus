@@ -3,6 +3,8 @@
   <formatVersion>2</formatVersion>
   <lastModified revision="d4bf2d8db876eb8e44d94e1672bc36a6ea8135cc" time="2025-09-03T18:23:58"/>
 
+  <componentHotHalo value="standard"/>
+
   <mergerTreeBuildMasses value="sampledDistributionUniform">
     <treesPerDecade value="5"/>
     <massTreeMaximum value="1e+12"/>
@@ -64,5 +66,14 @@
 	<stabilityThresholdStellar value="1.1"/>
       </galacticDynamicsBarInstability>
     </nodeOperator>
+    <!-- CGM physics -->
+    <nodeOperator value="CGMAccretion">
+      <allowNegativeCGMMass value="true"/>
+      <angularMomentumAlwaysGrows value="false"/>
+    </nodeOperator>
+    <nodeOperator value="CGMOutflowReincorporation">
+      <includeSatellites value="true"/>
+    </nodeOperator>
   </nodeOperator>
+
 </parameters>

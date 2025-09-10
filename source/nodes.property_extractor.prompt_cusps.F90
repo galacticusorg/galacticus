@@ -45,7 +45,7 @@
      class  (darkMatterHaloScaleClass   ), pointer :: darkMatterHaloScale_        => null()
      type   (darkMatterProfileDMOCuspNFW), pointer :: darkMatterProfileDMOCuspNFW => null()
      integer                                       :: promptCuspMassID                     , promptCuspAmplitudeID, &
-          &                                           promptCuspNFWYID
+          &                                           promptCuspNFWYID                     , promptCuspNFWScaleID
    contains
      final     ::                       promptCuspsDestructor
      procedure :: elementCount       => promptCuspsElementCount
@@ -102,6 +102,7 @@ contains
     <addMetaProperty component="darkMatterProfile" name="promptCuspAmplitude" id="self%promptCuspAmplitudeID" isEvolvable="no" isCreator="no"/>
     <addMetaProperty component="darkMatterProfile" name="promptCuspMass"      id="self%promptCuspMassID"      isEvolvable="no" isCreator="no"/>
     <addMetaProperty component="darkMatterProfile" name="promptCuspNFWY"      id="self%promptCuspNFWYID"      isEvolvable="no" isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="promptCuspNFWScale"  id="self%promptCuspNFWScaleID"  isEvolvable="no" isCreator="no"/>
     <referenceConstruct isResult="yes" owner="self" object="darkMatterProfileDMOCuspNFW">
       <constructor>
 	darkMatterProfileDMOCuspNFW(                                                                      &amp;
@@ -139,7 +140,7 @@ contains
     double precision                                  , intent(in   ) :: time
     !$GLC attributes unused :: time
 
-    promptCuspsElementCount=5
+    promptCuspsElementCount=6
     return
   end function promptCuspsElementCount
 
@@ -164,12 +165,13 @@ contains
          &                                                                            densityScale      , radiusMinus2
     !$GLC attributes unused :: time, instance
 
-    allocate(promptCuspsExtract(5))
+    allocate(promptCuspsExtract(6))
     darkMatterProfile => node%darkMatterProfile()
     select type (darkMatterProfile)
     type is (nodeComponentDarkMatterProfile)
        ! Dark matter profile does not exist.
        promptCuspsExtract =  [       & 
+            &                 0.0d0, &
             &                 0.0d0, &
             &                 0.0d0, &
             &                 0.0d0, &
@@ -181,7 +183,7 @@ contains
        amplitudeCusp      =   darkMatterProfile                            %floatRank0MetaPropertyGet(self%promptCuspAmplitudeID)
        massCusp           =   darkMatterProfile                            %floatRank0MetaPropertyGet(self%promptCuspMassID     )
        yParameter         =   darkMatterProfile                            %floatRank0MetaPropertyGet(self%promptCuspNFWYID     )
-       radiusScale        =   darkMatterProfile                            %scale                    (                          )
+       radiusScale        =   darkMatterProfile                            %floatRank0MetaPropertyGet(self%promptCuspNFWScaleID )
        coordinates        =  [radiusScale,0.0d0,0.0d0]
        ! Compute the scale density ρₛ from the density at the scale radius using equation (17) of Delos (2025;
        ! https://ui.adsabs.harvard.edu/abs/2025arXiv250603240D).
@@ -208,6 +210,7 @@ contains
             &                 amplitudeCusp, &
             &                 massCusp     , &
             &                 yParameter   , &
+            &                 radiusScale  , &
             &                 densityScale , &
             &                 radiusMinus2   &
             &                ]
@@ -228,12 +231,13 @@ contains
     type            (varying_string                  ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: self, time
     
-    allocate(names(5))
+    allocate(names(6))
     names(1)=var_str('darkMatterProfilePromptCuspAmplitude'      )
     names(2)=var_str('darkMatterProfilePromptCuspMass'           )
     names(3)=var_str('darkMatterProfilePromptCuspNFWY'           )
-    names(4)=var_str('darkMatterProfilePromptCuspNFWDensityScale')
-    names(5)=var_str('darkMatterProfilePromptCuspNFWRadiusMinus2')
+    names(4)=var_str('darkMatterProfilePromptCuspNFWRadiusScale' )
+    names(5)=var_str('darkMatterProfilePromptCuspNFWDensityScale')
+    names(6)=var_str('darkMatterProfilePromptCuspNFWRadiusMinus2')
     return
   end subroutine promptCuspsNames
 
@@ -247,12 +251,13 @@ contains
     type            (varying_string                  ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
-    allocate(descriptions(5))
+    allocate(descriptions(6))
     descriptions(1)=var_str('The amplitude of the prompt cusp, A, in units of M☉/Mpc^1.5.'                     )
     descriptions(2)=var_str('The mass of the prompt cusp, in units of M☉.'                                     )
     descriptions(3)=var_str('The y-parameter of the cusp-NFW profile.'                                         )
-    descriptions(4)=var_str('The density scale, ρₛ, of the cusp-NFW profile.'                                  )
-    descriptions(5)=var_str('The radius at which the logarithmic slope of the cusp-NFW profile equals -2, r₋₂.')
+    descriptions(4)=var_str('The radial scale, rₛ, of the cusp-NFW profile.'                                   )
+    descriptions(5)=var_str('The density scale, ρₛ, of the cusp-NFW profile.'                                  )
+    descriptions(6)=var_str('The radius at which the logarithmic slope of the cusp-NFW profile equals -2, r₋₂.')
     return
   end subroutine promptCuspsDescriptions
 
@@ -267,11 +272,12 @@ contains
     double precision                                  , intent(in   )               :: time
     !$GLC attributes unused :: time
 
-    allocate(promptCuspsUnitsInSI(5))
+    allocate(promptCuspsUnitsInSI(6))
     promptCuspsUnitsInSI=[                             &
          &                massSolar/megaParsec**1.5d0, &
          &                massSolar                  , &
          &                1.0d0                      , &
+         &                          megaParsec       , &
          &                massSolar/megaParsec**3    , &
          &                          megaParsec         &
          &               ]

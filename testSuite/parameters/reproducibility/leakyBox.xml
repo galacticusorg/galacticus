@@ -5,6 +5,7 @@
   <formatVersion>2</formatVersion>
   <lastModified revision="d4bf2d8db876eb8e44d94e1672bc36a6ea8135cc" time="2025-09-03T18:23:58"/>
 
+
   <!-- Component selection -->
   <componentBasic value="standard"/>
   <componentHotHalo value="verySimple"/>
@@ -122,10 +123,14 @@
     <nodeOperator value="CGMCoolingInflow">
       <component value="disk"/>
     </nodeOperator>
-    <nodeOperator value="CGMAccretion"/>
-    <nodeOperator value="CGMStarvation"/>
+    <nodeOperator value="CGMAccretion">
+      <allowNegativeCGMMass value="false"/>
+    </nodeOperator>
+    <nodeOperator value="CGMStarvation">
+      <starveOutflowsOnly value="false"/>
+      <fractionBaryonLimitInNodeMerger value="false"/>
+    </nodeOperator>
   </nodeOperator>
-
 
   <nodePropertyExtractor value="multi">
     <nodePropertyExtractor value="spin"/>
