@@ -727,7 +727,6 @@ sub hotHaloVerySimple {
 	if ( $nodes[0]->getAttribute('value') eq "verySimpleDelayed" );
 }
 
-<<<<<<< HEAD
 sub collaborativeMPI {
     # Special handling to migrate the `collaborativeMPI` parameter.
     my $input      = shift();
