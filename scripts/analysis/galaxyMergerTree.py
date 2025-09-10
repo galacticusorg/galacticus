@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
+import sys
 import numpy as np
 import h5py
+import argparse
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from colossus.cosmology import cosmology
@@ -8,25 +10,52 @@ from colossus.cosmology import cosmology
 # Make a simple diagram showing a galaxy merger tree.
 # Andrew Benson (18-October-2024)
 
+# Convert command line arguments to integers.
+def restricted_integer(x):
+    try:
+        x = int(x)
+    except ValueError:
+        raise argparse.ArgumentTypeError("%r not a integer literal" % (x,))
+    return x
+
+# Parse command line arguments.
+parser = argparse.ArgumentParser(prog='galaxyMergerTree.py',description='Make a plot of a galaxy merger tree.')
+parser.add_argument('filename')
+parser.add_argument('--mergerTreeIndex', action='store',default='1'                   ,type=restricted_integer,help='the index of the merger tree to plot')
+parser.add_argument('--outputFileName' , action='store',default='galaxyMergerTree.pdf'                        ,help='the name of the output file'         )
+args = parser.parse_args()
+
 # Open the model output and extract merger tree datasets.
-model         = h5py.File("galaxyMergerTree.hdf5","r")
-nodes         = model['Outputs/Output1/nodeData']
+model         = h5py.File(args.filename,"r")
+output        = model ['Outputs/Output1']
+nodes         = output['nodeData']
+treePropertyNames = [ 'mergerTreeIndex', 'mergerTreeStartIndex', 'mergerTreeCount']
+treeProperties = {}
+for property in treePropertyNames:
+    treeProperties[property] = output[property][:]
+treeSelect = treeProperties['mergerTreeIndex'][:] == args.mergerTreeIndex
+if np.count_nonzero(treeSelect) != 1:
+    print("unable to locate merger tree")
+    sys.exit(1)
+nodesStart =            treeProperties['mergerTreeStartIndex'][treeSelect][0]
+nodesEnd   = nodesStart+treeProperties['mergerTreeCount'     ][treeSelect][0]
 propertyNames = [ 'galaxyMergerTreeNodeIndex'          , 'galaxyMergerTreeCount'    , 'galaxyMergerTreeTotalStarFormationRate',
                   'galaxyMergerTreeMassStellarTotal'   , 'galaxyMergerTreeTime'     , 'galaxyMergerTreeMergeCentralIndex'     ,
-                  'galaxyMergerTreeMergeSatelliteIndex', 'galaxyMergerTreeMergeTime', 'nodeIsIsolated'                          ]
+                  'galaxyMergerTreeMergeSatelliteIndex', 'galaxyMergerTreeMergeTime', 'nodeIsIsolated'                        ,
+                  'mergerTreeIndex'                    , 'nodeIndex'                                                            ]
 properties = {}
 for property in propertyNames:
-    properties[property] = nodes[property][:]
+    properties[property] = nodes[property][nodesStart:nodesEnd]
 
 # Identify the central galaxy, and extract the relevant tree.
 indexCentral = np.nonzero(properties['nodeIsIsolated'] == 1)[0][0]
 for property in propertyNames:
     properties[property] = properties[property][indexCentral]
-
+    
 # Generate a color map to color nodes by their star formation rate.
 colorMap    = mpl.colormaps['coolwarm_r']
 countColors = 100
-colors      = colorMap(np.linspace(1,0,countColors))
+colors      = colorMap(np.linspace(0,1,countColors))
 
 # Generate a range spanning the number of nodes in tree.
 indexNodes = np.array(list(range(len(properties['galaxyMergerTreeTime']))))
@@ -138,4 +167,4 @@ for i in range(3):
     ax.annotate(str(logMass),xy=(xPosition,yPosition-0.03),annotation_clip=False,horizontalalignment='center')
     
 # Save our figure.
-fig.savefig('galaxyMergerTree.pdf')
+fig.savefig(args.outputFileName)

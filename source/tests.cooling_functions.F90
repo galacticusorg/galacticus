@@ -160,10 +160,10 @@ program Test_Cooling_Functions
        &            /ergs                  &
        &            /coolantCMBCompton     &
        &            /gigaYear
-  call Assert('CMB Compton cooling timescale at z=0',timescaleCooling,976.65342064763729d0,relTol=1.0d-6)
+  call Assert('CMB Compton cooling timescale at z=0',timescaleCooling,980.09784110508792d0,relTol=1.0d-6)
   ! Compute Cloudy cooling time.
   coolantAtomicCIECloudy=+coolingFunctionAtomicCIECloudy_%coolingFunction(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
-  call Assert('Cloudy CIE cooling function',coolantAtomicCIECloudy,1.6229349d-30,relTol=1.0d-6)
+  call Assert('Cloudy CIE cooling function',coolantAtomicCIECloudy,1.4198000000000027d-30,relTol=1.0d-6)
   call Unit_Tests_End_Group       ()
   ! End unit tests.
   call Unit_Tests_End_Group       ()

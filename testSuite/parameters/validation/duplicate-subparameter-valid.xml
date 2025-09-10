@@ -3,7 +3,8 @@
 <!-- 30-October-2011                          -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
+  <lastModified revision="d4bf2d8db876eb8e44d94e1672bc36a6ea8135cc" time="2025-09-03T18:23:58"/>
+
 
   <!-- Component selection -->
   <componentBasic value="standard"/>
@@ -262,6 +263,14 @@
     <nodeOperator value="blackHolesAccretion"/>
     <nodeOperator value="blackHolesWinds"/>
     <nodeOperator value="blackHolesCGMHeating"/>
+    <!-- CGM physics -->
+    <nodeOperator value="CGMAccretion">
+      <allowNegativeCGMMass value="true"/>
+      <angularMomentumAlwaysGrows value="false"/>
+    </nodeOperator>
+    <nodeOperator value="CGMOutflowReincorporation">
+      <includeSatellites value="true"/>
+    </nodeOperator>
   </nodeOperator>
 
   <!-- Numerical tolerances -->

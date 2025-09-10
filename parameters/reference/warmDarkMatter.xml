@@ -22,6 +22,30 @@
     </transferFunction>
   </change>
 
+  <!-- Calculations of orbit, NFW scale radii, and halo spins should proceed using the original CDM models. Therefore, we need to
+       provide the original dark matter-only mass distributions to the relevant classes. -->
+  <!-- First append empty instances of the DMO mass distribution class to the virial orbits, Johnson et al. (2021) and Vitvitska
+       et al. (2002) classes. -->
+  <change type="append" path="virialOrbit">
+    <darkMatterProfileDMO/>
+  </change>
+  <change type="append" path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius">
+    <darkMatterProfileDMO/>
+  </change>
+  <change type="append" path="nodeOperator/nodeOperator[@value='haloAngularMomentumVitvitska2002']">
+    <darkMatterProfileDMO/>
+  </change>
+  <!-- Now replace those empty instances with copies of the original CDM choices. -->
+  <change   type="replaceWith"
+	    path="virialOrbit/darkMatterProfileDMO"
+	  target="darkMatterProfileDMO" />
+  <change   type="replaceWith"
+	    path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileDMO"
+	  target="darkMatterProfileDMO" />
+  <change   type="replaceWith"
+	    path="nodeOperator/nodeOperator[@value='haloAngularMomentumVitvitska2002']/darkMatterProfileDMO"
+	  target="darkMatterProfileDMO" />
+
   <!-- Include prompt cusps -->
   <change type="replace" path="darkMatterProfileDMO/darkMatterProfileDMO">
     <darkMatterProfileDMO value="cuspNFW">
@@ -30,7 +54,13 @@
     </darkMatterProfileDMO>
   </change>
   <change type="insertAfter" path="nodeOperator/nodeOperator[@value='darkMatterProfileScaleSet']">
-    <nodeOperator value="darkMatterProfilePromptCusps"/>
+    <nodeOperator value="darkMatterProfilePromptCusps">
+      <alpha              value="24.000"/>
+      <beta               value=" 7.300"/>
+      <C                  value=" 0.800"/>
+      <kappa              value=" 4.500"/>
+      <coefficientScatter value=" 0.195"/>
+    </nodeOperator>
   </change>
-  
+
 </changes>

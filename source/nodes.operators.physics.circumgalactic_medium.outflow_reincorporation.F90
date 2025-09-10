@@ -35,11 +35,11 @@
      A node operator class that implements reincorporation of outflowing gas into the \gls{cgm}.
      !!}
      private
-     class(hotHaloOutflowReincorporationClass), pointer :: hotHaloOutflowReincorporation_ => null()
+     class  (hotHaloOutflowReincorporationClass), pointer :: hotHaloOutflowReincorporation_ => null()
+     logical                                              :: includeSatellites
    contains
      final     ::                          cgmOutflowReincorporationDestructor
      procedure :: autoHook              => cgmOutflowReincorporationAutoHook
-     procedure :: nodesMerge            => cgmOutflowReincorporationNodesMerge
      procedure :: nodePromote           => cgmOutflowReincorporationNodePromote
      procedure :: differentialEvolution => cgmOutflowReincorporationDifferentialEvolution
   end type nodeOperatorCGMOutflowReincorporation
@@ -60,14 +60,23 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type (nodeOperatorCGMOutflowReincorporation)                :: self
-    type (inputParameters                      ), intent(inout) :: parameters
-    class(hotHaloOutflowReincorporationClass   ), pointer       :: hotHaloOutflowReincorporation_
+    type   (nodeOperatorCGMOutflowReincorporation)                :: self
+    type   (inputParameters                      ), intent(inout) :: parameters
+    class  (hotHaloOutflowReincorporationClass   ), pointer       :: hotHaloOutflowReincorporation_
+    logical                                                       :: includeSatellites
 
     !![
+    <inputParameter>
+      <name>includeSatellites</name>
+      <defaultValue>.true.</defaultValue>
+      <description>
+	If true, perform reincorporation for all galaxies. Otherwise, reincorporation is performed only for central galaxies.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="hotHaloOutflowReincorporation" name="hotHaloOutflowReincorporation_" source="parameters"/>
     !!]
-    self=nodeOperatorCGMOutflowReincorporation(hotHaloOutflowReincorporation_)
+    self=nodeOperatorCGMOutflowReincorporation(includeSatellites,hotHaloOutflowReincorporation_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="hotHaloOutflowReincorporation_"/>
@@ -75,15 +84,16 @@ contains
     return
   end function cgmOutflowReincorporationConstructorParameters
 
-  function cgmOutflowReincorporationConstructorInternal(hotHaloOutflowReincorporation_) result(self)
+  function cgmOutflowReincorporationConstructorInternal(includeSatellites,hotHaloOutflowReincorporation_) result(self)
     !!{
     Internal constructor for the \refClass{nodeOperatorCGMOutflowReincorporation} node operator class.
     !!}
     implicit none
-    type (nodeOperatorCGMOutflowReincorporation)                        :: self
-    class(hotHaloOutflowReincorporationClass   ), intent(in   ), target :: hotHaloOutflowReincorporation_
+    type   (nodeOperatorCGMOutflowReincorporation)                        :: self
+    class  (hotHaloOutflowReincorporationClass   ), intent(in   ), target :: hotHaloOutflowReincorporation_
+    logical                                       , intent(in   )         :: includeSatellites
     !![
-    <constructorAssign variables="*hotHaloOutflowReincorporation_"/>
+    <constructorAssign variables="includeSatellites, *hotHaloOutflowReincorporation_"/>
     !!]
 
     return
@@ -122,7 +132,9 @@ contains
     !!{
     Update the \gls{cgm} outflowed content of a node as a result of promotion.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentHotHalo
+    use :: Galacticus_Nodes             , only : nodeComponentHotHalo
+    use :: Abundances_Structure         , only : zeroAbundances
+    use :: Chemical_Abundances_Structure, only : zeroChemicalAbundances 
     implicit none
     class(nodeOperatorCGMOutflowReincorporation), intent(inout) :: self
     type (treeNode                             ), intent(inout) :: node
@@ -138,61 +150,55 @@ contains
     type is (nodeComponentHotHalo)
        ! The parent has no hot halo component - nothing to do.
     class default
-       call hotHalo%outflowedMassSet      (                                     &
-            &                              +hotHalo      %outflowedMass      () &
-            &                              +hotHaloParent%outflowedMass      () &
-            &                             )
-       call hotHalo%outflowedAbundancesSet(                                     &
-            &                              +hotHalo      %outflowedAbundances() &
-            &                              +hotHaloParent%outflowedAbundances() &
-            &                             )
+       ! If outflowed mass is non-positive, set mass and all related quantities to zero.
+       if (hotHalo%outflowedMass() <= 0.0d0) then
+          call        hotHalo%outflowedMassSet           (                 0.0d0)
+          if (hotHalo%outflowedAngularMomentumIsSettable())                       &
+               & call hotHalo%outflowedAngularMomentumSet(                 0.0d0)
+          call        hotHalo%outflowedAbundancesSet     (        zeroAbundances)
+          if (hotHalo%      outflowedChemicalsIsSettable())                       &
+               &  call hotHalo%outflowedChemicalsSet     (zeroChemicalAbundances)
+       end if
+       ! Transfer CGM from the parent node.
+       if (hotHalo%           outflowedMassIsSettable())                                          &
+            & call hotHalo%           outflowedMassSet(                                           &
+            &                                           hotHalo      % outflowedMass           () &
+            &                                          +hotHaloParent% outflowedMass           () &
+            &                                         )
+       if (hotHalo%outflowedAngularMomentumIsSettable())                                          &
+            & call hotHalo%outflowedAngularMomentumSet(                                           &
+            &                                           hotHalo      % outflowedAngularMomentum() &
+            &                                          +hotHaloParent% outflowedAngularMomentum() &
+            &                                         )
+       if (hotHalo%     outflowedAbundancesIsSettable())                                          &
+            & call hotHalo%     outflowedAbundancesSet(                                           &
+            &                                           hotHalo      % outflowedAbundances     () &
+            &                                          +hotHaloParent% outflowedAbundances     () &
+            &                                         )
+       if (hotHalo%      outflowedChemicalsIsSettable())                                          &
+            & call hotHalo%      outflowedChemicalsSet(                                           &
+            &                                           hotHalo      % outflowedChemicals      () &
+            &                                          +hotHaloParent% outflowedChemicals      () &
+            &                                         )
     end select
     return
   end subroutine cgmOutflowReincorporationNodePromote
 
-  subroutine cgmOutflowReincorporationNodesMerge(self,node)
-    !!{
-    Update the \gls{cgm} content of a node as a result of a merger.
-    !!}
-    use :: Abundances_Structure, only : zeroAbundances
-    use :: Galacticus_Nodes    , only : nodeComponentHotHalo
-    implicit none
-    class(nodeOperatorCGMOutflowReincorporation), intent(inout) :: self
-    type (treeNode                             ), intent(inout) :: node
-    type (treeNode                             ), pointer       :: nodeParent
-    class(nodeComponentHotHalo                 ), pointer       :: hotHaloParent, hotHalo
-
-    ! Get the hot halo component.
-    hotHalo       => node%hotHalo()
-    select type (hotHalo)
-    type is (nodeComponentHotHalo)
-       ! No hot halo in the merging node - nothing to do.
-    class default
-       ! Find the parent node and its hot halo component.
-       nodeParent    => node      %parent
-       hotHaloParent => nodeParent%hotHalo(autoCreate=.true.)
-       ! Move the hot halo to the parent. We leave the hot halo in place even if it is starved, since outflows will accumulate
-       ! to this hot halo (and will be moved to the parent at the end of the evolution timestep).
-       call hotHaloParent%outflowedMassSet      (hotHaloParent%outflowedMass      ()+hotHalo%outflowedMass      ())
-       call hotHaloParent%outflowedAbundancesSet(hotHaloParent%outflowedAbundances()+hotHalo%outflowedAbundances())
-       call       hotHalo%outflowedMassSet      (                                                            0.0d0)
-       call       hotHalo%outflowedAbundancesSet(                                                   zeroAbundances)
-    end select
-    return
-  end subroutine cgmOutflowReincorporationNodesMerge
-  
   subroutine satelliteMerger(self,node)
     !!{
     Remove any hot halo associated with {\normalfont \ttfamily node} before it merges with its host halo.
     !!}
-    use :: Error               , only : Error_Report
-    use :: Abundances_Structure, only : zeroAbundances
-    use :: Galacticus_Nodes    , only : nodeComponentHotHalo
+    use :: Error                        , only : Error_Report
+    use :: Abundances_Structure         , only : zeroAbundances
+    use :: Chemical_Abundances_Structure, only : zeroChemicalAbundances 
+    use :: Galacticus_Nodes             , only : nodeComponentHotHalo  , nodeComponentSpin, nodeComponentBasic
     implicit none
     class(*                   ), intent(inout)         :: self
     type (treeNode            ), intent(inout), target :: node
     type (treeNode            ), pointer               :: nodeHost
+    class(nodeComponentBasic  ), pointer               :: basicHost
     class(nodeComponentHotHalo), pointer               :: hotHaloHost, hotHalo
+    class(nodeComponentSpin   ), pointer               :: spinHost
 
     select type (self)
     class is (nodeOperatorCGMOutflowReincorporation)
@@ -204,22 +210,46 @@ contains
        class default
           ! Find the node to merge with.
           nodeHost    => node    %mergesWith(                 )
+          basicHost   => nodeHost%basic     (                 )
           hotHaloHost => nodeHost%hotHalo   (autoCreate=.true.)
+          spinHost    => nodeHost%spin      (                 )
           ! Move the hot halo to the host.
-          call hotHaloHost%outflowedMassSet      (                                   &
-               &                                  +hotHaloHost%outflowedMass      () &
-               &                                  +    hotHalo%outflowedMass      () &
-               &                                 )
-          call hotHaloHost%outflowedAbundancesSet(                                   &
-               &                                  +hotHaloHost%outflowedAbundances() &
-               &                                  +    hotHalo%outflowedAbundances() &
-               &                                 )
-          call     hotHalo%outflowedMassSet      (                                   &
-               &                                  +0.0d0                             &
-               &                                 )
-          call     hotHalo%outflowedAbundancesSet(                                   &
-               &                                  +zeroAbundances                    &
-               &                                 )
+          call        hotHaloHost%           outflowedMassSet(                                       &
+               &                                              +hotHaloHost%outflowedMass          () &
+               &                                              +    hotHalo%outflowedMass          () &
+               &                                             )
+          if (hotHaloHost%outflowedAngularMomentumIsSettable())                                       &
+               & call hotHaloHost%outflowedAngularMomentumSet(                                        &
+               &                                               hotHaloHost%outflowedAngularMomentum() &
+               &                                              +hotHalo    %outflowedMass           () &
+               &                                              *spinHost   %         angularMomentum() &
+               &                                              /basicHost  %         mass           () &
+               &                                             )
+          if (hotHaloHost%     outflowedAbundancesIsSettable())                                       &
+               & call hotHaloHost%     outflowedAbundancesSet(                                        &
+               &                                               hotHaloHost%outflowedAbundances     () &
+               &                                              +hotHalo    %outflowedAbundances     () &
+               &                                             )
+          if (hotHaloHost%      outflowedChemicalsIsSettable())                                       &
+               & call hotHaloHost%      outflowedChemicalsSet(                                        &
+               &                                               hotHaloHost%outflowedChemicals      () &
+               &                                              +hotHalo    %outflowedChemicals      () &
+               &                                             )
+          call        hotHalo%               outflowedMassSet(                                        &
+               &                                               0.0d0                                  &
+               &                                             )
+          if (hotHalo    %outflowedAngularMomentumIsSettable())                                       &
+               & call hotHalo    %outflowedAngularMomentumSet(                                        &
+               &                                               0.0d0                                  &
+               &                                             )
+          if (hotHalo    %     outflowedAbundancesIsSettable())                                       &
+               & call hotHalo    %     outflowedAbundancesSet(                                        &
+               &                                               zeroAbundances                         &
+               &                                             )
+          if (hotHalo    %      outflowedChemicalsIsSettable())                                       &
+               & call hotHalo    %      outflowedChemicalsSet(                                        &
+               &                                               zeroChemicalAbundances                 &
+               &                                             )
        end select
     class default
        call Error_Report('incorrect class'//{introspection:location})
@@ -231,8 +261,9 @@ contains
     !!{
     Perform accretion of gas into the \gls{cgm}.
     !!}
-    use :: Abundances_Structure, only : abundances          , operator(*)     , zeroAbundances
-    use :: Galacticus_Nodes    , only : nodeComponentHotHalo, propertyInactive
+    use :: Abundances_Structure         , only : abundances          , operator(*)
+    use :: Chemical_Abundances_Structure, only : chemicalAbundances  , operator(*)
+    use :: Galacticus_Nodes             , only : nodeComponentHotHalo, propertyInactive
     implicit none
     class           (nodeOperatorCGMOutflowReincorporation), intent(inout), target  :: self
     type            (treeNode                             ), intent(inout), target  :: node
@@ -240,17 +271,19 @@ contains
     procedure       (interruptTask                        ), intent(inout), pointer :: functionInterrupt
     integer                                                , intent(in   )          :: propertyType
     class           (nodeComponentHotHalo                 )               , pointer :: hotHalo
-    type            (abundances                           ), save                   :: abundancesReturnRate
-    !$omp threadprivate(abundancesReturnRate)
-    double precision                                                                :: outflowReturnRate
-    !$GLC attributes unused :: interrupt, interruptProcedure
+    type            (abundances                           ), save                   :: rateAbundancesReturn
+    type            (chemicalAbundances                   ), save                   :: rateChemicalsReturn
+    !$omp threadprivate(rateAbundancesReturn,rateChemicalsReturn)
+    double precision                                                                :: massOutflowed            , rateMassReturn, &
+         &                                                                             rateAngularMomentumReturn
+    !$GLC attributes unused :: interrupt, functionInterrupt
 
     ! Return immediately if inactive variables are requested.
     if (propertyInactive(propertyType)) return
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
-    ! Don't reincorporate gas for satellites - we don't want it to be able to re-infall back onto the satellite.
-    if (node%isSatellite()) return
+    ! Don't reincorporate gas for satellites if requested.
+    if (.not.self%includeSatellites.and.node%isSatellite()) return
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
     select type (hotHalo)
@@ -258,18 +291,26 @@ contains
        ! No hot halo exists - nothing to do.
     class default
        ! Move outflowed material back to the hot reservoir.
-       outflowReturnRate=self%hotHaloOutflowReincorporation_%rate(node)
-       if (hotHalo%outflowedMass() > 0.0d0) then
-          abundancesReturnRate           =  +        outflowReturnRate     &
-               &                            *hotHalo%outflowedAbundances() &
-               &                            /hotHalo%outflowedMass      ()
-       else
-          abundancesReturnRate           =  zeroAbundances
+       massOutflowed =hotHalo                               %outflowedMass(    )
+       rateMassReturn=self   %hotHaloOutflowReincorporation_%rate         (node)
+       if (massOutflowed > 0.0d0) then
+          rateAbundancesReturn     =+        rateMassReturn                                            &
+               &                    *hotHalo%outflowedAbundances     ()                                &
+               &                    /        massOutflowed
+          rateAngularMomentumReturn=+hotHalo%outflowedAngularMomentum()*(rateMassReturn/massOutflowed)
+          rateAbundancesReturn     =+hotHalo%outflowedAbundances     ()*(rateMassReturn/massOutflowed)
+          rateChemicalsReturn      =+hotHalo%outflowedChemicals      ()*(rateMassReturn/massOutflowed)
+          call    hotHalo%           outflowedMassRate(-           rateMassReturn)
+          call    hotHalo%                    massRate(+           rateMassReturn)
+          call    hotHalo%outflowedAngularMomentumRate(-rateAngularMomentumReturn)
+          call    hotHalo%         angularMomentumRate( rateAngularMomentumReturn)
+          call    hotHalo%     outflowedAbundancesRate(-     rateAbundancesReturn)
+          call    hotHalo%              abundancesRate(      rateAbundancesReturn)
+          if (hotHalo%outflowedChemicalsIsSettable()) then
+             call hotHalo%      outflowedChemicalsRate(-      rateChemicalsReturn)
+             call hotHalo%               chemicalsRate(       rateChemicalsReturn)
+          end if
        end if
-       call hotHalo%outflowedMassRate      (-   outflowReturnRate)
-       call hotHalo%outflowedAbundancesRate(-abundancesReturnRate)
-       call hotHalo%massRate               (+   outflowReturnRate)
-       call hotHalo%abundancesRate         (+abundancesReturnRate)
     end select
     return
   end subroutine cgmOutflowReincorporationDifferentialEvolution

@@ -35,8 +35,10 @@
      !!}
      private
      type   (varying_string               )          :: failedParametersFileName
-     logical                                         :: reportEvaluationTimes             , collaborativeMPI, &
-          &                                             outputAnalyses                    , setOutputGroup
+     logical                                         :: doPing                            , outputAnalyses, &
+          &                                             reportEvaluationTimes             , setOutputGroup, &
+          &                                             firstComeFirstServed
+     integer                                         :: countCollaborativeGroups
      type   (enumerationVerbosityLevelType)          :: evolveForestsVerbosity
      class  (*                            ), pointer :: task_                    => null()
      class  (outputAnalysisClass          ), pointer :: outputAnalysis_          => null()
@@ -57,7 +59,7 @@
 
   ! Sub-module-scope pointer to self, used to allow writing of current parameters in case of failures.
   class  (posteriorSampleLikelihoodGalaxyPopulation), pointer :: self_
-  integer                                                     :: iRank_
+  integer(c_size_t                                 )          :: iRank_
   !$omp threadprivate(self_,iRank_)
   
 contains
@@ -74,10 +76,11 @@ contains
     type   (inputParameters                          ), intent(inout)               :: parameters
     type   (varying_string)                                                         :: baseParametersFileName   , failedParametersFileName
     type   (varying_string)                           , allocatable  , dimension(:) :: changeParametersFileNames
-    logical                                                                         :: reportEvaluationTimes    , collaborativeMPI        , &
-         &                                                                             outputAnalyses           , reportFileName          , &
+    integer                                                                         :: countCollaborativeGroups
+    logical                                                                         :: doPing                   , outputAnalyses          , &
+         &                                                                             reportEvaluationTimes    , reportFileName          , &
          &                                                                             reportState              , setOutputGroup          , &
-         &                                                                             reportEvaluationTimes
+         &                                                                             firstComeFirstServed
     type   (varying_string)                                                         :: evolveForestsVerbosity
     type   (inputParameters                          ), pointer                     :: parametersModel
 
@@ -106,9 +109,24 @@ contains
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
-      <name>collaborativeMPI</name>
-      <description>If true, MPI processes will collaborate on running the model associated with each chain. Otherwise, MPI processes will evolve the model from their own chain independently.</description>
-      <defaultValue>.true.</defaultValue>
+      <name>countCollaborativeGroups</name>
+      <description>The number of groups into which MPI processes should be split for the purpose of model evaluation. Each group will be populated with MPI processes. Processes within a group will collaborate on running a single model evaluation. Setting this parameter to a negative value will result in using the maximum possible number of groups (equal to the number of MPI processes).</description>
+      <defaultValue>1</defaultValue>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>firstComeFirstServed</name>
+      <description>If true, collaborative groups will take the next available evaluation and process it. Otherwise, each group will be assigned a fixed set of evaluations in advance.</description>
+      <defaultValue>.false.</defaultValue>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>doPing</name>
+      <defaultValue>.false.</defaultValue>
+      <description>
+        If true, the master MPI process will attach to the {\normalfont \ttfamily calculationReset} event and ping the MPI
+        counter. This can help to ensure that the counter updates regularly.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -148,7 +166,7 @@ contains
     end if
     allocate(parametersModel)
     parametersModel=inputParameters                          (baseParametersFileName,noOutput=.true.,changeFiles=changeParametersFileNames)
-    self           =posteriorSampleLikelihoodGalaxyPopulation(parametersModel,baseParametersFileName,outputAnalyses,setOutputGroup,reportEvaluationTimes,collaborativeMPI,reportFileName,reportState,enumerationVerbosityLevelEncode(evolveForestsVerbosity,includesPrefix=.false.),failedParametersFileName,changeParametersFileNames)
+    self           =posteriorSampleLikelihoodGalaxyPopulation(parametersModel,baseParametersFileName,outputAnalyses,setOutputGroup,reportEvaluationTimes,countCollaborativeGroups,firstComeFirstServed,doPing,reportFileName,reportState,enumerationVerbosityLevelEncode(evolveForestsVerbosity,includesPrefix=.false.),failedParametersFileName,changeParametersFileNames)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
@@ -156,26 +174,37 @@ contains
     return
   end function galaxyPopulationConstructorParameters
 
-  function galaxyPopulationConstructorInternal(parametersModel,baseParametersFileName,outputAnalyses,setOutputGroup,reportEvaluationTimes,collaborativeMPI,reportFileName,reportState,evolveForestsVerbosity,failedParametersFileName,changeParametersFileNames) result(self)
+
+  function galaxyPopulationConstructorInternal(parametersModel,baseParametersFileName,outputAnalyses,setOutputGroup,reportEvaluationTimes,countCollaborativeGroups,firstComeFirstServed,doPing,reportFileName,reportState,evolveForestsVerbosity,failedParametersFileName,changeParametersFileNames) result(self)
     !!{
     Constructor for the \refClass{posteriorSampleLikelihoodGalaxyPopulation} posterior sampling likelihood class.
     !!}
-    use :: Error  , only : Error_Report
-    use :: Display, only : displayGreen, displayReset
+    use :: MPI_Utilities     , only : mpiSelf
+    use :: Error             , only : Error_Report
+    use :: Display           , only : displayGreen, displayReset
+    use :: ISO_Varying_String, only : var_str
+    use :: String_Handling   , only : operator(//)
     implicit none
     type   (posteriorSampleLikelihoodGalaxyPopulation)                              :: self
     type   (inputParameters                          ), intent(inout), target       :: parametersModel
-    logical                                           , intent(in   )               :: reportEvaluationTimes   , collaborativeMPI, &
-         &                                                                             outputAnalyses          , reportFileName  , &
-         &                                                                             reportState             , setOutputGroup
+    logical                                           , intent(in   )               :: doPing                   , outputAnalyses        , &
+         &                                                                             reportEvaluationTimes    , reportFileName        , &
+         &                                                                             reportState              , setOutputGroup        , &
+         &                                                                             firstComeFirstServed
+    integer                                           , intent(in   )               :: countCollaborativeGroups
     type   (enumerationVerbosityLevelType            ), intent(in   )               :: evolveForestsVerbosity
-    type   (varying_string                           ), intent(in   )               :: failedParametersFileName, baseParametersFileName
+    type   (varying_string                           ), intent(in   )               :: failedParametersFileName , baseParametersFileName
     type   (varying_string                           ), intent(in   ), dimension(:) :: changeParametersFileNames
     !![
-    <constructorAssign variables="*parametersModel, baseParametersFileName, outputAnalyses, setOutputGroup, reportEvaluationTimes, collaborativeMPI, reportFileName, reportState, evolveForestsVerbosity, failedParametersFileName, changeParametersFileNames"/>
+    <constructorAssign variables="*parametersModel, baseParametersFileName, outputAnalyses, setOutputGroup, reportEvaluationTimes, countCollaborativeGroups, firstComeFirstServed, doPing, reportFileName, reportState, evolveForestsVerbosity, failedParametersFileName, changeParametersFileNames"/>
     !!]
 
-    if (setOutputGroup.and.collaborativeMPI) call Error_Report('[setOutputGroup]=true and [collaborativeMPI]=true is not recommended'//char(10)//displayGreen()//'  HELP: '//displayReset()//'[setOutputGroup]=true suggests that you want results of each model evaluation written to its own group, but [collaborativeMPI]=true results in each MPI process evolving a subset of trees from each model evaluation, and writing them to its own output file - this will result in a random mix of trees in each output group - it is recommended that you set [collaborativeMPI]=false to avoid this problem'//{introspection:location})
+    if (setOutputGroup.and.countCollaborativeGroups < mpiSelf%count()) call Error_Report('[setOutputGroup]=true and [countCollaborativeGroups] less than the number of MPI processes is not recommended'//char(10)//displayGreen()//'  HELP: '//displayReset()//'[setOutputGroup]=true suggests that you want results of each model evaluation written to its own group, but [countCollaborativeGroups]>1 results in each MPI process evolving a subset of trees from a model evaluation, and writing them to its own output file - this will result in a random mix of trees in each output group - it is recommended that you set [countCollaborativeGroups] equal to the number of MPI processes to avoid this problem'//{introspection:location})
+    if      (countCollaborativeGroups < 0) then
+       self%countCollaborativeGroups=mpiSelf%count()
+    else if (countCollaborativeGroups < 1 .or. countCollaborativeGroups > mpiSelf%count()) then
+       call Error_Report(var_str('1 ≤ [countCollaborativeGroups] ≤ ')//mpiSelf%count()//' is required '//{introspection:location})
+    end if
     return
   end function galaxyPopulationConstructorInternal
 
@@ -197,13 +226,14 @@ contains
     !!{
     Return the log-likelihood for the \glc\ likelihood function.
     !!}
-    use :: Display                       , only : displayIndent                  , displayMessage               , displayUnindent             , displayVerbosity, &
-          &                                       displayVerbositySet            , verbosityLevelSilent         , verbosityLevelStandard
+    use :: Display                       , only : displayIndent                  , displayMessage               , displayUnindent             , displayVerbosity             , &
+          &                                       displayVerbositySet            , verbosityLevelSilent         , verbosityLevelStandard      , enumerationVerbosityLevelType
     use :: Functions_Global              , only : Tasks_Evolve_Forest_Construct_ , Tasks_Evolve_Forest_Destruct_, Tasks_Evolve_Forest_Perform_
     use :: Error                         , only : errorStatusSuccess             , signalHandlerRegister        , signalHandlerDeregister     , signalHandlerInterface
+    use :: Events_Hooks                  , only : calculationResetEvent          , openMPThreadBindingAllLevels
     use :: ISO_Varying_String            , only : char                           , operator(//)                 , var_str
     use :: Kind_Numbers                  , only : kind_int8
-    use :: MPI_Utilities                 , only : mpiBarrier                     , mpiSelf
+    use :: MPI_Utilities                 , only : mpiBarrier                     , mpiSelf                      , mpiCounter
     use :: Model_Parameters              , only : modelParameterDerived
     use :: Models_Likelihoods_Constants  , only : logImpossible                  , logImprobable
     use :: Output_HDF5_Open              , only : Output_HDF5_Set_Group
@@ -221,11 +251,16 @@ contains
     real                                                       , intent(inout)                 :: timeEvaluate
     double precision                                           , intent(  out), optional       :: logLikelihoodVariance
     logical                                                    , intent(inout), optional       :: forceAcceptance
-    double precision                                           , allocatable  , dimension(:  ) :: logPriorsProposed
+    double precision                                           , allocatable  , dimension(:  ) :: logPriorsProposed     , logLikelihoods
+    real                                                       , allocatable  , dimension(:  ) :: timesEvaluate
+    integer                                                    , allocatable  , dimension(:  ) :: chainIndex
     double precision                                           , allocatable  , dimension(:,:) :: stateVector
     procedure       (signalHandlerInterface                   ), pointer                       :: handler
+    type            (mpiCounter                               )                                :: evaluationCounter
     integer                                                                                    :: iRank                 , status                  , &
-         &                                                                                        rankStart             , rankStop
+         &                                                                                        rankStart             , rankStop                , &
+         &                                                                                        countPerGroup         , iGroup                  , &
+         &                                                                                        rankOriginal          , countOriginal
     type            (enumerationVerbosityLevelType            )                                :: verbosityLevel
     real                                                                                       :: timeBegin             , timeEnd
     double precision                                                                           :: logLikelihoodProposed
@@ -246,41 +281,114 @@ contains
     ! Switch verbosity level.
     verbosityLevel=displayVerbosity()
     call displayVerbositySet(self%evolveForestsVerbosity)
-    ! Initialize likelihood to impossible.
-    galaxyPopulationEvaluate=logImpossible
-    if (present(logLikelihoodVariance)) logLikelihoodVariance=0.0d0
+    ! Allocate arrays for likelihoods and evaluation times. These will accumulate results, and will then be transferred back to
+    ! the relevant process.
+    allocate(logLikelihoods(0:mpiSelf%count()-1))
+    allocate(timesEvaluate (0:mpiSelf%count()-1))
+    logLikelihoods=0.0d0
+    timesEvaluate =0.0d0
     ! Get proposed priors for all chains so we can decide which to skip.
     allocate(logPriorsProposed(0:mpiSelf%count()-1))
     logPriorsProposed=mpiSelf%gather(logPriorProposed)
     ! Get states for all chains.
     allocate(stateVector(simulationState%dimension(),0:mpiSelf%count()-1))
     stateVector=mpiSelf%gather(simulationState%get())
+    ! Get chain indices for all chains.
+    allocate(chainIndex(0:mpiSelf%count()-1))
+    chainIndex=mpiSelf%gather(simulationState%chainIndex())
     ! Ensure pointers into the base parameters are initialized.
     call self%initialize(modelParametersActive_,modelParametersInactive_)
-    ! For non-collaborative evaluation, split the MPI communicator here.
-    if (self%collaborativeMPI) then
-       rankStart=                0
-       rankStop =mpiSelf%count()-1
+    ! Get a counter if needed. Do this before we split communicators so that all processes have access to this counter.
+    if (self%firstComeFirstServed) then
+       evaluationCounter=mpiCounter()
+       ! Attach to the calculation reset event so that we can ping the counter to avoid slow responses.
+       if (self%doPing) call calculationResetEvent%attach(self,evaluationCounterPing,openMPThreadBindingAllLevels,label='evaluationCounterPing')
+    end if
+    ! If more than one collaborative group is to be used, split the MPI communicator here.
+    if (mpiSelf%rank() == 0 .and. verbosityLevel >= verbosityLevelStandard) call displayIndent('Begin collaborative group assignment',verbosityLevelSilent)
+    rankOriginal =mpiSelf%rank ()
+    countOriginal=mpiSelf%count()
+    if (self%countCollaborativeGroups == 1) then
+       rankStart=              0
+       rankStop =countOriginal-1
+       iGroup   =              1
+       if (mpiSelf%rank() == 0 .and. verbosityLevel >= verbosityLevelStandard) call displayMessage('All processes collaborating in a single group',verbosityLevelSilent)
     else
-       rankStart=mpiSelf%rank ()
-       rankStop =mpiSelf%rank ()
-       call mpiSelf%communicatorPush(color=mpiSelf%rank())
+       countPerGroup=    +     countOriginal             &
+            &            /self%countCollaborativeGroups
+       iGroup       =min(                                &
+            &            +     rankOriginal              &
+            &            /     countPerGroup             &
+            &            +     1                       , &
+            &            +self%countCollaborativeGroups  &
+            &           )
+       rankStart   =(iGroup-1)*countPerGroup
+       if (iGroup < self%countCollaborativeGroups) then
+          rankStop = iGroup   *countPerGroup-1
+       else
+          rankStop =           countOriginal-1
+       end if
+       if (verbosityLevel >= verbosityLevelStandard) then
+          message=var_str('Process ')//mpiSelf%rank()//' belongs to group '//iGroup
+          if (.not.self%firstComeFirstServed) then
+             message=message//' and will collaborate on '
+             if (rankStop > rankStart) then
+                message=message//'evaluations '//rankStart//' to '//rankStop
+             else
+                message=message//'evaluation ' //rankStart
+             end if
+          end if
+          call displayMessage(message,verbosityLevelSilent)
+       end if
+       call mpiSelf%communicatorPush(color=iGroup)
+    end if
+    if (rankOriginal == 0 .and. verbosityLevel >= verbosityLevelStandard) call displayUnindent('done',verbosityLevelSilent)
+    ! If using a first-come-first-served approach, reset the rank range to the full extent - this is sufficient to ensure that we
+    ! make enough requests to the counter such that all evaluations are always performed.
+    if (self%firstComeFirstServed) then
+       rankStart=              0
+       rankStop =countOriginal-1
     end if
     ! Iterate over all chains.
     do iRank=rankStart,rankStop
-       iRank_=iRank
-       ! Determine if this is the active rank.
-       isActive=iRank == mpiSelf%rank() .or. .not.self%collaborativeMPI
+       ! Determine if this is the active rank for reporting and storing results.
+       isActive=mpiSelf%rank() == 0
+       ! Find which model to evaluate.
+       if (self%firstComeFirstServed) then
+          if (isActive) then
+             call CPU_Time(timeBegin)
+             iRank_=evaluationCounter%increment()
+             call CPU_Time(timeEnd  )
+          else
+             iRank_=0_c_size_t
+          end if
+          call mpiBarrier()
+          iRank_=mpiSelf%sum(iRank_)
+          if (iRank_ > rankStop) exit
+          if (isActive .and. verbosityLevel >= verbosityLevelStandard) then
+             message=var_str('group ')//iGroup//' will collaborate on evaluation '//iRank_//' (wait time for task: '//trim(siFormat(dble(timeEnd-timeBegin),'f10.6,1x'))//'s)'
+             call displayMessage(message,verbosityLevelSilent)
+          end if
+       else
+          iRank_=iRank
+       end if
+       ! Initialize likelihood to impossible.
+       if (isActive) then
+          logLikelihoods(iRank_)=logImpossible
+          if (present(logLikelihoodVariance)) logLikelihoodVariance=0.0d0
+       end if
        ! If prior probability is impossible, then no need to waste time evaluating the likelihood.
-       if (logPriorsProposed(iRank) <= logImpossible) cycle
-       ! If the likelihood was evaluated for the previous rank, and the current state vector is identical to that of the previous rank, the proposed likelihood must be unchanged.
-       if (iRank > 0 .and. self%collaborativeMPI) then
+       if (logPriorsProposed(iRank_) <= logImpossible) cycle
+       ! If the likelihood was evaluated for the previous rank, and the current state vector is identical to that of the previous
+       ! rank, the proposed likelihood must be unchanged.
+       if (.not.self%firstComeFirstServed .and. iRank > rankStart) then
           if (logPriorsProposed(iRank-1) > logImpossible .and. all(stateVector(:,iRank) == stateVector(:,iRank-1))) then
-             if (iRank == mpiSelf%rank()) then
-                galaxyPopulationEvaluate=logLikelihoodProposed
+             if (isActive) then
+                logLikelihoods(iRank_)=logLikelihoodProposed
+                timesEvaluate (iRank_)=0.0d0
                 if (verbosityLevel >= verbosityLevelStandard) then
                    write (valueText,'(e12.4)') logLikelihoodProposed
-                   message=var_str("Chain ")//simulationState%chainIndex()//" has logℒ="//trim(valueText)
+                   message=var_str("Chain ")//chainIndex(iRank_)//" has logℒ="//trim(valueText)
                    call displayMessage(message,verbosityLevelSilent)
                 end if
              end if
@@ -288,7 +396,7 @@ contains
           end if
        end if
        ! Update parameter values.
-       call self%update(simulationState,modelParametersActive_,modelParametersInactive_,stateVector(:,iRank),report=isActive)
+       call self%update(simulationState,modelParametersActive_,modelParametersInactive_,stateVector(:,iRank_),report=isActive)
        ! Build the task and outputter objects.
        call Tasks_Evolve_Forest_Construct_(self%parametersModel,self%task_)
        !![
@@ -301,11 +409,11 @@ contains
           ! Forest evolution failed - record impossible likelihood.
           if (isActive) then
              ! Dump the failed parameter set to file.
-             call self%parametersModel%serializeToXML(self%failedParametersFileName//"."//iRank//".errCode"//status)
+             call self%parametersModel%serializeToXML(self%failedParametersFileName//"."//iRank_//".errCode"//status)
              ! Return impossible likelihood. We use a somewhat-less-than-impossible value to avoid this being rejected as the
              ! initial state.
-             logLikelihoodProposed   =logImprobable
-             galaxyPopulationEvaluate=logLikelihoodProposed
+             logLikelihoodProposed        =logImprobable
+             logLikelihoods       (iRank_)=logLikelihoodProposed
           end if
        else
           ! Forest evolution was successful - evaluate the likelihood.
@@ -314,7 +422,7 @@ contains
           logLikelihoodProposed=self%outputAnalysis_%logLikelihood()
           ! For active analysis, return this likelihood.
           if (isActive) then
-             galaxyPopulationEvaluate=logLikelihoodProposed
+             logLikelihoods(iRank_)=logLikelihoodProposed
              ! Optionally output results.
              if (self%outputAnalyses) then
                 groupName=var_str("step")//simulationState%count()//":chain"//simulationState%chainIndex()
@@ -325,31 +433,64 @@ contains
        if (isActive) then
           ! Record timing information.
           call CPU_Time(timeEnd)
-          timeEvaluate=timeEnd-timeBegin
+          timesEvaluate(iRank_)=timeEnd-timeBegin
           if (verbosityLevel >= verbosityLevelStandard) then
              write (valueText,'(e12.4)') logLikelihoodProposed
-             message=var_str("Chain ")//simulationState%chainIndex()//" has logℒ="//trim(valueText)
+             message=var_str("Chain ")//chainIndex(iRank_)//" has logℒ="//trim(valueText)
              if (self%reportEvaluationTimes) message=message//" (evaluation in "//trim(siFormat(dble(timeEvaluate),'f5.1,1x'))//"s)"
              call displayMessage(message,verbosityLevelSilent)
           end if
        end if
-       if (self%collaborativeMPI) call mpiBarrier()
+       call mpiBarrier()
        call Tasks_Evolve_Forest_Destruct_(self%task_)
        !![
        <objectDestructor name="self%outputAnalysis_"/>
        !!]
        call self%parametersModel%reset()
     end do
-    ! For non-collaborative evaluation, join the MPI communicator here.
-    if (.not.self%collaborativeMPI) then
+    ! If we use multiple collaborative groups, join the MPI communicator here.
+    if (self%countCollaborativeGroups > 1) then
        call mpiBarrier                ()
        call mpiSelf   %communicatorPop()
     end if
+    if (self%firstComeFirstServed .and. self%doPing) &
+         & call calculationResetEvent%detach(self,evaluationCounterPing)
+    ! Retrieve and extract the log-likelihood and evaluation time for this process.
+    logLikelihoods          =mpiSelf%sum(logLikelihoods)
+    timesEvaluate           =mpiSelf%sum(timesEvaluate )
+    galaxyPopulationEvaluate=logLikelihoods(rankOriginal)
+    timeEvaluate            =timesEvaluate (rankOriginal)
     ! Restore verbosity level.
     call displayVerbositySet(verbosityLevel)
     ! Deregister our error handler.
     call signalHandlerDeregister(handler)
     return
+
+  contains
+
+    subroutine evaluationCounterPing(self,node,uniqueID)
+      !!{
+      Return the number of the next forest to process.
+      !!}
+      use :: Galacticus_Nodes, only : treeNode
+      use :: Kind_Numbers    , only : kind_int8
+      implicit none
+      class  (*        ), intent(inout) :: self
+      type   (treeNode ), intent(inout) :: node
+      integer(kind_int8), intent(in   ) :: uniqueID
+#ifdef USEMPI
+      integer(c_size_t )                :: evaluationNumber
+#endif
+      !$GLC attributes unused :: self, node, uniqueID
+
+#ifdef USEMPI
+      !$omp master
+      if (mpiSelf%isMaster()) evaluationNumber=evaluationCounter%get()
+      !$omp end master
+#endif
+      return
+    end subroutine evaluationCounterPing
+
   end function galaxyPopulationEvaluate
 
   subroutine galaxyPopulationFunctionChanged(self)
@@ -403,4 +544,3 @@ contains
     call self_%parametersModel%serializeToXML(fileName)
     return
   end subroutine posteriorSampleLikelihoodGalaxyPopulationSignalHandler
-  

@@ -3,7 +3,8 @@
 <!-- No baryonic physics is included - a purely dark matter universe is assumed. -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="150aacee83614f7989048cc483a95d9020d948c2" time="2025-08-15T19:23:15"/>
+  <lastModified revision="d4bf2d8db876eb8e44d94e1672bc36a6ea8135cc" time="2025-09-03T18:23:58"/>
+
 
   <!-- Set verbosity to show when background work is being performed -->
   <verbosityLevel value="working"/>
@@ -472,6 +473,14 @@
     <nodeOperator value="blackHolesAccretion"/>
     <nodeOperator value="blackHolesWinds"/>
     <nodeOperator value="blackHolesCGMHeating"/>
+    <!-- CGM physics -->
+    <nodeOperator value="CGMAccretion">
+      <allowNegativeCGMMass value="true"/>
+      <angularMomentumAlwaysGrows value="false"/>
+    </nodeOperator>
+    <nodeOperator value="CGMOutflowReincorporation">
+      <includeSatellites value="true"/>
+    </nodeOperator>
   </nodeOperator>
 
   <!-- Merger tree evolution -->
