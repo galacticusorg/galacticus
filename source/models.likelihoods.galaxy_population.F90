@@ -37,7 +37,7 @@
      type   (varying_string               )          :: failedParametersFileName
      logical                                         :: randomize                         , outputAnalyses, &
           &                                             reportEvaluationTimes             , setOutputGroup, &
-          &                                             firstComeFirstServed
+          &                                             firstComeFirstServed              , doPing
      integer                                         :: countCollaborativeGroups
      type   (enumerationVerbosityLevelType)          :: evolveForestsVerbosity
      class  (*                            ), pointer :: task_                    => null()
@@ -80,7 +80,7 @@ contains
     logical                                                                         :: randomize                , outputAnalyses          , &
          &                                                                             reportEvaluationTimes    , reportFileName          , &
          &                                                                             reportState              , setOutputGroup          , &
-         &                                                                             firstComeFirstServed
+         &                                                                             firstComeFirstServed     , doPing
     type   (varying_string)                                                         :: evolveForestsVerbosity
     type   (inputParameters                          ), pointer                     :: parametersModel
 
@@ -127,6 +127,15 @@ contains
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
+      <name>doPing</name>
+      <defaultValue>.false.</defaultValue>
+      <description>
+        If true, the master MPI process will attach to the {\normalfont \ttfamily calculationReset} event and ping the MPI
+        counter. This can help to ensure that the counter updates regularly.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
       <name>reportFileName</name>
       <description>If true, report the base parameter file name being evaluated.</description>
       <defaultValue>.false.</defaultValue>
@@ -163,7 +172,7 @@ contains
     end if
     allocate(parametersModel)
     parametersModel=inputParameters                          (baseParametersFileName,noOutput=.true.,changeFiles=changeParametersFileNames)
-    self           =posteriorSampleLikelihoodGalaxyPopulation(parametersModel,baseParametersFileName,randomize,outputAnalyses,setOutputGroup,reportEvaluationTimes,countCollaborativeGroups,firstComeFirstServed,reportFileName,reportState,enumerationVerbosityLevelEncode(evolveForestsVerbosity,includesPrefix=.false.),failedParametersFileName,changeParametersFileNames)
+    self           =posteriorSampleLikelihoodGalaxyPopulation(parametersModel,baseParametersFileName,randomize,outputAnalyses,setOutputGroup,reportEvaluationTimes,countCollaborativeGroups,firstComeFirstServed,doPing,reportFileName,reportState,enumerationVerbosityLevelEncode(evolveForestsVerbosity,includesPrefix=.false.),failedParametersFileName,changeParametersFileNames)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
@@ -171,7 +180,7 @@ contains
     return
   end function galaxyPopulationConstructorParameters
 
-  function galaxyPopulationConstructorInternal(parametersModel,baseParametersFileName,randomize,outputAnalyses,setOutputGroup,reportEvaluationTimes,countCollaborativeGroups,firstComeFirstServed,reportFileName,reportState,evolveForestsVerbosity,failedParametersFileName,changeParametersFileNames) result(self)
+  function galaxyPopulationConstructorInternal(parametersModel,baseParametersFileName,randomize,outputAnalyses,setOutputGroup,reportEvaluationTimes,countCollaborativeGroups,firstComeFirstServed,doPing,reportFileName,reportState,evolveForestsVerbosity,failedParametersFileName,changeParametersFileNames) result(self)
     !!{
     Constructor for the \refClass{posteriorSampleLikelihoodGalaxyPopulation} posterior sampling likelihood class.
     !!}
@@ -186,13 +195,13 @@ contains
     logical                                           , intent(in   )               :: randomize                , outputAnalyses        , &
          &                                                                             reportEvaluationTimes    , reportFileName        , &
          &                                                                             reportState              , setOutputGroup        , &
-         &                                                                             firstComeFirstServed
+         &                                                                             firstComeFirstServed     , doPing
     integer                                           , intent(in   )               :: countCollaborativeGroups
     type   (enumerationVerbosityLevelType            ), intent(in   )               :: evolveForestsVerbosity
     type   (varying_string                           ), intent(in   )               :: failedParametersFileName , baseParametersFileName
     type   (varying_string                           ), intent(in   ), dimension(:) :: changeParametersFileNames
     !![
-    <constructorAssign variables="*parametersModel, baseParametersFileName, randomize, outputAnalyses, setOutputGroup, reportEvaluationTimes, countCollaborativeGroups, firstComeFirstServed, reportFileName, reportState, evolveForestsVerbosity, failedParametersFileName, changeParametersFileNames"/>
+    <constructorAssign variables="*parametersModel, baseParametersFileName, randomize, outputAnalyses, setOutputGroup, reportEvaluationTimes, countCollaborativeGroups, firstComeFirstServed, doPing, reportFileName, reportState, evolveForestsVerbosity, failedParametersFileName, changeParametersFileNames"/>
     !!]
 
     if (setOutputGroup.and.countCollaborativeGroups < mpiSelf%count()) call Error_Report('[setOutputGroup]=true and [countCollaborativeGroups] less than the number of MPI processes is not recommended'//char(10)//displayGreen()//'  HELP: '//displayReset()//'[setOutputGroup]=true suggests that you want results of each model evaluation written to its own group, but [countCollaborativeGroups]>1 results in each MPI process evolving a subset of trees from a model evaluation, and writing them to its own output file - this will result in a random mix of trees in each output group - it is recommended that you set [countCollaborativeGroups] equal to the number of MPI processes to avoid this problem'//{introspection:location})
@@ -226,6 +235,7 @@ contains
           &                                       displayVerbositySet            , verbosityLevelSilent         , verbosityLevelStandard      , enumerationVerbosityLevelType
     use :: Functions_Global              , only : Tasks_Evolve_Forest_Construct_ , Tasks_Evolve_Forest_Destruct_, Tasks_Evolve_Forest_Perform_
     use :: Error                         , only : errorStatusSuccess             , signalHandlerRegister        , signalHandlerDeregister     , signalHandlerInterface
+    use :: Events_Hooks                  , only : calculationResetEvent          , openMPThreadBindingAllLevels
     use :: ISO_Varying_String            , only : char                           , operator(//)                 , var_str
     use :: Kind_Numbers                  , only : kind_int8
     use :: MPI_Utilities                 , only : mpiBarrier                     , mpiSelf                      , mpiCounter
@@ -294,7 +304,11 @@ contains
     ! Ensure pointers into the base parameters are initialized.
     call self%initialize(modelParametersActive_,modelParametersInactive_)
     ! Get a counter if needed. Do this before we split communicators so that all processes have access to this counter.
-    if (self%firstComeFirstServed) evaluationCounter=mpiCounter()
+    if (self%firstComeFirstServed) then
+       evaluationCounter=mpiCounter()
+       ! Attach to the calculation reset event so that we can ping the counter to avoid slow responses.
+       if (self%doPing) call calculationResetEvent%attach(self,evaluationCounterPing,openMPThreadBindingAllLevels,label='evaluationCounterPing')
+    end if
     ! If more than one collaborative group is to be used, split the MPI communicator here.
     if (mpiSelf%rank() == 0 .and. verbosityLevel >= verbosityLevelStandard) call displayIndent('Begin collaborative group assignment',verbosityLevelSilent)
     rankOriginal =mpiSelf%rank ()
@@ -444,6 +458,8 @@ contains
        call mpiBarrier                ()
        call mpiSelf   %communicatorPop()
     end if
+    if (self%firstComeFirstServed .and. self%doPing) &
+         & call calculationResetEvent%detach(self,evaluationCounterPing)
     ! Retrieve and extract the log-likelihood and evaluation time for this process.
     logLikelihoods          =mpiSelf%sum(logLikelihoods)
     timesEvaluate           =mpiSelf%sum(timesEvaluate )
@@ -454,6 +470,32 @@ contains
     ! Deregister our error handler.
     call signalHandlerDeregister(handler)
     return
+
+  contains
+
+    subroutine evaluationCounterPing(self,node,uniqueID)
+      !!{
+      Return the number of the next forest to process.
+      !!}
+      use :: Galacticus_Nodes, only : treeNode
+      use :: Kind_Numbers    , only : kind_int8
+      implicit none
+      class  (*        ), intent(inout) :: self
+      type   (treeNode ), intent(inout) :: node
+      integer(kind_int8), intent(in   ) :: uniqueID
+#ifdef USEMPI
+      integer(c_size_t )                :: evaluationNumber
+#endif
+      !$GLC attributes unused :: self, node, uniqueID
+
+#ifdef USEMPI
+      !$omp master
+      if (mpiSelf%isMaster()) evaluationNumber=evaluationCounter%get()
+      !$omp end master
+#endif
+      return
+    end subroutine evaluationCounterPing
+
   end function galaxyPopulationEvaluate
 
   subroutine galaxyPopulationFunctionChanged(self)
@@ -507,4 +549,3 @@ contains
     call self_%parametersModel%serializeToXML(fileName)
     return
   end subroutine posteriorSampleLikelihoodGalaxyPopulationSignalHandler
-  
