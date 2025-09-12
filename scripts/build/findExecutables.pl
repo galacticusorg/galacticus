@@ -52,7 +52,16 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 {$fileNameRoot}.exe: {$workDirectoryName.$fileNameRoot}.o {$workDirectoryName.$fileNameRoot}.d $(MAKE_DEPS) $(UPDATE_DEPS)
 	./scripts/build/parameterDependencies.pl `pwd` {$fileNameRoot}.exe
 	$(FCCOMPILER) -c {$workDirectoryName.$fileNameRoot}.parameters.F90 -o {$workDirectoryName.$fileNameRoot}.parameters.o $(FCFLAGS)
-	./scripts/build/sourceDigests.pl `pwd` {$fileNameRoot}.exe
+	@if echo "$(MAKEFLAGS)" | grep -q -P -- ' -j1( |$$)'; then \
+	 useLocks=no; \
+	elif echo "$(MAKEFLAGS)" | grep -q -P -- ' -j( |$$)'; then \
+	 useLocks=$(LOCKMD5); \
+	elif echo "$(MAKEFLAGS)" | grep -q -P -- ' -j[0-9]+( |$$)'; then \
+	 useLocks=$(LOCKMD5); \
+	else \
+	 useLocks=no; \
+	fi; \
+	./scripts/build/sourceDigests.pl `pwd` {$fileNameRoot}.exe $$useLocks
 	$(CCOMPILER) -c {$workDirectoryName.$fileNameRoot}.md5s.c -o {$workDirectoryName.$fileNameRoot}.md5s.o $(CFLAGS)
 	$(FCCOMPILER) `cat {$workDirectoryName.$fileNameRoot}.d` {$workDirectoryName.$fileNameRoot}.parameters.o {$workDirectoryName.$fileNameRoot}.md5s.o -o {$fileNameRoot}.exe$(SUFFIX) $(FCFLAGS) `./scripts/build/libraryDependencies.pl {$fileNameRoot}.exe $(FCFLAGS)` 2>&1 | ./scripts/build/postprocessLinker.pl
 
