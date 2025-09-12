@@ -84,7 +84,8 @@
      class           (darkMatterProfileDMOClass ), pointer                     :: darkMatterProfileDMO_                  => null()
      class           (virialDensityContrastClass), pointer                     :: virialDensityContrast_                 => null()
      class           (outputTimesClass          ), pointer                     :: outputTimes_                           => null()
-     logical                                                                   :: computeScatter                                  , likelihoodNormalize
+     logical                                                                   :: computeScatter                                  , likelihoodNormalize                         , &
+          &                                                                       likelihoodBinsAutomatic
      integer         (c_size_t                  ), allocatable, dimension(:  ) :: likelihoodBins
      integer                                                                   :: redshiftInterval
      double precision                            , allocatable, dimension(:  ) :: systematicErrorPolynomialCoefficient            , systematicErrorMassHaloPolynomialCoefficient, &
@@ -127,9 +128,10 @@ contains
     class           (virialDensityContrastClass             ), pointer                     :: virialDensityContrast_
     class           (outputTimesClass                       ), pointer                     :: outputTimes_
     integer                                                                                :: redshiftInterval
-    logical                                                                                :: computeScatter                      , likelihoodNormalize
+    logical                                                                                :: computeScatter                      , likelihoodNormalize                         , &
+         &                                                                                    likelihoodBinsAutomatic
     integer         (c_size_t                               ), allocatable  , dimension(:) :: likelihoodBins
-    type            (varying_string                         )                              :: fileNameTarget
+    type            (varying_string                         )                              :: fileNameTarget                      , likelihoodBinsText
 
     ! Check and read parameters.
     if (parameters%isPresent('systematicErrorPolynomialCoefficient')) then
@@ -143,16 +145,31 @@ contains
        allocate(systematicErrorMassHaloPolynomialCoefficient(               1                                                ))
     end if
     if (parameters%isPresent('likelihoodBins')) then
-       allocate(likelihoodBins(parameters%count('likelihoodBins')))
-       !![
-       <inputParameter>
-	 <name>likelihoodBins</name>
-	 <source>parameters</source>
-	 <description>If $>0$ then use only the mass bin(s) given by this value in the likelihood calculation.</description>
-       </inputParameter>
-       !!]
+       call parameters%value('likelihoodBins',likelihoodBinsText)
+       if (likelihoodBinsText == "auto") then
+          likelihoodBinsAutomatic=.true.
+          allocate(likelihoodBins(               0                  ))
+       else
+          allocate(likelihoodBins(parameters%count('likelihoodBins')))
+          likelihoodBinsAutomatic=.false.
+          !![
+	  <inputParameter>
+	    <name>likelihoodBins</name>
+	    <source>parameters</source>
+	    <description>
+	      Controls which bins in the stellar mass--halo mass relation will be used in computing the likelihood:
+	      \begin{itemize}
+	      \item \emph{not present}: all bins are included in the likelihood calculation;
+	      \item \emph{list of integers}: use only the mass bin(s) given in this list in the likelihood calculation;
+	      \item {\normalfont \ttfamily auto}: use only bins which have a non-zero number of halos contributing to them in the likelihood calculation.
+	      \end{itemize}
+	    </description>
+	  </inputParameter>
+          !!]
+        end if
     else
-       allocate(likelihoodBins(               0                  ))
+       allocate   (likelihoodBins(               0                  ))
+       likelihoodBinsAutomatic   =.false.
     end if
     !![
     <inputParameter>
@@ -196,7 +213,7 @@ contains
     <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
     !!]
-    self=outputAnalysisStellarVsHaloMassRelation(fileNameTarget,redshiftInterval,likelihoodBins,likelihoodNormalize,computeScatter,systematicErrorPolynomialCoefficient,systematicErrorMassHaloPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,outputTimes_)
+    self=outputAnalysisStellarVsHaloMassRelation(fileNameTarget,redshiftInterval,likelihoodBinsAutomatic,likelihoodBins,likelihoodNormalize,computeScatter,systematicErrorPolynomialCoefficient,systematicErrorMassHaloPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,outputTimes_)
     !![
     <inputParametersValidate source="parameters" />
     <objectDestructor name="cosmologyParameters_"  />
@@ -208,7 +225,7 @@ contains
     return
   end function stellarVsHaloMassRelationConstructorParameters
 
-  function stellarVsHaloMassRelationConstructorInternal(fileNameTarget,redshiftInterval,likelihoodBins,likelihoodNormalize,computeScatter,systematicErrorPolynomialCoefficient,systematicErrorMassHaloPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,outputTimes_) result (self)
+  function stellarVsHaloMassRelationConstructorInternal(fileNameTarget,redshiftInterval,likelihoodBinsAutomatic,likelihoodBins,likelihoodNormalize,computeScatter,systematicErrorPolynomialCoefficient,systematicErrorMassHaloPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,outputTimes_) result (self)
     !!{
     Constructor for the \refClass{outputAnalysisStellarVsHaloMassRelation} output analysis class for internal use.
     !!}
@@ -236,7 +253,8 @@ contains
     type            (outputAnalysisStellarVsHaloMassRelation        )                                :: self
     type            (varying_string                                 ), intent(in   )                 :: fileNameTarget
     integer                                                          , intent(in   )                 :: redshiftInterval
-    logical                                                          , intent(in   )                 :: computeScatter                                                , likelihoodNormalize
+    logical                                                          , intent(in   )                 :: computeScatter                                                , likelihoodNormalize                                                , &
+         &                                                                                              likelihoodBinsAutomatic
     integer         (c_size_t                                       ), intent(in   ), dimension(:  ) :: likelihoodBins
     double precision                                                 , intent(in   ), dimension(:  ) :: systematicErrorPolynomialCoefficient                          , systematicErrorMassHaloPolynomialCoefficient
     class           (cosmologyParametersClass                       ), intent(in   ), target         :: cosmologyParameters_
@@ -526,12 +544,12 @@ contains
     !!]
     ! Build the object.
     if (computeScatter) then
-       analysisLabel            =var_str('stellarHaloMassRelation')//labelTarget//'Scatterz'//redshiftInterval
+       analysisLabel            =var_str('stellarHaloMassRelationScatter')//labelTarget//'z'//redshiftInterval
        weightPropertyLabel      =var_str('massStellarLog10Scatter'   )
        weightPropertyDescription=var_str('σ_{log₁₀(Stellar mass/M☉)}')
        allocate(outputAnalysisScatterFunction1D :: self%outputAnalysis_)
     else
-       analysisLabel            =var_str('stellarHaloMassRelation')//labelTarget//       'z'//redshiftInterval
+       analysisLabel            =var_str('stellarHaloMassRelation'       )//labelTarget//'z'//redshiftInterval
        weightPropertyLabel      =var_str('massStellarLog10'        )
        weightPropertyDescription=var_str('⟨log₁₀(Stellar mass/M☉)⟩')
        allocate(outputAnalysisMeanFunction1D    :: self%outputAnalysis_)
@@ -788,6 +806,7 @@ contains
          &                                                                                      massStellarLogarithmicCovariance               , massStellarLogarithmicCovarianceTarget
     double precision                                         , allocatable  , dimension(:  ) :: massStellarLogarithmicDifference               , massStellarLogarithmicDifferenceSelected        , &
          &                                                                                      massStellarLogarithmic                         , massStellarLogarithmicTarget
+    integer         (c_size_t                               ), allocatable  , dimension(:  ) :: likelihoodBins
     type            (vector                                 )                                :: residual
     type            (matrix                                 )                                :: covariance
     integer                                                                                  :: i                                              , j                                               , &
@@ -813,10 +832,27 @@ contains
        logLikelihood=+outputAnalysis_%logLikelihood()
        return
     end select
-    if     (                                                                                                                       &
-         &   (size(self%likelihoodBins) == 0 .and. any(massStellarLogarithmic                      <= massStellarLogarithmicTiny)) &
-         &  .or.                                                                                                                   &
-         &                                         any(massStellarLogarithmic(self%likelihoodBins) <= massStellarLogarithmicTiny)  &
+    ! Determine which bins to use in the likelihood analysis.
+    if (self%likelihoodBinsAutomatic) then
+       j=0
+       do i=1,size(massStellarLogarithmic)
+          if (massStellarLogarithmic(i) /= 0.0d0) j=j+1
+       end do
+       allocate(likelihoodBins(j))
+       j=0
+       do i=1,size(massStellarLogarithmic)
+          if (massStellarLogarithmic(i) /= 0.0d0) then
+             j=j+1
+             likelihoodBins(j)=i
+          end if
+       end do
+    else
+       allocate(likelihoodBins,source=self%likelihoodBins)
+    end if
+    if     (                                                                                                             &
+         &   (size(likelihoodBins) == 0 .and. any(massStellarLogarithmic                 <= massStellarLogarithmicTiny)) &
+         &  .or.                                                                                                         &
+         &                                    any(massStellarLogarithmic(likelihoodBins) <= massStellarLogarithmicTiny)  &
          & ) then
        ! If any active bins contain zero galaxies, judge this model to be improbable.
        logLikelihood=                     logImprobable
@@ -827,13 +863,13 @@ contains
        massStellarLogarithmicDifference        =+massStellarLogarithmic          -massStellarLogarithmicTarget
        massStellarLogarithmicCovarianceCombined=+massStellarLogarithmicCovariance+massStellarLogarithmicCovarianceTarget
        ! Construct a reduced set of bins.
-       if (size(self%likelihoodBins) > 0) then
-          allocate(massStellarLogarithmicDifferenceSelected        (size(self%likelihoodBins)                          ))
-          allocate(massStellarLogarithmicCovarianceCombinedSelected(size(self%likelihoodBins),size(self%likelihoodBins)))
-          do i=1,size(self%likelihoodBins)
-             massStellarLogarithmicDifferenceSelected           (i  )=massStellarLogarithmicDifference        (self%likelihoodBins(i)                       )
-             do j=1,size(self%likelihoodBins)
-                massStellarLogarithmicCovarianceCombinedSelected(i,j)=massStellarLogarithmicCovarianceCombined(self%likelihoodBins(i),self%likelihoodBins(j))
+       if (size(likelihoodBins) > 0) then
+          allocate(massStellarLogarithmicDifferenceSelected        (size(likelihoodBins)                     ))
+          allocate(massStellarLogarithmicCovarianceCombinedSelected(size(likelihoodBins),size(likelihoodBins)))
+          do i=1,size(likelihoodBins)
+             massStellarLogarithmicDifferenceSelected           (i  )=massStellarLogarithmicDifference        (likelihoodBins(i)                  )
+             do j=1,size(likelihoodBins)
+                massStellarLogarithmicCovarianceCombinedSelected(i,j)=massStellarLogarithmicCovarianceCombined(likelihoodBins(i),likelihoodBins(j))
              end do
           end do
        else
