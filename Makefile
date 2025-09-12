@@ -547,7 +547,16 @@ $(BUILDPATH)/libgalacticus.inc : $(BUILDPATH)/libgalacticus.p.Inc Makefile
 libgalacticus.so: $(BUILDPATH)/libgalacticus.o $(BUILDPATH)/libgalacticus_classes.d
 	./scripts/build/parameterDependencies.pl `pwd` libgalacticus.o
 	$(FCCOMPILER) -c $(BUILDPATH)/libgalacticus.parameters.F90 -o $(BUILDPATH)/libgalacticus.parameters.o $(FCFLAGS)
-	./scripts/build/sourceDigests.pl `pwd` libgalacticus.o
+	@if echo "$(MAKEFLAGS)" | grep -q -P -- ' -j1( |$$)'; then \
+	 useLocks=no; \
+	elif echo "$(MAKEFLAGS)" | grep -q -P -- ' -j( |$$)'; then \
+	 useLocks=$(LOCKMD5); \
+	elif echo "$(MAKEFLAGS)" | grep -q -P -- ' -j[0-9]+( |$$)'; then \
+	 useLocks=$(LOCKMD5); \
+	else \
+	 useLocks=no; \
+	fi; \
+	./scripts/build/sourceDigests.pl `pwd` libgalacticus.o $$useLocks
 	$(CCOMPILER) -c $(BUILDPATH)/libgalacticus.md5s.c -o $(BUILDPATH)/libgalacticus.md5s.o $(CFLAGS)
 	$(FCCOMPILER) -shared `sort -u $(BUILDPATH)/libgalacticus.d $(BUILDPATH)/libgalacticus_classes.d` $(BUILDPATH)/libgalacticus.parameters.o $(BUILDPATH)/libgalacticus.md5s.o -o libgalacticus.so $(FCFLAGS) `scripts/build/libraryDependencies.pl libgalacticus.o $(FCFLAGS)`
 
