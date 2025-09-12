@@ -17,10 +17,12 @@ use Storable;
 # Andrew Benson (06-February-2020)
 
 # Get the name of the executable to compute source digests for.
-die("Usage: sourceDigests.pl <sourceDirectory> <target>")
-    unless ( scalar(@ARGV) == 2 );
+die("Usage: sourceDigests.pl <sourceDirectory> <target> <useLocks>")
+    unless ( scalar(@ARGV) == 3 );
 my $sourceDirectoryName = $ARGV[0];
 my $targetName          = $ARGV[1];
+my $useLocks            = $ARGV[2];
+
 # Include files to exclude from MD5 construction:
 #  fftw3.f03 is part of the FFTW3 library, so not relevant to us;
 #  galacticus.output.build.environment.inc - contains compiler information so can change depending on, e.g. MPI vs. non-MPI build
@@ -112,7 +114,7 @@ foreach my $fileName ( @fileNames ) {
 	    my @sourceDigests = &Galacticus::Build::Directives::Extract_Directives($fileToProcess,'sourceDigest');
 	    foreach my $sourceDigest ( @sourceDigests ) {
 		my $hashName = $sourceDigest->{'name'};
-		$digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName],includeFilesExcluded => \@includeFilesExcluded);
+		$digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName],includeFilesExcluded => \@includeFilesExcluded, useLocks => $useLocks);
 		@{$digestsPerFile->{'types'}->{$hashName}->{'dependencies'}} = ();
 		$updatedTypes{$hashName} = 1;
 	    }
@@ -122,7 +124,7 @@ foreach my $fileName ( @fileNames ) {
 	    my @functionClassTypes = &Galacticus::Build::Directives::Extract_Directives($fileToProcess,'functionClassType');
 	    foreach my $functionClassType ( @functionClassTypes ) {
 		my $hashName = $functionClassType->{'name'};
-		$digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName],includeFilesExcluded => \@includeFilesExcluded);
+		$digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName],includeFilesExcluded => \@includeFilesExcluded, useLocks => $useLocks);
 		@{$digestsPerFile->{'types'}->{$hashName}->{'dependencies'}} = ( "functionClass" );
 		$updatedTypes{$hashName} = 1;
 	    }
@@ -132,7 +134,7 @@ foreach my $fileName ( @fileNames ) {
 	    my @functionClasses = &Galacticus::Build::Directives::Extract_Directives($fileToProcess,'functionClass');
 	    foreach my $functionClass ( @functionClasses ) {
 		my $hashName = $functionClass->{'name'}."Class";
-		$digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName],includeFilesExcluded => \@includeFilesExcluded);
+		$digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName],includeFilesExcluded => \@includeFilesExcluded, useLocks => $useLocks);
 		if ( exists($functionClass->{'extends'}) ) {
 		    @{$digestsPerFile->{'types'}->{$hashName}->{'dependencies'}} = ( $functionClass->{'extends'} );
 		} else {
@@ -155,7 +157,7 @@ foreach my $fileName ( @fileNames ) {
 		    # For self-referencing types, remove the self-reference here.
 		    @classDependencies = map {$_ eq $class->{'type'} ? () : $_} @classDependencies;
 		    # Store hash and dependencies.
-		    $digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName],includeFilesExcluded => \@includeFilesExcluded);
+		    $digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName],includeFilesExcluded => \@includeFilesExcluded, useLocks => $useLocks);
 		    @{$digestsPerFile->{'types'}->{$hashName}->{'dependencies'}} = @classDependencies;
 		    $updatedTypes{$hashName} = 1;
 		}
@@ -167,7 +169,7 @@ foreach my $fileName ( @fileNames ) {
 # Manually add the base "functionClass" type.
 my $functionClassFileName = "objects.function_class.F90";
 if ( ! $updateTime || ( -M "source/".$functionClassFileName < $updateTime ) ) {
-    $digestsPerFile->{'types'}->{'functionClass'}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$functionClassFileName],includeFilesExcluded => \@includeFilesExcluded);
+    $digestsPerFile->{'types'}->{'functionClass'}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$functionClassFileName],includeFilesExcluded => \@includeFilesExcluded, useLocks => $useLocks);
     @{$digestsPerFile->{'types'}->{'functionClass'}->{'dependencies'}} = ();
     delete($digestsPerFile->{'types'}->{'functionClass'}->{'compositeMD5'});
     $updatedTypes{'functionClass'} = 1;
