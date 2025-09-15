@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1757969687335,
+  "lastUpdate": 1757969696354,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "429b2f2ad82cd83b9033ebbc939de7d21f37e682",
-          "message": "Merge pull request #718 from galacticusorg/featModelReportState\n\nAdd options to report the base parameter file name and sampling state from the `posteriorSampleLikelihoodBaseParameters` class",
-          "timestamp": "2024-10-12T23:13:47Z",
-          "tree_id": "a652bc99765a83e04f82a1519576e8d08ebda588",
-          "url": "https://github.com/galacticusorg/galacticus/commit/429b2f2ad82cd83b9033ebbc939de7d21f37e682"
-        },
-        "date": 1728800254012,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 16.7849432368992,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 9.84739760989791,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 20528.8599070366,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8772,6 +8733,45 @@ window.BENCHMARK_DATA = {
             "value": 50.47,
             "range": "0.0921845974122259",
             "unit": "seconds"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "809e30715793824f9b8d3036ef6a5442a2460149",
+          "message": "Merge pull request #924 from galacticusorg/dependabot/github_actions/tj-actions/changed-files-47\n\nbuild(deps): Bump tj-actions/changed-files from 46 to 47",
+          "timestamp": "2025-09-15T14:38:22Z",
+          "tree_id": "e9803b25bcc5856c903bca673038ce48303aed57",
+          "url": "https://github.com/galacticusorg/galacticus/commit/809e30715793824f9b8d3036ef6a5442a2460149"
+        },
+        "date": 1757969695491,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 1.8263381179193676,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 2.369922296649278,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 10364.033854170002,
+            "unit": "-logℒ"
           }
         ]
       }
