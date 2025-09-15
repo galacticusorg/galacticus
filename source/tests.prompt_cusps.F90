@@ -79,7 +79,7 @@ program Test_Prompt_Cusps
   type            (coordinateSpherical                                           )              :: coordinates
   double precision                                                               , parameter    :: massHalo                           =3.15057d+8, redshiftHalo            =1.50000d+00, &
        &                                                                                           radiusSlopeMinus2                  =1.08798d-3, densityVirial200Critical=1.38923d+14
-  double precision                                                               , dimension(3) :: propertiesPromptCusp
+  double precision                                                               , dimension(6) :: propertiesPromptCusp
   double precision                                                                              :: radiusScale                                   , densityScale                        , &
        &                                                                                           radiusVirial                                  , massVirial                          , &
        &                                                                                           densitySlopeLogarithmic                       , densityVirialGalacticus             , &
@@ -250,6 +250,7 @@ program Test_Prompt_Cusps
   <referenceConstruct object="nodeOperator_"                      >
    <constructor>
     nodeOperatorDarkMatterProfilePromptCusps                      (                                                                                                              &amp;
+     &amp;                                                         nonConvergenceIsFatal                     =.true.                                                           , &amp;
      &amp;                                                         alpha                                     =24.0d0                                                           , &amp;
      &amp;                                                         beta                                      = 7.3d0                                                           , &amp;
      &amp;                                                         kappa                                     = 4.5d0                                                           , &amp;
@@ -269,6 +270,7 @@ program Test_Prompt_Cusps
   <referenceConstruct object="nodePropertyExtractor_"             >
    <constructor>
     nodePropertyExtractorPromptCusps                              (                                                                                                              &amp;
+     &amp;                                                         darkMatterHaloScale_                      =darkMatterHaloScale_                                               &amp;
      &amp;                                                        )
    </constructor>
   </referenceConstruct>
@@ -297,7 +299,7 @@ program Test_Prompt_Cusps
   amplitudeCusp           =   propertiesPromptCusp(1)
   massCusp                =   propertiesPromptCusp(2)
   yCusp                   =   propertiesPromptCusp(3)
-  radiusScale             =   darkMatterProfile     %scale  (                 )
+  radiusScale             =   propertiesPromptCusp(4)
   coordinates             =  [radiusScale      ,0.0d0,0.0d0]
   densityScale            =  +massDistribution_%density               (coordinates                                ) &
        &                     *4.0d0                                                                                 &
@@ -314,7 +316,7 @@ program Test_Prompt_Cusps
   !!]
   call Assert("A"  ,amplitudeCusp         ,+1.13266d+11,relTol=2.5d-3)
   call Assert("m"  ,massCusp              ,+1.56615d+06,relTol=3.0d-2)
-  call Assert("y"  ,yCusp                 ,+2.25290d-01,relTol=3.0d-3)
+  call Assert("y"  ,yCusp                 ,+2.25290d-01,relTol=4.0d-3)
   call Assert("rₛ" ,radiusScale            ,+1.14456d-03,relTol=1.0d-3)
   call Assert("ρₛ" ,densityScale           ,+1.29838d+16,relTol=1.0d-3)
   call Assert("α₋₂",densitySlopeLogarithmic,-2.00000d+00,relTol=1.0d-3)

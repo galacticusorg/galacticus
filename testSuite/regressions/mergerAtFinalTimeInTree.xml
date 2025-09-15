@@ -4,7 +4,8 @@
 <!-- to avoid a spurious deadlock condition.                                          -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
+  <lastModified revision="d4bf2d8db876eb8e44d94e1672bc36a6ea8135cc" time="2025-09-03T18:23:58"/>
+
   <verbosityLevel value="standard"/>
   <componentDarkMatterProfile value="scaleFree"/>
   <starFormationRateDisks value="timescale">
@@ -52,8 +53,13 @@
     <nodeOperator value="CGMCoolingInflow">
       <component value="disk"/>
     </nodeOperator>
-    <nodeOperator value="CGMAccretion"/>
-    <nodeOperator value="CGMStarvation"/>
+    <nodeOperator value="CGMAccretion">
+      <allowNegativeCGMMass value="false"/>
+    </nodeOperator>
+    <nodeOperator value="CGMStarvation">
+      <starveOutflowsOnly value="false"/>
+      <fractionBaryonLimitInNodeMerger value="false"/>
+    </nodeOperator>
   </nodeOperator>
 
   <coolingTime value="simple">
