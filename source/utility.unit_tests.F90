@@ -281,7 +281,7 @@ contains
        end do
     end if
     if (passCount+failCount > 0) then
-       percentage=int(100.0d0*dble(passCount)/dble(passCount+failCount))
+       percentage=int(100.0d0*dble(passCount)/dble(passCount+failCount)+0.5d0)
     else
        percentage=100
     end if
@@ -289,7 +289,7 @@ contains
     message=message//passCount//" ("//percentage//"%)"
     call displayMessage(message)
     if (passCount+failCount > 0) then
-       percentage=int(100.0d0*dble(failCount)/dble(passCount+failCount))
+       percentage=int(100.0d0*dble(failCount)/dble(passCount+failCount)+0.5d0)
     else
        percentage=  0
     end if

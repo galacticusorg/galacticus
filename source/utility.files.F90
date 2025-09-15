@@ -54,6 +54,14 @@ module File_Utilities
      module procedure File_Exists_VarStr
   end interface File_Exists
 
+  interface File_Lock
+     !!{
+     Generic interface for functions that lock a file
+     !!}
+     module procedure File_Lock_Char
+     module procedure File_Lock_VarStr
+  end interface File_Lock
+
   interface File_Modification_Time
      !!{
      Generic interface for file modification functions.
@@ -69,6 +77,14 @@ module File_Utilities
      module procedure File_Path_Char
      module procedure File_Path_VarStr
   end interface File_Path
+
+  interface File_Name
+     !!{
+     Generic interface for functions that return the name of a file.
+     !!}
+     module procedure File_Name_Char
+     module procedure File_Name_VarStr
+  end interface File_Name
 
   interface File_Remove
      !!{
@@ -304,7 +320,22 @@ contains
     return
   end function Count_Lines_in_File_Char
 
-  subroutine File_Lock(fileName,lock,lockIsShared,timeSleep,countAttempts)
+  subroutine File_Lock_VarStr(fileName,lock,lockIsShared,timeSleep,countAttempts)
+    !!{
+    Place a lock on a file.
+    !!}
+    use :: ISO_Varying_String, only : char
+    implicit none
+    type   (varying_string), intent(in   )           :: fileName
+    type   (lockDescriptor), intent(inout)           :: lock
+    logical                , intent(in   ), optional :: lockIsShared
+    integer(c_int         ), intent(in   ), optional :: timeSleep   , countAttempts
+
+    call File_Lock(char(fileName),lock,lockIsShared,timeSleep,countAttempts)
+    return
+  end subroutine File_Lock_VarStr
+  
+  subroutine File_Lock_Char(fileName,lock,lockIsShared,timeSleep,countAttempts)
     !!{
     Place a lock on a file.
     !!}
@@ -369,7 +400,7 @@ contains
     end do
     lock%fileName=trim(fileName)
     return
-  end subroutine File_Lock
+  end subroutine File_Lock_Char
 
   subroutine File_Unlock(lock,sync)
     !!{
@@ -545,22 +576,35 @@ contains
     return
   end function File_Path_Char
 
-  function File_Name(fileName)
+  function File_Name_VarStr(fileName)
+    !!{
+    Returns the path to the file.
+    !!}
+    use :: ISO_Varying_String, only : char, varying_string
+    implicit none
+    type(varying_string)                :: File_Name_VarStr
+    type(varying_string), intent(in   ) :: fileName
+
+    File_Name_VarStr=File_Name(char(fileName))
+    return
+  end function File_Name_VarStr
+
+  function File_Name_Char(fileName)
     !!{
     Returns the path to the file.
     !!}
     use :: ISO_Varying_String, only : assignment(=), extract, index, varying_string
     implicit none
-    type     (varying_string)                :: File_Name
+    type     (varying_string)                :: File_Name_Char
     character(len=*         ), intent(in   ) :: fileName
 
     if (index(fileName,"/",back=.true.) > 0) then
-       File_Name=extract(fileName,index(fileName,"/",back=.true.)+1,len(fileName))
+       File_Name_Char=extract(fileName,index(fileName,"/",back=.true.)+1,len(fileName))
     else
-       File_Name=fileName
+       File_Name_Char=fileName
     end if
     return
-  end function File_Name
+  end function File_Name_Char
 
   function File_Name_Temporary(fileRootName,path) result(fileName)
     !!{
@@ -679,16 +723,55 @@ contains
     Expands placeholders for Galacticus paths in file names.
     !!}
     use :: Input_Paths       , only : inputPath    , pathTypeDataDynamic, pathTypeDataStatic, pathTypeExec
-    use :: ISO_Varying_String, only : assignment(=), replace
+    use :: ISO_Varying_String, only : assignment(=), replace            , index             , extract     , &
+         &                            char         , var_str            , operator(//)
+    use :: Error             , only : Error_Report
     implicit none
     type     (varying_string)                :: fileNameOut
     character(len=*         ), intent(in   ) :: fileNameIn
+    type     (varying_string)                :: variableName  , variableContent
+    integer                                  :: indexStart    , indexEnd       , &
+         &                                      variableLength, status
 
     fileNameOut=fileNameIn
+    ! Handle custom paths.
     fileNameOut=replace(fileNameOut,"%EXECPATH%"       ,inputPath(pathTypeExec       ),every=.true.)
     fileNameOut=replace(fileNameOut,"%DATASTATICPATH%" ,inputPath(pathTypeDataStatic ),every=.true.)
     fileNameOut=replace(fileNameOut,"%DATADYNAMICPATH%",inputPath(pathTypeDataDynamic),every=.true.)
+    ! Handle generic environment variables.
+    do while (index(fileNameOut,"%") /= 0)
+       indexStart=index(        fileNameOut              ,"%")
+       indexEnd  =index(extract(fileNameOut,indexStart+1),"%")
+       if (indexEnd == 0) exit
+       variableName=extract(fileNameOut,indexStart+1,indexStart+indexEnd-1)
+       call Get_Environment_Variable(char(variableName),length=variableLength,status=status)
+       if (status == 0) then
+          call variableRetrieve(variableContent,char(variableName),variableLength)
+       else
+          call Error_Report(var_str('environment variable `')//variableName//'` is not defined'//{introspection:location})
+       end if
+       fileNameOut=extract(fileNameOut,1,indexStart-1)//variableContent//extract(fileNameOut,indexStart+indexEnd+1)
+    end do
     return
+
+  contains
+
+    subroutine variableRetrieve(variableContent,variableName,variableLength)
+      !!{
+      Retrieve an environment variable
+      !!}
+      use :: ISO_Varying_String, only : assignment(=)
+      implicit none
+      type     (varying_string    ), intent(  out) :: variableContent
+      integer                      , intent(in   ) :: variableLength
+      character(len=*             ), intent(in   ) :: variableName
+      character(len=variableLength)                :: variableContent_
+      
+      call Get_Environment_Variable(variableName,value=variableContent_)
+      variableContent=variableContent_
+      return
+    end subroutine variableRetrieve
+    
   end function File_Name_Expand
 
   function File_Modification_Time_VarStr(fileName,status) result(timeModification)

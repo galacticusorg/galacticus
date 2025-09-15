@@ -47,6 +47,12 @@ module IO_XML
      module procedure XML_List_Character_Array_Read_Static_One_Column
   end interface XML_Array_Read_Static
 
+  ! Interface for parsing function.
+  interface XML_Parse
+     module procedure XML_Parse_VarStr
+     module procedure XML_Parse_Char
+  end interface XML_Parse
+  
   type :: xincludeNode
      !!{
      Type used while resolving XInclude references during XML parsing.
@@ -514,11 +520,28 @@ contains
     return
   end subroutine XML_Extrapolation_Element_Decode
   
-  function XML_Parse(fileName,iostat,ex,fileNameCurrent) result(document)
+  function XML_Parse_VarStr(fileName,iostat,ex,fileNameCurrent) result(document)
     !!{
     Parse an XML document, automatically resolve XInclude references.
     !!}
-    use :: File_Utilities    , only : File_Exists  , File_Name         , File_Path
+    use :: FoX_dom           , only : DOMException, node
+    use :: ISO_Varying_String, only : char
+    implicit none
+    type   (node          ), pointer                 :: document
+    type   (varying_string), intent(in   )           :: fileName
+    type   (varying_string), intent(  out), optional :: fileNameCurrent
+    integer                , intent(inout), optional :: iostat
+    type   (DOMException  ), intent(  out), optional :: ex
+
+    document => XML_Parse(char(fileName),iostat,ex,fileNameCurrent)
+    return
+  end function XML_Parse_VarStr
+  
+  function XML_Parse_Char(fileName,iostat,ex,fileNameCurrent) result(document)
+    !!{
+    Parse an XML document, automatically resolve XInclude references.
+    !!}
+    use :: File_Utilities    , only : File_Exists  , File_Name         , File_Path    , File_Name_Expand
     use :: FoX_dom           , only : DOMException , ELEMENT_NODE      , destroy      , getAttribute    , &
           &                           getChildNodes, getDocumentElement, getFirstChild, getNextSibling  , &
           &                           getNodeName  , getNodeType       , getParentNode, hasAttribute    , &
@@ -544,12 +567,15 @@ contains
     integer                                                  :: stackCount         , stackListCount, &
          &                                                      i                  , countElements
     type     (varying_string  )                              :: filePath           , fileLeaf      , &
-         &                                                      nameInsert         , fileNameFull
+         &                                                      nameInsert         , fileNameFull  , &
+         &                                                      fileName_
     logical                                                  :: allElements
 
+    ! Expand the file name.
+    fileName_=File_Name_Expand(fileName)
     ! Extract the path and leaf name to our document.
-    filePath=File_Path(fileName)
-    fileLeaf=File_Name(fileName)
+    filePath=File_Path(fileName_)
+    fileLeaf=File_Name(fileName_)
     ! Initialize the XInclude reference stack.
     allocate(stack(stackExpandCount))
     stackCount                     =  1
@@ -571,7 +597,7 @@ contains
        end if
        if (present(fileNameCurrent)) fileNameCurrent=fileNameFull
        ! Check that file exists.
-       if (.not.File_Exists(char(fileNameFull))) call Error_Report('file "'//char(fileNameFull)//'" does not exist'//{introspection:location})
+       if (.not.File_Exists(fileNameFull)) call Error_Report('file "'//char(fileNameFull)//'" does not exist'//{introspection:location})
        ! Parse the document.
        nodeNew => parseFile(char(fileNameFull),iostat=iostat,ex=ex)
        if (present(iostat).and.iostat /= 0.or.present(ex).and.inException(ex)) return
@@ -695,6 +721,6 @@ contains
     end do
     call setLiveNodeLists(document,.true.)  
     return
-  end function XML_Parse
+  end function XML_Parse_Char
 
 end module IO_XML

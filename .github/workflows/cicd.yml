@@ -914,7 +914,6 @@ jobs:
       matrix:
         executable: [ tests.nodes.exe,
                       tests.parameters.exe,
-                      tests.files.exe,
                       tests.IO.XML.exe,
                       tests.ODE_solver.exe,
                       tests.random.exe,
@@ -1030,6 +1029,19 @@ jobs:
       executable: ${{ matrix.executable }}
       artifact: test-execs
     secrets: inherit
+  ### Test Files
+  Files:
+    needs: Build-Executable-Linux
+    steps:
+      - name: "Set environmental variables"
+        run: |
+          echo "PARAM_PATH=/home/galacticus/super/secret/stuff >> $GITHUB_ENV
+      - name: "Run test code"
+        uses: ./.github/workflows/testCode.yml
+        with:
+          executable: tests.files.exe
+          artifact: test-execs
+        secrets: inherit
   ### Test HDF5 IO
   IO-HDF5:
     needs: Build-Executable-Linux
