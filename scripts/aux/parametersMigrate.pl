@@ -38,12 +38,17 @@ print "Translating file: ".$inputFileName."\n";
 open(my $fileInput ,"<",$inputFileName       );
 open(my $fileOutput,">",$inputFileName.".tmp");
 my $inMultiline = 0;
+my $inComment   = 0;
 while ( my $line = <$fileInput> ) {
     my $countQuotes = $line =~ tr/"//;
+    $inComment = 1
+	if ( $line =~ m/<!\-\-/ );
     $inMultiline = 1-$inMultiline
-	if ( $countQuotes % 2 == 1 );
+	if ( $countQuotes % 2 == 1 && ! $inComment );
     $line =~ s/\n/\%\%NEWLINE\%\%/
-	if ( $inMultiline );
+	if ( $inMultiline          && ! $inComment );
+    $inComment = 0
+	if ( $line =~ m/\-\->/ );
     print $fileOutput $line;
 }
 close($fileInput );
@@ -108,7 +113,7 @@ close($outputFile);
 # If requested, ignore whitespace changes.
 if ( $options{'ignoreWhiteSpaceChanges'} eq "yes" ) {
     # Make a patch from the old to the new file, but ignoring changes in whitespace.
-    system("diff -w -p ".$inputFileName.".tmp ".$outputFileName.".tmp > tmp__.patch");
+    system("diff -w -u ".$inputFileName.".tmp ".$outputFileName.".tmp > tmp__.patch");
     # Apply the patch to the old file - we now have migrations applied, but no change in whitespace formatting.
     system("patch ".$inputFileName.".tmp tmp__.patch --output=".$outputFileName.".tmp");
 }
