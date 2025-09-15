@@ -1032,6 +1032,7 @@ jobs:
   ### Test Files
   Files:
     needs: Build-Executable-Linux
+    secrets: inherit
     steps:
       - name: "Set environmental variables"
         run: |
@@ -1041,7 +1042,6 @@ jobs:
         with:
           executable: tests.files.exe
           artifact: test-execs
-        secrets: inherit
   ### Test HDF5 IO
   IO-HDF5:
     needs: Build-Executable-Linux
