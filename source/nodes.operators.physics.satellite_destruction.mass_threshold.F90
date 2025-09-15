@@ -32,7 +32,8 @@
      !!}
      private
      double precision :: massDestructionAbsolute        , massDestructionMassInfallFraction, &
-         &               massDestructionMassTreeFraction
+          &              massDestructionMassTreeFraction
+     logical          :: mergeOnDestruction
    contains
      !![
      <methods>
@@ -67,6 +68,7 @@ contains
     type            (inputParameters                              ), intent(inout) :: parameters
     double precision                                                               :: massDestructionAbsolute        , massDestructionMassInfallFraction, &
          &                                                                            massDestructionMassTreeFraction
+    logical                                                                        :: mergeOnDestruction
 
     !![
     <inputParameter>
@@ -87,15 +89,21 @@ contains
       <description>The fraction of the tree mass below which satellites are destroyed.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>mergeOnDestruction</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, destruction actually triggers the satellite to be merged with its central galaxy instead of being destroyed.</description>
+      <source>parameters</source>
+    </inputParameter>
     !!]
-    self=nodeOperatorSatelliteDestructionMassThreshold(massDestructionAbsolute,massDestructionMassInfallFraction,massDestructionMassTreeFraction)
+    self=nodeOperatorSatelliteDestructionMassThreshold(massDestructionAbsolute,massDestructionMassInfallFraction,massDestructionMassTreeFraction,mergeOnDestruction)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function satelliteDestructionMassThresholdConstructorParameters
 
-  function satelliteDestructionMassThresholdConstructorInternal(massDestructionAbsolute,massDestructionMassInfallFraction,massDestructionMassTreeFraction) result(self)
+  function satelliteDestructionMassThresholdConstructorInternal(massDestructionAbsolute,massDestructionMassInfallFraction,massDestructionMassTreeFraction,mergeOnDestruction) result(self)
     !!{
     Internal constructor for the \refClass{nodeOperatorSatelliteDestructionMassThreshold} node operator class.
     !!}
@@ -103,8 +111,9 @@ contains
     type            (nodeOperatorSatelliteDestructionMassThreshold)                :: self
     double precision                                               , intent(in   ) :: massDestructionAbsolute        , massDestructionMassInfallFraction, &
          &                                                                            massDestructionMassTreeFraction
+    logical                                                        , intent(in   ) :: mergeOnDestruction
     !![
-    <constructorAssign variables="massDestructionAbsolute, massDestructionMassInfallFraction, massDestructionMassTreeFraction"/>
+    <constructorAssign variables="massDestructionAbsolute, massDestructionMassInfallFraction, massDestructionMassTreeFraction, mergeOnDestruction"/>
     !!]
     
     return
@@ -146,25 +155,33 @@ contains
     !!{
     Trigger destruction of the satellite by setting the time until destruction to zero.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentSatellite, treeNode
-    use :: Display         , only : displayBlue           , displayYellow, displayGreen, displayReset
+    use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentBasic, treeNode
+    use :: Display         , only : displayBlue           , displayYellow     , displayGreen, displayReset
     use :: Error           , only : Error_Report
     implicit none
     type            (treeNode              ), intent(inout), target   :: node
     double precision                        , intent(in   ), optional :: timeEnd
     class           (nodeComponentSatellite)               , pointer  :: satellite
+    class           (nodeComponentBasic    )               , pointer  :: basic
     !$GLC attributes unused :: timeEnd
     
     satellite => node%satellite()
     if (satellite%boundMass() < self_%massDestroy(node)) then
-       if (satellite%destructionTime() >= 0.0d0)                                                                                                                                                                               &
-            call Error_Report(                                                                                                                                                                                                  &
-            &                 'satellite was previously triggered for destruction - but still exists'                                                                                                              //char(10)// &
-            &                 displayGreen()//'  HELP:'//displayReset()//' destruction requires the following timestepper to be included:'                                                                         //char(10)// &
-            &                 '    <'//displayBlue()//'mergerTreeEvolveTimestep'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"satelliteDestruction"'//displayReset()//'>'          // &
-            &                 {introspection:location}                                                                                                                                                                          &
-            &                )
-       call satellite%destructionTimeSet(0.0d0)
+       if (self_%mergeOnDestruction) then
+          ! Destruction is really just merging. Set the merging time to now to trigger merging to occur.
+          basic => node%basic()
+          call satellite%timeOfMergingSet(basic%time())
+       else
+          ! Destruction really mean destruction. Set the destruction time to zero to trigger destruction to occur.
+          if (satellite%destructionTime() >= 0.0d0)                                                                                                                                                                                  &
+               & call Error_Report(                                                                                                                                                                                                  &
+               &                   'satellite was previously triggered for destruction - but still exists'                                                                                                              //char(10)// &
+               &                   displayGreen()//'  HELP:'//displayReset()//' destruction requires the following timestepper to be included:'                                                                         //char(10)// &
+               &                   '    <'//displayBlue()//'mergerTreeEvolveTimestep'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"satelliteDestruction"'//displayReset()//'>'          // &
+               &                   {introspection:location}                                                                                                                                                                          &
+               &                  )
+          call satellite%destructionTimeSet(0.0d0)
+       end if
     end if
     return
   end subroutine destructionTrigger
