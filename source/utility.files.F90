@@ -729,9 +729,11 @@ contains
     implicit none
     type     (varying_string)                :: fileNameOut
     character(len=*         ), intent(in   ) :: fileNameIn
-    type     (varying_string)                :: variableName  , variableContent
-    integer                                  :: indexStart    , indexEnd       , &
-         &                                      variableLength, status
+    integer                  , parameter     :: iterationMaximum=10000
+    type     (varying_string)                :: variableName          , variableContent
+    integer                                  :: indexStart            , indexEnd       , &
+         &                                      variableLength        , status         , &
+         &                                      iteration
 
     fileNameOut=fileNameIn
     ! Handle custom paths.
@@ -739,7 +741,10 @@ contains
     fileNameOut=replace(fileNameOut,"%DATASTATICPATH%" ,inputPath(pathTypeDataStatic ),every=.true.)
     fileNameOut=replace(fileNameOut,"%DATADYNAMICPATH%",inputPath(pathTypeDataDynamic),every=.true.)
     ! Handle generic environment variables.
+    iteration=0
     do while (index(fileNameOut,"%") /= 0)
+       iteration =iteration+1
+       if (iteration > iterationMaximum) call Error_Report("infinite loop expanding file name '"//fileNameIn//"':"//char(10)//"   currently: '"//char(fileNameOut)//"'"//{introspection:location})
        indexStart=index(        fileNameOut              ,"%")
        indexEnd  =index(extract(fileNameOut,indexStart+1),"%")
        if (indexEnd == 0) exit
