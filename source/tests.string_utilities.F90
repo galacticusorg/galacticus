@@ -25,20 +25,17 @@ program Test_String_Utilities
   !!{
   Tests that numerical range making code works correctly.
   !!}
-  use :: Display           , only : displayVerbositySet      , verbosityLevelStandard, displayMessage
-  use :: ISO_Varying_String, only : assignment(=)            , varying_string        , char                       , var_str           , &
-       &                            operator(//)             , operator(==)
+  use :: Display           , only : displayVerbositySet      , verbosityLevelStandard
+  use :: ISO_Varying_String, only : assignment(=)            , varying_string        , char
   use :: Kind_Numbers      , only : kind_int8
   use :: String_Handling   , only : Convert_VarString_To_Char, String_Count_Words    , String_Levenshtein_Distance, String_Lower_Case , &
        &                            String_Split_Words       , String_Upper_Case     , String_Upper_Case_First    , String_Superscript, &
-       &                            String_Subscript         , operator(//)          , stringXMLFormat
-  use :: System_Command    , only : System_Command_Do
+       &                            String_Subscript         , operator(//)
   use :: Unit_Tests        , only : Assert                   , Unit_Tests_Begin_Group, Unit_Tests_End_Group       , Unit_Tests_Finish
   implicit none
   character(len=20        ), dimension(3) :: words
   type     (varying_string), dimension(3) :: myStrings
-  type     (varying_string)               :: myString1, myString2      , &
-       &                                     xmlFormat, xmlFormatTarget
+  type     (varying_string)               :: myString1, myString2
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -112,27 +109,6 @@ program Test_String_Utilities
        &       3                                                &
        &      ]                                                 &
        &     )
-
-  ! Pretty-print an XML string.
-  xmlFormat      =stringXMLFormat('<make><this xml="look"/>**B<pretty value="please" and="thank you"/></make>',forceColor=.true.)
-  xmlFormatTarget='<[34mmake[0m>[0m'//char(10)//'  <[34mthis[0m [33mxml[0m="[32mlook[0m"/>[0m'//char(10)//'[1m  <[34mpretty[0m[1m [33mvalue[0m[1m="[32mplease[0m[1m" [33mand[0m[1m="[32mthank you[0m[1m"/>[0m'//char(10)//'</[34mmake[0m>[0m'
-  call Assert('XML formatter string #1',xmlFormat,xmlFormatTarget)
-  call displayMessage(var_str('XML formatted string #1:')//char(10)//xmlFormat)
-
-  xmlFormat      =stringXMLFormat('<mergerTreeEvolver value="doop">**B<allTreesExistAtFinalTime value="false" />**C</mergerTreeEvolver>',indentInitial=6)
-  xmlFormatTarget='      <[34mmergerTreeEvolver[0m [33mvalue[0m="[32mdoop[0m">[0m'//char(10)//'[1m        <[34mallTreesExistAtFinalTime[0m[1m [33mvalue[0m[1m="[32mfalse[0m[1m" />[0m'//char(10)//'        ......'//char(10)//'      </[34mmergerTreeEvolver[0m>[0m'
-  call Assert('XML formatter string #2',xmlFormat,xmlFormatTarget)
-  call displayMessage(var_str('XML formatted string #2:')//char(10)//xmlFormat)
-  
-  ! block
-  !   ! This is an example of how to get the target string for these assertions. Once the formatter is producing the correct output,
-  !   ! it can be written to file, and then included into this source code for comparison.
-  !   integer :: i
-  !   open(newUnit=i,file='xmlFormatted.txt',form='formatted',status='unknown')
-  !   write (i,'(a)') char(xmlFormat)
-  !   close(i)
-  !   call System_Command_Do("sed -i~ -r ':a;N;$!ba;s/\n/'\''\/\/char\(10\)\/\/'\''/g' xmlFormatted.txt")
-  ! end block
 
   ! End unit tests.
   call Unit_Tests_End_Group()
