@@ -322,7 +322,7 @@ contains
     use :: Galacticus_Nodes                , only : treeNode           , nodeComponentBasic       , nodeComponentDarkMatterProfile
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Units       , only : electronVolt
-    use :: Numerical_Constants_Astronomical, only : megaParsec         , MpcPerKmPerSToGyr
+    use :: Numerical_Constants_Astronomical, only : megaParsec
     use :: Numerical_Constants_Physical    , only : speedLight         , plancksConstant
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Cosmology_Parameters            , only : hubbleUnitsStandard, hubbleUnitsLittleH
@@ -350,7 +350,6 @@ contains
          &                                                             OmegaMatter                         , densityMatter              , &
          &                                                             zeta_0                              , zeta_z                     , &
          &                                                             randomOffset                        , massCoreNormal
-    double precision                                                :: massCoretest
     double precision                                , parameter     :: alpha             =0.515            , beta               =8.0d6  , &
          &                                                             gamma             =10.0d0**(-5.73d0)                                 ! Best-fitting parameters from Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
     integer                                                         :: status                              , sampleCount                , &
