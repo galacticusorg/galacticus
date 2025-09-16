@@ -56,7 +56,8 @@
           &                                                     densityCorePrevious                         , densityScalePrevious                      , &
           &                                                     massCorePrevious
      integer          (kind_int8                  )          :: lastUniqueID
-     integer                                                 :: randomOffsetID                              , densityCoreID
+     integer                                                 :: randomOffsetID                              , densityCoreID                             , &
+          &                                                     radiusCoreID                                , densityCoreAccretionID
    contains
      !![
      <methods>
@@ -151,6 +152,8 @@ contains
     <constructorAssign variables="*darkMatterHaloScale_, *darkMatterParticle_, *cosmologyFunctions_, *cosmologyParameters_, *virialDensityContrast_, toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum"/>
     <addMetaProperty component="darkMatterProfile" name="randomOffset" id="self%randomOffsetID" isEvolvable="no" isCreator="yes"/>
     <addMetaProperty component="basic"             name="densityCore"  id="self%densityCoreID"  isEvolvable="no" isCreator="yes"/>
+    <addMetaProperty component="basic"             name="radiusCore"   id="self%radiusCoreID"   isEvolvable="no" isCreator="yes"/>
+    <addMetaProperty component="basic"             name="densityCoreAccretion" id="self%densityCoreAccretionID" isEvolvable="yes" isCreator="no"/>
     !!]
 
     self%lastUniqueID=-huge(1_kind_int8)
@@ -249,7 +252,7 @@ contains
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
     !!]
-    
+
     ! Return a null distribution if weighting is not by mass.
     massDistribution_ => null()
     if (weightBy_ /= weightByMass) return
@@ -319,7 +322,7 @@ contains
     use :: Galacticus_Nodes                , only : treeNode           , nodeComponentBasic       , nodeComponentDarkMatterProfile
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Units       , only : electronVolt
-    use :: Numerical_Constants_Astronomical, only : megaParsec
+    use :: Numerical_Constants_Astronomical, only : megaParsec         , MpcPerKmPerSToGyr
     use :: Numerical_Constants_Physical    , only : speedLight         , plancksConstant
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Cosmology_Parameters            , only : hubbleUnitsStandard, hubbleUnitsLittleH
@@ -347,6 +350,7 @@ contains
          &                                                             OmegaMatter                         , densityMatter              , &
          &                                                             zeta_0                              , zeta_z                     , &
          &                                                             randomOffset                        , massCoreNormal
+    double precision                                                :: massCoretest
     double precision                                , parameter     :: alpha             =0.515            , beta               =8.0d6  , &
          &                                                             gamma             =10.0d0**(-5.73d0)                                 ! Best-fitting parameters from Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
     integer                                                         :: status                              , sampleCount                , &
@@ -379,30 +383,12 @@ contains
     densityMatter       =+self%cosmologyParameters_%densityCritical(                   ) &
          &                      *                   OmegaMatter
     ! Compute the core mass.
-    zeta_0             =+self%virialDensityContrast_%densityContrast(massHalo,expansionFactor=1.0d0          )
-    zeta_z             =+self%virialDensityContrast_%densityContrast(massHalo,expansionFactor=expansionFactor)
-    massCoreNormal     =+(                          & ! Equation (15) of Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
-         &                +beta                     &
-         &                *(                        &
-         &                  +self%massParticle      &
-         &                  /8.0d-23                &
-         &                 )**(-1.5d0)              &
-         &                +(                        &
-         &                  +sqrt(                  &
-         &                        +zeta_z           &
-         &                        /zeta_0           &
-         &                       )                  &
-         &                  *massHalo               &
-         &                  /gamma                  &
-         &                 )**alpha                 &
-         &                *(                        &
-         &                  +self%massParticle      &
-         &                  /8.0d-23                &
-         &                 )**(1.5d0*(alpha-1.0d0)) &
-         &               )&
-         &              /sqrt(expansionFactor)
-    radiusScale_      =radiusScale
-    densityScale_     =densityScale
+    zeta_0             =+self% virialDensityContrast_%densityContrast(massHalo,expansionFactor=1.0d0          )
+    zeta_z             =+self% virialDensityContrast_%densityContrast(massHalo,expansionFactor=expansionFactor)
+    massCoreNormal     =+basic%floatRank0MetaPropertyGet(self%densityCoreAccretionID)
+
+    radiusScale_       =radiusScale
+    densityScale_      =densityScale
     ! Solve for the soliton radius.
     if (.not.finderInitialized) then
        finder=rootFinder(                                        &
@@ -451,6 +437,7 @@ contains
        end if
     end do
     call basic%floatRank0MetaPropertySet(self%densityCoreID,densityCore)
+    call basic%floatRank0MetaPropertySet(self%radiusCoreID ,radiusCore )
     return
   end subroutine solitonNFWComputeProperties
 
