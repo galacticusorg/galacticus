@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Yu Zhao
+
   !!{
      Implements a node operator class that evaluates the \gls{fdm} solitonic core–halo relation, following Equation (15) of \cite{chan_diversity_2022}, with modifications to include time differentiation and integration to track the evolution of the core mass.
   !!}

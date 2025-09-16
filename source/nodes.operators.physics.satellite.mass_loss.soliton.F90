@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Yu Zhao
+
   !!{
   Implements a node operator class that accumulates the tidal-heating source term from the FDM solitonic core, following the model of \cite{du_tidal_2018}.
   !!}

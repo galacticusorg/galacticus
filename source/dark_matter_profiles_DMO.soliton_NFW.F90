@@ -150,9 +150,9 @@ contains
     double precision                                , intent(in)         :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
     !![
     <constructorAssign variables="*darkMatterHaloScale_, *darkMatterParticle_, *cosmologyFunctions_, *cosmologyParameters_, *virialDensityContrast_, toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum"/>
-    <addMetaProperty component="darkMatterProfile" name="randomOffset" id="self%randomOffsetID" isEvolvable="no" isCreator="yes"/>
-    <addMetaProperty component="basic"             name="densityCore"  id="self%densityCoreID"  isEvolvable="no" isCreator="yes"/>
-    <addMetaProperty component="basic"             name="radiusCore"   id="self%radiusCoreID"   isEvolvable="no" isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="randomOffset"         id="self%randomOffsetID"         isEvolvable="no"  isCreator="yes"/>
+    <addMetaProperty component="basic"             name="densityCore"          id="self%densityCoreID"          isEvolvable="no"  isCreator="yes"/>
+    <addMetaProperty component="basic"             name="radiusCore"           id="self%radiusCoreID"           isEvolvable="no"  isCreator="yes"/>
     <addMetaProperty component="basic"             name="densityCoreAccretion" id="self%densityCoreAccretionID" isEvolvable="yes" isCreator="no"/>
     !!]
 
