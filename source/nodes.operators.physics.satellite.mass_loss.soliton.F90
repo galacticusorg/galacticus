@@ -18,19 +18,19 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implements a node operator class that accumulates the tidal-heating source term from the FDM solitonic core, following the model of \cite{Du_tidal_2018}.
+  Implements a node operator class that accumulates the tidal-heating source term from the FDM solitonic core, following the model of \cite{du_tidal_2018}.
   !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
   <nodeOperator name="nodeOperatorSatelliteSolitonMassLoss">
-   <description>A node operator class that accumulates the tidal-heating source term from the FDM solitonic core, following the model of \cite{Du_tidal_2018}.</description>
+   <description>A node operator class that accumulates the tidal-heating source term from the FDM solitonic core, following the model of \cite{du_tidal_2018}.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteSolitonMassLoss
      !!{
-     A node operator class that accumulates the tidal-heating source term from the FDM solitonic core, following the model of \cite{Du_tidal_2018}.
+     A node operator class that accumulates the tidal-heating source term from the FDM solitonic core, following the model of \cite{du_tidal_2018}.
      !!}
      private
      class  (darkMatterHaloScaleClass               ), pointer :: darkMatterHaloScale_ => null()
