@@ -149,7 +149,8 @@ contains
 
   subroutine darkMatterProfileSolitonDifferentialEvolutionScales(self,node)
     !!{
-    Set absolute ODE solver scale for the energy radiated from the hot halo due to cooling following the model of \cite{benson_galaxy_2010-1}.
+    Set the absolute ODE solver scale for the solitonic core mass evolution,
+    using a fraction of the minimum core mass as reference, following \cite{chan_diversity_2022}.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentBasic
     implicit none
@@ -169,7 +170,7 @@ contains
 
   subroutine darkMatterProfileSolitonDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
     !!{
-    Accumulates an estimate of the energy radiated from the hot halo due to cooling following the model of \cite{benson_galaxy_2010-1}.
+    Time derivative of the solitonic core mass following \cite{chan_diversity_2022}.
     !!}
     use :: Galacticus_Nodes                , only : treeNode           , nodeComponentBasic       , nodeComponentDarkMatterProfile
     implicit none
