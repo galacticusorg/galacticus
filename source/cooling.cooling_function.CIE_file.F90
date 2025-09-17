@@ -545,7 +545,6 @@ contains
     !!}
     use :: Display           , only : displayIndent                     , displayUnindent     , verbosityLevelWorking       , displayGreen         , &
          &                            displayReset
-    use :: File_Utilities    , only : File_Name_Expand
     use :: Error             , only : Error_Report                      , errorStatusSuccess
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5Object
@@ -564,7 +563,7 @@ contains
     !$ call hdf5Access%set()
     ! Read the file.
     call displayIndent('Reading file: '//char(fileName),verbosityLevelWorking)
-    call coolingFunctionFile%openFile(char(File_Name_Expand(char(fileName))),readOnly=.true.)
+    call coolingFunctionFile%openFile(fileName,readOnly=.true.)
     ! Check the file format version of the file.
     call coolingFunctionFile%readAttribute('fileFormat',fileFormatVersion)
     if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('file format version is out of date'//{introspection:location})

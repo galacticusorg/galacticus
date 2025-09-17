@@ -240,9 +240,8 @@ contains
     !!{
     Constructor for the \refClass{outputAnalysisStarFormingMainSequence} output analysis class which reads all required properties from file.
     !!}
-    use :: IO_HDF5       , only : hdf5Object
-    use :: HDF5_Access   , only : hdf5Access
-    use :: File_Utilities, only : File_Name_Expand
+    use :: IO_HDF5    , only : hdf5Object
+    use :: HDF5_Access, only : hdf5Access
     implicit none
     type            (outputAnalysisStarFormingMainSequence    )                                :: self
     character       (len=*                                    ), intent(in   )                 :: fileName
@@ -265,7 +264,7 @@ contains
     integer                                                                                    :: i                                    , j
     
     !$ call hdf5Access%set  ()
-    call        dataFile%openFile     (char(File_Name_Expand(fileName))           ,readOnly=.true.                          )
+    call        dataFile%openFile     (fileName                                   ,readOnly=.true.                          )
     call        dataFile%readDataset  ('massStellar'                              ,         massesStellar                   )
     if (size(massesStellar) == 1)                                                                                             &
          & call dataFile%readAttribute('binWidth'                                 ,         massesStellarBinWidthLogarithmic)

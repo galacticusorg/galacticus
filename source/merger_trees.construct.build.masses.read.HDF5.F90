@@ -112,21 +112,20 @@ contains
     !!{
     Read merger tree masses from file.
     !!}
-    use :: HDF5_Access     , only : hdf5Access
-    use :: IO_HDF5         , only : hdf5Object
-    use :: File_Utilities  , only : File_Name_Expand
+    use :: HDF5_Access, only : hdf5Access
+    use :: IO_HDF5    , only : hdf5Object
     implicit none
     class           (mergerTreeBuildMassesReadHDF5), intent(inout)                            :: self
     double precision                               , intent(  out), allocatable, dimension(:) :: mass    , weight
     type            (hdf5Object                   )                                           :: treeFile
 
-    !$ call     hdf5Access%set        (                                                                             )
-    call        treeFile  %openFile   (char(File_Name_Expand(char(self%fileName))),overWrite=.false.,readOnly=.true.)
-    call        treeFile  %readDataset('treeRootMass'     ,          mass                                           )
-    if (treeFile%hasDataset('treeWeight'))                                                                            &
-         & call treeFile  %readDataset('treeWeight'       ,          weight                                         )
-    call        treeFile  %close      (                                                                             )
-    !$ call     hdf5Access%unset      (                                                                             )
+    !$ call     hdf5Access%set        (                                                                        )
+    call        treeFile  %openFile   (self%fileName ,overWrite=.false.,readOnly=.true.)
+    call        treeFile  %readDataset('treeRootMass',          mass                                           )
+    if (treeFile%hasDataset('treeWeight'))                                                                       &
+         & call treeFile  %readDataset('treeWeight'  ,          weight                                         )
+    call        treeFile  %close      (                                                                        )
+    !$ call     hdf5Access%unset      (                                                                        )
     return
   end subroutine readHDF5Read
 

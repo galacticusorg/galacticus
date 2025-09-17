@@ -199,9 +199,8 @@ contains
     !!{
     Internal constructor for the \refClass{mergerTreeConstructorFullySpecified} merger tree operator class.
     !!}
-    use :: FoX_DOM           , only : parseFile
     use :: Error             , only : Error_Report
-    use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name
+    use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, XML_Parse
     use :: File_Utilities    , only : File_Exists
     use :: Display           , only : displayGreen                , displayReset
     use :: ISO_Varying_String, only : varying_string              , var_str     , operator(//)
@@ -219,7 +218,7 @@ contains
     !$omp critical (FoX_DOM_Access)
     if (.not.associated(self%document)) allocate(self%document)
     ! Parse the merger tree file.
-    self%document%doc => parseFile(char(self%fileName),iostat=ioErr)
+    self%document%doc => XML_Parse(self%fileName,iostat=ioErr)
     if (ioErr /= 0) then
        message=var_str("unable to read or parse fully-specified merger tree file ")//"'"//self%fileName//"'"
        if (File_Exists(self%fileName)) then

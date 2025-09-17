@@ -344,7 +344,6 @@ contains
     use :: HDF5_Access                      , only : hdf5Access
     use :: IO_HDF5                          , only : hdf5Object
     use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
-    use :: File_Utilities                   , only : File_Name_Expand
     use :: Virial_Density_Contrast          , only : virialDensityContrastClass
     implicit none
     type            (outputAnalysisProgenitorMassFunction)                                               :: self
@@ -377,7 +376,7 @@ contains
     logical                                                                                              :: haveBoundaries
     
     !$ call hdf5Access%set  ()
-    call dataFile%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)
+    call dataFile%openFile(fileName,readOnly=.true.)
     simulationGroup=dataFile       %openGroup ('simulation0001'   )
     haveBoundaries =simulationGroup%hasDataset('massParentMinimum')
     call    simulationGroup%readDataset('massRatioProgenitor'   ,massRatio           )

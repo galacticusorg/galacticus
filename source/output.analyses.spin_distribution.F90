@@ -302,7 +302,6 @@ contains
     use :: IO_HDF5                          , only : hdf5Object
     use :: HDF5_Access                      , only : hdf5Access
     use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
-    use :: File_Utilities                   , only : File_Name_Expand
     use :: Virial_Density_Contrast          , only : virialDensityContrastClass
     implicit none
     type            (outputAnalysisSpinDistribution   )                                :: self
@@ -331,7 +330,7 @@ contains
          &                                                                                time
 
     !$ call hdf5Access%set  ()
-    call dataFile%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)
+    call dataFile%openFile(fileName,readOnly=.true.)
     simulationGroup=dataFile       %openGroup('simulation0001')
     attributesGroup=simulationGroup%openGroup('simulation'    )
     call simulationGroup%readDataset  ('spin'                              ,spin                              )

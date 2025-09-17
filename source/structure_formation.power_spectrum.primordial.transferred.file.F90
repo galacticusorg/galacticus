@@ -227,7 +227,7 @@ contains
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Cosmology_Parameters   , only : cosmologyParametersSimple
     use            :: Display                , only : displayMessage                  , displayMagenta                    , displayGreen                , displayReset
-    use            :: File_Utilities         , only : File_Name_Expand                , File_Exists
+    use            :: File_Utilities         , only : File_Exists
     use            :: Error                  , only : Error_Report
     use            :: HDF5_Access            , only : hdf5Access
     use            :: IO_HDF5                , only : hdf5Object
@@ -253,10 +253,10 @@ contains
     type            (varying_string                        )                              :: limitTypeVar
 
     ! Check that the file exists.
-    if (.not.File_Exists(File_Name_Expand(char(fileName)))) call Error_Report("file '"//char(fileName)//"' does not exist"//{introspection:location})
+    if (.not.File_Exists(fileName)) call Error_Report("file '"//char(fileName)//"' does not exist"//{introspection:location})
     ! Open and read the HDF5 data file.
     !$ call hdf5Access%set()
-    call fileObject%openFile(char(File_Name_Expand(char(fileName))),readOnly=.true.)
+    call fileObject%openFile(fileName,readOnly=.true.)
     ! Check that the file has the correct format version number.
     call fileObject%readAttribute('fileFormat',versionNumber,allowPseudoScalar=.true.)
     if (versionNumber /= fileFormatVersionCurrent) call Error_Report(var_str('file has the incorrect format version number (expected fileFormat=1, found fileFormat=')//versionNumber//')'//{introspection:location})
