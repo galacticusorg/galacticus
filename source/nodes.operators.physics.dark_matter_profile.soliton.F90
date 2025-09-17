@@ -43,13 +43,15 @@
      A node operator class implementing the time-evolved solitonic core–halo relation following \cite{chan_diversity_2022}.
      !!}
      private
-     class           (darkMatterHaloScaleClass  ), pointer :: darkMatterHaloScale_  => null()
-     class           (darkMatterParticleClass   ), pointer :: darkMatterParticle_   => null()
-     class           (cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_   => null()
-     class           (cosmologyParametersClass  ), pointer :: cosmologyParameters_  => null()
-     class           (virialDensityContrastClass), pointer :: virialDensityContrast_=> null()
-     integer                                               :: densityCoreAccretionID
-     double precision                                      :: massParticle
+     class           (darkMatterHaloScaleClass  ), pointer   :: darkMatterHaloScale_  => null()
+     class           (darkMatterParticleClass   ), pointer   :: darkMatterParticle_   => null()
+     class           (cosmologyFunctionsClass   ), pointer   :: cosmologyFunctions_   => null()
+     class           (cosmologyParametersClass  ), pointer   :: cosmologyParameters_  => null()
+     class           (virialDensityContrastClass), pointer   :: virialDensityContrast_=> null()
+     integer                                                 :: massCoreID
+     double precision                                        :: massParticle                   , massCoreMin
+     double precision                                        :: alpha       =0.515             , beta      =8.0d6  , &
+         &                                                      gamma       =10.0d0**(-5.73d0)                       ! Best-fitting parameters from Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
    contains
      final     ::                                darkMatterProfileSolitonDestructor
      procedure :: nodeTreeInitialize          => darkMatterProfileSolitonNodeTreeInitialize
@@ -115,7 +117,7 @@ contains
     class           (virialDensityContrastClass          ), intent(in), target :: virialDensityContrast_
     !![
     <constructorAssign variables="*darkMatterHaloScale_,*darkMatterParticle_,*cosmologyFunctions_,*cosmologyParameters_,*virialDensityContrast_"/>
-    <addMetaProperty component="basic" name="densityCoreAccretion" id="self%densityCoreAccretionID" isEvolvable="yes" isCreator="yes"/>
+    <addMetaProperty component="basic" name="massCore" id="self%massCoreID" isEvolvable="yes" isCreator="yes"/>
     !!]
 
     select type (darkMatterParticle__ => self%darkMatterParticle_)
@@ -153,11 +155,14 @@ contains
     implicit none
     class           (nodeOperatorDarkMatterProfileSoliton), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
-    double precision                                      , parameter     :: scaleRelative     =+1.0d-1
+    double precision                                                      :: scaleRelative
     class           (nodeComponentBasic                  ), pointer       :: basic
 
+    ! Set the absolute tolerance scale for ODE integration to 10% of the minimum solitonic core mass.
+    scaleRelative=+0.1d0*self%massCoreMin
+
     basic=>node%basic()
-    call basic%floatRank0MetaPropertyScale(self%densityCoreAccretionID, scaleRelative)
+    call basic%floatRank0MetaPropertyScale(self%massCoreID, scaleRelative)
 
     return
   end subroutine darkMatterProfileSolitonDifferentialEvolutionScales
@@ -167,10 +172,6 @@ contains
     Accumulates an estimate of the energy radiated from the hot halo due to cooling following the model of \cite{benson_galaxy_2010-1}.
     !!}
     use :: Galacticus_Nodes                , only : treeNode           , nodeComponentBasic       , nodeComponentDarkMatterProfile
-    use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Units       , only : electronVolt
-    use :: Numerical_Constants_Physical    , only : plancksConstant
-    use :: Cosmology_Parameters            , only : hubbleUnitsStandard, hubbleUnitsLittleH
     implicit none
     class           (nodeOperatorDarkMatterProfileSoliton), intent   (inout), target  :: self
     type            (treeNode                            ), intent   (inout), target  :: node
@@ -179,20 +180,10 @@ contains
     logical                                               , intent   (inout)          :: interrupt
     procedure       (interruptTask                       ), intent   (inout), pointer :: functionInterrupt
     integer                                               , intent   (in   )          :: propertyType
-    double precision                                      , parameter                 :: plancksConstantBar=+plancksConstant                                & ! ℏ in units of eV s.
-         &                                                                                                  /2.0d0                                          &
-         &                                                                                                  /Pi                                             &
-         &                                                                                                  /electronVolt
     double precision                                                                  :: massHalo                            , expansionFactor            , &
-         &                                                                               redshift                            , concentration              , &
-         &                                                                               hubbleConstant                      , hubbleConstantLittle       , &
-         &                                                                               OmegaMatter                         , densityMatter              , &
          &                                                                               zeta_0                              , zeta_z                     , &
-         &                                                                               radiusVirial                        , radiusScale                , &
-         &                                                                               massCoreRate                        , densityScale               , &
-         &                                                                               expansionRate                       , zetaRate
-    double precision                                      , parameter                 :: alpha             =0.515            , beta               =8.0d6  , &
-         &                                                                               gamma             =10.0d0**(-5.73d0)                                 ! Best-fitting parameters from Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
+         &                                                                               massCoreRate                        , zetaRate                   , &
+         &                                                                               expansionRate
     double precision                                                                  :: A                                   , K0                         , & ! first term of Equation 15 from Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
          &                                                                               K1                                                                   ! second term of Equation 15 from Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
     !$GLC attributes unused :: interrupt, functionInterrupt, propertyType
@@ -201,121 +192,73 @@ contains
     basic             => node%basic            ()
     darkMatterProfile => node%darkMatterProfile()
     ! Extract basic properties of the node.
-    expansionFactor=+self             %cosmologyFunctions_ %expansionFactor            (basic%time           ())
-    expansionRate  =+self             %cosmologyFunctions_ %expansionRate              (expansionFactor        )
-    redshift       =+self             %cosmologyFunctions_ %redshiftFromExpansionFactor(expansionFactor        )
-    massHalo       =+basic                                 %mass                       (                       )
-    radiusScale    =+darkMatterProfile                     %scale                      (                       )
-    radiusVirial   =+self             %darkMatterHaloScale_%radiusVirial               (node                   )
-    concentration  =+                                       radiusVirial                                         &
-         &          /                                       radiusScale
-    densityScale   =+1.0d0                                    &
-         &          /4.0d0                                    &
-         &          /Pi                                       &
-         &          *massHalo                                 &
-         &          /radiusScale**3                           &
-         &          /(                                        &
-         &            +              log(1.0d0+concentration) &
-         &            -concentration/   (1.0d0+concentration) &
-         &          )
-    ! Extract cosmological parameters for later use.
-    hubbleConstant      =+self%cosmologyParameters_%HubbleConstant (hubbleUnitsStandard)
-    hubbleConstantLittle=+self%cosmologyParameters_%HubbleConstant (hubbleUnitsLittleH )
-    OmegaMatter         =+self%cosmologyParameters_%OmegaMatter    (                   )
-    densityMatter       =+self%cosmologyParameters_%densityCritical(                   ) &
-         &                      *                   OmegaMatter
+    expansionFactor     =+self             %cosmologyFunctions_ %expansionFactor            (basic%time           ())
+    expansionRate       =+self             %cosmologyFunctions_ %expansionRate              (expansionFactor        )
+    massHalo            =+basic                                 %mass                       (                       )
+    
     zeta_0              =+self%virialDensityContrast_%densityContrast            (massHalo,expansionFactor=1.0d0          )
     zeta_z              =+self%virialDensityContrast_%densityContrast            (massHalo,expansionFactor=expansionFactor)
     zetaRate            =+self%virialDensityContrast_%densityContrastRateofChange(massHalo,expansionFactor=expansionFactor)
 
-    A                   =+self%massParticle         &
+    A                   =+self%massParticle            &
          &               /8.0d-23
-    K0                  =+beta                      &
+    K0                  =+self%beta                    &
          &               *A**(-1.5d0)
-    K1                  =(sqrt(                     &
-         &                     +zeta_z              &
-         &                     /zeta_0              &
-         &                    )                     &
-         &                *massHalo                 &
-         &                /gamma                    &
-         &               )**alpha                   &
-         &               *A**(1.5d0*(alpha-1.0d0))
-    massCoreRate        =-0.5d0                     &
-         &               *expansionFactor**(-0.5d0) &
-         &               *expansionRate             &
-         &               *(K0+K1)                   &
-         &               +alpha                     &
-         &               *expansionFactor**(-0.5d0) &
-         &               *K1                        &
-         &               *(+0.5d0                   &
-         &                 *zetaRate                &
-         &                 /zeta_z                  &
-         &                 +basic%accretionRate()   &
-         &                 /massHalo                &
+    K1                  =(sqrt(                        &
+         &                     +zeta_z                 &
+         &                     /zeta_0                 &
+         &                    )                        &
+         &                *massHalo                    &
+         &                /self%gamma                  &
+         &               )**self%alpha                 &
+         &               *A**(1.5d0*(self%alpha-1.0d0))
+    massCoreRate        =-0.5d0                        &
+         &               *expansionFactor**(-0.5d0)    &
+         &               *expansionRate                &
+         &               *(K0+K1)                      &
+         &               +self%alpha                   &
+         &               *expansionFactor**(-0.5d0)    &
+         &               *K1                           &
+         &               *(+0.5d0                      &
+         &                 *zetaRate                   &
+         &                 /zeta_z                     &
+         &                 +basic%accretionRate()      &
+         &                 /massHalo                   &
          &                )
-    call basic%floatRank0MetaPropertyRate(                             &
-         &                                self%densityCoreAccretionID, &
-         &                                massCoreRate                 &
+    call basic%floatRank0MetaPropertyRate(                 &
+         &                                self%massCoreID, &
+         &                                massCoreRate     &
          &                               )
     return
   end subroutine darkMatterProfileSolitonDifferentialEvolution
 
   subroutine darkMatterProfileSolitonNodeTreeInitialize(self,node)
+    !!{
+    Initialize solitonic core properties for a tree node.
+    Computes the initial core mass using the analytic core–halo relation,
+    records it as the minimum core mass for tolerance scaling, and stores the value in the node’s meta-property database.
+    !!}
     use :: Galacticus_Nodes                , only : treeNode           , nodeComponentBasic       , nodeComponentDarkMatterProfile
-    use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Units       , only : electronVolt
-    use :: Numerical_Constants_Physical    , only : plancksConstant
-    use :: Cosmology_Parameters            , only : hubbleUnitsStandard, hubbleUnitsLittleH
     implicit none
     class           (nodeOperatorDarkMatterProfileSoliton), intent(inout), target :: self
     type            (treeNode                            ), intent(inout), target :: node
     class           (nodeComponentBasic                  ), pointer               :: basic
     class           (nodeComponentDarkMatterProfile      ), pointer               :: darkMatterProfile
-    double precision                                      , parameter             :: plancksConstantBar=+plancksConstant                                & ! ℏ in units of eV s.
-         &                                                                                              /2.0d0                                          &
-         &                                                                                              /Pi                                             &
-         &                                                                                              /electronVolt
     double precision                                                              :: massHalo                            , expansionFactor            , &
-         &                                                                           redshift                            , concentration              , &
-         &                                                                           hubbleConstant                      , hubbleConstantLittle       , &
-         &                                                                           OmegaMatter                         , densityMatter              , &
          &                                                                           zeta_0                              , zeta_z                     , &
-         &                                                                           radiusVirial                        , radiusScale                , &
-         &                                                                           massCoreNormal                      , densityScale
-    double precision                                      , parameter             :: alpha             =0.515            , beta               =8.0d6  , &
-         &                                                                           gamma             =10.0d0**(-5.73d0)                                 ! Best-fitting parameters from Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
+         &                                                                           massCoreNormal
 
     ! Get required components.
     basic             => node%basic            ()
     darkMatterProfile => node%darkMatterProfile()
     ! Extract basic properties of the node.
     expansionFactor=+self             %cosmologyFunctions_% expansionFactor            (basic%time           ())
-    redshift       =+self             %cosmologyFunctions_ %redshiftFromExpansionFactor(      expansionFactor  )
     massHalo       =+basic                                 %mass                       (                       )
-    radiusScale    =+darkMatterProfile                     %scale                      (                       )
-    radiusVirial   =+self             %darkMatterHaloScale_%radiusVirial               (node                   )
-    concentration  =+                                       radiusVirial                                         &
-         &          /                                       radiusScale
-    densityScale   =+1.0d0                                    &
-         &          /4.0d0                                    &
-         &          /Pi                                       &
-         &          *massHalo                                 &
-         &          /radiusScale**3                           &
-         &          /(                                        &
-         &            +              log(1.0d0+concentration) &
-         &            -concentration/   (1.0d0+concentration) &
-         &          )
-    ! Extract cosmological parameters for later use.
-    hubbleConstant      =+self%cosmologyParameters_%HubbleConstant (hubbleUnitsStandard)
-    hubbleConstantLittle=+self%cosmologyParameters_%HubbleConstant (hubbleUnitsLittleH )
-    OmegaMatter         =+self%cosmologyParameters_%OmegaMatter    (                   )
-    densityMatter       =+self%cosmologyParameters_%densityCritical(                   ) &
-         &                      *                   OmegaMatter
     zeta_0             =+self%virialDensityContrast_%densityContrast(massHalo,expansionFactor=1.0d0          )
     zeta_z             =+self%virialDensityContrast_%densityContrast(massHalo,expansionFactor=expansionFactor)
 
     massCoreNormal     =+(                          & ! Equation (15) of Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
-         &                +beta                     &
+         &                +self%beta                &
          &                *(                        &
          &                  +self%massParticle      &
          &                  /8.0d-23                &
@@ -326,17 +269,18 @@ contains
          &                        /zeta_0           &
          &                       )                  &
          &                  *massHalo               &
-         &                  /gamma                  &
-         &                 )**alpha                 &
+         &                  /self%gamma             &
+         &                 )**self%alpha            &
          &                *(                        &
          &                  +self%massParticle      &
          &                  /8.0d-23                &
-         &                 )**(1.5d0*(alpha-1.0d0)) &
+         &                 )**(1.5d0*(self%alpha-1.0d0)) &
          &               )&
          &              /sqrt(expansionFactor)
-    call basic%floatRank0MetaPropertySet(                             &
-         &                               self%densityCoreAccretionID, &
-         &                               massCoreNormal               &
+    self%massCoreMin   =+massCoreNormal
+    call basic%floatRank0MetaPropertySet(                 &
+         &                               self%massCoreID, &
+         &                               massCoreNormal   &
          &                              )
     return
   end subroutine darkMatterProfileSolitonNodeTreeInitialize

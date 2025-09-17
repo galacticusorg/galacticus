@@ -57,7 +57,7 @@
           &                                                     massCorePrevious
      integer          (kind_int8                  )          :: lastUniqueID
      integer                                                 :: randomOffsetID                              , densityCoreID                             , &
-          &                                                     radiusCoreID                                , densityCoreAccretionID
+          &                                                     radiusCoreID                                , massCoreID
    contains
      !![
      <methods>
@@ -150,10 +150,10 @@ contains
     double precision                                , intent(in)         :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
     !![
     <constructorAssign variables="*darkMatterHaloScale_, *darkMatterParticle_, *cosmologyFunctions_, *cosmologyParameters_, *virialDensityContrast_, toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum"/>
-    <addMetaProperty component="darkMatterProfile" name="randomOffset"         id="self%randomOffsetID"         isEvolvable="no"  isCreator="yes"/>
-    <addMetaProperty component="basic"             name="densityCore"          id="self%densityCoreID"          isEvolvable="no"  isCreator="yes"/>
-    <addMetaProperty component="basic"             name="radiusCore"           id="self%radiusCoreID"           isEvolvable="no"  isCreator="yes"/>
-    <addMetaProperty component="basic"             name="densityCoreAccretion" id="self%densityCoreAccretionID" isEvolvable="yes" isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="randomOffset" id="self%randomOffsetID" isEvolvable="no"  isCreator="yes"/>
+    <addMetaProperty component="basic"             name="densityCore"  id="self%densityCoreID"  isEvolvable="no"  isCreator="yes"/>
+    <addMetaProperty component="basic"             name="radiusCore"   id="self%radiusCoreID"   isEvolvable="no"  isCreator="yes"/>
+    <addMetaProperty component="basic"             name="massCore"     id="self%massCoreID"     isEvolvable="yes" isCreator="no"/>
     !!]
 
     self%lastUniqueID=-huge(1_kind_int8)
@@ -321,11 +321,6 @@ contains
   subroutine solitonNFWComputeProperties(self,node,radiusVirial,radiusScale,radiusCore,radiusSoliton,densityCore,densityScale,massCore)
     use :: Galacticus_Nodes                , only : treeNode           , nodeComponentBasic       , nodeComponentDarkMatterProfile
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Units       , only : electronVolt
-    use :: Numerical_Constants_Astronomical, only : megaParsec
-    use :: Numerical_Constants_Physical    , only : speedLight         , plancksConstant
-    use :: Numerical_Constants_Prefixes    , only : kilo
-    use :: Cosmology_Parameters            , only : hubbleUnitsStandard, hubbleUnitsLittleH
     use :: Root_Finder                     , only : rootFinder         , rangeExpandMultiplicative, rangeExpandSignExpectPositive , rangeExpandSignExpectNegative
     implicit none
     class           (darkMatterProfileDMOSolitonNFW), intent(inout) :: self
@@ -340,18 +335,9 @@ contains
     logical                                         , save          :: finderInitialized =.false.
     !$omp threadprivate(finder, finderInitialized)
     double precision                                , parameter     :: toleranceAbsolute = 0.0d0           , toleranceRelative  =1.0d-3
-    double precision                                , parameter     :: plancksConstantBar=+plancksConstant                                & ! ℏ in units of eV s.
-         &                                                                                /2.0d0                                          &
-         &                                                                                /Pi                                             &
-         &                                                                                /electronVolt
     double precision                                                :: massHalo                            , expansionFactor            , &
          &                                                             redshift                            , concentration              , &
-         &                                                             hubbleConstant                      , hubbleConstantLittle       , &
-         &                                                             OmegaMatter                         , densityMatter              , &
-         &                                                             zeta_0                              , zeta_z                     , &
          &                                                             randomOffset                        , massCoreNormal
-    double precision                                , parameter     :: alpha             =0.515            , beta               =8.0d6  , &
-         &                                                             gamma             =10.0d0**(-5.73d0)                                 ! Best-fitting parameters from Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
     integer                                                         :: status                              , sampleCount                , &
          &                                                             maxSamples = 50
 
@@ -375,16 +361,8 @@ contains
          &            +              log(1.0d0+concentration) &
          &            -concentration/   (1.0d0+concentration) &
          &          )
-    ! Extract cosmological parameters for later use.
-    hubbleConstant      =+self%cosmologyParameters_%HubbleConstant (hubbleUnitsStandard)
-    hubbleConstantLittle=+self%cosmologyParameters_%HubbleConstant (hubbleUnitsLittleH )
-    OmegaMatter         =+self%cosmologyParameters_%OmegaMatter    (                   )
-    densityMatter       =+self%cosmologyParameters_%densityCritical(                   ) &
-         &                      *                   OmegaMatter
     ! Compute the core mass.
-    zeta_0             =+self% virialDensityContrast_%densityContrast(massHalo,expansionFactor=1.0d0          )
-    zeta_z             =+self% virialDensityContrast_%densityContrast(massHalo,expansionFactor=expansionFactor)
-    massCoreNormal     =+basic%floatRank0MetaPropertyGet(self%densityCoreAccretionID)
+    massCoreNormal     =+basic%floatRank0MetaPropertyGet(self%massCoreID)
 
     radiusScale_       =radiusScale
     densityScale_      =densityScale
