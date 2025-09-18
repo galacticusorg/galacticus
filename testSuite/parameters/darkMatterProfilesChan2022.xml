@@ -120,7 +120,9 @@
   
   <!-- Dark matter halo profile options -->
   <darkMatterProfileDMO value="heated">
-    <darkMatterProfileDMO value="solitonNFW"/>
+    <darkMatterProfileDMO value="solitonNFW">
+      <scatterLog value="1.0"/>
+    </darkMatterProfileDMO>
     <nonAnalyticSolver value="numerical"/>
     <toleranceRelativeVelocityDispersionMaximum value="0.1"/>
   </darkMatterProfileDMO>
@@ -366,7 +368,7 @@
          will produce an completely independent set of trees. -->
   </mergerTreeSeeds>
   <mergerTreeConstructor value="fullySpecified">
-    <fileName value="fdmSingleTree.xml"/>
+    <fileName value="singleTree.xml"/>
   </mergerTreeConstructor>
   <mergerTreeBuilder value="cole2000">
     <!-- The Cole et al. (2000) merger tree building algorithm is used. The "interval stepping" optimization from Appendix A -->
@@ -455,7 +457,7 @@
     </nodeOperator>
   </nodeOperator>
 
-  <nodePropertyExtractor value="velocityMaximum"/>
+  <nodePropertyExtractor value="soliton"/>
   
   <!-- Tree evolution -->
   <mergerTreeEvolver value="standard">
@@ -507,30 +509,11 @@
   </mergerTreeMassResolution>
 
   <!-- Output options -->
-  <outputFileName value="testSuite/outputs/validate_darkMatterOnlySubhalos_Symphony_CDM.hdf5"/>
+  <outputFileName value="testSuite/outputs/test-soliton-coreMass/test-soliton-coreMass.hdf5"/>
   <mergerTreeOutputter value="standard"/>
   <outputTimes value="list">
-    <redshifts value="0.0 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0 11.0 12.0"/>
+    <redshifts value="0.0 1.0 2.0 3.0 4.0 5.0"/>
   </outputTimes>
-  <outputAnalysis value="multi">
-    <outputAnalysis value="subhaloMassFunction">
-      <fileName value="%DATASTATICPATH%/darkMatter/subhaloDistributions_Symphony_MilkyWay_resolutionX1_CDM_z0.000.hdf5"/>
-      <negativeBinomialScatterFractional value="0.18"/> <!-- Boylan-Kolchin et al. (2010) -->
-      <virialDensityContrastDefinition value="bryanNorman1998"/>
-      <redshift value="0.0"/>
-    </outputAnalysis>
-    <outputAnalysis value="subhaloRadialDistribution">
-      <fileName value="%DATASTATICPATH%/darkMatter/subhaloDistributions_Symphony_MilkyWay_resolutionX1_CDM_z0.000.hdf5"/>
-      <negativeBinomialScatterFractional value="0.18"/> <!-- Boylan-Kolchin et al. (2010) -->
-      <virialDensityContrastDefinition value="bryanNorman1998"/>
-      <redshift value="0.0"/>
-    </outputAnalysis>
-    <outputAnalysis value="subhaloVMaxVsMass">
-      <fileName value="%DATASTATICPATH%/darkMatter/subhaloDistributions_Symphony_MilkyWay_resolutionX1_CDM_z0.000.hdf5"/>
-      <virialDensityContrastDefinition value="bryanNorman1998"/>
-      <redshift value="0.0"/>
-    </outputAnalysis>
-  </outputAnalysis>
 
 
     

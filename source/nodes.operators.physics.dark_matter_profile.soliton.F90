@@ -48,7 +48,9 @@
      class           (cosmologyFunctionsClass   ), pointer   :: cosmologyFunctions_   => null()
      class           (cosmologyParametersClass  ), pointer   :: cosmologyParameters_  => null()
      class           (virialDensityContrastClass), pointer   :: virialDensityContrast_=> null()
-     integer                                                 :: massCoreID
+     integer                                                 :: massCoreID                     , massHaloID        , &
+         &                                                      zeta0ID                        , zetazID           , &
+         &                                                      massParticleID                 , expansionFactorID
      double precision                                        :: massParticle                   , massCoreMin
      double precision                                        :: alpha       =0.515             , beta      =8.0d6  , &
          &                                                      gamma       =10.0d0**(-5.73d0)                       ! Best-fitting parameters from Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
@@ -117,7 +119,13 @@ contains
     class           (virialDensityContrastClass          ), intent(in), target :: virialDensityContrast_
     !![
     <constructorAssign variables="*darkMatterHaloScale_,*darkMatterParticle_,*cosmologyFunctions_,*cosmologyParameters_,*virialDensityContrast_"/>
-    <addMetaProperty component="basic" name="massCore" id="self%massCoreID" isEvolvable="yes" isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="massCore"        id="self%massCoreID"        isEvolvable="yes" isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="zeta0"           id="self%zeta0ID"           isEvolvable="no"  isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="zetaz"           id="self%zetazID"           isEvolvable="no"  isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="expansionFactor" id="self%expansionFactorID" isEvolvable="no"  isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="massParticle"    id="self%massParticleID"    isEvolvable="no"  isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="massHalo"        id="self%massHaloID"        isEvolvable="no"  isCreator="yes"/>
+
     !!]
 
     select type (darkMatterParticle__ => self%darkMatterParticle_)
@@ -152,18 +160,18 @@ contains
     Set the absolute ODE solver scale for the solitonic core mass evolution,
     using a fraction of the minimum core mass as reference, following \cite{chan_diversity_2022}.
     !!}
-    use :: Galacticus_Nodes                , only : nodeComponentBasic
+    use :: Galacticus_Nodes                , only : nodeComponentDarkMatterProfile
     implicit none
     class           (nodeOperatorDarkMatterProfileSoliton), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
+    class           (nodeComponentDarkMatterProfile      ), pointer       :: darkMatterProfile
     double precision                                                      :: scaleRelative
-    class           (nodeComponentBasic                  ), pointer       :: basic
 
     ! Set the absolute tolerance scale for ODE integration to 10% of the minimum solitonic core mass.
     scaleRelative=+0.1d0*self%massCoreMin
 
-    basic=>node%basic()
-    call basic%floatRank0MetaPropertyScale(self%massCoreID, scaleRelative)
+    darkMatterProfile=>node%darkMatterProfile()
+    call darkMatterProfile%floatRank0MetaPropertyScale(self%massCoreID, scaleRelative)
 
     return
   end subroutine darkMatterProfileSolitonDifferentialEvolutionScales
@@ -201,6 +209,13 @@ contains
     zeta_z              =+self%virialDensityContrast_%densityContrast            (massHalo,expansionFactor=expansionFactor)
     zetaRate            =+self%virialDensityContrast_%densityContrastRateofChange(massHalo,expansionFactor=expansionFactor)
 
+    ! Output the parameters for coreMass analytic calculation.
+    call darkMatterProfile%floatRank0MetaPropertySet(self%massParticleID   ,+self%massParticle)
+    call darkMatterProfile%floatRank0MetaPropertySet(self%massHaloID       ,+massHalo)
+    call darkMatterProfile%floatRank0MetaPropertySet(self%zeta0ID          ,+zeta_0)
+    call darkMatterProfile%floatRank0MetaPropertySet(self%zetazID          ,+zeta_z)
+    call darkMatterProfile%floatRank0MetaPropertySet(self%expansionFactorID,+expansionFactor)
+
     A                   =+self%massParticle            &
          &               /8.0d-23
     K0                  =+self%beta                    &
@@ -226,7 +241,7 @@ contains
          &                 +basic%accretionRate()      &
          &                 /massHalo                   &
          &                )
-    call basic%floatRank0MetaPropertyRate(                 &
+    call darkMatterProfile%floatRank0MetaPropertyRate(                 &
          &                                self%massCoreID, &
          &                                massCoreRate     &
          &                               )
@@ -279,7 +294,7 @@ contains
          &               )&
          &              /sqrt(expansionFactor)
     self%massCoreMin   =+massCoreNormal
-    call basic%floatRank0MetaPropertySet(                 &
+    call darkMatterProfile%floatRank0MetaPropertySet(                 &
          &                               self%massCoreID, &
          &                               massCoreNormal   &
          &                              )

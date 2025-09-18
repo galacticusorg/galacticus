@@ -51,6 +51,7 @@
      class           (virialDensityContrastClass  ), pointer :: virialDensityContrast_             => null()
      type            (distributionFunction1DNormal)          :: massCoreScatter
      double precision                                        :: toleranceRelativeVelocityDispersion         , toleranceRelativeVelocityDispersionMaximum
+     double precision                                        :: scatterLog
      double precision                                        :: radiusVirialPrevious                        , radiusScalePrevious                       , &
           &                                                     radiusCorePrevious                          , radiusSolitonPrevious                     , &
           &                                                     densityCorePrevious                         , densityScalePrevious                      , &
@@ -100,6 +101,7 @@ contains
     class           (cosmologyParametersClass      ), pointer       :: cosmologyParameters_
     class           (virialDensityContrastClass    ), pointer       :: virialDensityContrast_
     double precision                                                :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
+    double precision                                                :: scatterLog
 
     !![
     <inputParameter>
@@ -114,13 +116,19 @@ contains
       <source>parameters</source>
       <description>The maximum relative tolerance to use in numerical solutions for the velocity dispersion.</description>
     </inputParameter>
+    <inputParameter>
+      <name>scatterLog</name>
+      <defaultValue>1.5d0</defaultValue>
+      <source>parameters</source>
+      <description>The logarithmic scatter factor in the solitonic core–halo mass relation (default corresponds to a 50% log-normal scatter).</description>
+    </inputParameter>
     <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="parameters"/>
     <objectBuilder class="darkMatterParticle"    name="darkMatterParticle_"    source="parameters"/>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
     <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     !!]
-    self = darkMatterProfileDMOSolitonNFW(darkMatterHaloScale_,darkMatterParticle_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum)
+    self = darkMatterProfileDMOSolitonNFW(darkMatterHaloScale_,darkMatterParticle_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,scatterLog)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_"  />
@@ -132,7 +140,7 @@ contains
     return
   end function solitonNFWConstructorParameters
 
-  function solitonNFWConstructorInternal(darkMatterHaloScale_,darkMatterParticle_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum) result(self)
+  function solitonNFWConstructorInternal(darkMatterHaloScale_,darkMatterParticle_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,scatterLog) result(self)
     !!{
     Generic constructor for the \refClass{darkMatterProfileDMOSolitonNFW} dark matter halo profile class.
     !!}
@@ -141,23 +149,24 @@ contains
     use :: Numerical_Constants_Prefixes  , only : kilo
     use :: Galacticus_Nodes              , only : defaultDarkMatterProfileComponent
     implicit none
-    type            (darkMatterProfileDMOSolitonNFW)                     :: self
-    class           (darkMatterHaloScaleClass      ), intent(in), target :: darkMatterHaloScale_
-    class           (darkMatterParticleClass       ), intent(in), target :: darkMatterParticle_
-    class           (cosmologyFunctionsClass       ), intent(in), target :: cosmologyFunctions_
-    class           (cosmologyParametersClass      ), intent(in), target :: cosmologyParameters_
-    class           (virialDensityContrastClass    ), intent(in), target :: virialDensityContrast_
-    double precision                                , intent(in)         :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
+    type            (darkMatterProfileDMOSolitonNFW)                      :: self
+    class           (darkMatterHaloScaleClass      ), intent(in), target  :: darkMatterHaloScale_
+    class           (darkMatterParticleClass       ), intent(in), target  :: darkMatterParticle_
+    class           (cosmologyFunctionsClass       ), intent(in), target  :: cosmologyFunctions_
+    class           (cosmologyParametersClass      ), intent(in), target  :: cosmologyParameters_
+    class           (virialDensityContrastClass    ), intent(in), target  :: virialDensityContrast_
+    double precision                                , intent(in)          :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
+    double precision                                , intent(in)          :: scatterLog
     !![
-    <constructorAssign variables="*darkMatterHaloScale_, *darkMatterParticle_, *cosmologyFunctions_, *cosmologyParameters_, *virialDensityContrast_, toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum"/>
+    <constructorAssign variables="*darkMatterHaloScale_, *darkMatterParticle_, *cosmologyFunctions_, *cosmologyParameters_, *virialDensityContrast_, toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum,scatterLog"/>
     <addMetaProperty component="darkMatterProfile" name="randomOffset" id="self%randomOffsetID" isEvolvable="no"  isCreator="yes"/>
-    <addMetaProperty component="basic"             name="densityCore"  id="self%densityCoreID"  isEvolvable="no"  isCreator="yes"/>
-    <addMetaProperty component="basic"             name="radiusCore"   id="self%radiusCoreID"   isEvolvable="no"  isCreator="yes"/>
-    <addMetaProperty component="basic"             name="massCore"     id="self%massCoreID"     isEvolvable="yes" isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="densityCore"  id="self%densityCoreID"  isEvolvable="no"  isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="radiusCore"   id="self%radiusCoreID"   isEvolvable="no"  isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="massCore"     id="self%massCoreID"     isEvolvable="yes" isCreator="no"/>
     !!]
 
     self%lastUniqueID=-huge(1_kind_int8)
-    self%massCoreScatter = distributionFunction1DNormal(mean=0.0d0,variance = log10(1.5d0)**2) ! 50% log-normal scatter from Eq.(15) of Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
+    self%massCoreScatter = distributionFunction1DNormal(mean=0.0d0,variance = log10(scatterLog)**2) ! 50% log-normal scatter from Eq.(15) of Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
 
     select type (darkMatterParticle__ => self%darkMatterParticle_)
     class is (darkMatterParticleFuzzyDarkMatter)
@@ -362,7 +371,7 @@ contains
          &            -concentration/   (1.0d0+concentration) &
          &          )
     ! Compute the core mass.
-    massCoreNormal     =+basic%floatRank0MetaPropertyGet(self%massCoreID)
+    massCoreNormal     =+darkMatterProfile%floatRank0MetaPropertyGet(self%massCoreID)
 
     radiusScale_       =radiusScale
     densityScale_      =densityScale
@@ -413,8 +422,8 @@ contains
            exit
        end if
     end do
-    call basic%floatRank0MetaPropertySet(self%densityCoreID,densityCore)
-    call basic%floatRank0MetaPropertySet(self%radiusCoreID ,radiusCore )
+    call darkMatterProfile%floatRank0MetaPropertySet(self%densityCoreID,densityCore)
+    call darkMatterProfile%floatRank0MetaPropertySet(self%radiusCoreID ,radiusCore )
     return
   end subroutine solitonNFWComputeProperties
 
