@@ -166,7 +166,8 @@ program Test_Dark_Matter_Profiles_Fuzzy_Dark_Matter
       &amp;                                                          cosmologyFunctions_                        =cosmologyFunctions_   , &amp;
       &amp;                                                          cosmologyParameters_                       =cosmologyParameters_  , &amp;
       &amp;                                                          toleranceRelativeVelocityDispersion        =1.0d-6                , &amp;
-      &amp;                                                          toleranceRelativeVelocityDispersionMaximum =1.0d-3                  &amp;
+      &amp;                                                          toleranceRelativeVelocityDispersionMaximum =1.0d-3                , &amp;
+      &amp;                                                          scatterLog                                 =1.5d0                   &amp;
       &amp;                                                         )
     </constructor>
   </referenceConstruct>
