@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Test pre-infall subhalo evolution is not applied to tj=he main branch. -->
 <parameters>
-  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
+  <lastModified revision="d4bf2d8db876eb8e44d94e1672bc36a6ea8135cc" time="2025-09-03T18:23:58"/>
+
   <lastModified>acecf6cc0b0da2604d667e770b26c791aa2eafc9</lastModified>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
@@ -424,7 +425,8 @@
       <!-- Subhalos will be removed if they fall below the merger tree mass resolution limit. -->
       <massDestructionAbsolute value="=[mergerTreeMassResolution::massResolution]"/>
       <massDestructionMassInfallFraction value="0.0"/>
-    </nodeOperator>    <!-- CGM -->
+    </nodeOperator>
+    <!-- CGM -->
     <nodeOperator value="CGMChemistry">
       <fractionTimescaleEquilibrium value="1.0e-3"/>
     </nodeOperator>
@@ -474,6 +476,14 @@
     <nodeOperator value="blackHolesAccretion"/>
     <nodeOperator value="blackHolesWinds"/>
     <nodeOperator value="blackHolesCGMHeating"/>
+    <!-- CGM physics -->
+    <nodeOperator value="CGMAccretion">
+      <allowNegativeCGMMass value="true"/>
+      <angularMomentumAlwaysGrows value="false"/>
+    </nodeOperator>
+    <nodeOperator value="CGMOutflowReincorporation">
+      <includeSatellites value="true"/>
+    </nodeOperator>
   </nodeOperator>
   
   <!-- Merger tree evolution -->

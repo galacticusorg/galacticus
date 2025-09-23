@@ -34,14 +34,22 @@ endif
 
 # Fortran compiler:
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'MPI'
+ifdef MPIFCCOMPILER
+FCCOMPILER = $(MPIFCCOMPILER)
+else
 FCCOMPILER ?= mpif90
+endif
 else
 FCCOMPILER ?= gfortran
 endif
 
 # C compiler:
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'MPI'
+ifdef MPICCOMPILER
+CCOMPILER = $(MPICCOMPILER)
+else
 CCOMPILER ?= mpicc
+endif
 else
 CCOMPILER ?= gcc
 endif
@@ -49,7 +57,11 @@ export CCOMPILER
 
 # C++ compiler:
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'MPI'
+ifdef MPICPPCOMPILER
+CPPCOMPILER = $(MPICPPCOMPILER)
+else
 CPPCOMPILER ?= mpic++
+endif
 else
 CPPCOMPILER ?= g++
 endif
@@ -155,6 +167,13 @@ MAKE_DEPS = $(BUILDPATH)/Makefile_Module_Dependencies $(BUILDPATH)/Makefile_Use_
 FCCOMPILER_VERSION = `$(FCCOMPILER) -v 2>&1`
 CCOMPILER_VERSION = `$(CCOMPILER) -v 2>&1`
 CPPCOMPILER_VERSION = `$(CPPCOMPILER) -v 2>&1`
+
+# Determine if MD5 locking is needed.
+COUNT_TARGETS := $(words $(MAKECMDGOALS))
+LOCKMD5 ?= yes
+ifeq ($(COUNT_TARGETS),1)
+  LOCKMD5=no
+endif
 
 # Find all source files.
 ALLSOURCES    = $(wildcard source/*.[fF]90              source/*.h source/*.c source/*.cpp)
@@ -499,7 +518,16 @@ $(BUILDPATH)/%.m : ./source/%.F90
 %.exe: $(BUILDPATH)/%.o $(BUILDPATH)/%.d `cat $(BUILDPATH)/$*.d` $(MAKE_DEPS)
 	./scripts/build/parameterDependencies.pl `pwd` $*.exe
 	$(FCCOMPILER) -c $(BUILDPATH)/$*.parameters.F90 -o $(BUILDPATH)/$*.parameters.o $(FCFLAGS)
-	./scripts/build/sourceDigests.pl `pwd` $*.exe
+	@if echo "$(MAKEFLAGS)" | grep -q -P -- ' -j1( |$$)'; then \
+	 useLocks=no; \
+	elif echo "$(MAKEFLAGS)" | grep -q -P -- ' -j( |$$)'; then \
+	 useLocks=$(LOCKMD5); \
+	elif echo "$(MAKEFLAGS)" | grep -q -P -- ' -j[0-9]+( |$$)'; then \
+	 useLocks=$(LOCKMD5); \
+	else \
+	 useLocks=no; \
+	fi; \
+	./scripts/build/sourceDigests.pl `pwd` $*.exe $$useLocks
 	$(CCOMPILER) -c $(BUILDPATH)/$*.md5s.c -o $(BUILDPATH)/$*.md5s.o $(CFLAGS)
 	$(CONDORLINKER) $(FCCOMPILER) `cat $*.d` $(BUILDPATH)/$*.parameters.o $(BUILDPATH)/$*.md5s.o -o $*.exe$(SUFFIX) $(FCFLAGS) `scripts/build/libraryDependencies.pl $*.exe $(FCFLAGS)` 2>&1 | ./scripts/build/postprocessLinker.pl
 
@@ -519,7 +547,16 @@ $(BUILDPATH)/libgalacticus.inc : $(BUILDPATH)/libgalacticus.p.Inc Makefile
 libgalacticus.so: $(BUILDPATH)/libgalacticus.o $(BUILDPATH)/libgalacticus_classes.d
 	./scripts/build/parameterDependencies.pl `pwd` libgalacticus.o
 	$(FCCOMPILER) -c $(BUILDPATH)/libgalacticus.parameters.F90 -o $(BUILDPATH)/libgalacticus.parameters.o $(FCFLAGS)
-	./scripts/build/sourceDigests.pl `pwd` libgalacticus.o
+	@if echo "$(MAKEFLAGS)" | grep -q -P -- ' -j1( |$$)'; then \
+	 useLocks=no; \
+	elif echo "$(MAKEFLAGS)" | grep -q -P -- ' -j( |$$)'; then \
+	 useLocks=$(LOCKMD5); \
+	elif echo "$(MAKEFLAGS)" | grep -q -P -- ' -j[0-9]+( |$$)'; then \
+	 useLocks=$(LOCKMD5); \
+	else \
+	 useLocks=no; \
+	fi; \
+	./scripts/build/sourceDigests.pl `pwd` libgalacticus.o $$useLocks
 	$(CCOMPILER) -c $(BUILDPATH)/libgalacticus.md5s.c -o $(BUILDPATH)/libgalacticus.md5s.o $(CFLAGS)
 	$(FCCOMPILER) -shared `sort -u $(BUILDPATH)/libgalacticus.d $(BUILDPATH)/libgalacticus_classes.d` $(BUILDPATH)/libgalacticus.parameters.o $(BUILDPATH)/libgalacticus.md5s.o -o libgalacticus.so $(FCFLAGS) `scripts/build/libraryDependencies.pl libgalacticus.o $(FCFLAGS)`
 
