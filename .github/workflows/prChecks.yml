@@ -210,7 +210,7 @@ jobs:
       - name: Build class information
         run: |
           cd $GALACTICUS_EXEC_PATH
-          make -j2 work/build/stateStorables.xml
+          make -j4 work/build/stateStorables.xml
       - name: Get changed files
         id: changed-files
         uses: tj-actions/changed-files@v47
@@ -266,7 +266,7 @@ jobs:
       - name: Build class information
         run: |
           cd $GALACTICUS_EXEC_PATH
-          make -j2 work/build/stateStorables.xml
+          make -j4 work/build/stateStorables.xml
       - name: Get changed files
         id: changed-files
         uses: tj-actions/changed-files@v47
