@@ -111,16 +111,33 @@ def establishGridSSP(grid,args):
     ## Evaluate the integrals.
     grid['ionizingLuminosityPerMass'] = np.sum(integrand[:,:,hydrogenContinuum],axis=2)
 
-    # Define ionizing luminosities, Qₕ, to tabulate.
-    grid['logHydrogenLuminosities'] = np.array([ 46.0, 47.0, 48.0, 49.0, 50.0, 51.0, 52.0 ])
+    # Determine the normalization method to use.
+    if args.normalization == "ionizingLuminosity":
+        # Define ionizing luminosities, Qₕ, to tabulate.
+        grid['logHydrogenLuminosities'] = np.array([ 46.0, 47.0, 48.0, 49.0, 50.0, 51.0, 52.0            ])
+    elif args.normalization == "massStellar":
+        # Define ionizing luminosities, Qₕ, to tabulate.
+        grid['logStellarMasses'       ] = np.array([  2.0,  2.5,  3.0,  3.5,  4.0,  4.5,  5.0, 5.5,  6.0 ])
+    else:
+        sys.exit("Expected `normalization` of `ionizingLuminosity` or `massStellar`")
     # Define hydrogen densities, nₕ, to tabulate.
-    grid['logHydrogenDensities'   ] = np.array([ 1.0,  1.5,  2.0,  2.5,  3.0, 3.5, 4.0 ])
+    grid['logHydrogenDensities'   ] = np.array([ 1.0, 1.5,  2.0,  2.5,  3.0, 3.5, 4.0 ])
     # Specify the iterables in the grid.
-    grid['iterables'] = ( "ages", "logMetallicities", "logHydrogenLuminosities"   , "logHydrogenDensities" )
-    grid['names'    ] = ( "age" , "metallicity"     , "ionizingLuminosityHydrogen", "densityHydrogen"      )
-    
+    if args.normalization == "ionizingLuminosity":
+        grid['iterables'] = ( "ages", "logMetallicities", "logHydrogenLuminosities"   , "logHydrogenDensities" )
+        grid['names'    ] = ( "age" , "metallicity"     , "ionizingLuminosityHydrogen", "densityHydrogen"      )
+    elif args.normalization == "massStellar":
+        grid['iterables'] = ( "ages", "logMetallicities", "logStellarMasses"          , "logHydrogenDensities" )
+        grid['names'    ] = ( "age" , "metallicity"     , "massStellar"               , "densityHydrogen"      )
+    else:
+        sys.exit("Expected `normalization` of `ionizingLuminosity` or `massStellar`")
+
 def establishGridAGN(grid,args):
     # Establish the grid of models to use for AGN calculations.
+
+    # Validate the normalization option.
+    if args.normalization != "ionizingLuminosity":
+        sys.exit("AGN models require ``--normalization ionizingLuminosity`")
 
     # Define spectral indices, α, to tabulate.
     grid['spectralIndices'        ] = np.array([ -1.2, -1.4, -1.7, -2.0 ])
@@ -342,16 +359,24 @@ def reprocessSSP(grid,args):
         lineName = lineList[lineIdentifier]
         grid['lineData'][lineName]['luminosity'] = np.transpose(lineGroup[lineName][:])
         grid['lineData'][lineName]['wavelength'] =              lineGroup[lineName].attrs['wavelength']
+    # Determine the normalization method used.
+    if args.normalization == "ionizingLuminosity":
+        normalization = "logHydrogenLuminosities"
+    elif args.normalization == "massStellar":
+        normalization = "logStellarMasses"
+    else:
+        sys.exit("Expected `normalization` of `ionizingLuminosity` or `massStellar`")
+
     jobNumber = -1
     for iAge in range(grid['ionizingLuminosityPerMass'].shape[1]):
         for iMetallicity in range(grid['ionizingLuminosityPerMass'].shape[0]):
-            for iLogHydrogenLuminosity in range(len(grid['logHydrogenLuminosities'])):
+            for iNormalization in range(len(grid[normalization])):
                 for iLogHydrogenDensity in range(len(grid['logHydrogenDensities'])):
                     jobNumber += 1
-                    if grid['lineData']['status'][iAge,iMetallicity,iLogHydrogenLuminosity,iLogHydrogenDensity] == 0:
+                    if grid['lineData']['status'][iAge,iMetallicity,iNormalization,iLogHydrogenDensity] == 0:
                         continue
  		    # Reset the status before attempting to reprocess.
-                    statusOld = grid['lineData']['status'][iAge,iMetallicity,iLogHydrogenLuminosity,iLogHydrogenDensity]
+                    statusOld = grid['lineData']['status'][iAge,iMetallicity,iNormalization,iLogHydrogenDensity]
                     linesParse(
                         {
                             "label":                               "emissionLines"+str(jobNumber)       ,
@@ -363,10 +388,10 @@ def reprocessSSP(grid,args):
  	                    "cloudyScriptFileName": args.workspace+cloudyScriptFileName                 ,
  	                    "linesFileName":        args.workspace+"lines"        +str(jobNumber)+".out",
  	                    "continuumFileName":    args.workspace+"continuum"    +str(jobNumber)+".out",
- 	                    "indices":              ( iAge, iMetallicity, iLogHydrogenLuminosity, iLogHydrogenDensity ),
+ 	                    "indices":              ( iAge, iMetallicity, iNormalization, iLogHydrogenDensity ),
                         }
 		    )
-                    print("Reprocess job number "+str(jobNumber)+" (status = "+str(statusOld)+" ==> "+str(grid['lineData']['status'][iAge,iMetallicity,iLogHydrogenLuminosity,iLogHydrogenDensity])+")")
+                    print("Reprocess job number "+str(jobNumber)+" (status = "+str(statusOld)+" ==> "+str(grid['lineData']['status'][iAge,iMetallicity,iNormalization,iLogHydrogenDensity])+")")
     # Set data URL.
     match = re.match(r'^http.*\/([^\?]+).*',args.sspFileName)
     if match:
@@ -414,7 +439,7 @@ def generateJobSSP(grid,args):
     # Extract the indices for this job.
     iAge                   = grid['counter'][0]
     iMetallicity           = grid['counter'][1]
-    iLogHydrogenLuminosity = grid['counter'][2]
+    iNormalization         = grid['counter'][2]
     iLogHydrogenDensity    = grid['counter'][3]
     # If this is a rerun, load line data and status.
     if args.rerun:
@@ -427,7 +452,7 @@ def generateJobSSP(grid,args):
                 grid['lineData'][lineName]['luminosity'] = np.transpose(lineGroup[lineName][:])
                 grid['lineData'][lineName]['wavelength'] =              lineGroup[lineName].attrs['wavelength']
             grid['rerunStatusRead'] = 1
-        statusOld = grid['lineData']['status'][iAge,iMetallicity,iLogHydrogenLuminosity,iLogHydrogenDensity]
+        statusOld = grid['lineData']['status'][iAge,iMetallicity,iNormalization,iLogHydrogenDensity]
         if statusOld == 0:
             return
     # Normalize the spectrum - this is a convenience only as the normalization will be recomputed by Cloudy.
@@ -437,8 +462,15 @@ def generateJobSSP(grid,args):
         normalizer = np.max(grid['spectra'][iMetallicity,iAge,:])
         grid['spectra'   ][iMetallicity,iAge,:] /= normalizer
         grid['normalized'][iMetallicity,iAge  ]  = 1
+    # Find the logarithmic luminosity in ionizing photons for this model.
+    if args.normalization == "ionizingLuminosity":
+        logHydrogenLuminosity = grid['logHydrogenLuminosities'][iNormalization]
+    elif args.normalization == "massStellar":
+        logHydrogenLuminosity = grid['logStellarMasses'       ][iNormalization]+np.log10(grid['ionizingLuminosityPerMass'][iMetallicity,iAge])
+    else:
+        sys.exit("Expected `normalization` of `ionizingLuminosity` or `massStellar`")
     # Compute the Strömgren radius for this model.
-    radiusStromgrenLogarithmic = (grid['logHydrogenLuminosities'][iLogHydrogenLuminosity]-np.log10(4.0*np.pi/3.0*coefficientRecombinationCaseB)-2.0*grid['logHydrogenDensities'][iLogHydrogenDensity])/3.0
+    radiusStromgrenLogarithmic = (logHydrogenLuminosity-np.log10(4.0*np.pi/3.0*coefficientRecombinationCaseB)-2.0*grid['logHydrogenDensities'][iLogHydrogenDensity])/3.0
     # Get abundances for this metallicity.
     ## Compute metallicity relative to Solar.
     metallicity                                    = 10.0**grid['logMetallicities'][iMetallicity]
@@ -461,11 +493,13 @@ def generateJobSSP(grid,args):
             depletionFile.close()
             grid['depletions'][iMetallicity] = 1
     # Generate a Cloudy parameter file.
-    cloudyScript  = "title emission line job number "+str(jobNumber)+"\n"
-    cloudyScript += "# ["+str(iAge                  )+"] age     = "+str(grid['ages'                   ][iAge                  ])+"\n"
-    cloudyScript += "# ["+str(iMetallicity          )+"] log Z   = "+str(grid['logMetallicities'       ][iMetallicity          ])+"\n"
-    cloudyScript += "# ["+str(iLogHydrogenLuminosity)+"] log Q_H = "+str(grid['logHydrogenLuminosities'][iLogHydrogenLuminosity])+"\n"
-    cloudyScript += "# ["+str(iLogHydrogenDensity   )+"] log n_H = "+str(grid['logHydrogenDensities'   ][iLogHydrogenDensity   ])+"\n"
+    cloudyScript      = "title emission line job number "+str(jobNumber)+"\n"
+    cloudyScript     += "# ["+str(iAge               )+"] age     = "+str(grid['ages'                   ][iAge               ])+"\n"
+    cloudyScript     += "# ["+str(iMetallicity       )+"] log Z   = "+str(grid['logMetallicities'       ][iMetallicity       ])+"\n"
+    cloudyScript     += "# ["+str(iNormalization     )+"] log Q_H = "+str(      logHydrogenLuminosity                         )+"\n"
+    if args.normalization == "massStellar":
+        cloudyScript += "# ["+str(iNormalization     )+"] log M_* = "+str(grid['logStellarMasses'       ][iNormalization     ])+"\n"
+    cloudyScript     += "# ["+str(iLogHydrogenDensity)+"] log n_H = "+str(grid['logHydrogenDensities'   ][iLogHydrogenDensity])+"\n"
     ## Set the input spectrum for Cloudy.
     if not 'cloudySpectrum' in grid:
         grid['cloudySpectrum'] = {}
@@ -489,7 +523,7 @@ def generateJobSSP(grid,args):
         grid['cloudySpectrum'][iAge][iMetallicity] = cloudySpectrum
     cloudyScript += grid['cloudySpectrum'][iAge][iMetallicity]
     ## Set normalization of the spectrum.
-    cloudyScript += "q(h) = "+str(grid['logHydrogenLuminosities'][iLogHydrogenLuminosity])+"\n"
+    cloudyScript += "q(h) = "+str(logHydrogenLuminosity)+"\n"
     # Set the chemical composition of the HII region.
     # Start with Cloudy's HII region abundances - but no grains - we will add these later.
     cloudyScript += "abundances HII region no grains\n"
@@ -558,7 +592,7 @@ def generateJobSSP(grid,args):
  	"cloudyScriptFileName": args.workspace+cloudyScriptFileName                 ,
  	"linesFileName":        args.workspace+"lines"        +str(jobNumber)+".out",
  	"continuumFileName":    args.workspace+"continuum"    +str(jobNumber)+".out",
- 	"indices":      	( iAge, iMetallicity, iLogHydrogenLuminosity, iLogHydrogenDensity ),
+ 	"indices":      	( iAge, iMetallicity, iNormalization, iLogHydrogenDensity ),
         "command":              "cd "+args.workspace+"; ulimit -c 0\n"+cloudyPath+"/source/cloudy.exe < "+cloudyScriptFileName+"\n"+"if [ $? != 0 ]; then\necho CLOUDY FAILED\nfi\n"
     }
     ## Push job to job list.
@@ -699,8 +733,18 @@ def validateSSP(grid,args):
     selection         = grid['lineData'        ]['status'][selectAge,selectMetallicity,:,:] == 0                           # Select successful models.
     # Compute the ratio.
     ratio = copy.deepcopy(grid['lineData']['balmerAlpha6565']['luminosity'])
-    for i in range(ratio.shape[2]):
-        ratio[:,:,i,:] /= 10.0**grid['logHydrogenLuminosities'][i]
+    if args.normalization == "ionizingLuminosity":
+        for i in range(ratio.shape[2]):
+            ratio[:,:,i,:] /= 10.0**grid['logHydrogenLuminosities'][i]
+    elif args.normalization == "massStellar":
+        for i in range(ratio.shape[2]):
+            for iMetallicity in range(ratio.shape[1]):
+                for iAge in range(ratio.shape[0]):
+                    logHydrogenLuminosity = grid['logStellarMasses'][i]+np.log10(grid['ionizingLuminosityPerMass'][iMetallicity,iAge])
+                    ratio[iAge,iMetallicity,i,:] /= 10.0**logHydrogenLuminosity
+    else:
+        sys.exit("Expected `normalization` of `ionizingLuminosity` or `massStellar`")
+
     # Find the minimum and maximum ratios.
     ratioMinimum = np.min(ratio[selectAge,selectMetallicity,:,:][selection])
     ratioMaximum = np.max(ratio[selectAge,selectMetallicity,:,:][selection])
@@ -737,68 +781,76 @@ def validateSSP(grid,args):
     #  log U_S = −3.4
     #  n_H     = 10² cm⁻³
     # and they generate BPT diagrams assuming a constant star formation rate over the past 100 Myr.
-    # Select model based on a distance metric.
-    densityHydrogenStandard                =  100.0
-    ionizationParameterLogarithmicStandard = -3.4
-    metallicityStandard                    =  0.014/0.01524 # Convert to relaive to Solar using Solar metallicity from Gutkin, Charlot & Bruzual (2016).
-    radiiStromgrenLogarithmic              = (grid['logHydrogenLuminosities']+np.log10(3.0/4.0/np.pi/densityHydrogenStandard**2/coefficientRecombinationCaseB))/3.0
-    ionizationParameterLogarithmic         =  grid['logHydrogenLuminosities']-np.log10(4.0*np.pi*(hecto*speedOfLight))-np.log10(densityHydrogenStandard)-2.0*radiiStromgrenLogarithmic
-    distanceMetals                         = (grid['logMetallicities'       ]-np.log10(metallicityStandard                   ))**2
-    distanceDensity                        = (grid['logHydrogenDensities'   ]-np.log10(densityHydrogenStandard               ))**2
-    distanceIonizationParameter            = (ionizationParameterLogarithmic-          ionizationParameterLogarithmicStandard )**2
-    selectMetals                           = np.argmin(distanceMetals             )
-    selectDensity                          = np.argmin(distanceDensity            )
-    selectIonizationParameter              = np.argmin(distanceIonizationParameter)
-    selectAge                              = grid['ages'] < 100.0e-3
-    deltaAge                               = copy.deepcopy(grid['ages'])
-    deltaAge[0:-2]                         = grid['ages'][1:-1]-deltaAge[0:-2]
-    deltaAge[  -1]                         =                    deltaAge[  -2]
-    # Compute luminosities of all diagnostic lines.
-    luminosityHalpha               = np.sum(grid['lineData']['balmerAlpha6565']['luminosity'][selectAge,selectMetals,selectIonizationParameter,selectDensity]*deltaAge[selectAge]*grid['ionizingLuminosityPerMass'][selectMetals,selectAge])
-    luminosityHbeta                = np.sum(grid['lineData']['balmerBeta4863' ]['luminosity'][selectAge,selectMetals,selectIonizationParameter,selectDensity]*deltaAge[selectAge]*grid['ionizingLuminosityPerMass'][selectMetals,selectAge])
-    luminosityOII                  = np.sum(grid['lineData']['oxygenII3727'   ]['luminosity'][selectAge,selectMetals,selectIonizationParameter,selectDensity]*deltaAge[selectAge]*grid['ionizingLuminosityPerMass'][selectMetals,selectAge])
-    luminosityOIII                 = np.sum(grid['lineData']['oxygenIII5008'  ]['luminosity'][selectAge,selectMetals,selectIonizationParameter,selectDensity]*deltaAge[selectAge]*grid['ionizingLuminosityPerMass'][selectMetals,selectAge])
-    luminosityNII                  = np.sum(grid['lineData']['nitrogenII6585' ]['luminosity'][selectAge,selectMetals,selectIonizationParameter,selectDensity]*deltaAge[selectAge]*grid['ionizingLuminosityPerMass'][selectMetals,selectAge])
-    luminositySIIa                 = np.sum(grid['lineData']['sulfurII6718'   ]['luminosity'][selectAge,selectMetals,selectIonizationParameter,selectDensity]*deltaAge[selectAge]*grid['ionizingLuminosityPerMass'][selectMetals,selectAge])
-    luminositySIIb                 = np.sum(grid['lineData']['sulfurII6733'   ][         'luminosity'][selectAge,selectMetals,selectIonizationParameter,selectDensity]*deltaAge[selectAge]*grid['ionizingLuminosityPerMass'][selectMetals,selectAge])
-    # Construct BPT diagram line ratios.
-    ratioNIIHalpha                 = np.log10( luminosityNII                 /luminosityHalpha)
-    ratioOIIIHbeta                 = np.log10( luminosityOIII                /luminosityHbeta )
-    ratioSIIHalpha                 = np.log10((luminositySIIa+luminositySIIb)/luminosityHalpha)
-    ratioNIIOII                    = np.log10( luminosityNII                 /luminosityOII   )
-    ratioOIIOIII                   = np.log10( luminosityOII                 /luminosityOIII  )
-    # Verify that the ratios match those from Gutkin, Charlot & Bruzual (2016).
+    #
+    # Set target ratios matching those from Gutkin, Charlot & Bruzual (2016).
     ratioNIIHalphaTarget = -0.60
     ratioOIIIHbetaTarget = +0.00
     ratioSIIHalphaTarget = -0.47
     ratioNIIOIITarget    = -0.61
     ratioOIIOIIITarget   = +0.48
-    # Determine success.
-    toleranceSuccess = 0.2
-    successNIIHalpha = "within acceptable range" if np.abs(ratioNIIHalpha-ratioNIIHalphaTarget) < toleranceSuccess else "NOT within acceptable range"
-    successOIIIHbeta = "within acceptable range" if np.abs(ratioOIIIHbeta-ratioOIIIHbetaTarget) < toleranceSuccess else "NOT within acceptable range"
-    successSIIHalpha = "within acceptable range" if np.abs(ratioSIIHalpha-ratioSIIHalphaTarget) < toleranceSuccess else "NOT within acceptable range"
-    successNIIOII    = "within acceptable range" if np.abs(ratioNIIOII   -ratioNIIOIITarget   ) < toleranceSuccess else "NOT within acceptable range"
-    successOIIOIII   = "within acceptable range" if np.abs(ratioOIIOIII  -ratioOIIOIIITarget  ) < toleranceSuccess else "NOT within acceptable range"
-    # Report on agreement.
-    print(f'BPT diagram ratio [NII]6584/Hα         (actual : target) = {ratioNIIHalpha:+.2f} : {ratioNIIHalphaTarget:+.2f}; {successNIIHalpha}')
-    print(f'BPT diagram ratio [OIII]5007/Hβ        (actual : target) = {ratioOIIIHbeta:+.2f} : {ratioOIIIHbetaTarget:+.2f}; {successOIIIHbeta}')
-    print(f'BPT diagram ratio [SII]6717,6731/Hα    (actual : target) = {ratioSIIHalpha:+.2f} : {ratioSIIHalphaTarget:+.2f}; {successSIIHalpha}')
-    print(f'BPT diagram ratio [NII]6584/[OII]3727  (actual : target) = {ratioNIIOII   :+.2f} : {ratioNIIOIITarget   :+.2f}; {successNIIOII   }')
-    print(f'BPT diagram ratio [OII]3727/[OIII]5007 (actual : target) = {ratioOIIOIII  :+.2f} : {ratioOIIOIIITarget  :+.2f}; {successOIIOIII  }')
+    toleranceSuccess     = +0.20
+    if args.normalization == "ionizingLuminosity":
+        # Select model based on a distance metric.
+        densityHydrogenStandard                =  100.0
+        ionizationParameterLogarithmicStandard = -3.4
+        metallicityStandard                    =  0.014/0.01524 # Convert to relative to Solar using Solar metallicity from Gutkin, Charlot & Bruzual (2016).
+        radiiStromgrenLogarithmic              = (grid['logHydrogenLuminosities']+np.log10(3.0/4.0/np.pi/densityHydrogenStandard**2/coefficientRecombinationCaseB))/3.0
+        ionizationParameterLogarithmic         =  grid['logHydrogenLuminosities']-np.log10(4.0*np.pi*(hecto*speedOfLight))-np.log10(densityHydrogenStandard)-2.0*radiiStromgrenLogarithmic
+        distanceMetals                         = (grid['logMetallicities'       ]-np.log10(metallicityStandard                   ))**2
+        distanceDensity                        = (grid['logHydrogenDensities'   ]-np.log10(densityHydrogenStandard               ))**2
+        distanceIonizationParameter            = (ionizationParameterLogarithmic-          ionizationParameterLogarithmicStandard )**2
+        selectMetals                           = np.argmin(distanceMetals             )
+        selectDensity                          = np.argmin(distanceDensity            )
+        selectIonizationParameter              = np.argmin(distanceIonizationParameter)
+        selectAge                              = grid['ages'] < 100.0e-3
+        deltaAge                               = copy.deepcopy(grid['ages'])
+        deltaAge[0:-2]                         = grid['ages'][1:-1]-deltaAge[0:-2]
+        deltaAge[  -1]                         =                    deltaAge[  -2]
+        # Compute luminosities of all diagnostic lines.
+        luminosityHalpha               = np.sum(grid['lineData']['balmerAlpha6565']['luminosity'][selectAge,selectMetals,selectIonizationParameter,selectDensity]*deltaAge[selectAge]*grid['ionizingLuminosityPerMass'][selectMetals,selectAge])
+        luminosityHbeta                = np.sum(grid['lineData']['balmerBeta4863' ]['luminosity'][selectAge,selectMetals,selectIonizationParameter,selectDensity]*deltaAge[selectAge]*grid['ionizingLuminosityPerMass'][selectMetals,selectAge])
+        luminosityOII                  = np.sum(grid['lineData']['oxygenII3727'   ]['luminosity'][selectAge,selectMetals,selectIonizationParameter,selectDensity]*deltaAge[selectAge]*grid['ionizingLuminosityPerMass'][selectMetals,selectAge])
+        luminosityOIII                 = np.sum(grid['lineData']['oxygenIII5008'  ]['luminosity'][selectAge,selectMetals,selectIonizationParameter,selectDensity]*deltaAge[selectAge]*grid['ionizingLuminosityPerMass'][selectMetals,selectAge])
+        luminosityNII                  = np.sum(grid['lineData']['nitrogenII6585' ]['luminosity'][selectAge,selectMetals,selectIonizationParameter,selectDensity]*deltaAge[selectAge]*grid['ionizingLuminosityPerMass'][selectMetals,selectAge])
+        luminositySIIa                 = np.sum(grid['lineData']['sulfurII6718'   ]['luminosity'][selectAge,selectMetals,selectIonizationParameter,selectDensity]*deltaAge[selectAge]*grid['ionizingLuminosityPerMass'][selectMetals,selectAge])
+        luminositySIIb                 = np.sum(grid['lineData']['sulfurII6733'   ]['luminosity'][selectAge,selectMetals,selectIonizationParameter,selectDensity]*deltaAge[selectAge]*grid['ionizingLuminosityPerMass'][selectMetals,selectAge])
+        # Construct BPT diagram line ratios.
+        ratioNIIHalpha                 = np.log10( luminosityNII                 /luminosityHalpha)
+        ratioOIIIHbeta                 = np.log10( luminosityOIII                /luminosityHbeta )
+        ratioSIIHalpha                 = np.log10((luminositySIIa+luminositySIIb)/luminosityHalpha)
+        ratioNIIOII                    = np.log10( luminosityNII                 /luminosityOII   )
+        ratioOIIOIII                   = np.log10( luminosityOII                 /luminosityOIII  )
+        # Determine success.
+        successNIIHalpha = "within acceptable range" if np.abs(ratioNIIHalpha-ratioNIIHalphaTarget) < toleranceSuccess else "NOT within acceptable range"
+        successOIIIHbeta = "within acceptable range" if np.abs(ratioOIIIHbeta-ratioOIIIHbetaTarget) < toleranceSuccess else "NOT within acceptable range"
+        successSIIHalpha = "within acceptable range" if np.abs(ratioSIIHalpha-ratioSIIHalphaTarget) < toleranceSuccess else "NOT within acceptable range"
+        successNIIOII    = "within acceptable range" if np.abs(ratioNIIOII   -ratioNIIOIITarget   ) < toleranceSuccess else "NOT within acceptable range"
+        successOIIOIII   = "within acceptable range" if np.abs(ratioOIIOIII  -ratioOIIOIIITarget  ) < toleranceSuccess else "NOT within acceptable range"
+        # Report on agreement.
+        print(f'BPT diagram ratio [NII]6584/Hα         (actual : target) = {ratioNIIHalpha:+.2f} : {ratioNIIHalphaTarget:+.2f}; {successNIIHalpha}')
+        print(f'BPT diagram ratio [OIII]5007/Hβ        (actual : target) = {ratioOIIIHbeta:+.2f} : {ratioOIIIHbetaTarget:+.2f}; {successOIIIHbeta}')
+        print(f'BPT diagram ratio [SII]6717,6731/Hα    (actual : target) = {ratioSIIHalpha:+.2f} : {ratioSIIHalphaTarget:+.2f}; {successSIIHalpha}')
+        print(f'BPT diagram ratio [NII]6584/[OII]3727  (actual : target) = {ratioNIIOII   :+.2f} : {ratioNIIOIITarget   :+.2f}; {successNIIOII   }')
+        print(f'BPT diagram ratio [OII]3727/[OIII]5007 (actual : target) = {ratioOIIOIII  :+.2f} : {ratioOIIOIIITarget  :+.2f}; {successOIIOIII  }')
 
     # Make plots of BPT diagrams.
     ## Construct line ratios.
+    if args.normalization == "ionizingLuminosity":
+        normalizationName = "logHydrogenLuminosities"
+    elif args.normalization == "massStellar":
+        normalizationName = "logStellarMasses"
+    else:
+        sys.exit("Expected `normalization` of `ionizingLuminosity` or `massStellar`")        
     with np.errstate(divide='ignore', invalid='ignore'):
         ratioNIIHalphaAll     = np.log10( grid['lineData']['nitrogenII6585' ]['luminosity']                                                /grid['lineData']['balmerAlpha6565']['luminosity'])
         ratioOIIIHbetaAll     = np.log10( grid['lineData']['oxygenIII5008'  ]['luminosity']                                                /grid['lineData']['balmerBeta4863' ]['luminosity'])
         ratioSIIHalphaAll     = np.log10((grid['lineData']['sulfurII6718'   ]['luminosity']+grid['lineData']['sulfurII6733']['luminosity'])/grid['lineData']['balmerAlpha6565']['luminosity'])
         ratioNIIOIIAll        = np.log10( grid['lineData']['nitrogenII6585' ]['luminosity']                                                /grid['lineData']['oxygenII3727'   ]['luminosity'])
         ratioOIIOIIIAll       = np.log10( grid['lineData']['oxygenII3727'   ]['luminosity']                                                /grid['lineData']['oxygenIII5008'  ]['luminosity'])
-        metallicityRatioAll   = np.broadcast_to(grid['logMetallicities'       ][None,:,None,None],(len(grid['ages']),len(grid['logMetallicities']),len(grid['logHydrogenLuminosities']),len(grid['logHydrogenDensities'])))
-        densityHydrogenAll    = np.broadcast_to(grid['logHydrogenDensities'   ][None,None,None,:],(len(grid['ages']),len(grid['logMetallicities']),len(grid['logHydrogenLuminosities']),len(grid['logHydrogenDensities'])))
-        ionizingLuminosityAll = np.broadcast_to(grid['logHydrogenLuminosities'][None,None,:,None],(len(grid['ages']),len(grid['logMetallicities']),len(grid['logHydrogenLuminosities']),len(grid['logHydrogenDensities'])))
-        ageAll                = np.broadcast_to(grid['ages'                   ][:,None,None,None],(len(grid['ages']),len(grid['logMetallicities']),len(grid['logHydrogenLuminosities']),len(grid['logHydrogenDensities'])))
+        ageAll                = np.broadcast_to(grid['ages'                ][   :,None,None,None],(len(grid['ages']),len(grid['logMetallicities']),len(grid[normalizationName]),len(grid['logHydrogenDensities'])))
+        metallicityRatioAll   = np.broadcast_to(grid['logMetallicities'    ][None,   :,None,None],(len(grid['ages']),len(grid['logMetallicities']),len(grid[normalizationName]),len(grid['logHydrogenDensities'])))
+        ionizingLuminosityAll = np.broadcast_to(grid[normalizationName     ][None,None,   :,None],(len(grid['ages']),len(grid['logMetallicities']),len(grid[normalizationName]),len(grid['logHydrogenDensities'])))
+        densityHydrogenAll    = np.broadcast_to(grid['logHydrogenDensities'][None,None,None,   :],(len(grid['ages']),len(grid['logMetallicities']),len(grid[normalizationName]),len(grid['logHydrogenDensities'])))
     rng       = np.random.default_rng()
     selectAll = rng.choice(ratioNIIHalphaAll.ravel().shape[0], 10000)
     ## Read SDSS data.
@@ -821,7 +873,8 @@ def validateSSP(grid,args):
     axes.set_ylim([-2.5,2.0])
     axes.scatter(ratioNIIHalphaSDSS        [selectSDSS],ratioOIIIHbetaSDSS        [selectSDSS],color="#AAAAAA",marker=".",s=1)
     axes.scatter(ratioNIIHalphaAll .ravel()[selectAll ],ratioOIIIHbetaAll .ravel()[selectAll ],c=metallicityRatioAll.ravel()[selectAll],cmap='viridis',norm='linear',s=1)
-    axes.scatter(ratioNIIHalpha                        ,ratioOIIIHbeta                        ,s=100,color='black',marker="x")
+    if args.normalization == "ionizingLuminosity":
+        axes.scatter(ratioNIIHalpha                        ,ratioOIIIHbeta                        ,s=100,color='black',marker="x")
     target = patches.Rectangle((ratioNIIHalphaTarget-toleranceSuccess, ratioOIIIHbetaTarget-toleranceSuccess), 2.0*toleranceSuccess, 2.0*toleranceSuccess, edgecolor='black', facecolor='none', linewidth=2)
     axes.add_patch(target)
     plt.savefig(args.workspace+'bptDiagramOIIINII.svg')  
@@ -834,7 +887,8 @@ def validateSSP(grid,args):
     axes.set_ylim([-2.5,2.0])
     axes.scatter(ratioSIIHalphaSDSS        [selectSDSS],ratioOIIIHbetaSDSS        [selectSDSS],color="#AAAAAA",marker=".",s=1)
     axes.scatter(ratioSIIHalphaAll .ravel()[selectAll ],ratioOIIIHbetaAll .ravel()[selectAll ],c=metallicityRatioAll.ravel()[selectAll],cmap='viridis',norm='linear',s=1)
-    axes.scatter(ratioSIIHalpha                        ,ratioOIIIHbeta                        ,s=100,color='black',marker="x")
+    if args.normalization == "ionizingLuminosity":
+        axes.scatter(ratioSIIHalpha                        ,ratioOIIIHbeta                        ,s=100,color='black',marker="x")
     target = patches.Rectangle((ratioSIIHalphaTarget-toleranceSuccess, ratioOIIIHbetaTarget-toleranceSuccess), 2.0*toleranceSuccess, 2.0*toleranceSuccess, edgecolor='black', facecolor='none', linewidth=2)
     axes.add_patch(target)
     plt.savefig(args.workspace+'bptDiagramOIIISII.svg')  
@@ -847,7 +901,8 @@ def validateSSP(grid,args):
     axes.set_ylim([-2.5,2.0])
     axes.scatter(ratioNIIOIISDSS        [selectSDSS],ratioOIIIHbetaSDSS        [selectSDSS],color="#AAAAAA",marker=".",s=1)
     axes.scatter(ratioNIIOIIAll .ravel()[selectAll ],ratioOIIIHbetaAll .ravel()[selectAll ],c=metallicityRatioAll.ravel()[selectAll],cmap='viridis',norm='linear',s=1)
-    axes.scatter(ratioNIIOII                        ,ratioOIIIHbeta                        ,s=100,color='black',marker="x")
+    if args.normalization == "ionizingLuminosity":
+        axes.scatter(ratioNIIOII                        ,ratioOIIIHbeta                        ,s=100,color='black',marker="x")
     target = patches.Rectangle((ratioNIIOIITarget-toleranceSuccess, ratioOIIIHbetaTarget-toleranceSuccess), 2.0*toleranceSuccess, 2.0*toleranceSuccess, edgecolor='black', facecolor='none', linewidth=2)
     axes.add_patch(target)
     plt.savefig(args.workspace+'bptDiagramNIIOII.svg')  
@@ -860,7 +915,8 @@ def validateSSP(grid,args):
     axes.set_ylim([-2.5,2.0])
     axes.scatter(ratioOIIOIIISDSS        [selectSDSS],ratioOIIIHbetaSDSS        [selectSDSS],color="#AAAAAA",marker=".",s=1)
     axes.scatter(ratioOIIOIIIAll .ravel()[selectAll ],ratioOIIIHbetaAll .ravel()[selectAll ],c=metallicityRatioAll.ravel()[selectAll],cmap='viridis',norm='linear',s=1)
-    axes.scatter(ratioOIIOIII                        ,ratioOIIIHbeta                        ,s=100,color='black',marker="x")
+    if args.normalization == "ionizingLuminosity":
+        axes.scatter(ratioOIIOIII                        ,ratioOIIIHbeta                        ,s=100,color='black',marker="x")
     target = patches.Rectangle((ratioOIIOIIITarget-toleranceSuccess, ratioOIIIHbetaTarget-toleranceSuccess), 2.0*toleranceSuccess, 2.0*toleranceSuccess, edgecolor='black', facecolor='none', linewidth=2)
     axes.add_patch(target)
     plt.savefig(args.workspace+'bptDiagramOIIOIII.svg')  
@@ -997,7 +1053,6 @@ def validateAGN(grid,args):
     print("   Missing outputs: "+str(modelsMissingOutput))
     print("     Missing lines: "+str(modelsMissingLine  ))
 
-
 def outputSSP(grid,args):
     # Output the results of the Cloudy calculations for SSPs.
     # Write the line data to file.
@@ -1008,20 +1063,28 @@ def outputSSP(grid,args):
     tableFile.attrs['commandLine'  ] = grid['commandLine'  ]
     tableFile.attrs['cloudyVersion'] = grid['cloudyVersion']
     # Write parameter grid points and attributes.
-    datasetAge                          = tableFile.create_dataset('age'                       ,data=      grid['ages'                   ])
-    datasetMetallicity                  = tableFile.create_dataset('metallicity'               ,data=10.0**grid['logMetallicities'       ])
-    datasetIonizationLuminosityHydrogen = tableFile.create_dataset('ionizingLuminosityHydrogen',data=10.0**grid['logHydrogenLuminosities'])
-    datasetDensityHydrogen              = tableFile.create_dataset('densityHydrogen'           ,data=10.0**grid['logHydrogenDensities'   ])
-    datasetAge                         .attrs['description'] = "Age of the stellar population."
-    datasetAge                         .attrs['units'      ] = "Gyr"
-    datasetAge                         .attrs['unitsInSI'  ] = secondsPerGyr
-    datasetMetallicity                 .attrs['description'] = "Metallicity relative to Solar."
-    datasetIonizationLuminosityHydrogen.attrs['description'] = "Hydrogen ionizing photon emission rate."
-    datasetIonizationLuminosityHydrogen.attrs['units'      ] = "photons s¯¹"
-    datasetIonizationLuminosityHydrogen.attrs['unitsInSI'  ] = one
-    datasetDensityHydrogen             .attrs['description'] = "Hydrogen density."
-    datasetDensityHydrogen             .attrs['units'      ] = "cm¯³"
-    datasetDensityHydrogen             .attrs['unitsInSI'  ] = mega
+    datasetAge             = tableFile.create_dataset('age'                       ,data=      grid['ages'                   ])
+    datasetMetallicity     = tableFile.create_dataset('metallicity'               ,data=10.0**grid['logMetallicities'       ])
+    datasetDensityHydrogen = tableFile.create_dataset('densityHydrogen'           ,data=10.0**grid['logHydrogenDensities'   ])
+    datasetAge            .attrs['description'] = "Age of the stellar population."
+    datasetAge            .attrs['units'      ] = "Gyr"
+    datasetAge            .attrs['unitsInSI'  ] = secondsPerGyr
+    datasetMetallicity    .attrs['description'] = "Metallicity relative to Solar."
+    datasetDensityHydrogen.attrs['description'] = "Hydrogen density."
+    datasetDensityHydrogen.attrs['units'      ] = "cm¯³"
+    datasetDensityHydrogen.attrs['unitsInSI'  ] = mega
+    if args.normalization == "ionizingLuminosity":
+        datasetIonizationLuminosityHydrogen = tableFile.create_dataset('ionizingLuminosityHydrogen',data=10.0**grid['logHydrogenLuminosities'])
+        datasetIonizationLuminosityHydrogen.attrs['description'] = "Hydrogen ionizing photon emission rate."
+        datasetIonizationLuminosityHydrogen.attrs['units'      ] = "photons s¯¹"
+        datasetIonizationLuminosityHydrogen.attrs['unitsInSI'  ] = one
+    elif args.normalization == "massStellar":
+        datasetMassStellar = tableFile.create_dataset('massStellar',data=10.0**grid['logStellarMasses'])
+        datasetMassStellar.attrs['description'] = "Zero-age stellar mass of the HII region."
+        datasetMassStellar.attrs['units'      ] = "M☉"
+        datasetMassStellar.attrs['unitsInSI'  ] = massSolar
+    else:
+        sys.exit("Expected `normalization` of `ionizingLuminosity` or `massStellar`")
     # Write index in the tables for each iterable.
     i = 0
     for iterable in grid['names']:
@@ -1090,25 +1153,26 @@ def outputAGN(grid,args):
 
 # Parse command line arguments.
 parser = argparse.ArgumentParser(prog='analysesPlotcreateEmissionLinesTable.py',description='Generate tables of Cloudy models for use in emission line calculations.')
-parser.add_argument('--outputFileName'                              ,action='store'                            ,help='the file to which the table should be output'                  )
-parser.add_argument('--sspFileName'                                 ,action='store'                            ,help='the SSP file for which to compute emission line luminosities'  )
-parser.add_argument('--agnModel'                                    ,action='store'                            ,help='the AGN model for which to compute emission line luminosities' )
-parser.add_argument('--workspace'            ,default='cloudyTable/',action='store'                            ,help='the path in which temporary files should be created'           )
-parser.add_argument('--reprocess'                                   ,action='store_true'                       ,help='reprocess models that failed to be read previously'            )
-parser.add_argument('--rerun'                                       ,action='store_true'                       ,help='rerun models that previously failed'                           )
-parser.add_argument('--generateOnly'                                ,action='store_true'                       ,help='only generate model input files, do not run them'              )
-parser.add_argument('--overview'                                    ,action='store_true'                       ,help='include the Cloudy overview in the output'                     )
-parser.add_argument('--noClean'                                     ,action='store_true'                       ,help='do not clean up temporary files'                               )
-parser.add_argument('--noGrains'                                    ,action='store_true'                       ,help='do not include dust grains in the models'                      )
-parser.add_argument('--stopElectronFraction' ,default='0.01'        ,action='store'      ,type=restricted_float,help='set the elctron fraction at which to stop the Cloudy models'   )
-parser.add_argument('--stopLymanOpticalDepth',default='10.0'        ,action='store'      ,type=restricted_float,help='set the Lyman optical depth at which to stop the Cloudy models')
-parser.add_argument('--cloudyVersion'        ,default="23.01"       ,action='store'                            ,help='the version of Cloudy to use'                                  )
-parser.add_argument('--suffixGitHubPages'                           ,action='store'                            ,help='update GitHub pages content using this suffix'                 )
-parser.add_argument('--model'                                       ,action='store'      ,type=restricted_int  ,help='run only the given model number'                               )
-parser.add_argument('--partition'                                   ,action='store'                            ,help='the partition to which to submit jobs'                         )
-parser.add_argument('--jobMaximum'                                  ,action='store'      ,type=restricted_int  ,help='the maximum number of active jobs to allow'                    )
-parser.add_argument('--waitOnSubmit'                                ,action='store'      ,type=restricted_int  ,help='the time (in seconds) to wait after submitting each job'       )
-parser.add_argument('--waitOnActive'                                ,action='store'      ,type=restricted_int  ,help='the time (in seconds) to wait after polling active jobs'       )
+parser.add_argument('--outputFileName'                                    ,action='store'                            ,help='the file to which the table should be output'                                        )
+parser.add_argument('--sspFileName'                                       ,action='store'                            ,help='the SSP file for which to compute emission line luminosities'                        )
+parser.add_argument('--agnModel'                                          ,action='store'                            ,help='the AGN model for which to compute emission line luminosities'                       )
+parser.add_argument('--workspace'            ,default='cloudyTable/'      ,action='store'                            ,help='the path in which temporary files should be created'                                 )
+parser.add_argument('--reprocess'                                         ,action='store_true'                       ,help='reprocess models that failed to be read previously'                                  )
+parser.add_argument('--rerun'                                             ,action='store_true'                       ,help='rerun models that previously failed'                                                 )
+parser.add_argument('--generateOnly'                                      ,action='store_true'                       ,help='only generate model input files, do not run them'                                    )
+parser.add_argument('--overview'                                          ,action='store_true'                       ,help='include the Cloudy overview in the output'                                           )
+parser.add_argument('--noClean'                                           ,action='store_true'                       ,help='do not clean up temporary files'                                                     )
+parser.add_argument('--noGrains'                                          ,action='store_true'                       ,help='do not include dust grains in the models'                                            )
+parser.add_argument('--normalization'        ,default='ionizingLuminosity',action='store'                            ,help='specify how the spectrum is to be normalized (`ionizingLuminosity` or `massStellar`)')
+parser.add_argument('--stopElectronFraction' ,default='0.01'              ,action='store'      ,type=restricted_float,help='set the elctron fraction at which to stop the Cloudy models'                         )
+parser.add_argument('--stopLymanOpticalDepth',default='10.0'              ,action='store'      ,type=restricted_float,help='set the Lyman optical depth at which to stop the Cloudy models'                      )
+parser.add_argument('--cloudyVersion'        ,default="23.01"             ,action='store'                            ,help='the version of Cloudy to use'                                                        )
+parser.add_argument('--suffixGitHubPages'                                 ,action='store'                            ,help='update GitHub pages content using this suffix'                                       )
+parser.add_argument('--model'                                             ,action='store'      ,type=restricted_int  ,help='run only the given model number'                                                     )
+parser.add_argument('--partition'                                         ,action='store'                            ,help='the partition to which to submit jobs'                                               )
+parser.add_argument('--jobMaximum'                                        ,action='store'      ,type=restricted_int  ,help='the maximum number of active jobs to allow'                                          )
+parser.add_argument('--waitOnSubmit'                                      ,action='store'      ,type=restricted_int  ,help='the time (in seconds) to wait after submitting each job'                             )
+parser.add_argument('--waitOnActive'                                      ,action='store'      ,type=restricted_int  ,help='the time (in seconds) to wait after polling active jobs'                             )
 args = parser.parse_args()
 
 # Validate options.
