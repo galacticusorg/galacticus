@@ -51,12 +51,14 @@
      class           (virialDensityContrastClass  ), pointer :: virialDensityContrast_             => null()
      type            (distributionFunction1DNormal)          :: massCoreScatter
      double precision                                        :: toleranceRelativeVelocityDispersion         , toleranceRelativeVelocityDispersionMaximum
+     double precision                                        :: scatterLog
      double precision                                        :: radiusVirialPrevious                        , radiusScalePrevious                       , &
           &                                                     radiusCorePrevious                          , radiusSolitonPrevious                     , &
           &                                                     densityCorePrevious                         , densityScalePrevious                      , &
           &                                                     massCorePrevious
      integer          (kind_int8                  )          :: lastUniqueID
-     integer                                                 :: randomOffsetID                              , densityCoreID
+     integer                                                 :: randomOffsetID                              , densityCoreID                             , &
+          &                                                     radiusCoreID                                , massCoreID
    contains
      !![
      <methods>
@@ -99,6 +101,7 @@ contains
     class           (cosmologyParametersClass      ), pointer       :: cosmologyParameters_
     class           (virialDensityContrastClass    ), pointer       :: virialDensityContrast_
     double precision                                                :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
+    double precision                                                :: scatterLog
 
     !![
     <inputParameter>
@@ -113,13 +116,19 @@ contains
       <source>parameters</source>
       <description>The maximum relative tolerance to use in numerical solutions for the velocity dispersion.</description>
     </inputParameter>
+    <inputParameter>
+      <name>scatterLog</name>
+      <defaultValue>1.5d0</defaultValue>
+      <source>parameters</source>
+      <description>The logarithmic scatter factor in the solitonic core-halo mass relation (default corresponds to a 50\% log-normal scatter).</description>
+    </inputParameter>
     <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="parameters"/>
     <objectBuilder class="darkMatterParticle"    name="darkMatterParticle_"    source="parameters"/>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
     <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     !!]
-    self = darkMatterProfileDMOSolitonNFW(darkMatterHaloScale_,darkMatterParticle_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum)
+    self = darkMatterProfileDMOSolitonNFW(darkMatterHaloScale_,darkMatterParticle_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,scatterLog)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_"  />
@@ -131,7 +140,7 @@ contains
     return
   end function solitonNFWConstructorParameters
 
-  function solitonNFWConstructorInternal(darkMatterHaloScale_,darkMatterParticle_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum) result(self)
+  function solitonNFWConstructorInternal(darkMatterHaloScale_,darkMatterParticle_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,scatterLog) result(self)
     !!{
     Generic constructor for the \refClass{darkMatterProfileDMOSolitonNFW} dark matter halo profile class.
     !!}
@@ -140,21 +149,24 @@ contains
     use :: Numerical_Constants_Prefixes  , only : kilo
     use :: Galacticus_Nodes              , only : defaultDarkMatterProfileComponent
     implicit none
-    type            (darkMatterProfileDMOSolitonNFW)                     :: self
-    class           (darkMatterHaloScaleClass      ), intent(in), target :: darkMatterHaloScale_
-    class           (darkMatterParticleClass       ), intent(in), target :: darkMatterParticle_
-    class           (cosmologyFunctionsClass       ), intent(in), target :: cosmologyFunctions_
-    class           (cosmologyParametersClass      ), intent(in), target :: cosmologyParameters_
-    class           (virialDensityContrastClass    ), intent(in), target :: virialDensityContrast_
-    double precision                                , intent(in)         :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
+    type            (darkMatterProfileDMOSolitonNFW)                      :: self
+    class           (darkMatterHaloScaleClass      ), intent(in), target  :: darkMatterHaloScale_
+    class           (darkMatterParticleClass       ), intent(in), target  :: darkMatterParticle_
+    class           (cosmologyFunctionsClass       ), intent(in), target  :: cosmologyFunctions_
+    class           (cosmologyParametersClass      ), intent(in), target  :: cosmologyParameters_
+    class           (virialDensityContrastClass    ), intent(in), target  :: virialDensityContrast_
+    double precision                                , intent(in)          :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
+    double precision                                , intent(in)          :: scatterLog
     !![
-    <constructorAssign variables="*darkMatterHaloScale_, *darkMatterParticle_, *cosmologyFunctions_, *cosmologyParameters_, *virialDensityContrast_, toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum"/>
-    <addMetaProperty component="darkMatterProfile" name="randomOffset" id="self%randomOffsetID" isEvolvable="no" isCreator="yes"/>
-    <addMetaProperty component="basic"             name="densityCore"  id="self%densityCoreID"  isEvolvable="no" isCreator="yes"/>
+    <constructorAssign variables="*darkMatterHaloScale_, *darkMatterParticle_, *cosmologyFunctions_, *cosmologyParameters_, *virialDensityContrast_, toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum,scatterLog"/>
+    <addMetaProperty component="darkMatterProfile" name="randomOffset" id="self%randomOffsetID" isEvolvable="no"  isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="densityCore"  id="self%densityCoreID"  isEvolvable="no"  isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="radiusCore"   id="self%radiusCoreID"   isEvolvable="no"  isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="massCore"     id="self%massCoreID"     isEvolvable="yes" isCreator="no"/>
     !!]
 
     self%lastUniqueID=-huge(1_kind_int8)
-    self%massCoreScatter = distributionFunction1DNormal(mean=0.0d0,variance = log10(1.5d0)**2) ! 50% log-normal scatter from Eq.(15) of Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
+    self%massCoreScatter = distributionFunction1DNormal(mean=0.0d0,variance = log10(scatterLog)**2) ! 50% log-normal scatter from Eq.(15) of Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
 
     select type (darkMatterParticle__ => self%darkMatterParticle_)
     class is (darkMatterParticleFuzzyDarkMatter)
@@ -249,7 +261,7 @@ contains
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
     !!]
-    
+
     ! Return a null distribution if weighting is not by mass.
     massDistribution_ => null()
     if (weightBy_ /= weightByMass) return
@@ -318,11 +330,6 @@ contains
   subroutine solitonNFWComputeProperties(self,node,radiusVirial,radiusScale,radiusCore,radiusSoliton,densityCore,densityScale,massCore)
     use :: Galacticus_Nodes                , only : treeNode           , nodeComponentBasic       , nodeComponentDarkMatterProfile
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Units       , only : electronVolt
-    use :: Numerical_Constants_Astronomical, only : megaParsec
-    use :: Numerical_Constants_Physical    , only : speedLight         , plancksConstant
-    use :: Numerical_Constants_Prefixes    , only : kilo
-    use :: Cosmology_Parameters            , only : hubbleUnitsStandard, hubbleUnitsLittleH
     use :: Root_Finder                     , only : rootFinder         , rangeExpandMultiplicative, rangeExpandSignExpectPositive , rangeExpandSignExpectNegative
     implicit none
     class           (darkMatterProfileDMOSolitonNFW), intent(inout) :: self
@@ -337,18 +344,9 @@ contains
     logical                                         , save          :: finderInitialized =.false.
     !$omp threadprivate(finder, finderInitialized)
     double precision                                , parameter     :: toleranceAbsolute = 0.0d0           , toleranceRelative  =1.0d-3
-    double precision                                , parameter     :: plancksConstantBar=+plancksConstant                                & ! ℏ in units of eV s.
-         &                                                                                /2.0d0                                          &
-         &                                                                                /Pi                                             &
-         &                                                                                /electronVolt
     double precision                                                :: massHalo                            , expansionFactor            , &
          &                                                             redshift                            , concentration              , &
-         &                                                             hubbleConstant                      , hubbleConstantLittle       , &
-         &                                                             OmegaMatter                         , densityMatter              , &
-         &                                                             zeta_0                              , zeta_z                     , &
          &                                                             randomOffset                        , massCoreNormal
-    double precision                                , parameter     :: alpha             =0.515            , beta               =8.0d6  , &
-         &                                                             gamma             =10.0d0**(-5.73d0)                                 ! Best-fitting parameters from Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
     integer                                                         :: status                              , sampleCount                , &
          &                                                             maxSamples = 50
 
@@ -372,37 +370,11 @@ contains
          &            +              log(1.0d0+concentration) &
          &            -concentration/   (1.0d0+concentration) &
          &          )
-    ! Extract cosmological parameters for later use.
-    hubbleConstant      =+self%cosmologyParameters_%HubbleConstant (hubbleUnitsStandard)
-    hubbleConstantLittle=+self%cosmologyParameters_%HubbleConstant (hubbleUnitsLittleH )
-    OmegaMatter         =+self%cosmologyParameters_%OmegaMatter    (                   )
-    densityMatter       =+self%cosmologyParameters_%densityCritical(                   ) &
-         &                      *                   OmegaMatter
     ! Compute the core mass.
-    zeta_0             =+self%virialDensityContrast_%densityContrast(massHalo,expansionFactor=1.0d0          )
-    zeta_z             =+self%virialDensityContrast_%densityContrast(massHalo,expansionFactor=expansionFactor)
-    massCoreNormal     =+(                          & ! Equation (15) of Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
-         &                +beta                     &
-         &                *(                        &
-         &                  +self%massParticle      &
-         &                  /8.0d-23                &
-         &                 )**(-1.5d0)              &
-         &                +(                        &
-         &                  +sqrt(                  &
-         &                        +zeta_z           &
-         &                        /zeta_0           &
-         &                       )                  &
-         &                  *massHalo               &
-         &                  /gamma                  &
-         &                 )**alpha                 &
-         &                *(                        &
-         &                  +self%massParticle      &
-         &                  /8.0d-23                &
-         &                 )**(1.5d0*(alpha-1.0d0)) &
-         &               )&
-         &              /sqrt(expansionFactor)
-    radiusScale_      =radiusScale
-    densityScale_     =densityScale
+    massCoreNormal     =+darkMatterProfile%floatRank0MetaPropertyGet(self%massCoreID)
+
+    radiusScale_       =radiusScale
+    densityScale_      =densityScale
     ! Solve for the soliton radius.
     if (.not.finderInitialized) then
        finder=rootFinder(                                        &
@@ -450,7 +422,8 @@ contains
            exit
        end if
     end do
-    call basic%floatRank0MetaPropertySet(self%densityCoreID,densityCore)
+    call darkMatterProfile%floatRank0MetaPropertySet(self%densityCoreID,densityCore)
+    call darkMatterProfile%floatRank0MetaPropertySet(self%radiusCoreID ,radiusCore )
     return
   end subroutine solitonNFWComputeProperties
 
