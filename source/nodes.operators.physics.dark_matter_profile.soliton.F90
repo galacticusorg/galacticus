@@ -53,7 +53,7 @@
      integer                                                 :: massCoreID                     , massHaloID        , &
          &                                                      zeta0ID                        , zetazID           , &
          &                                                      massParticleID                 , expansionFactorID
-     double precision                                        :: massParticle
+     double precision                                        :: massParticle                   , massCoreMinimum
      double precision                                        :: alpha       =0.515             , beta      =8.0d6  , &
          &                                                      gamma       =10.0d0**(-5.73d0)                       ! Best-fitting parameters from Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
    contains
@@ -172,14 +172,10 @@ contains
     class           (nodeOperatorDarkMatterProfileSoliton), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
     class           (nodeComponentDarkMatterProfile      ), pointer       :: darkMatterProfile
-    double precision                                                      :: scaleRelative    , massCoreMin
+    double precision                                                      :: scaleRelative
 
-    ! Minimum soliton core mass in FDM.
-    ! Using Mc,min ~ 0.25 × Mmin,halo (soliton-dominated limit), from Schive et al. (2014; PRL; 113; 1302; https://ui.adsabs.harvard.edu/abs/2014PhRvL.113z1302S).
-    ! The minimum halo-mass scaling is mentioned in the abstract of Hui et al. (2017; PRD; 95; 3541; https://ui.adsabs.harvard.edu/abs/2017PhRvD..95d3541H).
-    massCoreMin  =+0.25d0*1.0d7*(self%massParticle/1.0d-22)**(-1.5d0)
     ! Set the absolute tolerance scale for ODE integration to 10% of the minimum solitonic core mass.
-    scaleRelative=+0.1d0*massCoreMin
+    scaleRelative=+0.1d0*self%massCoreMinimum
 
     darkMatterProfile=>node%darkMatterProfile()
     call darkMatterProfile%floatRank0MetaPropertyScale(self%massCoreID, scaleRelative)
