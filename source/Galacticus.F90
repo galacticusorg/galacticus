@@ -26,7 +26,7 @@ program Galacticus
   !!{
   The main {\normalfont \scshape Galacticus} program.
   !!}
-  use    :: Display                   , only : displayMessage                   , displayMagenta       , displayReset
+  use    :: Display                   , only : displayMessage                   , displayMagenta       , displayGreen                 , displayReset
   use    :: Display_Verbosity         , only : displayVerbositySetFromParameters
   use    :: Events_Hooks              , only : eventsHooksInitialize
   use    :: Functions_Global_Utilities, only : Functions_Global_Set
@@ -34,8 +34,9 @@ program Galacticus
   use    :: Error                     , only : Error_Handler_Register           , Error_Report         , errorStatusSuccess
   use    :: Error_Utilities           , only : Error_Wait_Set_From_Parameters
   use    :: Output_HDF5_Open          , only : Output_HDF5_Close_File           , Output_HDF5_Open_File, Output_HDF5_Completion_Status
-  use    :: ISO_Varying_String        , only : assignment(=)                    , varying_string       , var_str
+  use    :: ISO_Varying_String        , only : assignment(=)                    , varying_string       , var_str                      , operator(//)
   use    :: Input_Parameters          , only : inputParameter                   , inputParameters
+  use    :: Input_Paths               , only : inputPath                        , pathTypeDataStatic
 #ifdef USEMPI
   use    :: MPI_F08                   , only : MPI_Comm_World                   , MPI_Thread_Multiple  , MPI_Thread_Single
 #endif
@@ -113,6 +114,8 @@ program Galacticus
         end select
      end do
   end if
+  ! Report on datasets location.
+  call displayMessage(displayGreen()//"NOTE: "//displayReset()//"datasets are being read from "//inputPath(pathTypeDataStatic))
   ! Open the parameter file.
   parameters=inputParameters(parameterFile,changeFiles=changeFiles)
   ! Output the processed parameter file.

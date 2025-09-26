@@ -253,9 +253,8 @@ contains
     !!{
     Constructor for the \refClass{outputAnalysisQuiescentFraction} output analysis class which reads all required properties from file.
     !!}
-    use :: IO_HDF5       , only : hdf5Object
-    use :: HDF5_Access   , only : hdf5Access
-    use :: File_Utilities, only : File_Name_Expand
+    use :: IO_HDF5    , only : hdf5Object
+    use :: HDF5_Access, only : hdf5Access
     implicit none
     type            (outputAnalysisQuiescentFraction          )                                :: self
     character       (len=*                                    ), intent(in   )                 :: fileName
@@ -277,7 +276,7 @@ contains
     type            (hdf5Object                               )                                :: dataFile
 
     !$ call hdf5Access%set  ()
-    call dataFile%openFile     (char(File_Name_Expand(fileName))     ,readOnly=.true.              )
+    call dataFile%openFile     (fileName                             ,readOnly=.true.              )
     call dataFile%readDataset  ('massStellar'                        ,         massesStellar       )
     call dataFile%readDataset  ('quiescentFractionFunction'          ,         meanValueTarget     )
     call dataFile%readDataset  ('quiescentFractionFunctionCovariance',         meanCovarianceTarget)
