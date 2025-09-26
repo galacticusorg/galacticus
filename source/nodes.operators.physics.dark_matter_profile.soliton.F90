@@ -45,13 +45,17 @@
      A node operator class implementing the time-evolved solitonic core–halo relation following \cite{chan_diversity_2022}.
      !!}
      private
-     class           (darkMatterHaloScaleClass  ), pointer   :: darkMatterHaloScale_   => null()
-     class           (darkMatterParticleClass   ), pointer   :: darkMatterParticle_    => null()
-     class           (cosmologyFunctionsClass   ), pointer   :: cosmologyFunctions_    => null()
-     class           (cosmologyParametersClass  ), pointer   :: cosmologyParameters_   => null()
-     class           (virialDensityContrastClass), pointer   :: virialDensityContrast_ => null()
-     integer                                                 :: massCoreID
-     double precision                                        :: massParticle                    , massCoreMinimum
+     class           (darkMatterHaloScaleClass  ), pointer   :: darkMatterHaloScale_  => null()
+     class           (darkMatterParticleClass   ), pointer   :: darkMatterParticle_   => null()
+     class           (cosmologyFunctionsClass   ), pointer   :: cosmologyFunctions_   => null()
+     class           (cosmologyParametersClass  ), pointer   :: cosmologyParameters_  => null()
+     class           (virialDensityContrastClass), pointer   :: virialDensityContrast_=> null()
+     integer                                                 :: massCoreID                     , massHaloID        , &
+         &                                                      zeta0ID                        , zetazID           , &
+         &                                                      massParticleID                 , expansionFactorID
+     double precision                                        :: massParticle
+     double precision                                        :: alpha       =0.515             , beta      =8.0d6  , &
+         &                                                      gamma       =10.0d0**(-5.73d0)                       ! Best-fitting parameters from Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
    contains
      final     ::                                darkMatterProfileSolitonDestructor
      procedure :: nodeTreeInitialize          => darkMatterProfileSolitonNodeTreeInitialize
@@ -168,11 +172,18 @@ contains
     class           (nodeOperatorDarkMatterProfileSoliton), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
     class           (nodeComponentDarkMatterProfile      ), pointer       :: darkMatterProfile
-    double precision                                      , parameter     :: scaleRelative    =0.1d0
+    double precision                                                      :: scaleRelative    , massCoreMin
 
+    ! Minimum soliton core mass in FDM.
+    ! Using Mc,min ~ 0.25 × Mmin,halo (soliton-dominated limit), from Schive et al. (2014; PRL; 113; 1302; https://ui.adsabs.harvard.edu/abs/2014PhRvL.113z1302S).
+    ! The minimum halo-mass scaling is mentioned in the abstract of Hui et al. (2017; PRD; 95; 3541; https://ui.adsabs.harvard.edu/abs/2017PhRvD..95d3541H).
+    massCoreMin  =+0.25d0*1.0d7*(self%massParticle/1.0d-22)**(-1.5d0)
     ! Set the absolute tolerance scale for ODE integration to 10% of the minimum solitonic core mass.
-    darkMatterProfile => node%darkMatterProfile()
-    call darkMatterProfile%floatRank0MetaPropertyScale(self%massCoreID,scaleRelative*self%massCoreMinimum)
+    scaleRelative=+0.1d0*massCoreMin
+
+    darkMatterProfile=>node%darkMatterProfile()
+    call darkMatterProfile%floatRank0MetaPropertyScale(self%massCoreID, scaleRelative)
+
     return
   end subroutine darkMatterProfileSolitonDifferentialEvolutionScales
 
@@ -284,6 +295,9 @@ contains
          &                 )**(1.5d0*(alpha-1.0d0)) &
          &               )                          &
          &              /sqrt(expansionFactor)
-    call darkMatterProfile%floatRank0MetaPropertySet(self%massCoreID,massCoreNormal)
+    call darkMatterProfile%floatRank0MetaPropertySet(                 &
+         &                               self%massCoreID, &
+         &                               massCoreNormal   &
+         &                              )
     return
   end subroutine darkMatterProfileSolitonNodeTreeInitialize
