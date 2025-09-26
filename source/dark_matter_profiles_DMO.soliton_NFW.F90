@@ -120,7 +120,7 @@ contains
       <name>scatterLog</name>
       <defaultValue>1.5d0</defaultValue>
       <source>parameters</source>
-      <description>The logarithmic scatter factor in the solitonic core–halo mass relation (default corresponds to a 50% log-normal scatter).</description>
+      <description>The logarithmic scatter factor in the solitonic core-halo mass relation (default corresponds to a 50\% log-normal scatter).</description>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="parameters"/>
     <objectBuilder class="darkMatterParticle"    name="darkMatterParticle_"    source="parameters"/>
