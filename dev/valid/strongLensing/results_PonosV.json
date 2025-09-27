@@ -6,19 +6,19 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "809e30715793824f9b8d3036ef6a5442a2460149",
-        "message": "Merge pull request #924 from galacticusorg/dependabot/github_actions/tj-actions/changed-files-47\n\nbuild(deps): Bump tj-actions/changed-files from 46 to 47\n",
-        "timestamp": "2025-09-15 14:38:22+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/809e30715793824f9b8d3036ef6a5442a2460149"
+        "id": "7362ac5d86461b0509740066764812355dc1cee1",
+        "message": "Merge pull request #929 from galacticusorg/depup/lesgourg/class_public\n\nfix(deps): update lesgourg/class_public to 3.3.3\n",
+        "timestamp": "2025-09-26 17:20:45+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/7362ac5d86461b0509740066764812355dc1cee1"
     },
     "surfaceDensity": {
-        "percentageBelow": 32.14285714285714,
-        "percentageAbove": 67.85714285714286,
+        "percentageBelow": 39.285714285714285,
+        "percentageAbove": 60.714285714285715,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 88.88888888888889,
-        "percentageAbove": 11.11111111111111,
+        "percentageBelow": 72.72727272727272,
+        "percentageAbove": 27.272727272727273,
         "target": 0.85
     }
 }
