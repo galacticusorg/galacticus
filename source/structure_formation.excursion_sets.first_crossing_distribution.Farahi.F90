@@ -1312,7 +1312,7 @@ contains
     if (.not.File_Exists(self%fileName)) return
     ! Open the data file.
     !$ call hdf5Access%set()
-    call dataFile%openFile(self%fileName)
+    call dataFile%openFile(self%fileName,readOnly=.true.)
     ! Check if the standard table is populated.
     if (dataFile%hasGroup('probability')) then
        ! Deallocate arrays if necessary.
