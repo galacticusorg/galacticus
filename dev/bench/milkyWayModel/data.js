@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1757969709771,
+  "lastUpdate": 1758955838316,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abensonca@gmail.com"
-          },
-          "committer": {
-            "name": "GitHub",
-            "username": "web-flow",
-            "email": "noreply@github.com"
-          },
-          "id": "4df7c0ea3168be79d9cc4d7f1b07b1a5f71a69db",
-          "message": "Merge pull request #717 from galacticusorg/featSFHFixedAges\n\nImplement a star formation history class that provides a tabulation at fixed ages for lightcone output",
-          "timestamp": "2024-10-16T15:05:13Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/4df7c0ea3168be79d9cc4d7f1b07b1a5f71a69db"
-        },
-        "date": 1729124131533,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 427.734,
-            "unit": "seconds",
-            "range": 0.246557092774666
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10692,6 +10664,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 6.766505186289822,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7362ac5d86461b0509740066764812355dc1cee1",
+          "message": "Merge pull request #929 from galacticusorg/depup/lesgourg/class_public\n\nfix(deps): update lesgourg/class_public to 3.3.3",
+          "timestamp": "2025-09-26T17:20:45Z",
+          "tree_id": "e546fd083ca552709c3f85824a3c634d234104ff",
+          "url": "https://github.com/galacticusorg/galacticus/commit/7362ac5d86461b0509740066764812355dc1cee1"
+        },
+        "date": 1758955837032,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 78.944,
+            "range": "0.0850670323919038",
+            "unit": "seconds"
           }
         ]
       }
