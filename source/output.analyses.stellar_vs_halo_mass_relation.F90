@@ -89,8 +89,8 @@
      integer         (c_size_t                  ), allocatable, dimension(:  ) :: likelihoodBins
      integer                                                                   :: redshiftInterval
      double precision                            , allocatable, dimension(:  ) :: systematicErrorPolynomialCoefficient            , systematicErrorMassHaloPolynomialCoefficient, &
-          &                                                                       massStellarLogarithmicTarget
-     double precision                            , allocatable, dimension(:,:) :: massStellarLogarithmicCovarianceTarget
+          &                                                                       massStellarLogarithmicTarget                    , massStellarScatterTarget
+     double precision                            , allocatable, dimension(:,:) :: massStellarLogarithmicCovarianceTarget          , massStellarScatterCovarianceTarget
      type            (varying_string            )                              :: analysisLabel                                   , fileNameTarget
    contains
      final     ::                  stellarVsHaloMassRelationDestructor
@@ -407,8 +407,10 @@ contains
        end do
     end if
     allocate(self%massStellarLogarithmicTarget          ,source=massStellarLogarithmicTarget          )
+    allocate(self%massStellarScatterTarget              ,source=massStellarScatterTarget              )
     allocate(self%massStellarLogarithmicCovarianceTarget,source=massStellarLogarithmicCovarianceTarget)
-    ! Build a filter which selects central galaxies with stellar mass above some coarse lower limit suitable for this sample.
+    allocate(self%massStellarScatterCovarianceTarget    ,source=massStellarScatterCovarianceTarget    )
+   ! Build a filter which selects central galaxies with stellar mass above some coarse lower limit suitable for this sample.
     allocate(galacticFilterStellarMass_      )
     allocate(galacticFilterHaloIsolated_     )
     allocate(galacticFilterAll_              )
@@ -820,13 +822,8 @@ contains
     class is (outputAnalysisScatterFunction1D)
        ! Retrieve the results of the analysis.
        call outputAnalysis_%results(scatterValue=massStellarLogarithmic,scatterCovariance=massStellarLogarithmicCovariance)
-       allocate(massStellarLogarithmicTarget          ,mold  =self%massStellarLogarithmicTarget          )
-       allocate(massStellarLogarithmicCovarianceTarget,mold  =self%massStellarLogarithmicCovarianceTarget)
-       massStellarLogarithmicCovarianceTarget=0.0d0
-       do i=1,size(massStellarLogarithmicTarget)
-          massStellarLogarithmicTarget          (i  )=0.16d0
-          massStellarLogarithmicCovarianceTarget(i,i)=0.04d0**2
-       end do
+       allocate(massStellarLogarithmicTarget          ,source=self%massStellarScatterTarget              )
+       allocate(massStellarLogarithmicCovarianceTarget,source=self%massStellarScatterCovarianceTarget    )
     class default
        logLikelihood=+outputAnalysis_%logLikelihood()
        return
