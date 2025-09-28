@@ -233,7 +233,6 @@ contains
     use :: Cosmology_Parameters                  , only : cosmologyParametersClass                                      , cosmologyParametersSimple
     use :: Galactic_Filters                      , only : filterList                                                    , galacticFilterAll                              , galacticFilterHaloIsolated, galacticFilterStellarMass
     use :: Error                                 , only : Error_Report
-    use :: File_Utilities                        , only : File_Name_Expand
     use :: Geometry_Surveys                      , only : surveyGeometryFullSky
     use :: HDF5_Access                           , only : hdf5Access
     use :: IO_HDF5                               , only : hdf5Object
@@ -311,7 +310,7 @@ contains
 
     ! Open the target data file and read basic information.
     !$ call hdf5Access%set()
-    call fileTarget%openFile(char(File_Name_Expand(char(self%fileNameTarget))),readOnly=.true.)
+    call fileTarget%openFile(self%fileNameTarget,readOnly=.true.)
     ! Find the requested redshift interval.
     groupRedshiftName=var_str('redshiftInterval')//redshiftInterval
     if (.not.fileTarget%hasGroup(char(groupRedshiftName))) call Error_Report(var_str('redshift interval ')//redshiftInterval//' is not present in `'//self%fileNameTarget//'`'//{introspection:location})

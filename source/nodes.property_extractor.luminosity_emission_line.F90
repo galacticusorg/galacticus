@@ -187,7 +187,6 @@ contains
     use :: Galactic_Structure_Options      , only : componentTypeDisk, componentTypeSpheroid, componentTypeAll
     use :: Galacticus_Nodes                , only : nodeComponentDisk, nodeComponentSpheroid
     use :: Error                           , only : Error_Report
-    use :: File_Utilities                  , only : File_Name_Expand
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
     use :: HDF5_Access                     , only : hdf5Access
     use :: IO_HDF5                         , only : hdf5Object
@@ -235,7 +234,7 @@ contains
     ! Get details of the star formation rate tabulation.
     self%metallicityBoundaries=self%starFormationHistory_%metallicityBoundaries      ()
     !$ call hdf5Access%set()
-    call emissionLinesFile%openFile(char(File_Name_Expand(char(self%cloudyTableFileName))),readOnly=.true.)
+    call emissionLinesFile%openFile(self%cloudyTableFileName,readOnly=.true.)
     lines=emissionLinesFile%openGroup('lines')
     do i=1,size(lineNames)
        if (.not.lines%hasDataset(char(self%lineNames(i)))) call Error_Report('line "'//char(self%lineNames(i))//'" not found'//{introspection:location})

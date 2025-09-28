@@ -371,7 +371,7 @@ contains
   end function farahiConstructorInternal
 
   subroutine farahiFileNameInitialize(self)
-    use :: File_Utilities, only : Directory_Make, File_Name_Expand   , File_Path
+    use :: File_Utilities, only : Directory_Make, File_Path          , File_Name_Expand
     use :: Input_Paths   , only : inputPath     , pathTypeDataDynamic
     implicit none
     class(excursionSetFirstCrossingFarahi), intent(inout) :: self
@@ -380,8 +380,8 @@ contains
     ! Build an automatic file name based on the descriptor for this object.
     if (self%fileName == "auto") &
          & self%fileName=inputPath(pathTypeDataDynamic)//'largeScaleStructure/excursionSets/'//self%objectType()//'_'//self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)//'.hdf5'
-    ! Expand file name.
-    self%fileName=File_Name_Expand(char(self%fileName))
+    ! Expand the file name.
+    self%fileName=File_Name_Expand(self%fileName)
     ! Ensure directory exists.
     call Directory_Make(File_Path(self%fileName))
     self%fileNameInitialized=.true.
@@ -459,7 +459,7 @@ contains
     if (self%useFile.and..not.self%tableInitialized) then
        call self%fileNameInitialize()
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-       call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
+       call File_Lock(self%fileName,fileLock,lockIsShared=.true.)
        call self%fileRead()
        call File_Unlock(fileLock)
     end if
@@ -473,7 +473,7 @@ contains
        ! Attempt to read the file again now that we are within the critical section. If another thread made the file while we were waiting we may be able to skip building the table.
        if (self%useFile) then
           call self%fileNameInitialize()
-          call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
+          call File_Lock(self%fileName,fileLock,lockIsShared=.true.)
           call self%fileRead()
           call File_Unlock(fileLock)
        end if
@@ -653,7 +653,7 @@ contains
           if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
              if (self%useFile) then
-                call File_Lock(char(self%fileName),fileLock,lockIsShared=.false.)
+                call File_Lock(self%fileName,fileLock,lockIsShared=.false.)
                 call self%fileWrite()
                 call File_Unlock(fileLock)
              end if
@@ -928,7 +928,7 @@ contains
     if (self%useFile.and..not.self%tableInitializedRate) then
        call self%fileNameInitialize()
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-       call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
+       call File_Lock(self%fileName,fileLock,lockIsShared=.true.)
        call self%fileRead()
        call File_Unlock(fileLock)
     end if
@@ -940,7 +940,7 @@ contains
        !$omp critical(farahiRateTabulate)
        ! Attempt to read the file again now that we are within the critical section. If another thread made the file while we were waiting we may be able to skip building the table.
        if (self%useFile) then
-          call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
+          call File_Lock(self%fileName,fileLock,lockIsShared=.true.)
           call self%fileRead()
           call File_Unlock(fileLock)
        end if
@@ -1273,7 +1273,7 @@ contains
           if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
              if (self%useFile) then
-                call File_Lock(char(self%fileName),fileLock,lockIsShared=.false.)
+                call File_Lock(self%fileName,fileLock,lockIsShared=.false.)
                 call self%fileWrite()
                 call File_Unlock(fileLock)
              end if
@@ -1311,10 +1311,10 @@ contains
     ! Initialize file name.
     call self%fileNameInitialize()
     ! Return immediately if the file does not exist.
-    if (.not.File_Exists(char(self%fileName))) return
+    if (.not.File_Exists(self%fileName)) return
     ! Open the data file.
     !$ call hdf5Access%set()
-    call dataFile%openFile(char(self%fileName))
+    call dataFile%openFile(self%fileName)
     ! Check if the standard table is populated.
     if (dataFile%hasGroup('probability')) then
        ! Deallocate arrays if necessary.
@@ -1352,7 +1352,7 @@ contains
        self%interpolatorVariance=interpolator(self%variance,extrapolationType=extrapolationTypeFix)
        self%interpolatorTime    =interpolator(self%time    ,extrapolationType=extrapolationTypeFix)
        ! Report.
-       message=var_str('read excursion set first crossing probability from: ')//char(self%fileName)
+       message=var_str('read excursion set first crossing probability from: ')//self%fileName
        call displayIndent  (message,verbosityLevelWorking)
        write (label,'(e22.16)') self%timeMinimum
        message=var_str('    time minimum: ')//label//' Gyr'
@@ -1430,7 +1430,7 @@ contains
        self%interpolatorVarianceCurrentRateNonCrossing=interpolator(self%varianceCurrentRateNonCrossing,extrapolationType=extrapolationTypeFix)
        self%interpolatorTimeRate                      =interpolator(self%timeRate                      ,extrapolationType=extrapolationTypeFix)
        ! Report.
-       message=var_str('read excursion set first crossing rates from: ')//char(self%fileName)
+       message=var_str('read excursion set first crossing rates from: ')//self%fileName
        call displayIndent  (message,verbosityLevelWorking)
        write (label,'(e22.16)') self%timeMinimumRate
        message=var_str('    time minimum: ')//label//' Gyr'
@@ -1476,7 +1476,7 @@ contains
     call self%fileNameInitialize()
     ! Open the data file.
     !$ call hdf5Access%set()
-    call dataFile%openFile(char(self%fileName),overWrite=.true.,chunkSize=100_hsize_t,compressionLevel=9)
+    call dataFile%openFile(self%fileName,overWrite=.true.,chunkSize=100_hsize_t,compressionLevel=9)
     ! Check if the standard table is populated.
     if (self%tableInitialized) then
        dataGroup=dataFile%openGroup("probability")
@@ -1485,7 +1485,7 @@ contains
        call dataGroup%writeDataset(self%firstCrossingProbability,'firstCrossingProbability','The probability of first crossing as a function of variance and time.')
        call dataGroup%close()
        ! Report.
-       message=var_str('write excursion set first crossing probability to: ')//char(self%fileName)
+       message=var_str('write excursion set first crossing probability to: ')//self%fileName
        call displayIndent  (message,verbosityLevelWorking)
        write (label,'(e22.16)') self%timeMinimum
        message=var_str('    time minimum: ')//label//' Gyr'
@@ -1514,7 +1514,7 @@ contains
        call dataGroup%writeAttribute(self%massMinimumRateNonCrossing    ,'massMinimumRateNonCrossing'                                                                              )
        call dataGroup%close()
        ! Report.
-       message=var_str('wrote excursion set first crossing rates to: ')//char(self%fileName)
+       message=var_str('wrote excursion set first crossing rates to: ')//self%fileName
        call displayIndent  (message,verbosityLevelWorking)
        write (label,'(e22.16)') self%timeMinimumRate
        message=var_str('    time minimum: ')//label//' Gyr'
