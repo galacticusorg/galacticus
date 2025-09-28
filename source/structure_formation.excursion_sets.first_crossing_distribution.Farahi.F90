@@ -371,7 +371,7 @@ contains
   end function farahiConstructorInternal
 
   subroutine farahiFileNameInitialize(self)
-    use :: File_Utilities, only : Directory_Make, File_Path
+    use :: File_Utilities, only : Directory_Make, File_Path          , File_Name_Expand
     use :: Input_Paths   , only : inputPath     , pathTypeDataDynamic
     implicit none
     class(excursionSetFirstCrossingFarahi), intent(inout) :: self
@@ -380,6 +380,8 @@ contains
     ! Build an automatic file name based on the descriptor for this object.
     if (self%fileName == "auto") &
          & self%fileName=inputPath(pathTypeDataDynamic)//'largeScaleStructure/excursionSets/'//self%objectType()//'_'//self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)//'.hdf5'
+    ! Expand the file name.
+    self%fileName=File_Name_Expand(self%fileName)
     ! Ensure directory exists.
     call Directory_Make(File_Path(self%fileName))
     self%fileNameInitialized=.true.

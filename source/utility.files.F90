@@ -86,6 +86,14 @@ module File_Utilities
      module procedure File_Name_VarStr
   end interface File_Name
 
+  interface File_Name_Expand
+     !!{
+     Generic interface for functions that return the name of a file.
+     !!}
+     module procedure File_Name_Expand_Char
+     module procedure File_Name_Expand_VarStr
+  end interface File_Name_Expand
+
   interface File_Remove
      !!{
      Generic interface for functions that remove a file.
@@ -697,6 +705,19 @@ contains
     end if
     return
   end subroutine Directory_Remove_Char
+
+  function File_Name_Expand_VarStr(fileNameIn) result(fileNameOut)
+    !!{
+    Expands placeholders for Galacticus paths in file names.
+    !!}
+    use :: ISO_Varying_String, only : char
+    implicit none
+    type(varying_string)                :: fileNameOut
+    type(varying_string), intent(in   ) :: fileNameIn
+
+    fileNameOut=File_Name_Expand(char(fileNameIn))
+    return
+  end function File_Name_Expand_VarStr
   
   subroutine File_Rename(nameOld,nameNew,overwrite)
     !!{
@@ -718,7 +739,7 @@ contains
     return
   end subroutine File_Rename
 
-  function File_Name_Expand(fileNameIn) result(fileNameOut)
+  function File_Name_Expand_Char(fileNameIn) result(fileNameOut)
     !!{
     Expands placeholders for Galacticus paths in file names.
     !!}
@@ -777,7 +798,7 @@ contains
       return
     end subroutine variableRetrieve
     
-  end function File_Name_Expand
+  end function File_Name_Expand_Char
 
   function File_Modification_Time_VarStr(fileName,status) result(timeModification)
     !!{
