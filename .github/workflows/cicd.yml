@@ -1221,7 +1221,7 @@ jobs:
                 test-decayingDM-shell-crossing-capture.py,
                 test-enforceNonNegativity.py,
                 test-pruneLightcone.py,
-		test-soliton-coremass.py ]
+                test-soliton-coremass.py ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
