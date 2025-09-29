@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "7362ac5d86461b0509740066764812355dc1cee1",
-        "message": "Merge pull request #929 from galacticusorg/depup/lesgourg/class_public\n\nfix(deps): update lesgourg/class_public to 3.3.3\n",
-        "timestamp": "2025-09-26 17:20:45+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/7362ac5d86461b0509740066764812355dc1cee1"
+        "id": "672774a9c04a37af08b43f5a27760da04ccf0b23",
+        "message": "Merge pull request #934 from galacticusorg/fixExcursionSetFileNameExpansiom\n\nFix excursion set file name expansion\n",
+        "timestamp": "2025-09-28 14:27:09+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/672774a9c04a37af08b43f5a27760da04ccf0b23"
     },
     "results": [
         {
