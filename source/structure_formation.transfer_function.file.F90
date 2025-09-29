@@ -313,12 +313,12 @@ contains
     use :: Cosmology_Parameters   , only : cosmologyParametersSimple
     use :: Display                , only : displayMessage                  , displayMagenta                    , displayReset, displayGreen, &
          &                                 displayYellow                   , displayBlue
-    use :: File_Utilities         , only : File_Name_Expand
     use :: Error                  , only : Error_Report
     use :: HDF5_Access            , only : hdf5Access
     use :: IO_HDF5                , only : hdf5Object
     use :: Numerical_Comparison   , only : Values_Differ
     use :: Numerical_Interpolation, only : GSL_Interp_cSpline
+    use :: File_Utilities         , only : File_Name_Expand
     use :: Table_Labels           , only : enumerationExtrapolationTypeType, enumerationExtrapolationTypeEncode, extrapolationTypeExtrapolate
     implicit none
     class           (transferFunctionFile            ), intent(inout)               :: self
@@ -356,7 +356,7 @@ contains
     if (useCache == 0) then
        ! Open and read the HDF5 data file.
        !$ call hdf5Access%set()
-       call fileObject%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)
+       call fileObject%openFile(fileName,readOnly=.true.)
        ! Check that the file has the correct format version number.
        call fileObject%readAttribute('fileFormat',versionNumber,allowPseudoScalar=.true.)
        if (versionNumber /= fileFormatVersionCurrent) call Error_Report("file '"//char(File_Name_Expand(fileName))//"' has the incorrect version number"//{introspection:location})

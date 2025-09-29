@@ -144,7 +144,9 @@ module IO_HDF5
      procedure :: pathTo                                  =>IO_HDF5_Path_To
      procedure :: fileName                                =>IO_HDF5_File_Name
      procedure :: locationReport                          =>IO_HDF5_Location_Report
-     procedure :: openFile                                =>IO_HDF5_Open_File
+     procedure ::                                           IO_HDF5_Open_File_Char
+     procedure ::                                           IO_HDF5_Open_File_VarStr
+     generic   :: openFile                                =>IO_HDF5_Open_File_Char , IO_HDF5_Open_File_VarStr
      procedure :: openGroup                               =>IO_HDF5_Open_Group
      procedure :: openGroupPath                           =>IO_HDF5_Open_Group_Path
      procedure :: openDataset                             =>IO_HDF5_Open_Dataset
@@ -1046,22 +1048,43 @@ contains
   
   !! File routines.
 
-  subroutine IO_HDF5_Open_File(fileObject,fileName,overWrite,readOnly,objectsOverwritable,chunkSize,compressionLevel,sieveBufferSize,useLatestFormat,cacheElementsCount,cacheSizeBytes)
+  subroutine IO_HDF5_Open_File_VarStr(fileObject,fileName,overWrite,readOnly,objectsOverwritable,chunkSize,compressionLevel,sieveBufferSize,useLatestFormat,cacheElementsCount,cacheSizeBytes)
     !!{
     Open a file and return an appropriate HDF5 object. The file name can be provided as an input parameter or, if not
     provided, will be taken from the stored object name in {\normalfont \ttfamily fileObject}.
     !!}
-    use :: File_Utilities    , only : File_Exists
+    use :: HDF5              , only : hsize_t, size_t
+    use :: ISO_Varying_String, only : char
+    implicit none
+    class  (hdf5Object    ), intent(inout)           :: fileObject
+    type   (varying_string), intent(in   )           :: fileName
+    logical                , intent(in   ), optional :: objectsOverwritable, overWrite         , readOnly
+    integer(kind=hsize_t  ), intent(in   ), optional :: chunkSize
+    integer(kind=size_t   ), intent(in   ), optional :: sieveBufferSize    , cacheElementsCount, cacheSizeBytes
+    integer                , intent(in   ), optional :: compressionLevel
+    logical                , intent(in   ), optional :: useLatestFormat
+
+    call fileObject%openFile(char(fileName),overWrite,readOnly,objectsOverwritable,chunkSize,compressionLevel,sieveBufferSize,useLatestFormat,cacheElementsCount,cacheSizeBytes)
+    return
+  end subroutine IO_HDF5_Open_File_VarStr
+
+  subroutine IO_HDF5_Open_File_Char(fileObject,fileName,overWrite,readOnly,objectsOverwritable,chunkSize,compressionLevel,sieveBufferSize,useLatestFormat,cacheElementsCount,cacheSizeBytes)
+    !!{
+    Open a file and return an appropriate HDF5 object. The file name can be provided as an input parameter or, if not
+    provided, will be taken from the stored object name in {\normalfont \ttfamily fileObject}.
+    !!}
+    use :: File_Utilities    , only : File_Exists        , File_Name_Expand
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5F_ACC_RDONLY_F   , H5F_ACC_RDWR_F        , H5F_ACC_TRUNC_F       , H5F_CLOSE_SEMI_F       , &
-          &                           H5F_LIBVER_V18_F   , H5F_LIBVER_LATEST_F   , H5P_FILE_ACCESS_F     , h5fcreate_f            , &
-          &                           h5fopen_f          , h5pclose_f            , h5pcreate_f           , h5pset_cache_f         , &
-          &                           h5pset_fapl_stdio_f, h5pset_fclose_degree_f, h5pset_libver_bounds_f, h5pset_sieve_buf_size_f, &
-          &                           hid_t              , hsize_t               , size_t
-    use :: ISO_Varying_String, only : assignment(=)      , len                   , operator(//)
+         &                            H5F_LIBVER_V18_F   , H5F_LIBVER_LATEST_F   , H5P_FILE_ACCESS_F     , h5fcreate_f            , &
+         &                            h5fopen_f          , h5pclose_f            , h5pcreate_f           , h5pset_cache_f         , &
+         &                            h5pset_fapl_stdio_f, h5pset_fclose_degree_f, h5pset_libver_bounds_f, h5pset_sieve_buf_size_f, &
+         &                            hid_t              , hsize_t               , size_t
+    use :: ISO_Varying_String, only : assignment(=)      , len                   , operator(//)          , trim                   , &
+         &                            char
     implicit none
     class    (hdf5Object    ), intent(inout)           :: fileObject
-    character(len=*         ), intent(in   ), optional :: fileName
+    character(len=*         ), intent(in   )           :: fileName
     logical                  , intent(in   ), optional :: objectsOverwritable, overWrite         , readOnly
     integer  (kind=hsize_t  ), intent(in   ), optional :: chunkSize
     integer  (kind=size_t   ), intent(in   ), optional :: sieveBufferSize    , cacheElementsCount, cacheSizeBytes
@@ -1069,21 +1092,20 @@ contains
     logical                  , intent(in   ), optional :: useLatestFormat
     integer                                            :: errorCode          , fileAccess
     logical                                            :: overWriteActual
-    type     (varying_string)                          :: message
+    type     (varying_string)                          :: message            , fileName_
     integer  (kind=hid_t    )                          :: accessList
 
     ! Initialize the HDF5 library.
     call IO_HDF5_Initialize
 
+    ! Expand the file name.
+    fileName_=File_Name_Expand(fileName)
+    
     ! Store the location and name of this object.
-    if (present(fileName)) then
-       fileObject%objectFile    =trim(fileName)
-       fileObject%objectLocation=""
-       fileObject%objectName    =""
-    else
-       if (len(fileObject%objectName) == 0) call Error_Report('object has no predefined file name'//{introspection:location})
-    end if
-
+    fileObject%objectFile    =trim(fileName_)
+    fileObject%objectLocation=""
+    fileObject%objectName    =""
+    
     ! Check if overwriting is allowed.
     if (present(overWrite)) then
        overWriteActual=overWrite
@@ -1136,7 +1158,7 @@ contains
     end if
 
     ! Check if the file exists.
-    if (File_Exists(fileName).and..not.overWriteActual) then
+    if (File_Exists(fileName_).and..not.overWriteActual) then
        ! Determine access for file.
        if (present(readOnly)) then
           fileObject%readOnly=readOnly
@@ -1150,7 +1172,7 @@ contains
           fileAccess=H5F_ACC_RDWR_F
        end if
        ! Attempt to open the file.
-       call h5fopen_f(fileName,fileAccess,fileObject%objectID,errorCode,access_prp=accessList)
+       call h5fopen_f(char(fileName_),fileAccess,fileObject%objectID,errorCode,access_prp=accessList)
        if (errorCode /= 0) then
           message="failed to open HDF5 file '"//fileObject%objectFile//"'"
           call Error_Report(message//{introspection:location})
@@ -1164,7 +1186,7 @@ contains
           end if
        end if
        ! Attempt to create the file.
-       call h5fcreate_f(fileName,H5F_ACC_TRUNC_F,fileObject%objectID,errorCode,access_prp=accessList)
+       call h5fcreate_f(char(fileName_),H5F_ACC_TRUNC_F,fileObject%objectID,errorCode,access_prp=accessList)
        if (errorCode /= 0) then
           message="failed to create HDF5 file '"//fileObject%objectFile//"'"
           call Error_Report(message//{introspection:location})
@@ -1210,7 +1232,7 @@ contains
        fileObject%isOverwritable=.false.
     end if
     return
-  end subroutine IO_HDF5_Open_File
+  end subroutine IO_HDF5_Open_File_Char
 
   !! Group routines.
 

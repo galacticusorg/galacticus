@@ -168,7 +168,6 @@ contains
     use :: FoX_DOM       , only : destroy                          , node                        , extractDataContent
     use :: Error         , only : Error_Report
     use :: IO_XML        , only : XML_Get_First_Element_By_Tag_Name, XML_Get_Elements_By_Tag_Name, xmlNodeList       ,  XML_Parse
-    use :: File_Utilities, only : File_Name_Expand
     implicit none
     class           (stellarAstrophysicsFile), intent(inout)               :: self
     type            (node                   ), pointer                     :: doc              , datum                   , &
@@ -185,7 +184,7 @@ contains
     if (self%readDone) return
     !$omp critical (FoX_DOM_Access)
     ! Open the XML file containing stellar properties.
-    doc => XML_Parse(char(File_Name_Expand(char(self%fileName))),iostat=ioErr)
+    doc => XML_Parse(self%fileName,iostat=ioErr)
     if (ioErr /= 0) call Error_Report('Unable to parse stellar properties file'//{introspection:location})
     ! Check the file format version of the file.
     datum => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")

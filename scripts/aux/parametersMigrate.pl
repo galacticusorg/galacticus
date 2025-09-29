@@ -23,9 +23,10 @@ my $inputFileName  = $ARGV[0];
 my $outputFileName = $ARGV[1];
 my %options =
     (
-     validate            => "yes",
-     prettyify           => "no" ,
-     outputFormatVersion => 2
+     validate                => "yes",
+     prettyify               => "no" ,
+     ignoreWhiteSpaceChanges => "yes",
+     outputFormatVersion     => 2
     );
 # Parse options.
 my %optionsDefined = &Galacticus::Options::Parse_Options(\@ARGV,\%options);
@@ -33,9 +34,29 @@ my %optionsDefined = &Galacticus::Options::Parse_Options(\@ARGV,\%options);
 # Write starting message.
 print "Translating file: ".$inputFileName."\n";
 
+# Pre-process the file to concatenate any attribute values that are split across multiple lines.
+open(my $fileInput ,"<",$inputFileName       );
+open(my $fileOutput,">",$inputFileName.".tmp");
+my $inMultiline = 0;
+my $inComment   = 0;
+while ( my $line = <$fileInput> ) {
+    my $countQuotes = $line =~ tr/"//;
+    $inComment = 1
+	if ( $line =~ m/<!\-\-/ );
+    $inMultiline = 1-$inMultiline
+	if ( $countQuotes % 2 == 1 && ! $inComment );
+    $line =~ s/\n/\%\%NEWLINE\%\%/
+	if ( $inMultiline          && ! $inComment );
+    $inComment = 0
+	if ( $line =~ m/\-\->/ );
+    print $fileOutput $line;
+}
+close($fileInput );
+close($fileOutput);
+
 # Parse the input file.
 my $parser     = XML::LibXML->new();
-my $input      = $parser->parse_file($inputFileName);
+my $input      = $parser->parse_file($inputFileName.".tmp");
 my $isGrid     = 0;
 my $root;
 my @parameterSets;
@@ -85,9 +106,30 @@ $pp->pretty_print($input)
 my $serialized = $input->toString();
 $serialized =~ s/><!\-\-/>\n\n  <!\-\-/gm;
 $serialized =~ s/></>\n\n  </gm;
-open(my $outputFile,">",$outputFileName);
+open(my $outputFile,">",$outputFileName.".tmp");
 print $outputFile $serialized;
 close($outputFile);
+
+# If requested, ignore whitespace changes.
+if ( $options{'ignoreWhiteSpaceChanges'} eq "yes" ) {
+    # Make a patch from the old to the new file, but ignoring changes in whitespace.
+    system("diff -w -u ".$inputFileName.".tmp ".$outputFileName.".tmp > tmp__.patch");
+    # Apply the patch to the old file - we now have migrations applied, but no change in whitespace formatting.
+    system("patch ".$inputFileName.".tmp tmp__.patch --output=".$outputFileName.".tmp");
+}
+
+# Undo any split line reformatting that we previously applied.
+open(my $migratedFileInput ,"<",$outputFileName.".tmp");
+open(my $migratedFileOutput,">",$outputFileName       );
+while ( my $line = <$migratedFileInput> ) {
+    $line =~ s/\%\%NEWLINE\%\%/\n/g;
+    print $migratedFileOutput $line;
+}
+close($migratedFileInput );
+close($migratedFileOutput);
+
+# Clean up.
+unlink($inputFileName.".tmp",$outputFileName.".tmp","tmp__.patch");
 
 exit;
 

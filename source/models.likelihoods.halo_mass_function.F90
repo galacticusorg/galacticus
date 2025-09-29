@@ -207,7 +207,6 @@ contains
     use :: ISO_Varying_String      , only : char
     use :: Linear_Algebra          , only : assignment(=)
     use :: Numerical_Constants_Math, only : Pi
-    use :: File_Utilities          , only : File_Name_Expand
     implicit none
     type            (posteriorSampleLikelihoodHaloMassFunction)                                :: self
     type            (varying_string                           ), intent(in   ), dimension(:  ) :: fileNames
@@ -256,7 +255,7 @@ contains
     do iRedshift=1,size(redshifts)
        write (redshiftLabel,'(f6.3)') redshifts(iRedshift)
        !$ call hdf5Access%set()
-       call massFunctionFile%openFile(char(File_Name_Expand(char(fileNames(iRedshift)))),readOnly=.true.)
+       call massFunctionFile%openFile(fileNames(iRedshift),readOnly=.true.)
        simulationGroup=massFunctionFile%openGroup('simulation0001')
        call simulationGroup %readDataset("mass"        ,massOriginal             )
        call simulationGroup %readDataset("massFunction",massFunctionOriginal     )

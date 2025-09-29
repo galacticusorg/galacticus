@@ -26,7 +26,7 @@ program Test_Files
   Tests that file functions work.
   !!}
   use :: Display           , only : displayVerbositySet, verbosityLevelStandard
-  use :: File_Utilities    , only : File_Exists        , File_Rename           , File_Remove
+  use :: File_Utilities    , only : File_Exists        , File_Rename           , File_Remove         , File_Name_Expand
   use :: Input_Paths       , only : inputPath          , pathTypeExec
   use :: ISO_Varying_String, only : operator(//)       , var_str
   use :: Unit_Tests        , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
@@ -43,10 +43,13 @@ program Test_Files
   write (i,*) "test file"
   close(i)
   call File_Rename(var_str('tmp.file'),var_str('mvd.file'))
-  call Assert                ('file rename'        ,File_Exists('mvd.file') .and. .not.File_Exists('tmp.file'),.true. )
+  call Assert                ('file rename' ,File_Exists('mvd.file') .and. .not.File_Exists('tmp.file'),.true. )
   ! File removal.
   call File_Remove('mvd.file')
-  call Assert                ('file removal'       ,                                   File_Exists('tmp.file'),.false.)
-  call Unit_Tests_End_Group  (                                                                                        )
-  call Unit_Tests_Finish     (                                                                                        )
+  call Assert                ('file removal',                                   File_Exists('tmp.file'),.false.)
+  ! File name expansion.
+  call Assert                ('file name expansion',File_Name_Expand('/opt%PARAM_PATH%/myParameters.xml'),var_str('/opt/home/galacticus/super/secret/stuff/myParameters.xml'))
+  ! Finish.
+  call Unit_Tests_End_Group()
+  call Unit_Tests_Finish   ()
 end program Test_Files

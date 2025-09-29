@@ -111,7 +111,7 @@ sub spellCheckFile {
 	    $line     = $lineNew;
 	}
 	## Cases where the subscript starts with a "\mathrm{".
-	 if ( $isLaTeX ) {
+	if ( $isLaTeX ) {
 	    my $lineNew;
 	    my $bp = $RE{balanced}{-parens=>'{}'};
 	    while ( $line =~ m/^(.*?_\\mathrm)($bp)/ ) {
