@@ -340,8 +340,8 @@ contains
     type            (rootFinder                    ), save          :: finder
     logical                                         , save          :: finderInitialized =.false.
     !$omp threadprivate(finder, finderInitialized)
-    double precision                                , parameter     :: toleranceAbsolute =0.0d0  , toleranceRelative=1.0d-3, &
-         &                                                             sampleCountMaximum=50
+    double precision                                , parameter     :: toleranceAbsolute =0.0d0  , toleranceRelative=1.0d-3
+    integer                                                         :: sampleCountMaximum=50
     double precision                                                :: massHalo                  , expansionFactor         , &
          &                                                             redshift                  , concentration           , &
          &                                                             randomOffset              , massCoreNormal
