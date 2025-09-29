@@ -227,7 +227,6 @@ contains
     !!{
     Read in the transfer function data from a file.
     !!}
-    use :: File_Utilities      , only : File_Name_Expand
     use :: Display             , only : displayMessage
     use :: Error               , only : Error_Report
     use :: HDF5_Access         , only : hdf5Access
@@ -241,7 +240,7 @@ contains
 
     ! Open and read the HDF5 data file.
     !$ call hdf5Access%set()
-    fileObject=hdf5Object(char(File_Name_Expand(fileName)),readOnly=.true.)
+    fileObject=hdf5Object(fileName,readOnly=.true.)
     ! Check that the fuzzy dark matter parameters match.
     parametersObject=fileObject%openGroup('parameters')
     call parametersObject%readAttribute('fuzzyDMMass'           ,fuzzyDMMass           )

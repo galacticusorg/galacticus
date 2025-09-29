@@ -141,8 +141,7 @@ contains
     !!{
     Constructor for the \refClass{posteriorSampleLikelihoodHaloMassFunction} posterior sampling likelihood class.
     !!}
-    use :: Display          , only : displayMessage  , displayMagenta, displayReset
-    use :: File_Utilities   , only : File_Name_Expand
+    use :: Display          , only : displayMessage, displayMagenta, displayReset
     use :: Error            , only : Error_Report
     use :: HDF5_Access      , only : hdf5Access
     use :: IO_HDF5          , only : hdf5Object
@@ -181,7 +180,7 @@ contains
     ! Read the halo mass function file.
     write (redshiftLabel,'(f6.3)') redshift
     !$ call hdf5Access%set()
-    massFunctionFile=hdf5Object(char(File_Name_Expand(trim(fileName))),readOnly=.true.)
+    massFunctionFile=hdf5Object(fileName,readOnly=.true.)
     simulationGroup=massFunctionFile%openGroup('simulation0001')
     call simulationGroup %readDataset("mass"        ,massOriginal             )
     call simulationGroup %readDataset("massFunction",massFunctionOriginal     )

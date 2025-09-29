@@ -190,7 +190,6 @@ contains
     use :: IO_HDF5                , only : hdf5Object
     use :: Output_Times           , only : outputTimesClass
     use :: Cosmology_Functions    , only : cosmologyFunctionsClass
-    use :: File_Utilities         , only : File_Name_Expand
     use :: Virial_Density_Contrast, only : virialDensityContrastClass
     implicit none
     type            (outputAnalysisSubhaloRadialDistribution)                                :: self
@@ -214,8 +213,8 @@ contains
     
     ! Read properties from the file.
     !$ call hdf5Access%set()
-    file                   =hdf5Object          (char(File_Name_Expand(char(fileName))),readOnly=.true.)
-    radialDistributionGroup=file      %openGroup('radialDistribution'                                  )
+    file                   =hdf5Object          (fileName,readOnly=.true.)
+    radialDistributionGroup=file      %openGroup('radialDistribution'    )
     call file                   %readAttribute('label'                  ,labelTarget                  )
     call file                   %readAttribute('redshift'               ,redshift_                    )
     call radialDistributionGroup%readDataset  ('radiusFractional'       ,radiiFractionalTarget        )

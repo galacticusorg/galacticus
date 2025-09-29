@@ -258,7 +258,7 @@ contains
       if (.not.File_Exists(char(self%fileName))) call Error_Report('Unable to find intergalactic medium state file "' //char(self%fileName)//'"'//{introspection:location})
       !$ call hdf5Access%set()
       ! Open the file.
-      file=hdf5Object(char(self%fileName),readOnly=.true.)
+      file=hdf5Object(self%fileName,readOnly=.true.)
       ! Check the file format version of the file.
       call file%readAttribute('fileFormat',fileFormatVersion)
       if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('file format version is out of date'//{introspection:location})

@@ -274,7 +274,6 @@ contains
     use :: Cosmology_Parameters   , only : cosmologyParametersSimple
     use :: Display                , only : displayMessage                  , displayMagenta                    , displayReset, displayGreen, &
          &                                 displayYellow                   , displayBlue
-    use :: File_Utilities         , only : File_Name_Expand
     use :: Error                  , only : Error_Report
     use :: HDF5_Access            , only : hdf5Access
     use :: IO_HDF5                , only : hdf5Object
@@ -303,7 +302,7 @@ contains
       type(hdf5Object) :: darkMatterGroup    , parametersObject, &
            &              extrapolationObject, wavenumberObject
       !$ call hdf5Access%set()
-      fileObject=hdf5Object(char(File_Name_Expand(fileName)),readOnly=.true.)
+      fileObject=hdf5Object(fileName,readOnly=.true.)
       ! Check that the file has the correct format version number.
       call fileObject%readAttribute('fileFormat',versionNumber,allowPseudoScalar=.true.)
       if (versionNumber /= fileFormatVersionCurrent) call Error_Report('file has the incorrect version number'//{introspection:location})

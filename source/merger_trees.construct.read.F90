@@ -706,10 +706,9 @@ contains
     !!{
     Internal constructor for the \refClass{mergerTreeConstructorRead} merger tree constructor class.
     !!}
-    use    :: Display                    , only : displayMagenta  , displayReset
-    use    :: File_Utilities             , only : File_Name_Expand
-    use    :: Error                      , only : Error_Report    , Warn
-    use    :: Numerical_Constants_Boolean, only : booleanFalse    , booleanTrue
+    use    :: Display                    , only : displayMagenta, displayReset
+    use    :: Error                      , only : Error_Report  , Warn
+    use    :: Numerical_Constants_Boolean, only : booleanFalse  , booleanTrue
     !$ use :: OMP_Lib                    , only : OMP_Init_Lock
     implicit none
     type            (mergerTreeConstructorRead                 )                              :: self
@@ -766,7 +765,7 @@ contains
     self%treeNumberOffset=0_c_size_t
     self%fileCurrent     =1
     self%importerOpen    =.true.
-    call self%mergerTreeImporter_%open(File_Name_Expand(char(self%fileNames(self%fileCurrent))))
+    call self%mergerTreeImporter_%open(self%fileNames(self%fileCurrent))
     ! Validate input parameters.
     if (self%presetMergerNodes.and..not.self%presetMergerTimes) then
        message="presetting of merger target nodes requires that merger times also be preset;"//char(10)
@@ -957,7 +956,6 @@ contains
     !!}
     use    :: Array_Utilities           , only : operator(.intersection.)
     use    :: Arrays_Search             , only : searchArrayClosest
-    use    :: File_Utilities            , only : File_Name_Expand
     use    :: Functions_Global          , only : State_Retrieve_                  , State_Store_
     use    :: Error                     , only : Component_List                   , Error_Report
     use    :: Galacticus_Nodes          , only : defaultDarkMatterProfileComponent, defaultPositionComponent, defaultSatelliteComponent, defaultSpinComponent, &
@@ -1010,7 +1008,7 @@ contains
        do while (treeNumber-self%treeNumberOffset > treeNumberMaximum .and. self%fileCurrent < size(self%fileNames))
           self%fileCurrent     =self%fileCurrent     +1
           self%treeNumberOffset=self%treeNumberOffset+treeNumberMaximum
-          call self%mergerTreeImporter_%open (File_Name_Expand(char(self%fileNames(self%fileCurrent))))
+          call self%mergerTreeImporter_%open(self%fileNames(self%fileCurrent))
           treeNumberMaximum=int(self%mergerTreeImporter_%treeCount(),kind=c_size_t)
        end do
        treeNumberOffset=treeNumber-self%treeNumberOffset

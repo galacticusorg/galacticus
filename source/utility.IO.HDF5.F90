@@ -332,7 +332,8 @@ module IO_HDF5
   end type hdf5Object
 
   interface hdf5Object
-     module procedure hdf5FileOpen
+     module procedure hdf5FileOpenVarStr
+     module procedure hdf5FileOpenChar
   end interface hdf5Object
     
   type :: hdf5VarDouble
@@ -1072,18 +1073,37 @@ contains
   
   !! File routines.
 
-  function hdf5FileOpen(fileName,overWrite,readOnly,objectsOverwritable,chunkSize,compressionLevel,sieveBufferSize,useLatestFormat,cacheElementsCount,cacheSizeBytes,isTemporary) result(self)
+  function hdf5FileOpenVarStr(fileName,overWrite,readOnly,objectsOverwritable,chunkSize,compressionLevel,sieveBufferSize,useLatestFormat,cacheElementsCount,cacheSizeBytes,isTemporary) result(self)
     !!{
     Constructor for HDF5 object. Will open a file and return an appropriate HDF5 object.
     !!}
-    use :: File_Utilities    , only : File_Exists
+    use :: ISO_Varying_String, only : char
+    implicit none
+    type   (hdf5Object    )                          :: self
+    type   (varying_string), intent(in   )           :: fileName
+    logical                , intent(in   ), optional :: objectsOverwritable, overWrite         , readOnly      , isTemporary
+    integer(kind=hsize_t  ), intent(in   ), optional :: chunkSize
+    integer(kind=size_t   ), intent(in   ), optional :: sieveBufferSize    , cacheElementsCount, cacheSizeBytes
+    integer                , intent(in   ), optional :: compressionLevel
+    logical                , intent(in   ), optional :: useLatestFormat
+
+    self=hdf5Object(char(fileName),overWrite,readOnly,objectsOverwritable,chunkSize,compressionLevel,sieveBufferSize,useLatestFormat,cacheElementsCount,cacheSizeBytes,isTemporary)
+    return
+  end function hdf5FileOpenVarStr
+
+  function hdf5FileOpenChar(fileName,overWrite,readOnly,objectsOverwritable,chunkSize,compressionLevel,sieveBufferSize,useLatestFormat,cacheElementsCount,cacheSizeBytes,isTemporary) result(self)
+    !!{
+    Constructor for HDF5 object. Will open a file and return an appropriate HDF5 object.
+    !!}
+    use :: File_Utilities    , only : File_Exists        , File_Name_Expand
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5F_ACC_RDONLY_F   , H5F_ACC_RDWR_F        , H5F_ACC_TRUNC_F       , H5F_CLOSE_SEMI_F       , &
-          &                           H5F_LIBVER_V18_F   , H5F_LIBVER_LATEST_F   , H5P_FILE_ACCESS_F     , h5fcreate_f            , &
-          &                           h5fopen_f          , h5pclose_f            , h5pcreate_f           , h5pset_cache_f         , &
-          &                           h5pset_fapl_stdio_f, h5pset_fclose_degree_f, h5pset_libver_bounds_f, h5pset_sieve_buf_size_f, &
-          &                           hid_t              , hsize_t               , size_t
-    use :: ISO_Varying_String, only : assignment(=)      , len                   , operator(//)
+         &                            H5F_LIBVER_V18_F   , H5F_LIBVER_LATEST_F   , H5P_FILE_ACCESS_F     , h5fcreate_f            , &
+         &                            h5fopen_f          , h5pclose_f            , h5pcreate_f           , h5pset_cache_f         , &
+         &                            h5pset_fapl_stdio_f, h5pset_fclose_degree_f, h5pset_libver_bounds_f, h5pset_sieve_buf_size_f, &
+         &                            hid_t              , hsize_t               , size_t
+    use :: ISO_Varying_String, only : assignment(=)      , len                   , operator(//)          , trim                   , &
+         &                            char
     implicit none
     type     (hdf5Object    )                          :: self
     character(len=*         ), intent(in   )           :: fileName
@@ -1095,13 +1115,15 @@ contains
     class    (*             ), pointer                 :: dummyPointer_
     integer                                            :: errorCode          , fileAccess
     logical                                            :: overWriteActual
-    type     (varying_string)                          :: message
+    type     (varying_string)                          :: message            , fileName_
     integer  (kind=hid_t    )                          :: accessList
 
     ! Initialize the HDF5 library.
     call IO_HDF5_Initialize()
+    ! Expand the file name.
+    fileName_=File_Name_Expand(fileName)
     ! Store the location and name of this object.
-    self%objectFile    =trim(fileName)
+    self%objectFile    =trim(fileName_)
     self%objectLocation=""
     self%objectName    =""
     ! Mark whether this file is temporary.
@@ -1178,7 +1200,7 @@ contains
     </workaround>
     !!]
     ! Check if the file exists.
-    if (File_Exists(fileName).and..not.overWriteActual) then
+    if (File_Exists(fileName_).and..not.overWriteActual) then
        ! Determine access for file.
        if (present(readOnly)) then
           self%readOnly=readOnly
@@ -1192,7 +1214,7 @@ contains
           fileAccess=H5F_ACC_RDWR_F
        end if
        ! Attempt to open the file.
-       call h5fopen_f(fileName,fileAccess,self%objectID,errorCode,access_prp=accessList)
+       call h5fopen_f(char(fileName_),fileAccess,self%objectID,errorCode,access_prp=accessList)
        if (errorCode /= 0) then
           message="failed to open HDF5 file '"//self%objectFile//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
@@ -1206,7 +1228,7 @@ contains
           end if
        end if
        ! Attempt to create the file.
-       call h5fcreate_f(fileName,H5F_ACC_TRUNC_F,self%objectID,errorCode,access_prp=accessList)
+       call h5fcreate_f(char(fileName_),H5F_ACC_TRUNC_F,self%objectID,errorCode,access_prp=accessList)
        if (errorCode /= 0) then
           message="failed to create HDF5 file '"//self%objectFile//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
@@ -1247,11 +1269,11 @@ contains
        self%isOverwritable=.false.
     end if
     return
-  end function hdf5FileOpen
+  end function hdf5FileOpenChar
 
   !! Group routines.
 
- subroutine IO_HDF5_Open_Group_Path(inObject,groupPath,groupObjects)
+  subroutine IO_HDF5_Open_Group_Path(inObject,groupPath,groupObjects)
     !!{
     Open all HDF5 groups in the given path and return objects for all of them.
     !!}

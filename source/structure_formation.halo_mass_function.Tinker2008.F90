@@ -127,10 +127,10 @@ contains
     Internal constructor for the \refClass{haloMassFunctionTinker2008} halo mass function class.
     !!}
     use :: File_Utilities    , only : File_Exists
-    use :: FoX_DOM           , only : destroy                     , node                             , parseFile
+    use :: FoX_DOM           , only : destroy                     , node
     use :: Error             , only : Error_Report
     use :: Input_Paths       , only : inputPath                   , pathTypeDataStatic
-    use :: IO_XML            , only : XML_Array_Read              , XML_Get_First_Element_By_Tag_Name
+    use :: IO_XML            , only : XML_Array_Read              , XML_Get_First_Element_By_Tag_Name, XML_Parse
     use :: ISO_Varying_String, only : varying_string
     use :: Table_Labels      , only : extrapolationTypeExtrapolate
     implicit none
@@ -157,7 +157,7 @@ contains
     parameterFileName=inputPath(pathTypeDataStatic)//"darkMatter/Halo_Mass_Function_Parameters_Tinker_2008.xml"
     if (.not.File_Exists(parameterFileName)) call Error_Report('Unable to find data file "'//parameterFileName//'"'//{introspection:location})
     !$omp critical (FoX_DOM_Access)
-    doc => parseFile(char(parameterFileName),ioStat=ioStatus)
+    doc => XML_Parse(parameterFileName,ioStat=ioStatus)
     if (ioStatus /= 0) call Error_Report('Unable to parse data file "'//parameterFileName//'"'//{introspection:location})
     columnsElement => XML_Get_First_Element_By_Tag_Name(doc           ,"columns"        )
     columnElement  => XML_Get_First_Element_By_Tag_Name(columnsElement,"densityContrast")
