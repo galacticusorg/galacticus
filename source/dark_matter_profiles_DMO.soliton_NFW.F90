@@ -51,11 +51,10 @@
      class           (virialDensityContrastClass  ), pointer :: virialDensityContrast_             => null()
      type            (distributionFunction1DNormal)          :: massCoreScatter
      double precision                                        :: toleranceRelativeVelocityDispersion         , toleranceRelativeVelocityDispersionMaximum
-     double precision                                        :: scatterLog
      double precision                                        :: radiusVirialPrevious                        , radiusScalePrevious                       , &
           &                                                     radiusCorePrevious                          , radiusSolitonPrevious                     , &
           &                                                     densityCorePrevious                         , densityScalePrevious                      , &
-          &                                                     massCorePrevious
+          &                                                     massCorePrevious                            , scatterFractional
      integer          (kind_int8                  )          :: lastUniqueID
      integer                                                 :: randomOffsetID                              , densityCoreID                             , &
           &                                                     radiusCoreID                                , massCoreID
@@ -100,8 +99,8 @@ contains
     class           (cosmologyFunctionsClass       ), pointer       :: cosmologyFunctions_
     class           (cosmologyParametersClass      ), pointer       :: cosmologyParameters_
     class           (virialDensityContrastClass    ), pointer       :: virialDensityContrast_
-    double precision                                                :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
-    double precision                                                :: scatterLog
+    double precision                                                :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, &
+         &                                                             scatterFractional
 
     !![
     <inputParameter>
@@ -117,10 +116,10 @@ contains
       <description>The maximum relative tolerance to use in numerical solutions for the velocity dispersion.</description>
     </inputParameter>
     <inputParameter>
-      <name>scatterLog</name>
-      <defaultValue>1.5d0</defaultValue>
+      <name>scatterFractional</name>
+      <defaultValue>0.5d0</defaultValue>
       <source>parameters</source>
-      <description>The logarithmic scatter factor in the solitonic core-halo mass relation (default corresponds to a 50\% log-normal scatter).</description>
+      <description>The fractional scatter in the solitonic core-halo mass relation (default corresponds to a 50\% fractional scatter).</description>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="parameters"/>
     <objectBuilder class="darkMatterParticle"    name="darkMatterParticle_"    source="parameters"/>
@@ -128,7 +127,7 @@ contains
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
     <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     !!]
-    self = darkMatterProfileDMOSolitonNFW(darkMatterHaloScale_,darkMatterParticle_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,scatterLog)
+    self = darkMatterProfileDMOSolitonNFW(darkMatterHaloScale_,darkMatterParticle_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,scatterFractional)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_"  />
@@ -140,7 +139,7 @@ contains
     return
   end function solitonNFWConstructorParameters
 
-  function solitonNFWConstructorInternal(darkMatterHaloScale_,darkMatterParticle_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,scatterLog) result(self)
+  function solitonNFWConstructorInternal(darkMatterHaloScale_,darkMatterParticle_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,scatterFractional) result(self)
     !!{
     Generic constructor for the \refClass{darkMatterProfileDMOSolitonNFW} dark matter halo profile class.
     !!}
@@ -155,10 +154,10 @@ contains
     class           (cosmologyFunctionsClass       ), intent(in), target  :: cosmologyFunctions_
     class           (cosmologyParametersClass      ), intent(in), target  :: cosmologyParameters_
     class           (virialDensityContrastClass    ), intent(in), target  :: virialDensityContrast_
-    double precision                                , intent(in)          :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
-    double precision                                , intent(in)          :: scatterLog
+    double precision                                , intent(in)          :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, &
+         &                                                                   scatterFractional
     !![
-    <constructorAssign variables="*darkMatterHaloScale_, *darkMatterParticle_, *cosmologyFunctions_, *cosmologyParameters_, *virialDensityContrast_, toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum,scatterLog"/>
+    <constructorAssign variables="*darkMatterHaloScale_, *darkMatterParticle_, *cosmologyFunctions_, *cosmologyParameters_, *virialDensityContrast_, toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, scatterFractional"/>
     <addMetaProperty component="darkMatterProfile" name="randomOffset" id="self%randomOffsetID" isEvolvable="no"  isCreator="yes"/>
     <addMetaProperty component="darkMatterProfile" name="densityCore"  id="self%densityCoreID"  isEvolvable="no"  isCreator="yes"/>
     <addMetaProperty component="darkMatterProfile" name="radiusCore"   id="self%radiusCoreID"   isEvolvable="no"  isCreator="yes"/>
@@ -166,8 +165,7 @@ contains
     !!]
 
     self%lastUniqueID=-huge(1_kind_int8)
-    self%massCoreScatter = distributionFunction1DNormal(mean=0.0d0,variance = log10(scatterLog)**2) ! 50% log-normal scatter from Eq.(15) of Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
-
+    self%massCoreScatter = distributionFunction1DNormal(mean=0.0d0,variance=log10(1.0d0+scatterFractional)**2)
     select type (darkMatterParticle__ => self%darkMatterParticle_)
     class is (darkMatterParticleFuzzyDarkMatter)
        self%massParticle=+darkMatterParticle__%mass()*kilo
@@ -284,7 +282,6 @@ contains
     densityCore  =self%densityCorePrevious
     densityScale =self%densityScalePrevious
     massCore     =self%massCorePrevious
-    
     ! Construct the distribution.
     allocate(massDistributionSolitonNFW       :: massDistribution_      )
     allocate(kinematicsDistributionSolitonNFW :: kinematicsDistribution_)
@@ -328,27 +325,27 @@ contains
   end function solitonNFWGet
 
   subroutine solitonNFWComputeProperties(self,node,radiusVirial,radiusScale,radiusCore,radiusSoliton,densityCore,densityScale,massCore)
-    use :: Galacticus_Nodes                , only : treeNode           , nodeComponentBasic       , nodeComponentDarkMatterProfile
+    use :: Galacticus_Nodes                , only : treeNode  , nodeComponentBasic       , nodeComponentDarkMatterProfile
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Root_Finder                     , only : rootFinder         , rangeExpandMultiplicative, rangeExpandSignExpectPositive , rangeExpandSignExpectNegative
+    use :: Root_Finder                     , only : rootFinder, rangeExpandMultiplicative, rangeExpandSignExpectPositive , rangeExpandSignExpectNegative
     implicit none
     class           (darkMatterProfileDMOSolitonNFW), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
-    double precision                                , intent(  out) :: radiusVirial                        , radiusScale                , &
-         &                                                             radiusCore                          , radiusSoliton              , &
-         &                                                             densityCore                         , densityScale               , &
+    double precision                                , intent(  out) :: radiusVirial              , radiusScale             , &
+         &                                                             radiusCore                , radiusSoliton           , &
+         &                                                             densityCore               , densityScale            , &
          &                                                             massCore
     class           (nodeComponentBasic            ), pointer       :: basic
     class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
     type            (rootFinder                    ), save          :: finder
     logical                                         , save          :: finderInitialized =.false.
     !$omp threadprivate(finder, finderInitialized)
-    double precision                                , parameter     :: toleranceAbsolute = 0.0d0           , toleranceRelative  =1.0d-3
-    double precision                                                :: massHalo                            , expansionFactor            , &
-         &                                                             redshift                            , concentration              , &
-         &                                                             randomOffset                        , massCoreNormal
-    integer                                                         :: status                              , sampleCount                , &
-         &                                                             maxSamples = 50
+    double precision                                , parameter     :: toleranceAbsolute =0.0d0  , toleranceRelative=1.0d-3, &
+         &                                                             sampleCountMaximum=50
+    double precision                                                :: massHalo                  , expansionFactor         , &
+         &                                                             redshift                  , concentration           , &
+         &                                                             randomOffset              , massCoreNormal
+    integer                                                         :: status                    , sampleCount
 
     ! Get required components.
     basic             => node%basic            ()
@@ -371,10 +368,9 @@ contains
          &            -concentration/   (1.0d0+concentration) &
          &          )
     ! Compute the core mass.
-    massCoreNormal     =+darkMatterProfile%floatRank0MetaPropertyGet(self%massCoreID)
-
-    radiusScale_       =radiusScale
-    densityScale_      =densityScale
+    massCoreNormal =+darkMatterProfile%floatRank0MetaPropertyGet(self%massCoreID)
+    radiusScale_   =+radiusScale
+    densityScale_  =+densityScale
     ! Solve for the soliton radius.
     if (.not.finderInitialized) then
        finder=rootFinder(                                        &
@@ -384,17 +380,18 @@ contains
             &           )
        finderInitialized=.true.
     end if
-
-    do sampleCount=1,maxSamples
+    do sampleCount=1,sampleCountMaximum
+       ! Find the random offset in the core mass.
        if (sampleCount == 1) then
-           randomOffset     = darkMatterProfile%floatRank0MetaPropertyGet(self%randomOffsetID)
-           if (randomOffset == 0.0d0) then
-               randomOffset = self%massCoreScatter%sample(randomNumberGenerator_=node%hostTree%randomNumberGenerator_)
-           end if
+          randomOffset       =darkMatterProfile%floatRank0MetaPropertyGet(self%randomOffsetID)
+          if (randomOffset == 0.0d0) &
+               & randomOffset=self%massCoreScatter%sample(randomNumberGenerator_=node%hostTree%randomNumberGenerator_)
        else
-           randomOffset     = self%massCoreScatter%sample(randomNumberGenerator_=node%hostTree%randomNumberGenerator_)
+          randomOffset       =self%massCoreScatter%sample(randomNumberGenerator_=node%hostTree%randomNumberGenerator_)
        end if
-       massCore             = massCoreNormal*10.0d0**randomOffset
+       ! Find the core mass, including the random offset. 
+       massCore           =+massCoreNormal       &
+            &              *10.0d0**randomOffset
        ! Compute the core radius.
        radiusCore         =+5.5d6                           & ! Equation (14) of Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
             &              /(self%massParticle/1.0d-23)**2  &
@@ -403,19 +400,19 @@ contains
        ! Compute the core density normalization.
        densityCore       =+massCore                         & ! Equation (3) of Schive et al. (2014; PRL; 113; 1302; https://ui.adsabs.harvard.edu/abs/2014PhRvL.113z1302S).
             &             /0.413d0                          &
-            &             /(radiusCore               **3)   &
+            &             /radiusCore                  **3  &
             &             /Pi
        radiusCore_        =radiusCore
        densityCore_       =densityCore
-       call finder%rangeExpand(                                                              &
-         &                     rangeExpandUpward            =2.0d0                        , &
-         &                     rangeExpandDownward          =0.5d0                        , &
-         &                     rangeDownwardLimit           =1.0d0*radiusCore             , &
-         &                     rangeUpwardLimit             =1.0d1*radiusCore             , &
-         &                     rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
-         &                     rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
-         &                     rangeExpandType              =rangeExpandMultiplicative      &
-         &                    )
+       call finder%rangeExpand(                                                             &
+            &                  rangeExpandUpward            =2.0d0                        , &
+            &                  rangeExpandDownward          =0.5d0                        , &
+            &                  rangeDownwardLimit           =1.0d0*radiusCore             , &
+            &                  rangeUpwardLimit             =1.0d1*radiusCore             , &
+            &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+            &                  rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
+            &                  rangeExpandType              =rangeExpandMultiplicative      &
+            &                 )
        radiusSoliton=finder%find(rootGuess=3.0d0*radiusCore,status=status)
        if (status == errorStatusSuccess) then
            call darkMatterProfile%floatRank0MetaPropertySet(self%randomOffsetID,randomOffset)

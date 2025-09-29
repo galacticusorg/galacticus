@@ -167,7 +167,7 @@ program Test_Dark_Matter_Profiles_Fuzzy_Dark_Matter
       &amp;                                                          cosmologyParameters_                       =cosmologyParameters_  , &amp;
       &amp;                                                          toleranceRelativeVelocityDispersion        =1.0d-6                , &amp;
       &amp;                                                          toleranceRelativeVelocityDispersionMaximum =1.0d-3                , &amp;
-      &amp;                                                          scatterLog                                 =1.5d0                   &amp;
+      &amp;                                                          scatterFractional                          =0.5d0                   &amp;
       &amp;                                                         )
     </constructor>
   </referenceConstruct>
@@ -189,7 +189,7 @@ program Test_Dark_Matter_Profiles_Fuzzy_Dark_Matter
      randomNumberGenerator_=randomNumberGeneratorGSL(seed_=8322_c_long)
   end select
   call tree%properties%initialize()
-  ! Build the node operator to compute massCore.
+  ! Build the node operator to compute the core mass.
   nodeOperator_=nodeOperatorDarkMatterProfileSoliton(                                               &
                                                      darkMatterHaloScale_  =darkMatterHaloScale_  , &
                                                      darkMatterParticle_   =darkMatterParticle_   , &

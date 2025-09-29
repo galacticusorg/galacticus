@@ -13,7 +13,7 @@
   <!-- Dark matter properties -->
   
     <darkMatterParticle value="fuzzyDarkMatter">
-      <mass value="5.0"/> <!-- In unis of 1.0e-22 eV -->
+      <mass value="5.0"/> <!-- In units of 1.0e-22 eV -->
       <densityFraction value=" 1.0"/>
     </darkMatterParticle>
   
@@ -368,7 +368,7 @@
          will produce an completely independent set of trees. -->
   </mergerTreeSeeds>
   <mergerTreeConstructor value="fullySpecified">
-    <fileName value="singleTree.xml"/>
+    <fileName value="testSuite/parameters/fdmSingleTree.xml"/>
   </mergerTreeConstructor>
   <mergerTreeBuilder value="cole2000">
     <!-- The Cole et al. (2000) merger tree building algorithm is used. The "interval stepping" optimization from Appendix A -->
@@ -457,7 +457,12 @@
     </nodeOperator>
   </nodeOperator>
 
-  <nodePropertyExtractor value="soliton"/>
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="nodeIndices"/>
+    <nodePropertyExtractor value="solitonMassCore"/>
+    <nodePropertyExtractor value="redshift"/>
+    <nodePropertyExtractor value="densityContrastVirial"/>
+  </nodePropertyExtractor>
   
   <!-- Tree evolution -->
   <mergerTreeEvolver value="standard">
