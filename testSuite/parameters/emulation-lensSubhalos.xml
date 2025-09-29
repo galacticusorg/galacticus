@@ -29,7 +29,6 @@
   <evolveForestsWorkShare value="cyclic"       />
 
   <!-- Tree masses and resolution -->
-  <mergerTreeRedshiftBase value="0.5"/>
   <mergerTreeBuildMasses value="fixedMass">
     <massTree  value="1.995e13"/>
     <treeCount value="64"       />
