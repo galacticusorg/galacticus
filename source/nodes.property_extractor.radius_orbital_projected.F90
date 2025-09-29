@@ -78,7 +78,8 @@ contains
     !!}
     implicit none
     type(nodePropertyExtractorRadiusOrbitalProjected) :: self
-   
+
+    allocate(self%nodePropertyExtractor_)
     !![
     <referenceConstruct isResult="yes" owner="self" object="nodePropertyExtractor_" constructor="nodePropertyExtractorPositionOrbital()"/>
     !!]
