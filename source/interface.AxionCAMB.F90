@@ -114,7 +114,8 @@ contains
     use               :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsLittleH
     use               :: Dark_Matter_Particles           , only : darkMatterParticleClass     , darkMatterParticleFuzzyDarkMatter
     use               :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make                   , File_Exists , File_Lock     , &
-          &                                                       File_Path                   , File_Remove                      , File_Unlock , lockDescriptor
+          &                                                       File_Path                   , File_Remove                      , File_Unlock , lockDescriptor, &
+          &                                                       File_Name_Temporary
     use               :: Error                           , only : Error_Report
     use               :: Input_Paths                     , only : inputPath                   , pathTypeDataDynamic
     use               :: HDF5                            , only : hsize_t
@@ -152,9 +153,9 @@ contains
     type            (varying_string          ), allocatable  , dimension(:    ) :: datasetNames
     integer         (hsize_t                 ), parameter                       :: chunkSize                   =100_hsize_t
     type            (lockDescriptor          )                                  :: fileLock
-    character       (len=255                 )                                  :: hostName                                , axionCambTransferLine
+    character       (len=255                 )                                  :: axionCambTransferLine
     type            (varying_string          )                                  :: axionCambVersion                        , parameterFile                 , &
-         &                                                                         axionCambPath
+         &                                                                         axionCambPath                           , outputRoot
     double precision                                                            :: wavenumberAxionCAMB                     , coldDarkMatterDensityFraction , &
          &                                                                         fuzzyDarkMatterDensityFraction
     double precision                                                            :: transferFunctionUnused
@@ -332,14 +333,14 @@ contains
        end if
        if (allocated(wavenumbers)) wavenumberAxionCAMB=max(wavenumberAxionCAMB,wavenumbers(size(wavenumbers)))
        ! Construct input file for AxionCAMB.
-       call Get_Environment_Variable('HOSTNAME',hostName)
        workPath     =inputPath(pathTypeDataDynamic)//'largeScaleStructure/'
-       parameterFile=workPath//'transfer_function_parameters'//'_'//trim(hostName)//'_'//GetPID()
+       parameterFile=File_Name_Temporary('transfer_function_parameters',char(workPath))//'.txt'
+       outputRoot   =File_Name_Temporary('axionCAMB'                   ,char(workPath))
        !$ parameterFile=parameterFile//'_'//OMP_Get_Thread_Num()
        parameterFile=parameterFile//'.txt'
        call Directory_Make(workPath)
        open(newunit=axionCambParameterFile,file=char(parameterFile),status='unknown',form='formatted')
-       write (axionCambParameterFile,'(a,1x,"=",1x,a    )') 'output_root                  ','axionCamb'
+       write (axionCambParameterFile,'(a,1x,"=",1x,a    )') 'output_root                  ',char(outputRoot)
        write (axionCambParameterFile,'(a,1x,"=",1x,a    )') 'get_scalar_cls               ','F'
        write (axionCambParameterFile,'(a,1x,"=",1x,a    )') 'get_vector_cls               ','F'
        write (axionCambParameterFile,'(a,1x,"=",1x,a    )') 'get_tensor_cls               ','F'
@@ -454,7 +455,7 @@ contains
        allocate(wavenumbers      (0    ))
        allocate(transferFunctions(0,0,0))
        do j=1,countRedshiftsUnique
-          transferFileName='axionCamb_transfer_'//trim(adjustl(redshiftLabelsCombined(j)))//'.dat'
+          transferFileName=outputRoot//'_transfer_'//trim(adjustl(redshiftLabelsCombined(j)))//'.dat'
           if (j == 1) then
              countWavenumber=Count_Lines_In_File(transferFileName,"#")
              if (allocated(wavenumbers      )) deallocate(wavenumbers      )
@@ -489,10 +490,11 @@ contains
        ! Make sure that the transfer function is non-negative.
        transferFunctions=abs(transferFunctions)
        ! Remove temporary files.
-       call File_Remove(parameterFile)
+       call File_Remove(parameterFile            )
+       call File_Remove(outputRoot//'_params.ini')
        do i=1,countRedshiftsUnique
-          call File_Remove('axionCamb_transfer_'   //trim(adjustl(redshiftLabelsCombined(i)))//'.dat')
-          call File_Remove('axionCamb_matterpower_'//trim(adjustl(redshiftLabelsCombined(i)))//'.dat')
+          call File_Remove(outputRoot//'_transfer_'   //trim(adjustl(redshiftLabelsCombined(i)))//'.dat')
+          call File_Remove(outputRoot//'_matterpower_'//trim(adjustl(redshiftLabelsCombined(i)))//'.dat')
        end do
        ! Convert from AxionCAMB units to Galacticus units.
        wavenumbers=+wavenumbers                                                   &

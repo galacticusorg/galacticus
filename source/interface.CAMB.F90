@@ -165,7 +165,7 @@ contains
     type            (varying_string          ), allocatable  , dimension(:    ) :: datasetNames
     integer         (hsize_t                 ), parameter                       :: chunkSize                   =100_hsize_t
     type            (lockDescriptor          )                                  :: fileLock
-    character       (len=255                 )                                  :: hostName                                , cambTransferLine
+    character       (len=255                 )                                  :: cambTransferLine
     type            (varying_string          )                                  :: cambPath                                , cambVersion             , &
          &                                                                         parameterFile                           , outputRoot
     double precision                                                            :: wavenumberCAMB
@@ -301,7 +301,6 @@ contains
        end if
        if (allocated(wavenumbers)) wavenumberCAMB=max(wavenumberCAMB,wavenumbers(size(wavenumbers)))
        ! Construct input file for CAMB.
-       call Get_Environment_Variable('HOSTNAME',hostName)
        workPath     =inputPath(pathTypeDataDynamic)//'largeScaleStructure/'
        parameterFile=File_Name_Temporary('transfer_function_parameters',char(workPath))//'.txt'
        outputRoot   =File_Name_Temporary('camb'                        ,char(workPath))
