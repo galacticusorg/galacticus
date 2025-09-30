@@ -72,13 +72,14 @@ contains
     return
   end function radiusOrbitalProjectedConstructorParameters
 
-  function radiusOrbitalProjectedConstructorInternal(useLastIsolatedTime,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
+  function radiusOrbitalProjectedConstructorInternal() result(self)
     !!{
     Internal constructor for the \refClass{nodePropertyExtractorRadiusOrbitalProjected} output analysis property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRadiusOrbitalProjected) :: self
-   
+
+    allocate(self%nodePropertyExtractor_)
     !![
     <referenceConstruct isResult="yes" owner="self" object="nodePropertyExtractor_" constructor="nodePropertyExtractorPositionOrbital()"/>
     !!]
