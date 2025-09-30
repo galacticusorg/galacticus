@@ -588,8 +588,8 @@ contains
           &amp;                                                  outputTimes_                                                                                                           , &amp;
           &amp;                                                  outputAnalysisCovarianceModelPoisson                                                                                   , &amp;
           &amp;                          likelihoodNormalize    =likelihoodNormalize                                                                                                    , &amp;
-          &amp;                          xAxisLabel             =var_str('M_\mathrm{halo}/\mathrm{M}_\odot'            )                                                                , &amp;
-          &amp;                          yAxisLabel             =var_str('\sigma_{\log_{10}(M_\star/\mathrm{M}_\odot)}')                                                                , &amp;
+          &amp;                          xAxisLabel             =var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'            )                                                                , &amp;
+          &amp;                          yAxisLabel             =var_str('$\sigma_{\log_{10}(M_\star/\mathrm{M}_\odot)}$')                                                                , &amp;
           &amp;                          xAxisIsLog             =.true.                                                                                                                 , &amp;
           &amp;                          yAxisIsLog             =.false.                                                                                                                , &amp;
           &amp;                          targetLabel            =referenceTarget                                                                                                        , &amp;
