@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1759130888814,
+  "lastUpdate": 1759297840997,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.005; γ=1.5)": [
@@ -8693,6 +8693,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/672774a9c04a37af08b43f5a27760da04ccf0b23"
         },
         "date": 1759130888219,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteBoundMass",
+            "value": 48.178341763109046,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": 35.33237775519459,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteVelocityMaximum",
+            "value": 23.791744062057187,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "861f495db06c4dbcfa556ba1e0fad9f2d1ac4fd2",
+          "message": "Merge pull request #937 from galacticusorg/fixAxionCAMBTempFiles\n\nWhen running `AxionCAMB` use the dynamic datasets path for all temporary files",
+          "timestamp": "2025-09-30T23:30:07Z",
+          "tree_id": "e39ff3b5c75398a4f1d4ecacf725da91d3283dd5",
+          "url": "https://github.com/galacticusorg/galacticus/commit/861f495db06c4dbcfa556ba1e0fad9f2d1ac4fd2"
+        },
+        "date": 1759297840185,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
