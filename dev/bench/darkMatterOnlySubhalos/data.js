@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1759130871588,
+  "lastUpdate": 1759297815735,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "id": "aaf545c06c3c182c6fda4607d4c01214658408e0",
-          "message": "fix: Remove obsoleted parameters from test parameter file",
-          "timestamp": "2024-10-17T21:12:10Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/aaf545c06c3c182c6fda4607d4c01214658408e0"
-        },
-        "date": 1729214776237,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 49.237,
-            "unit": "seconds",
-            "range": 0.0505381044365836
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8780,6 +8752,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 7722.193674128808,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "861f495db06c4dbcfa556ba1e0fad9f2d1ac4fd2",
+          "message": "Merge pull request #937 from galacticusorg/fixAxionCAMBTempFiles\n\nWhen running `AxionCAMB` use the dynamic datasets path for all temporary files",
+          "timestamp": "2025-09-30T23:30:07Z",
+          "tree_id": "e39ff3b5c75398a4f1d4ecacf725da91d3283dd5",
+          "url": "https://github.com/galacticusorg/galacticus/commit/861f495db06c4dbcfa556ba1e0fad9f2d1ac4fd2"
+        },
+        "date": 1759297812388,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 49.893,
+            "range": "0.0482503885997041",
+            "unit": "seconds"
           }
         ]
       }
