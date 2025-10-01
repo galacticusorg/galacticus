@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1759130879960,
+  "lastUpdate": 1759297832644,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (COZMIC WDM 3keV)": [
@@ -1278,6 +1278,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (COZMIC WDM 3keV Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 196.050036565914,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "861f495db06c4dbcfa556ba1e0fad9f2d1ac4fd2",
+          "message": "Merge pull request #937 from galacticusorg/fixAxionCAMBTempFiles\n\nWhen running `AxionCAMB` use the dynamic datasets path for all temporary files",
+          "timestamp": "2025-09-30T23:30:07Z",
+          "tree_id": "e39ff3b5c75398a4f1d4ecacf725da91d3283dd5",
+          "url": "https://github.com/galacticusorg/galacticus/commit/861f495db06c4dbcfa556ba1e0fad9f2d1ac4fd2"
+        },
+        "date": 1759297831667,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM 3keV Milky Way) - Likelihood - subhaloMassFunction",
+            "value": 4.2153736349328925,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM 3keV Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 3.245961082633795,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM 3keV Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 252.92216865094156,
             "unit": "-logℒ"
           }
         ]
