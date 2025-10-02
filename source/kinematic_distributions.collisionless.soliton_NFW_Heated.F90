@@ -26,7 +26,7 @@
    <description>A kinematic distribution class for the Soliton-NFW Heated mass distribution.</description>
   </kinematicsDistribution>
   !!]
-  type, public, extends(kinematicsDistributionCollisionless) :: kinematicsDistributionSolitonNFWHeated
+  type, public, extends(kinematicsDistributionCollisionlessTabulated) :: kinematicsDistributionSolitonNFWHeated
      !!{
      A kinematics distribution for the Soliton-NFW Heated mass distribution.
      !!}
@@ -47,14 +47,14 @@ contains
 
   function solitonNFWHeatedKinematicsConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{kinematicsDistributionSolitonNFWHeated} kinematic distribution class which builds the object from a parameter
+    Constructor for the \refClass{kinematicsDistributionSolitonNFW} kinematic distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type            (kinematicsDistributionSolitonNFWHeated)                :: self
-    type            (inputParameters                       ), intent(inout) :: parameters
-    double precision                                                        :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
+    type            (inputParameters                 ), intent(inout) :: parameters
+    double precision                                                  :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
 
     !![
     <inputParameter>
@@ -83,10 +83,11 @@ contains
     !!}
     implicit none
     type            (kinematicsDistributionSolitonNFWHeated)                          :: self
-    double precision                                        , intent(in   ), optional :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
+    double precision                                  , intent(in   ), optional :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
     !![
     <constructorAssign variables="toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum"/>
     !!]
+
     return
   end function solitonNFWHeatedKinematicsConstructorInternal
   
@@ -96,7 +97,7 @@ contains
     !!}
     implicit none
     type (kinematicsDistributionSolitonNFWHeated)                :: self
-    class(kinematicsDistributionClass           ), intent(in   ) :: kinematicsDistribution_
+    class(kinematicsDistributionClass     ), intent(in   ) :: kinematicsDistribution_
 
     self%toleranceRelativeVelocityDispersion       =kinematicsDistribution_%toleranceRelativeVelocityDispersion
     self%toleranceRelativeVelocityDispersionMaximum=kinematicsDistribution_%toleranceRelativeVelocityDispersionMaximum
@@ -123,32 +124,43 @@ contains
     use :: Coordinates, only : coordinateSpherical, assignment(=)
     implicit none
     class           (kinematicsDistributionSolitonNFWHeated), intent(inout)          :: self
-    class           (coordinate                            ), intent(in   )          :: coordinates
-    class           (massDistributionClass                 ), intent(inout), target  :: massDistribution_          , massDistributionEmbedding
-    double precision                                        , parameter              :: fractionSmall       =1.0d-2
-    double precision                                                                 :: radiusSolitonFree          , radiusSolitonFreeSmall
-    type            (coordinateSpherical                   )                         :: coordinatesReference
+    class           (coordinate                      ), intent(in   )          :: coordinates
+    class           (massDistributionClass           ), intent(inout), target  :: massDistribution_          , massDistributionEmbedding
+    class           (massDistributionClass           )               , pointer :: massDistribution__
+    double precision                                  , parameter              :: fractionSmall       =1.0d-2
+    double precision                                                           :: radiusScaleFree            , radiusScaleFreeSmall
+    type            (coordinateSpherical             )                         :: coordinatesReference
 
-    select type (massDistributionEmbedding)
-    class is (massDistributionSolitonNFWHeated)
-       radiusSolitonFree     =+coordinates              %rSpherical () &
-            &                 /massDistributionEmbedding%radiusSoliton
-       radiusSolitonFreeSmall=+fractionSmall                           &
-            &                 *massDistributionEmbedding%radiusCore    &
-            &                 /massDistributionEmbedding%radiusSoliton
-       if (radiusSolitonFree < radiusSolitonFreeSmall) then
-          ! Small radius. Use the tabulated solution at the small radius boundary, extrapolated to the actual
-          ! radius using the result for a power-law ρ(r) ∝ r⁰ profile.
-          coordinatesReference=[radiusSolitonFreeSmall*massDistributionEmbedding%radiusSoliton,0.0d0,0.0d0]
-          velocityDispersion  =+self%velocityDispersion1DNumerical(coordinatesReference,massDistribution_,massDistributionEmbedding) &
-             &               *radiusSolitonFree                                                                                    &    
-             &               /radiusSolitonFreeSmall
-       else
-          velocityDispersion  =+self%velocityDispersion1DNumerical(coordinates         ,massDistribution_,massDistributionEmbedding)
-       end if
-    class default
-       velocityDispersion        =+0.0d0
-       call Error_Report('expecting a soliton-NFW Heated mass distribution, but received '//char(massDistributionEmbedding%objectType())//{introspection:location})
-    end select
+    massDistribution__ => massDistribution_
+    if (associated(massDistribution__,massDistributionEmbedding)) then
+       select type (massDistributionEmbedding)
+       class is (massDistributionSolitonNFW)
+          if (.not.massDistributionEmbedding%isTabulating()) then
+             radiusScaleFree     =+coordinates              %rSpherical () &
+                  &               /massDistributionEmbedding%radiusScale
+             radiusScaleFreeSmall=+fractionSmall                           &
+                  &               *massDistributionEmbedding%radiusCore    &
+                  &               /massDistributionEmbedding%radiusScale
+             if (radiusScaleFree < radiusScaleFreeSmall) then
+                ! Small radius. Use the tabulated solution at the small radius boundary, extrapolated to the actual
+                ! radius using the result for a power-law ρ(r) ∝ r⁰ profile.
+                coordinatesReference=[radiusScaleFreeSmall*massDistributionEmbedding%radiusScale,0.0d0,0.0d0]
+                velocityDispersion  =+massDistributionEmbedding%velocityDispersion1D         (coordinatesReference                                            ) &
+                     &               *radiusScaleFree                                                                                                           &
+                     &               /radiusScaleFreeSmall
+             else
+                velocityDispersion  =+massDistributionEmbedding%velocityDispersion1D         (coordinates                                                     )
+             end if
+          else
+             velocityDispersion     =+self                     %velocityDispersion1DNumerical(coordinates         ,massDistribution_,massDistributionEmbedding)
+          end if
+       class default
+          velocityDispersion        =+0.0d0
+          call Error_Report('expecting a soliton-NFW Heated mass distribution, but received '//char(massDistributionEmbedding%objectType())//{introspection:location})
+       end select
+    else
+       ! Our tabulated distribution is embedded in another distribution. We must compute the velocity dispersion numerically.
+       velocityDispersion           =+self                     %velocityDispersion1DNumerical(coordinates         ,massDistribution_,massDistributionEmbedding)
+    end if
     return
   end function solitonNFWHeatedKinematicsVelocityDispersion1D
