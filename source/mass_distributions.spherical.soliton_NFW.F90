@@ -488,6 +488,7 @@ contains
       parameters(1)        =  self%radiusCoreScaleFree
       parameters(2)        =  self%radiusSolitonScaleFree
       parameters(3)        =  self%densitySolitonScaleFree
+      write(*,'(A,3ES12.4)') 'DEBUG solitonNFW parameters =', parameters
       container            => containerSolitonNFW
       return
    end subroutine solitonNFWParameters
