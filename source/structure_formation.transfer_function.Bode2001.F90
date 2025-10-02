@@ -389,6 +389,8 @@ contains
 
     matterDensity       =+self%cosmologyParameters_%OmegaMatter    () &
          &               *self%cosmologyParameters_%densityCritical()
+    ! Compute corresponding mass scale. As a default choice, the wavenumber is converted to a length scale assuming
+    ! R = λ/2 = π/k [see Eq.(9) of \cite{schneider_non-linear_2012}].
     bode2001HalfModeMass=+4.0d0                                 &
          &               *Pi                                    &
          &               /3.0d0                                 &
@@ -415,6 +417,8 @@ contains
 
     matterDensity          =+self%cosmologyParameters_%OmegaMatter    () &
          &                  *self%cosmologyParameters_%densityCritical()
+    ! Compute corresponding mass scale. As a default choice, the wavenumber is converted to a length scale assuming
+    ! R = λ/2 = π/k [see Eq.(9) of \cite{schneider_non-linear_2012}].
     bode2001QuarterModeMass=+4.0d0                                 &
          &                  *Pi                                    &
          &                  /3.0d0                                 &
@@ -442,6 +446,8 @@ contains
 
     matterDensity           =+self%cosmologyParameters_%OmegaMatter    ()    &
          &                   *self%cosmologyParameters_%densityCritical()
+    ! Compute corresponding mass scale. As a default choice, the wavenumber is converted to a length scale assuming
+    ! R = λ/2 = π/k [see Eq.(9) of \cite{schneider_non-linear_2012}].
     bode2001FractionModeMass=+4.0d0                                          &
          &                   *Pi                                             &
          &                   /3.0d0                                          &

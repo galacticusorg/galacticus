@@ -297,6 +297,8 @@ contains
           wavenumberHalfMode             =+1.108d0              &
                &                          *4.5d0                &
                &                          *m22**(4.0d0/9.0d0)
+          ! Compute corresponding mass scale. As a default choice, the wavenumber is converted to a length scale assuming
+          ! R = λ/2 = π/k [see Eq.(9) of \cite{schneider_non-linear_2012}].
           fileFuzzyDarkMatterHalfModeMass=+4.0d0                &
                &                          *Pi                   &
                &                          /3.0d0                &
@@ -342,6 +344,8 @@ contains
           wavenumberQuarterMode             =+1.230d0                 &
                &                             *4.5d0                   &
                &                             *m22**(4.0d0/9.0d0)
+          ! Compute corresponding mass scale. As a default choice, the wavenumber is converted to a length scale assuming
+          ! R = λ/2 = π/k [see Eq.(9) of \cite{schneider_non-linear_2012}].
           fileFuzzyDarkMatterQuarterModeMass=+4.0d0                   &
                &                             *Pi                      &
                &                             /3.0d0                   &

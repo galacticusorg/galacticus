@@ -314,6 +314,8 @@ contains
        wavenumberFractionMode  = finder%find(rootGuess=1.0d0)
        matterDensity           =+self%cosmologyParameters_%OmegaMatter    () &
             &                   *self%cosmologyParameters_%densityCritical()
+       ! Compute corresponding mass scale. As a default choice, the wavenumber is converted to a length scale assuming
+       ! R = λ/2 = π/k [see Eq.(9) of \cite{schneider_non-linear_2012}].
        envelopeFractionModeMass=+4.0d0                    &
             &                   *Pi                       &
             &                   /3.0d0                    &

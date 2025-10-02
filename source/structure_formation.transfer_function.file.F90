@@ -582,7 +582,8 @@ contains
                      &          *(+self%transfer%x              (j)-self%transfer%x            (j-1)) &
                      &          +                                   self%transfer%x            (j-1)  &
                      &         )
-                ! Compute the mode mass.
+                ! Compute the mode mass. As a default choice, the wavenumber is converted to a length scale assuming
+                ! R = λ/2 = π/k [see Eq.(9) of \cite{schneider_non-linear_2012}].
                 modeFound           =.true.
                 fileFractionModeMass=+4.0d0         &
                      &               *Pi            &
