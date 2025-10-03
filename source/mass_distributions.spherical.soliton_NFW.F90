@@ -419,7 +419,7 @@ contains
       end if
       return
    end function solitonNFWDensityGradientRadial
-
+   
    double precision function solitonNFWRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
      !!{
      Computes the radius enclosing a given mean density for soliton NFW mass distributions.
@@ -428,7 +428,7 @@ contains
      class           (massDistributionSolitonNFW), intent(inout), target   :: self
      double precision                            , intent(in   )           :: density
      double precision                            , intent(in   ), optional :: radiusGuess
-
+     
      if (density >= self%densitySolitonCentral) then
         radius=0.0d0
      else
@@ -436,7 +436,7 @@ contains
      end if
      return
    end function solitonNFWRadiusEnclosingDensity
-
+   
    double precision function solitonNFWRadiusEnclosingDensityNumerical(self,density,radiusGuess) result(radius)
      !!{
      Computes the radius enclosing a given mean density for soliton NFW mass distributions.
@@ -445,7 +445,7 @@ contains
      class           (massDistributionSolitonNFW), intent(inout), target   :: self
      double precision                            , intent(in   )           :: density
      double precision                            , intent(in   ), optional :: radiusGuess
-
+     
      if (density >= self%densitySolitonCentral) then
         radius=0.0d0
      else
@@ -453,7 +453,7 @@ contains
      end if
      return
    end function solitonNFWRadiusEnclosingDensityNumerical
-
+   
    subroutine solitonNFWParameters(self,densityNormalization,radiusNormalization,parameters,container)
       !!{
       Establish parameters for tabulation.
