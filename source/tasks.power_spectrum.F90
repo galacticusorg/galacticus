@@ -295,7 +295,7 @@ contains
        ! Iterate over all wavenumbers computing power spectrum and related quantities.
        do iWavenumber=1,wavenumberCount
           ! Compute corresponding mass scale. As a default choice, the wavenumber is converted to a length scale assuming
-          ! R = λ/2 = π/k [see Eq.(9) of \cite{schneider_non-linear_2012}].
+          ! R = λ/2 = π/k [see Eq.(9) of Schneider et al. (2012; http://adsabs.harvard.edu/abs/2012MNRAS.424..684S)].
           massScale                (iWavenumber        )=+4.0d0                                       &
                &                                         /3.0d0                                       &
                &                                         *Pi                                          &
