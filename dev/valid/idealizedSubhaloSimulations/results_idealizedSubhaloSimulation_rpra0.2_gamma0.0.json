@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "861f495db06c4dbcfa556ba1e0fad9f2d1ac4fd2",
-        "message": "Merge pull request #937 from galacticusorg/fixAxionCAMBTempFiles\n\nWhen running `AxionCAMB` use the dynamic datasets path for all temporary files\n",
-        "timestamp": "2025-09-30 23:30:07+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/861f495db06c4dbcfa556ba1e0fad9f2d1ac4fd2"
+        "id": "0b325732f5057eb653b6781ec5f81e104577aac3",
+        "message": "Merge pull request #938 from galacticusorg/featLightconeObservedPositions\n\nAllow output of observed positions in lightcones\n",
+        "timestamp": "2025-10-02 21:55:13+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/0b325732f5057eb653b6781ec5f81e104577aac3"
     },
     "results": [
         {
