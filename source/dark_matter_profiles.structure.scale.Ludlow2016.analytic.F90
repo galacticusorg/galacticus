@@ -189,7 +189,9 @@ contains
     implicit none
     double precision                    , intent(in   ) :: timeFormation
     class           (nodeComponentBasic), pointer       :: basic
-    double precision                                    :: massCurrent  , massFormation, timeCurrent, timePresent
+    double precision                                    :: massCurrent    , massFormation    , &
+         &                                                 timeCurrent    , timePresent      , &
+         &                                                 varianceCurrent, varianceFormation
 
     basic             => states(stateCount)%node%basic()
     massCurrent       =  Dark_Matter_Profile_Mass_Definition(                                                                                   &
@@ -204,22 +206,29 @@ contains
     timePresent=states(stateCount)%self%cosmologyFunctions_%cosmicTime(expansionFactor=1.0d0)
     select type (self => states(stateCount)%self)
     class is (darkMatterProfileScaleRadiusLudlow2016Analytic)
-       massFormation=+massCurrent                                                                                                                           &
-            &        *erfc(                                                                                                                                 &
-            &              +    (                                                                                                                           &
-            &                      +self%criticalOverdensity_     %value       (time=timeFormation,mass=self%f*massCurrent,node=states(stateCount)%node)    &
-            &                      /self%linearGrowth_            %value       (time=timeFormation                                                     )    &
-            &                      -self%criticalOverdensity_     %value       (time=timeCurrent  ,mass=       massCurrent,node=states(stateCount)%node)    &
-            &                      /self%linearGrowth_            %value       (time=timeCurrent                                                       )    &
-            &                   )                                                                                                                           &
-            &              /sqrt(                                                                                                                           &
-            &                    +2.0d0                                                                                                                     &
-            &                    *(                                                                                                                         &
-            &                      +self%cosmologicalMassVariance_%rootVariance(time=timePresent  ,mass=self%f*massCurrent                             )**2 &
-            &                      -self%cosmologicalMassVariance_%rootVariance(time=timePresent  ,mass=       massCurrent                             )**2 &
-            &                     )                                                                                                                         &
-            &                   )                                                                                                                           &
-            &             )
+       varianceCurrent  =+              self%cosmologicalMassVariance_%rootVariance(time=timePresent  ,mass=       massCurrent                             )**2
+       varianceFormation=+              self%cosmologicalMassVariance_%rootVariance(time=timePresent  ,mass=self%f*massCurrent                             )**2
+       if (varianceFormation <= varianceCurrent) then
+          ! No valid solution can be found at this mass. Return a negative root - this will cause the parent class to fall through to the alternative method.
+          massFormation =+0.0d0
+       else
+          massFormation =+massCurrent                                                                                                                           &
+               &         *erfc(                                                                                                                                 &
+               &               +    (                                                                                                                           &
+               &                       +self%criticalOverdensity_     %value       (time=timeFormation,mass=self%f*massCurrent,node=states(stateCount)%node)    &
+               &                       /self%linearGrowth_            %value       (time=timeFormation                                                     )    &
+               &                       -self%criticalOverdensity_     %value       (time=timeCurrent  ,mass=       massCurrent,node=states(stateCount)%node)    &
+               &                       /self%linearGrowth_            %value       (time=timeCurrent                                                       )    &
+               &                    )                                                                                                                           &
+               &               /sqrt(                                                                                                                           &
+               &                     +2.0d0                                                                                                                     &
+               &                     *(                                                                                                                         &
+               &                       +varianceFormation                                                                                                       &
+               &                       -varianceCurrent                                                                                                         &
+               &                      )                                                                                                                         &
+               &                    )                                                                                                                           &
+               &              )
+       end if
     class default
        massFormation=-huge(0.0d0)
        call Error_Report('incorrect class'//{introspection:location})
