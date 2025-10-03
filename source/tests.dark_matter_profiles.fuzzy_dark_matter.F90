@@ -216,6 +216,8 @@ program Test_Dark_Matter_Profiles_Fuzzy_Dark_Matter
   fileName=inputPath(pathTypeExec)//'testSuite/data/densityProfileFuzzyDarkMatterChowdhury2021.txt'
   totalLinesInFile=Count_Lines_in_File(fileName    )
   dataLinesInFile =Count_Lines_in_File(fileName,'#')-1
+  allocate(radiusTarget         (dataLinesInFile))
+  allocate(radiusRecovered      (dataLinesInFile))
   allocate(density              (dataLinesInFile))
   allocate(densityTarget        (dataLinesInFile))
   allocate(densitySlope         (dataLinesInFile))
