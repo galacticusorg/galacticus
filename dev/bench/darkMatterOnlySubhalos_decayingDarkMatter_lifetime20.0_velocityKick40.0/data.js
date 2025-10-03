@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1759297882482,
+  "lastUpdate": 1759481117106,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=40 km/s)": [
@@ -3213,6 +3213,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
             "value": 12.224003544998508,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0b325732f5057eb653b6781ec5f81e104577aac3",
+          "message": "Merge pull request #938 from galacticusorg/featLightconeObservedPositions\n\nAllow output of observed positions in lightcones",
+          "timestamp": "2025-10-02T21:55:13Z",
+          "tree_id": "41b2b4f0628f126b497db035b7b1a0e0f4f5e984",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0b325732f5057eb653b6781ec5f81e104577aac3"
+        },
+        "date": 1759481116295,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": 5.656472288794018,
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": 7.217499625421999,
             "unit": "-logℒ"
           }
         ]
