@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1759297828136,
+  "lastUpdate": 1759481065388,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (Symphony)": [
@@ -1317,6 +1317,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (Symphony Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 5.271420852175846,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0b325732f5057eb653b6781ec5f81e104577aac3",
+          "message": "Merge pull request #938 from galacticusorg/featLightconeObservedPositions\n\nAllow output of observed positions in lightcones",
+          "timestamp": "2025-10-02T21:55:13Z",
+          "tree_id": "41b2b4f0628f126b497db035b7b1a0e0f4f5e984",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0b325732f5057eb653b6781ec5f81e104577aac3"
+        },
+        "date": 1759481064507,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (Symphony Milky Way) - Likelihood - subhaloMassFunction",
+            "value": 3.0718293826595016,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 1.737282718173247,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 5.284816030638319,
             "unit": "-logℒ"
           }
         ]
