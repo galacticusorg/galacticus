@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1759297836742,
+  "lastUpdate": 1759481057335,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "a4ac3d9e62a99aa02b20ef550c04ebf749c33957",
-          "message": "Merge pull request #723 from galacticusorg/featGalaxyMergerTrees\n\nAdd functionality to track and output galaxy merger trees",
-          "timestamp": "2024-10-19T16:39:37Z",
-          "tree_id": "2bd38e7e71c6d906ec771c41d06c35279d7b1249",
-          "url": "https://github.com/galacticusorg/galacticus/commit/a4ac3d9e62a99aa02b20ef550c04ebf749c33957"
-        },
-        "date": 1729382763018,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 444.472,
-            "unit": "seconds",
-            "range": 0.258216188485992
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10704,6 +10674,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 6.639812045348015,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0b325732f5057eb653b6781ec5f81e104577aac3",
+          "message": "Merge pull request #938 from galacticusorg/featLightconeObservedPositions\n\nAllow output of observed positions in lightcones",
+          "timestamp": "2025-10-02T21:55:13Z",
+          "tree_id": "41b2b4f0628f126b497db035b7b1a0e0f4f5e984",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0b325732f5057eb653b6781ec5f81e104577aac3"
+        },
+        "date": 1759481056437,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 91.596,
+            "range": "0.11821336641855",
+            "unit": "seconds"
           }
         ]
       }
