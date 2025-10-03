@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1759297845485,
+  "lastUpdate": 1759481081270,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.01; γ=1.5)": [
@@ -8732,6 +8732,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/861f495db06c4dbcfa556ba1e0fad9f2d1ac4fd2"
         },
         "date": 1759297844494,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.01; γ=1.5) - Likelihood - satelliteBoundMass",
+            "value": 57.20229486294781,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.01; γ=1.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": 29.56350148803499,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.01; γ=1.5) - Likelihood - satelliteVelocityMaximum",
+            "value": 23.03754786395062,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0b325732f5057eb653b6781ec5f81e104577aac3",
+          "message": "Merge pull request #938 from galacticusorg/featLightconeObservedPositions\n\nAllow output of observed positions in lightcones",
+          "timestamp": "2025-10-02T21:55:13Z",
+          "tree_id": "41b2b4f0628f126b497db035b7b1a0e0f4f5e984",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0b325732f5057eb653b6781ec5f81e104577aac3"
+        },
+        "date": 1759481080461,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
