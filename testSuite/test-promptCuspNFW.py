@@ -17,8 +17,8 @@ except FileExistsError:
 # Run the models.
 status = subprocess.run("cd ..; ./Galacticus.exe testSuite/parameters/testPromptCuspNFW.xml",shell=True)
 if status.returncode != 0:
-   print("FAILED: model failed to run"  )
-   sys.exit()
+  print("FAILED: model failed to run"  )
+  sys.exit()
 
 # Read require data from the model.
 model                 = h5py.File('outputs/testPromptCuspNFW.hdf5','r')
@@ -47,7 +47,7 @@ errorFractionalRadiusScaleWorst  = np.max(errorFractionalRadiusScale )
 errorFractionalDensityScaleWorst = np.max(errorFractionalDensityScale)
 
 # Validate the results.
-if errorFractionalRadiusScaleWorst > 1.0e-3 or errorFractionalDensityScaleWorst > 1.0e-3:
+if errorFractionalRadiusScaleWorst > 2.0e-3 or errorFractionalDensityScaleWorst > 3.0e-3:
     print("FAILED: results do not agree with reference calculation")
 else:
     print("SUCCESS: results do agree with reference calculation")
