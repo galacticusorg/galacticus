@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1759612868118,
+  "lastUpdate": 1759612878380,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "9caa7c7d42304bbc9a5631e33267f10de814a7c1",
-          "message": "Merge pull request #724 from galacticusorg/massDistributions\n\nRefactor how mass distributions are handled",
-          "timestamp": "2024-10-20T04:11:11Z",
-          "tree_id": "7575aad885c6765e0f497b8292fa650c9f494a8c",
-          "url": "https://github.com/galacticusorg/galacticus/commit/9caa7c7d42304bbc9a5631e33267f10de814a7c1"
-        },
-        "date": 1729419893913,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 16.9917840438635,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 9.57069549658631,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 20679.8552459781,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8784,6 +8745,45 @@ window.BENCHMARK_DATA = {
             "value": 50.237,
             "range": "0.0943297408028991",
             "unit": "seconds"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0925ee9aae2d06dbe86d1f4dee29e93087f62dcf",
+          "message": "Merge pull request #941 from galacticusorg/fixCuspNFWDensityNormalization\n\nStore the density normalization for cusp-NFW profiles",
+          "timestamp": "2025-10-04T15:01:09Z",
+          "tree_id": "9878432cb0b58d34b7880ed9c83d74070f5ce62e",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0925ee9aae2d06dbe86d1f4dee29e93087f62dcf"
+        },
+        "date": 1759612877370,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 1.6412268431462522,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 2.393028697820053,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 10747.499659407758,
+            "unit": "-logℒ"
           }
         ]
       }
