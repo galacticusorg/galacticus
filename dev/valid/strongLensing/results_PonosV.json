@@ -6,10 +6,10 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "0b325732f5057eb653b6781ec5f81e104577aac3",
-        "message": "Merge pull request #938 from galacticusorg/featLightconeObservedPositions\n\nAllow output of observed positions in lightcones\n",
-        "timestamp": "2025-10-02 21:55:13+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/0b325732f5057eb653b6781ec5f81e104577aac3"
+        "id": "0925ee9aae2d06dbe86d1f4dee29e93087f62dcf",
+        "message": "Merge pull request #941 from galacticusorg/fixCuspNFWDensityNormalization\n\nStore the density normalization for cusp-NFW profiles\n",
+        "timestamp": "2025-10-04 15:01:09+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/0925ee9aae2d06dbe86d1f4dee29e93087f62dcf"
     },
     "surfaceDensity": {
         "percentageBelow": 39.285714285714285,
