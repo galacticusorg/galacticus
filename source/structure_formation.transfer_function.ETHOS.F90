@@ -559,6 +559,8 @@ contains
     wavenumberFractionMode  =   finder%find(rootGuess=1.0d-2/self%alpha)
     matterDensity           =  +self%cosmologyParameters_%OmegaMatter    () &
          &                     *self%cosmologyParameters_%densityCritical()
+    ! Compute corresponding mass scale. As a default choice, the wavenumber is converted to a length scale assuming
+    ! R = λ/2 = π/k [see Eq.(9) of Schneider et al. (2012; http://adsabs.harvard.edu/abs/2012MNRAS.424..684S)].
     ETHOSDMFractionModeMass =  +4.0d0                    &
          &                     *Pi                       &
          &                     /3.0d0                    &

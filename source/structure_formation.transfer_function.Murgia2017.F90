@@ -229,6 +229,8 @@ function murgia2017ConstructorParameters(parameters) result(self)
          &                     -1.0d0                 &
          &                    )**(1.0d0/self%beta)    &
          &                  )
+    ! Compute corresponding mass scale. As a default choice, the wavenumber is converted to a length scale assuming
+    ! R = λ/2 = π/k [see Eq.(9) of Schneider et al. (2012; http://adsabs.harvard.edu/abs/2012MNRAS.424..684S)].
     murgia2017HalfModeMass=+4.0d0                &
          &                 *Pi                   &
          &                 /3.0d0                &
@@ -268,6 +270,8 @@ function murgia2017ConstructorParameters(parameters) result(self)
          &                        -1.0d0                 &
          &                       )**(1.0d0/self%beta)    &
          &                     )
+    ! Compute corresponding mass scale. As a default choice, the wavenumber is converted to a length scale assuming
+    ! R = λ/2 = π/k [see Eq.(9) of Schneider et al. (2012; http://adsabs.harvard.edu/abs/2012MNRAS.424..684S)].
     murgia2017QuarterModeMass=+4.0d0                   &
          &                    *Pi                      &
          &                    /3.0d0                   &

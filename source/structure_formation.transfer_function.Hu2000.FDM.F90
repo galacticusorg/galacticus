@@ -227,6 +227,8 @@ contains
     wavenumberHalfMode   =+1.108d0                 &
          &                *4.5d0                   &
          &                *self%m22**(4.0d0/9.0d0)
+    ! Compute corresponding mass scale. As a default choice, the wavenumber is converted to a length scale assuming
+    ! R = λ/2 = π/k [see Eq.(9) of Schneider et al. (2012; http://adsabs.harvard.edu/abs/2012MNRAS.424..684S)].
     hu2000FDMHalfModeMass=+4.0d0                &
          &                *Pi                   &
          &                /3.0d0                &
@@ -256,6 +258,8 @@ contains
     wavenumberQuarterMode   =+1.230d0                 &
          &                   *4.5d0                   &
          &                   *self%m22**(4.0d0/9.0d0)
+    ! Compute corresponding mass scale. As a default choice, the wavenumber is converted to a length scale assuming
+    ! R = λ/2 = π/k [see Eq.(9) of Schneider et al. (2012; http://adsabs.harvard.edu/abs/2012MNRAS.424..684S)].
     hu2000FDMQuarterModeMass=+4.0d0                   &
          &                   *Pi                      &
          &                   /3.0d0                   &
