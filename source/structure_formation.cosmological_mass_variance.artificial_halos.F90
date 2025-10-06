@@ -57,6 +57,7 @@
      procedure :: rootVarianceAndLogarithmicGradient  => artificialHalosRootVarianceAndLogarithmicGradient
      procedure :: mass                                => artificialHalosMass   
      procedure :: growthIsMassDependent               => artificialHalosGrowthIsMassDependent
+     procedure :: descriptorNormalizationOnly         => artificialHalosDescriptorNormalizationOnly
   end type cosmologicalMassVarianceArtificialHalos
 
   interface cosmologicalMassVarianceArtificialHalos
@@ -303,3 +304,27 @@ contains
     artificialHalosGrowthIsMassDependent=self%cosmologicalMassVariance_%growthIsMassDependent()
     return
   end function artificialHalosGrowthIsMassDependent
+
+  subroutine artificialHalosDescriptorNormalizationOnly(self,descriptor,includeClass,includeFileModificationTimes)
+    !!{
+    Return an input parameter list descriptor which could be used to recreate this object, for power spectrum normalization usage
+    only (i.e. we exclude the window function).
+    !!}
+    use :: Input_Parameters, only : inputParameters
+    implicit none
+    class    (cosmologicalMassVarianceArtificialHalos), intent(inout)           :: self
+    type     (inputParameters                        ), intent(inout)           :: descriptor
+    logical                                           , intent(in   ), optional :: includeClass  , includeFileModificationTimes
+    character(len=18                                 )                          :: parameterLabel
+    type     (inputParameters                        )                          :: parameters
+
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('cosmologicalMassVariance','filteredPower')
+    parameters=descriptor%subparameters('cosmologicalMassVariance')
+    if (associated(self%cosmologyFunctions_      )) &
+         & call self%cosmologyFunctions_      %descriptor                 (parameters,includeClass=.true.,includeFileModificationTimes=includeFileModificationTimes)
+    if (associated(self%cosmologicalMassVariance_)) &
+         & call self%cosmologicalMassVariance_%descriptorNormalizationOnly(parameters,includeClass=.true.,includeFileModificationTimes=includeFileModificationTimes)
+    if (associated(self%linearGrowth_            )) &
+         & call self%linearGrowth_            %descriptor                 (parameters,includeClass=.true.,includeFileModificationTimes=includeFileModificationTimes)
+    return
+  end subroutine artificialHalosDescriptorNormalizationOnly
