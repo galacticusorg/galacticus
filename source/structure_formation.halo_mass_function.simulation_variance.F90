@@ -203,12 +203,12 @@ contains
          end if
          if (useCache /= 0) self%varianceSimulation=cachedVariances(useCache)%variance
          !$omp end critical(haloMassFunctionSimulationVarianceCache)
-         if (useCache ==0) then
+         if (useCache == 0) then
             if (File_Exists(fileNameVariance)) then
                call File_Lock(char(fileNameVariance),fileLock,lockIsShared=.true.)
                !$ call hdf5Access%set()
                call varianceFile%openFile     (char(fileNameVariance),readOnly=.true.                 )
-               call varianceFile%readAttribute('variance'             ,        self%varianceSimulation)
+               call varianceFile%readAttribute('variance'            ,         self%varianceSimulation)
                call varianceFile%close        (                                                       )
                !$ call hdf5Access%unset()
                call File_Unlock(fileLock)
