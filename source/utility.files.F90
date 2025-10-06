@@ -250,11 +250,11 @@ contains
     !!{
     Checks for existence of file {\normalfont \ttfamily fileName} (version for character argument).
     !!}
-    use :: ISO_Varying_String, only : char
+    use :: ISO_Varying_String, only : char, extract, operator(==), len
     implicit none
     character(len=*            ), intent(in   ) :: fileName
-    character(len=len(fileName))                :: parentName
     integer                                     :: lengthParent
+    type     (varying_string   )                :: fileName_   , parentName
     !$GLC attributes initialized ::  parentName
 
     ! Handle empty file names.
@@ -262,22 +262,24 @@ contains
        File_Exists_Char=.false.
        return
     end if
+    ! Expand the file name.
+    fileName_=File_Name_Expand(fileName)
     ! Find the name of the parent directory.
-    parentName  =      fileName
+    parentName  =      fileName_
     lengthParent=len(parentName)
-    if (parentName(lengthParent:lengthParent) == "/") &
-         & parentName=parentName(1:lengthParent-1)
-    parentName       =char(File_Path(parentName))
+    if (extract(parentName,lengthParent,lengthParent) == "/") &
+         & parentName=extract(parentName,1,lengthParent-1)
+    parentName       =File_Path(parentName)
     ! Sync the parent directory to ensure that any file system caching is updated.
-    call syncdir_C(trim(parentName)//char(0))
+    call syncdir_C(char(parentName)//char(0))
     ! Test for file existence.
     !![
     <workaround type="gfortran" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;ml&#x2F;fortran&#x2F;2019-12&#x2F;msg00012.html">
      <description>Segfault triggered by inquire when running multiple OpenMP threads and a large number of MPI processes. Cause unknown. To workaround this we use the POSIX access() function to test for file existence.</description>
     </workaround>
     !!]
-    !! inquire(file=fileName,exist=File_Exists_Char)
-    File_Exists_Char=access_C(trim(fileName)//char(0)) == 0
+    !! inquire(char=fileName_,exist=File_Exists_Char)
+    File_Exists_Char=access_C(char(fileName_)//char(0)) == 0
     return
   end function File_Exists_Char
 
