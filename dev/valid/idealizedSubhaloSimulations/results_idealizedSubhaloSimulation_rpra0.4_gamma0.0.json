@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "0925ee9aae2d06dbe86d1f4dee29e93087f62dcf",
-        "message": "Merge pull request #941 from galacticusorg/fixCuspNFWDensityNormalization\n\nStore the density normalization for cusp-NFW profiles\n",
-        "timestamp": "2025-10-04 15:01:09+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/0925ee9aae2d06dbe86d1f4dee29e93087f62dcf"
+        "id": "c0424c7c3298df8e5306a7a88bf49c70fe7fe3a6",
+        "message": "Merge pull request #946 from galacticusorg/fixFileExistanceExpand\n\nExpand file names before checking for file existance\n",
+        "timestamp": "2025-10-07 13:03:57+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/c0424c7c3298df8e5306a7a88bf49c70fe7fe3a6"
     },
     "results": [
         {
