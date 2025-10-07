@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1759612963557,
+  "lastUpdate": 1759865595136,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=80 Gyr; vₖ=40 km/s)": [
@@ -3281,6 +3281,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
             "value": 41.59126028848724,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c0424c7c3298df8e5306a7a88bf49c70fe7fe3a6",
+          "message": "Merge pull request #946 from galacticusorg/fixFileExistanceExpand\n\nExpand file names before checking for file existance",
+          "timestamp": "2025-10-07T13:03:57Z",
+          "tree_id": "54040a8097fd9bf529320afb57561403bc92b7b6",
+          "url": "https://github.com/galacticusorg/galacticus/commit/c0424c7c3298df8e5306a7a88bf49c70fe7fe3a6"
+        },
+        "date": 1759865594040,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": 40.305853300664204,
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": 40.55415796550049,
             "unit": "-logℒ"
           }
         ]
