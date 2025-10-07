@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1759612888528,
+  "lastUpdate": 1759865523958,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (COZMIC WDM 3keV)": [
@@ -1395,6 +1395,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (COZMIC WDM 3keV Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 439.23164236871776,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c0424c7c3298df8e5306a7a88bf49c70fe7fe3a6",
+          "message": "Merge pull request #946 from galacticusorg/fixFileExistanceExpand\n\nExpand file names before checking for file existance",
+          "timestamp": "2025-10-07T13:03:57Z",
+          "tree_id": "54040a8097fd9bf529320afb57561403bc92b7b6",
+          "url": "https://github.com/galacticusorg/galacticus/commit/c0424c7c3298df8e5306a7a88bf49c70fe7fe3a6"
+        },
+        "date": 1759865522861,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM 3keV Milky Way) - Likelihood - subhaloMassFunction",
+            "value": 3.70754384086797,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM 3keV Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 3.8141492252857963,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM 3keV Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 442.85578233431363,
             "unit": "-logℒ"
           }
         ]
