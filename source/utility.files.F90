@@ -263,7 +263,7 @@ contains
        return
     end if
     ! Expand the file name.
-    fileName_=File_Name_Expand(fileName)
+    fileName_=File_Name_Expand(trim(fileName))
     ! Find the name of the parent directory.
     parentName  =      fileName_
     lengthParent=len(parentName)
