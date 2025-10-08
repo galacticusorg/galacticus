@@ -92,6 +92,7 @@ push(
 	    label      => "haloMassFunction_".$_->{'suite'}->{'name'}."_".$_->{'group'}->{'name'}."_".$_->{'resolution'}->{'name'}."_".$_->{'simulation'}->{'name'}."_".$_->{'realization'}."_z".$_->{'redshift'},
 	    ppn        => 1,
 	    nodes      => 1,
+	    walltime   => "2:00:00",
 	    mpi        => "no"
 	}
     }
@@ -113,6 +114,7 @@ push(
 	    label      => "haloMassFunction_".$_->{'suite'}->{'name'}."_".$_->{'group'}->{'name'}."_".$_->{'resolution'}->{'name'}."_".$_->{'simulation'}->{'name'}."_".$_->{'realization'}."_z".$_->{'redshift'}."_true",
 	    ppn        => 1,
 	    nodes      => 1,
+	    walltime   => "2:00:00",
 	    mpi        => "no"
 	}
     }
@@ -134,6 +136,7 @@ push(
 	    label      => "haloMassFunction_".$_->{'suite'}->{'name'}."_".$_->{'group'}->{'name'}."_".$_->{'resolution'}->{'name'}."_".$_->{'simulation'}->{'name'}."_".$_->{'realization'}."_z".$_->{'redshift'}."_despali2015",
 	    ppn        => 1,
 	    nodes      => 1,
+	    walltime   => "2:00:00",
 	    mpi        => "no"
 	}
     }
@@ -155,6 +158,7 @@ push(
 	    label      => "haloMassFunction_".$_->{'suite'}->{'name'}."_".$_->{'group'}->{'name'}."_".$_->{'resolution'}->{'name'}."_".$_->{'simulation'}->{'name'}."_".$_->{'realization'}."_z".$_->{'redshift'}."_bohr2021",
 	    ppn        => 1,
 	    nodes      => 1,
+	    walltime   => "2:00:00",
 	    mpi        => "no"
 	}
     }
