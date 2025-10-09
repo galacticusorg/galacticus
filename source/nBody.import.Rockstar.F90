@@ -572,6 +572,8 @@ contains
                      &                         *                                           expansionFactor                    &
                      &                         /self                 %cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH) &
                      &                         /kilo
+             case (rockstarColumnVmax      %ID)
+                columnName='velocityMaximum'
              case (rockstarColumnTU        %ID)
                 columnName='virialRatio'
                 propertiesReal(jReal)%property=+propertiesReal(jReal)                     %property                           &
