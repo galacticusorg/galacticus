@@ -316,7 +316,7 @@ contains
                   &       +1_c_size_t
              treeIDParents(countParents)=treeID(i)
              indexParents (countParents)=       i
-             j=int(log10(mass(i)/self%massParentMinimum)*binParentWidthInverse)+1
+             j=floor(log10(mass(i)/self%massParentMinimum)*binParentWidthInverse)+1
              if (j >= 1 .and. j <= massParentCount) countParentBin(j)=countParentBin(j)+1_c_size_t
           end if
        end do
@@ -373,7 +373,7 @@ contains
           end do
           ! Accumulate into bin.
           redshiftMerger_=1.0d0/expansionFactorMerger-1.0d0
-          j=int((redshiftMerger_-self%redshiftMergerMinimum)*binRedshiftWidthInverse)+1
+          j=floor((redshiftMerger_-self%redshiftMergerMinimum)*binRedshiftWidthInverse)+1
           if (j < 1 .or. j > redshiftMergerCount) cycle
           countBin(k,j)=+countBin(k,j) &
                      &  +1_c_size_t

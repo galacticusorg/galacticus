@@ -308,7 +308,7 @@ contains
                   &       +1_c_size_t
              treeIDParents(countParents)=treeID(i)
              indexParents (countParents)=       i
-             j=int(log10(mass(i)/self%massParentMinimum)*binParentWidthInverse)+1
+             j=floor(log10(mass(i)/self%massParentMinimum)*binParentWidthInverse)+1
              if (j >= 1 .and. j <= massParentCount) countParentBin(j)=countParentBin(j)+1_c_size_t
           end if
        end do
@@ -342,9 +342,9 @@ contains
           if (m                <  1_c_size_t .or. m > countParents) cycle
           if (treeIDParents(m) /= treeID(i)                       ) cycle
           ! Accumulate particles into bins.
-          j=int(log10(        mass(indexParents(m))/self%massParentMinimum         )*binParentWidthInverse)+1
+          j=floor(log10(        mass(indexParents(m))/self%massParentMinimum         )*binParentWidthInverse)+1
           if (j < 1 .or. j > massParentCount         ) cycle
-          k=int(log10(mass(i)/mass(indexParents(m))/self%massRatioProgenitorMinimum)*binRatioWidthInverse )+1
+          k=floor(log10(mass(i)/mass(indexParents(m))/self%massRatioProgenitorMinimum)*binRatioWidthInverse )+1
           if (k < 1 .or. k > massRatioProgenitorCount) cycle
           countBin(j,k,l)=+countBin  (j,k,l) &
                &          +1_c_size_t

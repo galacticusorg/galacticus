@@ -238,7 +238,7 @@ contains
                &   mass(i) > self%massMaximum &
                & ) cycle
           ! Accumulate particles into bins.
-          j=int(log10(spin(i)/self%spinMinimum)*binWidthInverse)+1
+          j=floor(log10(spin(i)/self%spinMinimum)*binWidthInverse)+1
           if (j >= 1 .and. j <= spinCount)  &
                & countBin(j)=+countBin  (j) &
                &             +1_c_size_t

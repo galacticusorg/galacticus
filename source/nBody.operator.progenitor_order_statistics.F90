@@ -317,7 +317,7 @@ contains
                   &       +1_c_size_t
              treeIDParents(countParents)=treeID(i)
              indexParents (countParents)=       i
-             j=int(log10(mass(i)/self%massParentMinimum)*binParentWidthInverse)+1
+             j=floor(log10(mass(i)/self%massParentMinimum)*binParentWidthInverse)+1
              if (j >= 1 .and. j <= massParentCount) countParentBin(j)=countParentBin(j)+1_c_size_t
           end if
        end do
@@ -375,7 +375,7 @@ contains
           do n=1,redshiftProgenitorCount
              do m=1,self%orderMaximum
                 if (massOrder(n,m) <= 0.0d0) cycle
-                j=int(log10(massOrder(n,m)/mass(indexParents(i))/self%massRatioProgenitorMinimum)*binRatioWidthInverse )+1
+                j=floor(log10(massOrder(n,m)/mass(indexParents(i))/self%massRatioProgenitorMinimum)*binRatioWidthInverse )+1
                 if (j < 1 .or. j > massRatioProgenitorCount) cycle
                 countBin(k,j,n,m)=+countBin  (k,j,n,m) &
                      &            +1_c_size_t

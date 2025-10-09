@@ -219,7 +219,7 @@ contains
           if (mod(i,mpiSelf%count()) /= mpiSelf%rank()) cycle
 #endif
           ! Accumulate particles into bins.
-          j=int(log10(mass(i)/self%massMinimum)*binWidthInverse)+1
+          j=floor(log10(mass(i)/self%massMinimum)*binWidthInverse)+1
           if (j >= 1 .and. j <= massCount)  &
                & countBin(j)=+countBin  (j) &
                &             +1_c_size_t
