@@ -12,8 +12,8 @@
     <subvolumes value="" ignoreWarnings="true">
       <resolutionX1  value="2"/>
     </subvolumes>
-    <simulationReference value="Nadler et al."                                                          />
-    <simulationURL       value="https://web.stanford.edu/group/gfc/symphony/build/html/simulations.html"/>
+    <simulationReference value="Nadler et al. (2023; https://ui.adsabs.harvard.edu/abs/2023ApJ...945..159N)"/>
+    <simulationURL       value="https://web.stanford.edu/group/gfc/symphony/build/html/simulations.html"    />
   </simulation>
 
 </parameters>
