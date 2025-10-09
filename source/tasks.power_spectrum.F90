@@ -344,13 +344,17 @@ contains
             &                                                                                           )
        ! Iterate over all wavenumbers computing power spectrum and related quantities.
        do iWavenumber=1,wavenumberCount
-          ! Compute corresponding mass scale.
+          ! Compute corresponding mass scale. As a default choice, the wavenumber is converted to a length scale assuming
+          ! R = λ/2 = π/k [see Eq.(9) of Schneider et al. (2012; http://adsabs.harvard.edu/abs/2012MNRAS.424..684S)].
           massScale                (iWavenumber        )=+4.0d0                                       &
                &                                         /3.0d0                                       &
                &                                         *Pi                                          &
                &                                         *self%cosmologyParameters_%OmegaMatter    () &
                &                                         *self%cosmologyParameters_%densityCritical() &
-               &                                         /                                                                                                                    wavenumber(iWavenumber) **3
+               &                                         *(                                           &
+               &                                           +Pi                                        &
+               &                                           /wavenumber(iWavenumber)                   &
+               &                                          )**3
           ! Compute linear growth factors.
           growthFactor             (iWavenumber,iOutput)=self%linearGrowth_             %value                               (time=self%outputTimes_%time(iOutput),wavenumber=wavenumber(iWavenumber))
           growthFactorLogDerivative(iWavenumber,iOutput)=self%linearGrowth_             %logarithmicDerivativeExpansionFactor(time=self%outputTimes_%time(iOutput),wavenumber=wavenumber(iWavenumber))

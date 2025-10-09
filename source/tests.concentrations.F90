@@ -25,21 +25,22 @@ program Test_Concentrations
   !!{
   Tests concentration models.
   !!}
-  use :: Cosmological_Density_Field          , only : cosmologicalMassVarianceFilteredPower    , criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt
+  use :: Cosmological_Density_Field          , only : cosmologicalMassVarianceFilteredPower             , criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt
   use :: Cosmology_Functions                 , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters                , only : cosmologyParametersSimple
   use :: Dark_Matter_Particles               , only : darkMatterParticleCDM
   use :: Dark_Matter_Profiles_Concentration  , only : darkMatterProfileConcentrationClass               , darkMatterProfileConcentrationDiemerKravtsov2014            , darkMatterProfileConcentrationDuttonMaccio2014, darkMatterProfileConcentrationLudlow2016Fit  , &
        &                                              darkMatterProfileConcentrationPrada2011           , duttonMaccio2014FitTypeNFWVirial                            , duttonMaccio2014FitTypeNFWCritical200         , darkMatterProfileConcentrationDiemerJoyce2019
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScaleVirialDensityContrastDefinition
-  use :: Dark_Matter_Profile_Scales          , only : darkMatterProfileScaleRadiusConcentration
+  use :: Dark_Matter_Profile_Scales          , only : darkMatterProfileScaleRadiusConcentration         , darkMatterProfileScaleRadiusLudlow2016Analytic
   use :: Dark_Matter_Profiles_DMO            , only : darkMatterProfileDMONFW
   use :: Display                             , only : displayVerbositySet                               , verbosityLevelStandard
   use :: Events_Hooks                        , only : eventsHooksInitialize
   use :: File_Utilities                      , only : Count_Lines_in_File
   use :: Functions_Global_Utilities          , only : Functions_Global_Set
   use :: Calculations_Resets                 , only : Calculations_Reset
-  use :: Galacticus_Nodes                    , only : nodeClassHierarchyInitialize                      , nodeComponentBasic                                          , treeNode                                      , nodeClassHierarchyFinalize
+  use :: Galacticus_Nodes                    , only : nodeClassHierarchyInitialize                      , nodeComponentBasic                                          , treeNode                                      , nodeClassHierarchyFinalize                   , &
+       &                                              nodeComponentDarkMatterProfile
   use :: Input_Paths                         , only : inputPath                                         , pathTypeExec
   use :: ISO_Varying_String                  , only : assignment(=)                                     , char                                                        , operator(//)                                  , operator(==)                                 , &
           &                                           varying_string
@@ -57,6 +58,7 @@ program Test_Concentrations
   implicit none
   type            (treeNode                                                    ), pointer                             :: node
   class           (nodeComponentBasic                                          ), pointer                             :: basic
+  class           (nodeComponentDarkMatterProfile                              ), pointer                             :: darkMatterProfile
   class           (darkMatterProfileConcentrationClass                         ), pointer                             :: darkMatterProfileConcentration_
   class           (virialDensityContrastClass                                  ), pointer                             :: virialDensityContrast_
   type            (cosmologyParametersSimple                                   ), pointer                             :: cosmologyParametersSimple_
@@ -71,6 +73,7 @@ program Test_Concentrations
   type            (darkMatterParticleCDM                                       ), pointer                             :: darkMatterParticleCDM_
   type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer                             :: criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_
   type            (darkMatterProfileScaleRadiusConcentration                   ), pointer                             :: darkMatterProfileScaleRadiusConcentration_
+  type            (darkMatterProfileScaleRadiusLudlow2016Analytic              ), pointer                             :: darkMatterProfileScaleRadiusLudlow2016Analytic_
   type            (darkMatterHaloScaleVirialDensityContrastDefinition          ), pointer                             :: darkMatterHaloScaleVirialDensityContrastDefinition_
   type            (darkMatterProfileDMONFW                                     ), pointer                             :: darkMatterProfileDMONFW_
   type            (varying_string                                              )                                      :: parameterFile
@@ -198,6 +201,7 @@ program Test_Concentrations
            allocate(criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_)
            allocate(darkMatterHaloScaleVirialDensityContrastDefinition_          )
            allocate(darkMatterProfileScaleRadiusConcentration_                   )
+           allocate(darkMatterProfileScaleRadiusLudlow2016Analytic_              )
            allocate(darkMatterProfileDMONFW_                                     )
            !![
            <referenceConstruct object="darkMatterParticleCDM_"                                        >
@@ -504,10 +508,28 @@ program Test_Concentrations
                 &amp;                                            )
 	     </constructor>
 	   </referenceConstruct>
+	   <referenceConstruct object="darkMatterProfileScaleRadiusLudlow2016Analytic_">
+	     <constructor>
+	       darkMatterProfileScaleRadiusLudlow2016Analytic    (                                                                                                    &amp;
+	        &amp;                                             C                                   =650.00d0                                                     , &amp;
+	        &amp;                                             f                                   =  0.02d0                                                     , &amp;
+                &amp;                                             cosmologyParameters_                =cosmologyParametersSimple_                                   , &amp;
+                &amp;                                             cosmologyFunctions_                 =cosmologyFunctionsMatterLambda_                              , &amp;
+                &amp;                                             darkMatterProfileScaleRadius_       =darkMatterProfileScaleRadiusConcentration_                   , &amp;
+                &amp;                                             darkMatterHaloScale_                =darkMatterHaloScaleVirialDensityContrastDefinition_          , &amp;
+                &amp;                                             darkMatterProfileDMO_               =darkMatterProfileDMONFW_                                     , &amp;
+                &amp;                                             virialDensityContrast_              =virialDensityContrast_                                       , &amp;
+	        &amp;                                             criticalOverdensity_                =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &amp;
+	        &amp;                                             cosmologicalMassVariance_           =cosmologicalMassVarianceFilteredPower_                       , &amp;
+                &amp;                                             linearGrowth_                       =linearGrowthCollisionlessMatter_                               &amp;
+                &amp;                                            )
+	     </constructor>
+	   </referenceConstruct>
            !!]
            ! Create a node and assign a time corresponding to z=0.
-           node  => treeNode      (                 )
-           basic => node    %basic(autoCreate=.true.)
+           node             => treeNode                   (                 )
+           basic             => node    %basic            (autoCreate=.true.)
+           darkMatterProfile => node    %darkMatterProfile(autoCreate=.true.)
            call basic%timeSet            (                                                                      &
                 &                         cosmologyFunctionsMatterLambda_%cosmicTime                 (          &
                 &                         cosmologyFunctionsMatterLambda_%expansionFactorFromRedshift (         &
@@ -528,6 +550,18 @@ program Test_Concentrations
            end do
            ! Assert the result.
            call Assert(char(modelName(iModel)),concentration,concentrationTarget,relTol=modelTolerance(iModel))
+           ! For the Ludlow et al. (2016) model, also check the direct (non-fitting function) calculation.
+           if (modelLabel(iModel) == "ludlow16_200c") then
+              ! Iterate over masses evaluating concentration.
+              do i=1,countMasses
+                 call basic%massSet(mass(i))
+                 call Calculations_Reset(node)
+                 concentration(i)=+darkMatterHaloScaleVirialDensityContrastDefinition_%radiusVirial(node) &
+                      &           /darkMatterProfileScaleRadiusLudlow2016Analytic_    %radius      (node)
+              end do
+              ! Assert the result.
+              call Assert(char(modelName(iModel))//" [direct calculation]",concentration,concentrationTarget,relTol=modelTolerance(iModel))
+          end if
            ! Clean up.
            call parameters%reset  ()
            call parameters%destroy()

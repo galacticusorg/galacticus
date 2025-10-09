@@ -457,6 +457,7 @@
       <failIfNotInLightcone value="true"/>
       <includeAngularCoordinates value="true"/>
       <includeObservedRedshift value="true"/>
+      <includeObservedPosition value="true"/>
     </nodePropertyExtractor>
   </nodePropertyExtractor>
   <outputTimes value="list">

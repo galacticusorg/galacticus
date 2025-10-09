@@ -45,7 +45,8 @@
      class  (darkMatterHaloScaleClass   ), pointer :: darkMatterHaloScale_        => null()
      type   (darkMatterProfileDMOCuspNFW), pointer :: darkMatterProfileDMOCuspNFW => null()
      integer                                       :: promptCuspMassID                     , promptCuspAmplitudeID, &
-          &                                           promptCuspNFWYID                     , promptCuspNFWScaleID
+          &                                           promptCuspNFWYID                     , promptCuspNFWScaleID  , &
+          &                                           promptCuspNFWDensityID
    contains
      final     ::                       promptCuspsDestructor
      procedure :: elementCount       => promptCuspsElementCount
@@ -99,10 +100,11 @@ contains
 
     allocate(self%darkMatterProfileDMOCuspNFW)
     !![
-    <addMetaProperty component="darkMatterProfile" name="promptCuspAmplitude" id="self%promptCuspAmplitudeID" isEvolvable="no" isCreator="no"/>
-    <addMetaProperty component="darkMatterProfile" name="promptCuspMass"      id="self%promptCuspMassID"      isEvolvable="no" isCreator="no"/>
-    <addMetaProperty component="darkMatterProfile" name="promptCuspNFWY"      id="self%promptCuspNFWYID"      isEvolvable="no" isCreator="no"/>
-    <addMetaProperty component="darkMatterProfile" name="promptCuspNFWScale"  id="self%promptCuspNFWScaleID"  isEvolvable="no" isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="promptCuspAmplitude"  id="self%promptCuspAmplitudeID"  isEvolvable="no" isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="promptCuspMass"       id="self%promptCuspMassID"       isEvolvable="no" isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="promptCuspNFWY"       id="self%promptCuspNFWYID"       isEvolvable="no" isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="promptCuspNFWScale"   id="self%promptCuspNFWScaleID"   isEvolvable="no" isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="promptCuspNFWDensity" id="self%promptCuspNFWDensityID" isEvolvable="no" isCreator="no"/>
     <referenceConstruct isResult="yes" owner="self" object="darkMatterProfileDMOCuspNFW">
       <constructor>
 	darkMatterProfileDMOCuspNFW(                                                                      &amp;
@@ -148,9 +150,7 @@ contains
     !!{
     Implement a {\normalfont \ttfamily promptCusps} property extractor.
     !!}
-    use :: Galacticus_Nodes  , only : nodeComponentDarkMatterProfile
-    use :: Coordinates       , only : coordinateSpherical           , assignment(=)
-    use :: Mass_Distributions, only : massDistributionClass
+    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none
     double precision                                  , dimension(:) , allocatable :: promptCuspsExtract
     class           (nodePropertyExtractorPromptCusps), intent(inout), target      :: self
@@ -158,8 +158,6 @@ contains
     double precision                                  , intent(in   )              :: time
     type            (multiCounter                    ), intent(inout), optional    :: instance
     class           (nodeComponentDarkMatterProfile  )               , pointer     :: darkMatterProfile
-    class           (massDistributionClass           )               , pointer     :: massDistribution_
-    type            (coordinateSpherical             )                             :: coordinates
     double precision                                                               :: amplitudeCusp     , massCusp    , &
          &                                                                            yParameter        , radiusScale , &
          &                                                                            densityScale      , radiusMinus2
@@ -179,20 +177,11 @@ contains
             &                 0.0d0  &
             &                ]
     class default
-       massDistribution_  =>  self             %darkMatterProfileDMOCuspNFW%get                      (node                      )
-       amplitudeCusp      =   darkMatterProfile                            %floatRank0MetaPropertyGet(self%promptCuspAmplitudeID)
-       massCusp           =   darkMatterProfile                            %floatRank0MetaPropertyGet(self%promptCuspMassID     )
-       yParameter         =   darkMatterProfile                            %floatRank0MetaPropertyGet(self%promptCuspNFWYID     )
-       radiusScale        =   darkMatterProfile                            %floatRank0MetaPropertyGet(self%promptCuspNFWScaleID )
-       coordinates        =  [radiusScale,0.0d0,0.0d0]
-       ! Compute the scale density ρₛ from the density at the scale radius using equation (17) of Delos (2025;
-       ! https://ui.adsabs.harvard.edu/abs/2025arXiv250603240D).
-       densityScale       =  +massDistribution_%density(coordinates) &
-            &                *4.0d0                                  &
-            &                /sqrt(                                  &
-            &                      +1.0d0                            &
-            &                      +yParameter**2                    &
-            &                     )
+       amplitudeCusp      =   darkMatterProfile%floatRank0MetaPropertyGet(self%promptCuspAmplitudeID )
+       massCusp           =   darkMatterProfile%floatRank0MetaPropertyGet(self%promptCuspMassID      )
+       yParameter         =   darkMatterProfile%floatRank0MetaPropertyGet(self%promptCuspNFWYID      )
+       radiusScale        =   darkMatterProfile%floatRank0MetaPropertyGet(self%promptCuspNFWScaleID  )
+       densityScale       =   darkMatterProfile%floatRank0MetaPropertyGet(self%promptCuspNFWDensityID)
        ! Compute the radius r₋₂ from the scale radius using equation (19) of Delos (2025;
        ! https://ui.adsabs.harvard.edu/abs/2025arXiv250603240D).
        radiusMinus2       =  +(                                 &
@@ -214,9 +203,6 @@ contains
             &                 densityScale , &
             &                 radiusMinus2   &
             &                ]
-       !![
-       <objectDestructor name="massDistribution_"/>
-       !!]
     end select
     return
   end function promptCuspsExtract
