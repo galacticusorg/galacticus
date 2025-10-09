@@ -177,7 +177,7 @@
 	  <label              value="Milky Way"                   />
 	  <transferFunction   value="CDM"                         />
 	  <realizations       value="Halo004"                     />
-	  <hostHaloIDS        Halo004="56005717"                  />
+	  <hostHaloIDs        Halo004="56005717"                  />
 	</simulation>
 	<haloMassFunction>
      	  <expansionFactors value="   1.0000   0.66503   0.50239   0.32987   0.20064"/>
