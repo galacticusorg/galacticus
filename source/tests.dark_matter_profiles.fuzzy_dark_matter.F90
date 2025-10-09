@@ -47,6 +47,7 @@ program Test_Dark_Matter_Profiles_Fuzzy_Dark_Matter
   use            :: Node_Components           , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize, &
     &                                                  Node_Components_Thread_Uninitialize                           , Node_Components_Uninitialize
   use            :: Nodes_Operators           , only : nodeOperatorDarkMatterProfileSoliton
+  use            :: Numerical_Constants_Math  , only : Pi
   use            :: Numerical_Random_Numbers  , only : randomNumberGeneratorGSL
   use            :: Unit_Tests                , only : Assert                                                        , Unit_Tests_Begin_Group           , &
     &                                                  Unit_Tests_End_Group                                          , Unit_Tests_Finish
@@ -63,7 +64,8 @@ program Test_Dark_Matter_Profiles_Fuzzy_Dark_Matter
   double precision                                                                , parameter                 :: radiusScale                   =1.0d-2    , massVirial           =6.6d+09, &
        &                                                                                                         massParticle                  =0.8d+0
   double precision                                                                , dimension(:), allocatable :: density                                  , densityTarget                , &
-       &                                                                                                         densitySlope                             , densitySlopeNumerical
+       &                                                                                                         densitySlope                             , densitySlopeNumerical        , &
+       &                                                                                                         radiusRecovered                          , radiusTarget
   type            (nodeOperatorDarkMatterProfileSoliton                          )                            :: nodeOperator_
   type            (darkMatterHaloScaleVirialDensityContrastDefinition            )                            :: darkMatterHaloScale_
   type            (cosmologyParametersSimple                                     )                            :: cosmologyParameters_
@@ -83,7 +85,8 @@ program Test_Dark_Matter_Profiles_Fuzzy_Dark_Matter
        &                                                                                                         radiusVirial_                            , radiusScale_                 , &
        &                                                                                                         radiusCore_                              , radiusSoliton_               , &
        &                                                                                                         densityCore_                             , densityScale_                , &
-       &                                                                                                         massCore_                                , radius
+       &                                                                                                         massCore_                                , radius                       , &
+       &                                                                                                         densityEnclosed
   type            (coordinateSpherical                                           )                            :: coordinates                              , coordinatesReference
   type            (varying_string                                                )                            :: fileName
   call displayVerbositySet(verbosityLevelStandard)
@@ -223,17 +226,25 @@ program Test_Dark_Matter_Profiles_Fuzzy_Dark_Matter
   end do
   do i=1,dataLinesInFile
      read (fileUnit,*) radius,densityTarget(i)
-     coordinates = [radius,0.0d0,0.0d0]
-     density              (i)=massDistribution_%density                       (coordinates                   )
-     densitySlope         (i)=massDistribution_%densityGradientRadial         (coordinates,logarithmic=.true.)
-     densitySlopeNumerical(i)=massDistribution_%densityGradientRadialNumerical(coordinates,logarithmic=.true.)
+     coordinates             = [radius,0.0d0,0.0d0]
+     densityEnclosed         =+massDistribution_%massEnclosedBySphere          (radius                            )    &
+          &                   *3.0d0                                                                                   &
+          &                   /4.0d0                                                                                   &
+          &                   /Pi                                                                                      &
+          &                   /                  radius                                                            **3
+     radiusTarget         (i)=+                                                 radius
+     density              (i)=+massDistribution_%density                       (coordinates                       )
+     densitySlope         (i)=+massDistribution_%densityGradientRadial         (coordinates    ,logarithmic=.true.)
+     densitySlopeNumerical(i)=+massDistribution_%densityGradientRadialNumerical(coordinates    ,logarithmic=.true.)
+     radiusRecovered      (i)=+massDistribution_%radiusEnclosingDensity        (densityEnclosed                   )
      ! Very close to the soliton radius the numerical estimate of density slope is unreliable (due to the discontinuity at that
      ! radius). Patch over this by replacing the numerical esimate with the analytic result close to the soliton radius.
      if (abs(log(radius/radiusSolitonChowdhury)) < 0.015d0) densitySlopeNumerical(i)=densitySlope(i)
   end do
   close(fileUnit)
-  call Assert("Density"         ,density     ,densityTarget        ,relTol=5.0d-1)
-  call Assert("Density gradient",densitySlope,densitySlopeNumerical,relTol=1.0d-3)
+  call Assert("Density"                 ,density        ,densityTarget        ,relTol=5.0d-1)
+  call Assert("Density gradient"        ,densitySlope   ,densitySlopeNumerical,relTol=1.0d-3)
+  call Assert("Radius enclosing density",radiusRecovered,radiusTarget         ,relTol=5.0d-2)
   call Unit_Tests_End_Group               ()
   call Unit_Tests_Finish                  ()
   call Node_Components_Thread_Uninitialize()

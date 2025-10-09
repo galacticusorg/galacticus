@@ -26,17 +26,15 @@
  !![
   <massDistribution name="massDistributionSolitonNFWHeated">
     <description>
-      An NFW \citep{navarro_structure_1996} mass distribution class. The density profile is given by:
-      \begin{equation}
-       \rho_\mathrm{dark matter}(r) \propto \left({r\over r_\mathrm{s}}\right)^{-1} \left[1 + \left({r\over r_\mathrm{s}}\right)
-      \right]^{-2}.
-      \end{equation}
+      A mass distribution class for fuzzy dark matter halos \citep{schive_understanding_2014} consisting of soliton core for small
+      radii, transitioning to an \gls{nfw} heated profile at larger radii.
     </description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionSpherical) :: massDistributionSolitonNFWHeated
      !!{
-     The NFW \citep{navarro_structure_1996} mass distribution.
+     A mass distribution class for fuzzy dark matter halos \citep{schive_understanding_2014} consisting of soliton core for small
+     radii, transitioning to an \gls{nfw} heated profile at larger radii.
      !!}
      private
      double precision                           :: densitySolitonCentral, radiusCore, radiusSoliton
@@ -68,20 +66,17 @@ contains
     Constructor for the \refClass{massDistributionSolitonNFWHeated} mass distribution class which builds the object from a parameter
     set.
     !!}
-     use :: Input_Parameters          , only : inputParameter                , inputParameters
-     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
+    use :: Input_Parameters          , only : inputParameter                , inputParameters
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
     implicit none
     type            (massDistributionSolitonNFWHeated)                :: self
-    type            (inputParameters    ), intent(inout) :: parameters
-    class(massDistributionClass), pointer :: massDistributionHeated_
-    double precision                                     :: radiusCore                , &
-         &                                                  radiusSoliton             , &
-         &                                                  densitySolitonCentral     , &
-         &                                                  toleranceRelativePotential
-    logical                                            :: dimensionless
-    type            (varying_string         )          :: componentType
-    type            (varying_string         )          :: massType
-
+    type            (inputParameters                 ), intent(inout) :: parameters
+    class           (massDistributionClass           ), pointer       :: massDistributionHeated_
+    double precision                                                  :: radiusCore              , radiusSoliton              , &
+         &                                                               densitySolitonCentral   , toleranceRelativePotential
+    logical                                                           :: dimensionless
+    type            (varying_string                  )                :: componentType           , massType
+    
     !![
     <inputParameter>
       <name>radiusCore</name>
@@ -127,34 +122,32 @@ contains
 
     select type (massDistributionHeated_)
     class is (massDistributionSpherical)
-       self=massDistributionSolitonNFWHeated(radiusCore,radiusSoliton,densitySolitonCentral,toleranceRelativePotential,dimensionless,massDistributionHeated_,enumerationComponentTypeEncode(componentType,includesPrefix=.false.),enumerationMassTypeEncode(massType,includesPrefix=.false.))
+self=massDistributionSolitonNFWHeated(radiusCore,radiusSoliton,densitySolitonCentral,toleranceRelativePotential,dimensionless,massDistributionHeated_,enumerationComponentTypeEncode(componentType,includesPrefix=.false.),enumerationMassTypeEncode(massType,includesPrefix=.false.))
     class default
        call Error_Report('a spherically-symmetric mass distribution is required'//{introspection:location})
     end select
 
     !![
-    <inputParametersValidate source="parameters"/>
-    <objectDestructor name="massDistributionHeated_"       />
+    <inputParametersValidate source="parameters"             />
+    <objectDestructor        name  ="massDistributionHeated_"/>
     !!]
     return
   end function massDistributionSolitonNFWHeatedConstructorParameters
 
   function massDistributionSolitonNFWHeatedConstructorInternal(radiusCore,radiusSoliton,densitySolitonCentral,toleranceRelativePotential,dimensionless,massDistributionHeated_,componentType,massType) result(self)
     !!{
-    Internal constructor for ``nfw'' mass distribution class.
+    Internal constructor for ``soliton and NFW Heated'' mass distribution class.
     !!}
-     use :: Error                   , only : Error_Report
+     use :: Error                     , only : Error_Report
      use :: Galactic_Structure_Options, only : componentTypeDarkHalo
      implicit none
-     type            (massDistributionSolitonNFWHeated)                          :: self
-     class(massDistributionSpherical), intent(in   ), target :: massDistributionHeated_
-     double precision                              , intent(in), optional :: radiusCore                , &
-          &                                                                  radiusSoliton     , &
-          &                                                                 densitySolitonCentral
-     double precision                              , intent(in), optional :: toleranceRelativePotential
-     logical                                       , intent(in), optional :: dimensionless
-     type            (enumerationComponentTypeType), intent(in), optional :: componentType
-     type            (enumerationMassTypeType     ), intent(in), optional :: massType
+     type            (massDistributionSolitonNFWHeated)                       :: self
+     class           (massDistributionSpherical       ), intent(in), target   :: massDistributionHeated_
+     double precision                                  , intent(in), optional :: radiusCore             , radiusSoliton             , &
+          &                                                                      densitySolitonCentral  , toleranceRelativePotential
+     logical                                           , intent(in), optional :: dimensionless
+     type            (enumerationComponentTypeType    ), intent(in), optional :: componentType
+     type            (enumerationMassTypeType         ), intent(in), optional :: massType
     !![
     <constructorAssign variables="radiusCore,radiusSoliton,densitySolitonCentral,toleranceRelativePotential,dimensionless,*massDistributionHeated_,componentType,massType"/>
     !!]
@@ -191,11 +184,11 @@ contains
        !![
        <referenceConstruct isResult="yes" owner="self" nameAssociated="massDistributionSoliton_"  object="massDistributionSoliton_">
 	 <constructor>
-	   massDistributionSoliton(                                                           &amp;
-	    &amp;                  radiusCore            = radiusCore              ,  &amp;
-	    &amp;                  densitySolitonCentral  = densitySolitonCentral  ,  &amp;
-            &amp;                  componentType          = componentTypeDarkHalo, &amp;
-            &amp;                     massType               = massTypeDark           &amp;
+	   massDistributionSoliton(                                               &amp;
+	    &amp;                  radiusCore            = radiusCore           , &amp;
+	    &amp;                  densitySolitonCentral = densitySolitonCentral, &amp;
+        &amp;                  componentType         = componentTypeDarkHalo, &amp;
+        &amp;                  massType              = massTypeDark           &amp;
 	    &amp;                 )
 	 </constructor>
        </referenceConstruct>
@@ -212,7 +205,7 @@ contains
     class (massDistributionSolitonNFWHeated), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%massDistributionHeated_"       />
+    <objectDestructor name="self%massDistributionHeated_" />
     <objectDestructor name="self%massDistributionSoliton_"/>
     !!]
     return
@@ -220,29 +213,28 @@ contains
 
   double precision function solitonNFWHeatedDensity(self,coordinates)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in an NFW mass distribution.
+    Return the density at the specified {\normalfont \ttfamily coordinates} in a solitonNFWHeated mass distribution.
     !!}
     implicit none
     class           (massDistributionSolitonNFWHeated), intent(inout) :: self
-    class           (coordinate         ), intent(in   ) :: coordinates
+    class           (coordinate                      ), intent(in   ) :: coordinates
 
     if (coordinates%rSpherical() < self%radiusSoliton) then
         solitonNFWHeatedDensity = +self%massDistributionSoliton_%density(coordinates)
     else
-        solitonNFWHeatedDensity = +self%massDistributionHeated_%density(coordinates)
+        solitonNFWHeatedDensity = +self%massDistributionHeated_ %density(coordinates)
     end if
     return
   end function solitonNFWHeatedDensity
 
   double precision function solitonNFWHeatedDensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in an NFW \citep{navarro_structure_1996} mass distribution.
+    Return the density at the specified {\normalfont \ttfamily coordinates} in a solitonNFWHeated mass distribution.
     !!}
-    use :: Error, only : Error_Report
     implicit none
     class           (massDistributionSolitonNFWHeated), intent(inout), target   :: self
-    class           (coordinate         ), intent(in   )           :: coordinates
-    logical                              , intent(in   ), optional :: logarithmic
+    class           (coordinate                      ), intent(in   )           :: coordinates
+    logical                                           , intent(in   ), optional :: logarithmic
 
     !![
     <optionalArgument name="logarithmic" defaultsTo=".false."/>
@@ -251,18 +243,18 @@ contains
     if (coordinates%rSpherical() < self%radiusSoliton) then
         densityGradientRadial = +self%massDistributionSoliton_%densityGradientRadial(coordinates,logarithmic)
     else
-        densityGradientRadial = +self%massDistributionHeated_%densityGradientRadial(coordinates,logarithmic)
+        densityGradientRadial = +self%massDistributionHeated_ %densityGradientRadial(coordinates,logarithmic)
     end if
     return
   end function solitonNFWHeatedDensityGradientRadial
 
   double precision function solitonNFWHeatedMassEnclosedBySphere(self,radius) result(mass)
     !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for nfw mass distributions.
+    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for solitonNFWHeated mass distributions.
     !!}
     implicit none
     class           (massDistributionSolitonNFWHeated), intent(inout), target :: self
-    double precision                      , intent(in   )         :: radius
+    double precision                                  , intent(in   )         :: radius
     
     if (radius < self%radiusSoliton) then
         mass = +self%massDistributionSoliton_%massEnclosedBySphere(radius)
@@ -276,18 +268,18 @@ contains
   
   double precision function solitonNFWHeatedRadiusEnclosingMass(self,mass,massFractional) result(radius)
     !!{
-    Computes the radius enclosing a given mass or mass fraction for nfw mass distributions.
+    Computes the radius enclosing a given mass or mass fraction for solitonNFWHeated mass distributions.
     !!}    
     implicit none
     class           (massDistributionSolitonNFWHeated), intent(inout), target   :: self
-    double precision                      , intent(in   ), optional :: mass                     , massFractional
-    double precision                                                :: mass_heating
+    double precision                                  , intent(in   ), optional :: mass        , massFractional
+    double precision                                                            :: mass_heating
 
     if (mass < +self%massDistributionSoliton_%massEnclosedBySphere(self%radiusSoliton)) then
         radius = +self%massDistributionSoliton_%radiusEnclosingMass(mass,massFractional)
     else
-        mass_heating   = +mass                                                           &
-           &             -self%massDistributionSoliton_%massEnclosedBySphere(self%radiusSoliton) &
+        mass_heating   = +mass                                                                         &
+           &             -self%massDistributionSoliton_%massEnclosedBySphere(self%radiusSoliton)       &
            &             +self%massDistributionHeated_%massEnclosedBySphere(self%radiusSoliton)
         radius         = +self%massDistributionHeated_%radiusEnclosingMass(mass_heating,massFractional)
     end if
@@ -298,13 +290,13 @@ contains
     !!{
     Computes the radius enclosing a given mean density for SolitonNFWHeated mass distributions.
     !!}
-    use :: Coordinates                     , only : coordinateCartesian              , assignment(=)
+    use :: Coordinates     , only : coordinateCartesian              , assignment(=)
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLogarithmic
     implicit none
     class           (massDistributionSolitonNFWHeated), intent(inout), target       :: self
-    double precision                     , intent(in   )               :: density
-    double precision                     , intent(in   ), optional     :: radiusGuess
-    type            (coordinateCartesian              )                :: coordinatesSol
+    type            (coordinateCartesian             )                              :: coordinatesSol
+    double precision                                  , intent(in   )               :: density
+    double precision                                  , intent(in   ), optional     :: radiusGuess
 
     coordinatesSol      =[self%radiusSoliton      ,0.0d0,0.0d0]
 
@@ -323,27 +315,49 @@ contains
     use :: Error                   , only : Error_Report
     implicit none
     class           (massDistributionSolitonNFWHeated), intent(inout)           :: self
-    double precision                           , intent(in   )           :: moment
-    double precision                           , intent(in   ), optional :: radiusMinimum, radiusMaximum
-    logical                                    , intent(  out), optional :: isInfinite
+    double precision                                  , intent(in   )           :: moment
+    double precision                                  , intent(in   ), optional :: radiusMinimum        , radiusMaximum
+    logical                                                                     :: isInfiniteSol=.false., isInfiniteHeated=.false.
+    logical                                           , intent(  out), optional :: isInfinite
 
     if (present(radiusMaximum)) then
        if (radiusMaximum <= self%radiusSoliton) then
-          solitonNFWHeatedDensityRadialMoment=self%massDistributionSoliton_%densityRadialMoment(moment, radiusMinimum, radiusMaximum)
+          ! Only in the soliton region
+          if (.not.present(radiusMinimum) .and. moment <= -1.0d0 ) then
+             isInfiniteSol=.true.
+             solitonNFWHeatedDensityRadialMoment=0.0d0
+          else
+             solitonNFWHeatedDensityRadialMoment=+self%massDistributionSoliton_%densityRadialMoment(moment, radiusMinimum, radiusMaximum)
+          end if
        else if (present(radiusMinimum) .and. radiusMinimum >= self%radiusSoliton) then
-          solitonNFWHeatedDensityRadialMoment=self%massDistributionHeated_%densityRadialMoment(moment, radiusMinimum, radiusMaximum)
+          ! Only in the heated region, no need to consider inifinite
+          solitonNFWHeatedDensityRadialMoment=+self%massDistributionHeated_%densityRadialMoment(moment, radiusMinimum, radiusMaximum)
        else
-          solitonNFWHeatedDensityRadialMoment=+self%massDistributionSoliton_%densityRadialMoment(moment, radiusMinimum     , self%radiusSoliton)  &
-             &                                +self%massDistributionHeated_    %densityRadialMoment(moment, self%radiusSoliton, radiusMaximum     )
+          ! Consider both the soliton region and heated region
+          if (.not.present(radiusMinimum) .and. moment <= -1.0d0 ) then
+             isInfiniteSol=.true.
+             solitonNFWHeatedDensityRadialMoment=0.0d0
+          else
+             solitonNFWHeatedDensityRadialMoment=+self%massDistributionSoliton_%densityRadialMoment(moment, radiusMinimum     , self%radiusSoliton ) &
+               &                                 +self%massDistributionHeated_ %densityRadialMoment(moment, self%radiusSoliton, radiusMaximum      )
+          end if
        end if
-       if (present(isInfinite)) isInfinite = .false.
     else
-       if (present(isInfinite)) then
-           isInfinite = .true.
+       ! Consider both the soliton region and heated region
+       if (moment >= 2.0d0                                    ) isInfiniteHeated=.true.
+       if (.not.present(radiusMinimum) .and. moment <= -1.0d0 ) isInfiniteSol   =.true.
+       if (.not.isInfiniteSol .and. .not.isInfiniteHeated) then
+           solitonNFWHeatedDensityRadialMoment=+self%massDistributionSoliton_%densityRadialMoment(moment, radiusMinimum, self%radiusSoliton)  &
+              &                                +self%massDistributionHeated_ %densityRadialMoment(moment, self%radiusSoliton, radiusMaximum)
        else
-           call Error_Report("radial moment is infinite (no r_max provided)"//{introspection:location})
+           solitonNFWHeatedDensityRadialMoment=0.0d0
        end if
-       solitonNFWHeatedDensityRadialMoment=self%massDistributionSoliton_%densityRadialMoment(moment, radiusMinimum, self%radiusSoliton)
+    end if
+    
+    if (present(isInfinite)) then
+        isInfinite = (isInfiniteSol .or. isInfiniteHeated)
+    else if (isInfiniteSol .or. isInfiniteHeated) then
+        call Error_Report('requested radial density moment is infinite'//{introspection:location})
     end if
     return
   end function solitonNFWHeatedDensityRadialMoment
@@ -355,10 +369,10 @@ contains
     use :: Input_Parameters, only : inputParameters
     implicit none
     class    (massDistributionSolitonNFWHeated), intent(inout)           :: self
-    type     (inputParameters           ), intent(inout)           :: descriptor
-    logical                              , intent(in   ), optional :: includeClass  , includeFileModificationTimes
-    character(len=18)                                              :: parameterLabel
-    type     (inputParameters           )                          :: parameters
+    type     (inputParameters                 ), intent(inout)           :: descriptor
+    logical                                    , intent(in   ), optional :: includeClass  , includeFileModificationTimes
+    character(len=18)                                                    :: parameterLabel
+    type     (inputParameters                 )                          :: parameters
     !$GLC attributes unused :: includeFileModificationTimes
 
     if (.not.present(includeClass) .or. includeClass) call descriptor%addParameter('massDistribution','solitonNFWHeated')

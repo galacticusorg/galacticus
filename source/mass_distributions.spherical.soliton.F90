@@ -26,13 +26,13 @@
   !![
   <massDistribution name="massDistributionSoliton">
     <description>
-      A mass distribution class for fuzzy dark matter halos \citep{schive_understanding_2014} consisting of soliton core.
+      A mass distribution class representing the solitonic core of fuzzy dark matter halos \citep{schive_understanding_2014}.
     </description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionSphericalTabulated) :: massDistributionSoliton
      !!{
-     A mass distribution class for fuzzy dark matter halos \citep{schive_understanding_2014} consisting of soliton core.     
+     A mass distribution class representing the solitonic core of fuzzy dark matter halos \citep{schive_understanding_2014}.   
      !!}
      private
      double precision :: radiusCore, densitySolitonCentral

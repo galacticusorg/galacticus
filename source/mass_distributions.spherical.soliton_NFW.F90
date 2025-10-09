@@ -44,14 +44,15 @@
           &              radiusVirial           , radiusCoreScaleFree    , &
           &              radiusSolitonScaleFree , densitySolitonScaleFree
    contains
-     procedure :: massEnclosedBySphere   => solitonNFWMassEnclosedBySphere
-     procedure :: density                => solitonNFWDensity
-     procedure :: densityGradientRadial  => solitonNFWDensityGradientRadial
-     procedure :: radiusEnclosingDensity => solitonNFWRadiusEnclosingDensity
-     procedure :: parameters             => solitonNFWParameters
-     procedure :: factoryTabulation      => solitonNFWFactoryTabulation
-     procedure :: descriptor             => solitonNFWDescriptor
-     procedure :: suffix                 => solitonNFWSuffix
+     procedure :: massEnclosedBySphere            => solitonNFWMassEnclosedBySphere
+     procedure :: density                         => solitonNFWDensity
+     procedure :: densityGradientRadial           => solitonNFWDensityGradientRadial
+     procedure :: radiusEnclosingDensity          => solitonNFWRadiusEnclosingDensity
+     procedure :: radiusEnclosingDensityNumerical => solitonNFWRadiusEnclosingDensityNumerical
+     procedure :: parameters                      => solitonNFWParameters
+     procedure :: factoryTabulation               => solitonNFWFactoryTabulation
+     procedure :: descriptor                      => solitonNFWDescriptor
+     procedure :: suffix                          => solitonNFWSuffix
   end type massDistributionSolitonNFW
   
    interface massDistributionSolitonNFW
@@ -420,22 +421,38 @@ contains
    end function solitonNFWDensityGradientRadial
 
    double precision function solitonNFWRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
-    !!{
-    Computes the radius enclosing a given mean density for soliton NFW mass distributions.
-    !!}
-    implicit none
-    class           (massDistributionSolitonNFW), intent(inout), target   :: self
-    double precision                            , intent(in   )           :: density
-    double precision                            , intent(in   ), optional :: radiusGuess
+     !!{
+     Computes the radius enclosing a given mean density for soliton NFW mass distributions.
+     !!}
+     implicit none
+     class           (massDistributionSolitonNFW), intent(inout), target   :: self
+     double precision                            , intent(in   )           :: density
+     double precision                            , intent(in   ), optional :: radiusGuess
 
-    if (density >= self%densitySolitonCentral) then
-       radius=0.0d0
-    else
-       radius=sphericalTabulatedRadiusEnclosingDensity(self,density,radiusGuess)
-    end if
+     if (density >= self%densitySolitonCentral) then
+        radius=0.0d0
+     else
+        radius=sphericalTabulatedRadiusEnclosingDensity(self,density,radiusGuess)
+     end if
+     return
+   end function solitonNFWRadiusEnclosingDensity
 
-    return
-  end function solitonNFWRadiusEnclosingDensity
+   double precision function solitonNFWRadiusEnclosingDensityNumerical(self,density,radiusGuess) result(radius)
+     !!{
+     Computes the radius enclosing a given mean density for soliton NFW mass distributions.
+     !!}
+     implicit none
+     class           (massDistributionSolitonNFW), intent(inout), target   :: self
+     double precision                            , intent(in   )           :: density
+     double precision                            , intent(in   ), optional :: radiusGuess
+
+     if (density >= self%densitySolitonCentral) then
+        radius=0.0d0
+     else
+        radius=massDistributionRadiusEnclosingDensityNumerical(self,density,radiusGuess)
+     end if
+     return
+   end function solitonNFWRadiusEnclosingDensityNumerical
 
    subroutine solitonNFWParameters(self,densityNormalization,radiusNormalization,parameters,container)
       !!{
@@ -450,30 +467,30 @@ contains
       if (.not.containerSolitonNFWInitialized) then
          allocate(containerSolitonNFW)
          call containerSolitonNFW%initialize(3)
-         containerSolitonNFW%mass                      %radiusCountPer       =+20_c_size_t
-         containerSolitonNFW%mass                      %parametersCountPer   =+20_c_size_t
-         containerSolitonNFW%radiusEnclosingDensity    %radiusCountPer       =+20_c_size_t
-         containerSolitonNFW%radiusEnclosingDensity    %parametersCountPer   =+20_c_size_t
-         containerSolitonNFW%potential                 %radiusCountPer       =+20_c_size_t
-         containerSolitonNFW%potential                 %parametersCountPer   =+20_c_size_t
-         containerSolitonNFW%velocityDispersion1D      %radiusCountPer       =+20_c_size_t
-         containerSolitonNFW%velocityDispersion1D      %parametersCountPer   =+20_c_size_t
-         containerSolitonNFW%energy                    %radiusCountPer       =+20_c_size_t
-         containerSolitonNFW%energy                    %parametersCountPer   =+20_c_size_t
-         containerSolitonNFW%radiusFreefall            %radiusCountPer       =+20_c_size_t
-         containerSolitonNFW%radiusFreefall            %parametersCountPer   =+20_c_size_t
-         containerSolitonNFW%radiusFreefallIncreaseRate%radiusCountPer       =+20_c_size_t
-         containerSolitonNFW%radiusFreefallIncreaseRate%parametersCountPer   =+20_c_size_t
-         containerSolitonNFW%densityRadialMoment0      %radiusCountPer       =+20_c_size_t
-         containerSolitonNFW%densityRadialMoment0      %parametersCountPer   =+20_c_size_t
-         containerSolitonNFW%densityRadialMoment1      %radiusCountPer       =+20_c_size_t
-         containerSolitonNFW%densityRadialMoment1      %parametersCountPer   =+20_c_size_t
-         containerSolitonNFW%densityRadialMoment2      %radiusCountPer       =+20_c_size_t
-         containerSolitonNFW%densityRadialMoment2      %parametersCountPer   =+20_c_size_t
-         containerSolitonNFW%densityRadialMoment3      %radiusCountPer       =+20_c_size_t
-         containerSolitonNFW%densityRadialMoment3      %parametersCountPer   =+20_c_size_t
-         containerSolitonNFW%fourierTransform          %radiusCountPer       =+20_c_size_t
-         containerSolitonNFW%fourierTransform          %parametersCountPer   =+20_c_size_t
+         containerSolitonNFW%mass                      %radiusCountPer       =+ 20_c_size_t
+         containerSolitonNFW%mass                      %parametersCountPer   =+ 20_c_size_t
+         containerSolitonNFW%radiusEnclosingDensity    %radiusCountPer       =+100_c_size_t
+         containerSolitonNFW%radiusEnclosingDensity    %parametersCountPer   =+ 20_c_size_t
+         containerSolitonNFW%potential                 %radiusCountPer       =+ 20_c_size_t
+         containerSolitonNFW%potential                 %parametersCountPer   =+ 20_c_size_t
+         containerSolitonNFW%velocityDispersion1D      %radiusCountPer       =+ 20_c_size_t
+         containerSolitonNFW%velocityDispersion1D      %parametersCountPer   =+ 20_c_size_t
+         containerSolitonNFW%energy                    %radiusCountPer       =+ 20_c_size_t
+         containerSolitonNFW%energy                    %parametersCountPer   =+ 20_c_size_t
+         containerSolitonNFW%radiusFreefall            %radiusCountPer       =+ 20_c_size_t
+         containerSolitonNFW%radiusFreefall            %parametersCountPer   =+ 20_c_size_t
+         containerSolitonNFW%radiusFreefallIncreaseRate%radiusCountPer       =+ 20_c_size_t
+         containerSolitonNFW%radiusFreefallIncreaseRate%parametersCountPer   =+ 20_c_size_t
+         containerSolitonNFW%densityRadialMoment0      %radiusCountPer       =+ 20_c_size_t
+         containerSolitonNFW%densityRadialMoment0      %parametersCountPer   =+ 20_c_size_t
+         containerSolitonNFW%densityRadialMoment1      %radiusCountPer       =+ 20_c_size_t
+         containerSolitonNFW%densityRadialMoment1      %parametersCountPer   =+ 20_c_size_t
+         containerSolitonNFW%densityRadialMoment2      %radiusCountPer       =+ 20_c_size_t
+         containerSolitonNFW%densityRadialMoment2      %parametersCountPer   =+ 20_c_size_t
+         containerSolitonNFW%densityRadialMoment3      %radiusCountPer       =+ 20_c_size_t
+         containerSolitonNFW%densityRadialMoment3      %parametersCountPer   =+ 20_c_size_t
+         containerSolitonNFW%fourierTransform          %radiusCountPer       =+ 20_c_size_t
+         containerSolitonNFW%fourierTransform          %parametersCountPer   =+ 20_c_size_t
          containerSolitonNFW%nameParameters                               (1)='radiusCoreOverradiusScale'
          containerSolitonNFW%descriptionParameters                        (1)='The ratio of core to scale radii(r_c/rₛ).'
          containerSolitonNFW%nameParameters                               (2)='radiusSolitonOverradiusScale'
