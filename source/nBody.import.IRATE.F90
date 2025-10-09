@@ -234,10 +234,12 @@ contains
     ! Check for named datasets that were not found.
     if (self%haveProperties) then
        do i=1,size(self%properties)
-          if     (                                                                  &
-               &   .not.simulations(1)%propertiesReal   %exists(self%properties(i)) &
-               &  .and.                                                             &
-               &   .not.simulations(1)%propertiesInteger%exists(self%properties(i)) &
+          if     (                                                                    &
+               &   .not.simulations(1)%propertiesReal     %exists(self%properties(i)) &
+               &  .and.                                                               &
+               &   .not.simulations(1)%propertiesRealRank1%exists(self%properties(i)) &
+               &  .and.                                                               &
+               &   .not.simulations(1)%propertiesInteger  %exists(self%properties(i)) &
                & ) call Error_Report("property '"//self%properties(i)//"' was not found"//{introspection:location})
        end do
     end if
