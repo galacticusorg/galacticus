@@ -212,14 +212,14 @@
     <!-- Position interpolation -->
     <nodeOperator value="positionInterpolated" active="[componentPosition] == cartesian">
       <wrapPeriodic value="false"/>	<!-- Do not wrap interpolated positions back into the box - this is not needed as we replicate the box. -->
-      <lengthBox    value="=[geometryLightcone::lengthReplication]*(([cosmologyParameters::HubbleConstant]/100.0)^[geometryLightcone::lengthHubbleExponent])*([geometryLightcone::lengthUnitsInSI]/3.08567758e+22)"/>
+      <lengthBox    value="=[geometryLightcone/lengthReplication]*(([cosmologyParameters/HubbleConstant]/100.0)^[geometryLightcone/lengthHubbleExponent])*([geometryLightcone/lengthUnitsInSI]/3.08567758e+22)"/>
     </nodeOperator>
     <!-- Heuristic analysis -->
     <nodeOperator value="assemblyHistoryHeuristics" active="[mergerTreeConstructor] == read">
       <exponentGrowth value="100.0"/>
       <sigmaThreshold value="5.0"/>
       <nbodyHaloMassError value="trenti2010">
-	<massParticle value="=[simulation::massParticle]"/>
+	<massParticle value="=[simulation/massParticle]"/>
 	<correlationMassExponent value="1.000e0"/>
 	<correlationNormalization value="1.000e0"/>
 	<correlationRedshiftExponent value="0.000e0"/>

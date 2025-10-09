@@ -7,7 +7,7 @@
   <formatVersion>2</formatVersion>
 
   <simulation ignoreWarnings="true">
-    <massParticle value="=8.6e8/([cosmologyParameters::HubbleConstant]/100.0)" ignoreWarnings="true"/>
+    <massParticle value="=8.6e8/([cosmologyParameters/HubbleConstant]/100.0)" ignoreWarnings="true"/>
   </simulation>
 
 </parameters>
