@@ -412,7 +412,7 @@ contains
          &                                covarianceBinomialMassHaloMinimum                                                   , &
          &                                covarianceBinomialMassHaloMaximum                                                   , &
          &                                .false.                                                                             , &
-         &                                var_str('$\log_{10}(\dot{M}_\star/\mathrm{M}_\odot) \hbox{Gyr}^{-1}$'              ), &
+         &                                var_str('$\log_{10}(\dot{M}_\star/\mathrm{M}_\odot) \mathrm{Gyr}^{-1}$'              ), &
          &                                var_str('$\mathrm{d}n/\mathrm{d}\log_\mathrm{e} \dot{M}_\star / \mathrm{Mpc}^{-3}$'), &
          &                                .true.                                                                              , &
          &                                .true.                                                                              , &
