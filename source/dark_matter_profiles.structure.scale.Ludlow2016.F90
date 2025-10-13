@@ -26,6 +26,7 @@
   use :: Cosmology_Parameters    , only : cosmologyParametersClass
   use :: Virial_Density_Contrast , only : virialDensityContrastClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
   use :: Root_Finder             , only : rootFinder
 
   !![
@@ -50,19 +51,22 @@
      class           (darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_ => null()
      class           (virialDensityContrastClass       ), pointer :: virialDensityContrast_        => null()
      class           (darkMatterProfileDMOClass        ), pointer :: darkMatterProfileDMO_         => null()
+     class           (darkMatterHaloScaleClass         ), pointer :: darkMatterHaloScale_          => null()
      double precision                                             :: C                                      , f              , &
           &                                                          timeFormationSeekDelta                 , densityContrast
    contains
      !![
      <methods>
-       <method description="Evalute a function which goes to zero at the formation time of the tree."           method="formationTimeRoot"           />
+       <method description="Evaluate a function which goes to zero at the formation time of the tree."          method="formationTimeRoot"           />
        <method description="Initialize a root finder object for use in finding the formation time of the tree." method="formationTimeRootFunctionSet"/>
+       <method description="Specifies if a branch history is required for application of the algorithm."        method="requireBranchHistory"        />
      </methods>
      !!]
      final             ::                                 ludlow2016Destructor
      procedure         :: radius                       => ludlow2016Radius
      procedure, nopass :: formationTimeRoot            => ludlow2016FormationTimeRoot
      procedure         :: formationTimeRootFunctionSet => ludlow2016FormationTimeRootFunctionSet
+     procedure         :: requireBranchHistory         => ludlow2016RequireBranchHistory
   end type darkMatterProfileScaleRadiusLudlow2016
 
   interface darkMatterProfileScaleRadiusLudlow2016
@@ -104,6 +108,7 @@ contains
     class           (darkMatterProfileScaleRadiusClass     ), pointer       :: darkMatterProfileScaleRadius_
     class           (virialDensityContrastClass            ), pointer       :: virialDensityContrast_
     class           (darkMatterProfileDMOClass             ), pointer       :: darkMatterProfileDMO_
+    class           (darkMatterHaloScaleClass              ), pointer       :: darkMatterHaloScale_
     double precision                                                        :: C                            , f, &
          &                                                                     timeFormationSeekDelta
 
@@ -132,8 +137,9 @@ contains
     <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
     <objectBuilder class="virialDensityContrast"        name="virialDensityContrast_"        source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters"/>
     !!]
-    self=darkMatterProfileScaleRadiusLudlow2016(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,virialDensityContrast_,darkMatterProfileDMO_)
+    self=darkMatterProfileScaleRadiusLudlow2016(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,virialDensityContrast_,darkMatterProfileDMO_,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"          />
@@ -141,11 +147,12 @@ contains
     <objectDestructor name="darkMatterProfileScaleRadius_"/>
     <objectDestructor name="virialDensityContrast_"       />
     <objectDestructor name="darkMatterProfileDMO_"        />
+    <objectDestructor name="darkMatterHaloScale_"         />
     !!]
     return
   end function ludlow2016ConstructorParameters
 
-  function ludlow2016ConstructorInternal(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,virialDensityContrast_,darkMatterProfileDMO_) result(self)
+  function ludlow2016ConstructorInternal(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,virialDensityContrast_,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !!{
     Constructor for the \refClass{darkMatterProfileScaleRadiusLudlow2016} dark matter halo profile concentration class.
     !!}
@@ -158,8 +165,9 @@ contains
     class           (darkMatterProfileScaleRadiusClass     ), intent(in   ), target :: darkMatterProfileScaleRadius_
     class           (virialDensityContrastClass            ), intent(in   ), target :: virialDensityContrast_
     class           (darkMatterProfileDMOClass             ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (darkMatterHaloScaleClass              ), intent(in   ), target :: darkMatterHaloScale_
     !![
-    <constructorAssign variables="C, f, timeFormationSeekDelta, *cosmologyFunctions_, *cosmologyParameters_, *darkMatterProfileScaleRadius_, *virialDensityContrast_, *darkMatterProfileDMO_"/>
+    <constructorAssign variables="C, f, timeFormationSeekDelta, *cosmologyFunctions_, *cosmologyParameters_, *darkMatterProfileScaleRadius_, *virialDensityContrast_, *darkMatterProfileDMO_, *darkMatterHaloScale_"/>
     !!]
 
     ! Find the density contrast as used to define masses by Ludlow et al. (2016).
@@ -180,13 +188,14 @@ contains
     <objectDestructor name="self%darkMatterProfileScaleRadius_"/>
     <objectDestructor name="self%virialDensityContrast_"       />
     <objectDestructor name="self%darkMatterProfileDMO_"        />
+    <objectDestructor name="self%darkMatterHaloScale_"         />
     !!]
     return
   end subroutine ludlow2016Destructor
 
   double precision function ludlow2016Radius(self,node)
     !!{
-    Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
+    Return the scale radius of the dark matter halo profile of {\normalfont \ttfamily node} using the
     \cite{ludlow_mass-concentration-redshift_2016} algorithm.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
@@ -204,23 +213,24 @@ contains
     class           (darkMatterProfileScaleRadiusLudlow2016), intent(inout), target       :: self
     type            (treeNode                              ), intent(inout), target       :: node
     type            (treeNode                              )               , pointer      :: nodeBranch
-    class           (nodeComponentBasic                    )               , pointer      :: basic                     , basicBranch
-    class           (nodeComponentDarkMatterProfile        )               , pointer      :: darkMatterProfile_        , darkMatterProfileChild_
+    class           (nodeComponentBasic                    )               , pointer      :: basic                        , basicBranch
+    class           (nodeComponentDarkMatterProfile        )               , pointer      :: darkMatterProfile_           , darkMatterProfileChild_
     class           (massDistributionClass                 ), pointer                     :: massDistribution_
     integer                                                 , parameter                   :: iterationCountMaximum =100
+    double precision                                        , parameter                   :: concentrationGuess    =10.0d0
     type            (ludlow2016State                       ), allocatable  , dimension(:) :: statesTmp
     type            (mergerTreeWalkerIsolatedNodesBranch   )                              :: treeWalker
-    double precision                                                                      :: massHaloCharacteristic    , timeBranchEarliest     , &
-         &                                                                                   densityMeanScaleRadius    , timeFormation          , &
-         &                                                                                   radiusScale               , radiusScalePrevious    , &
-         &                                                                                   timeFormationTrial        , timeFormationEarliest  , &
-         &                                                                                   timeFormationLatest       , timeFormationPrevious  , &
-         &                                                                                   radiusScalePrevious2nd    , rangeExpandFactor
-    integer                                                                               :: iterationCount            , i                      , &
+    double precision                                                                      :: massHaloCharacteristic       , timeBranchEarliest     , &
+         &                                                                                   densityMeanScaleRadius       , timeFormation          , &
+         &                                                                                   radiusScale                  , radiusScalePrevious    , &
+         &                                                                                   timeFormationTrial           , timeFormationEarliest  , &
+         &                                                                                   timeFormationLatest          , timeFormationPrevious  , &
+         &                                                                                   radiusScalePrevious2nd       , rangeExpandFactor
+    integer                                                                               :: iterationCount               , i                      , &
          &                                                                                   status
 
     ! For halos with no progenitors, simply keep the fall-back result. Otherwise, perform our calculation
-    if (.not.associated(node%firstChild)) then
+    if (self%requireBranchHistory() .and. .not.associated(node%firstChild)) then
        ludlow2016Radius=self%darkMatterProfileScaleRadius_%radius(node)
     else
        ! Increment the state counter. This is necessary to ensure that this function can be called recursively.
@@ -252,11 +262,19 @@ contains
        call self%formationTimeRootFunctionSet(states(stateCount)%finder)
        ! Get the dark matter profile component of the node.
        darkMatterProfile_ => node%darkMatterProfile()
-       ! Set an initial guess to the scale radius. We use the scale radius of the primary progenitor - under the assumption that the scale radius should change only slowly this should be a reasonable guess.
-       darkMatterProfileChild_ =>  node                   %firstChild%darkMatterProfile()
-       radiusScalePrevious     =   darkMatterProfileChild_           %scale            ()
-       radiusScalePrevious2nd  =  -huge(0.0d0)
-       timeFormationPrevious   =  -huge(0.0d0)
+       ! Set an initial guess to the scale radius. We use the scale radius of the primary progenitor if available - under the
+       ! assumption that the scale radius should change only slowly this should be a reasonable guess. If this is not available,
+       ! use a fraction of the virial radius.
+       if (associated(node%firstChild)) then
+          darkMatterProfileChild_ =>   node                   %firstChild          %darkMatterProfile (    )
+          radiusScalePrevious     =   +darkMatterProfileChild_                     %scale             (    )
+       else
+          radiusScalePrevious     =   +self                   %darkMatterHaloScale_%radiusVirial      (node) &
+               &                      /                                            concentrationGuess
+       end if
+       radiusScalePrevious2nd     =   -huge(0.0d0)
+       timeFormation              =   -huge(0.0d0)
+       timeFormationPrevious      =   -huge(0.0d0)
        call darkMatterProfile_%scaleSet(radiusScalePrevious)
        call Calculations_Reset(node)
        ! Begin iteratively seeking a solution for the scale radius.
@@ -289,22 +307,25 @@ contains
                &                                                                                                   virialDensityContrast_=self%virialDensityContrast_                               , &
                &                                                                                                   darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                  &
                &                                                                                                  )
-          ! Find the earliest time in the branch. Also estimate the earliest and latest times between which the formation time will lie.
-          if (iterationCount == 1) then
-             timeBranchEarliest   =huge(0.0d0)
-             timeFormationEarliest=huge(0.0d0)
-             timeFormationLatest  =basic%time()
-             treeWalker           =mergerTreeWalkerIsolatedNodesBranch(node )
-             do while (treeWalker%next(nodeBranch))
-                basicBranch =>nodeBranch%basic()
-                timeBranchEarliest                                                                       =min(timeBranchEarliest   ,basicBranch%time())
-                if (basicBranch%mass() > states(stateCount)%massLimit             ) timeFormationEarliest=min(timeFormationEarliest,basicBranch%time())
-                if (basicBranch%mass() > states(stateCount)%massHaloCharacteristic) timeFormationLatest  =min(timeFormationLatest  ,basicBranch%time())
-             end do
-             timeFormationLatest=max(timeFormationLatest,timeFormationEarliest)
+          ! Determine the ranges of formation time.
+          if (self%requireBranchHistory()) then
+             ! Find the earliest time in the branch. Also estimate the earliest and latest times between which the formation time will lie.
+             if (iterationCount == 1) then
+                timeBranchEarliest   =huge(0.0d0)
+                timeFormationEarliest=huge(0.0d0)
+                timeFormationLatest  =basic%time()
+                treeWalker           =mergerTreeWalkerIsolatedNodesBranch(node)
+                do while (treeWalker%next(nodeBranch))
+                   basicBranch =>nodeBranch%basic()
+                   timeBranchEarliest                                                                       =min(timeBranchEarliest   ,basicBranch%time())
+                   if (basicBranch%mass() > states(stateCount)%massLimit             ) timeFormationEarliest=min(timeFormationEarliest,basicBranch%time())
+                   if (basicBranch%mass() > states(stateCount)%massHaloCharacteristic) timeFormationLatest  =min(timeFormationLatest  ,basicBranch%time())
+                end do
+                timeFormationLatest=max(timeFormationLatest,timeFormationEarliest)
+             end if
           end if
           ! Test if the formation time is before the earliest time in the branch.
-          if (self%formationTimeRoot(timeBranchEarliest) > 0.0d0) then
+          if (self%requireBranchHistory() .and. self%formationTimeRoot(timeBranchEarliest) > 0.0d0) then
              ! The characteristic halo mass is never resolved in this branch - fall though to an alternative concentration calculation.
              radiusScale        =+self%darkMatterProfileScaleRadius_%radius(node)
              ! Force convergence by setting the previous scale radius to that which we just set - since we're choosing a (possibly
@@ -326,19 +347,35 @@ contains
              else
                 rangeExpandFactor=1.1d0
              end if
-             call states(stateCount)%finder%rangeExpand(                                                             &
-                  &                                                         rangeExpandUpward            =1.0d0*rangeExpandFactor      , &
-                  &                                                         rangeExpandDownward          =1.0d0/rangeExpandFactor      , &
-                  &                                                         rangeExpandType              =rangeExpandMultiplicative    , &
-                  &                                                         rangeUpwardLimit             =basic%time()                 , &
-                  &                                                         rangeDownwardLimit           =timeBranchEarliest           , &
-                  &                                                         rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-                  &                                                         rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &
-                  &                                                        )
-             if (iterationCount == 1) then
-                timeFormation=states(stateCount)%finder%find(rootRange=[timeFormationEarliest,timeFormationLatest],status=status)
+             if (self%requireBranchHistory()) then
+                call states(stateCount)%finder%rangeExpand(                                                             &
+                     &                                     rangeExpandUpward            =1.0d0*rangeExpandFactor      , &
+                     &                                     rangeExpandDownward          =1.0d0/rangeExpandFactor      , &
+                     &                                     rangeExpandType              =rangeExpandMultiplicative    , &
+                     &                                     rangeUpwardLimit             =basic%time()                 , &
+                     &                                     rangeDownwardLimit           =timeBranchEarliest           , &
+                     &                                     rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+                     &                                     rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &
+                     &                                    )
+                if (iterationCount == 1) then
+                   timeFormation=states(stateCount)%finder%find(rootRange=[timeFormationEarliest,timeFormationLatest],status=status)
+                else
+                   timeFormation=states(stateCount)%finder%find(rootGuess= timeFormationPrevious                     ,status=status)
+                end if
              else
-                timeFormation=states(stateCount)%finder%find(rootGuess= timeFormationPrevious                     ,status=status)
+                call states(stateCount)%finder%rangeExpand(                                                             &
+                     &                                     rangeExpandUpward            =1.0d0*rangeExpandFactor      , &
+                     &                                     rangeExpandDownward          =1.0d0/rangeExpandFactor      , &
+                     &                                     rangeExpandType              =rangeExpandMultiplicative    , &
+                     &                                     rangeUpwardLimit             =basic%time()                 , &
+                     &                                     rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+                     &                                     rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &
+                     &                                    )
+                if (timeFormationPrevious <= 0.0d0) then
+                   timeFormation=states(stateCount)%finder%find(rootGuess= basic%time()                              ,status=status)
+                else
+                   timeFormation=states(stateCount)%finder%find(rootGuess= timeFormationPrevious                     ,status=status)
+                end if
              end if
              if (status /= errorStatusSuccess)                                                                                                                        &
                   & call Error_Report(                                                                                                                                &
@@ -548,3 +585,14 @@ contains
     return
   end function ludlow2016DensityContrast
 
+  logical function ludlow2016RequireBranchHistory(self) result(requireBranchHistory)
+    !!{
+    Specify if the branch history is required for the scale radius calculation.
+    !!}
+    implicit none
+    class(darkMatterProfileScaleRadiusLudlow2016), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    requireBranchHistory=.true.
+    return
+  end function ludlow2016RequireBranchHistory

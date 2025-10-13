@@ -53,12 +53,12 @@
      class           (virialDensityContrastClass), pointer                   :: virialDensityContrast_      => null()
      double precision                            , allocatable, dimension(:) :: sigma_
      logical                                                                 :: growthIsWavenumberDependent          , nonConvergenceIsFatal
-     double precision                                                        :: alpha                                , beta                 , &
-          &                                                                     kappa                                , C                    , &
+     double precision                                                        :: alpha                                , beta                  , &
+          &                                                                     kappa                                , C                     , &
           &                                                                     p                                    , coefficientScatter
-     integer                                                                 :: promptCuspMassID                     , promptCuspAmplitudeID, &
-          &                                                                     promptCuspNFWYID                     , promptCuspNFWScaleID , &
-          &                                                                     promptCuspNFWGrowthRateID
+     integer                                                                 :: promptCuspMassID                     , promptCuspAmplitudeID , &
+          &                                                                     promptCuspNFWYID                     , promptCuspNFWScaleID  , &
+          &                                                                     promptCuspNFWGrowthRateID            , promptCuspNFWDensityID
    contains
      !![
      <methods>
@@ -92,7 +92,7 @@
 
   ! Maximum allowed value of the y-parameter in the cusp-NFW profile. Values of 1 or greater are not valid. We limit here to a
   ! value close to 1.
-  double precision                                          , parameter :: yMaximum        =0.999d0
+  double precision                                          , parameter :: yMaximum        =0.99999d0
   
 contains
   
@@ -215,6 +215,7 @@ contains
     <addMetaProperty component="darkMatterProfile" name="promptCuspMass"            id="self%promptCuspMassID"          isEvolvable="no" isCreator="yes"/>
     <addMetaProperty component="darkMatterProfile" name="promptCuspNFWY"            id="self%promptCuspNFWYID"          isEvolvable="no" isCreator="yes"/>
     <addMetaProperty component="darkMatterProfile" name="promptCuspNFWScale"        id="self%promptCuspNFWScaleID"      isEvolvable="no" isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="promptCuspNFWDensity"      id="self%promptCuspNFWDensityID"    isEvolvable="no" isCreator="yes"/>
     <addMetaProperty component="darkMatterProfile" name="promptCuspNFWGrowthRateID" id="self%promptCuspNFWGrowthRateID" isEvolvable="no" isCreator="yes"/>
     !!]
     self%growthIsWavenumberDependent=self%linearGrowth_%isWavenumberDependent()
@@ -252,14 +253,16 @@ contains
     use :: Numerical_Constants_Math            , only : Pi
     use :: Numerical_Comparison                , only : Values_Agree
     use :: Root_Finder                         , only : rootFinder                         , rangeExpandMultiplicative     , rangeExpandSignExpectPositive, rangeExpandSignExpectNegative
+    use :: ISO_Varying_String                  , only : var_str
+    use :: String_Handling                     , only : operator(//)
     implicit none
     class           (nodeOperatorDarkMatterProfilePromptCusps), intent(inout), target  :: self
     type            (treeNode                                ), intent(inout), target  :: node
     type            (treeNode                                )               , pointer :: nodeChild
     class           (nodeComponentBasic                      )               , pointer :: basic
     class           (nodeComponentDarkMatterProfile          )               , pointer :: darkMatterProfile
-    integer                                                   , parameter              :: iterationCountMaximum    =100
-    double precision                                          , parameter              :: toleranceRelative        =1.0d-3
+    integer                                                   , parameter              :: iterationCountMaximum    =10000
+    double precision                                          , parameter              :: toleranceRelative        =1.0d-6
     type            (rootFinder                              )               , save    :: finderCollapse                   , finderRadius
     logical                                                                  , save    :: finderCollapseInitialized=.false., finderRadiusInitialized=.false.
     !$omp threadprivate(finderCollapse,finderRadius,finderCollapseInitialized,finderRadiusInitialized)
@@ -275,7 +278,8 @@ contains
          &                                                                                radiusScalePrevious              , mass200Critical                , &
          &                                                                                gamma                            , zeta                           , &
          &                                                                                radiusMinus2                     , densityContrast                , &
-         &                                                                                scatterRandom                    , errorFractional
+         &                                                                                scatterRandom                    , errorFractional                , &
+         &                                                                                densityScalePrevious             , massPrevious
     
     ! Compute cusp properties for leaf nodes.
     computeCusp=.not.associated(node%firstChild)
@@ -315,15 +319,28 @@ contains
     densityMean       =   self             %cosmologyFunctions_ %matterDensityEpochal(  time=basic%time())
     ! We assume (following Delos 2025) that the "scale radius" that has been set is actually r₋₂. We must iteratively solve for
     ! the actual scale radius. We use rₛ=r₋₂ as our initial guess.
-    radiusMinus2       =darkMatterProfile%scale()
-    radiusScale        =radiusMinus2
-    radiusScalePrevious=huge(0.0d0)
-    iterationCount     =0
-    scatterRandom      =0.0d0
+    radiusMinus2        =darkMatterProfile%scale()
+    radiusScale         =radiusMinus2
+    radiusScalePrevious =huge(0.0d0)
+    densityScalePrevious=huge(0.0d0)
+    massPrevious        =huge(0.0d0)
+    iterationCount      =0
+    scatterRandom       =0.0d0
     ! Begin iteration.
-    do while (.not.Values_Agree(radiusScale,radiusScalePrevious,relTol=toleranceRelative) .and. iterationCount < iterationCountMaximum)
-       iterationCount     =iterationCount+1
-       radiusScalePrevious=radiusScale
+    do while (                                                                                 &
+         &     (                                                                               &
+         &       .not.Values_Agree(radiusScale ,radiusScalePrevious ,relTol=toleranceRelative) &
+         &      .or.                                                                           &
+         &       .not.Values_Agree(densityScale,densityScalePrevious,relTol=toleranceRelative) &
+         &      .or.                                                                           &
+         &       .not.Values_Agree(basic%mass(),massPrevious        ,relTol=toleranceRelative) &
+         &     )                                                                               &
+         &    .and.                                                                            &
+         &     iterationCount < iterationCountMaximum                                          &
+         &   )
+       iterationCount      =iterationCount+1
+       radiusScalePrevious =radiusScale
+       densityScalePrevious=densityScale
        if (computeCusp) then
           ! Compute the mass following the 200 times critical density definition as used by Delos (2025; note that Delos actually
           ! states 200 times mean density, but these are Einstein-de Sitter cosmologies where mean and critical are equivalent -
@@ -399,73 +416,115 @@ contains
           radiusMinus2 =+self        %darkMatterHaloScale_%radiusVirial (node         ) &
                &        /                                  concentration                &
                &        *                                  yMaximum     **(2.0d0/3.0d0)
-          if (iterationCount == 1) then
-             ! If this adjustment in r₋₂ is made on the first iteration, reset our initial guess for the scale radius to ensure
-             ! that we start from a stable point when seeking an iterative solution.
-             radiusScale        =radiusMinus2
-             radiusScalePrevious=radiusScale
+          y            =+yMaximum
+          radiusScale  =+2.0d0        &
+               &        *radiusMinus2
+          densityScale =+amplitude          &
+               &        /radiusScale**1.5d0
+          ! Force convergence in this case.
+          radiusScalePrevious =      radiusScale
+          densityScalePrevious=      densityScale
+          massPrevious        =basic%mass        ()
+       else
+          ! Compute the normalization of the cusp-NFW profile. Handle the case of y=0 here (which is assumed on the first iteration).
+          concentration=+self%darkMatterHaloScale_%radiusVirial(node) &
+               &        /                          radiusScale
+          if (y > 0.0d0) then
+             ! Cusp-NFW (y>0) case.
+             densityScale=+basic%mass()                                                                                 &
+                  &       /radiusScale**3                                                                               &
+                  &       /4.0d0                                                                                        &
+                  &       /Pi                                                                                           &
+                  &       /(                                                                                            &
+                  &         + 2.0d0                       *asinh(sqrt(concentration            )/               y     ) &
+                  &         -(2.0d0-y**2)/sqrt(1.0d0-y**2)*atanh(sqrt(concentration*(1.0d0-y**2)/(concentration+y**2))) &
+                  &         -sqrt(concentration*(concentration+y**2))/(1.0d0+concentration)                             &
+                  &        )
+          else
+             ! NFW (y=0) case.
+             densityScale=+basic%mass()                             &
+                  &       /4.0d0                                    &
+                  &       /Pi                                       &                                 
+                  &       /radiusScale**3                           &
+                  &       /(                                        &
+                  &         +              log(1.0d0+concentration) &
+                  &         -concentration/   (1.0d0+concentration) &
+                  &        )
           end if
-       end if
-       ! Compute the normalization of the cusp-NFW profile. Handle the case of y=0 here (which is assumed on the first iteration).
-       concentration=+self%darkMatterHaloScale_%radiusVirial(node) &
-            &        /                          radiusScale
-       if (y > 0.0d0) then
-          ! Cusp-NFW (y>0) case.
-          densityScale=+basic%mass()                                                                                 &
-               &       /radiusScale**3                                                                               &
-               &       /4.0d0                                                                                        &
-               &       /Pi                                                                                           &
-               &       /(                                                                                            &
+          ! Compute a new scale radius to obtain the target r₋₂, using equations (23) from Delos (2025).
+          gamma      =+amplitude           &
+               &      /densityScale        &
+               &      /radiusMinus2**1.5d0
+          zeta       =+(                         &
+               &        +        1.00d0          &
+               &        +       18.00d0*gamma**2 &
+               &        +        0.75d0*gamma    &
+               &        *sqrt(                   &
+               &              + 72.00d0          &
+               &              +564.00d0*gamma**2 &
+               &              +  6.00d0*gamma**4 &
+               &             )                   &
+               &       )**(1.0d0/3.0d0)
+          radiusScale=+(                                     &
+               &        +(+1.0d0/3.0d0-gamma**2/2.0d0)/zeta  &
+               &        +(+1.0d0      +zeta          )/3.0d0 &
+               &       )                                     &
+               &      *radiusMinus2
+          ! Enforce a maximum scale radius (minimum concentration) as required to ensure that y<1 in the cusp-NFW profile.
+          radiusScale=max(radiusScale,(amplitude/densityScale/yMaximum)**(2.0d0/3.0d0))
+          ! Evaluate the prompt cusp y-parameter.
+          y          =+amplitude           &
+               &      /densityScale        &
+               &      /radiusScale **1.5d0
+          ! Evaluate the mass to use in convergence checks.
+          massPrevious=+4.0d0                                                                                        &
+               &       *Pi                                                                                           &
+               &       *radiusScale**3                                                                               &
+               &       *densityScale                                                                                 &
+               &       *(                                                                                            &
                &         + 2.0d0                       *asinh(sqrt(concentration            )/               y     ) &
                &         -(2.0d0-y**2)/sqrt(1.0d0-y**2)*atanh(sqrt(concentration*(1.0d0-y**2)/(concentration+y**2))) &
                &         -sqrt(concentration*(concentration+y**2))/(1.0d0+concentration)                             &
                &        )
-       else
-          ! NFW (y=0) case.
-          densityScale=+basic%mass()                             &
-               &       /4.0d0                                    &
-               &       /Pi                                       &                                 
-               &       /radiusScale**3                           &
-               &       /(                                        &
-               &         +              log(1.0d0+concentration) &
-               &         -concentration/   (1.0d0+concentration) &
-               &        )
        end if
-       ! Compute a new scale radius to obtain the target r₋₂, using equations (23) from Delos (2025).
-       gamma      =+amplitude           &
-            &      /densityScale        &
-            &      /radiusMinus2**1.5d0
-       zeta       =+(                         &
-            &        +        1.00d0          &
-            &        +       18.00d0*gamma**2 &
-            &        +        0.75d0*gamma    &
-            &        *sqrt(                   &
-            &              + 72.00d0          &
-            &              +564.00d0*gamma**2 &
-            &              +  6.00d0*gamma**4 &
-            &             )                   &
-            &       )**(1.0d0/3.0d0)
-       radiusScale=+(                                     &
-            &        +(+1.0d0/3.0d0-gamma**2/2.0d0)/zeta  &
-            &        +(+1.0d0      +zeta          )/3.0d0 &
-            &       )                                     &
-            &      *radiusMinus2
-       ! Enforce a maximum scale radius (minimum concentration) as required to ensure that y<1 in the cusp-NFW profile.
-       radiusScale=max(radiusScale,(amplitude/densityScale/yMaximum)**(2.0d0/3.0d0))
-       ! Evaluate the prompt cusp y-parameter.
-       y          =+amplitude           &
-            &      /densityScale        &
-            &      /radiusScale **1.5d0
        ! Store prompt cusp parameters.
-       call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspAmplitudeID,amplitude  )
-       call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspMassID     ,mass       )
-       call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWYID     ,y          )
-       call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWScaleID ,radiusScale)
+       call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspAmplitudeID ,amplitude   )
+       call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspMassID      ,mass        )
+       call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWYID      ,y           )
+       call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWScaleID  ,radiusScale )
+       call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWDensityID,densityScale)
     end do
     ! Check for convergence.
-    if (.not.Values_Agree(radiusScale,radiusScalePrevious,relTol=toleranceRelative)) then
+    if     (                                                                               &
+         &   .not.Values_Agree(radiusScale ,radiusScalePrevious ,relTol=toleranceRelative) &
+         &  .or.                                                                           &
+         &   .not.Values_Agree(densityScale,densityScalePrevious,relTol=toleranceRelative) &
+         &  .or.                                                                           &
+         &   .not.Values_Agree(basic%mass(),massPrevious        ,relTol=toleranceRelative) &
+         & ) then
        if (self%nonConvergenceIsFatal) then
-          call Error_Report('failed to converge when seeking solution for rₛ'//{introspection:location})
+          block
+            character(len=12        ) :: label
+            type     (varying_string) :: message
+            write (label,'(e12.6)') toleranceRelative
+            message=var_str('failed to converge when seeking solution for rₛ {target fractional error ')//label//'; node uniqueID = '//node%uniqueID()//'}'
+            errorFractional=+abs(+radiusScale-radiusScalePrevious) &
+                 &          /   (+radiusScale+radiusScalePrevious) &
+                 &          /0.5d0
+            write (label,'(e12.6)') errorFractional
+            message=message//char(10)//'  Δrₛ/rₛ = '//label
+            errorFractional=+abs(+densityScale-densityScalePrevious) &
+                 &          /   (+densityScale+densityScalePrevious) &
+                 &          /0.5d0
+            write (label,'(e12.6)') errorFractional
+            message=message//char(10)//'  Δρₛ/ρₛ = '//label
+            errorFractional=+abs(+basic%mass()-massPrevious) &
+                 &          /   (+basic%mass()+massPrevious) &
+                 &          /0.5d0
+            write (label,'(e12.6)') errorFractional
+            message=message//char(10)//'  ΔM /M  = '//label
+            call Error_Report(message//{introspection:location})
+         end block
        else
           block
             character(len=12        ) :: label
@@ -675,6 +734,7 @@ contains
     call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWYID         ,darkMatterProfileParent%floatRank0MetaPropertyGet(self%promptCuspNFWYID         ))
     call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWGrowthRateID,darkMatterProfileParent%floatRank0MetaPropertyGet(self%promptCuspNFWGrowthRateID))
     call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWScaleID     ,darkMatterProfileParent%floatRank0MetaPropertyGet(self%promptCuspNFWScaleID     ))
+    call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWDensityID   ,darkMatterProfileParent%floatRank0MetaPropertyGet(self%promptCuspNFWDensityID   ))
     return
   end subroutine darkMatterProfilePromptCuspsNodePromote
 
@@ -744,8 +804,9 @@ contains
          &                     /radiusScale_**1.5d0, &
          &                     +yMaximum             &
          &                    )
-    call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWYID    ,y           )
-    call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWScaleID,radiusScale_)
+    call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWYID      ,y           )
+    call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWScaleID  ,radiusScale_)    
+    call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWDensityID,densityScale)    
     return
   end subroutine darkMatterProfilePromptCuspsSolveAnalytics
 

@@ -75,6 +75,11 @@ jobs:
         with:
           repository: galacticusorg/datasets
           path: datasets
+      - name: Check out repository cusp-halo-relation
+        uses: actions/checkout@v5      
+        with:
+          repository: galacticusorg/cusp-halo-relation
+          path: cusp-halo-relation
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: Cache dynamically-generated datasets
         if: ${{ format('{0}',inputs.cacheData) == '1' }}
@@ -158,7 +163,9 @@ jobs:
            apt -y install python3-numpy python3-h5py python3-lxml python3-blessings python3-matplotlib
            cd ${{ inputs.runPath }}
            chmod u=wrx ./${{ inputs.file }}
-           ./${{ inputs.file }} ${{ inputs.options }} 2>&1 | tee test.log
+           # Preload libstdc++ from the system installation - needed by SciPy etc. This avoids attempts to use the older
+           # (incompatible) version used by our custom GCC install.
+           LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6 ./${{ inputs.file }} ${{ inputs.options }} 2>&1 | tee test.log
           else
            echo Unrecognized file extension
            false

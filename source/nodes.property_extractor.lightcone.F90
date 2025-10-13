@@ -35,14 +35,32 @@
      angular direction of the lightcone;
      \item [{\normalfont \ttfamily lightconePositionZ}] Position of the galaxy (in comoving Mpc) along the 2$^\mathrm{nd}$
      angular direction of the lightcone;
+     \item [{\normalfont \ttfamily lightconePositionObservedX}] Position of the galaxy (in comoving Mpc) along the radial
+     direction of the lightcone, accounting for the effects of line-of-sight peculiar velocity (included only if {\normalfont
+     \ttfamily [includeObservedPosition]}={\normalfont \ttfamily true});
+     \item [{\normalfont \ttfamily lightconePositionObservedY}] Position of the galaxy (in comoving Mpc) along the 1$^\mathrm{st}$
+     angular direction of the lightcone, accounting for the effects of line-of-sight peculiar velocity (included only if
+     {\normalfont \ttfamily [includeObservedPosition]}={\normalfont \ttfamily true});
+     \item [{\normalfont \ttfamily lightconePositionObservedZ}] Position of the galaxy (in comoving Mpc) along the 2$^\mathrm{nd}$
+     angular direction of the lightcone, accounting for the effects of line-of-sight peculiar velocity (included only if
+     {\normalfont \ttfamily [includeObservedPosition]}={\normalfont \ttfamily true});
      \item [{\normalfont \ttfamily lightconeVelocityX}] Velocity of the galaxy (in km/s) along the radial direction of the
      lightcone;
      \item [{\normalfont \ttfamily lightconeVelocityY}] Velocity of the galaxy (in km/s) along the 1$^\mathrm{st}$ angular
      direction of the lightcone;
      \item [{\normalfont \ttfamily lightconeVelocityZ}] Velocity of the galaxy (in km/s) along the 2$^\mathrm{nd}$ angular
      direction of the lightcone;
-     \item [{\normalfont \ttfamily lightconeRedshift}] Redshift of the galaxy in the lightcone\footnote{Note that this will
+     \item [{\normalfont \ttfamily lightconeRedshiftCosmological}] Redshift of the galaxy in the lightcone\footnote{Note that this will
      not, in general, be precisely the same as the redshift corresponding to the output time.};
+     \item [{\normalfont \ttfamily lightconeRedshiftObserved}] Observed redshift of the galaxy, accounting for the effects of
+     line-of-sight peculiar velocity (included only if {\normalfont \ttfamily [includeObservedRedshift]}={\normalfont \ttfamily
+     true});
+     \item [{\normalfont \ttfamily lightconeAngularTheta}] Angular distance from pole of coordinate system (i.e. $\theta$ in a
+     spherical coordinate system; included only if {\normalfont \ttfamily [includeAngularCoordinates]}={\normalfont \ttfamily
+     true}) [radians]
+     \item [{\normalfont \ttfamily lightconeAngularPhi}] Angular distance around the pole of coordinate system system (i.e. $\phi$
+     in a spherical coordinate system; included only if {\normalfont \ttfamily [includeAngularCoordinates]}={\normalfont \ttfamily
+     true}) [radians]
      \item [{\normalfont \ttfamily angularWeight}] The mean number density of this galaxy per unit area on the sky (in
      degrees$^{-2}$).
     \end{description}
@@ -58,12 +76,13 @@
      class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_      => null()
      class           (geometryLightconeClass ), pointer                   :: geometryLightcone_       => null()
      integer                                                              :: elementCount_                     , redshiftObservedOffset   , &
-          &                                                                  angularCoordinatesOffset
+          &                                                                  angularCoordinatesOffset          , positionObservedOffset
      integer         (c_size_t               )                            :: instanceIndex
      type            (varying_string         ), allocatable, dimension(:) :: names_                            , descriptions_
      double precision                         , allocatable, dimension(:) :: unitsInSI_
      logical                                                              :: includeObservedRedshift           , includeAngularCoordinates, &
-          &                                                                  atCrossing                        , failIfNotInLightcone
+          &                                                                  atCrossing                        , failIfNotInLightcone     , &
+          &                                                                  includeObservedPosition
    contains
      final     ::                 lightconeDestructor
      procedure :: elementCount => lightconeElementCount
@@ -95,7 +114,8 @@ contains
     class  (cosmologyFunctionsClass       ), pointer       :: cosmologyFunctions_
     class  (geometryLightconeClass        ), pointer       :: geometryLightcone_
     logical                                                :: includeObservedRedshift, includeAngularCoordinates, &
-         &                                                    atCrossing             , failIfNotInLightcone
+         &                                                    includeObservedPosition, atCrossing               , &
+         &                                                    failIfNotInLightcone
 
     !![
     <inputParameter>
@@ -109,6 +129,12 @@ contains
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
       <description>If true output angular coordinates in the lightcone.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>includeObservedPosition</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true output the observed position (i.e. including the effects of peculiar velocities).</description>
     </inputParameter>
     <inputParameter>
       <name>atCrossing</name>
@@ -125,7 +151,7 @@ contains
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     <objectBuilder class="geometryLightcone"  name="geometryLightcone_"  source="parameters"/>
     !!]
-    self=nodePropertyExtractorLightcone(includeObservedRedshift,includeAngularCoordinates,atCrossing,failIfNotInLightcone,cosmologyFunctions_,geometryLightcone_)
+    self=nodePropertyExtractorLightcone(includeObservedRedshift,includeObservedPosition,includeAngularCoordinates,atCrossing,failIfNotInLightcone,cosmologyFunctions_,geometryLightcone_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"/>
@@ -134,7 +160,7 @@ contains
     return
   end function lightconeConstructorParameters
 
-  function lightconeConstructorInternal(includeObservedRedshift,includeAngularCoordinates,atCrossing,failIfNotInLightcone,cosmologyFunctions_,geometryLightcone_) result(self)
+  function lightconeConstructorInternal(includeObservedRedshift,includeObservedPosition,includeAngularCoordinates,atCrossing,failIfNotInLightcone,cosmologyFunctions_,geometryLightcone_) result(self)
     !!{
     Internal constructor for the \refClass{nodePropertyExtractorLightcone} output extractor property extractor class.
     !!}
@@ -143,17 +169,22 @@ contains
     implicit none
     type   (nodePropertyExtractorLightcone)                        :: self
     logical                                , intent(in   )         :: includeObservedRedshift, includeAngularCoordinates, &
-         &                                                            atCrossing             , failIfNotInLightcone
+         &                                                            includeObservedPosition, atCrossing               , &
+         &                                                            failIfNotInLightcone
     class  (cosmologyFunctionsClass       ), intent(in   ), target :: cosmologyFunctions_
     class  (geometryLightconeClass        ), intent(in   ), target :: geometryLightcone_
     !![
-    <constructorAssign variables="includeObservedRedshift, includeAngularCoordinates, atCrossing, failIfNotInLightcone, *cosmologyFunctions_, *geometryLightcone_"/>
+    <constructorAssign variables="includeObservedRedshift, includeObservedPosition, includeAngularCoordinates, atCrossing, failIfNotInLightcone, *cosmologyFunctions_, *geometryLightcone_"/>
     !!]
 
     self%elementCount_=8
     if (includeObservedRedshift) then
        self%redshiftObservedOffset  =self%elementCount_
        self%elementCount_           =self%elementCount_+1
+    end if
+    if (includeObservedPosition) then
+       self%positionObservedOffset  =self%elementCount_
+       self%elementCount_           =self%elementCount_+3
     end if
     if (includeAngularCoordinates) then
        self%angularCoordinatesOffset=self%elementCount_
@@ -190,6 +221,17 @@ contains
        self%names_       (self%redshiftObservedOffset  +1)='lightconeRedshiftObserved'
        self%descriptions_(self%redshiftObservedOffset  +1)='Observed redshift of galaxy in lightcone (includes the effects of line-of-sight peculiar velocity).'
        self%unitsInSI_   (self%redshiftObservedOffset  +1)=0.0d0
+    end if
+    if (includeObservedPosition) then
+       self%names_       (self%positionObservedOffset  +1)='lightconePositionObservedX'
+       self%names_       (self%positionObservedOffset  +2)='lightconePositionObservedY'
+       self%names_       (self%positionObservedOffset  +3)='lightconePositionObservedZ'
+       self%descriptions_(self%positionObservedOffset  +1)='Observed position of galaxy in lightcone (includes the effects of line-of-sight peculiar velocity; radial axis) [Mpc].'
+       self%descriptions_(self%positionObservedOffset  +2)='Observed position of galaxy in lightcone (includes the effects of line-of-sight peculiar velocity; 1st angular axis) [Mpc].'
+       self%descriptions_(self%positionObservedOffset  +3)='Observed position of galaxy in lightcone (includes the effects of line-of-sight peculiar velocity; 2nd angular axis) [Mpc].'
+       self%unitsInSI_   (self%positionObservedOffset  +1)=megaParsec
+       self%unitsInSI_   (self%positionObservedOffset  +2)=megaParsec
+       self%unitsInSI_   (self%positionObservedOffset  +3)=megaParsec
     end if
     if (includeAngularCoordinates) then
        self%names_       (self%angularCoordinatesOffset+1)='lightconeAngularTheta'
@@ -233,6 +275,7 @@ contains
     !!{
     Implement a lightcone output extractor.
     !!}
+    use :: Cosmology_Functions_Options     , only : distanceTypeComoving
     use :: Error                           , only : Error_Report
     use :: Numerical_Constants_Astronomical, only : degreesToRadians
     use :: Numerical_Constants_Physical    , only : speedLight
@@ -244,7 +287,8 @@ contains
     type            (treeNode                      ), intent(inout), target      :: node
     double precision                                , intent(in   )              :: time
     type            (multiCounter                  ), intent(inout), optional    :: instance
-    double precision                                                             :: velocityBeta
+    double precision                                                             :: velocityBeta    , redshiftObserved      , &
+         &                                                                          distanceRadial  , distanceRadialObserved
     !$GLC attributes unused :: time
 
     if (.not.present(instance).and..not.self%atCrossing) call Error_Report('instance is required'//{introspection:location})
@@ -275,12 +319,13 @@ contains
          &                                                                           )                         &
          &                                                                          )
     lightconeExtract   (8  )=self%geometryLightcone_%solidAngle()/degreesToRadians**2
-    if (self%includeObservedRedshift) then
+    ! Compute observed redshift if needed.
+    if (self%includeObservedRedshift .or. self%includeObservedPosition) then
        ! Compute the line-of-sight peculiar velocity divided by the speed of light: β_los=v_los/c.
-       velocityBeta                                     =+Dot_Product     (lightconeExtract(4:6),lightconeExtract(1:3)) &
-            &                                            /Vector_Magnitude(                      lightconeExtract(1:3)) &
-            &                                            *kilo                                                          &
-            &                                            /speedLight
+       velocityBeta    =+Dot_Product     (lightconeExtract(4:6),lightconeExtract(1:3)) &
+            &           /Vector_Magnitude(                      lightconeExtract(1:3)) &
+            &           *kilo                                                          &
+            &           /speedLight
        ! Compute the observed redshift. This is given by:
        !  1 + zₒ = (1 + zₕ) (1 + zₚ),
        ! where zₒ is observed redshift, zₕ is cosmological redshift (due
@@ -288,9 +333,19 @@ contains
        ! (in the non-relativistic limit) zₚ = β_los (e.g. Davis et al.;
        ! 2011; ApJ; 741; 67; below eqn. 4;
        ! https://ui.adsabs.harvard.edu/abs/2011ApJ...741...67D).
-       lightconeExtract(self%redshiftObservedOffset+1)=  -1.0d0                      &
-            &                                          +(+1.0d0+lightconeExtract(7)) &
-            &                                          *(+1.0d0+velocityBeta       )
+       redshiftObserved=-1.0d0                        &
+            &           +(+1.0d0+lightconeExtract(7)) &
+            &           *(+1.0d0+velocityBeta       )
+    else
+       redshiftObserved=-huge(0.0d0)
+    end if
+    if (self%includeObservedRedshift) lightconeExtract(self%redshiftObservedOffset+1)=redshiftObserved
+    if (self%includeObservedPosition) then
+       distanceRadial                                                               =Vector_Magnitude(lightconeExtract(1:3)) 
+       distanceRadialObserved                                                       =self%cosmologyFunctions_%distanceComovingConvert(output=distanceTypeComoving,redshift=redshiftObserved)
+       lightconeExtract(self%positionObservedOffset+1:self%positionObservedOffset+3)=+lightconeExtract      (1:3) &
+            &                                                                        *distanceRadialObserved      &
+            &                                                                        /distanceRadial
     end if
     if (self%includeAngularCoordinates) then
        lightconeExtract(self%angularCoordinatesOffset+1)=atan2(                              &

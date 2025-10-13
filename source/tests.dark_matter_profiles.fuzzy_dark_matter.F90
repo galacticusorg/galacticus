@@ -46,6 +46,7 @@ program Test_Dark_Matter_Profiles_Fuzzy_Dark_Matter
   use            :: Input_Parameters          , only : inputParameters
   use            :: Node_Components           , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize, &
     &                                                  Node_Components_Thread_Uninitialize                           , Node_Components_Uninitialize
+  use            :: Nodes_Operators           , only : nodeOperatorDarkMatterProfileSoliton
   use            :: Numerical_Random_Numbers  , only : randomNumberGeneratorGSL
   use            :: Unit_Tests                , only : Assert                                                        , Unit_Tests_Begin_Group           , &
     &                                                  Unit_Tests_End_Group                                          , Unit_Tests_Finish
@@ -63,6 +64,7 @@ program Test_Dark_Matter_Profiles_Fuzzy_Dark_Matter
        &                                                                                                         massParticle                  =0.8d+0
   double precision                                                                , dimension(:), allocatable :: density                                  , densityTarget                , &
        &                                                                                                         densitySlope                             , densitySlopeNumerical
+  type            (nodeOperatorDarkMatterProfileSoliton                          )                            :: nodeOperator_
   type            (darkMatterHaloScaleVirialDensityContrastDefinition            )                            :: darkMatterHaloScale_
   type            (cosmologyParametersSimple                                     )                            :: cosmologyParameters_
   type            (cosmologyFunctionsMatterLambda                                )                            :: cosmologyFunctions_
@@ -164,7 +166,8 @@ program Test_Dark_Matter_Profiles_Fuzzy_Dark_Matter
       &amp;                                                          cosmologyFunctions_                        =cosmologyFunctions_   , &amp;
       &amp;                                                          cosmologyParameters_                       =cosmologyParameters_  , &amp;
       &amp;                                                          toleranceRelativeVelocityDispersion        =1.0d-6                , &amp;
-      &amp;                                                          toleranceRelativeVelocityDispersionMaximum =1.0d-3                  &amp;
+      &amp;                                                          toleranceRelativeVelocityDispersionMaximum =1.0d-3                , &amp;
+      &amp;                                                          scatterFractional                          =0.5d0                   &amp;
       &amp;                                                         )
     </constructor>
   </referenceConstruct>
@@ -186,6 +189,15 @@ program Test_Dark_Matter_Profiles_Fuzzy_Dark_Matter
      randomNumberGenerator_=randomNumberGeneratorGSL(seed_=8322_c_long)
   end select
   call tree%properties%initialize()
+  ! Build the node operator to compute the core mass.
+  nodeOperator_=nodeOperatorDarkMatterProfileSoliton(                                               &
+                                                     darkMatterHaloScale_  =darkMatterHaloScale_  , &
+                                                     darkMatterParticle_   =darkMatterParticle_   , &
+                                                     cosmologyFunctions_   =cosmologyFunctions_   , &
+                                                     cosmologyParameters_  =cosmologyParameters_  , &
+                                                     virialDensityContrast_=virialDensityContrast_  &
+                                                    )
+  call nodeOperator_%nodeTreeInitialize(node_)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Chowdhury2021 profile")
   call darkMatterProfileChowdhury2021_%computeProperties(node_,radiusVirial_,radiusScale_,radiusCore_,radiusSoliton_,densityCore_,densityScale_,massCore_)
