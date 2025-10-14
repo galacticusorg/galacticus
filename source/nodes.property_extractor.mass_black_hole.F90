@@ -18,17 +18,17 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Implements a black hole mass output analysis property extractor class.
+Implements a black hole mass property extractor class.
 !!}
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassBlackHole">
-   <description>An ISM mass output analysis property extractor class.</description>
+   <description>An black mass property extractor class.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassBlackHole
      !!{
-     A black hole mass output analysis class.
+     A black hole mass property extractor class.
      !!}
      private
    contains

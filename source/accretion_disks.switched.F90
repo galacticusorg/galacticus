@@ -228,7 +228,7 @@ contains
     double precision                        , intent(in   ) :: accretionRateMass
     double precision                                        :: fractionADAF
 
-    fractionADAF    =+                     self                               %fractionADAF(blackHole,accretionRateMass)
+    fractionADAF    =+                      self                              %fractionADAF(blackHole,accretionRateMass)
     switchedPowerJet=+(+1.0d0-fractionADAF)*self%accretionDisksShakuraSunyaev_%powerJet    (blackHole,accretionRateMass) &
          &           +        fractionADAF *self%accretionDisksADAF_          %powerJet    (blackHole,accretionRateMass)
     return
