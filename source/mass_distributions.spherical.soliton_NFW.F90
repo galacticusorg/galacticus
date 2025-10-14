@@ -42,7 +42,9 @@
           &              radiusCore             , radiusSoliton          , &
           &              densitySolitonCentral  , concentration          , &
           &              radiusVirial           , radiusCoreScaleFree    , &
-          &              radiusSolitonScaleFree , densitySolitonScaleFree
+          &              radiusSolitonScaleFree , densitySolitonScaleFree, &
+          &              massSolitionTransition , massNFWTransition      , &
+          &              densityTransition
    contains
      procedure :: massEnclosedBySphere            => solitonNFWMassEnclosedBySphere
      procedure :: density                         => solitonNFWDensity
@@ -175,7 +177,8 @@ contains
      !!{
      Internal constructor for ``soliton and NFW'' mass distribution class.
      !!}
-     use :: Error, only : Error_Report
+     use :: Error      , only : Error_Report
+     use :: Coordinates, only : coordinateSpherical, assignment(=)
      implicit none
      type            (massDistributionSolitonNFW)                         :: self
      double precision                              , intent(in), optional :: radiusScale          , radiusCore                , &
@@ -185,6 +188,7 @@ contains
      logical                                       , intent(in), optional :: dimensionless
      type            (enumerationComponentTypeType), intent(in), optional :: componentType
      type            (enumerationMassTypeType     ), intent(in), optional :: massType
+     type            (coordinateSpherical         )                       :: coordinates
      !![
      <constructorAssign variables="componentType, massType, toleranceRelativePotential"/>
      !!]
@@ -194,7 +198,6 @@ contains
      else
         call Error_Report('no means to determine core radius')
      end if
-     
      if (present(radiusSoliton)) then
         self%radiusSoliton          =+radiusSoliton
      else
@@ -223,14 +226,28 @@ contains
      else
         call Error_Report('densitySolitonCentral must be specified')
      end if
+     
      if (present(dimensionless)) then
         self%dimensionless          =dimensionless
      else
         self%dimensionless          =.false.
      end if
-     self%radiusCoreScaleFree    = self%radiusCore           /self%radiusScale
-     self%radiusSolitonScaleFree = self%radiusSoliton        /self%radiusScale
-     self%densitySolitonScaleFree= self%densitySolitonCentral/self%densityNormalizationNFW
+     self%radiusCoreScaleFree    =+self%radiusCore           /self%radiusScale
+     self%radiusSolitonScaleFree =+self%radiusSoliton        /self%radiusScale
+     self%densitySolitonScaleFree=+self%densitySolitonCentral/self%densityNormalizationNFW
+     ! Determine the masses of NFW and soliton profiles at the soliton radius.
+     coordinates                 =[self%radiusSoliton,0.0d0,0.0d0]
+     self%massSolitionTransition =+self%massEnclosedBySphere(self%radiusSoliton)
+     self%massNFWTransition      =+4.0d0                                     &
+          &                       *Pi                                        &
+          &                       *self%densityNormalizationNFW              &
+          &                       *self%radiusScale**3                       &
+          &                       *(                                         &
+          &                         +log(+1.0d0+self%radiusSolitonScaleFree) &
+          &                         -           self%radiusSolitonScaleFree  &
+          &                         /   (+1.0d0+self%radiusSolitonScaleFree) &
+          &                       )
+     self%densityTransition      =+self%density(coordinates)
      return
    end function solitonNFWConstructorInternal
 
@@ -268,10 +285,10 @@ contains
       double precision                            , intent(in   )         :: radius
       double precision                                                    :: termLogarithmic, termInverse
 
-      if (radius <= 0.0d0) then
+      if      (radius <= 0.0d0             ) then
          ! Zero radius.
          mass           =+0.0d0
-      else if (radius < self%radiusSoliton) then
+      else if (radius <= self%radiusSoliton) then
          ! Soliton regime.
          mass           =+massSoliton(radius)
       else
@@ -428,9 +445,25 @@ contains
      class           (massDistributionSolitonNFW), intent(inout), target   :: self
      double precision                            , intent(in   )           :: density
      double precision                            , intent(in   ), optional :: radiusGuess
+     double precision                            , parameter               :: epsilonDeltaDensityFractional=1.0d-2
      
-     if (density >= self%densitySolitonCentral) then
+     if      (density >= self%densitySolitonCentral                                      ) then
+        ! Above the central density, return a radius of zero.
         radius=0.0d0
+     else if (density >  self%densitySolitonCentral*(1.0d0-epsilonDeltaDensityFractional)) then
+        ! For densities close to, but below the central density, use a series solution.
+        radius=+0.5d0                              &
+             & *self%radiusCore                    &
+             & *sqrt(                              &
+             &       +5.0d0                        &
+             &       /6.0d0                        &
+             &       /coefficientCore              &
+             &       *(                            &
+             &         +1.0d0                      &
+             &         -     density               &
+             &         /self%densitySolitonCentral &
+             &        )                            &
+             &      )
      else
         radius=sphericalTabulatedRadiusEnclosingDensity(self,density,radiusGuess)
      end if
@@ -445,9 +478,24 @@ contains
      class           (massDistributionSolitonNFW), intent(inout), target   :: self
      double precision                            , intent(in   )           :: density
      double precision                            , intent(in   ), optional :: radiusGuess
-     
-     if (density >= self%densitySolitonCentral) then
+     double precision                            , parameter               :: epsilonDeltaDensityFractional=1.0d-2
+
+     if      (density >= self%densitySolitonCentral                                      ) then
         radius=0.0d0
+     else if (density >  self%densitySolitonCentral*(1.0d0-epsilonDeltaDensityFractional)) then
+        ! For densities close to, but below the central density, use a series solution.
+        radius=+0.5d0                              &
+             & *self%radiusCore                    &
+             & *sqrt(                              &
+             &       +5.0d0                        &
+             &       /6.0d0                        &
+             &       /coefficientCore              &
+             &       *(                            &
+             &         +1.0d0                      &
+             &         -     density               &
+             &         /self%densitySolitonCentral &
+             &        )                            &
+             &      )
      else
         radius=massDistributionRadiusEnclosingDensityNumerical(self,density,radiusGuess)
      end if
@@ -467,35 +515,35 @@ contains
       if (.not.containerSolitonNFWInitialized) then
          allocate(containerSolitonNFW)
          call containerSolitonNFW%initialize(3)
-         containerSolitonNFW%mass                      %radiusCountPer       =+ 20_c_size_t
-         containerSolitonNFW%mass                      %parametersCountPer   =+ 20_c_size_t
-         containerSolitonNFW%radiusEnclosingDensity    %radiusCountPer       =+100_c_size_t
-         containerSolitonNFW%radiusEnclosingDensity    %parametersCountPer   =+ 20_c_size_t
-         containerSolitonNFW%potential                 %radiusCountPer       =+ 20_c_size_t
-         containerSolitonNFW%potential                 %parametersCountPer   =+ 20_c_size_t
-         containerSolitonNFW%velocityDispersion1D      %radiusCountPer       =+ 20_c_size_t
-         containerSolitonNFW%velocityDispersion1D      %parametersCountPer   =+ 20_c_size_t
-         containerSolitonNFW%energy                    %radiusCountPer       =+ 20_c_size_t
-         containerSolitonNFW%energy                    %parametersCountPer   =+ 20_c_size_t
-         containerSolitonNFW%radiusFreefall            %radiusCountPer       =+ 20_c_size_t
-         containerSolitonNFW%radiusFreefall            %parametersCountPer   =+ 20_c_size_t
-         containerSolitonNFW%radiusFreefallIncreaseRate%radiusCountPer       =+ 20_c_size_t
-         containerSolitonNFW%radiusFreefallIncreaseRate%parametersCountPer   =+ 20_c_size_t
-         containerSolitonNFW%densityRadialMoment0      %radiusCountPer       =+ 20_c_size_t
-         containerSolitonNFW%densityRadialMoment0      %parametersCountPer   =+ 20_c_size_t
-         containerSolitonNFW%densityRadialMoment1      %radiusCountPer       =+ 20_c_size_t
-         containerSolitonNFW%densityRadialMoment1      %parametersCountPer   =+ 20_c_size_t
-         containerSolitonNFW%densityRadialMoment2      %radiusCountPer       =+ 20_c_size_t
-         containerSolitonNFW%densityRadialMoment2      %parametersCountPer   =+ 20_c_size_t
-         containerSolitonNFW%densityRadialMoment3      %radiusCountPer       =+ 20_c_size_t
-         containerSolitonNFW%densityRadialMoment3      %parametersCountPer   =+ 20_c_size_t
-         containerSolitonNFW%fourierTransform          %radiusCountPer       =+ 20_c_size_t
-         containerSolitonNFW%fourierTransform          %parametersCountPer   =+ 20_c_size_t
-         containerSolitonNFW%nameParameters                               (1)='radiusCoreOverradiusScale'
+         containerSolitonNFW%mass                      %radiusCountPer       =+20_c_size_t
+         containerSolitonNFW%mass                      %parametersCountPer   =+20_c_size_t
+         containerSolitonNFW%radiusEnclosingDensity    %radiusCountPer       =+20_c_size_t
+         containerSolitonNFW%radiusEnclosingDensity    %parametersCountPer   =+20_c_size_t
+         containerSolitonNFW%potential                 %radiusCountPer       =+20_c_size_t
+         containerSolitonNFW%potential                 %parametersCountPer   =+20_c_size_t
+         containerSolitonNFW%velocityDispersion1D      %radiusCountPer       =+20_c_size_t
+         containerSolitonNFW%velocityDispersion1D      %parametersCountPer   =+20_c_size_t
+         containerSolitonNFW%energy                    %radiusCountPer       =+20_c_size_t
+         containerSolitonNFW%energy                    %parametersCountPer   =+20_c_size_t
+         containerSolitonNFW%radiusFreefall            %radiusCountPer       =+20_c_size_t
+         containerSolitonNFW%radiusFreefall            %parametersCountPer   =+20_c_size_t
+         containerSolitonNFW%radiusFreefallIncreaseRate%radiusCountPer       =+20_c_size_t
+         containerSolitonNFW%radiusFreefallIncreaseRate%parametersCountPer   =+20_c_size_t
+         containerSolitonNFW%densityRadialMoment0      %radiusCountPer       =+20_c_size_t
+         containerSolitonNFW%densityRadialMoment0      %parametersCountPer   =+20_c_size_t
+         containerSolitonNFW%densityRadialMoment1      %radiusCountPer       =+20_c_size_t
+         containerSolitonNFW%densityRadialMoment1      %parametersCountPer   =+20_c_size_t
+         containerSolitonNFW%densityRadialMoment2      %radiusCountPer       =+20_c_size_t
+         containerSolitonNFW%densityRadialMoment2      %parametersCountPer   =+20_c_size_t
+         containerSolitonNFW%densityRadialMoment3      %radiusCountPer       =+20_c_size_t
+         containerSolitonNFW%densityRadialMoment3      %parametersCountPer   =+20_c_size_t
+         containerSolitonNFW%fourierTransform          %radiusCountPer       =+20_c_size_t
+         containerSolitonNFW%fourierTransform          %parametersCountPer   =+20_c_size_t
+         containerSolitonNFW%nameParameters                               (1)='radiusCoreOverRadiusScale'
          containerSolitonNFW%descriptionParameters                        (1)='The ratio of core to scale radii(r_c/rₛ).'
-         containerSolitonNFW%nameParameters                               (2)='radiusSolitonOverradiusScale'
+         containerSolitonNFW%nameParameters                               (2)='radiusSolitonOverRadiusScale'
          containerSolitonNFW%descriptionParameters                        (2)='The ratio of soliton to scale radii(rₛₒₗ/rₛ).'
-         containerSolitonNFW%nameParameters                               (3)='densitySolitonCentralOverdensityScale'
+         containerSolitonNFW%nameParameters                               (3)='densitySolitonCentralOverDensityScale'
          containerSolitonNFW%descriptionParameters                        (3)='The ratio of soliton central to scale densities(ρ₀/ρₛ).'
          containerSolitonNFWInitialized                                      =.true.
       end if
