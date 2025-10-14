@@ -125,6 +125,7 @@ contains
     !!{
     Constructor for the \refClass{distributionFunction1DNormal} 1D distribution function class.
     !!}
+    use :: Error          , only : Error_Report
     use :: Error_Functions, only : Error_Function
     implicit none
     type            (distributionFunction1DNormal)                                  :: self
@@ -151,6 +152,8 @@ contains
        self%limitUpper     =+huge(0.0d0)
        self%cdfAtUpperLimit=      1.0d0
     end if
+    ! Validate.
+    if (self%limitUpper >= self%limitUpper) call Error_Report('`limitLower` < `limitUpper` is required'//{introspection:location})
     return
   end function normalConstructorInternal
 

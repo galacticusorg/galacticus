@@ -97,6 +97,7 @@ contains
     !!{
     Constructor for the \refClass{distributionFunction1DLogUniform} 1D distribution function class.
     !!}
+    use :: Error, only : Error_Report
     type            (distributionFunction1DLogUniform)                                  :: self
     double precision                                  , intent(in   )                   :: limitLower            , limitUpper
     class           (randomNumberGeneratorClass      ), intent(in   ), target, optional :: randomNumberGenerator_
@@ -104,6 +105,9 @@ contains
     <constructorAssign variables="limitLower, limitUpper, *randomNumberGenerator_"/>
     !!]
 
+    if (limitLower <= 0.0d0     ) call Error_Report('`limitLower` > 0 is required'           //{introspection:location})
+    if (limitUpper <= 0.0d0     ) call Error_Report('`limitUpper` > 0 is required'           //{introspection:location})
+    if (limitLower >= limitUpper) call Error_Report('`limitLower` < `limitUpper` is required'//{introspection:location})
     return
   end function logUniformConstructorInternal
 
