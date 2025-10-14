@@ -242,8 +242,10 @@ contains
     !!{
     Return the soliton plus NFW fuzzy dark matter mass distribution for the given {\normalfont \ttfamily node}.
     !!}
+    use :: Galacticus_Nodes          , only : nodeComponentBasic
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo     , massTypeDark                    , weightByMass
-    use :: Mass_Distributions        , only : massDistributionSolitonNFW, kinematicsDistributionSolitonNFW, kinematicsDistributionClass
+    use :: Mass_Distributions        , only : massDistributionSolitonNFW, kinematicsDistributionSolitonNFW, kinematicsDistributionClass, massDistributionNFW, &
+         &                                    kinematicsDistributionNFW
     implicit none
     class           (darkMatterProfileDMOSolitonNFW), intent(inout)           :: self
     class           (massDistributionClass         ), pointer                 :: massDistribution_
@@ -251,6 +253,7 @@ contains
     type            (treeNode                      ), intent(inout)           :: node
     type            (enumerationWeightByType       ), intent(in   ), optional :: weightBy
     integer                                         , intent(in   ), optional :: weightIndex
+    class           (nodeComponentBasic            ), pointer                 :: basic
     type            (enumerationWeightByType       )                          :: weightBy_
     double precision                                                          :: radiusCore             , radiusScale , &
          &                                                                       radiusSoliton          , radiusVirial, &
@@ -283,44 +286,84 @@ contains
     densityScale =self%densityScalePrevious
     massCore     =self%massCorePrevious
     ! Construct the distribution.
-    allocate(massDistributionSolitonNFW       :: massDistribution_      )
-    allocate(kinematicsDistributionSolitonNFW :: kinematicsDistribution_)
-    select type(massDistribution_)
-    type is (massDistributionSolitonNFW)
+    if (radiusSoliton <= 0.0d0 .or. densityCore <= 0.0d0) then
+       ! No soliton - build a simple NFW mass distribution.
+       allocate(massDistributionNFW       :: massDistribution_      )
+       allocate(kinematicsDistributionNFW :: kinematicsDistribution_)
+       select type(massDistribution_)
+       type is (massDistributionNFW)
+          basic => node%basic()
+          !![
+	  <referenceConstruct object="massDistribution_">
+	    <constructor>
+              massDistributionNFW(                                             &amp;
+               &amp;              mass         =basic%mass                 (), &amp;
+               &amp;              virialRadius =      radiusVirial           , &amp;
+               &amp;              scaleLength  =      radiusScale            , &amp;
+               &amp;              componentType=      componentTypeDarkHalo  , &amp;
+               &amp;              massType     =      massTypeDark             &amp;
+               &amp;             )
+	    </constructor>
+	  </referenceConstruct>
+          !!]
+       end select
+       select type (kinematicsDistribution_)
+       type is (kinematicsDistributionNFW)
+          !![
+	  <referenceConstruct object="kinematicsDistribution_">
+	    <constructor>
+              kinematicsDistributionNFW(                              &amp;
+	       &amp;                    useSeriesApproximation=.true. &amp;
+	       &amp;                   )
+	    </constructor>
+	  </referenceConstruct>
+          !!]
+       end select
+       call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
        !![
-       <referenceConstruct object="massDistribution_">
-	 <constructor>
-           massDistributionSolitonNFW(                                                &amp;
-            &amp;                     radiusScale            = radiusScale          , &amp;
-            &amp;                     radiusCore             = radiusCore           , &amp;
-            &amp;                     radiusSoliton          = radiusSoliton        , &amp;
-            &amp;                     densitySolitonCentral  = densityCore          , &amp;
-            &amp;                     densityNormalizationNFW= densityScale         , &amp;
-            &amp;                     radiusVirial           = radiusVirial         , &amp;
-            &amp;                     componentType          = componentTypeDarkHalo, &amp;
-            &amp;                     massType               = massTypeDark           &amp;
-            &amp;                    )
-	 </constructor>
-       </referenceConstruct>
+       <objectDestructor name="kinematicsDistribution_"/>
        !!]
-    end select
-    select type (kinematicsDistribution_)
-    type is (kinematicsDistributionSolitonNFW)
+    else
+       ! Build a soliton-NFW mass distribution.
+       allocate(massDistributionSolitonNFW       :: massDistribution_      )
+       allocate(kinematicsDistributionSolitonNFW :: kinematicsDistribution_)
+       select type(massDistribution_)
+       type is (massDistributionSolitonNFW)
+          !![
+	  <referenceConstruct object="massDistribution_">
+	    <constructor>
+              massDistributionSolitonNFW(                                                &amp;
+               &amp;                     radiusScale            = radiusScale          , &amp;
+               &amp;                     radiusCore             = radiusCore           , &amp;
+               &amp;                     radiusSoliton          = radiusSoliton        , &amp;
+               &amp;                     densitySolitonCentral  = densityCore          , &amp;
+               &amp;                     densityNormalizationNFW= densityScale         , &amp;
+               &amp;                     radiusVirial           = radiusVirial         , &amp;
+               &amp;                     componentType          = componentTypeDarkHalo, &amp;
+               &amp;                     massType               = massTypeDark           &amp;
+               &amp;                    )
+	    </constructor>
+	  </referenceConstruct>
+          !!]
+       end select
+       select type (kinematicsDistribution_)
+       type is (kinematicsDistributionSolitonNFW)
+          !![
+	  <referenceConstruct object="kinematicsDistribution_">
+	    <constructor>
+              kinematicsDistributionSolitonNFW(                                                                                            &amp;
+               &amp;                           toleranceRelativeVelocityDispersion       =self%toleranceRelativeVelocityDispersion       , &amp;
+               &amp;                           toleranceRelativeVelocityDispersionMaximum=self%toleranceRelativeVelocityDispersionMaximum  &amp;
+	       &amp;                          )
+	    </constructor>
+	  </referenceConstruct>
+          !!]
+       end select
+       call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
        !![
-       <referenceConstruct object="kinematicsDistribution_">
-	 <constructor>
-           kinematicsDistributionSolitonNFW(                                                                                            &amp;
-            &amp;                           toleranceRelativeVelocityDispersion       =self%toleranceRelativeVelocityDispersion       , &amp;
-            &amp;                           toleranceRelativeVelocityDispersionMaximum=self%toleranceRelativeVelocityDispersionMaximum  &amp;
-	    &amp;                          )
-	 </constructor>
-       </referenceConstruct>
+       <objectDestructor name="kinematicsDistribution_"/>
        !!]
-    end select
-    call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
-    !![
-    <objectDestructor name="kinematicsDistribution_"/>
-    !!]
+    end if
     return
   end function solitonNFWGet
 
