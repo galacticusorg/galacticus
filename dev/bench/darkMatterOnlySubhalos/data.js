@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1760067578278,
+  "lastUpdate": 1760402983691,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "0882f7f27a0082b995982d9e0aac168782172ec8",
-          "message": "Merge pull request #729 from galacticusorg/featBaugh2005Normalization\n\nMake the normalization velocity in the `baugh2005` star formation timescale class settable via a parameter",
-          "timestamp": "2024-10-25T16:36:30Z",
-          "tree_id": "31c254a49f6cfed39fc2791d0daaf69da225e339",
-          "url": "https://github.com/galacticusorg/galacticus/commit/0882f7f27a0082b995982d9e0aac168782172ec8"
-        },
-        "date": 1729906704752,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 49.302,
-            "unit": "seconds",
-            "range": 0.0836875140024862
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8784,6 +8754,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 10526.204277779847,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "91a2411eb1008148c3a068b35c67a47c875dc4df",
+          "message": "Merge pull request #947 from galacticusorg/fixSFRAnalysisLabels\n\nCorrect axis labels for the star formation rate analysis class",
+          "timestamp": "2025-10-13T18:26:08Z",
+          "tree_id": "4004941759a096c2d6d899c782ad0cfaf6d8bb1b",
+          "url": "https://github.com/galacticusorg/galacticus/commit/91a2411eb1008148c3a068b35c67a47c875dc4df"
+        },
+        "date": 1760402980382,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 50.075,
+            "range": "0.0762397534098965",
+            "unit": "seconds"
           }
         ]
       }
