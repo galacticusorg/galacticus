@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@obs.carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "9e27449c20338764ded675943a3dae1e97e2cd24",
-        "message": "fix: Correct class description\n",
-        "timestamp": "2025-10-09 12:57:00-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/9e27449c20338764ded675943a3dae1e97e2cd24"
+        "id": "91a2411eb1008148c3a068b35c67a47c875dc4df",
+        "message": "Merge pull request #947 from galacticusorg/fixSFRAnalysisLabels\n\nCorrect axis labels for the star formation rate analysis class\n",
+        "timestamp": "2025-10-13 18:26:08+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/91a2411eb1008148c3a068b35c67a47c875dc4df"
     },
     "results": [
         {
