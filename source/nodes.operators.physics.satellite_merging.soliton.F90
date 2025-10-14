@@ -21,7 +21,7 @@
   Implements a node operator class that triggers merging of satellites based on their orbital radius.
   !!}
 
-  use :: Kepler_Orbits          , only : keplerOrbitCount
+  use :: Kepler_Orbits, only : keplerOrbitCount
 
   !![
   <nodeOperator name="nodeOperatorSatelliteMergingSoliton">
@@ -247,7 +247,6 @@ contains
     use :: Mass_Distributions        , only : massDistributionClass
     implicit none
     class           (nodeOperatorSatelliteMergingSoliton), intent(inout) :: self
-    class           (nodeComponentSatellite             ), pointer       :: satellite      !Satellite?
     class           (nodeComponentBasic                 ), pointer       :: basic, basicHost
     type            (treeNode                           ), intent(inout) :: node
     type            (treeNode                           ), pointer       :: nodeHost
