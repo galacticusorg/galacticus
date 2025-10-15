@@ -110,7 +110,7 @@ contains
     Constructor for the \refClass{distributionFunction1DVoight} 1D distribution function class.
     !!}
     type            (distributionFunction1DVoight)                                  :: self
-    double precision                              , intent(in   )                   :: gamma                 , mu          , &
+    double precision                              , intent(in   )                   :: gamma                 , mu        , &
          &                                                                             sigma
     class           (randomNumberGeneratorClass  ), intent(in   ), optional, target :: randomNumberGenerator_
     double precision                              , intent(in   ), optional         :: limitLower            , limitUpper
@@ -137,6 +137,8 @@ contains
        self%limitUpper     =limitUpper
        self%cdfAtUpperLimit=cdfUpper
     end if
+    ! Validate.
+    if (self%limitLowerExists .and. self%limitUpperExists .and. limitLower >= limitUpper) call Error_Report('`limitLower` < `limitUpper` is required'//{introspection:location})
     return
   end function voightConstructorInternal
 

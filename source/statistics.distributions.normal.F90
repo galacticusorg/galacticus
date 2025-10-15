@@ -125,6 +125,7 @@ contains
     !!{
     Constructor for the \refClass{distributionFunction1DNormal} 1D distribution function class.
     !!}
+    use :: Error          , only : Error_Report
     use :: Error_Functions, only : Error_Function
     implicit none
     type            (distributionFunction1DNormal)                                  :: self
@@ -141,7 +142,7 @@ contains
        self%limitLower     =limitLower
        self%cdfAtLowerLimit=0.5d0*(1.0d0+Error_Function((limitLower-mean)/sqrt(2.0d0*variance)))
     else
-       self%limitUpper     =-huge(0.0d0)
+       self%limitLower     =-huge(0.0d0)
        self%cdfAtLowerLimit=      0.0d0
     end if
     if (self%limitUpperExists) then
@@ -151,6 +152,8 @@ contains
        self%limitUpper     =+huge(0.0d0)
        self%cdfAtUpperLimit=      1.0d0
     end if
+    ! Validate.
+    if (self%limitLower >= self%limitUpper) call Error_Report('`limitLower` < `limitUpper` is required'//{introspection:location})
     return
   end function normalConstructorInternal
 
@@ -258,11 +261,11 @@ contains
     class           (distributionFunction1DNormal), intent(inout), target :: self
     double precision                              , intent(in   )         :: p
 
-    if (p < 0.0d0 .or. p > 1.0d0)                                    &
+    if (p < 0.0d0 .or. p > 1.0d0)                         &
          & call Error_Report(                             &
-         &                              'probability out of range'// &
-         &                              {introspection:location}     &
-         &                             )
+         &                   'probability out of range'// &
+         &                   {introspection:location}     &
+         &                  )
     normalInverse=+self%mean                                     &
          &        +sqrt(self%variance)                           &
          &        *normalStandardInverse(                        &
@@ -346,10 +349,10 @@ contains
          &                                               2.04426310338993978564d-15  &
          &                                              ]
     double precision, parameter                    :: const1=0.180625d0
-    double precision, parameter                    :: const2=1.6d0
-    double precision, parameter                    :: split1=0.425d0
-    double precision, parameter                    :: split2=5.0d0
-    double precision                               :: q, r
+    double precision, parameter                    :: const2=1.600000d0
+    double precision, parameter                    :: split1=0.425000d0
+    double precision, parameter                    :: split2=5.000000d0
+    double precision                               :: q                , r
 
     if (p <= 0.0d0) then
        normalStandardInverse=-huge(p)

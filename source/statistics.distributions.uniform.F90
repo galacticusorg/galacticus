@@ -97,6 +97,7 @@ contains
     !!{
     Constructor for the \refClass{distributionFunction1DUniform} 1D distribution function class.
     !!}
+    use :: Error, only : Error_Report
     type            (distributionFunction1DUniform)                                  :: self
     double precision                               , intent(in   )                   :: limitLower            , limitUpper
     class           (randomNumberGeneratorClass   ), intent(in   ), target, optional :: randomNumberGenerator_
@@ -104,6 +105,8 @@ contains
     <constructorAssign variables="limitLower, limitUpper, *randomNumberGenerator_"/>
     !!]
 
+    ! Validate.
+    if (limitLower >= limitUpper) call Error_Report('`limitLower` < `limitUpper` is required'//{introspection:location})
     return
   end function uniformConstructorInternal
 
