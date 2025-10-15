@@ -142,7 +142,7 @@ contains
        self%limitLower     =limitLower
        self%cdfAtLowerLimit=0.5d0*(1.0d0+Error_Function((limitLower-mean)/sqrt(2.0d0*variance)))
     else
-       self%limitUpper     =-huge(0.0d0)
+       self%limitLower     =-huge(0.0d0)
        self%cdfAtLowerLimit=      0.0d0
     end if
     if (self%limitUpperExists) then
