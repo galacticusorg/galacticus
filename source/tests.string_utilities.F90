@@ -119,7 +119,7 @@ program Test_String_Utilities
   call Assert('XML formatter string #1',xmlFormat,xmlFormatTarget)
   call displayMessage(var_str('XML formatted string #1:')//char(10)//xmlFormat)
 
-  xmlFormat      =stringXMLFormat('<mergerTreeEvolver value="doop">**B<allTreesExistAtFinalTime value="false" />**C</mergerTreeEvolver>',indentInitial=6)
+  xmlFormat      =stringXMLFormat('<mergerTreeEvolver value="doop">**B<allTreesExistAtFinalTime value="false" />**C</mergerTreeEvolver>',indentInitial=6,forceColor=.true.)
   xmlFormatTarget='      <[34mmergerTreeEvolver[0m [33mvalue[0m="[32mdoop[0m">[0m'//char(10)//'[1m        <[34mallTreesExistAtFinalTime[0m[1m [33mvalue[0m[1m="[32mfalse[0m[1m" />[0m'//char(10)//'        ......'//char(10)//'      </[34mmergerTreeEvolver[0m>[0m'
   call Assert('XML formatter string #2',xmlFormat,xmlFormatTarget)
   call displayMessage(var_str('XML formatted string #2:')//char(10)//xmlFormat)
