@@ -6,19 +6,19 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "91a2411eb1008148c3a068b35c67a47c875dc4df",
-        "message": "Merge pull request #947 from galacticusorg/fixSFRAnalysisLabels\n\nCorrect axis labels for the star formation rate analysis class\n",
-        "timestamp": "2025-10-13 18:26:08+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/91a2411eb1008148c3a068b35c67a47c875dc4df"
+        "id": "7dfdaeee0a348a8a71cfd363d7e92cb78d481f72",
+        "message": "Merge pull request #948 from galacticusorg/featBlackHoleHaloMassRelation\n\nAdd an analysis class to compute the black hole-halo mass relation\n",
+        "timestamp": "2025-10-14 23:52:17+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/7dfdaeee0a348a8a71cfd363d7e92cb78d481f72"
     },
     "surfaceDensity": {
-        "percentageBelow": 39.285714285714285,
-        "percentageAbove": 60.714285714285715,
+        "percentageBelow": 32.14285714285714,
+        "percentageAbove": 67.85714285714286,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 63.63636363636363,
-        "percentageAbove": 36.36363636363637,
+        "percentageBelow": 33.33333333333333,
+        "percentageAbove": 66.66666666666667,
         "target": 0.85
     }
 }
