@@ -2,7 +2,7 @@ window.BENCHMARK_DATA = {
   "lastUpdate": 1760532781090,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
-    "Dark matter-only subhalos benchmarks (Symphony)": [
+    "Dark matter-only subhalos benchmarks (Symphony resolution X1)": [
       {
         "commit": {
           "author": {
@@ -63,17 +63,17 @@ window.BENCHMARK_DATA = {
         "tool": "customSmallerIsBetter",
         "benches": [
           {
-            "name": "Dark Matter Only Subhalos (Symphony Milky Way) - Likelihood - subhaloMassFunction",
+            "name": "Dark Matter Only Subhalos (Symphony resolution X1 Milky Way) - Likelihood - subhaloMassFunction",
             "value": "3.1494971627934065",
             "unit": "-logℒ"
           },
           {
-            "name": "Dark Matter Only Subhalos (Symphony Milky Way) - Likelihood - subhaloRadialDistribution",
+            "name": "Dark Matter Only Subhalos (Symphony resolution X1 Milky Way) - Likelihood - subhaloRadialDistribution",
             "value": "2.071284138550932",
             "unit": "-logℒ"
           },
           {
-            "name": "Dark Matter Only Subhalos (Symphony Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "name": "Dark Matter Only Subhalos (Symphony resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": "2.5275286968183095",
             "unit": "-logℒ"
           }

@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes" />
+    <style>
+      html {
+        font-family: BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",Helvetica,Arial,sans-serif;
+        -webkit-font-smoothing: antialiased;
+        background-color: #fff;
+        font-size: 16px;
+      }
+      body {
+        color: #4a4a4a;
+        margin: 8px;
+        font-size: 1em;
+        font-weight: 400;
+      }
+      header {
+        margin-bottom: 8px;
+        display: flex;
+        flex-direction: column;
+      }
+      main {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+      a {
+        color: #3273dc;
+        cursor: pointer;
+        text-decoration: none;
+      }
+      a:hover {
+        color: #000;
+      }
+      button {
+        color: #fff;
+        background-color: #3298dc;
+        border-color: transparent;
+        cursor: pointer;
+        text-align: center;
+      }
+      button:hover {
+        background-color: #2793da;
+        flex: none;
+      }
+      .spacer {
+        flex: auto;
+      }
+      .small {
+        font-size: 0.75rem;
+      }
+      footer {
+        margin-top: 16px;
+        display: flex;
+        align-items: center;
+      }
+      .header-label {
+        margin-right: 4px;
+      }
+      .benchmark-set {
+        margin: 8px 0;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+      .benchmark-title {
+        font-size: 3rem;
+        font-weight: 600;
+        word-break: break-word;
+        text-align: center;
+      }
+      .benchmark-graphs {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-around;
+        align-items: center;
+        flex-wrap: wrap;
+        width: 100%;
+      }
+      .benchmark-chart {
+        max-width: 1000px;
+      }
+    </style>
+    <title>Validation - Dark Matter Only Subhalos (COZMIC resolution X1 Milky Way WDM 6keV)</title>
+  </head>
+
+  <body>
+    <header id="header">
+      <div class="header-item">
+        <strong class="header-label">Last Update:</strong>
+        <span id="last-update"></span>
+      </div>
+      <div class="header-item">
+        <strong class="header-label">Repository:</strong>
+        <a id="repository-link" rel="noopener"></a>
+      </div>
+      <div class="header-item">
+        <strong class="header-label">Commit:</strong>
+        <a id="commit-link" rel="noopener"></a>
+      </div>
+      <div class="header-item">
+        <strong class="header-label">Parameter File:</strong>
+        <a id="parameter-link" rel="noopener"></a>
+      </div>
+    </header>
+    <main id="main"></main>
+    <footer>
+      <button id="dl-button">Download data as JSON</button>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-error-bars@3.9.1/build/index.umd.min.js"></script>
+    <script src="results.json"></script>
+    <script id="main-script">
+      'use strict';
+      (function() {
+        // Colors from https://github.com/github/linguist/blob/master/lib/linguist/languages.yml
+        const toolColors = {
+          cargo: '#dea584',
+          go: '#00add8',
+          benchmarkjs: '#f1e05a',
+          benchmarkluau: '#000080',
+          pytest: '#3572a5',
+          googlecpp: '#f34b7d',
+          catch2: '#f34b7d',
+          julia: '#a270ba',
+          benchmarkdotnet: '#178600',
+          customBiggerIsBetter: '#38ff38',
+          customSmallerIsBetter: '#ff3838',
+          _: '#333333'
+        };
+
+        function init() {
+
+          const data = window.ANALYSES_DATA;
+
+          // Render header
+          document.getElementById('last-update').textContent = new Date(data.commit.timestamp).toString();
+          const repoLink = document.getElementById('repository-link');
+          repoLink.href = data.repoUrl;
+          repoLink.textContent = data.repoUrl;
+          const commitLink = document.getElementById('commit-link');
+          commitLink.href = data.commit.url;
+          commitLink.textContent = data.commit.id;
+          const parameterLink = document.getElementById('parameter-link');
+          parameterLink.href = data.repoUrl+'/blob/'+data.commit.id+'/'+data.parameterFile;
+          parameterLink.textContent = data.parameterFile;
+
+          // Render footer
+          document.getElementById('dl-button').onclick = () => {
+            const dataUrl = 'data:,' + JSON.stringify(data, null, 2);
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = 'analyses_data.json';
+            a.click();
+          };
+
+          // Prepare data points for charts
+          return data.results;
+        }
+
+        function renderAllChars(dataSets) {
+
+          function renderGraph(parent, dataset) {
+            const canvas = document.createElement('canvas');
+            canvas.className = 'benchmark-chart';
+            parent.appendChild(canvas);
+
+            const data = [];
+            const dataTarget = [];
+            var yMin =  Infinity;
+            var yMax = -Infinity;
+            for (let i = 0; i < dataset.data.xDataset.length; i++) {
+	      if ( dataset.data.yDataset[i] != 0.0 ) {
+                const p = {x: dataset.data.xDataset[i], y: dataset.data.yDataset[i]};
+                if ( "yError" in dataset.data ) {
+		  p.yMin = dataset.data.yDataset[i]-dataset.data.yError[i];
+		  p.yMax = dataset.data.yDataset[i]+dataset.data.yError[i];
+                }
+	        data.push(p);
+                if ( p.yMin < yMin && ( dataset.attributes.yAxisIsLog == 0 || p.yMin > 0.0 ) ) {
+                  yMin = p.yMin;
+                }
+                if ( p.yMax > yMax ) {
+                  yMax = p.yMax;
+                }
+              }
+	      if ( dataset.data.yDatasetTarget[i] != 0.0 ) {
+                const p = {x: dataset.data.xDataset[i], y: dataset.data.yDatasetTarget[i]};
+                if ( "yErrorTarget" in dataset.data ) {
+		  p.yMin = dataset.data.yDatasetTarget[i]-dataset.data.yErrorTarget[i];
+		  p.yMax = dataset.data.yDatasetTarget[i]+dataset.data.yErrorTarget[i];
+                }
+	        dataTarget.push(p);
+                if ( p.yMin < yMin && ( dataset.attributes.yAxisIsLog == 0 || p.yMin > 0.0 ) ) {
+                  yMin = p.yMin;
+                }
+                if ( p.yMax > yMax ) {
+                  yMax = p.yMax;
+                }
+              }
+	    }
+            const options = {
+              scales: {
+                x: {
+                    ticks: {
+                      beginAtZero: false,
+                      callback: (val) => (val.toExponential(2))
+                    },
+                    title: {
+                      display: true,
+                      text: dataset.attributes.xAxisLabel
+                    }
+                  },
+                y: {
+                    ticks: {
+                      beginAtZero: false,
+                      callback: (val) => (val.toExponential(2))
+                    },
+                    title: {
+                      display: true,
+                      text: dataset.attributes.yAxisLabel
+                    },
+                    min: yMin,
+                    max: yMax
+                  },
+              },
+            };
+            if ( dataset.attributes.xAxisIsLog == 1 ) {
+              options.scales.x.type = 'logarithmic';
+            }
+            if ( dataset.attributes.yAxisIsLog == 1 ) {
+              options.scales.y.type = 'logarithmic';
+            }
+
+            new Chart(canvas, {
+              type: 'scatterWithErrorBars',
+              data: {
+                datasets:
+                  [
+                    {
+                      label: 'Galacticus',
+                      data: data,
+                      borderColor: '#ff0000',
+                      backgroundColor: '#ffff00',
+                    },
+                    {
+                      label: dataset.attributes.targetLabel,
+                      data: dataTarget,
+                      borderColor: '#483D8B',
+                      backgroundColor: '#6495ED',
+                    }
+                  ]
+              },
+              options: options
+            });
+          }
+
+          function renderAnalysis(dataSet, main) {
+            const setElem = document.createElement('div');
+            setElem.className = 'analysis';
+            main.appendChild(setElem);
+
+            const nameElem = document.createElement('h1');
+            nameElem.className = 'analysis-title';
+            nameElem.textContent = dataSet.attributes.name;
+            setElem.appendChild(nameElem);
+
+            const graphsElem = document.createElement('div');
+            graphsElem.className = 'analysis-graphs';
+            setElem.appendChild(graphsElem);
+
+            renderGraph(graphsElem, dataSet)
+          }
+
+          const main = document.getElementById('main');
+          for (const dataSet of dataSets) {
+            renderAnalysis(dataSet, main);
+          }
+        }
+
+        renderAllChars(init()); // Start
+      })();
+    </script>
+  </body>
+</html>

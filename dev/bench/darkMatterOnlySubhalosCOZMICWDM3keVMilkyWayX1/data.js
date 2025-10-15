@@ -2,7 +2,7 @@ window.BENCHMARK_DATA = {
   "lastUpdate": 1760532786331,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
-    "Dark matter-only subhalos benchmarks (COZMIC WDM 3keV)": [
+    "Dark matter-only subhalos benchmarks (COZMIC WDM 3keV resolution X1 Milky Way)": [
       {
         "commit": {
           "author": {
@@ -26,17 +26,17 @@ window.BENCHMARK_DATA = {
         "tool": "customSmallerIsBetter",
         "benches": [
           {
-            "name": "Dark Matter Only Subhalos (COZMIC WDM 3keV Milky Way) - Likelihood - subhaloMassFunction",
+            "name": "Dark Matter Only Subhalos (COZMIC WDM 3keV Milky Way resolution X1 Milky Way) - Likelihood - subhaloMassFunction",
             "value": "2.0175972679614533",
             "unit": "-logℒ"
           },
           {
-            "name": "Dark Matter Only Subhalos (COZMIC WDM 3keV Milky Way) - Likelihood - subhaloRadialDistribution",
+            "name": "Dark Matter Only Subhalos (COZMIC WDM 3keV Milky Way resolution X1 Milky Way) - Likelihood - subhaloRadialDistribution",
             "value": "3.2024969582825813",
             "unit": "-logℒ"
           },
           {
-            "name": "Dark Matter Only Subhalos (COZMIC WDM 3keV Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "name": "Dark Matter Only Subhalos (COZMIC WDM 3keV Milky Way resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": "67.16166795014263",
             "unit": "-logℒ"
           }
