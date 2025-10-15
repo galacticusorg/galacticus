@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1760403057427,
+  "lastUpdate": 1760532854939,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=40 Gyr; vₖ=20 km/s)": [
@@ -3383,6 +3383,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=40.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
             "value": 47.808641006387376,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7dfdaeee0a348a8a71cfd363d7e92cb78d481f72",
+          "message": "Merge pull request #948 from galacticusorg/featBlackHoleHaloMassRelation\n\nAdd an analysis class to compute the black hole-halo mass relation",
+          "timestamp": "2025-10-14T23:52:17Z",
+          "tree_id": "c1f3755b95322b38e80b92c16deef94fe58f753b",
+          "url": "https://github.com/galacticusorg/galacticus/commit/7dfdaeee0a348a8a71cfd363d7e92cb78d481f72"
+        },
+        "date": 1760532853815,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=40.0 Gyr; vₖ=20.0 km/s) - Likelihood - mass function",
+            "value": 3.846807804651853,
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=40.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
+            "value": 50.31809428247782,
             "unit": "-logℒ"
           }
         ]
