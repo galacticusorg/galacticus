@@ -12,9 +12,9 @@ Here you can find:
 * Benchmark and validation metrics for:
     * [Dark matter-only subhalos](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalos/)
 	* Dark matter-only subhalos (Symphony Milky Way)
-        * [Resolution X1](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosSymphonyMilkyWayX1)
-        * [Resolution X8](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosSymphonyMilkyWayX8)
-        * [Resolution X64](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosSymphonyMilkyWayX64)
+        * [Resolution X1](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosSymphonyCDMMilkyWayX1)
+        * [Resolution X8](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosSymphonyCDMMilkyWayX8)
+        * [Resolution X64](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosSymphonyCDMMilkyWayX64)
     * Dark matter-only subhalos (COZMIC Milky Way)
         * Resolution X1
 		   * [mᵪ = 3keV](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX1)
@@ -52,9 +52,9 @@ Here you can find:
     * [Halo concentration convergence](https://galacticusorg.github.io/galacticus/dev/valid/concentrationConvergence)
     * [Dark matter-only subhalos](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalos/)
 	* Dark matter-only subhalos (Symphony Milky Way)
-        * [Resolution X1](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosSymphonyMilkyWayX1)
-        * [Resolution X8](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosSymphonyMilkyWayX8)
-        * [Resolution X64](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosSymphonyMilkyWayX64)
+        * [Resolution X1](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX1)
+        * [Resolution X8](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX8)
+        * [Resolution X64](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX64)
     * Dark matter-only subhalos (COZMIC Milky Way)
         * Resolution X1
 		   * [mᵪ = 3keV](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX1)
