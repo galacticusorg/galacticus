@@ -114,24 +114,24 @@ contains
     self%limitUpperExists=.false.
     self%cdfAtLowerLimit =0.0d0
     self%cdfAtUpperLimit =1.0d0
-    self%limitLowerExists=present(limitLower)
-    self%limitUpperExists=present(limitUpper)
-    if (self%limitLowerExists) then
-       if (limitLower <  0.0d0) call Error_Report('`limitLower` ≥ 0 is required'//{introspection:location})
+    if (present(limitLower)) then
+       if (limitLower < 0.0d0) call Error_Report('limitLower≥0 is required'//{introspection:location})
        self%limitLower     =limitLower
        self%cdfAtLowerLimit=self%cumulative(limitLower)
     else
        self%cdfAtLowerLimit=0.0d0
     end if
-    if (self%limitUpperExists) then
-       if (limitUpper <= 0.0d0) call Error_Report('`limitUpper` > 0 is required'//{introspection:location})
+    if (present(limitUpper)) then
+       if (limitUpper < 0.0d0) call Error_Report('limitUpper≥0 is required'//{introspection:location})
        self%limitUpper     =limitUpper
        self%cdfAtUpperLimit=self%cumulative(limitUpper)
     else
        self%cdfAtUpperLimit=1.0d0
     end if
+    self%limitLowerExists=present(limitLower)
+    self%limitUpperExists=present(limitUpper)
     if (self%limitLowerExists .and. self%limitUpperExists .and. limitLower >= limitUpper) call Error_Report('`limitLower` < `limitUpper` is required'//{introspection:location})
-   return
+    return
   end function gammaConstructorInternal
 
   double precision function gammaDensity(self,x)

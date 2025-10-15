@@ -125,10 +125,10 @@ contains
     self    %cdfAtUpperLimit =1.0d0
     cdfLower                 =0.0d0
     cdfUpper                 =0.0d0
+    if (present(limitLower)) cdfLower=self%cumulative(limitLower)
+    if (present(limitUpper)) cdfUpper=self%cumulative(limitUpper)
     self%limitLowerExists=present(limitLower)
     self%limitUpperExists=present(limitUpper)
-    if (self%limitLowerExists) cdfLower=self%cumulative(limitLower)
-    if (self%limitUpperExists) cdfUpper=self%cumulative(limitUpper)
     if (self%limitLowerExists) then
        self%limitLower     =limitLower
        self%cdfAtLowerLimit=cdfLower
