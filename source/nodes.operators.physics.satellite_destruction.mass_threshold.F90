@@ -156,8 +156,9 @@ contains
     Trigger destruction of the satellite by setting the time until destruction to zero.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentBasic, treeNode
-    use :: Display         , only : displayBlue           , displayYellow     , displayGreen, displayReset
+    use :: Display         , only : displayGreen          , displayReset
     use :: Error           , only : Error_Report
+    use :: String_Handling , only : stringXMLFormat
     implicit none
     type            (treeNode              ), intent(inout), target   :: node
     double precision                        , intent(in   ), optional :: timeEnd
@@ -173,12 +174,12 @@ contains
           call satellite%timeOfMergingSet(basic%time())
        else
           ! Destruction really mean destruction. Set the destruction time to zero to trigger destruction to occur.
-          if (satellite%destructionTime() >= 0.0d0)                                                                                                                                                                                  &
-               & call Error_Report(                                                                                                                                                                                                  &
-               &                   'satellite was previously triggered for destruction - but still exists'                                                                                                              //char(10)// &
-               &                   displayGreen()//'  HELP:'//displayReset()//' destruction requires the following timestepper to be included:'                                                                         //char(10)// &
-               &                   '    <'//displayBlue()//'mergerTreeEvolveTimestep'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"satelliteDestruction"'//displayReset()//'>'          // &
-               &                   {introspection:location}                                                                                                                                                                          &
+          if (satellite%destructionTime() >= 0.0d0)                                                                                                                   &
+               & call Error_Report(                                                                                                                                   &
+               &                   'satellite was previously triggered for destruction - but still exists'                                               //char(10)// &
+               &                   displayGreen()//'  HELP:'//displayReset()//' destruction requires the following timestepper to be included:'//char(10)//char(10)// &
+               &                   stringXMLFormat('mergerTreeEvolveTimestep value="satelliteDestruction"/>')                                                      // &
+               &                   {introspection:location}                                                                                                           &
                &                  )
           call satellite%destructionTimeSet(0.0d0)
        end if

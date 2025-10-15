@@ -370,6 +370,7 @@ contains
     use    :: Node_Components           , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
     use    :: Numerical_Comparison      , only : Values_Agree
     use    :: Numerical_Constants_Math  , only : Pi
+    use    :: String_Handling           , only : stringXMLFormat
     !$ use :: OMP_Lib                   , only : OMP_Get_Thread_Num
     implicit none
     class           (mergerTreeOperatorParticulate), intent(inout) , target      :: self
@@ -631,7 +632,10 @@ contains
                    message='distribution function ['//trim(label)//'] exceeds estimated maximum ['
                    write (label,'(e12.6)') distributionFunctionMaximum
                    message=message//trim(label)//']'//char(10)
-                   message=message//displayGreen()//'HELP:'//displayReset()//' the issue is probably caused by an inaccurate estimation of the maximum of the distribution function from tabulated values. To resolve this issue, increase the parameter [energyDistributionPointsPerDecade].'//char(10)
+                   write (label,'(e12.6)') self%energyDistributionPointsPerDecade
+                   message=message//displayGreen()//'HELP:'//displayReset()//' the issue is probably caused by an inaccurate estimation of the maximum of the distribution function from tabulated values.'//char(10)//char(10)// &
+                        &                           'To resolve this issue, increase the parameter `energyDistributionPointsPerDecade` above its current value, highlighted below:'                        //char(10)//char(10)// &
+                        &                            stringXMLFormat('<mergerTreeOperator value="'//self%objectType(short=.true.)//'">**B<energyDistributionPointsPerDecade value="'//trim(adjustl(label))//'"/>**C</mergerTreeOperator>')
                    call Error_Report(message//{introspection:location})
                 end if
                 call lockSampling%set()
@@ -727,12 +731,14 @@ contains
           else
              particleIDs=particleIDs+particleCounts(typeIndex)
           end if
-          if (.not.firstNode.and.self%chunkSize == -1)                                                                                                        &
-               & call Error_Report(                                                                                                                           &
-               &                   var_str('can not write multiple halos to output with chunksize=-1')//char(10)//                                            &
-               &                   displayGreen()//' HELP: '//displayReset()//                                                                                &
-               &                   ' set <chunkSize value="N"/> where N is a non-zero value in the particulate merger tree operator in your parameter file'// &
-               &                   {introspection:location}                                                                                                   &
+          if (.not.firstNode.and.self%chunkSize == -1)                                                                                                                                        &
+               & call Error_Report(                                                                                                                                                           &
+               &                   var_str('can not write multiple halos to output with chunksize=-1')//char(10)//                                                                            &
+               &                   displayGreen()//' HELP: '//displayReset()//                                                                                                                &
+               &                   ' set the chunk size in your parameter file as highlighted below: '                                                                 //char(10)//char(10)// &
+               &                   stringXMLFormat('<mergerTreeOperator value="'//self%objectType(short=.true.)//'">**B<chunkSize value="N"/>**C</mergerTreeOperator>')//char(10)//char(10)// &
+               &                   'where N is a non-zero value'                                                                                                                           // &
+               &                   {introspection:location}                                                                                                                                   &
                &                  )
           particleGroup=outputFile%openGroup(groupName,'Group containing particle data for halos',chunkSize=self%chunkSize)
           call particleGroup%writeDataset(particlePosition,'Coordinates','Particle coordinates',appendTo=self%chunkSize /= -1,appendDimension=2)

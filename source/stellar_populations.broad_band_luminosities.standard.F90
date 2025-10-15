@@ -318,7 +318,7 @@ contains
     use            :: Instruments_Filters             , only : Filter_Extent               , Filter_Name                          , Filter_Response_Function
     use            :: Numerical_Constants_Astronomical, only : metallicitySolar
     use            :: Numerical_Integration           , only : GSL_Integ_Gauss15           , integrator
-    use            :: String_Handling                 , only : operator(//)
+    use            :: String_Handling                 , only : operator(//)                , stringXMLFormat
     use            :: Table_Labels                    , only : extrapolationTypeExtrapolate
     implicit none
     class           (stellarPopulationBroadBandLuminositiesStandard), intent(inout)                   :: self
@@ -556,7 +556,7 @@ contains
                                   call Error_Report(message//{introspection:location})
                                else
                                   write (label,'(e9.3)')       self%integrationToleranceRelative
-                                  message=         "integration of stellar populations failed"                                              //char(10)
+                                  message=         "integration of stellar populations failed"                                                  //char(10)
                                   message=message//displayGreen()
                                   message=message//"HELP: "
                                   message=message//displayReset()
@@ -565,18 +565,12 @@ contains
                                   write (label,'(e9.3)') 2.0d0*self%integrationToleranceRelative
                                   message=message//"      to "
                                   message=message//trim(adjustl(label))
-                                  message=message//      " if you can accept this lower accuracy."                                           //char(10)//char(10)
-                                  message=message//"      To do this, set in your parameter file:"                                           //char(10)//char(10)
-                                  message=message//'      <stellarPopulationBroadBandLuminosities value="standard">'                         //char(10)
-                                  message=message//'        <integrationToleranceRelative value="'
-                                  message=message//trim(adjustl(label))
-                                  message=message//      '"/>'                                                                               //char(10)
-                                  message=message//'      </stellarPopulationBroadBandLuminosities>'                                         //char(10)//char(10)
-                                  message=message//"      Alternative you can allow tolerances to be automatically degraded where"           //char(10)
-                                  message=message//"      needed to ensure convergence by setting in your parameter file:"                   //char(10)//char(10)
-                                  message=message//'      <stellarPopulationBroadBandLuminosities value="standard">'                         //char(10)
-                                  message=message//'        <integrationToleranceDegrade value="true"/>'                                     //char(10)
-                                  message=message//'      </stellarPopulationBroadBandLuminosities>'
+                                  message=message//      " if you can accept this lower accuracy."                                               //char(10)//char(10)
+                                  message=message//"      To do this, set the highlited option in your parameter file:"                          //char(10)//char(10)
+                                  message=message//stringXMLFormat('<stellarPopulationBroadBandLuminosities value="standard">**B<integrationToleranceRelative value="'//trim(adjustl(label))//'"/>**C</stellarPopulationBroadBandLuminosities>',indentInitial=6)//char(10)//char(10)
+                                  message=message//"      Alternatively you can allow tolerances to be automatically degraded where"             //char(10)
+                                  message=message//"      needed to ensure convergence by setting the highlighted option in your parameter file:"//char(10)//char(10)
+                                  message=message//stringXMLFormat('<stellarPopulationBroadBandLuminosities value="standard">**B<integrationToleranceDegrade value="true"/>**C</stellarPopulationBroadBandLuminosities>',indentInitial=6)//char(10)
                                  call Error_Report(message//{introspection:location})
                                end if
                             end if
