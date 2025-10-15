@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1760403013878,
+  "lastUpdate": 1760532802455,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.01; γ=1.5)": [
@@ -8927,6 +8927,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/91a2411eb1008148c3a068b35c67a47c875dc4df"
         },
         "date": 1760403013122,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.01; γ=1.5) - Likelihood - satelliteBoundMass",
+            "value": 57.20229486294781,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.01; γ=1.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": 29.56350148803499,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.01; γ=1.5) - Likelihood - satelliteVelocityMaximum",
+            "value": 23.03754786395062,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7dfdaeee0a348a8a71cfd363d7e92cb78d481f72",
+          "message": "Merge pull request #948 from galacticusorg/featBlackHoleHaloMassRelation\n\nAdd an analysis class to compute the black hole-halo mass relation",
+          "timestamp": "2025-10-14T23:52:17Z",
+          "tree_id": "c1f3755b95322b38e80b92c16deef94fe58f753b",
+          "url": "https://github.com/galacticusorg/galacticus/commit/7dfdaeee0a348a8a71cfd363d7e92cb78d481f72"
+        },
+        "date": 1760532801171,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
