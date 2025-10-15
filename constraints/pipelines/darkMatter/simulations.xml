@@ -86,7 +86,7 @@
 	  <powerSpectrumClass value="Symphony:CDM"          />
 	  <label              value="Large Magellanic Cloud"/>
 	  <transferFunction   value="CDM"                   />
-	  <realizations       value="Halo032 Halo059  Halo0662 Halo083 Halo088 
+	  <realizations       value="Halo032 Halo059  Halo6620 Halo083 Halo088
 		 		     Halo097 Halo104  Halo110  Halo202 Halo208
 				     Halo218 Halo296  Halo301  Halo303 Halo340 
 				     Halo374 Halo380  Halo391  Halo405 Halo440
@@ -95,7 +95,7 @@
 				     Halo721 Halo767  Halo802  Halo824 Halo850 
 				     Halo853 Halo914  Halo932  Halo933        "/>
 	  <hostHaloIDs               Halo032="6809161" Halo059="11451612"
-			 	     Halo0662="4714720" Halo083="2614218"
+			 	     Halo6620="4714720" Halo083="2614218"
 			 	     Halo088="5470740" Halo097="2572433"
 			 	     Halo104="2104392" Halo110="8920770"
 			 	     Halo202="9048851" Halo208="5571100"
