@@ -153,7 +153,7 @@ contains
        self%cdfAtUpperLimit=      1.0d0
     end if
     ! Validate.
-    if (self%limitUpper >= self%limitUpper) call Error_Report('`limitLower` < `limitUpper` is required'//{introspection:location})
+    if (self%limitLower >= self%limitUpper) call Error_Report('`limitLower` < `limitUpper` is required'//{introspection:location})
     return
   end function normalConstructorInternal
 
