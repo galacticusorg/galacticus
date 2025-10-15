@@ -102,6 +102,8 @@ else:
     treeRaw.create_dataset('x'                  ,data=x                  )
     treeRaw.create_dataset('y'                  ,data=y                  )
     treeRaw.create_dataset('z'                  ,data=z                  )
+    treeRaw.flush()
+    treeRaw.close()
 os.remove(pathName+"treeRaw.lock")
 
 # Convert units to Galacticus standards.
