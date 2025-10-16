@@ -142,7 +142,7 @@ contains
          <name>thresholdIsRatio</name>
          <source>parameters</source>
          <defaultValue>.true.</defaultValue>
-         <description>If true, the {\normalfont \ttfamily [massThreshold]} parameter is interpretted as a ratio with the virial mass of the host halo.</description>
+         <description>If true, the {\normalfont \ttfamily [massThreshold]} parameter is interpreted as a ratio with the virial mass of the host halo.</description>
        </inputParameter>
        !!]
     end if
