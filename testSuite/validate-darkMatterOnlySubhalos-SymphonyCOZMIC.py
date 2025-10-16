@@ -48,6 +48,6 @@ if status.returncode != 0:
     sys.exit()
 
 # Extract and validate the likelihoods.
-validate.extract("outputs/validate_darkMatterOnlySubhalos_"+suite+"_MilkyWay_resolution"+resolution+"_"+simulationTrue+":MPI0000.hdf5","Dark Matter Only Subhalos ("+suite+" "+simulationTrue+" resolution "+resolution+" Milky Way)","darkMatterOnlySubhalos"+suite+resolution+simulation+"MilkyWay","testSuite/parameters/validate_darkMatterOnlySubhalos_"+suite+"_resolution"+resolution+"_"+simulationTrue+".xml")
+validate.extract("outputs/validate_darkMatterOnlySubhalos_"+suite+"_MilkyWay_resolution"+resolution+"_"+simulationTrue+".hdf5","Dark Matter Only Subhalos ("+suite+" "+simulationTrue+" resolution "+resolution+" Milky Way)","darkMatterOnlySubhalos"+suite+resolution+simulation+"MilkyWay","testSuite/parameters/validate_darkMatterOnlySubhalos_"+suite+"_resolution"+resolution+"_"+simulationTrue+".xml")
 
 print("SUCCESS: dark matter-only subhalos validation model ("+suite+" "+simulationTrue+" resolution "+resolution+" Milky Way)")
