@@ -42,7 +42,7 @@ if not (suite == "Symphony" and resolution == "X1" and simulation == "CDM"):
     parameterFiles += " testSuite/parameters/validate_darkMatterOnlySubhalos_"+suite+"_resolution"+resolution+"_"+simulationTrue+".xml"
 
 # Run the validation model.
-status = subprocess.run("cd ..; mpirun --n 1 ./Galacticus.exe "+parameterFiles,shell=True)
+status = subprocess.run("cd ..; ./Galacticus.exe "+parameterFiles,shell=True)
 if status.returncode != 0:
     print("FAILED: dark matter-only subhalos validation model ("+suite+"; resolution"+resolution+"; "+simulationTrue+") failed to run")
     sys.exit()
