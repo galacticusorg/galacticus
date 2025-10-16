@@ -829,7 +829,8 @@ jobs:
     uses: ./.github/workflows/testModel.yml
     with:
       install: python3 python3-h5py python3-numpy python3-git
-      file: validate-darkMatterOnlySubhalos-SymphonyCOZMIC.py Symphony ${{ matrix.resolution }} CDM
+      file: validate-darkMatterOnlySubhalos-SymphonyCOZMIC.py
+      options: "Symphony ${{ matrix.resolution }} CDM"
       artifact: galacticus-exec-dmo
       runPath: ./testSuite
       cacheData: 0
@@ -847,7 +848,8 @@ jobs:
     uses: ./.github/workflows/testModel.yml
     with:
       install: python3 python3-h5py python3-numpy python3-git
-      file: validate-darkMatterOnlySubhalos-SymphonyCOZMIC.py COZMIC ${{ matrix.resolution }} ${{ matrix.simulation }}
+      file: validate-darkMatterOnlySubhalos-SymphonyCOZMIC.py
+      options: "COZMIC ${{ matrix.resolution }} ${{ matrix.simulation }}"
       artifact: galacticus-exec-dmo
       runPath: ./testSuite
       cacheData: 0
