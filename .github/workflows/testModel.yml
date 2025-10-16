@@ -150,11 +150,11 @@ jobs:
            else
             ./Galacticus.exe ${{ inputs.file }} 2>&1 | tee test.log
            fi
-          elif [[ ${{ inputs.file }} =~ \.pl$) ]]; then
+          elif [[ ${{ inputs.file }} =~ \.pl$ ]]; then
            cd ${{ inputs.runPath }}
            chmod u=wrx ./${{ inputs.file }}
            ./${{ inputs.file }} ${{ inputs.options }} 2>&1 | tee test.log
-          elif [[ ${{ inputs.file }} =~ \.py$) ]]; then
+          elif [[ ${{ inputs.file }} =~ \.py$ ]]; then
            if [[ ${{ inputs.runner }} =~ ^macos ]]; then
             echo Python tests not supported on MacOS
             false
