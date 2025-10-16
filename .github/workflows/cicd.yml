@@ -854,7 +854,7 @@ jobs:
       runPath: ./testSuite
       cacheData: 0
       uploadFile: ./testSuite/outputs/*.json
-      uploadName: validate-darkMatterOnlySubhalosCOZMIC{{ matrix.simulation }}MilkyWay${{ matrix.resolution }}
+      uploadName: validate-darkMatterOnlySubhalosCOZMIC${{ matrix.simulation }}MilkyWay${{ matrix.resolution }}
     secrets: inherit
   Validate-Milky-Way-Model:
     needs: Build-Executable-Linux
