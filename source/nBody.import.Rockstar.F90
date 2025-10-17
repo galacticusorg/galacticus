@@ -30,6 +30,7 @@ Implements an N-body data importer for Rockstar files.
    <description>Enumeration of columns in Rockstar output files.</description>
    <indexing>0</indexing>
    <visibility>public</visibility>
+   <decodeFunction>yes</decodeFunction>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <entry label="scale"                          />
@@ -89,6 +90,10 @@ Implements an N-body data importer for Rockstar files.
    <entry label="Ay500c"                         />
    <entry label="Az500c"                         />
    <entry label="TU"                             />
+   <entry label="M_pe_Behroozi"                  />
+   <entry label="M_pe_Diemer"                    />
+   <entry label="Halfmass_Radius"                />
+   <entry label="RVmax"                          />
   </enumeration>
   !!]
 
@@ -255,7 +260,11 @@ contains
                &  rockstarColumnAx500c                         %ID, &
                &  rockstarColumnAy500c                         %ID, &
                &  rockstarColumnAz500c                         %ID, &
-               &  rockstarColumnTU                             %ID  &
+               &  rockstarColumnTU                             %ID, &
+               &  rockstarColumnM_pe_Behroozi                  %ID, &
+               &  rockstarColumnM_pe_Diemer                    %ID, &
+               &  rockstarColumnHalfmass_Radius                %ID, &
+               &  rockstarColumnRVmax                          %ID  &
                & )
              self%readColumnsRealCount      =self%readColumnsRealCount   +1
              self%readColumnsType        (i)=columnTypeReal
@@ -330,8 +339,8 @@ contains
     type            (nbodyPropertiesRealList   )               , dimension( :    ), allocatable :: propertiesReal
     type            (nbodyPropertiesIntegerList)               , dimension( :    ), allocatable :: propertiesInteger
     double precision                                           , dimension( :  ,:), pointer     :: position         , velocity
-    double precision                                           , dimension(0:56  )              :: columnsReal
-    integer         (c_size_t                  )               , dimension(0:56  )              :: columnsInteger
+    double precision                                           , dimension(0:60  )              :: columnsReal
+    integer         (c_size_t                  )               , dimension(0:60  )              :: columnsInteger
     type            (varying_string            )               , dimension( :    ), allocatable :: columnNames
     integer         (c_size_t                  )                                                :: countHalos       , countTrees, &
          &                                                                                         i
@@ -383,12 +392,18 @@ contains
              call String_Split_Words(columnNames,line)
              if      (columnNames(36) == "Rs_Klypin"      ) then
                 columnMap=1
-             else if (columnNames(36) == "Tidal_Force(35)") then
-                columnMap=2
              else if (columnNames(36) == "Mvir_all"       ) then
-                columnMap=3
+                columnMap=2
+             else if (columnNames(36) == "Tidal_Force(35)") then
+                if      (size(columnNames) == 60) then
+                   columnMap=3
+                else if (size(columnNames) == 61) then
+                   columnMap=4
+                else
+                   call Error_Report('unrecognized column layout'//{introspection:location})
+                end if
              else
-                call Error_Report('unrecognized column layout'//{introspection:location})
+                call Error_Report   ('unrecognized column layout'//{introspection:location})
              end if
              ! Adjust column numbers to be read.
              select case (columnMap)
@@ -399,18 +414,52 @@ contains
                         &  .or.                                              &
                         &   self%readColumns(j) == rockstarColumnTidal_ID    &
                         & ) call Error_Report('tidal properties not available'//{introspection:location})
-                   if (self%readColumns(j)%ID > 34)                            &
+                   if (self%readColumns(j)%ID > 34)                  &
                         & call self%readColumnsMapped(j)%subtract(2)
+                   if (self%readColumnsMapped(j)%ID > 54)                                                                      &
+                        & call Error_Report(                                                                                   &
+                        &                   "property '"                                                                    // &
+                        &                   enumerationRockstarColumnDecode(self%readColumnsMapped(j),includePrefix=.false.)// &
+                        &                   "' not available"                                                               // &
+                        &                   {introspection:location}                                                           &
+                        &                  )
                 end do
-             case (3)
+             case (2)
                 do j=1,size(self%readColumns)
                    if     (                                                  &
                         &   self%readColumns(j) == rockstarColumnTidal_Force &
                         &  .or.                                              &
                         &   self%readColumns(j) == rockstarColumnTidal_ID    &
                         & ) call Error_Report('tidal properties not available'//{introspection:location})
-                   if (self%readColumns(j)%ID > 33)                            &
+                   if (self%readColumns(j)%ID > 33)                  &
                         & call self%readColumnsMapped(j)%subtract(3)
+                   if (self%readColumnsMapped(j)%ID > 54)                                                                      &
+                        & call Error_Report(                                                                                   &
+                        &                   "property '"                                                                    // &
+                        &                   enumerationRockstarColumnDecode(self%readColumnsMapped(j),includePrefix=.false.)// &
+                        &                   "' not available"                                                               // &
+                        &                   {introspection:location}                                                           &
+                        &                  )
+                end do
+             case (3)
+                do j=1,size(self%readColumns)
+                   if (self%readColumnsMapped(j)%ID > 59)                                                                      &
+                        & call Error_Report(                                                                                   &
+                        &                   "property '"                                                                    // &
+                        &                   enumerationRockstarColumnDecode(self%readColumnsMapped(j),includePrefix=.false.)// &
+                        &                   "' not available"                                                               // &
+                        &                   {introspection:location}                                                           &
+                        &                  )
+                end do
+             case (4)
+                do j=1,size(self%readColumns)
+                   if (self%readColumnsMapped(j)%ID > 60)                                                                      &
+                        & call Error_Report(                                                                                   &
+                        &                   "property '"                                                                    // &
+                        &                   enumerationRockstarColumnDecode(self%readColumnsMapped(j),includePrefix=.false.)// &
+                        &                   "' not available"                                                               // &
+                        &                   {introspection:location}                                                           &
+                        &                  )
                 end do
              end select
           end if
@@ -431,6 +480,17 @@ contains
                         &                          columnsInteger(27:34), &
                         &                          columnsReal   (35:54)
                 case (2)
+                   ! Older layout with "Mvir_all" in column 35.
+                   read (line,*,ioStat=lineStatus) columnsReal   ( 0   ), &
+                        &                          columnsInteger( 1   ), &
+                        &                          columnsReal   ( 2   ), &
+                        &                          columnsInteger( 3: 8), &
+                        &                          columnsReal   ( 9:13), &
+                        &                          columnsInteger(14:14), &
+                        &                          columnsReal   (15:26), &
+                        &                          columnsInteger(27:33), &
+                        &                          columnsReal   (35:54)
+                case (3)
                    ! Newer layout with "Tidal_Force" in column 35.
                    read (line,*,ioStat=lineStatus) columnsReal   ( 0   ), &
                         &                          columnsInteger( 1   ), &
@@ -442,9 +502,9 @@ contains
                         &                          columnsInteger(27:34), &
                         &                          columnsReal   (35   ), &
                         &                          columnsInteger(36   ), &
-                        &                          columnsReal   (37:56)
-                case (3)
-                   ! Older layout with "Mvir_all" in column 35.
+                        &                          columnsReal   (37:59)
+                case (4)
+                   ! Newer layout with "Tidal_Force" in column 35 and RVmax in column 60.
                    read (line,*,ioStat=lineStatus) columnsReal   ( 0   ), &
                         &                          columnsInteger( 1   ), &
                         &                          columnsReal   ( 2   ), &
@@ -452,8 +512,10 @@ contains
                         &                          columnsReal   ( 9:13), &
                         &                          columnsInteger(14:14), &
                         &                          columnsReal   (15:26), &
-                        &                          columnsInteger(27:33), &
-                        &                          columnsReal   (35:54)
+                        &                          columnsInteger(27:34), &
+                        &                          columnsReal   (35   ), &
+                        &                          columnsInteger(36   ), &
+                        &                          columnsReal   (37:60)
                 case default
                    call Error_Report('unknown column layout'//{introspection:location})
                 end select
@@ -578,6 +640,8 @@ contains
                 columnName='virialRatio'
                 propertiesReal(jReal)%property=+propertiesReal(jReal)                     %property                           &
                      &                         *2.0d0
+             case (rockstarColumnRVmax     %ID)
+                columnName='radiusVelocityMaximum'
              end select
              if      (self%havePosition.and.self%readColumns(j) == rockstarColumnX ) then
                 position(1,:)=propertiesReal(jReal)%property
