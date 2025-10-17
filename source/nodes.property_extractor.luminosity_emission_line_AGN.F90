@@ -363,11 +363,13 @@ contains
     ! Extract all required properties.
     abundancesGas  =(disk%abundancesGas()+spheroid%abundancesGas())
     massGas        =(disk%massGas      ()+spheroid%massGas      ())
-    radiusGalaxy   =(disk%radius       ()+spheroid%radius       ())*megaParsec ! SI units.
+    radiusGalaxy   =(disk%radius       ()+spheroid%radius       ())
     ! Determine if component is physically reasonable.
     isPhysical= massGas      > massMinimum   &
          &     .and.                         &
-         &      radiusGalaxy > radiusMinimum             
+         &      radiusGalaxy > radiusMinimum
+    ! Convert radii to SI units.
+    radiusGalaxy=radiusGalaxy*megaParsec
     ! Compute the logarithmic metallicity of the gas in each component in Solar units.
     call abundancesGas%massToMassFraction(massGas)
     if (isPhysical) then
@@ -385,7 +387,7 @@ contains
          &                           *  frequency10p00Microns**                                  -2.50d0  & ! ⎭ 
          &                           *  frequency10p00Microns**                                  +3.00d0  & ! ⎫ Integral of ν²...
          &                           /                                                            3.00d0  & ! ⎭ ...from 0μm to 10.0μm.
-         &                           +  frequency0p250Microns**(self%indexSpectralShortWavelength+0.25d0) & ! } Match normalization of piecewise-power-law at 0.25μm.
+         &                           +  frequency0p250Microns**(self%indexSpectralShortWavelength+0.50d0) & ! } Match normalization of piecewise-power-law at 0.25μm.
          &                           *(                                                                   & ! ⎫ Integral of ν^{-0.5}...
          &                             +frequency0p250Microns**                                   +0.5d0  & ! ⎪ ...from 0.250μm...
          &                             -frequency10p00Microns**                                   +0.5d0  & ! ⎬ ...to 10.0μm.
@@ -429,7 +431,7 @@ contains
          &               )                                                          &
          &              /                         self%indexSpectralShortWavelength
     ! Calculate the Strömgren radius (equation 3 of Feltre, Gutkin & Charlot (2016; MNRAS; 456; 3354;
-    ! https://ui.adsabs.harvard.edu/abs/2016MNRAS.456.3354F).
+    ! https://ui.adsabs.harvard.edu/abs/2016MNRAS.456.3354F), in m.
     radiusStromgren=+(                                   &
          &            +3.0d0                             &
          &            *rateIonizingPhotons               &
