@@ -469,7 +469,7 @@ sub stepExtractHalos {
 			# Modify file names.
 			$parameters->{'outputFileName'}                                           ->{'value'} = $entry->{'path'}."alwaysIsolated_subVolumeGLC"                     .$i."_".$j."_".$k.".hdf5";
 			$parameters->{'nbodyImporter' }                        ->{'fileName'     }->{'value'} = $entry->{'path'}."alwaysIsolated_subVolume"                        .$i."_".$j."_".$k.".hdf5";
-			$parameters->{'nbodyImporter' }                        ->{'properties'   }->{'value'} = "particleID isFlyby expansionFactor massVirial";
+			$parameters->{'nbodyImporter' }                        ->{'properties'   }->{'value'} = "particleID isFlyby expansionFactor massVirial radiusVirial radiusScale";
 			$parameters->{'nbodyOperator' }->{'nbodyOperator'}->[0]->{'propertyNames'}->{'value'} = "isFlyby expansionFactor";
 			$parameters->{'nbodyOperator' }->{'nbodyOperator'}->[0]->{'rangeLow'     }->{'value'} = "0 ".$expansionFactorLow ;
 			$parameters->{'nbodyOperator' }->{'nbodyOperator'}->[0]->{'rangeHigh'    }->{'value'} = "0 ".$expansionFactorHigh;
