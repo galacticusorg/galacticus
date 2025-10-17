@@ -87,8 +87,8 @@ my %suites =
 	     {
 		 preprocess        =>
 		     [
-		      \&symphonyPreProcessExtractHalosLocate       ,
-		      \&symphonyPreProcessExtractHaosUncontaminated,
+		      \&symphonyPreProcessExtractHalosLocate        ,
+		      \&symphonyPreProcessExtractHalosUncontaminated,
 		     ],
 		 processParameters => \&symphonyProcessExtractHalos,
 		 postprocess       =>
