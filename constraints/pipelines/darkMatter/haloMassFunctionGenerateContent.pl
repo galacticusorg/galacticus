@@ -452,16 +452,7 @@ my $configCloser = fill_in_string(<<'CODE', PACKAGE => 'content');
       <acceptedStateCount value="100"/>
     </posteriorSampleState>
 
-    <posteriorSampleConvergence value="gelmanRubin">
-      <thresholdHatR              value=" 1.20"/>
-      <burnCount                  value="200"  />
-      <testCount                  value=" 20"  />
-      <outlierCountMaximum        value=" 3"   />
-      <outlierSignificance        value=" 0.95"/>
-      <outlierLogLikelihoodOffset value="60"   />
-      <reportCount                value=" 1"   />
-      <logFileName                value="{$outputDirectory}haloMassFunctionConvergence.log"/>
-    </posteriorSampleConvergence>
+    <posteriorSampleConvergence value="never"/>
     
     <posteriorSampleStoppingCriterion value="correlationLength">
       <stopAfterCount value="1000"/>
