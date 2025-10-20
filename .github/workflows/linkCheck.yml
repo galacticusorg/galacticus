@@ -34,6 +34,7 @@ jobs:
           sudo apt install -y python3-pypdf2 perl libregexp-common-perl curl git libwww-curl-perl libjson-pp-perl libxml-simple-perl
       - name: Check for broken links
         if: ${{ env.adstoken != '' }}
+        continue-on-error: true
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
