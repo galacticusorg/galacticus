@@ -85,7 +85,7 @@ contains
     return
   end function treeConstructionInternal
 
-  logical function treeConstructionNext(self,node)
+  recursive logical function treeConstructionNext(self,node)
     !!{
     This function will update the given {\normalfont \ttfamily node} to the next node which should be visited in a tree to
     perform a walk suitable for trees under construction.
@@ -100,39 +100,44 @@ contains
        return
     end if
     treeConstructionNext=.true.
-    if (associated(self%node)) then
-       if (associated(self%node%firstChild)) then
-          ! Move to the primary child if one exists.
+    if (.not.associated(self%node)) then
+       ! Initial node. This should be the base node, unless that already has children, in which case descend following normal
+       ! rules.
+       self%node => self%tree%nodeBase
+       if (.not.associated(self%node%firstChild)) then
+          node => self%node
+          return
+       end if
+    end if
+    if (associated(self%node%firstChild)) then
+       ! Move to the primary child if one exists.
+       do while (associated(self%node%firstChild))
+          self%node => self%node%firstChild
+       end do
+    else
+       if (associated(self%node%sibling)) then
+          self%node => self%node%sibling
           do while (associated(self%node%firstChild))
              self%node => self%node%firstChild
           end do
        else
-          if (associated(self%node%sibling)) then
-             self%node => self%node%sibling
-             do while (associated(self%node%firstChild))
-                self%node => self%node%firstChild
-             end do
-          else
-             do while (associated(self%node))
-                if (associated(self%node%parent)) then
-                   self%node => self%node%parent
-                   if (associated(self%node%sibling)) then
-                      self%node => self%node%sibling
-                      do while (associated(self%node%firstChild))
-                         self%node => self%node%firstChild
-                      end do
-                      exit
-                   end if
-                else
-                   self%node            => null()
-                   self%nodesRemain_    = .false.
-                   treeConstructionNext = .false.
+          do while (associated(self%node))
+             if (associated(self%node%parent)) then
+                self%node => self%node%parent
+                if (associated(self%node%sibling)) then
+                   self%node => self%node%sibling
+                   do while (associated(self%node%firstChild))
+                      self%node => self%node%firstChild
+                   end do
+                   exit
                 end if
-             end do
-          end if
+             else
+                self%node            => null()
+                self%nodesRemain_    = .false.
+                treeConstructionNext = .false.
+             end if
+          end do
        end if
-    else
-       self%node => self%tree%nodeBase
     end if
     node => self%node
     return
