@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Change resolution to be sufficient for comparisons to the Symphony (and COZMIC) resolution X64 simulations -->
+<changes>
+
+  <!-- Set mass resolution to a factor 3 below the 300 particle limit for Symphony subhalo masses. -->
+  <change type="update" path="mergerTreeMassResolution/massResolution" value="6.2e5"/>
+
+</changes>

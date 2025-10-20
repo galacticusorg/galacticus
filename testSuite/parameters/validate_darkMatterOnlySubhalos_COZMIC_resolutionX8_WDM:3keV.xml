@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A set of changes to modify CDM reference parameter files to use a warm dark matter particle. -->
+<changes>
+  <!-- Set the WDM particle mass. -->
+  <change type="update" path="darkMatterParticle/mass" value="3.0"/>
+  <!-- Set the host halo masses -->
+  <change type="update" path="mergerTreeBuildMasses/replicationCount" value="4"/>
+  <change type="update" path="mergerTreeBuildMasses/mergerTreeBuildMasses/fileName" value="%DATASTATICPATH%/darkMatter/hostHaloMasses_COZMIC_MilkyWay_resolutionX8_WDM:3keV_z0.000.hdf5"/>
+  <!-- Set a suitable name for the output file. -->
+  <change type="update" path="outputFileName" value="testSuite/outputs/validate_darkMatterOnlySubhalos_COZMIC_MilkyWay_resolutionX8_WDM:3keV.hdf5"/>
+  <!-- Set the correct target datasets to use in analyses. -->
+  <change type="update" path="outputAnalysis/outputAnalysis[@value='subhaloMassFunction']/fileName"       value="%DATASTATICPATH%/darkMatter/subhaloDistributions_COZMIC_MilkyWay_resolutionX8_WDM:3keV_z0.000.hdf5"/>
+  <change type="update" path="outputAnalysis/outputAnalysis[@value='subhaloRadialDistribution']/fileName" value="%DATASTATICPATH%/darkMatter/subhaloDistributions_COZMIC_MilkyWay_resolutionX8_WDM:3keV_z0.000.hdf5"/>
+  <change type="update" path="outputAnalysis/outputAnalysis[@value='subhaloVMaxVsMass']/fileName"         value="%DATASTATICPATH%/darkMatter/subhaloDistributions_COZMIC_MilkyWay_resolutionX8_WDM:3keV_z0.000.hdf5"/>
+</changes>
