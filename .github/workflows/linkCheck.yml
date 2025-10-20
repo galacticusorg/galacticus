@@ -34,6 +34,7 @@ jobs:
           sudo apt install -y python3-pypdf2 perl libregexp-common-perl curl git libwww-curl-perl libjson-pp-perl libxml-simple-perl
       - name: Check for broken links
         if: ${{ env.adstoken != '' }}
+        id: check_links
         continue-on-error: true
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -48,4 +49,8 @@ jobs:
         if: steps.check_files.outputs.files_exists == 'true'
         run: |
           cat badURLs.md >> $GITHUB_STEP_SUMMARY
-      - run: echo "This job's status is ${{ job.status }}."
+      - name: Report job failure if broken links were found
+        if: steps.check_links.outcome == 'failure'
+        run: |
+          echo "Broken links found - marking the job as failing."
+          exit 1
