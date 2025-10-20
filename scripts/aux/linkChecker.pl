@@ -81,7 +81,7 @@ close($record);
 # Output any bad URLs.
 if ( scalar(@badURLs) > 0 ) {
     open(my $logFile,">",$logFileName);
-    print $logFile "# :warning: Watched files have changed :warning:\n";
+    print $logFile "# :warning: Broken links found :warning:\n";
     foreach my $badURL ( @badURLs ) {
 	print $logFile "* [`".$badURL."`](".$badURL.")\n";
     }
