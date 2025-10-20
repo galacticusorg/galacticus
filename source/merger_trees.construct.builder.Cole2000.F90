@@ -398,6 +398,9 @@ contains
     treeWalkerIsolated=mergerTreeWalkerIsolatedNodes(tree)
     do while (treeWalkerIsolated%next(nodeWork))
        call self%convertCriticalOverdensityNode(nodeWork)
+       ! Ensure that the node index is set to the largest value present in the tree so far. This ensures that node indices are not
+       ! repeated.
+       self%nodeIndex=max(self%nodeIndex,nodeWork%index())
     end do
     ! Determine our worker number.
     numberWorker=0
@@ -621,7 +624,7 @@ contains
              if (accretionFraction < 0.0d0) then
                 ! Terminate the branch with a final node.
                 !$omp atomic
-                self_%nodeIndex          =  self_%nodeIndex+1
+                self_%nodeIndex    =  self_%nodeIndex+1
                 nodeNew1           => treeNode      (self_%nodeIndex        ,nodeCurrent%hostTree)
                 basicNew1          => nodeNew1%basic(autoCreate=.true.     )
                 ! Create a node at the mass resolution.
