@@ -168,6 +168,7 @@ contains
     use :: Star_Formation_Rates_Disks                , only : starFormationRateDisksClass
     use :: Star_Formation_Rates_Spheroids            , only : starFormationRateSpheroidsClass
     use :: Star_Formation_Rates_Nuclear_Star_Clusters, only : starFormationRateNuclearStarClustersClass
+    use :: String_Handling                           , only : stringXMLFormat
     implicit none
     type            (outputAnalysisMassMetallicityBlanc2019             )                                :: self
     double precision                                                     , intent(in   )                 :: randomErrorMinimum                                      , randomErrorMaximum                                            , &
@@ -389,8 +390,8 @@ contains
          & call Error_Report(                                                                                                               &
          &                   'oxygen abundance is required for this analysis'                                        //char(10)//           &
          &                   displayGreen()//'HELP:'//displayReset()//' you can track oxygen abundance by including:'//char(10)//char(10)// &
-         &                   '         <elementsToTrack value="O"/>'                                                 //char(10)//char(10)// &
-         &                   '      in your parameter file'                                                          //                     &
+         &                   stringXMLFormat('<elementsToTrack value="O"/>',indentInitial=6)                         //char(10)//char(10)// &
+         &                   ' in your parameter file'                                                                                   // &
          &                   {introspection:location}                                                                                       &
          &                  )
     ! Create an ISM metallicity weight property extractor.

@@ -20,7 +20,7 @@
 !+    Contributions to this file made by: Sachi Weerasooriya, Andrew Benson
 
   !!{
-  Implementation of a mass function for HII regions following the model of \cite{rosolowsky_giant_2021}.
+  Implementation of a stellar mass function for HII regions following the model of \cite{rosolowsky_giant_2021}.
   !!}
 
   !![
@@ -134,7 +134,7 @@ contains
     <constructorAssign variables="massMinimum, massMaximum, massCutOff, exponent, epsilon"/>
     !!]
 
-    ! Convert from GMC masses to stellar masses.
+    ! Convert from giant molecular cloud masses to stellar masses.
     self%massStellarMinimum=massMinimum*epsilon
     self%massStellarMaximum=massMaximum*epsilon
     self%massStellarCutOff =massCutOff *epsilon

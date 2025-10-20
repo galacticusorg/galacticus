@@ -272,13 +272,14 @@ contains
     Internal constructor for the file transfer function class.
     !!}
     use :: Cosmology_Parameters   , only : cosmologyParametersSimple
-    use :: Display                , only : displayMessage                  , displayMagenta                    , displayReset, displayGreen, &
-         &                                 displayYellow                   , displayBlue
+    use :: Display                , only : displayReset                    , displayGreen                      , displayMagenta, &
+         &                                 displayMessage
     use :: Error                  , only : Error_Report
     use :: HDF5_Access            , only : hdf5Access
     use :: IO_HDF5                , only : hdf5Object
     use :: Numerical_Comparison   , only : Values_Differ
     use :: Numerical_Interpolation, only : GSL_Interp_cSpline
+    use :: String_Handling        , only : stringXMLFormat
     use :: Table_Labels           , only : enumerationExtrapolationTypeType, enumerationExtrapolationTypeEncode
     implicit none
     class           (transferFunctionFile            ), intent(inout)             :: self
@@ -349,13 +350,13 @@ contains
        if (self%acceptNegativeValues) then
           transfer=abs(transfer)
        else
-          call Error_Report(                                                                                                                                                                  &
-          &                 'tabulated transfer function contains points at which T(k) < 0 - all points must be positive'                                           //char(10)             // &
-          &                 displayGreen()//"HELP: "//displayReset()//'set '                                                                                                               // &
-          &                 '<'//displayBlue()//'acceptNegativeValues'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"true"'//displayReset()//'/> '// &
-          &                 'to interpolate in |T(k)| such that negative values are acceptable'                                                                                            // &
-          &                 {introspection:location}                                                                                                                                          &
-          &                 )
+          call Error_Report(                                                                                                                                                                                           &
+               &            'tabulated transfer function contains points at which T(k) < 0 - all points must be positive'                                                                       //char(10)//           &
+               &            displayGreen()//"HELP: "//displayReset()//'set the highlighted option in your input parameter file as shown below:'                                                 //char(10)//char(10)// &
+               &            stringXMLFormat('<transferFunction value="'//char(self%objectType(short=.true.))//'">**B<acceptNegativeValues value="true"/>**C</transferFunction>',indentInitial=6)//char(10)//char(10)// &
+               &            'to interpolate in |T(k)| such that negative values are acceptable'                                                                                                 //                     &
+               &            {introspection:location}                                                                                                                                                                   &
+               &           )
        end if
     end if
     ! Construct the tabulated transfer function.

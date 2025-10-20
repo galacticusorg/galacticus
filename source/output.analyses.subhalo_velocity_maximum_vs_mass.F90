@@ -43,7 +43,8 @@
      integer         (c_size_t                  )          :: countMasses
      type            (varying_string            )          :: fileName
    contains
-     final :: subhaloVMaxVsMassDestructor
+     final     ::                  subhaloVMaxVsMassDestructor
+     procedure :: logLikelihood => subhaloVMaxVsMassLogLikelihood
   end type outputAnalysisSubhaloVMaxVsMass
 
   interface outputAnalysisSubhaloVMaxVsMass
@@ -396,3 +397,42 @@ contains
     !!]
     return
   end subroutine subhaloVMaxVsMassDestructor
+
+  double precision function subhaloVMaxVsMassLogLikelihood(self) result(logLikelihood)
+    !!{
+    Return the log-likelihood of a {\normalfont \ttfamily outputAnalysisSubhaloVMaxVsMass} output analysis.
+    !!}
+    use :: Linear_Algebra              , only : assignment(=), matrix, operator(*), vector
+    use :: Interface_GSL               , only : GSL_Success
+    use :: Models_Likelihoods_Constants, only : logImprobable
+    implicit none
+    class           (outputAnalysisSubhaloVMaxVsMass), intent(inout)                 :: self
+    double precision                                 , allocatable  , dimension(:,:) :: velocityMeanCovariance
+    double precision                                 , allocatable  , dimension(:  ) :: velocityMeanDifference
+    type            (vector                         )                                :: residual
+    type            (matrix                         )                                :: covariance
+    integer                                                                          :: i                     , j     , &
+         &                                                                              countNonZero          , status
+
+    ! Count the number of non-zero bins.
+    countNonZero=count(self%meanValueTarget > 0.0d0)
+    allocate(velocityMeanDifference(countNonZero             ))
+    allocate(velocityMeanCovariance(countNonZero,countNonZero))
+    ! Populate reduced bins.
+    velocityMeanDifference=0.0d0
+    velocityMeanCovariance=0.0d0
+    j=0
+    do i=1,size(self%meanValueTarget)
+       if (self%meanValueTarget(i) <= 0.0d0) cycle
+       j=j+1
+       velocityMeanDifference(j  )=self%meanValue     (i  )-self%meanValueTarget     (i  )
+       velocityMeanCovariance(j,j)=self%meanCovariance(i,i)+self%meanCovarianceTarget(i,i)
+    end do
+    ! Construct residual vector and covariance matrix.
+    residual  =vector(velocityMeanDifference)
+    covariance=matrix(velocityMeanCovariance)
+    ! Compute the log-likelihood.
+    logLikelihood=-0.5d0*covariance%covarianceProduct(residual,status)
+    if (status /= GSL_Success)logLikelihood=logImprobable
+    return
+  end function subhaloVMaxVsMassLogLikelihood

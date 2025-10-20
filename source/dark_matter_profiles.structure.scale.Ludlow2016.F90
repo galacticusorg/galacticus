@@ -209,6 +209,7 @@ contains
     use :: Numerical_Comparison                , only : Values_Agree
     use :: Numerical_Constants_Math            , only : Pi
     use :: Root_Finder                         , only : rangeExpandMultiplicative          , rangeExpandSignExpectNegative , rangeExpandSignExpectPositive
+    use :: String_Handling                     , only : stringXMLFormat
     implicit none
     class           (darkMatterProfileScaleRadiusLudlow2016), intent(inout), target       :: self
     type            (treeNode                              ), intent(inout), target       :: node
@@ -377,14 +378,16 @@ contains
                    timeFormation=states(stateCount)%finder%find(rootGuess= timeFormationPrevious                     ,status=status)
                 end if
              end if
-             if (status /= errorStatusSuccess)                                                                                                                        &
-                  & call Error_Report(                                                                                                                                &
-                  &                   'solving for formation time failed'//char        (10)                                                                        // &
-                  &                   displayGreen()//' HELP:'           //displayReset(  )                                                                        // &
-                  &                   ' if you are using <darkMatterProfileScaleRadius value="concentration"> as the fall back method for setting scale radii,'    // &
-                  &                   ' consider setting <useMeanConcentration value="true"/> in the fall-back method - scatter in the concentration-mass relation'// &
-                  &                   ' can lead to poor convergence here'                                                                                         // &
-                  &                   {introspection:location}                                                                                                        &
+             if (status /= errorStatusSuccess)                                                                                                                                                                                &
+                  & call Error_Report(                                                                                                                                                                                        &
+                  &                   'solving for formation time failed'//char        (10)                                                                                                            //                     &
+                  &                   displayGreen()//' HELP:'           //displayReset(  )                                                                                                            //                     &
+                  &                   ' if you are using '//stringXMLFormat('<darkMatterProfileScaleRadius value="concentration"/>')                                                                   //char(10)//           &
+                  &                   ' as the fall back method for setting scale radii, consider using mean concentrations in the fall-back method'                                                   //char(10)//           &
+                  &                   ' (as scatter in the concentration-mass relation can lead to poor convergence here) by setting the highlighted'                                                  //char(10)//           &
+                  &                   ' option in your parameter file as shown below:'                                                                                                                 //char(10)//char(10)// &
+                  &                    stringXMLFormat('<darkMatterProfileScaleRadius value="concentration">**B<useMeanConcentration value="true"/>**C</darkMatterProfileScaleRadius>',indentInitial=3)//                     &
+                  &                   {introspection:location}                                                                                                                                                                &
                   &                  )
              ! If requested, check for possible earlier formation times by simply stepping through trial times and finding the
              ! earliest at which the required mass threshold is reached. This is used for cases where the cumulative mass history

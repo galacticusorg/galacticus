@@ -54,9 +54,9 @@
      double precision                                                              :: negativeBinomialScatterFractional          , countFailures                               , &
           &                                                                           radiusFractionMinimum                      , radiusFractionMaximum                       , &
           &                                                                           time                                       , redshift                                    , &
-          &                                                                           massRatioThreshold
+          &                                                                           massThreshold
      integer         (c_size_t                      )                              :: countRadiiFractional 
-     logical                                                                       :: finalized
+     logical                                                                       :: finalized                                  , thresholdIsRatio
    contains
      !![
      <methods>
@@ -99,7 +99,8 @@ contains
     class           (virialDensityContrastClass             ), pointer       :: virialDensityContrastDefinition_ , virialDensityContrast_
     double precision                                                         :: radiusFractionMinimum            , radiusFractionMaximum            , &
          &                                                                      redshift                         , negativeBinomialScatterFractional, &
-         &                                                                      massRatioThreshold
+         &                                                                      massThreshold
+    logical                                                                  :: thresholdIsRatio
     integer         (c_size_t                               )                :: countRadiiFractional
     type            (varying_string                         )                :: fileName
 
@@ -132,10 +133,16 @@ contains
          <description>The number of bins in mass ratio to use.</description>
        </inputParameter>
       <inputParameter>
-         <name>massRatioThreshold</name>
+         <name>massThreshold</name>
          <source>parameters</source>
          <defaultValue>0.0d0</defaultValue>
-         <description>The minimum mass ratio (satellite bound mass to host virial mass) to include in the radial distribution function.</description>
+         <description>The minimum satellite bound mass (or mass ratio---see the {\normalfont \ttfamily [thresholdIsRatio]} parameter) to include in the radial distribution function.</description>
+       </inputParameter>
+      <inputParameter>
+         <name>thresholdIsRatio</name>
+         <source>parameters</source>
+         <defaultValue>.true.</defaultValue>
+         <description>If true, the {\normalfont \ttfamily [massThreshold]} parameter is interpreted as a ratio with the virial mass of the host halo.</description>
        </inputParameter>
        !!]
     end if
@@ -168,7 +175,7 @@ contains
        </conditionalCall>
        !!]
     else
-       self=outputAnalysisSubhaloRadialDistribution(darkMatterProfileDMO_,outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),radiusFractionMinimum,radiusFractionMaximum,countRadiiFractional,massRatioThreshold,negativeBinomialScatterFractional)
+       self=outputAnalysisSubhaloRadialDistribution(darkMatterProfileDMO_,outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),radiusFractionMinimum,radiusFractionMaximum,countRadiiFractional,massThreshold,thresholdIsRatio,negativeBinomialScatterFractional)
     end if
     !![
     <inputParametersValidate source="parameters"/>
@@ -206,21 +213,27 @@ contains
     double precision                                         , allocatable  , dimension(:,:) :: radialDistributionCovarianceTarget
     double precision                                                                         :: radiusFractionMinimum             , radiusFractionMaximum            , &
          &                                                                                      time                              , redshift_                        , &
-         &                                                                                      massRatioThreshold
+         &                                                                                      massThreshold
     integer         (c_size_t                                 )                              :: countRadiiFractional              , i
     type            (varying_string                           )                              :: labelTarget
     type            (hdf5Object                               )                              :: file                              , radialDistributionGroup
+    logical                                                                                  :: thresholdIsRatio
     
     ! Read properties from the file.
     !$ call hdf5Access%set()
     file                   =hdf5Object          (fileName,readOnly=.true.)
-    radialDistributionGroup=file      %openGroup('radialDistribution'    )
-    call file                   %readAttribute('label'                  ,labelTarget                  )
-    call file                   %readAttribute('redshift'               ,redshift_                    )
-    call radialDistributionGroup%readDataset  ('radiusFractional'       ,radiiFractionalTarget        )
-    call radialDistributionGroup%readDataset  ('radialDistribution'     ,radialDistributionTarget     )
-    call radialDistributionGroup%readDataset  ('radialDistributionError',radialDistributionErrorTarget)
-    call radialDistributionGroup%readAttribute('massRatioMinimum'       ,massRatioThreshold           )
+    call    file                   %readAttribute('label'                  ,         labelTarget                  )
+    call    file                   %readAttribute('redshift'               ,         redshift_                    )
+    radialDistributionGroup=file                   %openGroup   ('radialDistribution')
+    thresholdIsRatio       =radialDistributionGroup%hasAttribute('massRatioMinimum'  )
+    call    radialDistributionGroup%readDataset  ('radiusFractional'       ,         radiiFractionalTarget        )
+    call    radialDistributionGroup%readDataset  ('radialDistribution'     ,         radialDistributionTarget     )
+    call    radialDistributionGroup%readDataset  ('radialDistributionError',         radialDistributionErrorTarget)
+    if (thresholdIsRatio) then
+       call radialDistributionGroup%readAttribute('massRatioMinimum'       ,         massThreshold                )
+    else
+       call radialDistributionGroup%readAttribute('massMinimum'            ,         massThreshold                )
+    end if
     !$ call hdf5Access%unset()
     ! Override the redshift if one is provided.
     if (present(redshift)) redshift_=redshift
@@ -234,21 +247,21 @@ contains
     do i=1_c_size_t,countRadiiFractional
        radialDistributionCovarianceTarget(i,i)=radialDistributionErrorTarget(i)**2
     end do
-    self=outputAnalysisSubhaloRadialDistribution(darkMatterProfileDMO_,outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,time,radiusFractionMinimum,radiusFractionMaximum,countRadiiFractional,massRatioThreshold,negativeBinomialScatterFractional,radialDistributionTarget,radialDistributionCovarianceTarget,labelTarget)
+    self=outputAnalysisSubhaloRadialDistribution(darkMatterProfileDMO_,outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,time,radiusFractionMinimum,radiusFractionMaximum,countRadiiFractional,massThreshold,thresholdIsRatio,negativeBinomialScatterFractional,radialDistributionTarget,radialDistributionCovarianceTarget,labelTarget)
     !![
     <constructorAssign variables="fileName, redshift"/>
     !!]
     return
   end function subhaloRadialDistributionConstructorFile
 
-  function subhaloRadialDistributionConstructorInternal(darkMatterProfileDMO_,outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,time,radiusFractionMinimum,radiusFractionMaximum,countRadiiFractional,massRatioThreshold,negativeBinomialScatterFractional,radialDistributionTarget,radialDistributionCovarianceTarget,labelTarget) result (self)
+  function subhaloRadialDistributionConstructorInternal(darkMatterProfileDMO_,outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,time,radiusFractionMinimum,radiusFractionMaximum,countRadiiFractional,massThreshold,thresholdIsRatio,negativeBinomialScatterFractional,radialDistributionTarget,radialDistributionCovarianceTarget,labelTarget) result (self)
     !!{
     Constructor for the \refClass{outputAnalysisSubhaloRadialDistribution} output analysis class for internal use.
     !!}
-    use :: Galactic_Filters                        , only : filterList                                  , galacticFilterAll                  , galacticFilterHaloIsolated   , galacticFilterHaloNotIsolated     , &
+    use :: Galactic_Filters                        , only : filterList                                  , galacticFilterAll                  , galacticFilterHaloIsolated, galacticFilterHaloNotIsolated     , &
           &                                                 galacticFilterHighPass
-    use :: Node_Property_Extractors                , only : nodePropertyExtractorHostNode               , nodePropertyExtractorMassBound     , nodePropertyExtractorMassHalo, nodePropertyExtractorRadiusOrbital, &
-          &                                                 nodePropertyExtractorRadiusVirial           , nodePropertyExtractorRatio
+    use :: Node_Property_Extractors                , only : nodePropertyExtractorHostNode               , nodePropertyExtractorMassBound     , nodePropertyExtractorRatio, nodePropertyExtractorRadiusOrbital, &
+          &                                                 nodePropertyExtractorRadiusVirial
     use :: Numerical_Comparison                    , only : Values_Agree
     use :: Numerical_Ranges                        , only : Make_Range                                  , rangeTypeLinear
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelPoisson
@@ -262,7 +275,8 @@ contains
     type            (outputAnalysisSubhaloRadialDistribution     )                                          :: self
     double precision                                              , intent(in   )                           :: negativeBinomialScatterFractional               , radiusFractionMinimum            , &
          &                                                                                                     radiusFractionMaximum                           , time                             , &
-         &                                                                                                     massRatioThreshold
+         &                                                                                                     massThreshold
+    logical                                                       , intent(in   )                           :: thresholdIsRatio
     integer         (c_size_t                                    ), intent(in   )                           :: countRadiiFractional
     class           (outputTimesClass                            ), intent(inout), target                   :: outputTimes_
     class           (virialDensityContrastClass                  ), intent(in   ), target                   :: virialDensityContrast_                          , virialDensityContrastDefinition_
@@ -285,7 +299,7 @@ contains
     type            (outputAnalysisDistributionOperatorIdentity  )               , pointer                  :: outputAnalysisDistributionOperator_
     type            (galacticFilterHaloIsolated                  )               , pointer                  :: galacticFilterHosts_
     type            (galacticFilterHaloNotIsolated               )               , pointer                  :: galacticFilterIsSubhalo_
-    type            (galacticFilterHighPass                      ), pointer                                 :: galacticFilterMassRatio_
+    type            (galacticFilterHighPass                      ), pointer                                 :: galacticFilterMass_
     type            (galacticFilterAll                           ), pointer                                 :: galacticFilterSubhalos_
     type            (filterList                                  ), pointer                                 :: filters_
     double precision                                              , allocatable  , dimension(:  )           :: radiiFractional                                 , massesHosts
@@ -294,7 +308,7 @@ contains
     double precision                                              , parameter                               :: massHostLogarithmicMaximum           =1.0d2
     integer         (c_size_t                                    )                                          :: i
     !![
-    <constructorAssign variables="massRatioThreshold, negativeBinomialScatterFractional, countRadiiFractional, radiusFractionMinimum, radiusFractionMaximum, radialDistributionTarget, radialDistributionCovarianceTarget, labelTarget, *cosmologyFunctions_, *darkMatterProfileDMO_, *outputTimes_, *cosmologyParameters_, *virialDensityContrast_, *virialDensityContrastDefinition_"/>
+    <constructorAssign variables="massThreshold, thresholdIsRatio, negativeBinomialScatterFractional, countRadiiFractional, radiusFractionMinimum, radiusFractionMaximum, radialDistributionTarget, radialDistributionCovarianceTarget, labelTarget, *cosmologyFunctions_, *darkMatterProfileDMO_, *outputTimes_, *cosmologyParameters_, *virialDensityContrast_, *virialDensityContrastDefinition_"/>
     !!]
 
     ! Initialize.
@@ -309,23 +323,33 @@ contains
     radiiFractional=Make_Range(log10(self%radiusFractionMinimum),log10(radiusFractionMaximum     ),int(self%countRadiiFractional),rangeTypeLinear)
     massesHosts    =Make_Range(                           0.0d0 ,      massHostLogarithmicMaximum ,int(     binCountHosts       ),rangeTypeLinear)
     ! Create a mass ratio property extractor.
-    allocate(nodePropertyExtractorMassBound_    )
     allocate(nodePropertyExtractorRadiusOrbital_)
     allocate(nodePropertyExtractorRadiusVirial_ )
     allocate(nodePropertyExtractorHost_         )
     allocate(nodePropertyExtractor_             )
-    allocate(nodePropertyExtractorMassHalo_     )
-    allocate(nodePropertyExtractorMassHost_     )
-    allocate(nodePropertyExtractorMassRatio_    )
+    allocate(nodePropertyExtractorMassBound_    )
     !![
     <referenceConstruct object="nodePropertyExtractorMassBound_"     constructor="nodePropertyExtractorMassBound    (                                                                                                                                           )"/>
+    !!]
+    if (self%thresholdIsRatio) then
+       allocate(nodePropertyExtractorMassHalo_ )
+       allocate(nodePropertyExtractorMassHost_ )
+       allocate(nodePropertyExtractorMassRatio_)
+       !![
+       <referenceConstruct object="nodePropertyExtractorMassHalo_"      constructor="nodePropertyExtractorMassHalo     (.false.,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_             )"/>
+       <referenceConstruct object="nodePropertyExtractorMassHost_"      constructor="nodePropertyExtractorHostNode     (nodePropertyExtractorMassHalo_                                                                                                             )"/>
+       <referenceConstruct object="nodePropertyExtractorMassRatio_"     constructor="nodePropertyExtractorRatio        ('massRatio'     ,'Ratio of subhalo to host mass'                        ,nodePropertyExtractorMassBound_    ,nodePropertyExtractorMassHost_)"/>
+       !!]
+    else
+       nullify(nodePropertyExtractorMassHalo_ )
+       nullify(nodePropertyExtractorMassHost_ )
+       nullify(nodePropertyExtractorMassRatio_)
+    end if
+    !![
     <referenceConstruct object="nodePropertyExtractorRadiusOrbital_" constructor="nodePropertyExtractorRadiusOrbital(                                                                                                                                           )"/>
     <referenceConstruct object="nodePropertyExtractorRadiusVirial_"  constructor="nodePropertyExtractorRadiusVirial (.false.,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_             )"/>
-    <referenceConstruct object="nodePropertyExtractorMassHalo_"      constructor="nodePropertyExtractorMassHalo     (.false.,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_             )"/>
     <referenceConstruct object="nodePropertyExtractorHost_"          constructor="nodePropertyExtractorHostNode     (nodePropertyExtractorRadiusVirial_                                                                                                         )"/>
-    <referenceConstruct object="nodePropertyExtractorMassHost_"      constructor="nodePropertyExtractorHostNode     (nodePropertyExtractorMassHalo_                                                                                                             )"/>
     <referenceConstruct object="nodePropertyExtractor_"              constructor="nodePropertyExtractorRatio        ('radiusFraction','Ratio of subhalo orbital radius to host virial radius',nodePropertyExtractorRadiusOrbital_,nodePropertyExtractorHost_    )"/>
-    <referenceConstruct object="nodePropertyExtractorMassRatio_"     constructor="nodePropertyExtractorRatio        ('massRatio'     ,'Ratio of subhalo to host mass'                        ,nodePropertyExtractorMassBound_    ,nodePropertyExtractorMassHost_)"/>
     !!]
     ! Create property operators and unoperators to perform conversion to/from logarithmic mass ratio.
     allocate(outputAnalysisPropertyOperator_  )
@@ -344,23 +368,29 @@ contains
     ! Build filters which select subhalos/hosts.
     allocate(galacticFilterHosts_    )
     !![
-    <referenceConstruct object="galacticFilterHosts_"     constructor="galacticFilterHaloIsolated   (                                                  )"/>
+    <referenceConstruct object="galacticFilterHosts_"     constructor="galacticFilterHaloIsolated   (                                             )"/>
     !!]
     allocate(galacticFilterIsSubhalo_)
     !![
-    <referenceConstruct object="galacticFilterIsSubhalo_" constructor="galacticFilterHaloNotIsolated(                                                  )"/>
+    <referenceConstruct object="galacticFilterIsSubhalo_" constructor="galacticFilterHaloNotIsolated(                                             )"/>
     !!]
-    allocate(galacticFilterMassRatio_)
-    !![
-    <referenceConstruct object="galacticFilterMassRatio_" constructor="galacticFilterHighPass       (massRatioThreshold,nodePropertyExtractorMassRatio_)"/>
-    !!]
+    allocate(galacticFilterMass_     )
+    if (self%thresholdIsRatio) then
+       !![
+       <referenceConstruct object="galacticFilterMass_"      constructor="galacticFilterHighPass       (massThreshold,nodePropertyExtractorMassRatio_)"/>
+       !!]
+    else
+       !![
+       <referenceConstruct object="galacticFilterMass_"      constructor="galacticFilterHighPass       (massThreshold,nodePropertyExtractorMassBound_)"/>
+       !!]
+    end if
     allocate(galacticFilterSubhalos_     )
     allocate(filters_                    )
     allocate(filters_               %next)
     filters_     %filter_ => galacticFilterIsSubhalo_
-    filters_%next%filter_ => galacticFilterMassRatio_
+    filters_%next%filter_ => galacticFilterMass_
     !![
-    <referenceConstruct object="galacticFilterSubhalos_"  constructor="galacticFilterAll            (filters_                                          )"/>
+    <referenceConstruct object="galacticFilterSubhalos_"  constructor="galacticFilterAll            (filters_                                     )"/>
     !!]
     ! Build an identity distribution operator.
     allocate(outputAnalysisDistributionOperator_)
@@ -447,11 +477,7 @@ contains
     <objectDestructor name="nodePropertyExtractorMassBound_"      />
     <objectDestructor name="nodePropertyExtractorRadiusOrbital_"  />
     <objectDestructor name="nodePropertyExtractorRadiusVirial_"   />
-    <objectDestructor name="nodePropertyExtractorHost_"           />
-    <objectDestructor name="nodePropertyExtractorMassHost_"       />
     <objectDestructor name="nodePropertyExtractor_"               />
-    <objectDestructor name="nodePropertyExtractorMassHalo_"       />
-    <objectDestructor name="nodePropertyExtractorMassRatio_"      />
     <objectDestructor name="outputAnalysisPropertyOperator_"      />
     <objectDestructor name="outputAnalysisPropertyUnoperator_"    />
     <objectDestructor name="outputAnalysisWeightOperator_"        />
@@ -459,9 +485,16 @@ contains
     <objectDestructor name="galacticFilterHosts_"                 />
     <objectDestructor name="galacticFilterSubhalos_"              />
     <objectDestructor name="galacticFilterIsSubhalo_"             />
-    <objectDestructor name="galacticFilterMassRatio_"             />
+    <objectDestructor name="galacticFilterMass_"                  />
     <objectDestructor name="outputAnalysisDistributionNormalizer_"/>
     !!]
+    if (self%thresholdIsRatio) then
+       !![
+       <objectDestructor name="nodePropertyExtractorMassHalo_" />
+       <objectDestructor name="nodePropertyExtractorMassHost_" />
+       <objectDestructor name="nodePropertyExtractorMassRatio_"/>
+       !!]
+    end if
     nullify(filters_)
     return
   end function subhaloRadialDistributionConstructorInternal

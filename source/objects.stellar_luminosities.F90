@@ -1117,13 +1117,12 @@ contains
     !!{
     Return the index of and specified entry in the luminosity list given its properties.
     !!}
-    use :: Display             , only : displayReset , displayGreen, displayBlue , displayYellow , &
-         &                              displayBold
+    use :: Display             , only : displayReset , displayGreen
     use :: Error               , only : Error_Report
-    use :: ISO_Varying_String  , only : assignment(=), operator(//), operator(==), varying_string, &
+    use :: ISO_Varying_String  , only : assignment(=), operator(//)   , operator(==), varying_string, &
          &                              len
     use :: Numerical_Comparison, only : Values_Agree
-    use :: String_Handling     , only : operator(//)
+    use :: String_Handling     , only : operator(//) , stringXMLFormat
     implicit none
     character       (len=*         ), intent(in   )           :: filterName             , filterType
     double precision                , intent(in   )           :: redshift
@@ -1210,17 +1209,17 @@ contains
     else
        message=message//char(10)//'no luminosities available'
     end if
-    message=message//char(10)//char(10)//displayGreen()//'HELP:'//displayReset()//' you can resolve this by adding the appropriate entries (highlighted in bold) to the following parameters:'
-    message   =message//char(10)//'<'//displayBlue()//'luminosityFilter         '//displayYellow()//'value'//displayReset()//'="'//displayGreen()//displayBold()//             filterName        //displayReset()//'"/>'
-    message   =message//char(10)//'<'//displayBlue()//'luminosityType           '//displayYellow()//'value'//displayReset()//'="'//displayGreen()//displayBold()//             filterType        //displayReset()//'"/>'
+    message=message//char(10)//char(10)//displayGreen()//'HELP:'//displayReset()//' you can resolve this by adding the appropriate entries (highlighted in bold) to the following parameters:'//char(10)
+    message   =message//char(10)//stringXMLFormat('<luminosityFilter         value="'//             filterName        //'"/>')
+    message   =message//char(10)//stringXMLFormat('<luminosityType           value="'//             filterType        //'"/>')
     write (label,'(f7.4)') redshift
-    message   =message//char(10)//'<'//displayBlue()//'luminosityRedshift       '//displayYellow()//'value'//displayReset()//'="'//displayGreen()//displayBold()//trim(adjustl(label           ))//displayReset()//'"/>'
+    message   =message//char(10)//stringXMLFormat('<luminosityRedshift       value="'//trim(adjustl(label           ))//'"/>')
     if (present(redshiftBand)) then
        write (label,'(f7.4)') redshiftBand
-       message=message//char(10)//'<'//displayBlue()//'luminosityBandRedshift   '//displayYellow()//'value'//displayReset()//'="'//displayGreen()//displayBold()//trim(adjustl(label           ))//displayReset()//'"/>'
+       message=message//char(10)//stringXMLFormat('<luminosityBandRedshift   value="'//trim(adjustl(label           ))//'"/>')
     end if
     if (present(postprocessChain)) then
-       message=message//char(10)//'<'//displayBlue()//'luminosityPostprocessSet '//displayYellow()//'value'//displayReset()//'="'//displayGreen()//displayBold()//             postprocessChain  //displayReset()//'"/>'
+       message=message//char(10)//stringXMLFormat('<luminosityPostprocessSet value="'//             postprocessChain  //'"/>')
     end if
     call Error_Report(message//{introspection:location})
     return

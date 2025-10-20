@@ -31,7 +31,8 @@ module String_Handling
        &    String_Upper_Case         , String_Lower_Case           , String_Upper_Case_First            , Convert_VarString_To_Char  , &
        &    String_C_to_Fortran       , String_Subscript            , String_Superscript                 , String_Levenshtein_Distance, &
        &    String_Join               , String_Strip                , String_Lower_Case_First            , String_Value_Type          , &
-       &    String_Value_Extract_Float, String_Value_Extract_Integer, String_Value_Extract_Integer_Size_T, stringSubstitute
+       &    String_Value_Extract_Float, String_Value_Extract_Integer, String_Value_Extract_Integer_Size_T, stringSubstitute           , &
+       &    stringXMLFormat
 
   interface operator(//)
      module procedure Concatenate_VarStr_Integer
@@ -46,6 +47,11 @@ module String_Handling
   interface char
      module procedure Char_Logical
   end interface char
+
+  interface stringXMLFormat
+     module procedure stringXMLFormatVarStr
+     module procedure stringXMLFormatChar
+  end interface stringXMLFormat
 
   ! Maximum length of string needed to hold integer values.
   integer         , parameter :: maxIntegerSize=20
@@ -648,5 +654,180 @@ contains
     end do
     return
   end function stringSubstitute
-    
+
+  function stringXMLFormatVarStr(stringIn,indentStep,indentInitial,forceColor) result (stringOut)
+    !!{
+    Format an XML string with pretty indentation and coloring. Valid XML strings will be automatically pretty-formatted with one
+    element per line, automatic indenting (an initial indent, if required, can be specified via the optional {\normalfont
+    \ttfamily indentInitial} argument). Some special formatting codes are supported:
+    \begin{description}
+      \item[{\normalfont \ttfamily **B}:] Highlight the remainder of the line using bold.
+      \item[{\normalfont \ttfamily **C}:] Display a continuation line (to indicate arbitrary additional content), {\normalfont \ttfamily ......}.
+    \end{description}
+    !!}
+    use :: ISO_Varying_String, only : varying_string, char
+    implicit none
+    type   (varying_string)                          :: stringOut
+    type   (varying_string), intent(in   )           :: stringIn
+    integer                , intent(in   ), optional :: indentStep, indentInitial
+    logical                , intent(in   ), optional :: forceColor
+
+    stringOut=stringXMLFormat(char(stringIn),indentStep,indentInitial,forceColor)
+    return
+  end function stringXMLFormatVarStr
+  
+  function stringXMLFormatChar(stringIn,indentStep,indentInitial,forceColor) result (stringOut)
+    !!{
+    Format an XML string with pretty indentation and coloring. Valid XML strings will be automatically pretty-formatted with one
+    element per line, automatic indenting (an initial indent, if required, can be specified via the optional {\normalfont
+    \ttfamily indentInitial} argument). Some special formatting codes are supported:
+    \begin{description}
+      \item[{\normalfont \ttfamily **B}:] Highlight the remainder of the line using bold.
+      \item[{\normalfont \ttfamily **C}:] Display a continuation line (to indicate arbitrary additional content), {\normalfont \ttfamily ......}.
+    \end{description}
+    !!}
+    use :: ISO_Varying_String, only : varying_string, len         , assignment(=), operator(//), &
+         &                            extract       , operator(==)
+    use :: System_Output     , only : stdOutIsATTY
+    implicit none
+    type     (varying_string)                          :: stringOut
+    character(len=*         ), intent(in   )           :: stringIn
+    integer                  , intent(in   ), optional :: indentStep            , indentInitial
+    logical                  , intent(in   ), optional :: forceColor
+    character(len=*         ), parameter               :: ESC         =achar(27)
+    integer                                            :: lenStringIn           , i            , &
+         &                                                indent
+    logical                                            :: inElement             , inTagName    , &
+         &                                                startTagName          , inAttribute  , &
+         &                                                startValue            , inValue      , &
+         &                                                useColor
+    character(len=1         )                          :: c
+    character(len=8         )                          :: reset
+    !![
+    <optionalArgument name="indentStep"    defaultsTo="2"      />
+    <optionalArgument name="indentInitial" defaultsTo="0"      />
+    <optionalArgument name="forceColor"    defaultsTo=".false."/>
+    !!]
+
+    ! Determine if color is to be added.
+    if (forceColor_) then
+       useColor=.true.
+    else
+#ifdef USEMPI
+       useColor=.false.
+#else
+       useColor=stdOutIsATTY()
+#endif
+    end if
+    ! Begin parsing.
+    stringOut   =""
+    lenStringIn =len(stringIn)
+    inElement   =.false.
+    inTagName   =.false.
+    inAttribute =.false.
+    inValue     =.false.
+    startTagName=.false.
+    startValue  =.false.
+    indent      =indentInitial_
+    reset       =ESC//"[0m"
+    i           =0
+    do while (i < lenStringIn)
+       ! Move to the next character.
+       i=i+1
+       c=extract(stringIn,i,i)
+       ! Skip whitespace if not in an element.
+       ! Handle white space.
+       if (c == " " .and. .not.inElement) cycle
+       ! Reset at end of tag names.
+       if (inTagName) then
+          if (c == " " .or. c == "/" .or. c == ">") then
+             if (useColor) stringOut=stringOut//trim(reset)
+             inTagName=.false.
+          end if
+       end if
+       ! Skip newlines - we do our own formatting.
+       if (c == char(10)) cycle
+       ! Detect formatting.
+       if (c == "*") then
+          if (extract(stringIn,i+1,i+2) == "*B") then
+             ! Switch on bold formatting.
+             if (useColor) stringOut=stringOut//ESC//"[1m"
+             reset=ESC//"[0m"//ESC//"[1m"
+             i=i+2
+             cycle
+          end if
+          if (extract(stringIn,i+1,i+2) == "*C") then
+             ! Add a continuation line.
+             stringOut=stringOut//repeat(" ",indent)//"......"//char(10)
+             i=i+2
+             cycle
+          end if
+       end if
+       ! Detect element opening.
+       if (c == "<") then
+          inElement   =.true.
+          inTagName   =.true.
+          startTagName=.true.
+          if (extract(stringIn,i+1,i+1) == "/") then
+             ! Closing element.
+             indent   =indent-indentStep_
+             stringOut=stringOut//repeat(" ",indent)
+             stringOut=stringOut//"<"
+             c        ="/"
+             i        =i+1
+          else
+             ! Opening element.
+             stringOut=stringOut//repeat(" ",indent)
+             indent   =indent+indentStep_
+          end if
+       end if
+       ! Detect element closing.
+       if (c == "/") then
+          if (extract(stringIn,i+1,i+1) == ">") indent=indent-indentStep_
+       end if
+       if (c == ">") inElement=.false.
+       ! Detect attribute name.
+       if (inElement .and. .not.inTagName .and. .not.inAttribute .and. c /= " " .and. c /= "/" .and. c /= ">") then
+          if (useColor) stringOut=stringOut//ESC//"[33m"
+          inAttribute=.true.
+       end if
+       ! Detect end of attribute name.
+       if (inAttribute .and. c == "=") then
+          if (useColor) stringOut=stringOut//trim(reset)
+       end if
+       ! Detect start/end of attribute value.
+       if (inAttribute .and. c == '"') then
+          if (inValue) then
+             ! End of the value.
+             if (useColor) stringOut=stringOut//trim(reset)
+             inValue    =.false.
+             inAttribute=.false.
+          else
+             ! Start of the value.
+             inValue   =.true.
+             startValue=.true.
+          end if
+       end if
+       ! Append the current character.
+       stringOut=stringOut//c
+       ! Add new line.
+       if (c == ">") then
+          reset=ESC//"[0m"
+          if (useColor) stringOut=stringOut//trim(reset)
+          if (i < lenStringIn) stringOut=stringOut//char(10)
+       end if
+       ! Color tag names.
+       if (startTagName) then
+          if (useColor) stringOut=stringOut//ESC//"[34m"
+          startTagName=.false.
+       end if
+       ! Color attribute values names.
+       if (startValue) then
+          if (useColor) stringOut=stringOut//ESC//"[32m"
+          startValue=.false.
+       end if
+    end do
+    return
+  end function stringXMLFormatChar
+
 end module String_Handling

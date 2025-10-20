@@ -490,6 +490,7 @@ contains
     use :: Merger_Tree_Branching, only : mergerTreeBranchingBoundLower, mergerTreeBranchingBoundUpper
     use :: Merger_Tree_Walkers  , only : mergerTreeWalkerClass
     use :: Numerical_Comparison , only : Values_Agree
+    use :: String_Handling      , only : stringXMLFormat
     implicit none
     type            (mergerTree                         ), intent(in   )           :: tree
     double precision                                     , intent(in   )           :: massResolution
@@ -559,13 +560,15 @@ contains
              message='branch is making no progress'
              if (time < self_%timeEarliest*1.01d0) then
                 write (label,'(e12.6)') self_%toleranceTimeEarliest
-                message=message                                                                                        //char(10)// &
-                     &  displayGreen()//'   HELP:'//displayReset()//' branch is within 1% of the imposed earliest time'//char(10)// &
-                     &                  '          - this may be a tolerance issue'                                    //char(10)// &
-                     &                  '          - try increasing the value of the tolerance parameter, currently:'  //char(10)// &
-                     &                  '             <'//displayBlue()//'toleranceTimeEarliest'//displayReset()//' '            // &
-                     & displayYellow()//'value'//displayReset()//'='//displayGreen()//'"'//trim(adjustl(label))//'"'             // &
-                     & displayReset ()//'/>'
+                message=message                                                                                                                   //char(10)// &
+                     &  displayGreen()//'   HELP:'//displayReset()//' branch is within 1% of the imposed earliest time'                           //char(10)// &
+                     &                  '          - this may be a tolerance issue'                                                               //char(10)// &
+                     &                  '          - try increasing the value of the tolerance parameter, currently (see highlighted line below):'//char(10)// &
+                     & stringXMLFormat(                                                                                                                        &
+                     &                  '<mergerTreeBuilder value="'//char(self_%objectType(short=.true.))//'">'                                            // &
+                     &                  '**B<toleranceTimeEarliest value="'//trim(adjustl(label))//'"/>**C'                                                 // &
+                     &                  '</mergerTreeBuilder>'                                                                                                 &
+                     &                 )
              end if
              call Error_Report(message//{introspection:location})
           end if
