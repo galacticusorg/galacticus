@@ -1916,27 +1916,27 @@ jobs:
           mkdir -p dev/valid/strongLensing
           mkdir -p dev/valid/idealizedSubhaloSimulations
           mkdir -p dev/valid/darkMatterOnlySubhalosDecayingDarkMatter
-          mv results_darkMatterOnlySubhalos.json                         dev/valid/darkMatterOnlySubhalos/results.json
-          mv results_darkMatterOnlySubhalosSymphonyCDMMilkyWayX1.json    dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX1/results.json
-          mv results_darkMatterOnlySubhalosSymphonyCDMMilkyWayX8.json    dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX8/results.json
-          mv results_darkMatterOnlySubhalosSymphonyCDMMilkyWayX64.json   dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX64/results.json
-          mv results_darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX1.json  dev/valid/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX1/results.json
-          mv results_darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX1.json  dev/valid/darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX1/results.json
-          mv results_darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX1.json  dev/valid/darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX1/results.json
-          mv results_darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX1.json  dev/valid/darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX1/results.json
-          mv results_darkMatterOnlySubhalosCOZMICWD6.5keVMilkyWayX1.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX1/results.json
-          mv results_darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX1.json dev/valid/darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX1/results.json
-          mv results_darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX8.json  dev/valid/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX8/results.json
-          mv results_darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX8.json  dev/valid/darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX8/results.json
-          mv results_darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX8.json  dev/valid/darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX8/results.json
-          mv results_darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX8.json  dev/valid/darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX8/results.json
-          mv results_darkMatterOnlySubhalosCOZMICWD6.5keVMilkyWayX8.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX8/results.json
-          mv results_darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX8.json dev/valid/darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX8/results.json
-          mv results_milkyWayModel.json                                  dev/valid/milkyWayModel/results.json
-          mv results_PonosV.json                                         dev/valid/strongLensing/results_PonosV.json
-          mv results_baryonicSuppression.json                            dev/valid/baryonicSuppression/results_baryonicSuppression.json
-          mv results_idealizedSubhaloSimulation_*.json                   dev/valid/idealizedSubhaloSimulations/
-          mv results_darkMatterOnlySubhalos_decayingDarkMatter_*.json    dev/valid/darkMatterOnlySubhalosDecayingDarkMatter/
+          mv results_darkMatterOnlySubhalos.json                          dev/valid/darkMatterOnlySubhalos/results.json
+          mv results_darkMatterOnlySubhalosSymphonyCDMMilkyWayX1.json     dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX1/results.json
+          mv results_darkMatterOnlySubhalosSymphonyCDMMilkyWayX8.json     dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX8/results.json
+          mv results_darkMatterOnlySubhalosSymphonyCDMMilkyWayX64.json    dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX64/results.json
+          mv results_darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX1.json   dev/valid/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX1/results.json
+          mv results_darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX1.json   dev/valid/darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX1/results.json
+          mv results_darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX1.json   dev/valid/darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX1/results.json
+          mv results_darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX1.json   dev/valid/darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX1/results.json
+          mv results_darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX1.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX1/results.json
+          mv results_darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX1.json  dev/valid/darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX1/results.json
+          mv results_darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX8.json   dev/valid/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX8/results.json
+          mv results_darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX8.json   dev/valid/darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX8/results.json
+          mv results_darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX8.json   dev/valid/darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX8/results.json
+          mv results_darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX8.json   dev/valid/darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX8/results.json
+          mv results_darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX8.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX8/results.json
+          mv results_darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX8.json  dev/valid/darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX8/results.json
+          mv results_milkyWayModel.json                                   dev/valid/milkyWayModel/results.json
+          mv results_PonosV.json                                          dev/valid/strongLensing/results_PonosV.json
+          mv results_baryonicSuppression.json                             dev/valid/baryonicSuppression/results_baryonicSuppression.json
+          mv results_idealizedSubhaloSimulation_*.json                    dev/valid/idealizedSubhaloSimulations/
+          mv results_darkMatterOnlySubhalos_decayingDarkMatter_*.json     dev/valid/darkMatterOnlySubhalosDecayingDarkMatter/
           git config --local user.email "github@users.noreply.github.com"
           git config --local user.name "github-action-validate"
           git add dev/valid/darkMatterOnlySubhalos/results.json dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX64/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX8/results.json dev/valid/milkyWayModel/results.json dev/valid/strongLensing/results_PonosV.json dev/valid/baryonicSuppression/results_baryonicSuppression.json dev/valid/idealizedSubhaloSimulations/results_idealizedSubhaloSimulation_*.json dev/valid/darkMatterOnlySubhalosDecayingDarkMatter/results_darkMatterOnlySubhalos_decayingDarkMatter_*.json
