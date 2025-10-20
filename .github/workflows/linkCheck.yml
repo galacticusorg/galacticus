@@ -37,5 +37,14 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          ./scripts/aux/linkChecker.pl ${{ secrets.NASA_ADS_API_TOKEN }}
+          ./scripts/aux/linkChecker.pl ${{ secrets.NASA_ADS_API_TOKEN }} badURLs.md
+      - name: Check file existence
+        id: check_files
+        uses: andstor/file-existence-action@v3
+        with:
+          files: badURLs.md
+      - name: Output to a job summary
+        if: steps.check_files.outputs.files_exists == 'true'
+        run: |
+          cat badURLs.md >> $GITHUB_STEP_SUMMARY
       - run: echo "This job's status is ${{ job.status }}."
