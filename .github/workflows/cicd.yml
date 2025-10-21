@@ -1355,7 +1355,8 @@ jobs:
                 testSuite/regressions/haloMassFunctionWDMIndeterminateCollapseTime.xml,
                 testSuite/regressions/lightconeCrossingTests.xml,
                 testSuite/regressions/lightconeCrossingTestsSubresolutionMerging.xml,
-                testSuite/regressions/lightconeCrossingAtCurrentTime.xml ]
+                testSuite/regressions/lightconeCrossingAtCurrentTime.xml,
+                testSuite/regressions/constrainedTreeImpossible.py ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}

@@ -123,23 +123,25 @@
    contains
      !![
      <methods>
-       <method description="Build a branch of the merger tree."                    method="buildBranch"              />
-       <method description="Set the critical overdensity object."                  method="criticalOverdensityUpdate"/>
-       <method description="Convert from critical overdensity to time for a node." method="convertTimeNode"          />
-       <method description="Check well-ordering in time for a node."               method="checkOrderNode"           />
-       <method description="Perform any required actions on branching."            method="onBranch"                 />
+       <method description="Build a branch of the merger tree."                    method="buildBranch"                   />
+       <method description="Set the critical overdensity object."                  method="criticalOverdensityUpdate"     />
+       <method description="Convert from critical overdensity to time for a node." method="convertTimeNode"               />
+       <method description="Convert from time to critical overdensity for a node." method="convertCriticalOverdensityNode"/>
+       <method description="Check well-ordering in time for a node."               method="checkOrderNode"                />
+       <method description="Perform any required actions on branching."            method="onBranch"                      />
      </methods>
      !!]
-     final             ::                              cole2000Destructor
-     procedure         :: build                     => cole2000Build
-     procedure         :: timeEarliestSet           => cole2000TimeEarliestSet
-     procedure, nopass :: buildBranch               => cole2000BuildBranch
-     procedure, nopass :: onBranch                  => cole2000OnBranch
-     procedure, nopass :: criticalOverdensityUpdate => cole2000CriticalOverdensityUpdate
-     procedure, nopass :: convertTimeNode           => cole2000ConvertTimeNode
-     procedure, nopass :: checkOrderNode            => cole2000CheckOrderNode
-     procedure         :: stateStore                => cole2000StateStore
-     procedure         :: stateRestore              => cole2000StateRestore
+     final             ::                                   cole2000Destructor
+     procedure         :: build                          => cole2000Build
+     procedure         :: timeEarliestSet                => cole2000TimeEarliestSet
+     procedure, nopass :: buildBranch                    => cole2000BuildBranch
+     procedure, nopass :: onBranch                       => cole2000OnBranch
+     procedure, nopass :: criticalOverdensityUpdate      => cole2000CriticalOverdensityUpdate
+     procedure, nopass :: convertTimeNode                => cole2000ConvertTimeNode
+     procedure         :: convertCriticalOverdensityNode => cole2000ConvertCriticalOverdensityNode
+     procedure, nopass :: checkOrderNode                 => cole2000CheckOrderNode
+     procedure         :: stateStore                     => cole2000StateStore
+     procedure         :: stateRestore                   => cole2000StateRestore
   end type mergerTreeBuilderCole2000
 
   interface mergerTreeBuilderCole2000
@@ -363,12 +365,12 @@ contains
     implicit none
     class           (mergerTreeBuilderCole2000    ), intent(inout), target :: self
     type            (mergerTree                   ), intent(inout), target :: tree
-    type            (treeNode                     ), pointer               :: node                    , nodeChild
-    class           (nodeComponentBasic           ), pointer               :: basic                   , basicChild
+    type            (treeNode                     ), pointer               :: node                 , nodeChild     , &
+         &                                                                    nodeWork
+    class           (nodeComponentBasic           ), pointer               :: basic                , basicChild
     type            (mergerTreeWalkerIsolatedNodes)                        :: treeWalkerIsolated
-    double precision                                                       :: timeNodeBase            , deltaCritical , &
-         &                                                                    deltaCriticalEarliest   , massResolution, &
-         &                                                                    rootVarianceGrowthFactor           
+    double precision                                                       :: timeNodeBase         , massResolution, &
+         &                                                                    deltaCriticalEarliest        
       
     ! Begin construction.
     self_          => self
@@ -391,13 +393,15 @@ contains
     deltaCriticalEarliest=+self%criticalOverdensity_     %value       (time=self%timeEarliest/2.0d0,mass=basic%mass(),node=node) &
          &                *self%cosmologicalMassVariance_%rootVariance(time=self%timeNow           ,mass=basic%mass()          ) &
          &                /self%cosmologicalMassVariance_%rootVariance(time=self%timeEarliest/2.0d0,mass=basic%mass()          )
-    ! Convert time for base node to critical overdensity (which we use as a time coordinate in this class).
-    timeNodeBase            =                                                  basic%time        ()
-    rootVarianceGrowthFactor=+self%cosmologicalMassVariance_%rootVariance(time=      timeNodeBase  ,mass=basic%mass()          ) &
-         &                   /self%cosmologicalMassVariance_%rootVariance(time=self %timeNow       ,mass=basic%mass()          )
-    deltaCritical           =+self%criticalOverdensity_     %value       (time=basic%time        (),mass=basic%mass(),node=node) &
-         &                   /rootVarianceGrowthFactor
-    call basic%timeSet(deltaCritical)
+    ! Convert time for all existing nodes in the tree to critical overdensity (which we use as a time coordinate in this class).
+    timeNodeBase      =basic%time()
+    treeWalkerIsolated=mergerTreeWalkerIsolatedNodes(tree)
+    do while (treeWalkerIsolated%next(nodeWork))
+       call self%convertCriticalOverdensityNode(nodeWork)
+       ! Ensure that the node index is set to the largest value present in the tree so far. This ensures that node indices are not
+       ! repeated.
+       self%nodeIndex=max(self%nodeIndex,nodeWork%index())
+    end do
     ! Determine our worker number.
     numberWorker=0
     ! Create copies of objects needed for evolution.
@@ -620,7 +624,7 @@ contains
              if (accretionFraction < 0.0d0) then
                 ! Terminate the branch with a final node.
                 !$omp atomic
-                self_%nodeIndex          =  self_%nodeIndex+1
+                self_%nodeIndex    =  self_%nodeIndex+1
                 nodeNew1           => treeNode      (self_%nodeIndex        ,nodeCurrent%hostTree)
                 basicNew1          => nodeNew1%basic(autoCreate=.true.     )
                 ! Create a node at the mass resolution.
@@ -961,6 +965,31 @@ contains
     return
   end subroutine cole2000ConvertTimeNode
       
+  subroutine cole2000ConvertCriticalOverdensityNode(self,nodeTip)
+    !!{
+    Convert from time to critical overdensity in a single node.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentBasic
+    implicit none
+    class           (mergerTreeBuilderCole2000), intent(inout) :: self
+    type            (treeNode                 ), intent(inout) :: nodeTip
+    class           (nodeComponentBasic       ), pointer       :: basic_
+    double precision                                           :: time_   , criticalOverdensity_    , &
+         &                                                        timeNow_, rootVarianceGrowthFactor
+    
+    ! Get the basic component of the node.
+    basic_                   =>  nodeTip                          %basic                   (                                             )
+    ! Compute the critical overdensity.
+    time_                    =   basic_                           %time                    (                                             )
+    timeNow_                 =  +self                             %timeNow
+    rootVarianceGrowthFactor =  +self   %cosmologicalMassVariance_%rootVariance            (time=time_   ,mass=basic_%mass()             ) &
+         &                      /self   %cosmologicalMassVariance_%rootVariance            (time=timeNow_,mass=basic_%mass()             )
+    criticalOverdensity_     =  +self   %criticalOverdensity_     %value                   (time=time_   ,mass=basic_%mass(),node=nodeTip) &
+         &                      /                                  rootVarianceGrowthFactor
+    call basic_%timeSet(criticalOverdensity_)
+    return
+  end subroutine cole2000ConvertCriticalOverdensityNode
+
   recursive subroutine cole2000CheckOrderNode(tree,massResolution,node)
     !!{
     Check well-ordering of time for the given node.
