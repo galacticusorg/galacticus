@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1760996806435,
+  "lastUpdate": 1761037666508,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 5keV resolutionX8)": [
@@ -33,6 +33,43 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (COZMIC WDM:5keV resolution X8 Milky Way) - Likelihood - subhaloRadialDistribution",
             "value": 83.07044476812875,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:5keV resolution X8 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 1.7976931348623156e+292,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "cb9801c036f9c2442eca6d08df4d91f0bd733185",
+          "message": "feat: Add an option to the emission line table creation script to allow stopping at the outer radius of the cloud\n\nIf the `--stopOuterRadius` option is set (allowed only if the `'--normalization massStellar` option is also used), then the outer radius of the cloud is computed (based on its mass and density), and Cloudy is instructed to stop at this radius if reached. This accounts for the finite extent of clouds and, in principle, will allow for estimation of the emergent spectrum.",
+          "timestamp": "2025-10-20T23:27:10Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/cb9801c036f9c2442eca6d08df4d91f0bd733185"
+        },
+        "date": 1761037665693,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:5keV resolution X8 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": 20.115951757342383,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:5keV resolution X8 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 81.97619861280694,
             "unit": "-logℒ"
           },
           {
