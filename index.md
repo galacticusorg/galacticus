@@ -11,11 +11,11 @@ Here you can find:
 
 * Benchmark and validation metrics for:
     * [Dark matter-only subhalos](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalos/)
-	* Dark matter-only subhalos (Symphony Milky Way)
+	* Dark matter-only subhalos (Symphony Milky Way; see [Nadler et al. (2023)](https://ui.adsabs.harvard.edu/abs/2023ApJ...945..159N) for details)
         * [Resolution X1](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosSymphonyCDMMilkyWayX1)
         * [Resolution X8](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosSymphonyCDMMilkyWayX8)
         * [Resolution X64](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosSymphonyCDMMilkyWayX64)
-    * Dark matter-only subhalos (COZMIC Milky Way)
+    * Dark matter-only subhalos (COZMIC Milky Way; see [Nadler et al. (2025)](https://ui.adsabs.harvard.edu/abs/2025ApJ...986..127N) and [An et al. (2025)](https://ui.adsabs.harvard.edu/abs/2025ApJ...986..128A) for details)
         * Resolution X1
 		   * [mᵪ = 3keV](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX1)
 		   * [mᵪ = 4keV](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX1)
@@ -51,11 +51,11 @@ Here you can find:
     * [Merger tree builder convergence](https://galacticusorg.github.io/galacticus/dev/valid/mergerTreeConvergence)
     * [Halo concentration convergence](https://galacticusorg.github.io/galacticus/dev/valid/concentrationConvergence)
     * [Dark matter-only subhalos](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalos/)
-	* Dark matter-only subhalos (Symphony Milky Way)
+	* Dark matter-only subhalos (Symphony Milky Way; see [Nadler et al. (2023)](https://ui.adsabs.harvard.edu/abs/2023ApJ...945..159N) for details)
         * [Resolution X1](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX1)
         * [Resolution X8](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX8)
         * [Resolution X64](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX64)
-    * Dark matter-only subhalos (COZMIC Milky Way)
+    * Dark matter-only subhalos (COZMIC Milky Way; see [Nadler et al. (2025)](https://ui.adsabs.harvard.edu/abs/2025ApJ...986..127N) and [An et al. (2025)](https://ui.adsabs.harvard.edu/abs/2025ApJ...986..128A) for details)
         * Resolution X1
 		   * [mᵪ = 3keV](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX1)
 		   * [mᵪ = 4keV](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX1)
