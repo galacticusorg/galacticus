@@ -38,7 +38,7 @@ contains
    <unitName>Stellar_Luminosities_Initialize</unitName>
   </nodeComponentInitializationTask>
   !!]
-  subroutine Stellar_Luminosities_Initialize(parameters_)
+  subroutine Stellar_Luminosities_Initialize(parameters)
     !!{
     Extract and store a list of output redshifts.
     !!}
@@ -47,12 +47,12 @@ contains
     use            :: Output_Times             , only : outputTimes   , outputTimesClass
     use            :: Stellar_Luminosities_Data, only : outputCount   , outputRedshifts
     implicit none
-    type   (inputParameters ), intent(inout) :: parameters_
+    type   (inputParameters ), intent(inout) :: parameters
     class  (outputTimesClass), pointer       :: outputTimes_
     integer(c_size_t        )                :: i
     
     !![
-    <objectBuilder class="outputTimes" name="outputTimes_" source="parameters_"/>
+    <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     !!]
     outputCount=outputTimes_%count()
     if (allocated(outputRedshifts)) deallocate(outputRedshifts)
