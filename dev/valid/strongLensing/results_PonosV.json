@@ -4,12 +4,12 @@ window.PONOSV_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@carnegiescience.edu"
         },
-        "id": "7dfdaeee0a348a8a71cfd363d7e92cb78d481f72",
-        "message": "Merge pull request #948 from galacticusorg/featBlackHoleHaloMassRelation\n\nAdd an analysis class to compute the black hole-halo mass relation\n",
-        "timestamp": "2025-10-14 23:52:17+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/7dfdaeee0a348a8a71cfd363d7e92cb78d481f72"
+        "id": "10b8059f7b1b14f91552bda3aeee1c0475d7e3b5",
+        "message": "fix: Correct typo in file names\n",
+        "timestamp": "2025-10-20 16:09:44-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/10b8059f7b1b14f91552bda3aeee1c0475d7e3b5"
     },
     "surfaceDensity": {
         "percentageBelow": 32.14285714285714,
@@ -17,8 +17,8 @@ window.PONOSV_DATA = {
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 33.33333333333333,
-        "percentageAbove": 66.66666666666667,
+        "percentageBelow": 44.44444444444444,
+        "percentageAbove": 55.55555555555556,
         "target": 0.85
     }
 }
