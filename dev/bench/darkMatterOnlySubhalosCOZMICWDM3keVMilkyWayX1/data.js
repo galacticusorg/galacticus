@@ -2,7 +2,7 @@ window.BENCHMARK_DATA = {
   "lastUpdate": 1761037631642,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
-    "Dark matter-only subhalos benchmarks (COZMIC WDM:3keV resolution X1 Milky Way)": [
+    "Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 3keV resolutionX1)": [
       {
         "commit": {
           "author": {
@@ -1554,9 +1554,7 @@ window.BENCHMARK_DATA = {
             "unit": "-logℒ"
           }
         ]
-      }
-    ],
-    "Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 3keV resolutionX1)": [
+      },
       {
         "commit": {
           "author": {

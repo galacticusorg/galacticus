@@ -2,7 +2,7 @@ window.BENCHMARK_DATA = {
   "lastUpdate": 1761037618128,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
-    "Dark matter-only subhalos benchmarks (Symphony CDM resolution X1 Milky Way)": [
+    "Dark matter-only subhalos benchmarks (Symphony Milky Way resolutionX1)": [
       {
         "commit": {
           "author": {
@@ -1554,9 +1554,7 @@ window.BENCHMARK_DATA = {
             "unit": "-logℒ"
           }
         ]
-      }
-    ],
-    "Dark matter-only subhalos benchmarks (Symphony Milky Way resolutionX1)": [
+      },
       {
         "commit": {
           "author": {
