@@ -103,17 +103,13 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 		 @{$parametersPerFile->{$fileIdentifier}->{'parameter'}},
 		 map 
 		 {
+		     exists($_->{'parameterName'}) && $_->{'parameterName'} ne $_->{'class'}
+		     ?
 		     (
-		      (! exists($_->{'source'       }) || $_->{'source'       } eq "globalParameters" || $_->{'source'} eq "parameters_")
-		      &&
-		      (  exists($_->{'parameterName'}) && $_->{'parameterName'} ne $_->{'class'}                                        )
+                            $_->{'parameterName'}
 		     )
-			 ?
-			 (	
-				$_->{'parameterName'}
-			 )
-			 :
-			 ()
+		     :
+		     ()
 		 }
 		 &Galacticus::Build::Directives::Extract_Directives($fileToProcess,"objectBuilder")
 		);
