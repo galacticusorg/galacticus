@@ -21,19 +21,6 @@
 Contains custom functions for the standard hot halo component.
 !!}
 
-subroutine Node_Component_Hot_Halo_Standard_Mass_Removal_Rate(self,massRemovalRate)
-  !!{
-  Handle instances of mass removal from the standard hot halo component
-  class. For the standard hot halo component type, we do nothing.
-  !!}
-  implicit none
-  class          (nodeComponentHotHaloStandard), intent(inout) :: self
-  double precision                             , intent(in   ) :: massRemovalRate
-  !$GLC attributes unused :: self, massRemovalRate
-
-  return
-end subroutine Node_Component_Hot_Halo_Standard_Mass_Removal_Rate
-
 double precision function Node_Component_Hot_Halo_Standard_Mass_Total(self)
   !!{
   Return the total active mass in the hot halo.

@@ -18,19 +18,25 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains custom functions for the outflow tracking hot halo component.
+Contains a module that provides options controlling cooling.
 !!}
 
-subroutine Node_Component_Hot_Halo_Outflow_Tracking_Mass_Removal_Rate(self,massRemovalRate)
+module Cooling_Options
   !!{
-  Handle instances where mass is removed from the the outflow tracking hot halo component
-  class.
+  Provides options controlling cooling.
   !!}
-  implicit none
-  class           (nodeComponentHotHaloOutflowTracking), intent(inout) :: self
-  double precision                                     , intent(in   ) :: massRemovalRate
+  private
+  
+  !![
+  <enumeration>
+   <name>coolingFrom</name>
+   <description>Options specifying from which node cooling is computed.</description>
+   <encodeFunction>yes</encodeFunction>
+   <validator>yes</validator>
+   <visibility>public</visibility>
+   <entry label="currentNode"  />
+   <entry label="formationNode"/>
+  </enumeration>
+  !!]
 
-  call self%trackedOutflowMassRate      (-self%trackedOutflowMass      ()*massRemovalRate/self%mass())
-  call self%trackedOutflowAbundancesRate(-self%trackedOutflowAbundances()*massRemovalRate/self%mass())
-  return
-end subroutine Node_Component_Hot_Halo_Outflow_Tracking_Mass_Removal_Rate
+end module Cooling_Options
