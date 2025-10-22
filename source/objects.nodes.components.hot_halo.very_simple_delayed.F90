@@ -57,7 +57,7 @@ module Node_Component_Hot_Halo_VS_Delayed
     </property>
    </properties>
    <bindings>
-    <binding method="massBaryonic" function="Node_Component_Hot_Halo_Very_Simple_Delayed_Mass_Baryonic" bindsTo="component"/>
+    <binding method="massBaryonic" function="Node_Component_Hot_Halo_Very_Simple_Delayed_Mass_Baryonic"/>
    </bindings>
    <functions>objects.nodes.components.hot_halo.very_simple_delayed.bound_functions.inc</functions>
   </component>
