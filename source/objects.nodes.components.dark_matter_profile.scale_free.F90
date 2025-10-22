@@ -96,20 +96,19 @@ contains
    <unitName>Node_Component_Dark_Matter_Profile_Scale_Free_Thread_Init</unitName>
   </nodeComponentThreadInitializationTask>
   !!]
-  subroutine Node_Component_Dark_Matter_Profile_Scale_Free_Thread_Init(parameters_)
+  subroutine Node_Component_Dark_Matter_Profile_Scale_Free_Thread_Init(parameters)
     !!{
     Initializes the tree node scale dark matter profile module.
     !!}
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     use :: Input_Parameters, only : inputParameter                   , inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: parameters_
-    !$GLC attributes unused :: parameters_
+    type(inputParameters), intent(inout) :: parameters
 
     if (defaultDarkMatterProfileComponent%scaleFreeIsActive()) then
        !![
-       <objectBuilder class="darkMatterProfile"    name="darkMatterProfile_"    source="parameters_"/>
-       <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters_"/>
+       <objectBuilder class="darkMatterProfile"    name="darkMatterProfile_"    source="parameters"/>
+       <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
        !!]
      end if
      return

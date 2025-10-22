@@ -66,19 +66,18 @@ contains
    <unitName>Node_Component_Halo_Angular_Momentum_Scalar_Thread_Initialize</unitName>
   </nodeComponentThreadInitializationTask>
   !!]
-  subroutine Node_Component_Halo_Angular_Momentum_Scalar_Thread_Initialize(parameters_)
+  subroutine Node_Component_Halo_Angular_Momentum_Scalar_Thread_Initialize(parameters)
     !!{
     Initializes the halo scalar angular momentum module.
     !!}
     use :: Galacticus_Nodes, only : defaultSpinComponent
     use :: Input_Parameters, only : inputParameter      , inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: parameters_
-    !$GLC attributes unused :: parameters_
+    type(inputParameters), intent(inout) :: parameters
 
     if (defaultSpinComponent%scalarIsActive()) then
        !![
-       <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters_"/>
+       <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
        !!]
      end if
      return
