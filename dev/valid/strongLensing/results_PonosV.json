@@ -6,19 +6,19 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "a8684d46308dcd337834a248a072b5f4653b7d70",
-        "message": "Merge pull request #953 from galacticusorg/fixConstrainedTreeBuild\n\nAvoid overwriting earlier stages during constrained tree build\n",
-        "timestamp": "2025-10-21 15:26:52+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/a8684d46308dcd337834a248a072b5f4653b7d70"
+        "id": "520abf8874e55ae5faca38acfd76be4e737977e2",
+        "message": "Merge pull request #954 from galacticusorg/fixUnrecognizedParameters\n\nFor named parameters in `objectBuilder` directives, add them to the list of recognized parameters for each executable\n",
+        "timestamp": "2025-10-22 14:29:40+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/520abf8874e55ae5faca38acfd76be4e737977e2"
     },
     "surfaceDensity": {
-        "percentageBelow": 32.14285714285714,
-        "percentageAbove": 67.85714285714286,
+        "percentageBelow": 42.857142857142854,
+        "percentageAbove": 57.142857142857146,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 44.44444444444444,
-        "percentageAbove": 55.55555555555556,
+        "percentageBelow": 63.63636363636363,
+        "percentageAbove": 36.36363636363637,
         "target": 0.85
     }
 }
