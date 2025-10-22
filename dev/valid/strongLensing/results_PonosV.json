@@ -4,12 +4,12 @@ window.PONOSV_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "10b8059f7b1b14f91552bda3aeee1c0475d7e3b5",
-        "message": "fix: Correct typo in file names\n",
-        "timestamp": "2025-10-20 16:09:44-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/10b8059f7b1b14f91552bda3aeee1c0475d7e3b5"
+        "id": "a8684d46308dcd337834a248a072b5f4653b7d70",
+        "message": "Merge pull request #953 from galacticusorg/fixConstrainedTreeBuild\n\nAvoid overwriting earlier stages during constrained tree build\n",
+        "timestamp": "2025-10-21 15:26:52+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/a8684d46308dcd337834a248a072b5f4653b7d70"
     },
     "surfaceDensity": {
         "percentageBelow": 32.14285714285714,
