@@ -1356,7 +1356,8 @@ jobs:
                 testSuite/regressions/lightconeCrossingTests.xml,
                 testSuite/regressions/lightconeCrossingTestsSubresolutionMerging.xml,
                 testSuite/regressions/lightconeCrossingAtCurrentTime.xml,
-                testSuite/regressions/constrainedTreeImpossible.py ]
+                testSuite/regressions/constrainedTreeImpossible.py,
+                testSuite/regressions/ignoreWellOrdering.xml ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}

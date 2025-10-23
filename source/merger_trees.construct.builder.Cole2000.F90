@@ -994,9 +994,10 @@ contains
     !!{
     Check well-ordering of time for the given node.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic
-    use :: Error           , only : Warn
-    use :: Display         , only : displayReset      , displayMagenta
+    use :: Galacticus_Nodes              , only : nodeComponentBasic
+    use :: Error                         , only : Warn
+    use :: Display                       , only : displayReset                   , displayMagenta
+    use :: Merger_Trees_Pruning_Utilities, only : Merger_Tree_Prune_Unlink_Parent
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
     double precision                    , intent(in   )          :: massResolution
@@ -1024,6 +1025,7 @@ contains
                 end if
                 !$omp end critical(mergerTreeBuilderCole2000WellOrderingWarn)
              end if
+             call Merger_Tree_Prune_Unlink_Parent(node,node%parent,parentWillBePruned=.false.,preservePrimaryProgenitor=.true.)
              call node%destroyBranch()
              deallocate(node)
              node => null()
