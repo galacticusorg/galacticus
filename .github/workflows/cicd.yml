@@ -849,7 +849,7 @@ jobs:
       install: python3 python3-h5py python3-numpy python3-git
       file: validate-darkMatterOnlySubhalos-SymphonyCOZMIC.py
       options: "Symphony ${{ matrix.resolution }} CDM"
-      ompNumThreads: 2
+      ompNumThreads: 3
       artifact: galacticus-exec-dmo
       runPath: ./testSuite
       cacheData: 0
