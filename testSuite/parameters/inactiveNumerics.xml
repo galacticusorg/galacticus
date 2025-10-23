@@ -4,7 +4,7 @@
 <!-- 30-November-2020                                                                   -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="d4bf2d8db876eb8e44d94e1672bc36a6ea8135cc" time="2025-09-03T18:23:58"/>
+  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
 
 
   <verbosityLevel value="working"/>
@@ -25,12 +25,8 @@
       <dimensionless value="true"/>
     </massDistributionDisk>
   </componentDisk>
-  
   <componentHotHalo value="coldMode">
-    <fractionLossAngularMomentum value="0.0871188291891892"/>
     <starveSatellites value="false"/>
-    <efficiencyStrippingOutflow value="0.01"/>
-    <trackStrippedGas value="true"/>
   </componentHotHalo>
   <componentSatellite value="preset"/>
   <componentSpheroid value="standard">
@@ -220,7 +216,13 @@
   <hotHaloOutflowReincorporation value="haloDynamicalTime">
     <multiplier value="7.84401490527569"/>
   </hotHaloOutflowReincorporation>
-  
+  <hotHaloOutflowStripping value="standard">
+    <efficiency value="0.01"/>
+  </hotHaloOutflowStripping>
+  <coolingInfallTorque value="fixed">
+    <fractionLossAngularMomentum value="0.0871188291891892"/>
+  </coolingInfallTorque>
+
   <!--chemicalReactionRate value="hydrogenNetwork">
     <fast value="true"/>
   </chemicalReactionRate>
@@ -300,7 +302,6 @@
  
 
   <!-- AGN feedback options -->
-  <hotHaloExcessHeatDrivesOutflow value="true"/>
   <blackHoleWind value="ciotti2009">
     <efficiencyWind                              value="0.213288020410184"/>
     <efficiencyWindScalesWithEfficiencyRadiative value="true"             />
@@ -438,7 +439,6 @@
     </nodeOperator>
     <nodeOperator value="blackHolesAccretion"/>
     <nodeOperator value="blackHolesWinds"/>
-    <nodeOperator value="blackHolesCGMHeating"/>
     <!-- Satellite physics -->
     <nodeOperator value="satelliteOrphanize"/>
     <!-- CGM physics -->
@@ -449,6 +449,20 @@
     <nodeOperator value="CGMOutflowReincorporation">
       <includeSatellites value="true"/>
     </nodeOperator>
+    <nodeOperator value="CGMCoolingHeating">
+      <component value="disk"/>
+      <coolingFrom value="currentNode"/>
+      <excessHeatDrivesOutflow value="true"/>
+      <rateMaximumExpulsion value="1.0"/>
+    </nodeOperator>
+  <nodeOperator value="CGMColdModeInflow">
+
+  <component value="disk"/>
+
+  <coolingFrom value="currentNode"/>
+
+  </nodeOperator>
+
   </nodeOperator>
   
   <starFormationHistory value="adaptive">

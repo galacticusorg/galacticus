@@ -211,7 +211,8 @@ contains
     class           (nodeComponentSpheroid        )               , pointer :: spheroid
     type            (abundances                   )                         :: rateMassAbundancesCooling  , rateMassAbundancesOutflow
     type            (chemicalAbundances           )                         :: rateMassChemicalsCooling   , rateMassChemicalsOutflow
-    logical                                                                 :: hasAngularMomentum         , hasOuterRadius
+    logical                                                                 :: hasAngularMomentum         , hasOuterRadius            , &
+         &                                                                     hasChemicals
     double precision                                                        :: rateMassCooling            , rateMassHeating           , &
          &                                                                     rateAngularMomentumCooling , rateAngularMomentumOutflow, &
          &                                                                     rateMassOutflow            , radiusInfall              , &
@@ -224,6 +225,7 @@ contains
     ! Find available properties.
     hasAngularMomentum=hotHalo%angularMomentumIsGettable()
     hasOuterRadius    =hotHalo%    outerRadiusIsGettable()
+    hasChemicals      =hotHalo%      chemicalsIsGettable()
     ! Ignore cases with unphysical angular momentum or outer radius.
     if     (                                                               &
          &   (hasAngularMomentum .and. hotHalo%angularMomentum() <= 0.0d0) &
@@ -246,13 +248,17 @@ contains
                &                         /self   %darkMatterHaloScale_%timescaleDynamical  (node)  &
                &                        )
           ! Get the rate of change of abundances, chemicals, and angular momentum.
-          rateMassAbundancesOutflow =hotHalo%abundances     ()*(rateMassOutflow/hotHalo%mass())
-          rateAngularMomentumOutflow=hotHalo%angularMomentum()*(rateMassOutflow/hotHalo%mass())
-          rateMassChemicalsOutflow  =hotHalo%chemicals      ()*(rateMassOutflow/hotHalo%mass())
-          call hotHalo%           massRate(-rateMassOutflow           )
-          call hotHalo%     abundancesRate(-rateMassAbundancesOutflow )
-          call hotHalo%angularMomentumRate(-rateAngularMomentumOutflow)
-          call hotHalo%      chemicalsRate(-rateMassChemicalsOutflow  )
+          rateMassAbundancesOutflow        =hotHalo%abundances     ()*(rateMassOutflow/hotHalo%mass())
+          if (hasAngularMomentum) &
+               & rateAngularMomentumOutflow=hotHalo%angularMomentum()*(rateMassOutflow/hotHalo%mass())
+          if (hasChemicals      ) &
+               & rateMassChemicalsOutflow  =hotHalo%chemicals      ()*(rateMassOutflow/hotHalo%mass())
+          call        hotHalo%           massRate(-rateMassOutflow           )
+          call        hotHalo%     abundancesRate(-rateMassAbundancesOutflow )
+          if (hasAngularMomentum) &
+               & call hotHalo%angularMomentumRate(-rateAngularMomentumOutflow)
+          if (hasChemicals      ) &
+               & call hotHalo%      chemicalsRate(-rateMassChemicalsOutflow  )
           ! If this node is a satellite and stripped gas is being tracked, move mass and abundances to the stripped reservoir.
           if (.not.self%hotHaloOutflowStripping_%neverStripped(node)) then
              call hotHalo%      strippedMassRate(rateMassOutflow          )
@@ -287,39 +293,49 @@ contains
           call Error_Report('unknown `coolingFrom` - this should not happen'//{introspection:location})
        end select
        hotHaloCooling => nodeCooling%hotHalo()
-       ! Find the infall radius.
-       radiusInfall              =+self          %coolingInfallRadius_           %radius                     (node                    )
-       ! Find the fraction of angular momentum lost during infall.
-       fractionLossAngularMomentum=self          %coolingInfallTorque_           %fractionAngularMomentumLoss(node                    )
-       ! Calculate cooling rates of other quantities.
        !! Angular momentum.
-       rateAngularMomentumCooling=+                                               rateMassCooling                                       &
-            &                     *self          %coolingSpecificAngularMomentum_%angularMomentumSpecific    (nodeCooling,radiusInfall)
+       if (hasAngularMomentum) then
+          ! Find the infall radius.
+          radiusInfall              =+self          %coolingInfallRadius_           %radius                     (node                    )
+          ! Find the fraction of angular momentum lost during infall.
+          fractionLossAngularMomentum=self          %coolingInfallTorque_           %fractionAngularMomentumLoss(node                    )
+          ! Calculate cooling rates of other quantities.
+          rateAngularMomentumCooling=+                                               rateMassCooling                                       &
+               &                     *self          %coolingSpecificAngularMomentum_%angularMomentumSpecific    (nodeCooling,radiusInfall)
+       else
+          rateAngularMomentumCooling=+0.0d0
+       end if
        !! Abundances.
-       rateMassAbundancesCooling =+                                               rateMassCooling                                       &
-            &                     *hotHaloCooling                                %abundances                 (                        ) &
-            &                     /hotHaloCooling                                %mass                       (                        )
+       rateMassAbundancesCooling    =+                                               rateMassCooling                                       &
+            &                        *hotHaloCooling                                %abundances                 (                        ) &
+            &                        /hotHaloCooling                                %mass                       (                        )
        !! Chemicals.
-       rateMassChemicalsCooling  = hotHaloCooling                                %chemicals                  (                        )
-       call rateMassChemicalsCooling%scale(                                  &
-            &                              -               rateMassCooling   &
-            &                              /hotHaloCooling%mass           () &
-            &                             )
+       if (hasChemicals      ) then
+          rateMassChemicalsCooling  = hotHaloCooling                                %chemicals                  (                        )
+          call rateMassChemicalsCooling%scale(                                  &
+               &                              -               rateMassCooling   &
+               &                              /hotHaloCooling%mass           () &
+               &                             )
+       end if
        ! Apply cooling.
-       call hotHalo    %massRate           (-rateMassCooling                                                                           )
-       call hotHalo    %angularMomentumRate(-rateAngularMomentumCooling                                                                )
-       call hotHalo    %abundancesRate     (-rateMassAbundancesCooling                                                                 )
-       call hotHalo    %chemicalsRate      (+rateMassChemicalsCooling                                                                  )
+       call        hotHalo %massRate           (-rateMassCooling                                                                           )
+       if (hasAngularMomentum) &
+            & call hotHalo %angularMomentumRate(-rateAngularMomentumCooling                                                                )
+       call        hotHalo %abundancesRate     (-rateMassAbundancesCooling                                                                 )
+       if (hasChemicals      ) &
+            & call hotHalo %chemicalsRate      (+rateMassChemicalsCooling                                                                  )
        if      (self%component == componentTypeDisk    ) then
           disk     => node%disk    ()
-          call disk    %massGasRate        (+rateMassCooling                                               ,interrupt,functionInterrupt)
-          call disk    %abundancesGasRate  (+rateMassAbundancesCooling                                     ,interrupt,functionInterrupt)
-          call disk    %angularMomentumRate(+rateAngularMomentumCooling*(1.0d0-fractionLossAngularMomentum),interrupt,functionInterrupt)
+          call     disk    %massGasRate        (+rateMassCooling                                               ,interrupt,functionInterrupt)
+          call     disk    %abundancesGasRate  (+rateMassAbundancesCooling                                     ,interrupt,functionInterrupt)
+          if (hasAngularMomentum) &
+            & call disk    %angularMomentumRate(+rateAngularMomentumCooling*(1.0d0-fractionLossAngularMomentum),interrupt,functionInterrupt)
        else if (self%component == componentTypeSpheroid) then
           spheroid => node%spheroid()
-          call spheroid%massGasRate        (+rateMassCooling                                               ,interrupt,functionInterrupt)
-          call spheroid%abundancesGasRate  (+rateMassAbundancesCooling                                     ,interrupt,functionInterrupt)
-          call spheroid%angularMomentumRate(+rateAngularMomentumCooling*(1.0d0-fractionLossAngularMomentum),interrupt,functionInterrupt)
+          call     spheroid%massGasRate        (+rateMassCooling                                               ,interrupt,functionInterrupt)
+          call     spheroid%abundancesGasRate  (+rateMassAbundancesCooling                                     ,interrupt,functionInterrupt)
+          if (hasAngularMomentum) &
+            & call spheroid%angularMomentumRate(+rateAngularMomentumCooling*(1.0d0-fractionLossAngularMomentum),interrupt,functionInterrupt)
        else if (self%component /= componentTypeNone    ) then
           call Error_Report('unexpected component - this should not happen'//{introspection:location})
        end if

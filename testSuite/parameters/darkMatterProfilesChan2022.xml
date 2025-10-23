@@ -2,7 +2,7 @@
 <!-- Dark matter subhalo evolution model -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="49430476890d1e0d92c686020f046e972952f81e" time="2025-07-17T15:12:42"/>
+  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
 
   <verbosityLevel value="working"/>
 
@@ -11,17 +11,11 @@
   <lastModified revision="49430476890d1e0d92c686020f046e972952f81e" time="2025-07-17T15:12:42"/>
   
   <!-- Dark matter properties -->
+  <darkMatterParticle value="fuzzyDarkMatter">
+    <mass value="5.0"/> <!-- In units of 1.0e-22 eV -->
+    <densityFraction value=" 1.0"/>
+  </darkMatterParticle>
   
-    <darkMatterParticle value="fuzzyDarkMatter">
-      <mass value="5.0"/> <!-- In units of 1.0e-22 eV -->
-      <densityFraction value=" 1.0"/>
-    </darkMatterParticle>
-  
-
-
-  <formatVersion>2</formatVersion>
-  <lastModified revision="49430476890d1e0d92c686020f046e972952f81e" time="2025-07-17T15:12:42"/>
-
   <!-- Cosmological parameters and options -->
   <cosmologyFunctions value="matterLambda"/>
   <cosmologyParameters value="simple">
@@ -31,22 +25,18 @@
     <OmegaBaryon value=" 0.00000"/>	<!-- Dark matter-only model                                             -->
     <temperatureCMB value=" 2.72548"/>
   </cosmologyParameters>
-
-
-  <formatVersion>2</formatVersion>
-  <lastModified revision="49430476890d1e0d92c686020f046e972952f81e" time="2025-07-17T15:12:42"/>
   
   <!-- Power spectrum options -->
-  
-    <cosmologicalMassVariance value="scaled">
-      <scale value="0.689"/>
+  <cosmologicalMassVariance value="scaled">
+    <scale value="0.689"/>
     <cosmologicalMassVariance value="filteredPower">
-    <sigma_8 value="0.8111"/> <!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
-    <tolerance value="3.0e-4"/>
-    <toleranceTopHat value="3.0e-4"/>
-    <nonMonotonicIsFatal value="false"/>
-    <monotonicInterpolation value="true"/>
-  </cosmologicalMassVariance></cosmologicalMassVariance>
+      <sigma_8 value="0.8111"/> <!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+      <tolerance value="3.0e-4"/>
+      <toleranceTopHat value="3.0e-4"/>
+      <nonMonotonicIsFatal value="false"/>
+      <monotonicInterpolation value="true"/>
+    </cosmologicalMassVariance>
+  </cosmologicalMassVariance>
   
   
     <transferFunction value="axionCAMB">
@@ -257,7 +247,9 @@
 		  <toleranceTopHat value="3.0e-4"/>
 		  <nonMonotonicIsFatal value="false"/>
 		  <monotonicInterpolation value="true"/>
-	      </cosmologicalMassVariance></cosmologicalMassVariance>
+	      </cosmologicalMassVariance>
+
+  </cosmologicalMassVariance>
 	      <powerSpectrumPrimordial value="powerLaw">
 		<index value="0.9649"/> <!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
 		<wavenumberReference value="1.0000"/>
@@ -523,5 +515,5 @@
 
     
   
-    
-  </parameters>
+  
+</parameters>

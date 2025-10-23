@@ -267,6 +267,9 @@
   <migration commit="8e1ca452b775faffbba73ded8deb7fb348523429">
     <translation function="hotHaloStandardAccretion"/>
   </migration>
+  <migration commit="d51ad8f72ee53c80cd6cb933ff21cc3ec52b32fe">
+    <translation function="hotHaloStandardInflowOutflow"/>
+  </migration>
 
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />
