@@ -25,7 +25,7 @@
   <!-- Tree construction methods -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="d4bf2d8db876eb8e44d94e1672bc36a6ea8135cc" time="2025-09-03T18:23:58"/>
+    <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
     <errorWaitTime value="0"/>
     <evolveForestsWorkShare value="cyclic"/>
     <mergerTreeConstructor value="build">
@@ -49,9 +49,7 @@
       <presetAngularMomenta value="false"/>
       <presetScaleRadii value="false"/>
       <hotHaloRamPressureStripping value="virialRadius" parameterLevel="top"/>
-      <componentHotHalo value="standard" parameterLevel="top">
-	<trackStrippedGas value="false"/>
-      </componentHotHalo>
+      <componentHotHalo value="standard" parameterLevel="top"/>
       <componentSatellite value="preset" parameterLevel="top"/>
       <componentPosition value="cartesian" parameterLevel="top"/>
       <mergerTreeEvolver value="standard" parameterLevel="top">
@@ -99,7 +97,6 @@
 	</nodeOperator>
 	<nodeOperator value="blackHolesAccretion"  iterable="no"/>
 	<nodeOperator value="blackHolesWinds"      iterable="no"/>
-	<nodeOperator value="blackHolesCGMHeating" iterable="no"/>
 	<!-- Halo positions -->
 	<nodeOperator value="positionDiscrete" iterable="no"/>
 	<!-- Satellite physics -->
@@ -112,6 +109,12 @@
 	<nodeOperator value="CGMOutflowReincorporation" iterable="no">
 	  <includeSatellites value="true"/>
 	</nodeOperator>
+      <nodeOperator value="CGMCoolingHeating" iterable="no">
+	<component value="disk"/>
+	<coolingFrom value="currentNode"/>
+	<excessHeatDrivesOutflow value="true"/>
+	<rateMaximumExpulsion value="1.0"/>
+      </nodeOperator>
       </nodeOperator>
     </mergerTreeConstructor>    
     <cosmologyParameters value="simple">

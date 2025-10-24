@@ -148,8 +148,8 @@ module Node_Component_Spheroid_Standard
     </property>
    </properties>
    <bindings>
-    <binding method="massDistribution" function="Node_Component_Spheroid_Standard_Mass_Distribution" bindsTo="component"/>
-    <binding method="massBaryonic"     function="Node_Component_Spheroid_Standard_Mass_Baryonic"     bindsTo="component"/>
+    <binding method="massDistribution" function="Node_Component_Spheroid_Standard_Mass_Distribution"/>
+    <binding method="massBaryonic"     function="Node_Component_Spheroid_Standard_Mass_Baryonic"    />
    </bindings>
    <functions>objects.nodes.components.spheroid.standard.bound_functions.inc</functions>
   </component>

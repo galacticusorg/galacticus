@@ -18,19 +18,32 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains custom functions for the outflow tracking hot halo component.
+Contains a module that implements calculations of the infall torques for cooling calculations.
 !!}
 
-subroutine Node_Component_Hot_Halo_Outflow_Tracking_Mass_Removal_Rate(self,massRemovalRate)
+module Cooling_Infall_Torques
   !!{
-  Handle instances where mass is removed from the the outflow tracking hot halo component
-  class.
+  Provides a class that implements calculations of the infall torques for cooling calculations.
   !!}
+  use :: Galacticus_Nodes, only : treeNode
   implicit none
-  class           (nodeComponentHotHaloOutflowTracking), intent(inout) :: self
-  double precision                                     , intent(in   ) :: massRemovalRate
+  private
 
-  call self%trackedOutflowMassRate      (-self%trackedOutflowMass      ()*massRemovalRate/self%mass())
-  call self%trackedOutflowAbundancesRate(-self%trackedOutflowAbundances()*massRemovalRate/self%mass())
-  return
-end subroutine Node_Component_Hot_Halo_Outflow_Tracking_Mass_Removal_Rate
+  !![
+  <functionClass>
+   <name>coolingInfallTorque</name>
+   <descriptiveName>Cooling Infall Torque</descriptiveName>
+   <description>
+    Class providing models of the infall torques for gas cooling in the hot atmosphere surrounding a galaxy.
+   </description>
+   <default>fixed</default>
+   <method name="fractionAngularMomentumLoss" >
+    <description>Return the fraction of angular momentum lost during infall.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+   </method>
+  </functionClass>
+  !!]
+
+end module Cooling_Infall_Torques

@@ -41,7 +41,6 @@ use Galacticus::Build::Components::Classes;
 use Galacticus::Build::Components::Classes::Names;
 use Galacticus::Build::Components::Classes::CreateDestroy;
 use Galacticus::Build::Components::Classes::Evolve;
-use Galacticus::Build::Components::Classes::Deferred;
 use Galacticus::Build::Components::Classes::Defaults;
 use Galacticus::Build::Components::Classes::MetaProperties;
 use Galacticus::Build::Components::Classes::Output;

@@ -65,7 +65,7 @@ module Node_Component_Disk_Very_Simple_Size
     </property>
    </properties>
    <bindings>
-    <binding method="massDistribution" function="Node_Component_Disk_Very_Simple_Size_Mass_Distribution" bindsTo="component"/>
+    <binding method="massDistribution" function="Node_Component_Disk_Very_Simple_Size_Mass_Distribution"/>
    </bindings>
    <functions>objects.nodes.components.disk.very_simple.size.bound_functions.inc</functions>
   </component>

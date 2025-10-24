@@ -926,7 +926,6 @@ jobs:
       fail-fast: false
       matrix:
         executable: [ tests.nodes.exe,
-                      tests.parameters.exe,
                       tests.files.exe,
                       tests.IO.XML.exe,
                       tests.ODE_solver.exe,
@@ -1042,6 +1041,15 @@ jobs:
     with:
       executable: ${{ matrix.executable }}
       artifact: test-execs
+    secrets: inherit
+  ### Test Parameters
+  Parameters:
+    needs: Build-Executable-Linux
+    uses: ./.github/workflows/testCode.yml
+    with:
+      executable: tests.parameters.exe
+      artifact: test-execs
+      expectUnrecognized: 1
     secrets: inherit
   ### Test HDF5 IO
   IO-HDF5:

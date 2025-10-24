@@ -25,10 +25,7 @@
     </massDistributionDisk>
   </componentDisk>
   <componentHotHalo value="standard">
-    <fractionLossAngularMomentum value="0.3"/>
     <starveSatellites value="false"/>
-    <efficiencyStrippingOutflow value="0.1"/>
-    <trackStrippedGas value="true"/>
   </componentHotHalo>
   <componentSatellite value="orbiting"/>
   <componentSpheroid value="null"/>
