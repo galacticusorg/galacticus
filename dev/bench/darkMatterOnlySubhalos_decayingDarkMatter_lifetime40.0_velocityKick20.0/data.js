@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1761168155425,
+  "lastUpdate": 1761277159257,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=40 Gyr; vₖ=20 km/s)": [
@@ -3551,6 +3551,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=40.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
             "value": 50.47934317202249,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "19548c248a266d2592dfb8068af563e88e717f6f",
+          "message": "Merge pull request #956 from galacticusorg/fixIgnoreWellOrdering\n\nUnlink node from tree before destroying its branch",
+          "timestamp": "2025-10-23T17:09:22Z",
+          "tree_id": "803eaef9fa56b3abf90cfe57d007dcd75038ffe4",
+          "url": "https://github.com/galacticusorg/galacticus/commit/19548c248a266d2592dfb8068af563e88e717f6f"
+        },
+        "date": 1761277158382,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=40.0 Gyr; vₖ=20.0 km/s) - Likelihood - mass function",
+            "value": 3.9264288395918534,
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=40.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
+            "value": 49.7888050201486,
             "unit": "-logℒ"
           }
         ]
