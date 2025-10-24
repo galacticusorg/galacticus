@@ -38,7 +38,7 @@ module Circumgalactic_Medium_Heating
    </description>
    <default>zero</default>
    <method name="heatingRate" >
-    <description>Compute the heating rate of the CGM [in units of $\[mathrm{M}_\odot \mathrm{km}^2\mathrm{s}^{-1}].</description>
+    <description>Compute the heating rate of the CGM [in units of $\mathrm{M}_\odot \mathrm{km}^2\mathrm{s}^{-1}$].</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
