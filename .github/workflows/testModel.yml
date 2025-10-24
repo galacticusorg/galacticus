@@ -177,9 +177,9 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           find testSuite/outputs -name "*.log" | xargs grep "unrecognized parameter" > unrecognized.txt || true
           grep "unrecognized parameter" test.log >> unrecognized.txt || true
-          if [ -s "unrecognized.txt ]; then
+          if [ -s "unrecognized.txt" ]; then
            echo "# :warning: Unrecognized parameters from ${GITHUB_JOB_NAME} :warning:" >> $GITHUB_STEP_SUMMARY
-           echo ":information_source: Job log can be found [here]\(${GITHUB_JOB_HTML_URL}\)" >> $GITHUB_STEP_SUMMARY
+           echo ":information_source: Job log can be found [here](${GITHUB_JOB_URL})" >> $GITHUB_STEP_SUMMARY
            cat unrecognized.txt >> $GITHUB_STEP_SUMMARY
           fi
       - name: "Clean datasets"
