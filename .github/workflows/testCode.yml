@@ -12,6 +12,10 @@ on:
       executable: # The name of the test executable to be run and tested
         required: true
         type: string
+      expectUnrecognized: # Set to zero if unrecognized parameters are not expected, 1 if they are expected
+        required: false
+        default: 0
+        type: number
       expectFail: # Set to zero if FAIL is not expected, 1 if FAIL is expected
         required: false
         default: 0
@@ -91,6 +95,7 @@ jobs:
           fi
       - uses: qoomon/actions--context@v4
       - name: "Check for unrecognized parameters"
+        if: ${{ format('{0}',inputs.expectUnrecognized) == '0' }}
         run: |
           cd $GALACTICUS_EXEC_PATH
           grep "unrecognized parameter" test.log > unrecognized.txt || true
