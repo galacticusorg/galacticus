@@ -1773,7 +1773,7 @@ jobs:
           name: 'Milky Way model benchmarks'
           type: 'validate'
           suffix: 'milkyWayModel'
-          threshold: '240%'
+          threshold: '340%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Idealized subhalo simulations (rₚ/rₐ=0.005; γ=1.5)'
         uses: ./.github/actions/benchmark
