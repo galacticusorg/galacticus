@@ -4,7 +4,7 @@
   <!-- Set the WDM particle mass. -->
   <change type="update" path="darkMatterParticle/mass" value="5.0"/>
   <!-- Set the host halo masses -->
-  <change type="update" path="mergerTreeBuildMasses/replicationCount" value="4"/>
+  <change type="update" path="mergerTreeBuildMasses/replicationCount" value="16"/>
   <change type="update" path="mergerTreeBuildMasses/mergerTreeBuildMasses/fileName" value="%DATASTATICPATH%/darkMatter/hostHaloMasses_COZMIC_MilkyWay_resolutionX8_WDM:5keV_z0.000.hdf5"/>
   <!-- Set a suitable name for the output file. -->
   <change type="update" path="outputFileName" value="testSuite/outputs/validate_darkMatterOnlySubhalos_COZMIC_MilkyWay_resolutionX8_WDM:5keV.hdf5"/>
