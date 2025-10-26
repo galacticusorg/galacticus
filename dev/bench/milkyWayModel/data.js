@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1761277111420,
+  "lastUpdate": 1761478764091,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "2c6d295fc6c85a40c8e949ec869b908cd58dbe2c",
-          "message": "Merge pull request #733 from galacticusorg/fixMemoryIssues\n\nFix various memory issues",
-          "timestamp": "2024-11-02T14:50:37Z",
-          "tree_id": "e16c64785fb926edefd5055946fc81e80903b3a0",
-          "url": "https://github.com/galacticusorg/galacticus/commit/2c6d295fc6c85a40c8e949ec869b908cd58dbe2c"
-        },
-        "date": 1730580909602,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 26.695,
-            "unit": "seconds",
-            "range": 0.0257778975089538
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10712,6 +10682,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 9.083662155362456,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ee1a915ee5a43a63d05ea315805440c3e100da9c",
+          "message": "Merge pull request #957 from galacticusorg/fixSubhaloValidationStats\n\nIncrease the number of realizations for some subhalo validation models",
+          "timestamp": "2025-10-26T04:30:42Z",
+          "tree_id": "e23aaa5814520f99aebe825fab83e68f5250201f",
+          "url": "https://github.com/galacticusorg/galacticus/commit/ee1a915ee5a43a63d05ea315805440c3e100da9c"
+        },
+        "date": 1761478762716,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 72.739,
+            "range": "0.0677414201209189",
+            "unit": "seconds"
           }
         ]
       }
