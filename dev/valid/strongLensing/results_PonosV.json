@@ -6,10 +6,10 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "19548c248a266d2592dfb8068af563e88e717f6f",
-        "message": "Merge pull request #956 from galacticusorg/fixIgnoreWellOrdering\n\nUnlink node from tree before destroying its branch\n",
-        "timestamp": "2025-10-23 17:09:22+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/19548c248a266d2592dfb8068af563e88e717f6f"
+        "id": "ee1a915ee5a43a63d05ea315805440c3e100da9c",
+        "message": "Merge pull request #957 from galacticusorg/fixSubhaloValidationStats\n\nIncrease the number of realizations for some subhalo validation models\n",
+        "timestamp": "2025-10-26 04:30:42+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/ee1a915ee5a43a63d05ea315805440c3e100da9c"
     },
     "surfaceDensity": {
         "percentageBelow": 32.14285714285714,
