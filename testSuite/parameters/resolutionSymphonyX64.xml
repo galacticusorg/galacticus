@@ -5,4 +5,14 @@
   <!-- Set mass resolution to a factor 3 below the 300 particle limit for Symphony subhalo masses. -->
   <change type="update" path="mergerTreeMassResolution/massResolution" value="6.2e5"/>
 
+  <!-- Add subsampling to keep memory usage reasonable -->
+  <change type="append" path="">
+    <mergerTreeBuildController value="subsample">
+      <!-- Set the threshold for subsampling to be a factor 3 below the 300 particle limit for the __resolutionX8__ Symphony subhalo masses -->
+      <massThreshold value="5.03e6"/>
+      <subsamplingRateAtThreshold value="1.0"/>
+      <exponent value="1.0"/>
+    </mergerTreeBuildController>
+  </change>
+  
 </changes>
