@@ -34,8 +34,23 @@ jobs:
           sudo apt install -y python3-pypdf2 perl libregexp-common-perl curl git libwww-curl-perl libjson-pp-perl libxml-simple-perl
       - name: Check for broken links
         if: ${{ env.adstoken != '' }}
+        id: check_links
+        continue-on-error: true
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          ./scripts/aux/linkChecker.pl ${{ secrets.NASA_ADS_API_TOKEN }}
-      - run: echo "This job's status is ${{ job.status }}."
+          ./scripts/aux/linkChecker.pl ${{ secrets.NASA_ADS_API_TOKEN }} badURLs.md
+      - name: Check file existence
+        id: check_files
+        uses: andstor/file-existence-action@v3
+        with:
+          files: badURLs.md
+      - name: Output to a job summary
+        if: steps.check_files.outputs.files_exists == 'true'
+        run: |
+          cat badURLs.md >> $GITHUB_STEP_SUMMARY
+      - name: Report job failure if broken links were found
+        if: steps.check_links.outcome == 'failure'
+        run: |
+          echo "Broken links found - marking the job as failing."
+          exit 1

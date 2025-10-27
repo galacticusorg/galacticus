@@ -245,6 +245,10 @@ def adjustAbundances(abundancesReference,metallicity,dustToMetalsRatio):
     # Compute the correction to the grain abundances (relative to Cloudy's default Orion grains) required to get our desired dust-to-metals ratio.
     dustToGasRatioCloudy         = 5.396e-03; # This is the dust-to-gas ratio for Cloudy's default Orion grains.
     abundancesByMassFinal        = np.array(list(map(lambda x: abundances[x]['atomicMass']*10.0**abundances[x]['logAbundanceByNumber'],elements)))
+    i                            = -1
+    for element in elements:
+        i = i+1
+        abundances[element]['abundanceByMass'] = abundancesByMassFinal[i]
     metallicityFinal             = np.sum(abundancesByMassFinal[isMetal])/np.sum(abundancesByMassFinal)
     dustToMetalsRatioCloudy      = dustToGasRatioCloudy/metallicityFinal
     dustToMetalsBoostLogarithmic = np.log10(dustToMetalsRatio/dustToMetalsRatioCloudy)
@@ -287,11 +291,13 @@ def linesParse(job):
         print("FAIL (Cloudy failed disasterously): "+label+" see "+job['logOutput'])
         if grid['lineData']['status'][indices] == 0:
             grid['lineData']['status'][indices] = 1
+        return
     checkFailed   = subprocess.run(['grep', '-q', 'FAILED'  , job['logOutput']], capture_output=True, text=True)
     if checkFailed  .returncode == 0:
         print("FAIL (Cloudy exited with non-zero status): "+label+" see "+job['logOutput'])
         if grid['lineData']['status'][indices] == 0:
             grid['lineData']['status'][indices] = 2
+        return
     # Allow multiple attempts to read the lines file in case the file is written over NFS and we must wait for it to catch up.    
     attemptsMaximum = 10
     linesFound      = {}
@@ -469,8 +475,6 @@ def generateJobSSP(grid,args):
         logHydrogenLuminosity = grid['logStellarMasses'       ][iNormalization]+np.log10(grid['ionizingLuminosityPerMass'][iMetallicity,iAge])
     else:
         sys.exit("Expected `normalization` of `ionizingLuminosity` or `massStellar`")
-    # Compute the Strömgren radius for this model.
-    radiusStromgrenLogarithmic = (logHydrogenLuminosity-np.log10(4.0*np.pi/3.0*coefficientRecombinationCaseB)-2.0*grid['logHydrogenDensities'][iLogHydrogenDensity])/3.0
     # Get abundances for this metallicity.
     ## Compute metallicity relative to Solar.
     metallicity                                    = 10.0**grid['logMetallicities'][iMetallicity]
@@ -479,6 +483,21 @@ def generateJobSSP(grid,args):
     # from their stated value, but agrees with our internal calculation of this value from their data.
     dustToMetals                                   = 0.401
     (dustToMetalsBoostLogarithmic, abundances)     = adjustAbundances(abundancesReference,metallicity,dustToMetals)
+    # Compute the Strömgren radius for this model.
+    radiusStromgrenLogarithmic = (logHydrogenLuminosity-np.log10(4.0*np.pi/3.0*coefficientRecombinationCaseB)-2.0*grid['logHydrogenDensities'][iLogHydrogenDensity])/3.0
+    # Determine the inner radius of the cloud.
+    radiusCloudInnerLogarithmic = radiusStromgrenLogarithmic+np.log10(args.factorMorphology)
+    # If required, determine the cloud outer radius.
+    if args.normalization == "massStellar" and args.stopOuterRadius:
+        epsilonStar                 = 3.000000000e-02 # Star formation efficiency of clouds (Grudic et al.; 2019; MNRASm 488, 1501).
+        massAtomic                  = 1.660539040e-24 # Atomic mass unit in g.
+        massSolar                   = 1.989100000e+33 # Solar mass in g.
+        elements                    = sorted(abundances,key=lambda x: abundancesReference[x]['atomicNumber'])
+        fractionMassHydrogen        = abundances['H']['abundanceByMass']/np.sum(list(map(lambda x: abundances[x]['abundanceByMass'],elements)))
+        massCloudGas                = (10.0**grid['logStellarMasses'    ][iNormalization]     )*massSolar                               /epsilonStar
+        densityGas                  = (10.0**grid['logHydrogenDensities'][iLogHydrogenDensity])*massAtomic*abundances['H']['atomicMass']/fractionMassHydrogen
+        radiusCloudOuter            = (3.0*massCloudGas/4.0/np.pi/densityGas+10.0**(3.0*radiusCloudInnerLogarithmic))**(1.0/3.0)
+        radiusCloudOuterLogarithmic = np.log10(radiusCloudOuter)
     # Create a depletion file that can be read by Cloudy. Cloudy does not permit digits in these file names. To work around this,
     # we translate our numerical metallicity index into ASCII characters, by mapping digits (0→A, 1→B, etc.).
     if not args.noGrains:
@@ -547,7 +566,11 @@ def generateJobSSP(grid,args):
     cloudyScript += "hden "+str(grid['logHydrogenDensities'][iLogHydrogenDensity])+"\n"
     # Set other HII region properties.
     cloudyScript += "sphere expanding\n"
-    cloudyScript += f"radius {radiusStromgrenLogarithmic:.1f}\n"
+    if args.normalization == "massStellar" and args.stopOuterRadius:
+        radiusCloudOuterLogarithmicLabel = f' {radiusCloudOuterLogarithmic:.3f}'
+    else:
+        radiusCloudOuterLogarithmicLabel = ''
+    cloudyScript += f"radius {radiusCloudInnerLogarithmic:.3f}{radiusCloudOuterLogarithmicLabel}\n"
     # Set cosmic rays (needed to avoid problems in Cloudy in neutral gas).
     cloudyScript += "cosmic rays background\n"
     # Set stopping criteria.
@@ -1153,26 +1176,28 @@ def outputAGN(grid,args):
 
 # Parse command line arguments.
 parser = argparse.ArgumentParser(prog='analysesPlotcreateEmissionLinesTable.py',description='Generate tables of Cloudy models for use in emission line calculations.')
-parser.add_argument('--outputFileName'                                    ,action='store'                            ,help='the file to which the table should be output'                                        )
-parser.add_argument('--sspFileName'                                       ,action='store'                            ,help='the SSP file for which to compute emission line luminosities'                        )
-parser.add_argument('--agnModel'                                          ,action='store'                            ,help='the AGN model for which to compute emission line luminosities'                       )
-parser.add_argument('--workspace'            ,default='cloudyTable/'      ,action='store'                            ,help='the path in which temporary files should be created'                                 )
-parser.add_argument('--reprocess'                                         ,action='store_true'                       ,help='reprocess models that failed to be read previously'                                  )
-parser.add_argument('--rerun'                                             ,action='store_true'                       ,help='rerun models that previously failed'                                                 )
-parser.add_argument('--generateOnly'                                      ,action='store_true'                       ,help='only generate model input files, do not run them'                                    )
-parser.add_argument('--overview'                                          ,action='store_true'                       ,help='include the Cloudy overview in the output'                                           )
-parser.add_argument('--noClean'                                           ,action='store_true'                       ,help='do not clean up temporary files'                                                     )
-parser.add_argument('--noGrains'                                          ,action='store_true'                       ,help='do not include dust grains in the models'                                            )
-parser.add_argument('--normalization'        ,default='ionizingLuminosity',action='store'                            ,help='specify how the spectrum is to be normalized (`ionizingLuminosity` or `massStellar`)')
-parser.add_argument('--stopElectronFraction' ,default='0.01'              ,action='store'      ,type=restricted_float,help='set the elctron fraction at which to stop the Cloudy models'                         )
-parser.add_argument('--stopLymanOpticalDepth',default='10.0'              ,action='store'      ,type=restricted_float,help='set the Lyman optical depth at which to stop the Cloudy models'                      )
-parser.add_argument('--cloudyVersion'        ,default="23.01"             ,action='store'                            ,help='the version of Cloudy to use'                                                        )
-parser.add_argument('--suffixGitHubPages'                                 ,action='store'                            ,help='update GitHub pages content using this suffix'                                       )
-parser.add_argument('--model'                                             ,action='store'      ,type=restricted_int  ,help='run only the given model number'                                                     )
-parser.add_argument('--partition'                                         ,action='store'                            ,help='the partition to which to submit jobs'                                               )
-parser.add_argument('--jobMaximum'                                        ,action='store'      ,type=restricted_int  ,help='the maximum number of active jobs to allow'                                          )
-parser.add_argument('--waitOnSubmit'                                      ,action='store'      ,type=restricted_int  ,help='the time (in seconds) to wait after submitting each job'                             )
-parser.add_argument('--waitOnActive'                                      ,action='store'      ,type=restricted_int  ,help='the time (in seconds) to wait after polling active jobs'                             )
+parser.add_argument('--outputFileName'                                    ,action='store'                            ,help='the file to which the table should be output'                                                                 )
+parser.add_argument('--sspFileName'                                       ,action='store'                            ,help='the SSP file for which to compute emission line luminosities'                                                 )
+parser.add_argument('--agnModel'                                          ,action='store'                            ,help='the AGN model for which to compute emission line luminosities'                                                )
+parser.add_argument('--workspace'            ,default='cloudyTable/'      ,action='store'                            ,help='the path in which temporary files should be created'                                                          )
+parser.add_argument('--reprocess'                                         ,action='store_true'                       ,help='reprocess models that failed to be read previously'                                                           )
+parser.add_argument('--rerun'                                             ,action='store_true'                       ,help='rerun models that previously failed'                                                                          )
+parser.add_argument('--generateOnly'                                      ,action='store_true'                       ,help='only generate model input files, do not run them'                                                             )
+parser.add_argument('--overview'                                          ,action='store_true'                       ,help='include the Cloudy overview in the output'                                                                    )
+parser.add_argument('--noClean'                                           ,action='store_true'                       ,help='do not clean up temporary files'                                                                              )
+parser.add_argument('--noGrains'                                          ,action='store_true'                       ,help='do not include dust grains in the models'                                                                     )
+parser.add_argument('--normalization'        ,default='ionizingLuminosity',action='store'                            ,help='specify how the spectrum is to be normalized (`ionizingLuminosity` or `massStellar`)'                         )
+parser.add_argument('--factorMorphology'     ,default='1.0'               ,action='store'      ,type=restricted_float,help='set the morphology factor (f=R_{in}/R_{Strömgren}; https://ui.adsabs.harvard.edu/abs/2016A%2526A...594A..37M)')
+parser.add_argument('--stopOuterRadius'                                   ,action='store_true'                       ,help='set Cloudy to stop at the cloud outer radius'                                                                 )
+parser.add_argument('--stopElectronFraction' ,default='0.01'              ,action='store'      ,type=restricted_float,help='set the elctron fraction at which to stop the Cloudy models'                                                  )
+parser.add_argument('--stopLymanOpticalDepth',default='10.0'              ,action='store'      ,type=restricted_float,help='set the Lyman optical depth at which to stop the Cloudy models'                                               )
+parser.add_argument('--cloudyVersion'        ,default="23.01"             ,action='store'                            ,help='the version of Cloudy to use'                                                                                 )
+parser.add_argument('--suffixGitHubPages'                                 ,action='store'                            ,help='update GitHub pages content using this suffix'                                                                )
+parser.add_argument('--model'                                             ,action='store'      ,type=restricted_int  ,help='run only the given model number'                                                                              )
+parser.add_argument('--partition'                                         ,action='store'                            ,help='the partition to which to submit jobs'                                                                        )
+parser.add_argument('--jobMaximum'                                        ,action='store'      ,type=restricted_int  ,help='the maximum number of active jobs to allow'                                                                   )
+parser.add_argument('--waitOnSubmit'                                      ,action='store'      ,type=restricted_int  ,help='the time (in seconds) to wait after submitting each job'                                                      )
+parser.add_argument('--waitOnActive'                                      ,action='store'      ,type=restricted_int  ,help='the time (in seconds) to wait after polling active jobs'                                                      )
 args = parser.parse_args()
 
 # Validate options.
