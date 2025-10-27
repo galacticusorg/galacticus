@@ -50,7 +50,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: ${{ format('{0}',inputs.profiler) == 'perf' && 'galacticus-exec' || 'galacticus-exec-instrumented' }}
       - name: Detect linux-tools
