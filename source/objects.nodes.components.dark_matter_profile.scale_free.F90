@@ -40,7 +40,7 @@ module Node_Component_Dark_Matter_Profile_Scale_Free
    <name>scaleFree</name>
    <isDefault>false</isDefault>
    <bindings>
-     <binding method="massDistribution" bindsTo="component" isDeferred="true" >
+     <binding method="massDistribution" isDeferred="true" >
       <interface>
        <type>class(massDistributionClass), pointer</type>
        <rank>0</rank>

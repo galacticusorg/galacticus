@@ -3,7 +3,7 @@
   <!-- Posterior sampling simulation parameter file for search of Galacticus model parameter space -->
   <!-- Andrew Benson (29-April-2020) -->  
   <formatVersion>2</formatVersion>
-  <lastModified revision="d4bf2d8db876eb8e44d94e1672bc36a6ea8135cc" time="2025-09-03T18:23:58"/>
+  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
 
   <verbosityLevel value="standard"/>
 
@@ -886,42 +886,5 @@
     <seed value="219"/>
     <mpiRankOffset value="true"/>
   </randomNumberGenerator>
-  
-  <!-- Tree node component selection -->
-  <componentBasic value="standard"/>
-  <componentBlackHole value="simple"/>
-  <componentDarkMatterProfile value="scale"/>
-  <componentDisk value="standard"/>
-  <componentHotHalo value="standard"/>
-  <componentPosition value="cartesian"/>
-  <componentSatellite value="standard"/>
-  <componentSpheroid value="standard"/>
-  <componentSpin value="scalar"/>
-
-  <!-- Elements -->
-  <elementsToTrack value="O"/>
-
-  <!-- Luminosity calculations -->
-  <luminosityFilter value="         SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g         SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r         SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g         SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r         Lyc             Lyc             Lyc             Lyc             Lyc              Lyc             Lyc             Lyc         HeliumContinuum HeliumContinuum HeliumContinuum HeliumContinuum HeliumContinuum  HeliumContinuum HeliumContinuum HeliumContinuum         OxygenContinuum OxygenContinuum OxygenContinuum OxygenContinuum OxygenContinuum  OxygenContinuum OxygenContinuum OxygenContinuum         "/>
-  
-  <luminosityType value="         observed observed observed observed observed observed observed observed observed observed observed         observed observed observed observed observed observed observed observed observed observed observed         observed observed observed observed observed observed observed observed observed observed observed         observed observed observed observed observed observed observed observed observed observed observed         rest     rest     rest     rest     rest     rest     rest     rest         rest     rest     rest     rest     rest     rest     rest     rest         rest     rest     rest     rest     rest     rest     rest     rest         "/>
-  
-  <luminosityRedshift value="         0.02     0.04     0.06     0.08     0.10     0.12     0.14     0.16     0.18     0.20     0.24         0.02     0.04     0.06     0.08     0.10     0.12     0.14     0.16     0.18     0.20     0.24         0.02     0.04     0.06     0.08     0.10     0.12     0.14     0.16     0.18     0.20     0.24         0.02     0.04     0.06     0.08     0.10     0.12     0.14     0.16     0.18     0.20     0.24         0.02     0.04     0.06     0.08     0.10     0.40     0.86     2.20         0.02     0.04     0.06     0.08     0.10     0.40     0.86     2.20         0.02     0.04     0.06     0.08     0.10     0.40     0.86     2.20         "/>
-
-  
-  <luminosityBandRedshift value="         0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10         0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10         0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10         0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10         0.02     0.04     0.06     0.08     0.10     0.40     0.86     2.20         0.02     0.04     0.06     0.08     0.10     0.40     0.86     2.20         0.02     0.04     0.06     0.08     0.10     0.40     0.86     2.20         "/>
-  <luminosityPostprocessSet value="         default  default  default  default  default  default  default  default  default  default  default         default  default  default  default  default  default  default  default  default  default  default         recent   recent   recent   recent   recent   recent   recent   recent   recent   recent   recent         recent   recent   recent   recent   recent   recent   recent   recent   recent   recent   recent         default  default  default  default  default  default  default  default         default  default  default  default  default  default  default  default         default  default  default  default  default  default  default  default         "/>
-  <stellarPopulationSpectraPostprocessorBuilder value="lookup">
-    <names value="default recent"/>
-    <stellarPopulationSpectraPostprocessor value="inoue2014"/>
-    <stellarPopulationSpectraPostprocessor value="sequence">
-      <!-- Spectra postprocessing chain to compute light from recently formed populations -->
-      <stellarPopulationSpectraPostprocessor value="inoue2014"/>
-      <stellarPopulationSpectraPostprocessor value="recent">
-  	<timeLimit value="1.0e-2"/> <!-- t_{BC} of Charlot & Fall (2000; ApJ, 539, 718)-->
-      </stellarPopulationSpectraPostprocessor>
-    </stellarPopulationSpectraPostprocessor>
-  </stellarPopulationSpectraPostprocessorBuilder>
-  <stellarSpectraDustAttenuation value="charlotFall2000"/>
 
 </parameters>

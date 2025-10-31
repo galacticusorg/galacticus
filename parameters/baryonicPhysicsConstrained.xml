@@ -4,7 +4,7 @@
 <!-- 30-November-2020                                                                   -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="d4bf2d8db876eb8e44d94e1672bc36a6ea8135cc" time="2025-09-03T18:23:58"/>
+  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
 
 
   <!-- Task and work control -->
@@ -31,10 +31,7 @@
     </massDistributionDisk>
   </componentDisk>
   <componentHotHalo value="standard">
-    <fractionLossAngularMomentum value="0.95"/>
     <starveSatellites value="true"/>
-    <efficiencyStrippingOutflow value="0.1"/>
-    <trackStrippedGas value="false"/>
   </componentHotHalo>
   <componentPosition value="cartesian"/>
   <componentSatellite value="standard"/>
@@ -144,6 +141,10 @@
   <hotHaloOutflowReincorporation value="haloDynamicalTime">
     <multiplier value="8.24493150309934"/>
   </hotHaloOutflowReincorporation>
+  <hotHaloOutflowStripping value="zero"/>
+  <coolingInfallTorque value="fixed">
+    <fractionLossAngularMomentum value="0.95"/>
+  </coolingInfallTorque>
   <coolingFunction value="atomicCIECloudy"/>
   <coolingRadius value="simple"/>
   <coolingRate value="multiplier">
@@ -192,7 +193,6 @@
   <recycledFraction value="0.111679665936988"/> <!-- Used to allow setting of recycled fraction and stellar mass systematics as derived parameters -->
 
   <!-- AGN feedback options -->
-  <hotHaloExcessHeatDrivesOutflow value="true"/>
   <blackHoleWind value="simple">
     <efficiencyWind value="0.00345361636349862"/>
   </blackHoleWind>
@@ -293,6 +293,12 @@
     </nodeOperator>
     <nodeOperator value="CGMOutflowReincorporation">
       <includeSatellites value="false"/>
+    </nodeOperator>
+    <nodeOperator value="CGMCoolingHeating">
+      <component value="disk"/>
+      <coolingFrom value="currentNode"/>
+      <excessHeatDrivesOutflow value="true"/>
+      <rateMaximumExpulsion value="1.0"/>
     </nodeOperator>
   </nodeOperator>
   

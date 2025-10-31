@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="d4bf2d8db876eb8e44d94e1672bc36a6ea8135cc" time="2025-09-03T18:23:58"/>
+  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:55:26"/>
   <cosmologyParameters value="simple">
     <HubbleConstant value="70.2"/>
     <OmegaMatter value="0.2725"/>
@@ -15,29 +15,11 @@
   </randomNumberGenerator>
 
   <componentBasic value="standard"/>
-  <componentBlackHole value="standard">
-    <efficiencyWind value="0.001"/>
-    <bondiHoyleAccretionEnhancementHotHalo value="1"/>
-    <bondiHoyleAccretionEnhancementSpheroid value="1"/>
-    <bondiHoyleAccretionTemperatureSpheroid value="100"/>
-  </componentBlackHole>
-  <componentDarkMatterProfile value="scale"/>
-  <componentDisk value="standard">
-    <toleranceAbsoluteMass value="1e-06"/>
-    <massDistributionDisk value="exponentialDisk">
-      <dimensionless value="true"/>
-    </massDistributionDisk>
-  </componentDisk>
-  <componentHotHalo value="standard">
-    <starveSatellites value="true"/>
-  </componentHotHalo>
-  <componentSatellite value="simple"/>
-  <componentSpheroid value="standard">
-    <efficiencyEnergeticOutflow value="1"/>
-    <toleranceAbsoluteMass value="1e-06"/>
-    <massDistributionSpheroid value="hernquist">
-      <dimensionless value="true"/>
-    </massDistributionSpheroid>
-  </componentSpheroid>
-  <componentSpin value="scalar"/>
+  <componentBlackHole value="null"/>
+  <componentDarkMatterProfile value="null"/>
+  <componentDisk value="null"/>
+  <componentHotHalo value="null"/>
+  <componentSatellite value="null"/>
+  <componentSpheroid value="null"/>
+  <componentSpin value="null"/>
 </parameters>
