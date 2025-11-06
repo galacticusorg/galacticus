@@ -847,8 +847,9 @@ CODE
 	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
 		$code::type       = $nonAbstractClass->{'name'};
 		($code::typeShort = $nonAbstractClass->{'name'}) =~ s/^$directive->{'name'}//;
-		$code::typeShort  = lcfirst($code::typeShort);
-		$objectTypeCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
+		$code::typeShort  = lcfirst($code::typeShort)
+		    unless ( $code::typeShort =~ m/^[A-Z]{2,}/ );
+		$objectTypeCode  .= fill_in_string(<<'CODE', PACKAGE => 'code');
 type is ({$type})
 if (short_) then
  {$directiveName}ObjectType='{$typeShort}'
