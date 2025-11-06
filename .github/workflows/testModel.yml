@@ -20,6 +20,10 @@ on:
       file: # The name of the test file to be run and tested
         required: true
         type: string
+      expectUnrecognized: # Set to zero if unrecognized parameters are not expected, 1 if they are expected
+        required: false
+        default: 0
+        type: number
       options: # Options to pass to the script command line
         required: false
         default: ''
@@ -173,6 +177,7 @@ jobs:
           ! grep -q -e FAIL -e "ODE integration failed" test.log
       - uses: qoomon/actions--context@v4
       - name: "Check for unrecognized parameters"
+        if: ${{ format('{0}',inputs.expectUnrecognized) == '0' }}
         run: |
           cd $GALACTICUS_EXEC_PATH
           find testSuite/outputs -name "*.log" | xargs grep "unrecognized parameter" > $GALACTICUS_EXEC_PATH/unrecognized.txt || true

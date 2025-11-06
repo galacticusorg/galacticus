@@ -1183,8 +1183,7 @@ jobs:
       # Ensure all jobs are run, even if some fail.
       fail-fast: false
       matrix:
-        file: [ test-allowed-parameters.pl,
-                test-bar-instability.pl,
+        file: [ test-bar-instability.pl,
                 test-transfer-functions-axion.pl,
                 test-mass-definitions.pl,
                 test-branchlessTrees.pl,
@@ -1249,6 +1248,15 @@ jobs:
       file: ${{ matrix.file }}
       artifact: galacticus-exec
       runPath: ./testSuite
+    secrets: inherit
+  Miscellaneous-Unexpected:
+    needs: Build-Executable-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: test-allowed-parameters.pl
+      artifact: galacticus-exec
+      runPath: ./testSuite
+      expectUnrecognized: 1
     secrets: inherit
   Miscellaneous-IRATE:
     needs: Build-Executable-Linux
