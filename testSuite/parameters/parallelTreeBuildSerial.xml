@@ -80,7 +80,6 @@
     <redshiftsProgenitor value="0.5 1.0" />
   </mergerTreeOperator>
   <mergerTreeOutputter value="null" />
-  <nodePromotionIndexShift value="false" />
   <outputFileName value="testSuite/outputs/parallelTreeBuildSerial.hdf5"/>
   <powerSpectrumPrimordial value="powerLaw">
     <index value="1.000" />

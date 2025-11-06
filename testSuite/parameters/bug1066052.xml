@@ -49,7 +49,6 @@
   </nodePropertyExtractor>
   <mergerTreeOperator value="massAccretionHistory"/>
   <componentHotHalo value="standard"/>
-  <nodePromotionIndexShift value="false"/>
   <outputTimes value="list">
     <redshifts value="0.000"/>
   </outputTimes>

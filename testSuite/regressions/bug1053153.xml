@@ -55,7 +55,6 @@
      <fractionLossAngularMomentum value="0.3"/>
   </coolingInfallTorque>
 
-  <nodePromotionIndexShift value="false"/>
   <outputTimes value="list">
     <redshifts value="0.000"/>
   </outputTimes>

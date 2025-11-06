@@ -101,7 +101,6 @@
 
   <!-- Substructure hierarchy options -->
   <mergerTreeNodeMerger value="singleLevelHierarchy"/>
-  <nodePromotionIndexShift value="false"/>
 
   <!-- Evolution options -->
   <mergerTreeEvolver value="nonEvolving"/>
