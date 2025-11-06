@@ -50,9 +50,9 @@
     <nodeOperator value="satelliteOrphanize"/>
     <!-- CGM physics -->
     <nodeOperator value="CGMOuterRadiusVirialRadius"/>
-    <CGMCoolingHeating value="CGMCoolingInflow">
+    <nodeOperator value="CGMCoolingHeating">
       <component value="disk"/>
-    </CGMCoolingHeating>
+    </nodeOperator>
     <nodeOperator value="CGMAccretion">
       <allowNegativeCGMMass value="false"/>
     </nodeOperator>
