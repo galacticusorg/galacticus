@@ -863,7 +863,7 @@ sub symphonyPreProcessExtractHalosUncontaminated {
 	    $job->{'ppn'       } = $ompThreads;
 	    $job->{'ompThreads'} = $ompThreads;
 	    $job->{'nodes'     } = 1;
-	    $job->{'mem'       } = $entry->{'resolution'}->{'name'} eq "resolutionX64" ? "116G" : "32G";
+	    $job->{'mem'       } = $entry->{'resolution'}->{'name'} eq "resolutionX64" ? "196G" : "32G";
 	    $job->{'walltime'  } = "8:00:00";
 	    $job->{'mpi'       } = "no";
 	    push(@{$jobs},$job)
@@ -1048,7 +1048,7 @@ sub symphonyPostprocessSelectInSphere {
 	my $mem = "16G";
 	$mem = "32G"
 	    if ( $entry->{'group'     }->{'name'} eq "Group"         );
-	$mem = "116G"
+	$mem = "196G"
 	    if ( $entry->{'resolution'}->{'name'} eq "resolutionX64" );
 	$job->{'mem'       } = $mem;
 	$job->{'walltime'  } = "8:00:00";
@@ -1093,7 +1093,7 @@ sub symphonyPostprocessSelectInICs {
 	    if ( $entry->{'group'}->{'name'} eq "Group" );
 	$memory = "32G"
 	    if ( $entry->{'group'}->{'name'} eq "MilkyWay" && $entry->{'resolution'}->{'name'} eq "resolutionX8"  );
-	$memory = "116G"
+	$memory = "196G"
 	    if ( $entry->{'group'}->{'name'} eq "MilkyWay" && $entry->{'resolution'}->{'name'} eq "resolutionX64" );
 	my $job;
 	$job->{'command'   } =
@@ -1141,7 +1141,7 @@ sub symphonyPostprocessAnalyze {
 	$job->{'ppn'       } = $ompThreads;
 	$job->{'ompThreads'} = $ompThreads;
 	$job->{'nodes'     } =  1;
-	my $mem = "32G";
+	my $mem = "48G";
 	$mem = "64G"
 	    if ( $entry->{'resolution'}->{'name'} eq "resolutionX8"  );
 	$mem = "256G"
