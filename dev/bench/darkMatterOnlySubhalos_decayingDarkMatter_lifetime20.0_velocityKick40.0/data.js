@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1761478903203,
+  "lastUpdate": 1762486927361,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=40 km/s)": [
@@ -3619,6 +3619,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
             "value": 13.275808833167442,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "dfb8b9b2de370a6ef3a65666d4830d920f4a5713",
+          "message": "Merge pull request #962 from galacticusorg/featSEDErrorMessage\n\nAdd improve error handling for SED integration",
+          "timestamp": "2025-11-06T15:40:33Z",
+          "tree_id": "44e9b6b02b5390b9fa323156b189f7dd7d7b46af",
+          "url": "https://github.com/galacticusorg/galacticus/commit/dfb8b9b2de370a6ef3a65666d4830d920f4a5713"
+        },
+        "date": 1762486926842,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": 11.460378035817687,
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": 13.73580325801915,
             "unit": "-logℒ"
           }
         ]
