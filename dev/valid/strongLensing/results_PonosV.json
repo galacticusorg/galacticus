@@ -6,10 +6,10 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "ee1a915ee5a43a63d05ea315805440c3e100da9c",
-        "message": "Merge pull request #957 from galacticusorg/fixSubhaloValidationStats\n\nIncrease the number of realizations for some subhalo validation models\n",
-        "timestamp": "2025-10-26 04:30:42+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/ee1a915ee5a43a63d05ea315805440c3e100da9c"
+        "id": "dfb8b9b2de370a6ef3a65666d4830d920f4a5713",
+        "message": "Merge pull request #962 from galacticusorg/featSEDErrorMessage\n\nAdd improve error handling for SED integration\n",
+        "timestamp": "2025-11-06 15:40:33+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/dfb8b9b2de370a6ef3a65666d4830d920f4a5713"
     },
     "surfaceDensity": {
         "percentageBelow": 32.14285714285714,
@@ -17,8 +17,8 @@ window.PONOSV_DATA = {
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 44.44444444444444,
-        "percentageAbove": 55.55555555555556,
+        "percentageBelow": 33.33333333333333,
+        "percentageAbove": 66.66666666666667,
         "target": 0.85
     }
 }
