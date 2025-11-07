@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1761478848612,
+  "lastUpdate": 1762486815424,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "a06d1a1912e28feda2d95af97fa523e304c03b83",
-          "message": "Merge pull request #734 from galacticusorg/fixTimeOfCollapseUndefined\n\nCatch cases where the time of collapse for a halo is undefined",
-          "timestamp": "2024-11-05T13:58:50Z",
-          "tree_id": "8ccc9d84eab2f717658c27c4e4032c7d4fc926d4",
-          "url": "https://github.com/galacticusorg/galacticus/commit/a06d1a1912e28feda2d95af97fa523e304c03b83"
-        },
-        "date": 1730837568390,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 26.866,
-            "unit": "seconds",
-            "range": 0.0403286498657943
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10712,6 +10682,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 6.606663569979481,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "dfb8b9b2de370a6ef3a65666d4830d920f4a5713",
+          "message": "Merge pull request #962 from galacticusorg/featSEDErrorMessage\n\nAdd improve error handling for SED integration",
+          "timestamp": "2025-11-06T15:40:33Z",
+          "tree_id": "44e9b6b02b5390b9fa323156b189f7dd7d7b46af",
+          "url": "https://github.com/galacticusorg/galacticus/commit/dfb8b9b2de370a6ef3a65666d4830d920f4a5713"
+        },
+        "date": 1762486814905,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 89.159,
+            "range": "0.238115308201894",
+            "unit": "seconds"
           }
         ]
       }
