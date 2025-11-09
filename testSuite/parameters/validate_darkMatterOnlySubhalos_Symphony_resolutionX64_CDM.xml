@@ -10,4 +10,8 @@
   <change type="update" path="outputAnalysis/outputAnalysis[@value='subhaloMassFunction']/fileName"       value="%DATASTATICPATH%/darkMatter/subhaloDistributions_Symphony_MilkyWay_resolutionX64_CDM_z0.000.hdf5"/>
   <change type="update" path="outputAnalysis/outputAnalysis[@value='subhaloRadialDistribution']/fileName" value="%DATASTATICPATH%/darkMatter/subhaloDistributions_Symphony_MilkyWay_resolutionX64_CDM_z0.000.hdf5"/>
   <change type="update" path="outputAnalysis/outputAnalysis[@value='subhaloVMaxVsMass']/fileName"         value="%DATASTATICPATH%/darkMatter/subhaloDistributions_Symphony_MilkyWay_resolutionX64_CDM_z0.000.hdf5"/>
+  <!-- Ignore empty bins -->
+  <change type="append" path="outputAnalysis/outputAnalysis[@value='subhaloMassFunction']">
+    <ignoreEmptyModelBins value="true"/>
+  </change>
 </changes>
