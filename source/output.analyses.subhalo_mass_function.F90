@@ -55,7 +55,7 @@
           &                                                                           massRatioMinimum                           , massRatioMaximum                          , &
           &                                                                           time                                       , redshift
      integer         (c_size_t                      )                              :: countMassRatios 
-     logical                                                                       :: finalized
+     logical                                                                       :: finalized                                  , ignoreEmptyModelBins
    contains
      !![
      <methods>
@@ -100,6 +100,7 @@ contains
     double precision                                                   :: massRatioMinimum      , massRatioMaximum                 , &
          &                                                                redshift              , negativeBinomialScatterFractional
     integer         (c_size_t                         )                :: countMassRatios
+    logical                                                            :: ignoreEmptyModelBins
     type            (varying_string                   )                :: fileName
 
     if (parameters%isPresent('fileName')) then
@@ -140,6 +141,12 @@ contains
       <description>The redshift at which to compute the subhalo mass function.</description>
     </inputParameter>
     <inputParameter>
+      <name>ignoreEmptyModelBins</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, model bins containing no subhalos are ignored. Otherwisw, if the target data is non-zero, an impossible likelihood is returned.</description>
+    </inputParameter>
+    <inputParameter>
       <name>negativeBinomialScatterFractional</name>
       <source>parameters</source>
       <defaultValue>0.18d0</defaultValue>
@@ -156,12 +163,12 @@ contains
     if (parameters%isPresent('fileName')) then
        !![
        <conditionalCall>
-        <call>self=outputAnalysisSubhaloMassFunction(darkMatterProfileDMO_,outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,fileName,negativeBinomialScatterFractional{conditions})</call>
+        <call>self=outputAnalysisSubhaloMassFunction(darkMatterProfileDMO_,outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,fileName,negativeBinomialScatterFractional,ignoreEmptyModelBins{conditions})</call>
          <argument name="redshift" value="redshift" parameterPresent="parameters"/>
        </conditionalCall>
        !!]
     else
-       self=outputAnalysisSubhaloMassFunction(darkMatterProfileDMO_,outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),massRatioMinimum,massRatioMaximum,countMassRatios,negativeBinomialScatterFractional)
+       self=outputAnalysisSubhaloMassFunction(darkMatterProfileDMO_,outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),massRatioMinimum,massRatioMaximum,countMassRatios,negativeBinomialScatterFractional,ignoreEmptyModelBins)
     end if
     !![
     <inputParametersValidate source="parameters"/>
@@ -175,7 +182,7 @@ contains
     return
   end function subhaloMassFunctionConstructorParameters
   
-  function subhaloMassFunctionConstructorFile(darkMatterProfileDMO_,outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,fileName,negativeBinomialScatterFractional,redshift) result (self)
+  function subhaloMassFunctionConstructorFile(darkMatterProfileDMO_,outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,fileName,negativeBinomialScatterFractional,ignoreEmptyModelBins,redshift) result (self)
     !!{
     Constructor for the \refClass{outputAnalysisSubhaloMassFunction} output analysis class for internal use.
     !!}
@@ -193,6 +200,7 @@ contains
     class           (virialDensityContrastClass       ), intent(in   )                 :: virialDensityContrast_           , virialDensityContrastDefinition_
     class           (cosmologyParametersClass         ), intent(inout)                 :: cosmologyParameters_
     class           (cosmologyFunctionsClass          ), intent(inout), target         :: cosmologyFunctions_
+    logical                                            , intent(in   )                 :: ignoreEmptyModelBins
     double precision                                   , intent(in   ), optional       :: redshift
     double precision                                   , allocatable  , dimension(:  ) :: massRatiosTarget                 , massFunctionTarget               , &
          &                                                                                massFunctionErrorTarget
@@ -227,14 +235,14 @@ contains
     do i=1_c_size_t,countMassRatios
        massFunctionCovarianceTarget(i,i)=massFunctionErrorTarget(i)**2
     end do
-    self=outputAnalysisSubhaloMassFunction(darkMatterProfileDMO_,outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,time,massRatioMinimum,massRatioMaximum,countMassRatios,negativeBinomialScatterFractional,massFunctionTarget,massFunctionCovarianceTarget,labelTarget)
+    self=outputAnalysisSubhaloMassFunction(darkMatterProfileDMO_,outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,time,massRatioMinimum,massRatioMaximum,countMassRatios,negativeBinomialScatterFractional,ignoreEmptyModelBins,massFunctionTarget,massFunctionCovarianceTarget,labelTarget)
     !![
     <constructorAssign variables="fileName, redshift"/>
     !!]
     return
   end function subhaloMassFunctionConstructorFile
 
-  function subhaloMassFunctionConstructorInternal(darkMatterProfileDMO_,outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,time,massRatioMinimum,massRatioMaximum,countMassRatios,negativeBinomialScatterFractional,massFunctionTarget,massFunctionCovarianceTarget,labelTarget) result (self)
+  function subhaloMassFunctionConstructorInternal(darkMatterProfileDMO_,outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,time,massRatioMinimum,massRatioMaximum,countMassRatios,negativeBinomialScatterFractional,ignoreEmptyModelBins,massFunctionTarget,massFunctionCovarianceTarget,labelTarget) result (self)
     !!{
     Constructor for the \refClass{outputAnalysisSubhaloMassFunction} output analysis class for internal use.
     !!}
@@ -261,6 +269,7 @@ contains
     class           (cosmologyParametersClass                    ), intent(in   ), target                   :: cosmologyParameters_
     class           (cosmologyFunctionsClass                     ), intent(in   ), target                   :: cosmologyFunctions_
     class           (darkMatterProfileDMOClass                   ), intent(inout), target                   :: darkMatterProfileDMO_
+    logical                                                       ,intent(in   )                            :: ignoreEmptyModelBins
     double precision                                              , intent(in   ), dimension(:)  , optional :: massFunctionTarget
     double precision                                              , intent(in   ), dimension(:,:), optional :: massFunctionCovarianceTarget
     type            (varying_string                              ), intent(in   )                , optional :: labelTarget
@@ -286,7 +295,7 @@ contains
     double precision                                              , parameter                               :: massHostLogarithmicMaximum           =1.0d2
     integer         (c_size_t                                    )                                          :: i
     !![
-    <constructorAssign variables="negativeBinomialScatterFractional, countMassRatios, massRatioMinimum, massRatioMaximum, massFunctionTarget, massFunctionCovarianceTarget, labelTarget, *cosmologyFunctions_, *outputTimes_, *cosmologyParameters_, *darkMatterProfileDMO_, *virialDensityContrast_, *virialDensityContrastDefinition_"/>
+    <constructorAssign variables="negativeBinomialScatterFractional, ignoreEmptyModelBins, countMassRatios, massRatioMinimum, massRatioMaximum, massFunctionTarget, massFunctionCovarianceTarget, labelTarget, *cosmologyFunctions_, *outputTimes_, *cosmologyParameters_, *darkMatterProfileDMO_, *virialDensityContrast_, *virialDensityContrastDefinition_"/>
     !!]
 
     ! Initialize.
@@ -616,6 +625,7 @@ contains
     subhaloMassFunctionLogLikelihood=0.0d0
     do i=1,size(self%massRatios)
        if (self%massFunction(i) <= 0.0d0) then
+          if (self%ignoreEmptyModelBins) cycle
           if (nint(self%massFunctionTarget(i)) > 0) then
              subhaloMassFunctionLogLikelihood=logImpossible
              return
