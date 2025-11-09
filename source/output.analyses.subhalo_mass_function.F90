@@ -144,7 +144,7 @@ contains
       <name>ignoreEmptyModelBins</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, model bins containing no subhalos are ignored. Otherwisw, if the target data is non-zero, an impossible likelihood is returned.</description>
+      <description>If true, model bins containing no subhalos are ignored. Otherwise, if the target data is non-zero, an impossible likelihood is returned.</description>
     </inputParameter>
     <inputParameter>
       <name>negativeBinomialScatterFractional</name>
