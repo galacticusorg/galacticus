@@ -32,8 +32,8 @@ runs:
         # This removes syntax not supported by the GCC compiler prior to version 13.3.
         # It should be possible to remove this once a later version of GCC is used.
         # See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=114007
-        if [[ "${OS_VER}" -eq 14 ]]; then
-           sudo sed -E -i~ s/"clang::"/"clang"/g /Library/Developer/CommandLineTools/SDKs/MacOSX14.sdk/usr/include/sys/cdefs.h
+        if [[ "${OS_VER}" -ge 14 ]]; then
+           sudo sed -E -i~ s/"clang::"/"clang"/g /Library/Developer/CommandLineTools/SDKs/MacOSX${OS_VER}.sdk/usr/include/sys/cdefs.h
         fi
     - name: Install MacPorts
       shell: bash
@@ -50,6 +50,9 @@ runs:
         elif [[ "${OS_VER}" -eq 14 ]]; then
            macportsversion=2.9.1
            macportsbase=2.9.1-14-Sonoma
+        elif [[ "${OS_VER}" -eq 15 ]]; then
+           macportsversion=2.11.6
+           macportsbase=2.11.6-15-Sequoia
         else
            echo Unknown MacOS version: ${os_ver}
            exit 1
