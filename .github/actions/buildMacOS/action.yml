@@ -62,7 +62,7 @@ runs:
         rm ./MacPorts-${macportsbase}.pkg
     - name: Install GCC
       shell: bash
-      run: sudo port install gcc12 --allow-failing
+      run: sudo port install --allow-failing gcc12
     - name: Install guile
       shell: bash
       run: |
