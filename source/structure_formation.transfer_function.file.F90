@@ -56,10 +56,6 @@
         DATATYPE  H5T_STD_I32LE
         DATASPACE  SCALAR
      }
-     ATTRIBUTE "redshift" {
-        DATATYPE  H5T_STD_I32LE
-        DATASPACE  SCALAR
-     }
      GROUP "extrapolation" {
         GROUP "wavenumber" {
            ATTRIBUTE "high" {
