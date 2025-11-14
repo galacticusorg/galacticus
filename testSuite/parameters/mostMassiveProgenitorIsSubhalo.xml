@@ -71,6 +71,7 @@
   <blackHoleCGMHeating value="jetPower">
     <efficiencyRadioMode value="1.0"/>
   </blackHoleCGMHeating>
+  <circumgalacticMediumHeating value="AGNFeedback"/>
 
   <nodePropertyExtractor value="multi">
     <nodePropertyExtractor value="massAccretionHistory"/>

@@ -137,6 +137,7 @@
   <coolingRate value="whiteFrenk1991">
     <velocityCutOff value="10000"/>
   </coolingRate>
+  <circumgalacticMediumHeating value="AGNFeedback"/>
 
   <!-- Hot halo ram pressure stripping options -->
   <hotHaloRamPressureStripping value="font2008"/>

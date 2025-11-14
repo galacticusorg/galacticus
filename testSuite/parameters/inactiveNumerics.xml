@@ -97,9 +97,6 @@
     <presetSubhaloIndices value="true"/>
   </mergerTreeConstructor>
   <componentPosition value="cartesian"/>
-  <mergerTreeReadPresetPositions value="true"/>
-  <componentVelocity value="preset"/>
-  <mergerTreeReadPresetVelocities value="true"/>
   
   <luminosityFilter value="SDSS_g SDSS_r DES_g DES_g"/>
 
@@ -229,34 +226,26 @@
   <chemicalsToTrack value="AtomicHydrogen AtomicHydrogenCation MolecularHydrogen Electron"/-->
   
   <coolingFunction value="velocityCutOff">
-  <velocityCutOff value="19.0"/>
-  <redshiftCutOff value="1.0e6"/>
-  <whenCutOff value="after"/>
-  
-  
-  
-  <coolingFunction value="atomicCIECloudy"/>
-  
-  
-  
-  
+    <velocityCutOff value="19.0"/>
+    <redshiftCutOff value="1.0e6"/>
+    <whenCutOff value="after"/>
+    <coolingFunction value="atomicCIECloudy"/>
   </coolingFunction>
-  
   <coolingRate value="multiplier">
     <multiplier value="15"/>
-  <coolingRate value="whiteFrenk1991">
-    <velocityCutOff value="10000"/>
+    <coolingRate value="whiteFrenk1991">
+      <velocityCutOff value="10000"/>
+    </coolingRate>
   </coolingRate>
-  </coolingRate>
-  
   <coolingTime value="simple">
     <degreesOfFreedom value="3.0"/>
   </coolingTime>
   <coolingTimeAvailable value="whiteFrenk1991">
     <ageFactor value="0.774282113742516"/>
   </coolingTimeAvailable>
+  <circumgalacticMediumHeating value="AGNFeedback"/>
+
   <!-- Hot halo ram pressure stripping options -->
- 
   <hotHaloRamPressureStripping value="font2008"/>
   <hotHaloRamPressureForce value="font2008"/>
   <hotHaloRamPressureTimescale value="ramPressureAcceleration"/>
@@ -311,7 +300,6 @@
   </blackHoleCGMHeating>
 
   <stellarWinds value="leitherer1992"/>
-  <initialMassForSupernovaTypeII value="8.0"/>
   <supernovaeTypeIa value="nagashima2005"/>
   <supernovaePopulationIII value="hegerWoosley2002"/>
   <stellarFeedback value="standard"/>

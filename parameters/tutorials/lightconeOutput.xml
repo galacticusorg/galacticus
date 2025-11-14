@@ -107,7 +107,6 @@
     <alpha   value="2.50900"/>
     <lambda0 value="0.04326"/>
   </haloSpinDistribution>
-  <randomSpinResetMassFactor value="2.0"/>
 
   <!-- Halo accretion options -->
   <accretionHalo value="simple">
@@ -145,6 +144,7 @@
   <coolingTimeAvailable value="whiteFrenk1991">
     <ageFactor value="0"/>
   </coolingTimeAvailable>
+  <circumgalacticMediumHeating value="AGNFeedback"/>
   <!-- Hot halo ram pressure stripping options -->
   <hotHaloRamPressureStripping value="font2008"               />
   <hotHaloRamPressureForce     value="font2008"               />

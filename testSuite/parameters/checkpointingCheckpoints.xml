@@ -33,9 +33,11 @@
   <componentHotHalo           value="standard"/>
   <componentSatellite         value="orbiting"/>
   <componentSpheroid value="standard">
-  <massDistributionSpheroid value="hernquist">
-    <dimensionless value="true"/>
-  </massDistributionSpheroid>
+    <efficiencyEnergeticOutflow value="1.0e-2"/>
+    <ratioAngularMomentumScaleRadius value="0.5"/>
+    <massDistributionSpheroid value="hernquist">
+      <dimensionless value="true"/>
+    </massDistributionSpheroid>
   </componentSpheroid>
   <componentSpin value="vector"/>
   <!-- Intergalactic background radiation -->
@@ -260,7 +262,6 @@
   <hotHaloMassDistributionCoreRadius value="virialFraction">
     <coreRadiusOverVirialRadius value="0.3"/>
   </hotHaloMassDistributionCoreRadius>
-  <hotHaloAngularMomentumLossFraction value="0.3"/>
   <coolingSpecificAngularMomentum value="constantRotation">
     <sourceAngularMomentumSpecificMean value="hotGas"/>
     <sourceNormalizationRotation value="hotGas"/>
@@ -299,6 +300,7 @@
   <coolingTimeAvailable value="whiteFrenk1991">
     <ageFactor value="0"/>
   </coolingTimeAvailable>
+  <circumgalacticMediumHeating value="AGNFeedback"/>
   <starveSatellites value="false"/>
 
   <!-- Hot halo ram pressure stripping options -->
@@ -307,8 +309,6 @@
   </hotHaloRamPressureStripping>
   <hotHaloRamPressureForce value="orbitalPosition"/>
   <hotHaloRamPressureTimescale value="ramPressureAcceleration"/>
-  <hotHaloOutflowStrippingEfficiency value="0.1"/>
-  <hotHaloTrackStrippedGas value="true"/>
 
   <!-- Galactic structure solver options -->
   <galacticStructureSolver value="equilibrium">
@@ -318,7 +318,6 @@
     <A value="0.73"/>
     <omega value="0.7"/>
   </darkMatterProfile>
-  <spheroidAngularMomentumAtScaleRadius value="0.5"/>
 
   <!-- Star formation rate options -->
   <starFormationRateDisks value="intgrtdSurfaceDensity"/>
@@ -392,9 +391,6 @@
     <energyOrbital value="1"/>
   </mergerRemnantSize>
   
-  <!-- Spheroid options -->
-  <spheroidEnergeticOutflowMassRate value="1.0e-2"/>
-
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
     <!-- Cosmological epoch -->

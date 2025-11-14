@@ -2004,6 +2004,7 @@
     <componentHotHalo value="standard"/>
     <componentHotHalo value="verySimple">
       <coolingRate value="simple" parameterLevel="top"/>
+      <circumgalacticMediumHeating value="zero" parameterLevel="top"/>
       <componentBlackHole value="null" parameterLevel="top"/>
       <nodeOperator value="multi" parameterLevel="top">
 	<!-- Cosmological epoch -->
@@ -2052,6 +2053,7 @@
     </componentHotHalo>
     <componentHotHalo value="verySimpleDelayed">
       <coolingRate value="simple" parameterLevel="top"/>
+      <circumgalacticMediumHeating value="zero" parameterLevel="top"/>
       <componentBlackHole value="null" parameterLevel="top"/>
       <nodeOperator value="multi" parameterLevel="top">
 	<!-- Cosmological epoch -->

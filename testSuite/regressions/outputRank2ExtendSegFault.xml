@@ -245,6 +245,7 @@
   <coolingTimeAvailable value="whiteFrenk1991">
     <ageFactor value="0.774282113742516"/>
   </coolingTimeAvailable>
+  <circumgalacticMediumHeating value="AGNFeedback"/>
   <hotHaloAngularMomentumLossFraction value="0.0871188291891892"/>
   <starveSatellites value="false"/>
 

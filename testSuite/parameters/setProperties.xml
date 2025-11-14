@@ -107,6 +107,7 @@
   <coolingRate value="whiteFrenk1991">
     <velocityCutOff value="10000"/>
   </coolingRate>
+  <circumgalacticMediumHeating value="AGNFeedback"/>
   <hotHaloMassDistribution value="betaProfile"/>
   <hotHaloTemperatureProfile value="virial"/>
   <hotHaloMassDistributionCoreRadius value="virialFraction">

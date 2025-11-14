@@ -146,6 +146,8 @@
   <coolingTimeAvailable value="whiteFrenk1991">
     <ageFactor value="0"/>
   </coolingTimeAvailable>
+  <circumgalacticMediumHeating value="AGNFeedback"/>
+
   <!-- Ram pressure stripping options -->
   <hotHaloRamPressureStripping value="virialRadius"/>
 

@@ -248,6 +248,7 @@
   <coolingRate value="whiteFrenk1991">
     <velocityCutOff value="10000"/>
   </coolingRate>
+  <circumgalacticMediumHeating value="AGNFeedback"/>
   <componentSpin value="scalar"/>
   <mergerTreeBuilder value="cole2000">
     <mergeProbability value="0.1"/>

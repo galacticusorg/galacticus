@@ -90,6 +90,7 @@
   <blackHoleCGMHeating value="jetPower">
     <efficiencyRadioMode value="1.0"/>
   </blackHoleCGMHeating>
+  <circumgalacticMediumHeating value="AGNFeedback"/>
 
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">

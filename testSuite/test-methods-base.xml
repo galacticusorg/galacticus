@@ -16,6 +16,9 @@
     <darkMatterProfileScaleRadius value="concentration"/>
   </darkMatterProfileScaleRadius>
 
+  <!-- CGM cooling/heating -->
+  <circumgalacticMediumHeating value="AGNFeedback"/>
+
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
     <!-- Cosmological epoch -->

@@ -125,6 +125,8 @@
   <coolingTimeAvailable value="whiteFrenk1991">
     <ageFactor value="0"/>
   </coolingTimeAvailable>
+  <circumgalacticMediumHeating value="AGNFeedback"/>
+
   <!-- Hot halo ram pressure stripping options -->
   <hotHaloRamPressureStripping value="font2008"/>
   <hotHaloRamPressureForce value="font2008"/>

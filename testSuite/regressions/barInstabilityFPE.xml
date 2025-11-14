@@ -227,34 +227,26 @@
   <chemicalsToTrack value="AtomicHydrogen AtomicHydrogenCation MolecularHydrogen Electron"/-->
   
   <coolingFunction value="velocityCutOff">
-  <velocityCutOff value="19.0"/>
-  <redshiftCutOff value="1.0e6"/>
-  <whenCutOff value="after"/>
-  
-  
-  
-  <coolingFunction value="atomicCIECloudy"/>
-  
-  
-  
-  
+    <velocityCutOff value="19.0"/>
+    <redshiftCutOff value="1.0e6"/>
+    <whenCutOff value="after"/>
+    <coolingFunction value="atomicCIECloudy"/>
   </coolingFunction>
-  
   <coolingRate value="multiplier">
     <multiplier value="15"/>
-  <coolingRate value="whiteFrenk1991">
-    <velocityCutOff value="10000"/>
-  </coolingRate>
-  </coolingRate>
-  
+    <coolingRate value="whiteFrenk1991">
+      <velocityCutOff value="10000"/>
+    </coolingRate>
+  </coolingRate>  
   <coolingTime value="simple">
     <degreesOfFreedom value="3.0"/>
   </coolingTime>
   <coolingTimeAvailable value="whiteFrenk1991">
     <ageFactor value="0.774282113742516"/>
   </coolingTimeAvailable>
-  <!-- Hot halo ram pressure stripping options -->
- 
+  <circumgalacticMediumHeating value="AGNFeedback"/>
+  
+  <!-- Hot halo ram pressure stripping options --> 
   <hotHaloRamPressureStripping value="font2008"/>
   <hotHaloRamPressureForce value="font2008"/>
   <hotHaloRamPressureTimescale value="ramPressureAcceleration"/>

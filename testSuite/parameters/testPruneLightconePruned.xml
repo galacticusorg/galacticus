@@ -122,6 +122,7 @@
     <degreesOfFreedom value="3.0"/>
   </coolingTime>
   <coolingTimeAvailable value="bensonBower2010"/>
+  <circumgalacticMediumHeating value="AGNFeedback"/>
   <cosmologicalMassVariance value="filteredPower">
     <powerSpectrumWindowFunction value="topHat"/>
     <monotonicInterpolation value="true"/>
