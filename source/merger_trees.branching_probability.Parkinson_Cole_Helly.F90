@@ -447,12 +447,14 @@ contains
     !!{
     Used to find the mass of a merger tree branching event.
     !!}
-    use :: Display, only : displayGreen    , displayBlue, displayYellow, displayReset
-    use :: Error  , only : errorStatusRound, errorStatusSuccess
+    use :: Display        , only : displayGreen    , displayBlue, displayYellow, displayReset
+    use :: Error          , only : errorStatusRound, errorStatusSuccess
+    use :: String_Handling, only : stringXMLFormat
     implicit none
     double precision, intent(in   ) :: logMassMaximum
     double precision                :: integral      , massMaximum
     integer                         :: status
+
     if      (logMassMaximum < self_%probabilityMinimumMassLog) then
        parkinsonColeHellyMassBranchRoot=self_%probabilitySeek   +self_%probabilityGradientMinimum*(logMassMaximum-self_%probabilityMinimumMassLog)
     else if (logMassMaximum > self_%probabilityMaximumMassLog) then
@@ -463,11 +465,11 @@ contains
             &      *self_%integrator_                  %integrate(self_%probabilityMinimumMassLog,logMassMaximum,status=status)
        if (.not.(status == errorStatusSuccess .or. (status == errorStatusRound .and. self_%tolerateRoundOffErrors))) then
           if (status == errorStatusRound) then
-             call Error_Report(                                                                                                                                                                                                                   &
-                  &            'probability integral failed to converge due to round-off errors - this can happen below the cut off scale in truncated power spectra'//char(10)//                                                                 &
-                  &             displayGreen()//'HELP:'//displayReset()//' set <'//displayBlue()//'tolerateRoundOffErrors'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"true"'//displayReset()//'/> '// &
-                  &            'in class <'//displayBlue()//'mergerTreeBranchingProbability'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"parkinsonColeHelly"'//displayReset()//'/> '                // &
-                  &            'to ignore round-off errors and proceed'//{introspection:location}                                                                                                                                                 &
+             call Error_Report(                                                                                                                                                                                                                           &
+                  &            'probability integral failed to converge due to round-off errors - this can happen below the cut off scale in truncated power spectra'                                                              //char(10)//           &
+                  &             displayGreen()//'HELP:'//displayReset()//' set the highlighted option in your input parameter file as shown below:'                                                                                //char(10)//char(10)// &
+                  &             stringXMLFormat('<mergerTreeBranchingProbability value="'//char(self_%objectType(short=.true.))//'">**B<tolerateRoundOffErrors value="true"/>**C</mergerTreeBranchingProbability>',indentInitial=3)//char(10)//char(10)// &
+                  &             'to ignore round-off errors and proceed'//{introspection:location}                                                                                                                                                        &
                   &           )
           else
              call Error_Report('probability integral failed to converge'//{introspection:location})
@@ -563,8 +565,9 @@ contains
     Return the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time
     {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}.
     !!}
-    use :: Display, only : displayGreen    , displayBlue             , displayYellow     , displayReset
-    use :: Error  , only : errorStatusRound, errorStatusMaxIterations, errorStatusSuccess
+    use :: Display        , only : displayGreen    , displayBlue             , displayYellow     , displayReset
+    use :: Error          , only : errorStatusRound, errorStatusMaxIterations, errorStatusSuccess
+    use :: String_Handling, only : stringXMLFormat
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout), target :: self
     double precision                                                  , intent(in   )         :: deltaCritical , haloMass   , &
@@ -599,18 +602,18 @@ contains
                &                                                                )
           if (.not.(status == errorStatusSuccess .or. ((status == errorStatusRound .or. status == errorStatusMaxIterations) .and. self_%tolerateRoundOffErrors))) then
              if    (status == errorStatusRound          ) then
-                call Error_Report(                                                                                                                                                                                                                   &
-                     &            'probability integral failed to converge due to round-off errors - this can happen below the cut off scale in truncated power spectra'//char(10)//                                                                 &
-                     &             displayGreen()//'HELP:'//displayReset()//' set <'//displayBlue()//'tolerateRoundOffErrors'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"true"'//displayReset()//'/> '// &
-                     &            'in class <'//displayBlue()//'mergerTreeBranchingProbability'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"parkinsonColeHelly"'//displayReset()//'/> '                // &
-                     &            'to ignore round-off errors and proceed'//{introspection:location}                                                                                                                                                 &
+                call Error_Report(                                                                                                                                                                                                                          &
+                     &            'probability integral failed to converge due to round-off errors - this can happen below the cut off scale in truncated power spectra'                                                             //char(10)//           &
+                     &             displayGreen()//'HELP:'//displayReset()//' set the highlighted option in your input parameter file as shown below:'                                                                               //char(10)//char(10)// &
+                     &             stringXMLFormat('<mergerTreeBranchingProbability value="'//char(self%objectType(short=.true.))//'">**B<tolerateRoundOffErrors value="true"/>**C</mergerTreeBranchingProbability>',indentInitial=3)//char(10)//char(10)// &
+                     &             'to ignore round-off errors and proceed'//{introspection:location}                                                                                                                                                       &
                      &           )
              else if (status == errorStatusMaxIterations) then
-                call Error_Report(                                                                                                                                                                                                                   &
-                     &            'probability integral failed to converge due to exceeding the maximum number of iterations - this can happen below the cut off scale in truncated power spectra'//char(10)//                                       &
-                     &             displayGreen()//'HELP:'//displayReset()//' set <'//displayBlue()//'tolerateRoundOffErrors'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"true"'//displayReset()//'/> '// &
-                     &            'in class <'//displayBlue()//'mergerTreeBranchingProbability'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"parkinsonColeHelly"'//displayReset()//'/> '                // &
-                     &            'to ignore round-off errors and proceed'//{introspection:location}                                                                                                                                                 &
+                call Error_Report(                                                                                                                                                                                                                          &
+                     &            'probability integral failed to converge due to exceeding the maximum number of iterations - this can happen below the cut off scale in truncated power spectra'                                   //char(10)//           &
+                     &             displayGreen()//'HELP:'//displayReset()//' set the highlighted option in your input parameter file as shown below:'                                                                               //char(10)//char(10)// &
+                     &             stringXMLFormat('<mergerTreeBranchingProbability value="'//char(self%objectType(short=.true.))//'">**B<tolerateRoundOffErrors value="true"/>**C</mergerTreeBranchingProbability>',indentInitial=3)//char(10)//char(10)// &
+                     &             'to ignore round-off errors and proceed'//{introspection:location}                                                                                                                                                       &
                      &           )
              else 
                 call Error_Report('probability integral failed to converge'//{introspection:location})

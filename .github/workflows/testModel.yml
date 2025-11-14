@@ -38,6 +38,10 @@ on:
         required: false
         default: 0
         type: string
+      ompNumThreads: # Set to 0 to indicate maximum threads, or a number to set a specific number of threads
+        required: false
+        default: 0
+        type: string
       processesPerNode: # Specify the number of processes per node for MPI tests
         required: false
         default: 2
@@ -95,8 +99,12 @@ jobs:
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "GALACTICUS_ANALYSIS_PERL_PATH=$GITHUB_WORKSPACE/analysis-perl" >> $GITHUB_ENV
           echo "PYTHONPATH=$GITHUB_WORKSPACE/python" >> $GITHUB_ENV
+      - name: "Set number of OpenMP threads"
+        if: inputs.ompNumThreads != '0'
+        run: |
+          echo "OMP_NUM_THREADS=${{ inputs.ompNumThreads }}" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: ${{ inputs.artifact }}
       - name: Install packages
@@ -186,7 +194,7 @@ jobs:
           find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/mangle-${mangleVersion} \) -prune -o -type f -not -anewer mark.time -print0 | xargs --no-run-if-empty -0 rm
       - name: Upload result
         if: inputs.uploadName != '' && inputs.uploadFile != ''
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ inputs.uploadName }}
           path: ${{ inputs.uploadFile }}

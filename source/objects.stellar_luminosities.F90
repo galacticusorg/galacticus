@@ -178,7 +178,7 @@ contains
    <unitName>Stellar_Luminosities_Initializor</unitName>
   </nodeComponentInitializationTask>
   !!]
-  subroutine Stellar_Luminosities_Initializor(parameters_)
+  subroutine Stellar_Luminosities_Initializor(parameters)
     !!{
     Initialize the {\normalfont \ttfamily stellarLuminositiesStructure} object module. Determines which stellar luminosities are to be tracked.
     !!}
@@ -193,7 +193,7 @@ contains
     use            :: Sorting            , only : sortByIndex       , sortIndex
     use            :: String_Handling    , only : operator(//)
     implicit none
-    type            (inputParameters                                  ), intent(inout)             :: parameters_
+    type            (inputParameters                                  ), intent(inout)             :: parameters
     class           (cosmologyFunctionsClass                          ), pointer                   :: cosmologyFunctions_
     class           (stellarPopulationSpectraPostprocessorBuilderClass), pointer                   :: stellarPopulationSpectraPostprocessorBuilder_
     integer                                                                                        :: iLuminosity                                  , jLuminosity
@@ -215,7 +215,7 @@ contains
          \item [present] Output only those luminosities computed for the present output time.
          \end{description}
       </description>
-      <source>parameters_</source>
+      <source>parameters</source>
       <variable>luminosityOutputOptionText</variable>
     </inputParameter>
     !!]
@@ -232,19 +232,19 @@ contains
     
     ! Get required objects.
     !![
-    <objectBuilder class="cosmologyFunctions"                           name="cosmologyFunctions_"                           source="parameters_"/>
-    <objectBuilder class="stellarPopulationSpectraPostprocessorBuilder" name="stellarPopulationSpectraPostprocessorBuilder_" source="parameters_"/>
+    <objectBuilder class="cosmologyFunctions"                           name="cosmologyFunctions_"                           source="parameters"/>
+    <objectBuilder class="stellarPopulationSpectraPostprocessorBuilder" name="stellarPopulationSpectraPostprocessorBuilder_" source="parameters"/>
     !!]
  
     ! Read in the parameters which specify the luminosities to be computed.
-    luminosityCount=parameters_%count('luminosityRedshift',zeroIfNotPresent=.true.)
+    luminosityCount=parameters%count('luminosityRedshift',zeroIfNotPresent=.true.)
     luminosityCountUnmapped=luminosityCount
-    if (parameters_%count('luminosityFilter',zeroIfNotPresent=.true.) /= luminosityCount) &
-         & call Error_Report(var_str('luminosityFilter [')//parameters_%count('luminosityFilter',zeroIfNotPresent=.true.)//'] and luminosityRedshift ['//luminosityCount//'] input arrays must have same dimension'//{introspection:location})
-    if (parameters_%count('luminosityType',zeroIfNotPresent=.true.) /= luminosityCount) &
-         & call Error_Report(var_str('luminosityType [')//parameters_%count('luminosityType',zeroIfNotPresent=.true.)//'] and luminosityRedshift ['//luminosityCount//'] input arrays must have same dimension'//{introspection:location})
-    if (parameters_%isPresent('luminosityBandRedshift')) then
-       if (parameters_%count('luminosityBandRedshift',zeroIfNotPresent=.true.) /= luminosityCount) &
+    if (parameters%count('luminosityFilter',zeroIfNotPresent=.true.) /= luminosityCount) &
+         & call Error_Report(var_str('luminosityFilter [')//parameters%count('luminosityFilter',zeroIfNotPresent=.true.)//'] and luminosityRedshift ['//luminosityCount//'] input arrays must have same dimension'//{introspection:location})
+    if (parameters%count('luminosityType',zeroIfNotPresent=.true.) /= luminosityCount) &
+         & call Error_Report(var_str('luminosityType [')//parameters%count('luminosityType',zeroIfNotPresent=.true.)//'] and luminosityRedshift ['//luminosityCount//'] input arrays must have same dimension'//{introspection:location})
+    if (parameters%isPresent('luminosityBandRedshift')) then
+       if (parameters%count('luminosityBandRedshift',zeroIfNotPresent=.true.) /= luminosityCount) &
             & call Error_Report('luminosityBandRedshift and luminosityRedshift input arrays must have same dimension'//{introspection:location})
     end if
 
@@ -269,7 +269,7 @@ contains
        <inputParameter>
          <name>luminosityRedshift</name>
          <description>The redshift for which to compute each specified stellar luminosity.</description>
-         <source>parameters_</source>
+         <source>parameters</source>
          <variable>luminosityRedshiftText</variable>
        </inputParameter>
        !!]
@@ -283,12 +283,12 @@ contains
           ! Assign a mapping from initial to final array of luminosities (this is initially an identity mapping).
           luminosityMap(iLuminosity)=iLuminosity
        end do
-       if (parameters_%isPresent('luminosityBandRedshift')) then
+       if (parameters%isPresent('luminosityBandRedshift')) then
           !![
           <inputParameter>
             <name>luminosityBandRedshift</name>
 	    <description>If present, force filters to be shifted to this redshift rather than that specified by {\normalfont \ttfamily [luminosityRedshift]}. Allows sampling of the SED at wavelengths corresponding to other redshifts.</description>
-	    <source>parameters_</source>
+	    <source>parameters</source>
             <variable>luminosityBandRedshiftText</variable>
           </inputParameter>
           !!]
@@ -309,7 +309,7 @@ contains
        <inputParameter>
          <name>luminosityFilter</name>
          <description>The filter name for each stellar luminosity to be computed.</description>
-         <source>parameters_</source>
+         <source>parameters</source>
        </inputParameter>
        <inputParameter>
          <name>luminosityType</name>
@@ -323,25 +323,25 @@ contains
                              frequencies.}.
             \end{description}
          </description>
-         <source>parameters_</source>
+         <source>parameters</source>
        </inputParameter>
        !!]
        ! Read postprocessing set information.
-       if (parameters_%count('luminosityPostprocessSet',zeroIfNotPresent=.true.) > 0) then
-          if (parameters_%count('luminosityPostprocessSet') /= luminosityCount) &
+       if (parameters%count('luminosityPostprocessSet',zeroIfNotPresent=.true.) > 0) then
+          if (parameters%count('luminosityPostprocessSet') /= luminosityCount) &
                & call Error_Report('luminosityPostprocessSet and luminosityFilter input arrays must have same dimension'//{introspection:location})
           !![
           <inputParameter>
             <name>luminosityPostprocessSet</name>
 	    <description>The name of the set of postprocessing algorithms to apply to this filter.</description>
-	    <source>parameters_</source>
+	    <source>parameters</source>
           </inputParameter>
           !!]
        else
           luminosityPostprocessSet="default"
        end if
        ! Handle luminosity definition special cases.
-       call Stellar_Luminosities_Special_Cases(luminosityMap,luminosityRedshiftText,luminosityRedshift,luminosityBandRedshift,luminosityFilter,luminosityType,luminosityPostprocessSet,parameters_)
+       call Stellar_Luminosities_Special_Cases(luminosityMap,luminosityRedshiftText,luminosityRedshift,luminosityBandRedshift,luminosityFilter,luminosityType,luminosityPostprocessSet,parameters)
        luminosityCount=size(luminosityRedshift)
        ! Allocate remaining required arrays.
        if (allocated(luminosityName               )) deallocate(luminosityName               )
@@ -367,7 +367,7 @@ contains
           luminosityName       (iLuminosity)=luminosityFilter        (iLuminosity)//":"// &
                &                             luminosityType          (iLuminosity)//":"// &
                &                             "z"   //trim(adjustl(redshiftLabel))
-          if (parameters_%isPresent('luminosityBandRedshift')) then
+          if (parameters%isPresent('luminosityBandRedshift')) then
              write (redshiftLabel,'(f7.4)')  luminosityRedshift      (iLuminosity)
              luminosityName    (iLuminosity)=luminosityName          (iLuminosity)//":"// &
                   &                          "zOut"//trim(adjustl(redshiftLabel))
@@ -438,13 +438,13 @@ contains
    <unitName>Stellar_Luminosities_Thread_Initializor</unitName>
   </nodeComponentThreadInitializationTask>
   !!]
-  subroutine Stellar_Luminosities_Thread_Initializor(parameters_)
+  subroutine Stellar_Luminosities_Thread_Initializor(parameters)
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: parameters_
+    type(inputParameters), intent(inout) :: parameters
 
     !![
-    <objectBuilder class="stellarPopulationSpectraPostprocessorBuilder" name="stellarPopulationSpectraPostprocessorBuilder__" source="parameters_"/>
+    <objectBuilder class="stellarPopulationSpectraPostprocessorBuilder" name="stellarPopulationSpectraPostprocessorBuilder__" source="parameters"/>
     !!]
     return
   end subroutine Stellar_Luminosities_Thread_Initializor
@@ -1117,13 +1117,12 @@ contains
     !!{
     Return the index of and specified entry in the luminosity list given its properties.
     !!}
-    use :: Display             , only : displayReset , displayGreen, displayBlue , displayYellow , &
-         &                              displayBold
+    use :: Display             , only : displayReset , displayGreen
     use :: Error               , only : Error_Report
-    use :: ISO_Varying_String  , only : assignment(=), operator(//), operator(==), varying_string, &
+    use :: ISO_Varying_String  , only : assignment(=), operator(//)   , operator(==), varying_string, &
          &                              len
     use :: Numerical_Comparison, only : Values_Agree
-    use :: String_Handling     , only : operator(//)
+    use :: String_Handling     , only : operator(//) , stringXMLFormat
     implicit none
     character       (len=*         ), intent(in   )           :: filterName             , filterType
     double precision                , intent(in   )           :: redshift
@@ -1210,17 +1209,17 @@ contains
     else
        message=message//char(10)//'no luminosities available'
     end if
-    message=message//char(10)//char(10)//displayGreen()//'HELP:'//displayReset()//' you can resolve this by adding the appropriate entries (highlighted in bold) to the following parameters:'
-    message   =message//char(10)//'<'//displayBlue()//'luminosityFilter         '//displayYellow()//'value'//displayReset()//'="'//displayGreen()//displayBold()//             filterName        //displayReset()//'"/>'
-    message   =message//char(10)//'<'//displayBlue()//'luminosityType           '//displayYellow()//'value'//displayReset()//'="'//displayGreen()//displayBold()//             filterType        //displayReset()//'"/>'
+    message=message//char(10)//char(10)//displayGreen()//'HELP:'//displayReset()//' you can resolve this by adding the appropriate entries (highlighted in bold) to the following parameters:'//char(10)
+    message   =message//char(10)//stringXMLFormat('<luminosityFilter         value="'//             filterName        //'"/>')
+    message   =message//char(10)//stringXMLFormat('<luminosityType           value="'//             filterType        //'"/>')
     write (label,'(f7.4)') redshift
-    message   =message//char(10)//'<'//displayBlue()//'luminosityRedshift       '//displayYellow()//'value'//displayReset()//'="'//displayGreen()//displayBold()//trim(adjustl(label           ))//displayReset()//'"/>'
+    message   =message//char(10)//stringXMLFormat('<luminosityRedshift       value="'//trim(adjustl(label           ))//'"/>')
     if (present(redshiftBand)) then
        write (label,'(f7.4)') redshiftBand
-       message=message//char(10)//'<'//displayBlue()//'luminosityBandRedshift   '//displayYellow()//'value'//displayReset()//'="'//displayGreen()//displayBold()//trim(adjustl(label           ))//displayReset()//'"/>'
+       message=message//char(10)//stringXMLFormat('<luminosityBandRedshift   value="'//trim(adjustl(label           ))//'"/>')
     end if
     if (present(postprocessChain)) then
-       message=message//char(10)//'<'//displayBlue()//'luminosityPostprocessSet '//displayYellow()//'value'//displayReset()//'="'//displayGreen()//displayBold()//             postprocessChain  //displayReset()//'"/>'
+       message=message//char(10)//stringXMLFormat('<luminosityPostprocessSet value="'//             postprocessChain  //'"/>')
     end if
     call Error_Report(message//{introspection:location})
     return
@@ -1276,7 +1275,7 @@ contains
     end if
   end subroutine Stellar_Luminosities_SED_Top_Hat_Step
 
-  subroutine Stellar_Luminosities_Special_Cases(luminosityMap,luminosityRedshiftText,luminosityRedshift,luminosityBandRedshift,luminosityFilter,luminosityType,luminosityPostprocessSet,parameters_)
+  subroutine Stellar_Luminosities_Special_Cases(luminosityMap,luminosityRedshiftText,luminosityRedshift,luminosityBandRedshift,luminosityFilter,luminosityType,luminosityPostprocessSet,parameters)
     !!{
     Modify the input list of luminosities for special cases.
     !!}
@@ -1294,7 +1293,7 @@ contains
     type            (varying_string               ), intent(inout), allocatable, dimension(:) :: luminosityRedshiftText   , luminosityFilter           , &
          &                                                                                       luminosityType           , luminosityPostprocessSet
     double precision                               , intent(inout), allocatable, dimension(:) :: luminosityRedshift       , luminosityBandRedshift
-    type            (inputParameters              ), intent(inout)                            :: parameters_
+    type            (inputParameters              ), intent(inout)                            :: parameters
     integer         (c_size_t                     )                                           :: i                        , j                          , &
          &                                                                                       k                        , newFilterCount,luminosityCount
     integer                                                       , allocatable, dimension(:) :: luminosityMapTmp
@@ -1315,8 +1314,8 @@ contains
          &                                                                                       resolution
     
     !![
-    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters_"/>
-    <objectBuilder class="stellarPopulationSpectra" name="stellarPopulationSpectra_" source="parameters_"/>
+    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    <objectBuilder class="stellarPopulationSpectra" name="stellarPopulationSpectra_" source="parameters"/>
     !!]
     ! Iterate over all luminosities.
     i=1

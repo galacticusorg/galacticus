@@ -14,9 +14,9 @@ runs:
         echo "PATH=$PATH:/opt/local/bin:/usr/local/bin" >> $GITHUB_ENV
         echo "PERL_MM_USE_DEFAULT=1" >> $GITHUB_ENV
         echo "GALACTICUS_EXEC_PATH=`pwd`" >> $GITHUB_ENV
-        echo "FCCOMPILER=gfortran-11" >> $GITHUB_ENV
-        echo "CCOMPILER=gcc-11" >> $GITHUB_ENV
-        echo "CPPCOMPILER=g++-11" >> $GITHUB_ENV
+        echo "FCCOMPILER=gfortran-12" >> $GITHUB_ENV
+        echo "CCOMPILER=gcc-15" >> $GITHUB_ENV
+        echo "CPPCOMPILER=g++-15" >> $GITHUB_ENV
         echo "BUILDPATH=./work/build" >> $GITHUB_ENV
         if [[ "${ver[0]}" -eq 13 ]]; then
           # For MacOS 13 force use of the classic linker as the new linker does not support the '-commons' option - see https://trac.macports.org/ticket/68194#comment:15
@@ -32,8 +32,8 @@ runs:
         # This removes syntax not supported by the GCC compiler prior to version 13.3.
         # It should be possible to remove this once a later version of GCC is used.
         # See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=114007
-        if [[ "${OS_VER}" -eq 14 ]]; then
-           sudo sed -E -i~ s/"clang::"/"clang"/g /Library/Developer/CommandLineTools/SDKs/MacOSX14.sdk/usr/include/sys/cdefs.h
+        if [[ "${OS_VER}" -ge 14 ]]; then
+           sudo sed -E -i~ s/"clang::"/"clang"/g /Library/Developer/CommandLineTools/SDKs/MacOSX${OS_VER}.sdk/usr/include/sys/cdefs.h
         fi
     - name: Install MacPorts
       shell: bash
@@ -50,6 +50,9 @@ runs:
         elif [[ "${OS_VER}" -eq 14 ]]; then
            macportsversion=2.9.1
            macportsbase=2.9.1-14-Sonoma
+        elif [[ "${OS_VER}" -eq 15 ]]; then
+           macportsversion=2.11.6
+           macportsbase=2.11.6-15-Sequoia
         else
            echo Unknown MacOS version: ${os_ver}
            exit 1
@@ -59,7 +62,7 @@ runs:
         rm ./MacPorts-${macportsbase}.pkg
     - name: Install GCC
       shell: bash
-      run: brew install gcc@11
+      run: brew install gcc@12
     - name: Install guile
       shell: bash
       run: |
@@ -77,7 +80,7 @@ runs:
         # Patch following the approach used in MacPorts (https://github.com/macports/macports-ports/tree/master/math/libmatheval).
         sed -E -i~ s/"#undef HAVE_SCM_T_BITS"/"#define HAVE_SCM_T_BITS 1"/ config.h.in
         # Set guile paths following the approach used in MacPorts (https://github.com/macports/macports-ports/tree/master/math/libmatheval).
-        CC=gcc-11 GUILE=/opt/local/bin/guile-1.8 GUILE_CONFIG=/opt/local/bin/guile-config-1.8 GUILE_TOOLS=/opt/local/bin/guile-tools-1.8 ./configure --prefix=/usr/local || (cat config.log && false)
+        CC=gcc-15 GUILE=/opt/local/bin/guile-1.8 GUILE_CONFIG=/opt/local/bin/guile-config-1.8 GUILE_TOOLS=/opt/local/bin/guile-tools-1.8 ./configure --prefix=/usr/local || (cat config.log && false)
         make -j3
         sudo make install
         cd ..
@@ -88,7 +91,7 @@ runs:
         curl -L http://www.qhull.org/download/qhull-2020-src-8.0.2.tgz --output qhull-2020-src-8.0.2.tgz
         tar xvfz qhull-2020-src-8.0.2.tgz
         cd qhull-2020.2
-        make -j3 CC=gcc-11 CXX=g++-11
+        make -j3 CC=gcc-15 CXX=g++-15
         sudo make install
         cd ..
         rm -rf qhull-2020-src-8.0.2.tgz qhull-2020.2
@@ -98,7 +101,7 @@ runs:
         curl -L ftp://ftp.gnu.org/gnu/gsl/gsl-2.6.tar.gz --output gsl-2.6.tar.gz
         tar xvfz gsl-2.6.tar.gz
         cd gsl-2.6
-        CC=gcc-11 ./configure --prefix=/usr/local
+        CC=gcc-15 ./configure --prefix=/usr/local
         make -j3
         sudo make install
         cd ..
@@ -111,9 +114,9 @@ runs:
         cd hdf5-1.14.5
         if [[ "${OS_VER}" -eq 13 ]]; then
            # For MacOS 13 force use of the classic linker as the new linker does not support the '-commons' option - see https://trac.macports.org/ticket/68194#comment:15
-           CC=gcc-11 CXX=g++-11 FC=gfortran-11 LDFLAGS=-Wl,-ld_classic ./configure --prefix=/usr/local --enable-fortran --enable-build-mode=production
+           CC=gcc-15 CXX=g++-15 FC=gfortran-12 LDFLAGS=-Wl,-ld_classic ./configure --prefix=/usr/local --enable-fortran --enable-build-mode=production
         else
-           CC=gcc-11 CXX=g++-11 FC=gfortran-11                         ./configure --prefix=/usr/local --enable-fortran --enable-build-mode=production
+           CC=gcc-15 CXX=g++-15 FC=gfortran-12                         ./configure --prefix=/usr/local --enable-fortran --enable-build-mode=production
         fi
         make -j3
         sudo make install
@@ -125,7 +128,7 @@ runs:
         curl -L https://github.com/andreww/fox/archive/refs/tags/4.1.0.tar.gz --output FoX-4.1.0.tar.gz
         tar xvfz FoX-4.1.0.tar.gz
         cd fox-4.1.0
-        FC=gfortran-11 ./configure --prefix=/usr/local
+        FC=gfortran-12 ./configure --prefix=/usr/local
         make -j3
         sudo make install
         cd ..
@@ -136,7 +139,7 @@ runs:
         curl -L ftp://ftp.fftw.org/pub/fftw/fftw-3.3.4.tar.gz --output fftw-3.3.4.tar.gz
         tar xvfz fftw-3.3.4.tar.gz
         cd fftw-3.3.4
-        F77=gfortran-11 CC=gcc-11 ./configure --prefix=/usr/local
+        F77=gfortran-12 CC=gcc-15 ./configure --prefix=/usr/local
         make -j4
         sudo make install
         cd ..
@@ -147,7 +150,7 @@ runs:
         curl -L http://www.cs.umd.edu/~mount/ANN/Files/1.1.2/ann_1.1.2.tar.gz --output ann_1.1.2.tar.gz
         tar xvfz ann_1.1.2.tar.gz
         cd ann_1.1.2
-        sed -E -i~ s/"C\+\+ = g\+\+"/"C\+\+ = g\+\+\-11"/ Make-config
+        sed -E -i~ s/"C\+\+ = g\+\+"/"C\+\+ = g\+\+\-12"/ Make-config
         make macosx-g++
         sudo cp bin/* /usr/local/bin/.
         sudo cp lib/* /usr/local/lib/.

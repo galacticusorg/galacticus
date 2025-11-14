@@ -109,7 +109,7 @@ contains
     <constructorAssign variables="shape, rate, *randomNumberGenerator_"/>
     !!]
 
-    if (rate <= 0.0d0 .or. shape <= 0.0d0) call Error_Report('rate>0 and shape>0 are required'//{introspection:location})
+    if (rate <= 0.0d0 .or. shape <= 0.0d0) call Error_Report('`rate` > 0 and `shape` > 0 are required'//{introspection:location})
     self%limitLowerExists=.false.
     self%limitUpperExists=.false.
     self%cdfAtLowerLimit =0.0d0
@@ -130,6 +130,7 @@ contains
     end if
     self%limitLowerExists=present(limitLower)
     self%limitUpperExists=present(limitUpper)
+    if (self%limitLowerExists .and. self%limitUpperExists .and. limitLower >= limitUpper) call Error_Report('`limitLower` < `limitUpper` is required'//{introspection:location})
     return
   end function gammaConstructorInternal
 

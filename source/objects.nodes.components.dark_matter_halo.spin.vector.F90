@@ -77,16 +77,16 @@ contains
    <unitName>Node_Component_Halo_Angular_Momentum_Vector_Initialize</unitName>
   </nodeComponentInitializationTask>
   !!]
-  subroutine Node_Component_Halo_Angular_Momentum_Vector_Initialize(parameters_)
+  subroutine Node_Component_Halo_Angular_Momentum_Vector_Initialize(parameters)
     !!{
     Initializes the tree node vector halo angular momentum methods module.
     !!}
     use :: Galacticus_Nodes, only : defaultSpinComponent, nodeComponentSpinVector
     use :: Input_Parameters, only : inputParameter      , inputParameters
     implicit none
-    type(inputParameters        ), intent(inout) :: parameters_
+    type(inputParameters        ), intent(inout) :: parameters
     type(nodeComponentSpinVector)                :: spinVectorComponent
-    !$GLC attributes unused :: parameters_
+    !$GLC attributes unused :: parameters
 
     if (defaultSpinComponent%vectorIsActive())                                                      &
          & call spinVectorComponent%angularMomentumGrowthRateFunction(angularMomentumGrowthRateGet)
@@ -98,19 +98,18 @@ contains
    <unitName>Node_Component_Halo_Angular_Momentum_Vector_Thread_Initialize</unitName>
   </nodeComponentThreadInitializationTask>
   !!]
-  subroutine Node_Component_Halo_Angular_Momentum_Vector_Thread_Initialize(parameters_)
+  subroutine Node_Component_Halo_Angular_Momentum_Vector_Thread_Initialize(parameters)
     !!{
     Initializes the halo vector angular momentum module.
     !!}
     use :: Galacticus_Nodes, only : defaultSpinComponent
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: parameters_
-    !$GLC attributes unused :: parameters_
+    type(inputParameters), intent(inout) :: parameters
     
     if (defaultSpinComponent%vectorIsActive()) then
        !![
-       <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters_"/>
+       <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
        !!]
     end if
     return

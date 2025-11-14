@@ -573,12 +573,12 @@ contains
     Return the value and logarithmic gradient with respect to mass of the root-variance of the cosmological density field in a
     spherical region containing the given {\normalfont \ttfamily mass} on average.
     !!}
-    use :: Display                 , only : displayGreen, displayBlue, displayYellow, displayReset
+    use :: Display                 , only : displayGreen, displayReset
     use :: Error                   , only : Error_Report
     use :: Numerical_Constants_Math, only : Pi
     use :: HDF5_Access             , only : hdf5Access
     use :: IO_HDF5                 , only : hdf5Object
-    use :: String_Handling         , only : operator(//)
+    use :: String_Handling         , only : operator(//), stringXMLFormat
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
     double precision                                       , intent(in   ) :: mass         , time
@@ -691,10 +691,11 @@ contains
           call Error_Report('dlogσ/dlogM > 0 detected, but monotonic interpolation was used - this should not happen'//char(10)//'  table data written to:'//char(10)//'    '//char(errorFileName)//{introspection:location})
        else
           ! Recommend that monotonic interpolation be used.
-          call Error_Report(                                                                                                                                                                                                                  &
-               &            'dlogσ/dlogM > 0 detected'//char(10)//                                                                                                                                                                            &
-               &            displayGreen()//'HELP:'//displayReset()//' set <'//displayBlue()//'monotonicInterpolation'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"true"'//displayReset()//'/> '// &
-               &            'to ensure monotonic interpolation of tabulated σ(M) function'//{introspection:location}                                                                                                                          &
+          call Error_Report(                                                                                                                                                                                                       &
+               &            'dlogσ/dlogM > 0 detected'//char(10)//                                                                                                                                                                 &
+               &            displayGreen()//'HELP:'//displayReset()//' set the highlighted option in your input parameter file as shown below: '                                                            //char(10)//char(10)// &
+               &            stringXMLFormat('<cosmologicalMassVariance value="'//self%objectType(short=.true.)//'">**B<monotonicInterpolation value="true"/>**C</cosmologicalMassVariance>',indentInitial=3)//char(10)//char(10)// &
+               &            'to ensure monotonic interpolation of tabulated σ(M) function'//{introspection:location}                                                                                                               &
                &           )
        end if
     end if
@@ -1056,15 +1057,14 @@ contains
       !!}
       use, intrinsic :: ISO_C_Binding           , only : c_size_t
       use            :: Display                 , only : displayIndent     , displayUnindent              , displayMessage, verbosityLevelStandard, &
-           &                                             verbosityLevelWarn, enumerationVerbosityLevelType, displayReset  , displayGreen          , &
-           &                                             displayBlue       , displayYellow
+           &                                             verbosityLevelWarn, enumerationVerbosityLevelType, displayReset  , displayGreen
       use            :: Error                   , only : Error_Report      , Warn
       use            :: Interface_GSL           , only : GSL_EBadTol       , GSL_ETol                     , GSL_ERound    , GSL_Success           , &
            &                                             GSL_EMaxIter      , GSL_ESing                    , gslErrorDecode
       use            :: Numerical_Constants_Math, only : Pi
       use            :: Numerical_Integration   , only : GSL_Integ_Gauss15 , integrator
       use            :: Sorting                 , only : sort
-      use            :: String_Handling         , only : operator(//)
+      use            :: String_Handling         , only : operator(//)       , stringXMLFormat
       use            :: ISO_Varying_String      , only : var_str
       implicit none
       double precision                         , intent(in   ) :: time_
@@ -1169,16 +1169,17 @@ contains
             if (self%integrationFailureIsFatal) then
             block
               type     (varying_string) :: message
-              character(len=12        ) :: label
+              character(len=12        ) :: label  , toleranceType
               message=var_str('integration over interval failed [error number: ')//status//'; "'//gslErrorDecode(status)//'"]'//char(10)// &
                    &  displayGreen()//'HELP:'//displayReset()//' try increasing the value of <'//displayBlue()//'tolerance'
               if (useTopHat) then
-                 message=message//"TopHat"
+                 toleranceType="TopHat"
                  write (label,'(e12.6)') self%toleranceTopHat
               else
+                 toleranceType=""
                  write (label,'(e12.6)') self%tolerance
               end if
-              message=message//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"'//trim(adjustl(label))//'"'//displayReset()//'/> in the <'//displayBlue()//'cosmologicalMassVariance'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"filteredPower"'//displayReset()//'> parameter'
+              message=message//stringXMLFormat('<cosmologicalMassVariance value="'//self%objectType(short=.true.)//'">**B<tolerance'//trim(toleranceType)//' value="'//trim(adjustl(label))//'"/>**C</cosmologicalMassVariance>',indentInitial=3)//char(10)
               call Error_Report(message//{introspection:location})
             end block
             end if

@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Constrained merger tree build with impossible constraints - tests a regression in which such impossible constraints were "met" because the first tree build was overwritten by the second -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="d4bf2d8db876eb8e44d94e1672bc36a6ea8135cc" time="2025-09-03T18:23:58"/>
+
+  <verbosityLevel value="working"/>
+
+  <!-- Random number generation -->
+  <randomNumberGenerator value="GSL">
+    <seed value="123456"/>
+  </randomNumberGenerator>
+
+  <!-- Specify tasks to perform -->
+  <task value="evolveForests"/>
+
+  <!-- Component selection -->
+  <componentBasic value="standard"/>
+  <componentBlackHole value="null"/>
+  <componentDarkMatterProfile value="scale"/>
+  <componentDisk value="null"/>
+  <componentHotHalo value="null"/>
+  <componentSatellite value="standard"/>
+  <componentSpheroid value="null"/>
+  <componentSpin value="null"/>
+
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant value="70.20000"/>
+    <OmegaMatter value=" 0.27250"/>
+    <OmegaDarkEnergy value=" 0.72750"/>
+    <OmegaBaryon value=" 0.00000"/>
+    <temperatureCMB value=" 2.72548"/>
+  </cosmologyParameters>
+
+  <!-- Power spectrum options -->
+  <transferFunction value="eisensteinHu1999">
+    <neutrinoNumberEffective value="3.046"/>
+    <neutrinoMassSummed value="0.000"/>
+    <cosmologyParameters value="simple">
+      <HubbleConstant value="70.20000"/>
+      <OmegaMatter value=" 0.27250"/>
+      <OmegaDarkEnergy value=" 0.72750"/>
+      <OmegaBaryon value=" 0.04550"/>
+      <temperatureCMB value=" 2.72548"/>
+    </cosmologyParameters>
+  </transferFunction>
+  <powerSpectrumPrimordial value="powerLaw">
+    <index value="0.961"/>
+    <wavenumberReference value="1.000"/>
+    <running value="0.000"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+  <cosmologicalMassVariance value="filteredPower">
+    <sigma_8 value="0.807"/>
+  </cosmologicalMassVariance>
+
+  <!-- Structure formation options -->
+  <linearGrowth value="collisionlessMatter"/>
+  <haloMassFunction value="tinker2008"/>
+  <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+
+  <!-- Merger tree building options -->
+  <mergerTreeSeeds value="random"/>
+  <mergerTreeConstructor value="build"/>
+
+  <!-- Merger tree building options --> 
+  <mergerTreeBuilder value="constrained">
+    <trialCountMaximum value="100"/>
+    
+    <!-- First constraint - requires a low mass halo -->
+    <mergerTreeBuilder value="cole2000">
+      <accretionLimit   value="0.1"/>
+      <mergeProbability value="0.1"/>
+      <mergerTreeBuildController value="massTimeWindow">
+	<massMinimum value="2.0e11"/>
+	<timeMinimum value="10.0"  />
+      </mergerTreeBuildController>
+    </mergerTreeBuilder>
+    <mergerTreeFilter value="anyNode">
+      <galacticFilter value="all">
+	<!-- Consider the main branch (i.e. Milky Way halo) of the tree only -->
+	<galacticFilter value="mainBranch"/>
+	<!-- Force the main branch to be quite small after time 10.0 -->
+        <galacticFilter value="highPass">
+          <nodePropertyExtractor value="time"/>
+          <threshold  value="10.0"/>
+        </galacticFilter>
+        <galacticFilter value="lowPass">
+          <nodePropertyExtractor value="massBasic"/>
+          <threshold  value="7.0e11"/>
+        </galacticFilter>
+      </galacticFilter>
+    </mergerTreeFilter>
+
+    <!-- Second constraint - requires a high mass halo - inconsistent with the first constraint -->
+    <mergerTreeBuilder value="cole2000">
+      <accretionLimit   value="0.1"/>
+      <mergeProbability value="0.1"/>
+    </mergerTreeBuilder>
+    <mergerTreeFilter value="anyNode">
+      <galacticFilter value="all">
+	<!-- Consider the main branch (i.e. Milky Way halo) of the tree only -->
+	<galacticFilter value="mainBranch"/>
+	<!-- Force the main branch to be quite big before time 10.0 -->
+        <galacticFilter value="lowPass">
+          <nodePropertyExtractor value="time"/>
+          <threshold  value="10.0"/>
+        </galacticFilter>
+        <galacticFilter value="highPass">
+          <nodePropertyExtractor value="massBasic"/>
+          <threshold  value="8.0e11"/>
+        </galacticFilter>
+      </galacticFilter>
+    </mergerTreeFilter>
+
+  </mergerTreeBuilder>
+
+  <mergerTreeBranchingProbability value="parkinsonColeHelly">
+    <G0 value="+0.57"/>
+    <gamma1 value="+0.38"/>
+    <gamma2 value="-0.01"/>
+    <accuracyFirstOrder value="+0.10"/>
+  </mergerTreeBranchingProbability>
+  <mergerTreeBuildMasses value="fixedMass">
+    <massTree  value="1.0e12"/>
+    <treeCount value="1"/>
+  </mergerTreeBuildMasses>
+  <mergerTreeMassResolution value="scaled">
+    <massResolutionFractional value="1.0e-5"/>
+    <massResolutionMinimum value="2.43e+8"/>
+  </mergerTreeMassResolution>
+
+  <!-- Substructure hierarchy options -->
+  <mergerTreeNodeMerger value="singleLevelHierarchy"/>
+
+  <!-- Dark matter halo structure options -->
+  <darkMatterProfileDMO value="NFW"/>
+  <darkMatterProfileConcentration value="gao2008"/>
+  <darkMatterProfileScaleRadius value="concentrationLimiter">
+    <concentrationMinimum value="  4.0"/>
+    <concentrationMaximum value="100.0"/>
+    <darkMatterProfileScaleRadius value="concentration"/>
+  </darkMatterProfileScaleRadius>
+
+  <!-- Switch off baryonic physics -->
+  <hotHaloMassDistribution value="null"/>
+
+  <!-- Tree evolution -->
+  <mergerTreeNodeEvolver value="standard">
+    <odeToleranceAbsolute value="0.01"/>
+    <odeToleranceRelative value="0.01"/>
+  </mergerTreeNodeEvolver>
+  <mergerTreeEvolver value="standard">
+    <timestepHostAbsolute value="1.0"/>
+    <timestepHostRelative value="0.1"/>
+  </mergerTreeEvolver>
+
+  <!-- Output options -->
+  <outputFileName value="testSuite/outputs/constrainedTreeImpossible.hdf5"/>
+  <outputTimes value="list">
+    <redshifts value="0.0"/>
+    <times value="0.01"/>
+  </outputTimes>
+  <mergerTreeOutputter value="standard">
+    <outputReferences value="false"/>
+    <outputMergerTrees value="true"/>
+  </mergerTreeOutputter>
+
+  <!-- Node physics -->
+  <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+    <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <!-- Satellite evolution -->
+    <nodeOperator value="satelliteMergingTime"/>
+    <nodeOperator value="satelliteMassLoss"   />
+    <!-- other -->
+    <nodeOperator value="timeFirstInfall"/>
+  </nodeOperator>
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="nodeIndices"/>
+    <nodePropertyExtractor value="labels"/>
+    <nodePropertyExtractor value="mainBranchStatus"/>
+    <nodePropertyExtractor value="time"            />
+    <nodePropertyExtractor value="timeFirstInfall" />
+    <nodePropertyExtractor value="redshift"        />
+    <nodePropertyExtractor value="massBasic"       />
+    <nodePropertyExtractor value="peakHeight"      />
+  </nodePropertyExtractor>
+
+</parameters>

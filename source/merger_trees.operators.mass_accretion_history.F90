@@ -177,7 +177,7 @@ contains
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: ISO_Varying_String              , only : varying_string
     use            :: Numerical_Constants_Astronomical, only : gigaYear                               , massSolar
-    use            :: String_Handling                 , only : operator(//)
+    use            :: String_Handling                 , only : operator(//)                           , stringXMLFormat
     implicit none
     class           (mergerTreeOperatorMassAccretionHistory), intent(inout), target         :: self
     type            (mergerTree                            ), intent(inout), target         :: tree
@@ -240,16 +240,14 @@ contains
        groupName='mergerTree'
        groupName=groupName//treeCurrent%index
        !$ call hdf5Access%set()
-       if (self%outputGroup%hasGroup(char(groupName)))                                                                                                                        &
-            & call Error_Report(                                                                                                                                              &
-            &                   'duplicate tree index detected - mass accretion history can not be output'                                                       //char(10)// &
-            &                   {introspection:location}                                                                                                                   // &
-            &                   displayGreen()//'  HELP:'//displayReset()                                                                                                  // &
-            &                   ' This can happen if reading merger trees which contain multiple root nodes from file. To avoid this problem, force tree indices'          // &
-            &                   ' to be reset to the index of the root node by adding the following to your input parameter file:'                               //char(10)// &
-            &                   '  <mergerTreeConstructor value="read">'                                                                                         //char(10)// &
-            &                   '     <treeIndexToRootNodeIndex value="true"/>'                                                                                  //char(10)// &
-            &                   '  </mergerTreeConstructor>'                                                                                                                  &
+       if (self%outputGroup%hasGroup(char(groupName)))                                                                                                                                  &
+            & call Error_Report(                                                                                                                                                        &
+            &                   'duplicate tree index detected - mass accretion history can not be output'                                                       //char(10)          // &
+            &                   displayGreen()//'  HELP:'//displayReset()                                                                                                            // &
+            &                   ' This can happen if reading merger trees which contain multiple root nodes from file. To avoid this problem, force tree indices'                    // &
+            &                   ' to be reset to the index of the root node by adding the following highglighted option to your input parameter file'            //char(10)//char(10)// &
+            &                   stringXMLFormat('<mergerTreeConstructor value="read">**B<treeIndexToRootNodeIndex value="true"/>**C</mergerTreeConstructor>')                        // &
+            &                   {introspection:location}                                                                                                                                &
             &                  )
        treeGroup=self%outputGroup%openGroup(char(groupName),'Mass accretion history for main branch of merger tree.')
        call                             treeGroup       %writeDataset  (nodeIndex          ,'nodeIndex'          ,'Index of the node.'                                            )

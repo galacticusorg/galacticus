@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Regression model to test the fix for unlinking of non-well-ordered branches. -->
+<!-- https://github.com/galacticusorg/galacticus/issues/955 -->
+<!-- efb1ffc430635a8c7fe807e00e0121d3715c7ece -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="3f3d9a2af2b05c0a279e4aa3602f89fd682665cc"/>
+
+  <!-- Specify tasks to perform -->
+  <task value="evolveForests"/>
+
+  <!-- Component selection -->
+  <componentBasic value="standard"/>
+  <componentBlackHole value="null"/>
+  <componentDarkMatterProfile value="scale"/>
+  <componentDisk value="null"/>
+  <componentHotHalo value="null"/>
+  <componentSatellite value="standard"/>
+  <componentSpheroid value="null"/>
+  <componentSpin value="null"/>
+
+  <!-- Use a thermal WDM particle - mass in keV -->
+  <darkMatterParticle value="WDMThermal">
+    <degreesOfFreedomEffective value="1.5" />
+    <mass value="0.25" />
+  </darkMatterParticle>
+
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant value="70.20000"/>
+    <OmegaMatter value=" 0.27250"/>
+    <OmegaDarkEnergy value=" 0.72750"/>
+    <OmegaBaryon value=" 0.00000"/>
+    <temperatureCMB value=" 2.72548"/>
+  </cosmologyParameters>
+
+  <!-- Power spectrum options -->
+  <transferFunction value="bode2001">
+    <epsilon value="0.359" />
+    <eta value="3.810" />
+    <nu value="1.100" />
+    <transferFunction value="eisensteinHu1999">
+      <darkMatterParticle value="CDM" />
+      <neutrinoNumberEffective value="3.046" />
+      <neutrinoMassSummed value="0.000" />
+    </transferFunction>
+  </transferFunction>
+  <powerSpectrumPrimordial value="powerLaw">
+    <index value="0.961"/>
+    <wavenumberReference value="1.000"/>
+    <running value="0.000"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+  <cosmologicalMassVariance value="filteredPower">
+    <monotonicInterpolation value="true" />
+    <nonMonotonicIsFatal value="false" />
+    <powerSpectrumWindowFunction value="sharpKSpace">
+      <normalization value="2.5" />
+    </powerSpectrumWindowFunction>
+    <sigma_8 value="0.807"/>
+    <tolerance value="3.0e-4" />
+    <toleranceTopHat value="3.0e-4" />
+  </cosmologicalMassVariance>
+
+  <!-- Structure formation options -->
+  <linearGrowth value="collisionlessMatter"/>
+  <haloMassFunction value="tinker2008"/>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <criticalOverdensity value="barkana2001WDM">
+    <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt">
+      <darkMatterParticle value="CDM" />
+    </criticalOverdensity>
+  </criticalOverdensity>
+  
+  <!-- Merger tree building options -->
+  <mergerTreeConstructor value="build"/>
+  <mergerTreeBuilder value="cole2000">
+    <accretionLimit value="0.1"/>
+    <mergeProbability value="0.1"/>
+    <ignoreWellOrdering value="true"/>
+  </mergerTreeBuilder>
+  <mergerTreeBranchingProbability value="parkinsonColeHelly">
+    <G0 value="+0.57"/>
+    <gamma1 value="+0.38"/>
+    <gamma2 value="-0.01"/>
+    <accuracyFirstOrder value="+0.10"/>
+
+    <tolerateRoundOffErrors value="true"/>
+    
+  </mergerTreeBranchingProbability>
+  <mergerTreeBuildMasses value="sampledDistributionUniform">
+    <massTreeMinimum value="1.0e9"/>
+    <massTreeMaximum value="1.0e15"/>
+    <treesPerDecade value="4096"/>
+  </mergerTreeBuildMasses>
+  <mergerTreeMassResolution value="fixed">
+    <massResolution value="1.0e7"/>
+  </mergerTreeMassResolution>
+
+  <!-- Substructure hierarchy options -->
+  <mergerTreeNodeMerger value="singleLevelHierarchy"/>
+
+  <!-- Dark matter halo structure options -->
+  <darkMatterProfileDMO value="NFW"/>
+  <darkMatterProfileConcentration value="gao2008"/>
+  <darkMatterProfileScaleRadius value="concentrationLimiter">
+    <concentrationMinimum value="  4.0"/>
+    <concentrationMaximum value="100.0"/>
+    <darkMatterProfileScaleRadius value="concentration"/>
+  </darkMatterProfileScaleRadius>
+
+  <!-- Switch off baryonic physics -->
+  <hotHaloMassDistribution value="null"/>
+
+  <!-- Tree evolution -->
+  <mergerTreeNodeEvolver value="standard">
+    <odeToleranceAbsolute value="0.01"/>
+    <odeToleranceRelative value="0.01"/>
+  </mergerTreeNodeEvolver>
+  <mergerTreeEvolver value="standard">
+    <timestepHostAbsolute value="1.0"/>
+    <timestepHostRelative value="0.1"/>
+  </mergerTreeEvolver>
+
+  <!-- Output options -->
+  <outputFileName value="testSuite/outputs/ignoreWellOrdering.hdf5"/>
+  <outputTimes value="uniformSpacingInRedshift">
+    <redshiftMinimum value="0.0"/>
+    <redshiftMaximum value="11"/>
+    <countRedshifts value="10"/>
+  </outputTimes>
+  <mergerTreeOutputter value="standard">
+    <outputReferences value="false"/>
+  </mergerTreeOutputter>
+  
+  <mergerTreeOperator value="outputStructure">
+    <nodePropertyExtractor value="multi">
+      <nodePropertyExtractor value="nodeIndices"/>
+      <nodePropertyExtractor value="redshift"/>
+      <nodePropertyExtractor value="massBasic"/>
+      <nodePropertyExtractor value="time"/>
+      <nodePropertyExtractor value="treeWeight"/>
+    </nodePropertyExtractor>
+  </mergerTreeOperator>
+
+  <!-- Node physics -->
+  <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+    <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <!-- Satellite evolution -->
+    <nodeOperator value="satelliteMergingTime"/>
+    <nodeOperator value="satelliteMassLoss"   />
+  </nodeOperator>
+
+</parameters>
