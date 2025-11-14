@@ -1010,6 +1010,13 @@ sub hotHaloStandardInflowOutflow {
     # Remove any blackHolesCGMHeating nodeOperator - functionality is moved into the CGMCoolingInflow nodeOperator.
     my @nodeOperatorBlackHolesCGMHeatings = $parameters->findnodes("//nodeOperator[\@value='multi']/nodeOperator[\@value='blackHolesCGMHeating']")->get_nodelist();
     if ( scalar(@nodeOperatorBlackHolesCGMHeatings) > 0 ) {
+	# Insert the corresponding circumgalacticMediumHeating class to retain AGN feedback.
+	my $circumgalacticMediumHeating = $input->createElement("circumgalacticMediumHeating");
+	$circumgalacticMediumHeating->setAttribute('value'   ,'AGNFeedback');
+	$circumgalacticMediumHeating->setAttribute('iterable','no'         )
+	    if ( $isGrid );
+	$parameters->insertAfter($circumgalacticMediumHeating,$nodes[0]);
+	# Remove the blackHolesCGMHeating nodeOperators
 	foreach my $nodeOperatorBlackHolesCGMHeating ( @nodeOperatorBlackHolesCGMHeatings ) {
 	    $nodeOperatorBlackHolesCGMHeating->parentNode->removeChild($nodeOperatorBlackHolesCGMHeating);
 	}
