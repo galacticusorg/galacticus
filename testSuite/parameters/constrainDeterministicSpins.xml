@@ -74,7 +74,6 @@
 
   <!-- Dark matter halo structure -->
   <darkMatterProfileDMO value="NFW"/>
-  <darkMatterProfileMaximumConcentration value="100.0"/>
   <darkMatterProfileScaleRadius value="concentrationLimiter">
     <concentrationMinimum value="  4.0"/>
     <concentrationMaximum value="100.0"/>
@@ -221,7 +220,6 @@
     <correlationRedshiftExponent value="0.000e0"/>
     <massParticle value="1.178e9"/>
   </nbodyHaloMassError>
-  <nodeMajorMergerFraction value="0.206728116479416"/>
 
   <nodeOperator value="multi">
     <!-- Cosmological epoch -->
@@ -243,6 +241,8 @@
     <nodeOperator value="starFormationDisks"/>
     <nodeOperator value="starFormationSpheroids"/>
     <!-- Analyses -->
-    <nodeOperator value="nodeMajorMergerTime"/>
+    <nodeOperator value="nodeMajorMergerTime">
+      <fractionMassMajorMerger value="0.206728116479416"/>
+    </nodeOperator>
   </nodeOperator>
 </parameters>

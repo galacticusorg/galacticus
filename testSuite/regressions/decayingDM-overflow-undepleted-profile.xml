@@ -258,9 +258,6 @@
   <!-- Galactic structure solver options -->
   <galacticStructureSolver value="simple"/>
 
-  <!-- AGN feedback options -->
-  <hotHaloExcessHeatDrivesOutflow value="true"/>
-
   <!-- Galaxy merger options -->
   <virialOrbit value="spinCorrelated">
     <darkMatterProfileDMO value="NFW" />

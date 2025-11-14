@@ -101,8 +101,8 @@
     <redshiftMaximum  value="15.0"/>
     <toleranceTimeEarliest value="8.00000e-6"/>
     <mergerTreeBuildController value="constrained">
-      <massConstrained     value="1.0e12"/>
-      <redshiftConstrained value="8.0"   />
+      <massConstrained     value="1.0e12" ignoreWarnings="true"/>
+      <redshiftConstrained value="8.0"    ignoreWarnings="true"/>
       <constructionOption value="constrainedAndMainBranchOnly"/>
       <mergerTreeBranchingProbabilityConstrained value="gnrlzdPrssSchchtr">
         <distributionFunctionLowerHalfOnly value="false"/>

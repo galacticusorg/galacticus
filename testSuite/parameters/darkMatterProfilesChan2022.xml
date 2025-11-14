@@ -111,7 +111,7 @@
   <!-- Dark matter halo profile options -->
   <darkMatterProfileDMO value="heated">
     <darkMatterProfileDMO value="solitonNFW">
-      <scatterLog value="1.0"/>
+      <scatterFractional value="1.0"/>
     </darkMatterProfileDMO>
     <nonAnalyticSolver value="numerical"/>
     <toleranceRelativeVelocityDispersionMaximum value="0.1"/>

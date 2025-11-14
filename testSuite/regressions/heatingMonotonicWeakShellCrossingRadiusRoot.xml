@@ -223,9 +223,6 @@
     <metalYield value="0.035"/>
   </stellarPopulation>
 
-  <!-- AGN feedback options -->
-  <hotHaloExcessHeatDrivesOutflow value="true"/>
-
   <!-- Accretion disk properties -->
   <accretionDisks value="switched">
     <accretionRateThinDiskMaximum value="0.30"/>
