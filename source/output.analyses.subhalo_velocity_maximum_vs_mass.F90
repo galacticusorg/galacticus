@@ -417,7 +417,15 @@ contains
          &                                                                              countNonZero          , status
 
     ! Count the number of non-zero bins.
-    countNonZero=count(self%meanValueTarget > 0.0d0)
+    countNonZero=0
+    do i=1,size(self%meanValueTarget)
+       if     (                                         &
+            &   self%meanValueTarget     (i  ) <= 0.0d0 &
+            &  .or.                                     &
+            &   self%meanCovarianceTarget(i,i) <= 0.0d0 &
+            & ) cycle
+       countNonZero=countNonZero+1
+    end do
     allocate(velocityMeanDifference(countNonZero             ))
     allocate(velocityMeanCovariance(countNonZero,countNonZero))
     ! Populate reduced bins.
@@ -425,7 +433,11 @@ contains
     velocityMeanCovariance=0.0d0
     j=0
     do i=1,size(self%meanValueTarget)
-       if (self%meanValueTarget(i) <= 0.0d0) cycle
+       if     (                                         &
+            &   self%meanValueTarget     (i  ) <= 0.0d0 &
+            &  .or.                                     &
+            &   self%meanCovarianceTarget(i,i) <= 0.0d0 &
+            & ) cycle
        j=j+1
        velocityMeanDifference(j  )=self%meanValue     (i  )-self%meanValueTarget     (i  )
        velocityMeanCovariance(j,j)=self%meanCovariance(i,i)+self%meanCovarianceTarget(i,i)
@@ -435,6 +447,6 @@ contains
     covariance=matrix(velocityMeanCovariance)
     ! Compute the log-likelihood.
     logLikelihood=-0.5d0*covariance%covarianceProduct(residual,status)
-    if (status /= GSL_Success)logLikelihood=logImprobable
+    if (status /= GSL_Success) logLikelihood=logImprobable
     return
   end function subhaloVMaxVsMassLogLikelihood

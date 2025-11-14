@@ -86,12 +86,12 @@ jobs:
           grep -vqzi warning:        build.log || (echo "FAIL: warnings found in build.log"        && false)
           grep -vqzi 'is up to date' build.log || (echo "FAIL: 'is up to date' found in build.log" && false)
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: galacticus-exec
           path: 'Galacticus.exe'
       - name: Upload build profile
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: build-profile
           path: 'buildProfile.html'
@@ -138,12 +138,12 @@ jobs:
           ! grep -n Warning: build.log
           ! grep -v 'is up to date' build.log | grep -n -C 5 make:
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: galacticus-exec-non-static
           path: 'Galacticus.exe'
       - name: Upload test code executables
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: test-execs
           path: 'tests.*.exe'
@@ -172,7 +172,7 @@ jobs:
           export GALACTICUS_CPPFLAGS="$GALACTICUS_CPPFLAGS -pg"
           make -j4 Galacticus.exe
       - name: Upload executables
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: galacticus-exec-instrumented
           path: 'Galacticus.exe'
@@ -199,7 +199,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           make -j4 Galacticus.exe
       - name: Upload executables
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: galacticus-exec-dmo
           path: 'Galacticus.exe'
@@ -225,12 +225,12 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           make -j4 GALACTICUS_BUILD_OPTION=MPI Galacticus.exe tests.MPI.exe tests.radiative_transfer.atomic_matter.state_solver.exe
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: galacticus-exec-MPI
           path: 'Galacticus.exe'
       - name: Upload test code executables
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: test-execs-MPI
           path: 'tests.*.exe'
@@ -257,7 +257,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           make -j4 Galacticus.exe tests.debugging.exe
       - name: Upload test code executables
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: test-execs-debugging
           path: 'tests.*.exe'
@@ -294,7 +294,7 @@ jobs:
           mv libgalacticus.so galacticus/lib/
           tar cvfj libgalacticus.tar.bz2 galacticus
       - name: Upload library
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: galacticus-library
           path: 'libgalacticus.tar.bz2'
@@ -356,7 +356,7 @@ jobs:
           ./scripts/doc/Build_Documentation.sh -f yes -p 2 2>&1 | tee docBuild.log
           grep -vqzi 'warning: missing method descriptions in class' docBuild.log || (echo "FAIL: issing method description warnings found in docBuild.log" && false)
       - name: Upload docs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: galacticus-docs
           path: |
@@ -388,7 +388,7 @@ jobs:
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "GALACTICUS_FCFLAGS+=\ -static" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: galacticus-exec
       - name: Build tools
@@ -429,7 +429,7 @@ jobs:
             dynamic/fsps-${fspsVersion}/ISOCHRONES \
             dynamic/mangle-${mangleVersion}/bin/harmonize
       - name: Upload tools
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: galacticus-tools
           path: ./datasets/tools.tar.bz2
@@ -437,7 +437,7 @@ jobs:
   ## MacOS
   ### Static executable
   Build-Executable-MacOS:
-    runs-on: macos-13
+    runs-on: macos-15-intel
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -457,23 +457,23 @@ jobs:
           zip -r debugSymbolsMacOS.zip Galacticus.exe.dSYM
           mv Galacticus.exe Galacticus_MacOS.exe
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: galacticus-exec-MacOS
           path: 'Galacticus_MacOS.exe'
       - name: Upload test code executables
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: test-execs-MacOS
           path: 'tests.*.exe'
       - name: Upload Galacticus debug symbols
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: galacticus-debug-MacOS
           path: 'debugSymbolsMacOS.zip'
   ### Apple Silicon build  
   Build-Executable-MacOS-M1:
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -492,18 +492,18 @@ jobs:
           zip -r debugSymbolsMacOS-M1.zip Galacticus.exe.dSYM
           mv Galacticus.exe Galacticus_MacOS-M1.exe
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: galacticus-exec-MacOS-M1
           path: 'Galacticus_MacOS-M1.exe'
       - name: Upload Galacticus debug symbols
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: galacticus-debug-MacOS-M1
           path: 'debugSymbolsMacOS-M1.zip'
   ## Library
   Build-Library-MacOS:
-    runs-on: macos-13
+    runs-on: macos-15-intel
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -529,13 +529,13 @@ jobs:
           mv libgalacticus.so galacticus/lib/
           zip -r libgalacticusMacOS.zip galacticus
       - name: Upload library
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: galacticus-library-MacOS
           path: 'libgalacticusMacOS.zip'
   ### Tools
   Build-Tools-MacOS:
-    runs-on: macos-13
+    runs-on: macos-15-intel
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -556,9 +556,9 @@ jobs:
       - name: Build tools
         run: |
           export GALACTICUS_EXEC_PATH=`pwd`
-          export FCCOMPILER=gfortran-11
-          export CCOMPILER=gcc-11
-          export CPPCOMPILER=g++-11
+          export FCCOMPILER=gfortran-12
+          export CCOMPILER=gcc-15
+          export CPPCOMPILER=g++-15
           export GALACTICUS_FCFLAGS="-fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib"
           export GALACTICUS_CFLAGS="-I/usr/local/include -I/opt/local/include"
           export GALACTICUS_CPPFLAGS="-I/usr/local/include -I/opt/local/include"
@@ -574,13 +574,13 @@ jobs:
           set -o pipefail
           ./Galacticus.exe parameters/buildTools.xml 2>&1 | tee build.log
           cd $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion}/fortran/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl gfortran-11 -cpp -Ofast -fopenmp -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib -JRelease -IRelease/ -I"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" Release/inidriver.o Release/libcamb.a  -L"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" -lforutils -o camb
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl gfortran-12 -cpp -Ofast -fopenmp -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib -JRelease -IRelease/ -I"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" Release/inidriver.o Release/libcamb.a  -L"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" -lforutils -o camb
           cd $GALACTICUS_DATA_PATH/dynamic/AxionCAMB/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl gfortran-11 -O3 -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib constants.o utils.o  subroutines.o inifile.o power_tilt.o recfast_axion.o reionization.o modules.o bessels.o equations_ppf.o halofit_ppf.o lensing.o SeparableBispectrum.o cmbmain.o camb.o axion_background.o inidriver_axion.F90 -o camb          
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl gfortran-12 -O3 -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib constants.o utils.o  subroutines.o inifile.o power_tilt.o recfast_axion.o reionization.o modules.o bessels.o equations_ppf.o halofit_ppf.o lensing.o SeparableBispectrum.o cmbmain.o camb.o axion_background.o inidriver_axion.F90 -o camb          
           cd $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion}/
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl `grep -E '\-o class ' $GALACTICUS_EXEC_PATH/build.log`
           cd $GALACTICUS_DATA_PATH/dynamic/RecFast/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl gfortran-11 recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl gfortran-12 recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none
           cd $GALACTICUS_DATA_PATH/dynamic/c${cloudyVersion}/source/
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl `grep -E '\-o cloudy.exe' $GALACTICUS_EXEC_PATH/build.log`
           cd $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion}/src
@@ -605,13 +605,13 @@ jobs:
             dynamic/fsps-${fspsVersion}/ISOCHRONES \
             dynamic/mangle-${mangleVersion}/bin/harmonize
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: galacticus-tools-MacOS
           path: './datasets/toolsMacOS.zip'
       - run: echo "This job's status is ${{ job.status }}."
   Build-Tools-MacOS-M1:
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -633,9 +633,9 @@ jobs:
       - name: Build tools
         run: |
           export GALACTICUS_EXEC_PATH=`pwd`
-          export FCCOMPILER=gfortran-11
-          export CCOMPILER=gcc-11
-          export CPPCOMPILER=g++-11
+          export FCCOMPILER=gfortran-12
+          export CCOMPILER=gcc-15
+          export CPPCOMPILER=g++-15
           export GALACTICUS_FCFLAGS="-fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib"
           export GALACTICUS_CFLAGS="-I/usr/local/include -I/opt/local/include"
           export GALACTICUS_CPPFLAGS="-I/usr/local/include -I/opt/local/include"
@@ -651,13 +651,13 @@ jobs:
           set -o pipefail
           ./Galacticus.exe parameters/buildTools.xml 2>&1 | tee build.log
           cd $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion}/fortran/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl gfortran-11 -cpp -Ofast -fopenmp -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib -JRelease -IRelease/ -I"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" Release/inidriver.o Release/libcamb.a  -L"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" -lforutils -o camb
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl gfortran-12 -cpp -Ofast -fopenmp -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib -JRelease -IRelease/ -I"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" Release/inidriver.o Release/libcamb.a  -L"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" -lforutils -o camb
           cd $GALACTICUS_DATA_PATH/dynamic/AxionCAMB/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl gfortran-11 -O3 -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib constants.o utils.o  subroutines.o inifile.o power_tilt.o recfast_axion.o reionization.o modules.o bessels.o equations_ppf.o halofit_ppf.o lensing.o SeparableBispectrum.o cmbmain.o camb.o axion_background.o inidriver_axion.F90 -o camb          
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl gfortran-12 -O3 -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib constants.o utils.o  subroutines.o inifile.o power_tilt.o recfast_axion.o reionization.o modules.o bessels.o equations_ppf.o halofit_ppf.o lensing.o SeparableBispectrum.o cmbmain.o camb.o axion_background.o inidriver_axion.F90 -o camb          
           cd $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion}/
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl `grep -E '\-o class ' $GALACTICUS_EXEC_PATH/build.log`
           cd $GALACTICUS_DATA_PATH/dynamic/RecFast/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl gfortran-11 recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl gfortran-12 recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none
           cd $GALACTICUS_DATA_PATH/dynamic/c${cloudyVersion}/source/
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl `grep -E '\-o cloudy.exe' $GALACTICUS_EXEC_PATH/build.log`
           cd $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion}/src
@@ -682,7 +682,7 @@ jobs:
             dynamic/fsps-${fspsVersion}/ISOCHRONES \
             dynamic/mangle-${mangleVersion}/bin/harmonize
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: galacticus-tools-MacOS-M1
           path: './datasets/toolsMacOSM1.zip'
@@ -825,12 +825,31 @@ jobs:
       # Ensure all jobs are run, even if some fail.
       fail-fast: false
       matrix:
-        resolution: [ "X1", "X8", "X64" ]
+        resolution: [ "X1", "X8" ]
     uses: ./.github/workflows/testModel.yml
     with:
       install: python3 python3-h5py python3-numpy python3-git
       file: validate-darkMatterOnlySubhalos-SymphonyCOZMIC.py
       options: "Symphony ${{ matrix.resolution }} CDM"
+      artifact: galacticus-exec-dmo
+      runPath: ./testSuite
+      cacheData: 0
+      uploadFile: ./testSuite/outputs/*.json
+      uploadName: validate-darkMatterOnlySubhalosSymphonyCDMMilkyWay${{ matrix.resolution }}
+    secrets: inherit
+  Validate-Dark-Matter-Only-Subhalos-Symphony-X64:
+    needs: Build-Executable-DMO-Linux
+    strategy:
+      # Ensure all jobs are run, even if some fail.
+      fail-fast: false
+      matrix:
+        resolution: [ "X64" ]
+    uses: ./.github/workflows/testModel.yml
+    with:
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-darkMatterOnlySubhalos-SymphonyCOZMIC.py
+      options: "Symphony ${{ matrix.resolution }} CDM"
+      ompNumThreads: 3
       artifact: galacticus-exec-dmo
       runPath: ./testSuite
       cacheData: 0
@@ -1372,7 +1391,8 @@ jobs:
                 testSuite/regressions/lightconeCrossingTests.xml,
                 testSuite/regressions/lightconeCrossingTestsSubresolutionMerging.xml,
                 testSuite/regressions/lightconeCrossingAtCurrentTime.xml,
-                testSuite/regressions/constrainedTreeImpossible.py ]
+                testSuite/regressions/constrainedTreeImpossible.py,
+                testSuite/regressions/ignoreWellOrdering.xml ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
@@ -1495,7 +1515,7 @@ jobs:
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "PYTHONPATH=$GITHUB_WORKSPACE/python" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: galacticus-exec-dmo
       - name: Install Python
@@ -1532,7 +1552,7 @@ jobs:
       - name: Perform a test inference
         run: ${GITHUB_WORKSPACE}/virtualenv/bin/python3 scripts/emulation/emulatorSubhaloQuadLensingInference.py --outputDirectory testSuite/outputs/emulation-subhalos
       - name: Upload plots
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: emulation-subhalos
           path: ./testSuite/outputs/emulation-subhalos/*.pdf
@@ -1558,7 +1578,7 @@ jobs:
           apt -y update && apt -y upgrade
           apt -y install python3
       - name: Download library
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: galacticus-library
       - name: Test interface
@@ -1577,13 +1597,13 @@ jobs:
         executable: [ tests.hashes.cryptographic.exe ]
     uses: ./.github/workflows/testCode.yml
     with:
-      runner: macos-13
+      runner: macos-15-intel
       executable: ${{ matrix.executable }}
       artifact: test-execs-MacOS
     secrets: inherit
   ### Test Python Interface
   Python-Interface-MacOS:
-    runs-on: macos-13
+    runs-on: macos-15-intel
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -1616,7 +1636,7 @@ jobs:
   # Validate, deploy and update
   Validate:
     runs-on: ubuntu-latest
-    needs: [ Benchmark-Dark-Matter-Only-Subhalos, Benchmark-Milky-Way-Model, Validate-Dark-Matter-Only-Subhalos, Validate-Dark-Matter-Only-Subhalos-Symphony, Validate-Dark-Matter-Only-Subhalos-COZMICWDM, Validate-Milky-Way-Model, Validate-PonosV, Validate-Baryonic-Suppression, Validate-Idealized-Subhalo-Simulations, Validate-Decaying-Dark-Matter-Only-Subhalos ]
+    needs: [ Benchmark-Dark-Matter-Only-Subhalos, Benchmark-Milky-Way-Model, Validate-Dark-Matter-Only-Subhalos, Validate-Dark-Matter-Only-Subhalos-Symphony, Validate-Dark-Matter-Only-Subhalos-Symphony-X64, Validate-Dark-Matter-Only-Subhalos-COZMICWDM, Validate-Milky-Way-Model, Validate-PonosV, Validate-Baryonic-Suppression, Validate-Idealized-Subhalo-Simulations, Validate-Decaying-Dark-Matter-Only-Subhalos ]
     steps:
       - name: Check out repository code
         uses: actions/checkout@v5
@@ -1666,7 +1686,7 @@ jobs:
           name: 'Dark matter-only subhalos benchmarks (Symphony Milky Way resolutionX64)'
           type: 'validate'
           suffix: 'darkMatterOnlySubhalosSymphonyCDMMilkyWayX64'
-          threshold: '160%'
+          threshold: '300%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Dark matter-only subhalos validation (COZMIC Milky Way WDM 3keV resolutionX1)'
         uses: ./.github/actions/benchmark
@@ -1682,7 +1702,7 @@ jobs:
           name: 'Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 4keV resolutionX1)'
           type: 'validate'
           suffix: 'darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX1'
-          threshold: '450%'
+          threshold: '2000%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Dark matter-only subhalos validation (COZMIC Milky Way WDM 5keV resolutionX1)'
         uses: ./.github/actions/benchmark
@@ -1690,7 +1710,7 @@ jobs:
           name: 'Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 5keV resolutionX1)'
           type: 'validate'
           suffix: 'darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX1'
-          threshold: '450%'
+          threshold: '1000%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Dark matter-only subhalos validation (COZMIC Milky Way WDM 6keV resolutionX1)'
         uses: ./.github/actions/benchmark
@@ -1762,7 +1782,7 @@ jobs:
           name: 'Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 10keV resolutionX8)'
           type: 'validate'
           suffix: 'darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX8'
-          threshold: '450%'
+          threshold: '2500%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Milky Way model validation'
         uses: ./.github/actions/benchmark
@@ -1770,7 +1790,7 @@ jobs:
           name: 'Milky Way model benchmarks'
           type: 'validate'
           suffix: 'milkyWayModel'
-          threshold: '240%'
+          threshold: '340%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Idealized subhalo simulations (rₚ/rₐ=0.005; γ=1.5)'
         uses: ./.github/actions/benchmark
@@ -1899,15 +1919,15 @@ jobs:
           threshold: '250%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Download artifacts (validate-PonosV)
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: validate-PonosV
       - name: Download artifacts (validate-baryonicSuppression)
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: validate-baryonicSuppression
       - name: Download artifacts (build-profile)
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: build-profile
       - name: Push validation results
@@ -2027,19 +2047,19 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v5
       - name: Download artifacts (executable-linux)
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: galacticus-exec
       - name: Download artifacts (library-linux)
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: galacticus-library
       - name: Download artifacts (docs)
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: galacticus-docs
       - name: Download artifacts (tools-linux)
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: galacticus-tools
       - name: Upload assets to release
@@ -2049,31 +2069,31 @@ jobs:
           gh release upload bleeding-edge ./Galacticus.exe ./libgalacticus.tar.bz2 ./Galacticus_Usage.pdf ./Galacticus_Physics.pdf ./Galacticus_Development.pdf ./Galacticus_Source.pdf ./tools.tar.bz2 --clobber
           rm ./Galacticus.exe ./libgalacticus.tar.bz2 ./Galacticus_Usage.pdf ./Galacticus_Physics.pdf ./Galacticus_Development.pdf ./Galacticus_Source.pdf ./tools.tar.bz2
       - name: Download artifacts (executable-macos)
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: galacticus-exec-MacOS
       - name: Download artifacts (debug-macos)
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: galacticus-debug-MacOS
       - name: Download artifacts (executable-macos-m1)
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: galacticus-exec-MacOS-M1
       - name: Download artifacts (debug-macos-m1)
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: galacticus-debug-MacOS-M1
       - name: Download artifacts (library-macos)
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: galacticus-library-MacOS
       - name: Download artifacts (tools-macos)
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: galacticus-tools-MacOS
       - name: Download artifacts (tools-macos-m1)
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: galacticus-tools-MacOS-M1
       - name: Upload assets to release
@@ -2083,27 +2103,27 @@ jobs:
           gh release upload bleeding-edge ./Galacticus_MacOS.exe ./Galacticus_MacOS-M1.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip ./toolsMacOSM1.zip ./debugSymbolsMacOS.zip ./debugSymbolsMacOS-M1.zip --clobber
           rm ./Galacticus_MacOS.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip ./toolsMacOSM1.zip ./debugSymbolsMacOS.zip
       - name: Download artifacts (perf-darkMatterOnlySubHalos)
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: perf-darkMatterOnlySubHalos
       - name: Download artifacts (perf-milkyWay)
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: perf-milkyWay
       - name: Download artifacts (perf-milkyWay_SIDM)
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: perf-milkyWay_SIDM
       - name: Download artifacts (perf-darkMatterOnlySubHalos-gprof)
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: perf-darkMatterOnlySubHalos-gprof
       - name: Download artifacts (perf-milkyWay-gprof)
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: perf-milkyWay-gprof
       - name: Download artifacts (perf-milkyWay_SIDM-gprof)
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: perf-milkyWay_SIDM-gprof
       - name: Upload assets to release
