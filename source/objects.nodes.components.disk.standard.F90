@@ -80,21 +80,21 @@ module Node_Component_Disk_Standard
       <name>massGas</name>
       <type>double</type>
       <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" isNonNegative="true" />
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true" />
       <output unitsInSI="massSolar" comment="Mass of gas in the standard disk."/>
     </property>
     <property>
       <name>abundancesGas</name>
       <type>abundances</type>
       <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" isNonNegative="true" />
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true" />
       <output unitsInSI="massSolar" comment="Mass of metals in the gas phase of the standard disk."/>
     </property>
     <property>
       <name>angularMomentum</name>
       <type>double</type>
       <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" isNonNegative="true" />
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true" />
       <output unitsInSI="massSolar*megaParsec*kilo" comment="Angular momentum of the standard disk."/>
     </property>
     <property>
@@ -139,9 +139,8 @@ module Node_Component_Disk_Standard
     </property>
    </properties>
    <bindings>
-    <binding method="attachPipes"      function="Node_Component_Disk_Standard_Attach_Pipes"      bindsTo="component" description="Attach pipes to the standard disk component." returnType="\void" arguments=""/>
-    <binding method="massDistribution" function="Node_Component_Disk_Standard_Mass_Distribution" bindsTo="component"                                                                                           />
-    <binding method="massBaryonic"     function="Node_Component_Disk_Standard_Mass_Baryonic"     bindsTo="component"                                                                                           />
+    <binding method="massDistribution" function="Node_Component_Disk_Standard_Mass_Distribution"/>
+    <binding method="massBaryonic"     function="Node_Component_Disk_Standard_Mass_Baryonic"    />
    </bindings>
    <functions>objects.nodes.components.disk.standard.bound_functions.inc</functions>
   </component>
@@ -177,9 +176,6 @@ module Node_Component_Disk_Standard
   double precision                            :: ratioAngularMomentumSolverRadius        , diskRadiusSolverFlatVsSphericalFactor
   !$omp threadprivate(ratioAngularMomentumSolverRadius,diskRadiusSolverFlatVsSphericalFactor)
 
-  ! Pipe attachment status.
-  logical                                     :: pipesAttached                             =.false.
-
   ! A threadprivate object used to track to which thread events are attached.
   integer :: thread
   !$omp threadprivate(thread)
@@ -200,18 +196,12 @@ contains
     use :: Galacticus_Nodes    , only : defaultDiskComponent     , nodeComponentDiskStandard
     use :: Input_Parameters    , only : inputParameter           , inputParameters
     implicit none
-    type(inputParameters          ), intent(inout) :: parameters
-    type(nodeComponentDiskStandard)                :: diskStandardComponent
-    type(inputParameters          )                :: subParameters
+    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters)                :: subParameters
 
     if (defaultDiskComponent%standardIsActive()) then
        ! Get number of abundance properties.
        abundancesCount  =Abundances_Property_Count            ()
-       ! Attach the cooling mass/angular momentum pipes from the hot halo component.
-       if (.not.pipesAttached) then
-          call diskStandardComponent%attachPipes()
-          pipesAttached=.true.
-       end if
        ! Find our parameters.
        subParameters=parameters%subParameters('componentDisk')
        ! Read parameters controlling the physical implementation.

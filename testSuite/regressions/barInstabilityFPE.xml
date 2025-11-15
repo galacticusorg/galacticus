@@ -2,7 +2,7 @@
 <!-- Model which triggered a floating point exception in the Efstathiou et al. disk instability class -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="d4bf2d8db876eb8e44d94e1672bc36a6ea8135cc" time="2025-09-03T18:23:58"/>
+  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
 
   <!-- Task and work control -->
   <task value="evolveForests">
@@ -27,10 +27,7 @@
     </massDistributionDisk>
   </componentDisk>
   <componentHotHalo value="coldMode">
-    <fractionLossAngularMomentum value="0.0871188291891892"/>
     <starveSatellites value="false"/>
-    <efficiencyStrippingOutflow value="0.1"/>
-    <trackStrippedGas value="true"/>
   </componentHotHalo>
   <componentSatellite value="standard"/>
   <componentSpheroid value="standard">
@@ -217,6 +214,12 @@
   <hotHaloOutflowReincorporation value="haloDynamicalTime">
     <multiplier value="7.84401490527569"/>
   </hotHaloOutflowReincorporation>
+  <hotHaloOutflowStripping value="standard">
+    <efficiency value="0.1"/>
+  </hotHaloOutflowStripping>
+  <coolingInfallTorque value="fixed">
+    <fractionLossAngularMomentum value="0.0871188291891892"/>
+  </coolingInfallTorque>
   
   <!--chemicalReactionRate value="hydrogenNetwork">
     <fast value="true"/>
@@ -224,34 +227,26 @@
   <chemicalsToTrack value="AtomicHydrogen AtomicHydrogenCation MolecularHydrogen Electron"/-->
   
   <coolingFunction value="velocityCutOff">
-  <velocityCutOff value="19.0"/>
-  <redshiftCutOff value="1.0e6"/>
-  <whenCutOff value="after"/>
-  
-  
-  
-  <coolingFunction value="atomicCIECloudy"/>
-  
-  
-  
-  
+    <velocityCutOff value="19.0"/>
+    <redshiftCutOff value="1.0e6"/>
+    <whenCutOff value="after"/>
+    <coolingFunction value="atomicCIECloudy"/>
   </coolingFunction>
-  
   <coolingRate value="multiplier">
     <multiplier value="15"/>
-  <coolingRate value="whiteFrenk1991">
-    <velocityCutOff value="10000"/>
-  </coolingRate>
-  </coolingRate>
-  
+    <coolingRate value="whiteFrenk1991">
+      <velocityCutOff value="10000"/>
+    </coolingRate>
+  </coolingRate>  
   <coolingTime value="simple">
     <degreesOfFreedom value="3.0"/>
   </coolingTime>
   <coolingTimeAvailable value="whiteFrenk1991">
     <ageFactor value="0.774282113742516"/>
   </coolingTimeAvailable>
-  <!-- Hot halo ram pressure stripping options -->
- 
+  <circumgalacticMediumHeating value="AGNFeedback"/>
+  
+  <!-- Hot halo ram pressure stripping options --> 
   <hotHaloRamPressureStripping value="font2008"/>
   <hotHaloRamPressureForce value="font2008"/>
   <hotHaloRamPressureTimescale value="ramPressureAcceleration"/>
@@ -294,7 +289,6 @@
   </stellarPopulation> 
 
   <!-- AGN feedback options -->
-  <hotHaloExcessHeatDrivesOutflow value="true"/>
   <blackHoleWind value="ciotti2009">
     <efficiencyWind                              value="0.213288020410184"/>
     <efficiencyWindScalesWithEfficiencyRadiative value="true"             />
@@ -431,7 +425,6 @@
     </nodeOperator>
     <nodeOperator value="blackHolesAccretion"/>
     <nodeOperator value="blackHolesWinds"/>
-    <nodeOperator value="blackHolesCGMHeating"/>
     <!-- CGM physics -->
     <nodeOperator value="CGMAccretion">
       <allowNegativeCGMMass value="true"/>
@@ -439,6 +432,16 @@
     </nodeOperator>
     <nodeOperator value="CGMOutflowReincorporation">
       <includeSatellites value="true"/>
+    </nodeOperator>
+    <nodeOperator value="CGMCoolingHeating">
+      <component value="disk"/>
+      <coolingFrom value="currentNode"/>
+      <excessHeatDrivesOutflow value="true"/>
+      <rateMaximumExpulsion value="1.0"/>
+    </nodeOperator>
+    <nodeOperator value="CGMColdModeInflow">
+      <component value="disk"/>
+      <coolingFrom value="currentNode"/>
     </nodeOperator>
   </nodeOperator>
   

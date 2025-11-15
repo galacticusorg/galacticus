@@ -78,7 +78,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           export BUILDPATH=./work/build
           set -o pipefail
-          make GALACTICUS_BUILD_OPTION=compileprof -j4 all 2>&1 | tee build.log
+          make GALACTICUS_BUILD_OPTION=compileprof -j4 Galacticus.exe 2>&1 | tee build.log
           set +o pipefail
           chmod u=wrx ./scripts/build/buildProfiler.pl
           ./scripts/build/buildProfiler.pl build.log buildProfile.html --durationMinimum 20
@@ -90,11 +90,6 @@ jobs:
         with:
           name: galacticus-exec
           path: 'Galacticus.exe'
-      - name: Upload test code executables
-        uses: actions/upload-artifact@v5
-        with:
-          name: test-execs
-          path: 'tests.*.exe'
       - name: Upload build profile
         uses: actions/upload-artifact@v5
         with:
@@ -137,7 +132,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           export BUILDPATH=./work/build
           set -o pipefail
-          make -j4 Galacticus.exe 2>&1 | tee build.log
+          make -j4 all 2>&1 | tee build.log
           set +o pipefail
           ! grep -n Error: build.log
           ! grep -n Warning: build.log
@@ -147,6 +142,11 @@ jobs:
         with:
           name: galacticus-exec-non-static
           path: 'Galacticus.exe'
+      - name: Upload test code executables
+        uses: actions/upload-artifact@v5
+        with:
+          name: test-execs
+          path: 'tests.*.exe'
       - run: echo "This job's status is ${{ job.status }}."
   ### Executable instrumented
   Build-Executables-Instrumented-Linux:
@@ -939,13 +939,12 @@ jobs:
   ## Linux
   ### Test Codes
   Codes:
-    needs: Build-Executable-Linux
+    needs: Build-Executable-Linux-Non-Static
     strategy:
       # Ensure all jobs are run, even if some fail.
       fail-fast: false
       matrix:
         executable: [ tests.nodes.exe,
-                      tests.parameters.exe,
                       tests.files.exe,
                       tests.IO.XML.exe,
                       tests.ODE_solver.exe,
@@ -1062,9 +1061,18 @@ jobs:
       executable: ${{ matrix.executable }}
       artifact: test-execs
     secrets: inherit
+  ### Test Parameters
+  Parameters:
+    needs: Build-Executable-Linux-Non-Static
+    uses: ./.github/workflows/testCode.yml
+    with:
+      executable: tests.parameters.exe
+      artifact: test-execs
+      expectUnrecognized: 1
+    secrets: inherit
   ### Test HDF5 IO
   IO-HDF5:
-    needs: Build-Executable-Linux
+    needs: Build-Executable-Linux-Non-Static
     uses: ./.github/workflows/testCode.yml
     with:
       executable: tests.IO.HDF5.exe
@@ -1073,7 +1081,7 @@ jobs:
     secrets: inherit
   ### Test Crash
   Crash:
-    needs: Build-Executable-Linux
+    needs: Build-Executable-Linux-Non-Static
     uses: ./.github/workflows/testCode.yml
     with:
       executable: tests.crash.exe
@@ -1082,7 +1090,7 @@ jobs:
     secrets: inherit
   ### Test Fail
   Fail:
-    needs: Build-Executable-Linux
+    needs: Build-Executable-Linux-Non-Static
     uses: ./.github/workflows/testCode.yml
     with:
       executable: tests.fail.exe
@@ -1194,8 +1202,7 @@ jobs:
       # Ensure all jobs are run, even if some fail.
       fail-fast: false
       matrix:
-        file: [ test-allowed-parameters.pl,
-                test-bar-instability.pl,
+        file: [ test-bar-instability.pl,
                 test-transfer-functions-axion.pl,
                 test-mass-definitions.pl,
                 test-branchlessTrees.pl,
@@ -1260,6 +1267,15 @@ jobs:
       file: ${{ matrix.file }}
       artifact: galacticus-exec
       runPath: ./testSuite
+    secrets: inherit
+  Miscellaneous-Unexpected:
+    needs: Build-Executable-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: test-allowed-parameters.pl
+      artifact: galacticus-exec
+      runPath: ./testSuite
+      expectUnrecognized: 1
     secrets: inherit
   Miscellaneous-IRATE:
     needs: Build-Executable-Linux

@@ -28,7 +28,6 @@ module Node_Component_Hot_Halo_Cold_Mode
   reservoir.
   !!}
   use :: Accretion_Halos                      , only : accretionHaloClass
-  use :: Cooling_Cold_Mode_Infall_Rates       , only : coldModeInfallRateClass
   use :: Cosmology_Parameters                 , only : cosmologyParametersClass
   use :: Dark_Matter_Halo_Scales              , only : darkMatterHaloScaleClass
   use :: Hot_Halo_Outflows_Reincorporations   , only : hotHaloOutflowReincorporationClass
@@ -81,7 +80,7 @@ module Node_Component_Hot_Halo_Cold_Mode
     </property>
    </properties>
    <bindings>
-     <binding method="massDistribution" bindsTo="component" isDeferred="true" >
+     <binding method="massDistribution" isDeferred="true" >
       <interface>
        <type>class(massDistributionClass), pointer</type>
        <rank>0</rank>
@@ -94,7 +93,7 @@ module Node_Component_Hot_Halo_Cold_Mode
        <argument>integer                              , intent(in   ), optional :: weightIndex  </argument>
       </interface>
      </binding>
-     <binding method="massBaryonic" function="Node_Component_Hot_Halo_Cole_Mode_Mass_Baryonic" bindsTo="component"/>
+     <binding method="massBaryonic" function="Node_Component_Hot_Halo_Cole_Mode_Mass_Baryonic"/>
    </bindings>
    <functions>objects.nodes.components.hot_halo.cold_mode.bound_functions.inc</functions>
   </component>
@@ -102,12 +101,11 @@ module Node_Component_Hot_Halo_Cold_Mode
 
   ! Objects used by this component.
   class(accretionHaloClass                  ), pointer :: accretionHalo_
-  class(coldModeInfallRateClass             ), pointer :: coldModeInfallRate_
   class(cosmologyParametersClass            ), pointer :: cosmologyParameters_
   class(darkMatterHaloScaleClass            ), pointer :: darkMatterHaloScale_
   class(hotHaloOutflowReincorporationClass  ), pointer :: hotHaloOutflowReincorporation_
   class(hotHaloColdModeMassDistributionClass), pointer :: hotHaloColdModeMassDistribution_
-  !$omp threadprivate(accretionHalo_,coldModeInfallRate_,cosmologyParameters_,darkMatterHaloScale_,hotHaloOutflowReincorporation_,hotHaloColdModeMassDistribution_)
+  !$omp threadprivate(accretionHalo_,cosmologyParameters_,darkMatterHaloScale_,hotHaloOutflowReincorporation_,hotHaloColdModeMassDistribution_)
 
   ! Options controlling the behavior of the cold mode gas.
   logical :: outflowToColdMode
@@ -177,11 +175,11 @@ contains
     !!{
     Initializes the tree node hot halo cold mode methods module.
     !!}
-    use :: Events_Hooks                         , only : nodePromotionEvent       , satelliteMergerEvent, openMPThreadBindingAtLevel, dependencyRegEx, &
-         &                                               dependencyDirectionAfter , haloFormationEvent
+    use :: Events_Hooks                         , only : nodePromotionEvent      , satelliteMergerEvent, openMPThreadBindingAtLevel, dependencyRegEx, &
+         &                                               dependencyDirectionAfter, haloFormationEvent
     use :: Galacticus_Nodes                     , only : defaultHotHaloComponent
     use :: Hot_Halo_Cold_Mode_Density_Core_Radii, only : hotHaloColdModeCoreRadii
-    use :: Input_Parameters                     , only : inputParameter           , inputParameters
+    use :: Input_Parameters                     , only : inputParameter          , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters
     type(dependencyRegEx), dimension(1)  :: dependencies
@@ -194,7 +192,6 @@ contains
        <objectBuilder class="cosmologyParameters"             name="cosmologyParameters_"             source="subParameters"/>
        <objectBuilder class="darkMatterHaloScale"             name="darkMatterHaloScale_"             source="subParameters"/>
        <objectBuilder class="accretionHalo"                   name="accretionHalo_"                   source="subParameters"/>
-       <objectBuilder class="coldModeInfallRate"              name="coldModeInfallRate_"              source="subParameters"/>
        <objectBuilder class="hotHaloOutflowReincorporation"   name="hotHaloOutflowReincorporation_"   source="subParameters"/>
        <objectBuilder class="hotHaloColdModeMassDistribution" name="hotHaloColdModeMassDistribution_" source="subParameters"/>
        !!]
@@ -215,7 +212,7 @@ contains
     !!{
     Uninitializes the tree node hot halo cold mode methods module.
     !!}
-    use :: Events_Hooks    , only : nodePromotionEvent       , satelliteMergerEvent     , haloFormationEvent
+    use :: Events_Hooks    , only : nodePromotionEvent     , satelliteMergerEvent, haloFormationEvent
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
 
@@ -224,7 +221,6 @@ contains
        <objectDestructor name="cosmologyParameters_"            />
        <objectDestructor name="darkMatterHaloScale_"            />
        <objectDestructor name="accretionHalo_"                  />
-       <objectDestructor name="coldModeInfallRate_"             />
        <objectDestructor name="hotHaloOutflowReincorporation_"  />
        <objectDestructor name="hotHaloColdModeMassDistribution_"/>
        !!]
@@ -234,66 +230,6 @@ contains
     end if
     return
   end subroutine Node_Component_Hot_Halo_Cold_Mode_Thread_Uninitialize
-
-  subroutine Node_Component_Hot_Halo_Cold_Mode_Push_To_Cooling_Pipes(node,massRate,interrupt,interruptProcedure)
-    !!{
-    Push mass through the cooling pipes (along with appropriate amounts of metals and angular momentum) at the given rate.
-    !!}
-    use :: Abundances_Structure                 , only : abundances   , operator(*)
-    use :: Error                                , only : Error_Report
-    use :: Galacticus_Nodes                     , only : interruptTask, nodeComponentHotHalo, nodeComponentHotHaloColdMode, treeNode
-    use :: Node_Component_Hot_Halo_Standard_Data, only : currentNode  , formationNode       , fractionLossAngularMomentum , coolingFromNode
-    use :: Numerical_Constants_Math             , only : Pi
-    implicit none
-    type            (treeNode                    ), intent(inout)          , target  :: node
-    double precision                              , intent(in   )                    :: massRate
-    logical                                       , intent(inout), optional          :: interrupt
-    procedure       (interruptTask               ), intent(inout), optional, pointer :: interruptProcedure
-    type            (treeNode                    )                         , pointer :: nodeCoolingFrom
-    class           (nodeComponentHotHalo        )                         , pointer :: hotHaloCoolingFrom        , hotHalo
-    type            (abundances                  ), save                             :: abundancesCoolingRate
-    !$omp threadprivate(abundancesCoolingRate)
-    double precision                                                                 :: angularMomentumCoolingRate
-
-    ! Get the hot halo component.
-    hotHalo => node%hotHalo()
-    select type (hotHalo)
-    class is (nodeComponentHotHaloColdMode)
-       ! Ignore zero rates.
-       if (massRate /= 0.0d0 .and. hotHalo%massCold() > 0.0d0 .and. hotHalo%angularMomentumCold() > 0.0d0) then
-          ! Remove mass from the hot component.
-          call hotHalo%massColdRate(-massRate)
-          ! Pipe the mass rate to whichever component claimed it.
-          if (hotHalo%hotHaloCoolingMassRateIsAttached()) &
-               & call hotHalo%hotHaloCoolingMassRate(+massRate,interrupt,interruptProcedure)
-          ! Find the node to use for cooling calculations.
-          select case (coolingFromNode)
-          case (currentNode  )
-             nodeCoolingFrom => node
-          case (formationNode)
-             nodeCoolingFrom => node%formationNode
-          case default
-             nodeCoolingFrom => null()
-             call Error_Report('unknown cooling node'//{introspection:location})
-          end select
-          ! Compute the infall rate of angular momentum.
-          angularMomentumCoolingRate=massRate*hotHalo%angularMomentumCold()/hotHalo%massCold()
-          call hotHalo%angularMomentumColdRate(-angularMomentumCoolingRate)
-          ! Pipe the cooling rate to which ever component claimed it.
-          if (hotHalo%hotHaloCoolingAngularMomentumRateIsAttached()) &
-               & call hotHalo%hotHaloCoolingAngularMomentumRate(sign(+angularMomentumCoolingRate*(1.0d0-fractionLossAngularMomentum),massRate),interrupt,interruptProcedure)
-          ! Get the rate of change of abundances.
-          hotHaloCoolingFrom => nodeCoolingFrom   %hotHalo       ()
-          abundancesCoolingRate=hotHaloCoolingFrom%abundancesCold()
-          abundancesCoolingRate=massRate*abundancesCoolingRate/hotHaloCoolingFrom%massCold()
-          call hotHalo%abundancesColdRate(-abundancesCoolingRate)
-          ! Pipe the cooling rate to which ever component claimed it.
-          if (hotHalo%hotHaloCoolingAbundancesRateIsAttached()) &
-               & call hotHalo%hotHaloCoolingAbundancesRate(+abundancesCoolingRate,interrupt,interruptProcedure)
-       end if
-    end select
-    return
-  end subroutine Node_Component_Hot_Halo_Cold_Mode_Push_To_Cooling_Pipes
 
   !![
   <rateComputeTask>
@@ -325,7 +261,7 @@ contains
     double precision                                                :: angularMomentumAccretionRate, densityAtOuterRadius , &
          &                                                             massAccretionRate           , massLossRate         , &
          &                                                             outerRadius                 , outerRadiusGrowthRate, &
-         &                                                             gasMass                     , infallRate
+         &                                                             gasMass
     type            (coordinateSpherical  )                         :: coordinates
     
     ! Return immediately if inactive variables are requested.
@@ -340,10 +276,6 @@ contains
     basic => node%basic()
     ! Apply accretion rates.
     call hotHalo%massColdRate(massAccretionRate,interrupt,interruptProcedure)
-    ! Next compute the cold mode infall rate in this halo.
-    infallRate=coldModeInfallRate_%infallRate(node)
-    ! Pipe the cooling rate to which ever component claimed it.
-    call Node_Component_Hot_Halo_Cold_Mode_Push_To_Cooling_Pipes(node,infallRate,interrupt,interruptProcedure)
     ! Get the rate at which abundances are accreted onto this halo.
     call hotHalo%abundancesColdRate(accretionHalo_%accretionRateMetals(node,accretionModeCold),interrupt,interruptProcedure)
     ! Next block of tasks occur only if the accretion rate is non-zero.
@@ -888,7 +820,7 @@ contains
 
     call displayMessage('Storing state for: componentHotHalo -> coldMode',verbosity=verbosityLevelInfo)
     !![
-    <stateStore variables="accretionHalo_ coldModeInfallRate_ cosmologyParameters_ hotHaloOutflowReincorporation_ hotHaloColdModeMassDistribution_"/>
+    <stateStore variables="accretionHalo_ cosmologyParameters_ hotHaloOutflowReincorporation_ hotHaloColdModeMassDistribution_"/>
     !!]
     return
   end subroutine Node_Component_Hot_Halo_Cold_Mode_State_Store
@@ -911,7 +843,7 @@ contains
 
     call displayMessage('Retrieving state for: componentHotHalo -> coldMode',verbosity=verbosityLevelInfo)
     !![
-    <stateRestore variables="accretionHalo_ coldModeInfallRate_ cosmologyParameters_ hotHaloOutflowReincorporation_ hotHaloColdModeMassDistribution_"/>
+    <stateRestore variables="accretionHalo_ cosmologyParameters_ hotHaloOutflowReincorporation_ hotHaloColdModeMassDistribution_"/>
     !!]
     return
   end subroutine Node_Component_Hot_Halo_Cold_Mode_State_Restore

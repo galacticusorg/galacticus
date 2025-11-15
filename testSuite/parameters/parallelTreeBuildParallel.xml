@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <parameters formatVersion="2" version="0.9.4">
   <formatVersion>2</formatVersion>
-  <lastModified revision="d4bf2d8db876eb8e44d94e1672bc36a6ea8135cc" time="2025-09-03T18:23:58"/>
+  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
 
   <componentBasic value="standard" />
   <componentBlackHole value="null" />
@@ -80,7 +80,6 @@
     <redshiftsProgenitor value="0.5 1.0" />
   </mergerTreeOperator>
   <mergerTreeOutputter value="null" />
-  <nodePromotionIndexShift value="false" />
   <outputFileName value="testSuite/outputs/parallelTreeBuildParallel.hdf5"/>
   <powerSpectrumPrimordial value="powerLaw">
     <index value="1.000" />
@@ -88,7 +87,9 @@
     <wavenumberReference value="1.000" />
   </powerSpectrumPrimordial>
   <powerSpectrumPrimordialTransferred value="simple" />
-  <randomSeed value="220" />
+  <randomNumberGenerator value="GSL">
+    <seed value="220" />
+  </randomNumberGenerator>
   <task value="evolveForests" >
     <evolveForestsInParallel value="false"/>
   </task>

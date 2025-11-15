@@ -927,3 +927,183 @@ sub hotHaloStandardAccretion {
 	}
     }
 }
+
+sub hotHaloStandardInflowOutflow {
+    # Special handling to add and modify nodeOperators for CGM inflow/outflow in the standard hot halo component.
+    my $input      = shift();
+    my $parameters = shift();
+    my $isGrid     = shift();
+    # Rename any `nodeOperatorCGMCoolingHeating`.
+    my @nodeOperatorCGMCGMCoolingInflows = $parameters->findnodes("//nodeOperator[\@value='multi']/nodeOperator[\@value='CGMCoolingInflow']")->get_nodelist();
+    foreach my $nodeOperatorCGMCoolingInflow ( @nodeOperatorCGMCGMCoolingInflows ) {
+	$nodeOperatorCGMCoolingInflow->setNodeName("CGMCoolingHeating");
+    }
+    # Look for "componentHotHalo" parameters.
+    my @nodes = $parameters->findnodes("//componentHotHalo[\@value='standard' or \@value='coldMode' or \@value='outflowTracking']")->get_nodelist();
+    if ( scalar(@nodes) <= 0 ) {
+	# None found - check if we have any componentHotHalo.
+	my @nodesAny = $parameters->findnodes("//componentHotHalo[\@value]")->get_nodelist();
+	# We have one - nothing more to do.
+	return
+	    if ( scalar(@nodesAny) > 0 );
+	# Check if we have nodeOperators present.
+	my @nodeOperators = $parameters->findnodes("//nodeOperator[\@value='multi']")->get_nodelist();
+	# We do not - nothing more to do.
+	return
+	    if ( scalar(@nodeOperators) == 0 );
+	# No componentHotHalo - insert one with the default value.
+	my $componentHotHalo = $input->createElement("componentHotHalo");
+	$componentHotHalo->setAttribute('value','standard');
+	$parameters      ->appendChild ($componentHotHalo);
+	@nodes = $parameters->findnodes("//componentHotHalo[\@value='standard' or \@value='coldMode' or \@value='outflowTracking']")->get_nodelist();
+    }
+    die("found multiple `//componentHotHalo[\@value='standard' or \@value='coldMode' or \@value='outflowTracking']` nodes - unknown what should be done in this situation")
+	if ( scalar(@nodes) >  1 );
+    print "   translate special '//componentHotHalo[\@value='standard' or \@value='coldMode' or \@value='outflowTracking']'\n";
+    # Determine the type of hot halo component.
+    my $type = $nodes[0]->getAttribute('value');
+    # Find the component to which cooling should be directed.
+    my @nodesDisk = $parameters->findnodes("//componentDisk[\@value]")->get_nodelist();
+    my $componentCooling;
+    if ( scalar(@nodesDisk) == 0 ) {
+	$componentCooling = "disk";
+    } else {
+	my $typeDisk = $nodesDisk[0]->getAttribute('value');
+	if ( $typeDisk eq "null" ) {
+	    $componentCooling = "none";
+	} else {
+	    $componentCooling = "disk";
+	}
+    }
+    # Find nodeOperators.
+    my @nodeOperators = $parameters->findnodes("//nodeOperator[\@value='multi']")->get_nodelist();
+    die("can not find any `nodeOperator[\@value='multi']` into which to insert CGM operators")
+     	if ( scalar(@nodeOperators) == 0 );
+    die("found multiple `nodeOperator[\@value='multi']` nodes - unknown into which to insert CGM operators")
+     	if ( scalar(@nodeOperators) > 1 );
+    # Find pre-existing options.
+    my @coolingFromNodePrior                = $nodes[0]->findnodes("//coolingFromNode[\@value]"               )->get_nodelist();
+    my @hotHaloExcessHeatDrivesOutflowPrior = $nodes[0]->findnodes("//hotHaloExcessHeatDrivesOutflow[\@value]")->get_nodelist();
+    my @rateMaximumExpulsionPrior           = $nodes[0]->findnodes("//rateMaximumExpulsion[\@value]"          )->get_nodelist();
+    my @fractionLossAngularMomentumPrior    = $nodes[0]->findnodes("//fractionLossAngularMomentum[\@value]"   )->get_nodelist();
+    my @efficiencyStrippingOutflowPrior     = $nodes[0]->findnodes("//efficiencyStrippingOutflow[\@value]"    )->get_nodelist();
+    my @trackStrippedGasPrior               = $nodes[0]->findnodes("//trackStrippedGas[\@value]"              )->get_nodelist();
+    my $coolingFromNodeValue                = scalar(@coolingFromNodePrior               ) == 1 ? $coolingFromNodePrior               [0]->getAttribute('value') : "currentNode";
+    my $hotHaloExcessHeatDrivesOutflowValue = scalar(@hotHaloExcessHeatDrivesOutflowPrior) == 1 ? $hotHaloExcessHeatDrivesOutflowPrior[0]->getAttribute('value') : "true"       ;
+    my $rateMaximumExpulsionValue           = scalar(@rateMaximumExpulsionPrior          ) == 1 ? $rateMaximumExpulsionPrior          [0]->getAttribute('value') : "1.0"        ;
+    my $fractionLossAngularMomentumValue    = scalar(@fractionLossAngularMomentumPrior   ) == 1 ? $fractionLossAngularMomentumPrior   [0]->getAttribute('value') : "0.3"        ;
+    my $efficiencyStrippingOutflowValue     = scalar(@efficiencyStrippingOutflowPrior    ) == 1 ? $efficiencyStrippingOutflowPrior    [0]->getAttribute('value') : "0.1"        ;
+    my $trackStrippedGasValue               = scalar(@trackStrippedGasPrior              ) == 1 ? $trackStrippedGasPrior              [0]->getAttribute('value') : "true"       ;
+    # Remove obsoleted parameters.
+    $coolingFromNodePrior               [0]->parentNode->removeChild($coolingFromNodePrior               [0])
+	if ( scalar(@coolingFromNodePrior               ) == 1 );
+    $hotHaloExcessHeatDrivesOutflowPrior[0]->parentNode->removeChild($hotHaloExcessHeatDrivesOutflowPrior[0])
+	if ( scalar(@hotHaloExcessHeatDrivesOutflowPrior) == 1 );
+    $rateMaximumExpulsionPrior          [0]->parentNode->removeChild($rateMaximumExpulsionPrior          [0])
+	if ( scalar(@rateMaximumExpulsionPrior          ) == 1 );
+    $fractionLossAngularMomentumPrior   [0]->parentNode->removeChild($fractionLossAngularMomentumPrior   [0])
+	if ( scalar(@fractionLossAngularMomentumPrior   ) == 1 );
+    $efficiencyStrippingOutflowPrior    [0]->parentNode->removeChild($efficiencyStrippingOutflowPrior    [0])
+	if ( scalar(@efficiencyStrippingOutflowPrior    ) == 1 );
+    $trackStrippedGasPrior              [0]->parentNode->removeChild($trackStrippedGasPrior              [0])
+	if ( scalar(@trackStrippedGasPrior              ) == 1 );
+    # Remove any blackHolesCGMHeating nodeOperator - functionality is moved into the CGMCoolingInflow nodeOperator.
+    my @nodeOperatorBlackHolesCGMHeatings = $parameters->findnodes("//nodeOperator[\@value='multi']/nodeOperator[\@value='blackHolesCGMHeating']")->get_nodelist();
+    if ( scalar(@nodeOperatorBlackHolesCGMHeatings) > 0 ) {
+	# Insert the corresponding circumgalacticMediumHeating class to retain AGN feedback.
+	my $circumgalacticMediumHeating = $input->createElement("circumgalacticMediumHeating");
+	$circumgalacticMediumHeating->setAttribute('value'   ,'AGNFeedback');
+	$circumgalacticMediumHeating->setAttribute('iterable','no'         )
+	    if ( $isGrid );
+	$parameters->insertAfter($circumgalacticMediumHeating,$nodes[0]);
+	# Remove the blackHolesCGMHeating nodeOperators
+	foreach my $nodeOperatorBlackHolesCGMHeating ( @nodeOperatorBlackHolesCGMHeatings ) {
+	    $nodeOperatorBlackHolesCGMHeating->parentNode->removeChild($nodeOperatorBlackHolesCGMHeating);
+	}
+    }
+    # Add a cooling/heating operator.
+    {
+	my $operatorCoolingHeating = $input->createElement("nodeOperator");
+	$operatorCoolingHeating   ->setAttribute('value'   ,'CGMCoolingHeating');
+	$operatorCoolingHeating   ->setAttribute('iterable','no'               )
+	    if ( $isGrid );
+	$nodeOperators[0]->insertAfter($operatorCoolingHeating,$nodeOperators[0]->lastChild);
+	# Specify options.
+	my $component               = $input->createElement("component"              );
+	my $coolingFrom             = $input->createElement("coolingFrom"            );
+	my $excessHeatDrivesOutflow = $input->createElement("excessHeatDrivesOutflow");
+	my $rateMaximumExpulsion    = $input->createElement("rateMaximumExpulsion"   );
+	$component              ->setAttribute('value',$componentCooling                   );
+	$coolingFrom            ->setAttribute('value',$coolingFromNodeValue               );
+	$excessHeatDrivesOutflow->setAttribute('value',$hotHaloExcessHeatDrivesOutflowValue);
+	$rateMaximumExpulsion   ->setAttribute('value',$rateMaximumExpulsionValue          );
+	$operatorCoolingHeating ->appendChild (        $component                          );
+	$operatorCoolingHeating ->appendChild (        $coolingFrom                        );
+	$operatorCoolingHeating ->appendChild (        $excessHeatDrivesOutflow            );
+	$operatorCoolingHeating ->appendChild (        $rateMaximumExpulsion               );
+    }
+    # Add a cold mode inflow operator.
+    if ( $type eq "coldMode" ) {
+	my $operatorColdModeInflow = $input->createElement("nodeOperator");
+	$operatorColdModeInflow   ->setAttribute('value'   ,'CGMColdModeInflow');
+	$operatorColdModeInflow   ->setAttribute('iterable','no'               )
+	    if ( $isGrid );
+	$nodeOperators[0]->insertAfter($operatorColdModeInflow,$nodeOperators[0]->lastChild);
+	# Specify options.
+	my $component   = $input->createElement("component"  );
+	my $coolingFrom = $input->createElement("coolingFrom");
+	$component             ->setAttribute('value',$componentCooling    );
+	$coolingFrom           ->setAttribute('value',$coolingFromNodeValue);
+	$operatorColdModeInflow->appendChild (        $component           );
+	$operatorColdModeInflow->appendChild (        $coolingFrom         );
+    }
+    # Add coolingInfallTorque object.
+    {
+	my $coolingInfallTorque = $input->createElement("coolingInfallTorque");
+	$coolingInfallTorque->setAttribute('value','fixed');
+	$parameters->insertAfter($coolingInfallTorque,$nodes[0]);
+	# Specify options.
+	my $fractionLossAngularMomentum = $input->createElement("fractionLossAngularMomentum");
+	$fractionLossAngularMomentum->setAttribute('value',$fractionLossAngularMomentumValue);
+	$coolingInfallTorque        ->appendChild (        $fractionLossAngularMomentum     );
+    }
+    # Add hotHaloOutflowStripping object.
+    if ( $trackStrippedGasValue eq "true" ) {
+	my $hotHaloOutflowStripping = $input->createElement("hotHaloOutflowStripping");
+	$hotHaloOutflowStripping->setAttribute('value','standard');
+	$parameters->insertAfter($hotHaloOutflowStripping,$nodes[0]);
+	# Specify options.
+	my $efficiency = $input->createElement("efficiency");
+	$efficiency             ->setAttribute('value',$efficiencyStrippingOutflowValue);
+	$hotHaloOutflowStripping->appendChild (        $efficiency                     );
+    } else {
+	my $hotHaloOutflowStripping = $input->createElement("hotHaloOutflowStripping");
+	$hotHaloOutflowStripping->setAttribute('value','zero');
+	$parameters->insertAfter($hotHaloOutflowStripping,$nodes[0]);
+    }
+    # Replace the "outflowTracking" component with a nodeOperator and nodePropertyExtractor.
+    if ( $type eq "outflowTracking" ) {
+	$nodes[0]->setAttribute('value','standard');
+	# Find nodePropertyExtractors, inserting one if none exists.
+	my @nodePropertyExtractors = $parameters->findnodes("//nodePropertyExtractor[\@value='multi']")->get_nodelist();
+	die("found multiple `nodePropertyExtractor[\@value='multi']` nodes - unknown into which to insert CGM operators")
+	    if ( scalar(@nodePropertyExtractors) > 1 );
+     	if ( scalar(@nodePropertyExtractors) == 0 ) {
+	    my $nodePropertyExtractorMulti   = $input->createElement("nodePropertyExtractor");
+	    my $nodePropertyExtractorIndices = $input->createElement("nodePropertyExtractor");
+	    $nodePropertyExtractorMulti  ->setAttribute('value','multi'                      );
+	    $nodePropertyExtractorIndices->setAttribute('value','nodeIndices'                );
+	    $parameters                  ->appendChild (        $nodePropertyExtractorMulti  );
+	    $nodePropertyExtractorMulti  ->appendChild (        $nodePropertyExtractorIndices);
+	    @nodePropertyExtractors = $parameters->findnodes("//nodePropertyExtractor[\@value='multi']")->get_nodelist();
+	}
+	# Insert nodeOperator.
+	my $nodeOperator = $input->createElement("nodeOperator");
+	$nodeOperator    ->setAttribute('value',"trackOutflowedMass");
+	$nodeOperators[0]->appendChild (        $nodeOperator       );
+	# Insert nodePropertyExtractor.
+	my $nodePropertyExtractor = $input->createElement("nodePropertyExtractor");
+	$nodePropertyExtractor    ->setAttribute('value',"trackOutflowedMass"  );
+	$nodePropertyExtractors[0]->appendChild (        $nodePropertyExtractor);	
+    }
+}

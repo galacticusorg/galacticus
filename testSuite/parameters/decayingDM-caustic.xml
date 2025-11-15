@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Test model used to check for the lack of (numerically-challenging to integrate) caustics in decaying dark matter density profiles -->
 <parameters>
-  <lastModified revision="d4bf2d8db876eb8e44d94e1672bc36a6ea8135cc" time="2025-09-03T18:23:58"/>
+  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
 
   <lastModified/>
   <formatVersion>2</formatVersion>
@@ -165,7 +165,6 @@
     <alpha value="2.509"/>
     <lambda0 value="0.04326"/>
   </haloSpinDistribution>
-  <randomSpinResetMassFactor value="2.0"/>
 
   <!-- Orbiting model of satellites -->
   <!-- Values taken from Pullen et al. 2014 -->
@@ -264,8 +263,6 @@
     <metalYield value="0.035"/>
   </stellarPopulation>
 
-  <!-- AGN feedback options -->
-  <hotHaloExcessHeatDrivesOutflow value="true"/>
   <!-- Supernovae feedback options -->
   <starFormationFeedbackDisks value="powerLaw">
     <velocityCharacteristic value="250.0"/>

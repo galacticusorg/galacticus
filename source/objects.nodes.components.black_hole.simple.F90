@@ -47,8 +47,8 @@ module Node_Component_Black_Hole_Simple
     </property>
    </properties>
    <bindings>
-     <binding method="massDistribution" function="Node_Component_Black_Hole_Simple_Mass_Distribution" bindsTo="component"/>
-     <binding method="massBaryonic"     function="Node_Component_Black_Hole_Simple_Mass_Baryonic"     bindsTo="component"/>
+     <binding method="massDistribution" function="Node_Component_Black_Hole_Simple_Mass_Distribution"/>
+     <binding method="massBaryonic"     function="Node_Component_Black_Hole_Simple_Mass_Baryonic"    />
    </bindings>
    <functions>objects.nodes.components.black_hole.simple.bound_functions.inc</functions>
   </component>

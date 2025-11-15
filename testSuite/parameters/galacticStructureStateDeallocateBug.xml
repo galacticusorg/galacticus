@@ -4,7 +4,7 @@
 <!-- 30-November-2020                                                                   -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="d4bf2d8db876eb8e44d94e1672bc36a6ea8135cc" time="2025-09-03T18:23:58"/>
+  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
 
 
   <!-- Component selection -->
@@ -19,10 +19,7 @@
     </massDistributionDisk>
   </componentDisk>  
   <componentHotHalo value="coldMode">
-    <fractionLossAngularMomentum value="0.0871188291891892"/>
     <starveSatellites value="false"/>
-    <efficiencyStrippingOutflow value="0.01"/>
-    <trackStrippedGas value="true"/>
   </componentHotHalo>
   <componentSatellite value="preset"/>
   <componentSpheroid value="standard">
@@ -93,9 +90,6 @@
     <presetSubhaloIndices value="true"/>
   </mergerTreeConstructor>
   <componentPosition value="cartesian"/>
-  <mergerTreeReadPresetPositions value="true"/>
-  <componentVelocity value="preset"/>
-  <mergerTreeReadPresetVelocities value="true"/>
   
   <luminosityFilter value="SDSS_g SDSS_r DES_g DES_g"/>
 
@@ -212,6 +206,12 @@
   <hotHaloOutflowReincorporation value="haloDynamicalTime">
     <multiplier value="7.84401490527569"/>
   </hotHaloOutflowReincorporation>
+  <hotHaloOutflowStripping value="standard">
+    <efficiency value="0.01"/>
+  </hotHaloOutflowStripping>
+  <coolingInfallTorque value="fixed">
+    <fractionLossAngularMomentum value="0.0871188291891892"/>
+  </coolingInfallTorque>
   
   <!--chemicalReactionRate value="hydrogenNetwork">
     <fast value="true"/>
@@ -219,34 +219,26 @@
   <chemicalsToTrack value="AtomicHydrogen AtomicHydrogenCation MolecularHydrogen Electron"/-->
   
   <coolingFunction value="velocityCutOff">
-  <velocityCutOff value="19.0"/>
-  <redshiftCutOff value="1.0e6"/>
-  <whenCutOff value="after"/>
-  
-  
-  
-  <coolingFunction value="atomicCIECloudy"/>
-  
-  
-  
-  
+    <velocityCutOff value="19.0"/>
+    <redshiftCutOff value="1.0e6"/>
+    <whenCutOff value="after"/>
+    <coolingFunction value="atomicCIECloudy"/>
   </coolingFunction>
-  
   <coolingRate value="multiplier">
     <multiplier value="15"/>
-  <coolingRate value="whiteFrenk1991">
-    <velocityCutOff value="10000"/>
+    <coolingRate value="whiteFrenk1991">
+      <velocityCutOff value="10000"/>
+    </coolingRate>
   </coolingRate>
-  </coolingRate>
-  
   <coolingTime value="simple">
     <degreesOfFreedom value="3.0"/>
   </coolingTime>
   <coolingTimeAvailable value="whiteFrenk1991">
     <ageFactor value="0.774282113742516"/>
   </coolingTimeAvailable>
+  <circumgalacticMediumHeating value="AGNFeedback"/>
+  
   <!-- Hot halo ram pressure stripping options -->
- 
   <hotHaloRamPressureStripping value="font2008"/>
   <hotHaloRamPressureForce value="font2008"/>
   <hotHaloRamPressureTimescale value="ramPressureAcceleration"/>
@@ -292,7 +284,6 @@
  
 
   <!-- AGN feedback options -->
-  <hotHaloExcessHeatDrivesOutflow value="true"/>
   <blackHoleWind value="ciotti2009">
     <efficiencyWind                              value="0.211884639031352"/>
     <efficiencyWindScalesWithEfficiencyRadiative value="true"  />
@@ -302,7 +293,6 @@
   </blackHoleCGMHeating>
 
   <stellarWinds value="leitherer1992"/>
-  <initialMassForSupernovaTypeII value="8.0"/>
   <supernovaeTypeIa value="nagashima2005"/>
   <supernovaePopulationIII value="hegerWoosley2002"/>
   <stellarFeedback value="standard"/>
@@ -428,7 +418,6 @@
     </nodeOperator>
     <nodeOperator value="blackHolesAccretion"/>
     <nodeOperator value="blackHolesWinds"/>
-    <nodeOperator value="blackHolesCGMHeating"/>
     <!-- Satellite physics -->
     <nodeOperator value="satelliteOrphanize"/>
     <!-- CGM physics -->
@@ -438,6 +427,16 @@
     </nodeOperator>
     <nodeOperator value="CGMOutflowReincorporation">
       <includeSatellites value="true"/>
+    </nodeOperator>
+    <nodeOperator value="CGMCoolingHeating">
+      <component value="disk"/>
+      <coolingFrom value="currentNode"/>
+      <excessHeatDrivesOutflow value="true"/>
+      <rateMaximumExpulsion value="1.0"/>
+    </nodeOperator>
+    <nodeOperator value="CGMColdModeInflow">
+      <component value="disk"/>
+      <coolingFrom value="currentNode"/>
     </nodeOperator>
   </nodeOperator>
   
