@@ -685,7 +685,7 @@ contains
     use :: Abundances_Structure          , only : abundances                   , metallicityTypeLinearByMassSolar, adjustElementsReset
     use :: Display                       , only : displayIndent                , displayUnindent                 , displayCounter     , displayCounterClear, &
          &                                        verbosityLevelWorking        , displayMessage
-    use :: Error                         , only : Error_Report
+    use :: Error                         , only : Error_Report                 , errorStatusSuccess
     use :: Histories                     , only : history
     use :: Numerical_Integration         , only : integrator
     use :: Numerical_Constants_Prefixes  , only : siFormat
@@ -723,11 +723,12 @@ contains
          &                                                                                                                     wavelengthMaximum                     , age                  , &
          &                                                                                                                     redshift
     type            (abundances                                )                  , save                                    :: abundancesStellar
+    integer                                                                       , save                                    :: status
     character       (len=12                                    )                                                            :: label
     type            (multiCounter                              )                                                            :: state
     type            (ompLock                                   )                                                            :: stateLock
     type            (timer                                     )                                                            :: timer_
-    !$omp threadprivate(stellarPopulationSpectra_,stellarPopulationSpectraPostprocessor_,cosmologyFunctions_,integratorTime,integratorWavelength,integratorMetallicity,abundancesStellar,wavelength,wavelengthMinimum,wavelengthMaximum,timeMinimum,timeMaximum,age,redshift)
+    !$omp threadprivate(stellarPopulationSpectra_,stellarPopulationSpectraPostprocessor_,cosmologyFunctions_,integratorTime,integratorWavelength,integratorMetallicity,abundancesStellar,wavelength,wavelengthMinimum,wavelengthMaximum,timeMinimum,timeMaximum,age,redshift,status)
     !$GLC attributes initialized :: masses
     !![
     <optionalArgument name="parallelize" defaultsTo=".false." />
@@ -859,9 +860,10 @@ contains
        end if
        metallicityMaximum   =min(max(self%metallicityBoundaries(iMetallicity  ),self%metallicityPopulationMinimum),self%metallicityPopulationMaximum)
        if (metallicityMaximum > metallicityMinimum) then
-          sedLuminosityMean(iWavelength,iTime,iMetallicity)=+integratorMetallicity%integrate(metallicityMinimum,metallicityMaximum) &
-               &                                            /                               (timeMaximum       -timeMinimum       ) &
-               &                                            /                               (metallicityMaximum-metallicityMinimum)
+          sedLuminosityMean(iWavelength,iTime,iMetallicity)=+integratorMetallicity%integrate(metallicityMinimum,metallicityMaximum,status=status) &
+               &                                            /                               (timeMaximum       -timeMinimum                     ) &
+               &                                            /                               (metallicityMaximum-metallicityMinimum              )
+          if (status /= errorStatusSuccess) call reportIntegrationError(status)
        else
           call abundancesStellar%metallicitySet(                                                       &
                &                                metallicity    =     metallicityMinimum              , &
@@ -895,12 +897,41 @@ contains
 
   contains
 
+    subroutine reportIntegrationError(status)
+      !!{
+      Report an integration failure.
+      !!}
+      use :: Display        , only : displayGreen   , displayReset
+      use :: Error          , only : Error_Report   , GSL_Error_Details, errorStatusRound
+      use :: String_Handling, only : stringXMLFormat
+      implicit none
+      integer                  , intent(in   ) :: status
+      character(len=12        )                :: label
+      type     (varying_string)                :: message, reason , &
+           &                                      file
+      integer                                  :: line   , status_
+ 
+      write (label,'(e12.6)') self%toleranceRelative
+      message="Integration of SED template failed"//char(10)
+      select case (status)
+      case (errorStatusRound)
+         message=message//displayGreen()//'HELP:'//displayReset()//' try increasing the integration tolerance in the highlighted option in your input parameter file as shown below (current value is as shown): '//char(10)//char(10)// &
+              & stringXMLFormat('<nodePropertyExtractor value="'//self%objectType(short=.true.)//'">**B<toleranceRelative value="'//label//'"/>**C</nodePropertyExtractor>',indentInitial=3)//char(10)
+      case default
+         call GSL_Error_Details(reason,file,line,status_)
+         message=message//displayGreen()//'HELP:'//displayReset()//' GSL reason was "'//reason//'"'
+      end select
+      call Error_Report(message//{introspection:location})
+      return
+    end subroutine reportIntegrationError
+    
     double precision function sedIntegrandMetallicity(metallicity)
       !!{
       Integrand over metallicity of the stellar population.
       !!}
       implicit none
       double precision, intent(in   ) :: metallicity
+      integer                         :: status
 
       call abundancesStellar%metallicitySet(                                                       &
            &                                metallicity    =     metallicity                     , &
@@ -908,7 +939,8 @@ contains
            &                                adjustElements =     adjustElementsReset             , &
            &                                abundanceIndex =self%abundanceIndex                    &
            &                               )
-      sedIntegrandMetallicity=integratorTime%integrate(timeMinimum,timeMaximum)
+      sedIntegrandMetallicity=integratorTime%integrate(timeMinimum,timeMaximum,status)
+      if (status /= errorStatusSuccess) call reportIntegrationError(status)
       return
     end function sedIntegrandMetallicity
 
@@ -918,6 +950,7 @@ contains
       !!}
       implicit none
       double precision, intent(in   ) :: timeBirth
+      integer                         :: status
 
       age             =min(                            &
            &               +     time                  &
@@ -940,7 +973,8 @@ contains
          end if
       else
          ! Finite resolution - integrate over wavelength.
-         sedIntegrandTime=integratorWavelength%integrate(wavelengthMinimum,wavelengthMaximum)
+         sedIntegrandTime=integratorWavelength%integrate(wavelengthMinimum,wavelengthMaximum,status)
+         if (status /= errorStatusSuccess) call reportIntegrationError(status)
       end if
       return
     end function sedIntegrandTime
@@ -1028,6 +1062,10 @@ contains
     write (parameterLabel,'(e17.10)') self%resolution
     !$omp end critical(gfortranInternalIO)
     call descriptor%addParameter('resolution'       ,trim(adjustl(parameterLabel)))
+    !$omp critical(gfortranInternalIO)
+    write (parameterLabel,'(e17.10)') self%toleranceRelative
+    !$omp end critical(gfortranInternalIO)
+    call descriptor%addParameter('toleranceRelative',trim(adjustl(parameterLabel)))
     call self%stellarPopulationSpectra_             %descriptor(descriptor)
     call self%stellarPopulationSpectraPostprocessor_%descriptor(descriptor)
     call self%starFormationHistory_                 %descriptor(descriptor)

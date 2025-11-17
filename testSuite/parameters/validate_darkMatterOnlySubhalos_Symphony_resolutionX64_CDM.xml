@@ -2,7 +2,7 @@
 <!-- A set of changes to modify CDM reference parameter files for the Symphony resolution X64 simulation. -->
 <changes>
   <!-- Set the host halo masses -->
-  <change type="update" path="mergerTreeBuildMasses/replicationCount" value="8"/>
+  <change type="update" path="mergerTreeBuildMasses/replicationCount" value="48"/>
   <change type="update" path="mergerTreeBuildMasses/mergerTreeBuildMasses/fileName" value="%DATASTATICPATH%/darkMatter/hostHaloMasses_Symphony_MilkyWay_resolutionX64_CDM_z0.000.hdf5"/>
   <!-- Set a suitable name for the output file. -->
   <change type="update" path="outputFileName" value="testSuite/outputs/validate_darkMatterOnlySubhalos_Symphony_MilkyWay_resolutionX64_CDM.hdf5"/>
@@ -10,4 +10,8 @@
   <change type="update" path="outputAnalysis/outputAnalysis[@value='subhaloMassFunction']/fileName"       value="%DATASTATICPATH%/darkMatter/subhaloDistributions_Symphony_MilkyWay_resolutionX64_CDM_z0.000.hdf5"/>
   <change type="update" path="outputAnalysis/outputAnalysis[@value='subhaloRadialDistribution']/fileName" value="%DATASTATICPATH%/darkMatter/subhaloDistributions_Symphony_MilkyWay_resolutionX64_CDM_z0.000.hdf5"/>
   <change type="update" path="outputAnalysis/outputAnalysis[@value='subhaloVMaxVsMass']/fileName"         value="%DATASTATICPATH%/darkMatter/subhaloDistributions_Symphony_MilkyWay_resolutionX64_CDM_z0.000.hdf5"/>
+  <!-- Ignore empty bins -->
+  <change type="append" path="outputAnalysis/outputAnalysis[@value='subhaloMassFunction']">
+    <ignoreEmptyModelBins value="true"/>
+  </change>
 </changes>
