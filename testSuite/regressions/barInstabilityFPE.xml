@@ -298,7 +298,7 @@
   </blackHoleCGMHeating>
 
   <stellarWinds value="leitherer1992"/>
-  <initialMassForSupernovaTypeII value="8.0"/>
+  <initialMassForSupernovaeTypeII value="8.0"/>
   <supernovaeTypeIa value="nagashima2005"/>
   <supernovaePopulationIII value="hegerWoosley2002"/>
   <stellarFeedback value="standard"/>
