@@ -265,7 +265,6 @@
   <!-- Galactic structure options -->
   <galacticStructureSolver value="simple"/>
   <darkMatterProfile value="darkMatterOnly"/>
-  <spheroidAngularMomentumAtScaleRadius value="0.50"/>
 
   <!-- Star formation rate options -->
   <starFormationRateSurfaceDensityDisks value="blitz2006">
