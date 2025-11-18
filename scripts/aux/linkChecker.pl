@@ -7,6 +7,7 @@ use Regexp::Common;
 use WWW::Curl::Easy;
 use XML::Simple;
 use JSON::PP qw(encode_json decode_json);
+use List::Util qw(shuffle);
 
 # Check for broken links in Galacticus documentation.
 # Andrew Benson (21-September-2020)
@@ -148,7 +149,7 @@ sub checkURLs {
     my $status          = 0;
     my @badURLs         = ();
     my $bibCodes;
-    foreach my $urlKey ( keys(%{$urls}) ) {
+    foreach my $urlKey ( shuffle(keys(%{$urls})) ) {
 	(my $url = $urlKey) =~ s/\\#/#/g;
 	# Ignore mailto URLs.
 	next
@@ -211,6 +212,13 @@ sub checkURLs {
 		    # Some servers do not correctly terminate their connections. Ignore such cases.
 		    if ( $url =~ m/http:\/\/heasarc\.gsfc\.nasa\.gov\/xanadu\/xspec\// ) {
 			if ( $line =~ m/error:0A000126:SSL routines::unexpected eof while reading, errno 0/ ) {
+			    $error = 0;
+			    last;
+			}
+		    }
+		    # gnu.org has rate limiting, so often we just time out.
+		    if ( $url =~ m/www\.gnu\.org/ ) {
+			if ( $line =~ m/curl: \(28\) Connection timed out after \d+ milliseconds/ ) {
 			    $error = 0;
 			    last;
 			}
