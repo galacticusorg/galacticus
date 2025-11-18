@@ -3,7 +3,7 @@
   <!-- This model uses a tree which has a merge target which becomes a satellite in a descendant of its mergee. If such satellites
        are not allowed to evolve until their host no longer has a child node this can result in a deadlock. -->
   <formatVersion>2</formatVersion>
-  <lastModified revision="d4bf2d8db876eb8e44d94e1672bc36a6ea8135cc" time="2025-09-03T18:23:58"/>
+  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
 
   <cosmologyParameters value="simple">
     <HubbleConstant value="67.77"/>
@@ -89,6 +89,7 @@
   <blackHoleCGMHeating value="jetPower">
     <efficiencyRadioMode value="1.0"/>
   </blackHoleCGMHeating>
+  <circumgalacticMediumHeating value="AGNFeedback"/>
 
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
@@ -141,7 +142,6 @@
     </nodeOperator>
     <nodeOperator value="blackHolesAccretion"/>
     <nodeOperator value="blackHolesWinds"/>
-    <nodeOperator value="blackHolesCGMHeating"/>
     <!-- Satellite physics -->
     <nodeOperator value="satelliteOrphanize"/>
     <!-- CGM physics -->
@@ -151,6 +151,12 @@
     </nodeOperator>
     <nodeOperator value="CGMOutflowReincorporation">
       <includeSatellites value="true"/>
+    </nodeOperator>
+    <nodeOperator value="CGMCoolingHeating">
+      <component value="disk"/>
+      <coolingFrom value="currentNode"/>
+      <excessHeatDrivesOutflow value="true"/>
+      <rateMaximumExpulsion value="1.0"/>
     </nodeOperator>
   </nodeOperator>
 

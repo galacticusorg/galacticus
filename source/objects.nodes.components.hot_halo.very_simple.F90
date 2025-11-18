@@ -77,7 +77,7 @@ module Node_Component_Hot_Halo_Very_Simple
     </property>
    </properties>
    <bindings>
-    <binding method="massBaryonic" function="Node_Component_Hot_Halo_Very_Simple_Mass_Baryonic" bindsTo="component"/>
+    <binding method="massBaryonic" function="Node_Component_Hot_Halo_Very_Simple_Mass_Baryonic"/>
    </bindings>
    <functions>objects.nodes.components.hot_halo.very_simple.bound_functions.inc</functions>
   </component>

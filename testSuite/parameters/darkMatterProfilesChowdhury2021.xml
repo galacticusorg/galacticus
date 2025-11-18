@@ -3,34 +3,17 @@
 <!-- 30-October-2011                          -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="d4bf2d8db876eb8e44d94e1672bc36a6ea8135cc" time="2025-09-03T18:23:58"/>
+  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:59:41"/>
 
   <!-- Component selection -->
   <componentBasic value="standard"/>
   <componentBlackHole value="standard"/>
   <componentDarkMatterProfile value="scale"/>
-  <componentDisk value="standard">
-    <toleranceAbsoluteMass value="1.0e-6"/>
-    <massDistributionDisk value="exponentialDisk">
-      <dimensionless value="true"/>
-    </massDistributionDisk>
-  </componentDisk>
-  <componentHotHalo value="standard">
-    <fractionLossAngularMomentum value="0.3"/>
-    <starveSatellites value="false"/>
-    <efficiencyStrippingOutflow value="0.1"/>
-    <trackStrippedGas value="true"/>
-  </componentHotHalo>
-  <componentSatellite value="standard"/>
-  <componentSpheroid value="standard">
-    <ratioAngularMomentumScaleRadius value="0.5"/>
-    <efficiencyEnergeticOutflow value="1.0e-2"/>
-    <toleranceAbsoluteMass value="1.0e-6"/>
-    <massDistributionSpheroid value="hernquist">
-      <dimensionless value="true"/>
-    </massDistributionSpheroid>
-  </componentSpheroid>
-  <componentSpin value="scalar"/>
+  <componentDisk value="null"/>
+  <componentHotHalo value="null"/>
+  <componentSatellite value="null"/>
+  <componentSpheroid value="null"/>
+  <componentSpin value="null"/>
 
   <!-- Cosmological parameters and options -->
   <cosmologyFunctions value="matterLambda"/>
