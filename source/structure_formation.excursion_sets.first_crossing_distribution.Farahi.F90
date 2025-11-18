@@ -253,23 +253,27 @@ Implements a excursion set first crossing statistics class using the algorithm o
 
 contains
 
-  function farahiConstructorParameters(parameters) result(self)
+  function farahiConstructorParameters(parameters,inputParametersValidate) result(self)
     !!{
     Constructor for the Farahi excursion set class first crossing class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (excursionSetFirstCrossingFarahi)                :: self
-    type            (inputParameters                ), intent(inout) :: parameters
-    class           (cosmologyFunctionsClass        ), pointer       :: cosmologyFunctions_
-    class           (excursionSetBarrierClass       ), pointer       :: excursionSetBarrier_
-    class           (cosmologicalMassVarianceClass  ), pointer       :: cosmologicalMassVariance_
-    double precision                                                 :: fractionalTimeStep
-    integer                                                          :: varianceNumberPerUnitProbability  , varianceNumberPerUnit  , &
-         &                                                              timeNumberPerDecade               , varianceNumberPerDecade, &
-         &                                                              varianceNumberPerDecadeNonCrossing
-    type            (varying_string                 )                :: fileName
-    logical                                                          :: varianceIsUnlimited
+    type            (excursionSetFirstCrossingFarahi)                          :: self
+    type            (inputParameters                ), intent(inout)           :: parameters
+    logical                                          , intent(in   ), optional :: inputParametersValidate
+    class           (cosmologyFunctionsClass        ), pointer                 :: cosmologyFunctions_
+    class           (excursionSetBarrierClass       ), pointer                 :: excursionSetBarrier_
+    class           (cosmologicalMassVarianceClass  ), pointer                 :: cosmologicalMassVariance_
+    double precision                                                           :: fractionalTimeStep
+    integer                                                                    :: varianceNumberPerUnitProbability  , varianceNumberPerUnit  , &
+         &                                                                        timeNumberPerDecade               , varianceNumberPerDecade, &
+         &                                                                        varianceNumberPerDecadeNonCrossing
+    type            (varying_string                 )                          :: fileName
+    logical                                                                    :: varianceIsUnlimited
+    !![
+    <optionalArgument name="inputParametersValidate" defaultsTo=".true."/>
+    !!]
 
     !![
     <inputParameter>
@@ -325,8 +329,12 @@ contains
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     !!]
     self=excursionSetFirstCrossingFarahi(fractionalTimeStep,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,varianceNumberPerDecadeNonCrossing,timeNumberPerDecade,varianceIsUnlimited,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_)
+    if (inputParametersValidate_) then
+       !![
+       <inputParametersValidate source="parameters"/>
+       !!]
+    end if
     !![
-    <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"      />
     <objectDestructor name="excursionSetBarrier_"     />
     <objectDestructor name="cosmologicalMassVariance_"/>

@@ -75,19 +75,25 @@ method to perform the integrations \citep{du_substructure_2017}.
 
 contains
 
-  function farahiMidpointConstructorParameters(parameters) result(self)
+  function farahiMidpointConstructorParameters(parameters,inputParametersValidate) result(self)
     !!{
     Constructor for the Farahi-midpoint excursion set class first crossing class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(excursionSetFirstCrossingFarahiMidpoint)                :: self
-    type(inputParameters                        ), intent(inout) :: parameters
-
-    self%excursionSetFirstCrossingFarahi=excursionSetFirstCrossingFarahi(parameters)
+    type   (excursionSetFirstCrossingFarahiMidpoint)                          :: self
+    type   (inputParameters                        ), intent(inout)           :: parameters
+    logical                                         , intent(in   ), optional :: inputParametersValidate
     !![
-    <inputParametersValidate source="parameters"/>
+    <optionalArgument name="inputParametersValidate" defaultsTo=".true."/>
     !!]
+    
+    self%excursionSetFirstCrossingFarahi=excursionSetFirstCrossingFarahi(parameters,inputParametersValidate)
+    if (inputParametersValidate_) then
+       !![
+       <inputParametersValidate source="parameters"/>
+       !!]
+    end if
     return
   end function farahiMidpointConstructorParameters
 
