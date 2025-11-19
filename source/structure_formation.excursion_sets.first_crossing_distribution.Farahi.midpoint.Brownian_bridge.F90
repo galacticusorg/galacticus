@@ -139,7 +139,7 @@ contains
          &                                                                                    timePresent                   , redshiftConstrained, &
          &                                                                                    expansionFactor
 
-    self%excursionSetFirstCrossingFarahiMidpoint=excursionSetFirstCrossingFarahiMidpoint(parameters,inputParametersValidate=.false.)
+    self%excursionSetFirstCrossingFarahiMidpoint=excursionSetFirstCrossingFarahiMidpoint(parameters)
     !![
     <objectBuilder class="linearGrowth"              name="self%linearGrowth_"              source="parameters"/>
     <objectBuilder class="criticalOverdensity"       name="self%criticalOverdensity_"       source="parameters"/>

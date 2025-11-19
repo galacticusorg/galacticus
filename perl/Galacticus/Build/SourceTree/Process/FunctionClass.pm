@@ -319,7 +319,7 @@ sub Process_FunctionClass {
 		my $parentConstructorUsed = 0;
 		my @failureMessage;
 		while ( $node ) {
-		    if ( $node->{'type'} eq "function" && (grep {$_ eq $node->{'name'}} @constructors) && $node->{'opener'} =~ m/^\s*(recursive\s+)??function\s+$node->{'name'}\s*\(\s*parameters\s*(,\s*recursiveConstruct\s*,\s*recursiveSelf\s*)??\s*(,\s*inputParametersValidate\s*)??\)/ ) {
+		    if ( $node->{'type'} eq "function" && (grep {$_ eq $node->{'name'}} @constructors) && $node->{'opener'} =~ m/^\s*(recursive\s+)??function\s+$node->{'name'}\s*\(\s*parameters\s*(,\s*recursiveConstruct\s*,\s*recursiveSelf\s*)??\)/ ) {
 			# Extract the name of the return variable in this function.
 			my $result = ($node->{'opener'} =~ m/result\s*\(\s*([a-zA-Z0-9_]+)\s*\)\s*$/) ? $1 : $node->{'name'};
 			# Check if this is the parameters constructor.
