@@ -228,7 +228,7 @@ while ( my $line = <STDIN> ) {
 	    if ( exists($initializedVariables{lc($1)}) );
     }
     # Handle ignore "Unused PRIVATE module variable" warnings.
-    if ( $line =~ m/^\s*Warning: Unused PRIVATE module variable ‘([a-zA-Z0-9_]+)’ declared at \(1\) \[\-Wunused\-value\]/ ) {
+    if ( $line =~ m/^\s*Warning: Unused PRIVATE module variable ['‘]([a-zA-Z0-9_]+)['‘] declared at \(1\) \[\-Wunused\-value\]/ ) {
 	my $variableName = lc($1);
 	$dropBuffer = 1
 	    if ( exists($ignoreUnused{$variableName}) );
