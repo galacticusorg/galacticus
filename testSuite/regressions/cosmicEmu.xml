@@ -35,7 +35,7 @@
     <sigma_8 value="0.807"/>
     <tolerance value="1.0e-3"/>
   </cosmologicalMassVariance>
-  <powerSpectrumNonLinear value="cosmicEmmu"/>
+  <powerSpectrumNonlinear value="cosmicEmu"/>
 
   <!-- Structure formation options -->
   <linearGrowth value="collisionlessMatter"/>

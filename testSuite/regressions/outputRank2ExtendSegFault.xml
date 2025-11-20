@@ -16,18 +16,24 @@
   <componentBlackHole value="standard"/>
   <componentDarkMatterProfile value="scale"/>
   <componentDisk value="standard">
+    <toleranceAbsoluteMass value="1.0e-6"/>
+    <inactiveLuminositiesStellar value="true"/>
     <massDistributionDisk value="exponentialDisk">
-    <dimensionless value="true"/>
-  </massDistributionDisk>
+      <dimensionless value="true"/>
+    </massDistributionDisk>
   </componentDisk>
   <componentHotHalo value="standard"/>
   <componentSatellite value="standard"/>
   <componentSpheroid value="standard">
-  <massDistributionSpheroid value="hernquist">
-    <dimensionless value="true"/>
-  </massDistributionSpheroid>
+    <efficiencyEnergeticOutflow value="1.0e-2"/>
+    <toleranceAbsoluteMass value="1.0e-6"/>
+    <inactiveLuminositiesStellar value="true"/>
+    <ratioAngularMomentumScaleRadius value="0.5"/>
+    <massDistributionSpheroid value="hernquist">
+      <dimensionless value="true"/>
+    </massDistributionSpheroid>
   </componentSpheroid>
-
+  
   <componentSpin value="vector"/>
   
   <!-- Cosmological parameters and options -->
@@ -218,7 +224,7 @@
      <efficiency value="0.1"/>
   </hotHaloOutflowStripping>
   <coolingInfallTorque value="fixed">
-     <fractionLossAngularMomentum value="0.3"/>
+     <fractionLossAngularMomentum value="0.0871188291891892"/>
   </coolingInfallTorque>  
   <coolingFunction value="summation">
     <coolingFunction value="atomicCIECloudy"/>
@@ -246,15 +252,12 @@
     <ageFactor value="0.774282113742516"/>
   </coolingTimeAvailable>
   <circumgalacticMediumHeating value="AGNFeedback"/>
-  <hotHaloAngularMomentumLossFraction value="0.0871188291891892"/>
   <starveSatellites value="false"/>
 
   <!-- Hot halo ram pressure stripping options -->
   <hotHaloRamPressureStripping value="font2008"/>
   <hotHaloRamPressureForce value="font2008"/>
   <hotHaloRamPressureTimescale value="ramPressureAcceleration"/>
-  <hotHaloOutflowStrippingEfficiency value="0.1"/>
-  <hotHaloTrackStrippedGas value="true"/>
   
   <satelliteTidalField value="sphericalSymmetry"/>
   <satelliteTidalStripping value="zentner2005"/>
@@ -262,7 +265,6 @@
   <!-- Galactic structure options -->
   <galacticStructureSolver value="simple"/>
   <darkMatterProfile value="darkMatterOnly"/>
-  <spheroidAngularMomentumAtScaleRadius value="0.50"/>
 
   <!-- Star formation rate options -->
   <starFormationRateSurfaceDensityDisks value="blitz2006">
@@ -307,7 +309,6 @@
   </blackHoleCGMHeating>
 
   <stellarWinds value="leitherer1992"/>
-  <initialMassForSupernovaTypeII value="8.0"/>
   <supernovaeTypeIa value="nagashima2005"/>
   <supernovaePopulationIII value="hegerWoosley2002"/>
   <stellarFeedback value="standard"/>
@@ -340,9 +341,6 @@
   <mergerRemnantSize value="cole2000">
     <energyOrbital value="1.41586769307318"/>
   </mergerRemnantSize>
-
-  <!-- Spheroid options -->
-  <spheroidEnergeticOutflowMassRate value="1.0e-2"/>
 
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
@@ -479,10 +477,6 @@
       <timeOffsetMaximumRelative value="0.001"/>
     </mergerTreeEvolveTimestep>
   </mergerTreeEvolveTimestep>
-  <diskMassToleranceAbsolute value="1.0e-6"/>
-  <spheroidMassToleranceAbsolute value="1.0e-6"/>
-  <diskLuminositiesStellarInactive value="true"/>
-  <spheroidLuminositiesStellarInactive value="true"/>
 
   <nodePropertyExtractor value="starFormationHistoryMass">
     <component value="disk"/>

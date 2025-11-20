@@ -927,9 +927,9 @@ CODE
 				    &Fortran::Utils::Get_Fortran_Line($code, my $rawLine, my $processedLine, my $bufferedComments);
 				    if ( $processedLine =~ m/^\s*$result%([a-zA-Z0-9_]+)\s*=([a-zA-Z0-9_]+)\(\s*parameters\s*\)/ ) {
 					$allowedParameters->{$class->{'name'}}->{'classParent'} = $1;
-					$newContent .= $directive->{'name'}."DsblVldtn=.true.\n";
+					$newContent .= $directive->{'name'}."DsblVldtn=".$directive->{'name'}."DsblVldtn+1\n";
 					$newContent .= $rawLine;
-					$newContent .= $directive->{'name'}."DsblVldtn=.false.\n";
+					$newContent .= $directive->{'name'}."DsblVldtn=".$directive->{'name'}."DsblVldtn-1\n";
 					$modified    = 1;
 				    } else {
 					$newContent .= $rawLine;
@@ -1147,11 +1147,11 @@ CODE
 	    }
 	    $allowedParametersCode .= "end select\n";
 	    if ( $parametersPresent ) {
-		$allowedParametersCode = "type   (varying_string), allocatable, dimension(:) :: allowedParametersTmp\n".$directive->{'name'}."DsblVldtn=".$directive->{'name'}."DsblVldtn\n".$allowedParametersCode;
+		$allowedParametersCode = "type   (varying_string), allocatable, dimension(:) :: allowedParametersTmp\n".$allowedParametersCode;
 		$allowedParametersCode = "integer                                            :: countNew, j\n"                                                                              .$allowedParametersCode;
 		$allowedParametersCode = "logical                                            :: isNew\n"                                                                                    .$allowedParametersCode;
 	    } else {
-		$allowedParametersCode = "!\$GLC attributes unused :: self, allowedParameters, sourceName\n".$directive->{'name'}."DsblVldtn=".$directive->{'name'}."DsblVldtn\n";
+		$allowedParametersCode = "!\$GLC attributes unused :: self, allowedParameters, sourceName\n";
 	    }
             $allowedParametersCode  = &Fortran::Utils::Format_Variable_Definitions($allowedParametersLinkedListVariables).$allowedParametersCode;
 	    $methods{'allowedParameters'} =
@@ -1809,8 +1809,9 @@ CODE
 	    }
 
 	    # Insert state variable for input parameter validation.
-	    $modulePreContains->{'content'} .= "   logical :: ".$directive->{'name'}."DsblVldtn=.false.\n";
+	    $modulePreContains->{'content'} .= "   integer :: ".$directive->{'name'}."DsblVldtn=0\n";
 	    $modulePreContains->{'content'} .= "   !\$omp threadprivate(".$directive->{'name'}."DsblVldtn)\n";
+	    $modulePreContains->{'content'} .= "   !\$GLC ignore unused :: ".$directive->{'name'}."DsblVldtn\n";
 
 	    # Generate class constructors
 	    $modulePreContains->{'content'} .= "   interface ".$directive->{'name'}."\n";
