@@ -679,7 +679,7 @@ contains
        self%outputParametersCopied   =.false.
        self%outputParametersTemporary=.true.
        !$ call hdf5Access%unset()
-       call File_Remove(char(self%outputParametersContainer%name()))
+       call File_Remove(self%outputParametersContainer%name())
     end if
     ! Get allowed parameter names.
     if (.not.allocated(allowedParameterNamesGlobal)) &

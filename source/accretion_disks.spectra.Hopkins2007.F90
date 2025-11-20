@@ -176,7 +176,7 @@ contains
           if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x")) call Error_Report('failed to compile agn_spectrum.c'//{introspection:location})
        end if
        ! Generate a tabulation of AGN spectra over a sufficiently large range of AGN luminosity.
-       call Directory_Make(char(inputPath(pathTypeDataStatic))//"blackHoles")
+       call Directory_Make(inputPath(pathTypeDataStatic)//"blackHoles")
        allocate(luminosityBolometric(luminosityBolometricCount))
        luminosityBolometric=Make_Range(luminosityBolometricMinimum,luminosityBolometricMaximum,luminosityBolometricCount,rangeTypeLogarithmic)
        do i=1,luminosityBolometricCount
