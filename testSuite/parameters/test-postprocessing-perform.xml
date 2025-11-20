@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changes>
+  <change type="update" path="nodePropertyExtractor/nodePropertyExtractor[@value='luminosityEmissionLine']/lineNames" value="balmerAlpha6565 oxygenII3727"/>
+  <change type="update" path="outputFileName" value="testSuite/outputs/postprocessing-postprocessed.hdf5"/>
+  <change type="replaceOrAppend" path="task">
+    <task value="postprocessForests">
+      <fileName/>
+    </task>
+  </change>
+  <change type="replaceWith" path="task/fileName"  target="mergerTreeOutputter/mergerTreeOutputter[@value='fullState']/fileName" />
+  <change type="remove" path="mergerTreeOutputter/mergerTreeOutputter[@value='fullState']">
+    <task value="postprocessForests">
+      <fileName value="fullState.dat"/>
+    </task>
+  </change>
+</changes>
