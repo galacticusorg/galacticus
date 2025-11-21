@@ -36,9 +36,11 @@
      sphere centered on the mode of the prior distribution.
      !!}
      private
-     class           (randomNumberGeneratorClass), pointer :: randomNumberGenerator_ => null()
-     double precision                                      :: radiusSphere
-     logical                                               :: radiusIsRelative
+     class           (randomNumberGeneratorClass), pointer                   :: randomNumberGenerator_ => null()
+     double precision                                                        :: radiusSphere
+     logical                                                                 :: radiusIsRelative                , usePriorMedian
+     type            (varying_string            )                            :: position
+     double precision                            , allocatable, dimension(:) :: stateInitial
    contains
      final     ::                gaussianSphereDestructor
      procedure :: initialize  => gaussianSphereInitialize
@@ -59,13 +61,17 @@ contains
     Constructor for the \refClass{posteriorSampleStateInitializeGaussianSphere} posterior sampling state initialization class.
     !!}
     use :: Input_Parameters, only : inputParameters
+    use :: String_Handling , only : String_Count_Words
     implicit none
-    type            (posteriorSampleStateInitializeGaussianSphere)                :: self
-    type            (inputParameters                             ), intent(inout) :: parameters
-    class           (randomNumberGeneratorClass                  ), pointer       :: randomNumberGenerator_
-    double precision                                                              :: radiusSphere
-    logical                                                                       :: radiusIsRelative
-
+    type            (posteriorSampleStateInitializeGaussianSphere)                            :: self
+    type            (inputParameters                             ), intent(inout)             :: parameters
+    class           (randomNumberGeneratorClass                  ), pointer                   :: randomNumberGenerator_
+    double precision                                              , allocatable, dimension(:) :: stateInitial
+    double precision                                                                          :: radiusSphere
+    logical                                                                                   :: radiusIsRelative      , usePriorMedian
+    type            (varying_string                              )                            :: position
+    character(len=:), allocatable :: position_
+    
     !![
     <inputParameter>
       <name>radiusSphere</name>
@@ -77,9 +83,28 @@ contains
       <description>If true, the radius of the sphere is assumed to be relative to the extent of the prior, otherwise it is assumed to be an absolute radius.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>position</name>
+      <description>The initial position for the sphere. If this is set to {\normalfont \ttfamily priorMedian}, then the sphere is placed at the median of the prior in each dimension. Otherwise, this must be a list of starting parameter values.</description>
+      <source>parameters</source>
+      <defaultValue>var_str('priorMedian')</defaultValue>
+    </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     !!]
-    self=posteriorSampleStateInitializeGaussianSphere(radiusSphere,radiusIsRelative,randomNumberGenerator_)
+    usePriorMedian=position == 'priorMedian'
+    if (.not.usePriorMedian) then
+       allocate(stateInitial(String_Count_Words(position)))
+       allocate(character(len=len(position)) :: position_)
+       position_=position
+       read (position_,*) stateInitial
+    end if
+    !![
+    <conditionalCall>
+      <call>self=posteriorSampleStateInitializeGaussianSphere(radiusSphere,radiusIsRelative,randomNumberGenerator_,usePriorMedian{conditions})</call>
+      <argument name="stateInitial" value="stateInitial" condition=".not.usePriorMedian"/>
+    </conditionalCall>
+    !!]
+    self%position=position
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="randomNumberGenerator_"/>
@@ -87,17 +112,19 @@ contains
     return
   end function gaussianSphereConstructorParameters
 
-  function gaussianSphereConstructorInternal(radiusSphere,radiusIsRelative,randomNumberGenerator_) result(self)
+  function gaussianSphereConstructorInternal(radiusSphere,radiusIsRelative,randomNumberGenerator_,usePriorMedian,stateInitial) result(self)
     !!{
     Internal constructor for the \refClass{posteriorSampleStateInitializeGaussianSphere} posterior sampling state initialization class.
     !!}
     implicit none
-    type            (posteriorSampleStateInitializeGaussianSphere)                        :: self
-    double precision                                              , intent(in   )         :: radiusSphere
-    logical                                                       , intent(in   )         :: radiusIsRelative
-    class           (randomNumberGeneratorClass                  ), intent(in   ), target :: randomNumberGenerator_
+    type            (posteriorSampleStateInitializeGaussianSphere)                                        :: self
+    double precision                                              , intent(in   )                         :: radiusSphere
+    logical                                                       , intent(in   )                         :: radiusIsRelative
+    class           (randomNumberGeneratorClass                  ), intent(in   ), target                 :: randomNumberGenerator_
+    logical                                                       , intent(in   )                         :: usePriorMedian
+    double precision                                              , intent(in   ), dimension(:), optional :: stateInitial
     !![
-    <constructorAssign variables="radiusSphere, radiusIsRelative, *randomNumberGenerator_"/>
+    <constructorAssign variables="radiusSphere, radiusIsRelative, *randomNumberGenerator_, usePriorMedian, stateInitial"/>
     !!]
     
     return
@@ -140,6 +167,9 @@ contains
     ! We have no information about the likelihood of this state.
     logLikelihood=logImpossible
     logPosterior =logImpossible
+    ! If an initial state was provided, check it is of the correct size.
+    if (.not.self%usePriorMedian .and. size(self%stateInitial) /= simulationState%dimension()) &
+         & call Error_Report('initial state has the wrong size'//{introspection:location})
     ! Initialize chain to some state vector.
     state=0.0d0
     do j=1,simulationState%dimension()
@@ -161,8 +191,14 @@ contains
             &   )
           first   =.false.
           state(j)=+self%randomNumberGenerator_%standardNormalSample() &
-               &   *                            radius                 &
-               &   +                            distributionMedian
+               &   *                            radius
+          if (self%usePriorMedian) then
+             state(j)=+     state        (j) &
+                  &   +distributionMedian
+          else
+             state(j)=+     state        (j) &
+                  &   +self%stateInitial (j)
+          end if
        end do
     end do
     call simulationState%update(state,.false.,.false.)
