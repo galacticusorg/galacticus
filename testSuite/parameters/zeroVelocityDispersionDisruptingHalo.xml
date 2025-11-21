@@ -309,7 +309,6 @@
     <timestepHostRelative             value="0.10"/>
     <fractionTimestepSatelliteMinimum value="0.75"/>
     <backtrackToSatellites            value="true"/>
-    <reportTiming value="true"/>
   </mergerTreeEvolver>
   <mergerTreeEvolveConcurrency value="halosSubhalos"/>
   <mergerTreeNodeEvolver value="standard">

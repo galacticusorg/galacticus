@@ -52,11 +52,11 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 {$fileNameRoot}.exe: {$workDirectoryName.$fileNameRoot}.o {$workDirectoryName.$fileNameRoot}.d $(MAKE_DEPS) $(UPDATE_DEPS)
 	./scripts/build/parameterDependencies.pl `pwd` {$fileNameRoot}.exe
 	$(FCCOMPILER) -c {$workDirectoryName.$fileNameRoot}.parameters.F90 -o {$workDirectoryName.$fileNameRoot}.parameters.o $(FCFLAGS)
-	@if echo "$(MAKEFLAGS)" | grep -q -P -- ' -j1( |$$)'; then \
+	@if echo "$(MAKEFLAGS)" | grep -q -E -- ' -j1( |$$)'; then \
 	 useLocks=no; \
-	elif echo "$(MAKEFLAGS)" | grep -q -P -- ' -j( |$$)'; then \
+	elif echo "$(MAKEFLAGS)" | grep -q -E -- ' -j( |$$)'; then \
 	 useLocks=$(LOCKMD5); \
-	elif echo "$(MAKEFLAGS)" | grep -q -P -- ' -j[0-9]+( |$$)'; then \
+	elif echo "$(MAKEFLAGS)" | grep -q -E -- ' -j[0-9]+( |$$)'; then \
 	 useLocks=$(LOCKMD5); \
 	else \
 	 useLocks=no; \

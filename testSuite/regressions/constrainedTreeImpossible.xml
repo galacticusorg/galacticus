@@ -166,7 +166,6 @@
   </outputTimes>
   <mergerTreeOutputter value="standard">
     <outputReferences value="false"/>
-    <outputMergerTrees value="true"/>
   </mergerTreeOutputter>
 
   <!-- Node physics -->

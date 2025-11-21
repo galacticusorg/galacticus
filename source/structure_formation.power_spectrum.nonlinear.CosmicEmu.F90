@@ -19,7 +19,7 @@
 
 !!{
 Implements a nonlinear power spectrum class in which the nonlinear power spectrum is computed using the
-code of \cite{lawrence_coyote_2010}.
+code of \cite{moran_mira-titan_2023}.
 !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
@@ -33,14 +33,14 @@ code of \cite{lawrence_coyote_2010}.
   <powerSpectrumNonlinear name="powerSpectrumNonlinearCosmicEmu">
    <description>
     Provides a nonlinear power spectrum class in which the power spectrum is computed using the code of
-    \cite{lawrence_coyote_2010}. The CosmicEmu code will be downloaded, compiled and run as necessary if this option is
-    utilized.
+    \cite{moran_mira-titan_2023}. The CosmicEmu code will be downloaded, compiled and run as necessary if this option is utilized.
    </description>
   </powerSpectrumNonlinear>
   !!]
   type, extends(powerSpectrumNonlinearClass) :: powerSpectrumNonlinearCosmicEmu
      !!{
-     A linear transfer function class.
+     A nonlinear power spectrum class in which the nonlinear power spectrum is computed using the
+     code of \cite{moran_mira-titan_2023}.
      !!}
      private
      integer                                                                    :: wavenumberCount
@@ -172,7 +172,8 @@ contains
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
     use :: Display             , only : displayMessage              , verbosityLevelWorking
     use :: File_Utilities      , only : Count_Lines_In_File         , Directory_Make       , File_Exists, File_Lock, &
-          &                             File_Name_Temporary         , File_Remove          , File_Unlock
+         &                              File_Name_Temporary         , Directory_Remove     , File_Unlock, File_Path, &
+         &                              File_Remove
     use :: Error               , only : Error_Report
     use :: Input_Paths         , only : inputPath                   , pathTypeDataDynamic
     use :: ISO_Varying_String  , only : varying_string
@@ -182,13 +183,12 @@ contains
     use :: Table_Labels        , only : extrapolationTypeExtrapolate
     implicit none
     class           (powerSpectrumNonlinearCosmicEmu), intent(inout) :: self
-    double precision                                 , intent(in   ) :: time             , waveNumber
-    double precision                                                 :: littleHubbleCMB  , redshift
-    type            (varying_string                 )                :: parameterFile    , powerSpectrumFile, &
+    double precision                                 , intent(in   ) :: time          , waveNumber
+    double precision                                                 :: redshift
+    type            (varying_string                 )                :: parameterFile , powerSpectrumFile, &
          &                                                              parameters
     character       (len=32                         )                :: parameterLabel
-    character       (len=128                        )                :: powerSpectrumLine
-    integer                                                          :: iWavenumber      , powerSpectrumUnit, &
+    integer                                                          :: iWavenumber   , powerSpectrumUnit, &
          &                                                              status
 
     ! If the time has changed, recompute the power spectrum.
@@ -199,34 +199,39 @@ contains
        ! Generate parameters and a file name for this power spectrum.
        call Directory_Make(inputPath(pathTypeDataDynamic)//"largeScaleStructure")
        powerSpectrumFile=inputPath(pathTypeDataDynamic)//"largeScaleStructure/powerSpectrumCosmicEmu"
-       parameterFile    =File_Name_Temporary("cosmicEmuParameters")
+       parameterFile    =File_Name_Temporary("cosmicEmuParameters",char(inputPath(pathTypeDataDynamic)//"largeScaleStructure"))//"/xstar.dat"
+       call Directory_Make(File_Path(parameterFile))
        parameters       =''
        write (parameterLabel,'(f5.3)') +self%cosmologyParameters_     %OmegaMatter              (                                  )
        powerSpectrumFile=powerSpectrumFile//"_OmegaMatter"//trim(adjustl(parameterLabel))
        write (parameterLabel,'(f5.3)') +self%cosmologyParameters_     %OmegaMatter              (                                  )    &
-            &                          *self%cosmologyParameters_     %HubbleConstant           (                hubbleUnitsLittleH)**2
-       parameters=parameters//trim(adjustl(parameterLabel))//char(10)
+            &                          *self%cosmologyParameters_     %HubbleConstant           (units          =hubbleUnitsLittleH)**2
+       parameters=parameters//trim(adjustl(parameterLabel))//" "
        write (parameterLabel,'(f6.4)') +self%cosmologyParameters_     %OmegaBaryon              (                                  )
        powerSpectrumFile=powerSpectrumFile//"_OmegaBaryon"//trim(adjustl(parameterLabel))
        write (parameterLabel,'(f5.3)') +self%cosmologyParameters_     %OmegaBaryon              (                                  )    &
-            &                          *self%cosmologyParameters_     %HubbleConstant           (                hubbleUnitsLittleH)**2
-       parameters=parameters//trim(adjustl(parameterLabel))//char(10)
-       write (parameterLabel,'(f7.4)') +self%cosmologyParameters_     %HubbleConstant           (                                  )
-       powerSpectrumFile=powerSpectrumFile//"_HubbleConstant"//trim(adjustl(parameterLabel))
-       write (parameterLabel,'(f6.4)') +self%powerSpectrumPrimordial_ %logarithmicDerivative    (                wavenumberShort   )
-       powerSpectrumFile=powerSpectrumFile//"_powerSpectrumIndex"//trim(adjustl(parameterLabel))
-       parameters=parameters//trim(adjustl(parameterLabel))//char(10)
+            &                          *self%cosmologyParameters_     %HubbleConstant           (units          =hubbleUnitsLittleH)**2
+       parameters=parameters//trim(adjustl(parameterLabel))//" "
        write (parameterLabel,'(f6.4)') +self%cosmologicalMassVariance_%sigma8                   (                                  )
        powerSpectrumFile=powerSpectrumFile//"_sigma8"//trim(adjustl(parameterLabel))
-       parameters=parameters//trim(adjustl(parameterLabel))//char(10)
+       parameters=parameters//trim(adjustl(parameterLabel))//" "
+       write (parameterLabel,'(f7.4)') +self%cosmologyParameters_     %HubbleConstant           (units          =hubbleUnitsLittleH)
+       powerSpectrumFile=powerSpectrumFile//"_HubbleConstant"//trim(adjustl(parameterLabel))
+       parameters=parameters//trim(adjustl(parameterLabel))//" "
+       write (parameterLabel,'(f6.4)') +self%powerSpectrumPrimordial_ %logarithmicDerivative    (                wavenumberShort   )
+       powerSpectrumFile=powerSpectrumFile//"_powerSpectrumIndex"//trim(adjustl(parameterLabel))
+       parameters=parameters//trim(adjustl(parameterLabel))//" "
        write (parameterLabel,'(f6.3)') +self%cosmologyFunctions_      %equationOfStateDarkEnergy(expansionFactor=1.0d0             )
-       powerSpectrumFile=powerSpectrumFile//"_w"//trim(adjustl(parameterLabel))
-       parameters=parameters//trim(adjustl(parameterLabel))//char(10)
+       powerSpectrumFile=powerSpectrumFile//"_w0"//trim(adjustl(parameterLabel))
+       parameters=parameters//trim(adjustl(parameterLabel))//" "
+       write (parameterLabel,'(f6.3)') -self%cosmologyFunctions_      %exponentDarkEnergy       (expansionFactor=1.0d0             )
+       powerSpectrumFile=powerSpectrumFile//"_wa"//trim(adjustl(parameterLabel))
+       parameters=parameters//trim(adjustl(parameterLabel))//" "
+       parameters=parameters//"0.0 " ! Neutrino density parameter - not currently implemented.
        write (parameterLabel,'(f7.4)') +redshift
        powerSpectrumFile=powerSpectrumFile//"_redshift"//trim(adjustl(parameterLabel))
-       parameters=parameters//trim(adjustl(parameterLabel))//char(10)
+       parameters=parameters//trim(adjustl(parameterLabel))
        powerSpectrumFile=powerSpectrumFile//".txt"
-       parameters=powerSpectrumFile//char(10)//parameters//'2'//char(10)
        ! Check for existence of the power spectrum, building it if necessary.
        call File_Lock(powerSpectrumFile,self%fileLock,lockIsShared=.true.)
        if (.not.File_Exists(powerSpectrumFile)) then
@@ -236,57 +241,44 @@ contains
           write (powerSpectrumUnit,'(a)') char(parameters)
           close(powerSpectrumUnit)
           ! Check for presence of the executable.
-          call Directory_Make(inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1")
-          if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.exe")) then
+          call Directory_Make(inputPath(pathTypeDataDynamic)//"CosmicEmu-master")
+          if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu-master/emu.exe")) then
              ! Check for presence of the source code.
-             if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.c")) then
+             if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu-master/2022-Mira-Titan-IV/P_cb/emu.c")) then
                 ! Download the code.
-                if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1.tar.gz")) then
+                if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu-master.zip")) then
                    call displayMessage("downloading CosmicEmu code....",verbosityLevelWorking)
-                   call download("http://www.hep.anl.gov/cosmology/CosmicEmu/CosmicEmu_v1.1.tar.gz",char(inputPath(pathTypeDataDynamic))//"CosmicEmu_v1.1.tar.gz",status=status)
-                   if (status /= 0 .or. .not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1.tar.gz")) &
+                   call download("https://github.com/lanl/CosmicEmu/archive/refs/heads/master.zip",char(inputPath(pathTypeDataDynamic))//"CosmicEmu-master.zip",status=status)
+                   if (status /= 0 .or. .not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu-master.zip")) &
                         & call Error_Report("failed to download CosmicEmu code"//{introspection:location})
                 end if
                 ! Unpack the code.
                 call displayMessage("unpacking CosmicEmu code....",verbosityLevelWorking)
-                call System_Command_Do("tar -x -v -z -C "//inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1 -f "//inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1.tar.gz")
-                if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.c")) &
+                call System_Command_Do("unzip "//inputPath(pathTypeDataDynamic)//"CosmicEmu-master.zip -d "//inputPath(pathTypeDataDynamic))
+                if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu-master/2022-Mira-Titan-IV/P_cb/emu.c")) &
                      & call Error_Report("failed to unpack CosmicEmu code"//{introspection:location})
              end if
              ! Build the code.
              call displayMessage("compiling CosmicEmu code....",verbosityLevelWorking)
-             call System_Command_Do("cd "//inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1; sed -i~ -r s/""^(\s*gcc.*\-lm)\s*$""/""\1 \-I\`gsl\-config \-\-prefix\`\n\n%.o: %.c\n\tgcc -c \$< -o \$\*\.o \-I\`gsl\-config \-\-prefix\`\n""/ makefile; sed -i~ -r s/""\-lgsl\s+\-lgslcblas\s+\-lm""/""\`gsl\-config \-\-libs\`""/ makefile; make");
-             if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.exe")) &
+             call System_Command_Do("cd "//inputPath(pathTypeDataDynamic)//"CosmicEmu-master/2022-Mira-Titan-IV/P_cb; sed -i~ -r s/""^(\s*gcc.*\-lm)(\s+.*)$""/""\1 \-I\`gsl\-config \-\-prefix\`\2\n""/ makefile; make");
+             if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu-master/2022-Mira-Titan-IV/P_cb/emu.exe")) &
                   & call Error_Report("failed to build Cosmic_Emu code"//{introspection:location})
           end if
           ! Generate the power spectrum.
-          call System_Command_Do(inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.exe < "//parameterFile)
-          ! Destroy the parameter file.
-          call File_Remove(parameterFile)
+          call System_Command_Do("cd "//File_Path(parameterFile)//"; "//inputPath(pathTypeDataDynamic)//"CosmicEmu-master/2022-Mira-Titan-IV/P_cb/emu.exe < "//parameterFile//"; mv EMU0.txt "//powerSpectrumFile)
+          ! Destroy the parameter file and temporary directory.
+          call      File_Remove(          parameterFile )
+          call Directory_Remove(File_Path(parameterFile))
        end if
        ! Read the data file.
-       self%wavenumberCount=Count_Lines_In_File(powerSpectrumFile,"#")
+       self%wavenumberCount=Count_Lines_In_File(powerSpectrumFile)
        if (allocated(self%wavenumberTable   )) deallocate(self%wavenumberTable   )
        if (allocated(self%powerSpectrumTable)) deallocate(self%powerSpectrumTable)
        allocate(self%wavenumberTable   (self%wavenumberCount))
        allocate(self%powerSpectrumTable(self%wavenumberCount))
        open(newunit=powerSpectrumUnit,file=char(powerSpectrumFile),status='old',form='formatted')
-       iWavenumber=0
-       do while (iWavenumber < self%wavenumberCount)
-          read (powerSpectrumUnit,'(a)') powerSpectrumLine
-          if (powerSpectrumLine(1:1) == "#") then
-             if (powerSpectrumLine(1:33) == "# dimensionless Hubble parameter") then
-                read (powerSpectrumLine(index(powerSpectrumLine,":")+1:),*) littleHubbleCMB
-                if (Values_Differ(littleHubbleCMB,self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH),relTol=1.0d-2)) &
-                     & call Error_Report(                                                                                      &
-                     &                   'values of H₀ in Galacticus and CosmicEmu are significantly different'//              &
-                     &                    {introspection:location}                                                             &
-                     &                  )
-             end if
-          else
-             iWavenumber=iWavenumber+1
-             read (powerSpectrumLine,*) self%wavenumberTable(iWavenumber),self%powerSpectrumTable(iWavenumber)
-          end if
+       do iWavenumber=1,self%wavenumberCount
+          read (powerSpectrumUnit,*) self%wavenumberTable(iWavenumber),self%powerSpectrumTable(iWavenumber)
        end do
        close(powerSpectrumUnit)
        ! Convert to logarithmic values.
