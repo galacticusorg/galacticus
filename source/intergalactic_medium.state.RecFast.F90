@@ -138,7 +138,7 @@ contains
     call File_Lock(char(self%fileName),self%fileLock,lockIsShared=.false.)
     ! Check existence of file.
     buildFile=.false.
-    if (File_Exists(char(self%fileName))) then
+    if (File_Exists(self%fileName)) then
        ! Check file version number.
        !$ call hdf5Access%set()
        call outputFile%openFile     (char(self%fileName),overwrite=.false.          ,readOnly=.true.)
@@ -180,19 +180,19 @@ contains
           read (recFastUnit,*) redshift(i),electronFraction(i),hIonizedFraction(i),heIonizedFraction(i),matterTemperature(i)
        end do
        close(recFastUnit)
-       call File_Remove(char(recFastFile  ))
-       call File_Remove(char(parameterFile))
+       call File_Remove(recFastFile  )
+       call File_Remove(parameterFile)
        ! Create the output file.
        !$ call hdf5Access%set()
-       call outputFile%openFile      (char(self%fileName),overwrite=.true.)
-       call outputFile%writeDataset  (redshift           ,'redshift'         ,'Redshift'                                            )
-       call outputFile%writeDataset  (electronFraction   ,'electronFraction' ,'Electron fraction'                                   )
-       call outputFile%writeDataset  (hIonizedFraction   ,'hIonizedFraction' ,'Fraction of ionized hydrogen'                        )
-       call outputFile%writeDataset  (heIonizedFraction  ,'heIonizedFraction','Fraction of ionized helium'                          )
-       call outputFile%writeDataset  (matterTemperature  ,'matterTemperature','Temperature of matter'       ,datasetReturned=dataset)
-       call dataset   %writeAttribute('Kelvin'           ,'units'                                                                   )
-       call dataset   %writeAttribute(1.0d0              ,'unitsInSI'                                                               )
-       call dataset   %close         (                                                                                              )
+       call outputFile%openFile      (self%fileName    ,overwrite=.true.)
+       call outputFile%writeDataset  (redshift         ,'redshift'         ,'Redshift'                                            )
+       call outputFile%writeDataset  (electronFraction ,'electronFraction' ,'Electron fraction'                                   )
+       call outputFile%writeDataset  (hIonizedFraction ,'hIonizedFraction' ,'Fraction of ionized hydrogen'                        )
+       call outputFile%writeDataset  (heIonizedFraction,'heIonizedFraction','Fraction of ionized helium'                          )
+       call outputFile%writeDataset  (matterTemperature,'matterTemperature','Temperature of matter'       ,datasetReturned=dataset)
+       call dataset   %writeAttribute('Kelvin'         ,'units'                                                                   )
+       call dataset   %writeAttribute(1.0d0            ,'unitsInSI'                                                               )
+       call dataset   %close         (                                                                                            )
        ! Add description and provenance to output structure.
        call outputFile%writeAttribute('IGM ionization/thermal state computed using RecFast','description'         )
        call outputFile%writeAttribute(fileFormatVersionCurrent                             ,'fileFormat'          )

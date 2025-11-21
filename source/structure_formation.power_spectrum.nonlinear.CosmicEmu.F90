@@ -233,10 +233,10 @@ contains
        parameters=parameters//trim(adjustl(parameterLabel))
        powerSpectrumFile=powerSpectrumFile//".txt"
        ! Check for existence of the power spectrum, building it if necessary.
-       call File_Lock(char(powerSpectrumFile),self%fileLock,lockIsShared=.true.)
-       if (.not.File_Exists(char(powerSpectrumFile))) then
+       call File_Lock(powerSpectrumFile,self%fileLock,lockIsShared=.true.)
+       if (.not.File_Exists(powerSpectrumFile)) then
           call File_Unlock(self%fileLock)
-          call File_Lock(char(powerSpectrumFile),self%fileLock,lockIsShared=.false.)
+          call File_Lock(powerSpectrumFile,self%fileLock,lockIsShared=.false.)
           open(newUnit=powerSpectrumUnit,file=char(parameterFile),status='unknown',form='formatted')
           write (powerSpectrumUnit,'(a)') char(parameters)
           close(powerSpectrumUnit)

@@ -578,9 +578,9 @@ contains
          quantityName=enumerationQuantityDecode(tabulation%quantity)
          fileName    =inputPath(pathTypeDataDynamic)//'massDistributions/'//self%objectType()//'_'//quantityName//'_'//self%suffix()//'.hdf5'
          ! Restore tabulation from file if necessary.
-         call Directory_Make(char(File_Path(char(fileName))))
+         call Directory_Make(File_Path(fileName))
          if (File_Exists(fileName)) then
-            call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
+            call File_Lock(fileName,fileLock,lockIsShared=.true.)
             call self%fileRead(fileName,quantityName,container,tabulation)
             call File_Unlock(fileLock)
          end if

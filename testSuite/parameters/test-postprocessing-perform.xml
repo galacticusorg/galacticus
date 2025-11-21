@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Modifications needed to change the original postprocessing model into one that performs postprocessing. -->
+<changes>
+  <!-- Add an extra emission line to the output. -->
+  <change type="update" path="nodePropertyExtractor/nodePropertyExtractor[@value='luminosityEmissionLine']/lineNames" value="balmerAlpha6565 oxygenII3727"/>
+  <!-- Change the HDF5 output name. -->
+  <change type="update" path="outputFileName" value="testSuite/outputs/postprocessing-postprocessed.hdf5"/>
+  <!-- Switch to the postprocessing task. -->
+  <change type="replaceOrAppend" path="task">
+    <task value="postprocessForests">
+      <fileName/>
+    </task>
+  </change>
+  <change type="replaceWith" path="task/fileName"  target="mergerTreeOutputter/mergerTreeOutputter[@value='fullState']/fileName" />
+  <!-- Remove the full-state output. -->
+  <change type="remove" path="mergerTreeOutputter/mergerTreeOutputter[@value='fullState']">
+    <task value="postprocessForests">
+      <fileName value="fullState.dat"/>
+    </task>
+  </change>
+</changes>
