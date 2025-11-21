@@ -6,19 +6,19 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "54595bd309e540a815fada1b722970ca9a7b48d6",
-        "message": "Merge pull request #964 from galacticusorg/fixSubhaloMassFunctionEmptyBins\n\nIgnore empty bins in subhalo mass function for Symphony X64 validation model\n",
-        "timestamp": "2025-11-10 15:55:14+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/54595bd309e540a815fada1b722970ca9a7b48d6"
+        "id": "13441a27d008de4ecc507342cf4a81f59bd52a6b",
+        "message": "Merge pull request #969 from galacticusorg/fixObsoletedParameters\n\nRemove obsoleted parameters from test suite files\n",
+        "timestamp": "2025-11-20 15:48:46+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/13441a27d008de4ecc507342cf4a81f59bd52a6b"
     },
     "surfaceDensity": {
-        "percentageBelow": 39.285714285714285,
-        "percentageAbove": 60.714285714285715,
+        "percentageBelow": 32.14285714285714,
+        "percentageAbove": 67.85714285714286,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 63.63636363636363,
-        "percentageAbove": 36.36363636363637,
+        "percentageBelow": 88.88888888888889,
+        "percentageAbove": 11.11111111111111,
         "target": 0.85
     }
 }
