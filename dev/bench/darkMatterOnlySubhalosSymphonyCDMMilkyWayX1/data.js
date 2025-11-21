@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1762815700044,
+  "lastUpdate": 1763688320039,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (Symphony Milky Way resolutionX1)": [
@@ -1861,6 +1861,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (Symphony CDM resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 144.4910494227892,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "13441a27d008de4ecc507342cf4a81f59bd52a6b",
+          "message": "Merge pull request #969 from galacticusorg/fixObsoletedParameters\n\nRemove obsoleted parameters from test suite files",
+          "timestamp": "2025-11-20T15:48:46Z",
+          "tree_id": "1f17d57d08c3096f32cd7f8b5ca3c3ae02e72875",
+          "url": "https://github.com/galacticusorg/galacticus/commit/13441a27d008de4ecc507342cf4a81f59bd52a6b"
+        },
+        "date": 1763688319291,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X1 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": 2.355327646855761,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X1 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 1.2579017856850347,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 145.15121415710362,
             "unit": "-logℒ"
           }
         ]
