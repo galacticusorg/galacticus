@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1763688354793,
+  "lastUpdate": 1763767812985,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 10keV resolutionX1)": [
@@ -348,6 +348,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (COZMIC WDM:10keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 51.853469526843675,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e32181bf27fc720d78222dc337fbc680730fb48d",
+          "message": "Merge pull request #970 from galacticusorg/featPostprocessing\n\nAdd postprocessing functionality",
+          "timestamp": "2025-11-21T17:03:14Z",
+          "tree_id": "21302a250d4dd2e10fb9bbb3e04fe3385f70093f",
+          "url": "https://github.com/galacticusorg/galacticus/commit/e32181bf27fc720d78222dc337fbc680730fb48d"
+        },
+        "date": 1763767812213,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:10keV resolution X1 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": 1.5785624534478522,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:10keV resolution X1 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 2.092250035570397,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:10keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 53.915043834090056,
             "unit": "-logℒ"
           }
         ]
