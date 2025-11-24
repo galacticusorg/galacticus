@@ -16,7 +16,7 @@ jobs:
   HDF5-Diff:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: 'Fetch master branch'
         run: |
           git fetch origin master --depth 1

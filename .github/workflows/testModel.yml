@@ -70,21 +70,21 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: ${{ inputs.fetchDepth }}
       - name: Check out repository analysis-perl
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: galacticusorg/analysis-perl
           path: analysis-perl
       - name: Check out repository datasets
-        uses: actions/checkout@v5      
+        uses: actions/checkout@v6      
         with:
           repository: galacticusorg/datasets
           path: datasets
       - name: Check out repository cusp-halo-relation
-        uses: actions/checkout@v5      
+        uses: actions/checkout@v6      
         with:
           repository: galacticusorg/cusp-halo-relation
           path: cusp-halo-relation
