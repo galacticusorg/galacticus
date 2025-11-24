@@ -93,7 +93,7 @@ jobs:
           else
            ! grep -q FAIL test.log
           fi
-      - uses: qoomon/actions--context@v4
+      - uses: qoomon/actions--context@v5
       - name: "Check for unrecognized parameters"
         if: ${{ format('{0}',inputs.expectUnrecognized) == '0' }}
         run: |
