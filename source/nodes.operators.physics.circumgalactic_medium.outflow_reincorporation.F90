@@ -310,6 +310,21 @@ contains
              call hotHalo%      outflowedChemicalsRate(-      rateChemicalsReturn)
              call hotHalo%               chemicalsRate(       rateChemicalsReturn)
           end if
+          ! Trigger an event to allow other processes to respond to this reincorporation.
+          !![ 
+	  <eventHook name="hotHaloMassReincorporation">
+	    <import>
+	      <module name="Galacticus_Nodes"     symbols="nodeComponentHotHalo"/>
+	      <module name="Abundances_Structure" symbols="abundances"          />
+	    </import>
+	    <interface>
+	      class           (nodeComponentHotHalo), intent(inout) :: hotHalo
+	      double precision                      , intent(in   ) :: rateMassReturn
+	      type            (abundances          ), intent(in   ) :: rateAbundancesReturn
+	    </interface>
+	    <callWith>hotHalo,rateMassReturn,rateAbundancesReturn</callWith>
+	  </eventHook>
+          !!]
        end if
     end select
     return

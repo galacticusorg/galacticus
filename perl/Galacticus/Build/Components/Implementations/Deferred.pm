@@ -218,11 +218,8 @@ CODE
    else
 CODE
 	$code::parentType = undef();
-	if ( exists($code::member->{'extends'}) && grep {$_->{'method'} eq $code::binding->{'method'}} @{$code::member->{'extends'}->{'implementation'}->{'bindings'}->{'binding'}} ) {
-	    $code::parentType = "nodeComponent".ucfirst($code::member->{'extends'}->{'class'}).ucfirst($code::member->{'extends'}->{'name'});
-	} elsif ( $code::binding->{'bindsTo'} eq "componentClass" ) {
-	    $code::parentType = "nodeComponent".ucfirst($code::class->{'name'});
-	}
+	$code::parentType = "nodeComponent".ucfirst($code::member->{'extends'}->{'class'}).ucfirst($code::member->{'extends'}->{'name'})
+	    if ( exists($code::member->{'extends'}) && grep {$_->{'method'} eq $code::binding->{'method'}} @{$code::member->{'extends'}->{'implementation'}->{'bindings'}->{'binding'}} );
 	if ( defined($code::parentType) ) {
 	    if ( $code::binding->{'interface'}->{'type'} eq "void" ) {
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');

@@ -22,7 +22,6 @@ use Text::Template 'fill_in_string';
 	      \&Build_Count_Functions           ,
 	      \&Build_Rate_Get_Functions        ,
 	      \&Build_Rate_Functions            ,
-	      \&Build_Generic_Rate_Functions    ,
 	      \&Build_Auto_Create_Rate_Functions,
 	      \&Build_Scale_Functions           ,
 	      \&Build_Inactive_Functions        ,
@@ -398,120 +397,6 @@ CODE
 	    name        => $code::property->{'name'}."Rate".$suffix
 	}
 	);  
-}
-
-sub Build_Generic_Rate_Functions {
-    # Build rate setting functions for non-virtual, evolvable properties which need to be accessible via a generic nodeComponent class.
-    my $build       = shift();
-    $code::class    = shift();
-    $code::member   = shift();
-    $code::property = shift();
-    # Skip this property if it is not evolvable, or is virtual.
-    return
-	if
-	(
-	   $code::property->{'attributes'}->{'isVirtual'  }
-	 ||
-	 ! $code::property->{'attributes'}->{'isEvolvable'}
-	 ||
-	 ! $code::property->{'attributes'}->{'makeGeneric'}
-	);
-    # Get the data descriptor for this propery.
-    (my $propertyTypeDescriptor) = &Galacticus::Build::Components::DataTypes::dataObjectDefinition($code::property->{'data'},matchOnly => 1);
-    push(@{$propertyTypeDescriptor->{'variables' }},"setValue"     );
-    push(@{$propertyTypeDescriptor->{'attributes'}},"intent(in   )");
-    # Build the function.
-    my $function =
-    {
-	type        => "void",
-	name        => $code::class->{'name'}.ucfirst($code::member->{'name'}).ucfirst($code::property->{'name'})."RateGeneric",
-	description => "Set the rate of the {\\normalfont \\ttfamily ".$code::property->{'name'}."} property of the {\\normalfont \\ttfamily ".$code::property->{'name'}."} property of an {\\normalfont \\ttfamily ".$code::member->{'name'}."} implementation of the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component class via a generic {\\normalfont \\ttfamily nodeComponent}.",
-	modules     =>
-	    [
-	     "Error"
-	    ],
-	variables   =>
-	    [
-	     {
-		 intrinsic  => "class",
-		 type       => "nodeComponent",
-		 attributes => [ "intent(inout)" ],
-		 variables  => [ "self" ]
-	     },
-	     $propertyTypeDescriptor,
-	     {
-		 intrinsic  => "logical",
-		 attributes => [ "optional", "intent(inout)" ],
-		 variables  => [ "interrupt" ]
-	     },
-	     {
-		 intrinsic  => "procedure",
-		 type       => "interruptTask",
-		 attributes => [ "optional", "intent(inout)", "pointer" ],
-		 variables  => [ "interruptProcedure" ]
-	     },
-	     {
-		 intrinsic  => "class",
-		 type       => "nodeComponent".ucfirst($code::class->{'name'}),
-		 attributes => [ "pointer" ],
-		 variables  => [ $code::class->{'name'} ]
-	     },
-	     {
-		 intrinsic  => "type",
-		 type       => "treeNode",
-		 attributes => [ "pointer" ],
-		 variables  => [ "selfNode" ]
-	     }
-	    ]
-    };
-    # Add error reporting module if required.
-    push(@{$function->{'modules'}},"Error")
-	if ( $code::property->{'attributes'}->{'createIfNeeded'} );
-    # Build the function.
-    $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
-selfNode => self%host()
-{$class->{'name'}} => selfNode%{$class->{'name'}}()
-CODE
-    if ( $code::property->{'attributes'}->{'createIfNeeded'} ) {
-    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-select type ({$class->{'name'}})
-type is (nodeComponent{ucfirst($class->{'name'})})
-  ! No specific component exists, we must interrupt and create one.
-CODE
-	if ( $code::property->{'data'}->{'rank'} == 0 ) {
-	    if ( &isIntrinsic($code::property->{'data'}->{'type'}) ) {
-    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-  if (setValue == 0.0d0) return
-CODE
-	    } else {
-    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-  if (setValue%isZero()) return
-CODE
-	    }
-	} else {
-	    if ( &isIntrinsic($code::property->{'data'}->{'type'}) ) {
-    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-  if (all(setValue == 0.0d0)) return
-CODE
-	    }
-	}
-    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-  if (.not.(present(interrupt).and.present(interruptProcedure))) call Error_Report('interrupt required, but optional arguments missing'//\{introspection:location\})
-  interrupt          =  .true.
-  interruptProcedure => {$class->{'name'}}CreateByInterrupt
-  return
-end select
-CODE
-    }
-    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-call {$class->{'name'}}%{$property->{'name'}}Rate(setValue,interrupt,interruptProcedure)
-CODE
-    # Insert the function into the function list. There is no type-binding for this function - the expectation is that it will be
-    # bound to some deferred rate function at run-time.
-    push(
-	@{$build->{'functions'}},
-	$function
-	);
 }
 
 sub Build_Auto_Create_Rate_Functions {

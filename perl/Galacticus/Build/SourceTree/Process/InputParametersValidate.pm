@@ -112,7 +112,7 @@ sub Process_InputParametersValidate {
 	    }
 	    $code .= "   call ".$result."%allowedParameters(".$variableName.",'".$source."',.false.)\n";
 	    # Perform the check.
-	    $code .= "   if (.not.".$functionClassName."DsblVldtn) call ".$source."%checkParameters(allowedParameterNames=".$variableName.(exists($node->{'directive'}->{'multiParameters'}) ? ",allowedMultiParameterNames=".$multiNames : "").")\n";
+	    $code .= "   if (".$functionClassName."DsblVldtn == 0) call ".$source."%checkParameters(allowedParameterNames=".$variableName.(exists($node->{'directive'}->{'multiParameters'}) ? ",allowedMultiParameterNames=".$multiNames : "").")\n";
 	    $code .= "   if (allocated(".$variableName.")) deallocate(".$variableName.")\n";
 	    # Insert new code.
 	    my $codeNode =

@@ -12,6 +12,10 @@ on:
       executable: # The name of the test executable to be run and tested
         required: true
         type: string
+      expectUnrecognized: # Set to zero if unrecognized parameters are not expected, 1 if they are expected
+        required: false
+        default: 0
+        type: number
       expectFail: # Set to zero if FAIL is not expected, 1 if FAIL is expected
         required: false
         default: 0
@@ -41,9 +45,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Check out repository datasets
-        uses: actions/checkout@v5      
+        uses: actions/checkout@v6      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -88,5 +92,16 @@ jobs:
            grep -q FAIL test.log
           else
            ! grep -q FAIL test.log
+          fi
+      - uses: qoomon/actions--context@v5
+      - name: "Check for unrecognized parameters"
+        if: ${{ format('{0}',inputs.expectUnrecognized) == '0' }}
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          grep "unrecognized parameter" test.log > unrecognized.txt || true
+          if [ -s "unrecognized.txt" ]; then
+           echo "# :warning: Unrecognized parameters from ${GITHUB_JOB_NAME} :warning:" >> $GITHUB_STEP_SUMMARY
+           echo ":information_source: Job log can be found [here](${GITHUB_JOB_URL})" >> $GITHUB_STEP_SUMMARY
+           cat unrecognized.txt >> $GITHUB_STEP_SUMMARY
           fi
       - run: echo "This job's status is ${{ job.status }}."

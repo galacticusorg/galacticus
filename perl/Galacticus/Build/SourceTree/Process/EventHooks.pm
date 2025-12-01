@@ -65,7 +65,13 @@ sub Process_EventHooks {
 			    type      => "moduleUse"
 			};
 			my @imports;
-			foreach my $module ( &List::ExtraUtils::as_array($hook->{'import'}->{'module'}) ) {
+			my @modules;
+			if ( exists($hook->{'import'}->{'module'}->{'name'}) ) {
+			    @modules = &List::ExtraUtils::as_array($hook->{'import'}->{'module'}                 );
+			} else {
+			    @modules = &List::ExtraUtils::hashList($hook->{'import'}->{'module'}, keyAs => "name");
+			}
+			foreach my $module ( @modules ) {
 			    my @symbolNames = split(/\s*,\s*/,$module->{'symbols'});
 			    push(@imports,@symbolNames);
 			    my %symbols;

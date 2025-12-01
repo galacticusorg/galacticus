@@ -551,13 +551,13 @@ contains
     class(virialDensityContrastPercolation), intent(inout) :: self
     type (lockDescriptor                  )                :: fileLock
 
-    call Directory_Make(char(File_Path(char(self%fileName))))
+    call Directory_Make(File_Path(self%fileName))
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-    call File_Lock     (char(self%fileName),fileLock,lockIsShared=.false.)
+    call File_Lock     (self%fileName,fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
     block
       type(hdf5Object) :: file
-      file=hdf5Object(char(self%fileName),overWrite=.true.,readOnly=.false.)
+      file=hdf5Object(self%fileName,overWrite=.true.,readOnly=.false.)
       call file%writeAttribute(        self%densityContrastTableTimeMinimum                                                                 ,'timeMinimum'    )
       call file%writeAttribute(        self%densityContrastTableTimeMaximum                                                                 ,'timeMaximum'    )
       call file%writeAttribute(        self%densityContrastTableMassMinimum                                                                 ,'massMinimum'    )

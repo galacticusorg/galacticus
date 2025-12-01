@@ -53,7 +53,7 @@ module Node_Component_Basic_Standard
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-      <getFunction bindsTo="component">BasicStandardTimeLastIsolated</getFunction>
+      <getFunction>BasicStandardTimeLastIsolated</getFunction>
       <output unitsInSI="gigaYear" comment="Time at which node was last an isolated halo."/>
     </property>
     <property>

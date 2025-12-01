@@ -620,12 +620,12 @@ contains
                       descriptorString=descriptor%serializeToString()
                       call descriptor%destroy()
                       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-                      call Directory_Make(char(File_Path(char(luminositiesFileName)))                                        )
-                      call File_Lock     (               char(luminositiesFileName)  ,lockFileDescriptor,lockIsShared=.false.)
+                      call Directory_Make(File_Path(luminositiesFileName)                                        )
+                      call File_Lock     (          luminositiesFileName ,lockFileDescriptor,lockIsShared=.false.)
                       block
                         type(hdf5Object) :: luminositiesFile
                         !$ call hdf5Access%set()
-                        luminositiesFile=hdf5Object(char(luminositiesFileName))
+                        luminositiesFile=hdf5Object(luminositiesFileName)
                         if (.not.luminositiesFile%hasAttribute('parameters')) call luminositiesFile%writeAttribute(char(descriptorString),'parameters')
                         ! Write the dataset.
                         if (.not.luminositiesFile%hasDataset(trim(datasetName))) &

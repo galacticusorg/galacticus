@@ -37,9 +37,8 @@ sub Bind_Get_Functions {
 	{type => "procedure", name => $property->{'name'}, function => $property->{'getFunction'}->{'content'}}
 	)
 	if (
-	                                   $property->{'attributes' }->{'isGettable'}                &&
-	    !                              $property->{'getFunction'}->{'build'     }                &&
-	                                   $property->{'getFunction'}->{'bindsTo'   } eq "component" &&
+	                                   $property->{'attributes' }->{'isGettable'}  &&
+	    !                              $property->{'getFunction'}->{'build'     }  &&
 	    ! grep {$_ eq "get"} split(":",$property->{'attributes' }->{'isDeferred'})
 	)
 }
@@ -58,11 +57,7 @@ sub Build_Get_Functions {
 	 ||
 	  ! $code::property->{'attributes' }->{'isGettable'}
 	 ||
-	 (
 	  ! $code::property->{'getFunction'}->{'build'     }   
-	  &&
-	    $code::property->{'getFunction'}->{'bindsTo'   } eq "component"
-	 )
 	);
     # Determine a suffix for the function and method names. If the get attribute of this property is deferred, a suffix of "Value"
     # is used - this can then be accessed by the deferred functions if necessary.

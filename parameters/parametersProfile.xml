@@ -3,7 +3,7 @@
 <!-- 30-October-2011                          -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="d4bf2d8db876eb8e44d94e1672bc36a6ea8135cc" time="2025-09-03T18:23:58"/>
+  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
 
 
   <!-- Component selection -->
@@ -17,10 +17,7 @@
     </massDistributionDisk>
   </componentDisk>
   <componentHotHalo value="standard">
-    <fractionLossAngularMomentum value="0.3"/>
     <starveSatellites value="false"/>
-    <efficiencyStrippingOutflow value="0.1"/>
-    <trackStrippedGas value="true"/>
   </componentHotHalo>
   <componentSatellite value="standard"/>
   <componentSpheroid value="standard">
@@ -122,7 +119,12 @@
   <hotHaloOutflowReincorporation value="haloDynamicalTime">
     <multiplier value="5.0"/>
   </hotHaloOutflowReincorporation>
-
+  <hotHaloOutflowStripping value="standard">
+     <efficiency value="0.1"/>
+  </hotHaloOutflowStripping>
+  <coolingInfallTorque value="fixed">
+     <fractionLossAngularMomentum value="0.3"/>
+  </coolingInfallTorque>
   <coolingFunction value="atomicCIECloudy"/>
   <coolingRadius value="simple"/>
   <coolingRate value="whiteFrenk1991">
@@ -134,6 +136,7 @@
   <coolingTimeAvailable value="whiteFrenk1991">
     <ageFactor value="0"/>
   </coolingTimeAvailable>
+  <circumgalacticMediumHeating value="AGNFeedback"/>
   <!-- Hot halo ram pressure stripping options -->
   <hotHaloRamPressureStripping value="font2008"/>
   <hotHaloRamPressureForce value="font2008"/>
@@ -171,7 +174,6 @@
   </stellarPopulation>
 
   <!-- AGN feedback options -->
-  <hotHaloExcessHeatDrivesOutflow value="true"/>
   <blackHoleWind value="ciotti2009">
     <efficiencyWind                              value="0.0024"/>
     <efficiencyWindScalesWithEfficiencyRadiative value="true"  />
@@ -271,7 +273,6 @@
     </nodeOperator>
     <nodeOperator value="blackHolesAccretion"/>
     <nodeOperator value="blackHolesWinds"/>
-    <nodeOperator value="blackHolesCGMHeating"/>
     <!-- CGM physics -->
     <nodeOperator value="CGMAccretion">
       <allowNegativeCGMMass value="true"/>
@@ -279,6 +280,12 @@
     </nodeOperator>
     <nodeOperator value="CGMOutflowReincorporation">
       <includeSatellites value="true"/>
+    </nodeOperator>
+    <nodeOperator value="CGMCoolingHeating">
+      <component value="disk"/>
+      <coolingFrom value="currentNode"/>
+      <excessHeatDrivesOutflow value="true"/>
+      <rateMaximumExpulsion value="1.0"/>
     </nodeOperator>
   </nodeOperator>
 

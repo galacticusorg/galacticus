@@ -3,7 +3,7 @@
 <!-- 14-December-2024                                  0                                                                   -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="d4bf2d8db876eb8e44d94e1672bc36a6ea8135cc" time="2025-09-03T18:23:58"/>
+  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
 
   <!-- Task and work control -->
   <task value="evolveForests">
@@ -16,18 +16,24 @@
   <componentBlackHole value="standard"/>
   <componentDarkMatterProfile value="scale"/>
   <componentDisk value="standard">
+    <toleranceAbsoluteMass value="1.0e-6"/>
+    <inactiveLuminositiesStellar value="true"/>
     <massDistributionDisk value="exponentialDisk">
-    <dimensionless value="true"/>
-  </massDistributionDisk>
+      <dimensionless value="true"/>
+    </massDistributionDisk>
   </componentDisk>
   <componentHotHalo value="standard"/>
   <componentSatellite value="standard"/>
   <componentSpheroid value="standard">
-  <massDistributionSpheroid value="hernquist">
-    <dimensionless value="true"/>
-  </massDistributionSpheroid>
+    <efficiencyEnergeticOutflow value="1.0e-2"/>
+    <toleranceAbsoluteMass value="1.0e-6"/>
+    <inactiveLuminositiesStellar value="true"/>
+    <ratioAngularMomentumScaleRadius value="0.5"/>
+    <massDistributionSpheroid value="hernquist">
+      <dimensionless value="true"/>
+    </massDistributionSpheroid>
   </componentSpheroid>
-
+  
   <componentSpin value="vector"/>
   
   <!-- Cosmological parameters and options -->
@@ -214,7 +220,12 @@
   <hotHaloOutflowReincorporation value="haloDynamicalTime">
     <multiplier value="7.84401490527569"/>
   </hotHaloOutflowReincorporation>
-  
+  <hotHaloOutflowStripping value="standard">
+     <efficiency value="0.1"/>
+  </hotHaloOutflowStripping>
+  <coolingInfallTorque value="fixed">
+     <fractionLossAngularMomentum value="0.0871188291891892"/>
+  </coolingInfallTorque>  
   <coolingFunction value="summation">
     <coolingFunction value="atomicCIECloudy"/>
     <coolingFunction value="CMBCompton"/>
@@ -240,6 +251,7 @@
   <coolingTimeAvailable value="whiteFrenk1991">
     <ageFactor value="0.774282113742516"/>
   </coolingTimeAvailable>
+  <circumgalacticMediumHeating value="AGNFeedback"/>
   <starveSatellites value="false"/>
 
   <!-- Hot halo ram pressure stripping options -->
@@ -285,7 +297,6 @@
   </stellarPopulation>
 
   <!-- AGN feedback options -->
-  <hotHaloExcessHeatDrivesOutflow value="true"/>
   <blackHoleWind value="ciotti2009">
     <efficiencyWind                              value="0.211884639031352"/>
     <efficiencyWindScalesWithEfficiencyRadiative value="false"            />
@@ -413,7 +424,6 @@
     </nodeOperator>
     <nodeOperator value="blackHolesAccretion"/>
     <nodeOperator value="blackHolesWinds"/>
-    <nodeOperator value="blackHolesCGMHeating"/>
     <!-- CGM physics -->
     <nodeOperator value="CGMAccretion">
       <allowNegativeCGMMass value="true"/>
@@ -421,6 +431,12 @@
     </nodeOperator>
     <nodeOperator value="CGMOutflowReincorporation">
       <includeSatellites value="true"/>
+    </nodeOperator>
+    <nodeOperator value="CGMCoolingHeating">
+      <component value="disk"/>
+      <coolingFrom value="currentNode"/>
+      <excessHeatDrivesOutflow value="true"/>
+      <rateMaximumExpulsion value="1.0"/>
     </nodeOperator>
   </nodeOperator>
   

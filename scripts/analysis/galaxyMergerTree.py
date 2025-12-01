@@ -156,7 +156,7 @@ ax.set_ylabel('time [Gyr]')
 logMass = int(np.log10(massMaximum))+1
 xMaximum  = np.max(nodesX)
 xPosition = np.min(nodesX)
-yPosition = 0.1
+yPosition = timeMinimum*0.8
 ax.annotate("$\log_{10}(M_\star/\mathrm{M}_\odot)$",xy=((xMaximum-xPosition)/2.0,yPosition+0.02),annotation_clip=False,horizontalalignment='center')
 for i in range(3):
     logMass -= 1

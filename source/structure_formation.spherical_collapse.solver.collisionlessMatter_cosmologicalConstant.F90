@@ -178,8 +178,8 @@ contains
     type            (lockDescriptor                                  )                             :: fileLock
 
     if (tableStore) then
-       call Directory_Make(char(File_Path(char(self%fileNameCriticalOverdensity)))                             )
-       call File_Lock     (               char(self%fileNameCriticalOverdensity)  ,fileLock,lockIsShared=.false.)
+       call Directory_Make(File_Path(self%fileNameCriticalOverdensity)                              )
+       call File_Lock     (          self%fileNameCriticalOverdensity ,fileLock,lockIsShared=.false.)
     end if
     call    self%restoreTable(time,criticalOverdensity_,self%fileNameCriticalOverdensity                 ,tableStore,status)
     if (status /= errorStatusSuccess) then
@@ -207,8 +207,8 @@ contains
     type            (lockDescriptor                                  )                             :: fileLock
 
     if (tableStore) then
-       call Directory_Make(char(File_Path(char(self%fileNameVirialDensityContrast)))                              )
-       call File_Lock     (               char(self%fileNameVirialDensityContrast)  ,fileLock,lockIsShared=.false.)
+       call Directory_Make(File_Path(self%fileNameVirialDensityContrast)                              )
+       call File_Lock     (          self%fileNameVirialDensityContrast ,fileLock,lockIsShared=.false.)
     end if
     call    self%restoreTable(time,virialDensityContrast_,self%fileNameVirialDensityContrast                 ,tableStore,status)
     if (status /= errorStatusSuccess) then
@@ -236,8 +236,8 @@ contains
     type            (lockDescriptor                                  )                             :: fileLock
 
     if (tableStore) then
-       call Directory_Make(char(File_Path(char(self%fileNameRadiusTurnaround)))                             )
-       call File_Lock     (               char(self%fileNameRadiusTurnaround)  ,fileLock,lockIsShared=.false.)
+       call Directory_Make(File_Path(self%fileNameRadiusTurnaround)                              )
+       call File_Lock     (          self%fileNameRadiusTurnaround ,fileLock,lockIsShared=.false.)
     end if
     call    self%restoreTable(time,radiusTurnaround_,self%fileNameRadiusTurnaround                 ,tableStore,status)
     if (status /= errorStatusSuccess) then
@@ -893,9 +893,9 @@ contains
     !$GLC attributes unused :: self
 
     if (.not.tableStore) return
-    call Directory_Make(char(File_Path(char(fileName))))
+    call Directory_Make(File_Path(fileName))
     !$ call hdf5Access%set()
-    file=hdf5Object(char(fileName),overWrite=.true.,readOnly=.false.)
+    file=hdf5Object(fileName,overWrite=.true.,readOnly=.false.)
     call file%writeDataset(        storeTable%xs()                     ,'time' )
     call file%writeDataset(reshape(storeTable%ys(),[storeTable%size()]),'value')
     !$ call hdf5Access%unset()

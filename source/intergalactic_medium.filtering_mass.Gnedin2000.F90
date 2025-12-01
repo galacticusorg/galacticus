@@ -622,10 +622,10 @@ contains
     type            (hdf5Object                                )                            :: dataFile
 
     ! Return immediately if the file does not exist.
-    if (.not.File_Exists(char(self%fileName))) return
+    if (.not.File_Exists(self%fileName)) return
     if (self%initialized) call self%table%destroy()
     !$ call hdf5Access%set()
-    dataFile=hdf5Object(char(self%fileName),overWrite=.false.,readOnly=.true.)
+    dataFile=hdf5Object(self%fileName,overWrite=.false.,readOnly=.true.)
     call dataFile%readDataset  ('massFiltering',     massFiltering)
     call dataFile%readAttribute('timeMinimum'  ,self%timeMinimum  )
     call dataFile%readAttribute('timeMaximum'  ,self%timeMaximum  )

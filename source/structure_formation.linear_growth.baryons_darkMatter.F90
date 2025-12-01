@@ -640,7 +640,7 @@ contains
     type            (hdf5Object                   )                              :: dataFile
 
     ! Return immediately if the file does not exist.
-    if (.not.File_Exists(char(self%fileName))) return
+    if (.not.File_Exists(self%fileName)) return
     call displayMessage('reading D(k,t) data from: '//self%fileName,verbosityLevelWorking)
     if (self%tableInitialized) call self%growthFactor%destroy()
     !$ call hdf5Access%set()

@@ -207,7 +207,7 @@ contains
              write (outputFile,'(a)' ) char(outputFileName) ! Specify filename.
              close(outputFile)
              call System_Command_Do("export SPS_HOME="//fspsPath//"; "//fspsPath//"/src/autosps.exe < "//fspsInputFileName)
-             call File_Remove(char(fspsInputFileName))
+             call File_Remove(fspsInputFileName)
           end if
           call File_Unlock(imfLock)
        end if
@@ -237,7 +237,7 @@ contains
     ! Convert ages from logarithmic form.
     age=10.0d0**(age-9.0d0)
     ! Write output file.
-    call Directory_Make(char(File_Path(char(spectraFileName))))
+    call Directory_Make(File_Path(spectraFileName))
     !$ call hdf5Access%set()
     block
       type(hdf5Object) :: spectraFile, imfGroup, &

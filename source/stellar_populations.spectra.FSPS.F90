@@ -140,14 +140,14 @@ contains
        ! Check if the file exists and has the correct version.
        remakeFile=.false.
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-       call Directory_Make(char(File_Path(char(self%fileName))))
+       call Directory_Make(File_Path(self%fileName))
        do i=1,2
-          call File_Lock(char(self%fileName),fileLock,lockIsShared=i == 1)
-          if (File_Exists(char(self%fileName))) then
+          call File_Lock(self%fileName,fileLock,lockIsShared=i == 1)
+          if (File_Exists(self%fileName)) then
              !$ call hdf5Access%set()
              block
                type(hdf5Object) :: spectraFile
-               spectraFile=hdf5Object(char(self%fileName),readOnly=.true.)
+               spectraFile=hdf5Object(self%fileName,readOnly=.true.)
                call spectraFile%readAttribute('fileFormat',fileFormatVersion)
                if (fileFormatVersion /= fileFormatVersionCurrent) remakeFile=.true.
              end block

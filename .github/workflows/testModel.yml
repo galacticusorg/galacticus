@@ -20,6 +20,10 @@ on:
       file: # The name of the test file to be run and tested
         required: true
         type: string
+      expectUnrecognized: # Set to zero if unrecognized parameters are not expected, 1 if they are expected
+        required: false
+        default: 0
+        type: number
       options: # Options to pass to the script command line
         required: false
         default: ''
@@ -66,21 +70,21 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: ${{ inputs.fetchDepth }}
       - name: Check out repository analysis-perl
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: galacticusorg/analysis-perl
           path: analysis-perl
       - name: Check out repository datasets
-        uses: actions/checkout@v5      
+        uses: actions/checkout@v6      
         with:
           repository: galacticusorg/datasets
           path: datasets
       - name: Check out repository cusp-halo-relation
-        uses: actions/checkout@v5      
+        uses: actions/checkout@v6      
         with:
           repository: galacticusorg/cusp-halo-relation
           path: cusp-halo-relation
@@ -179,6 +183,20 @@ jobs:
            false
           fi
           ! grep -q -e FAIL -e "ODE integration failed" test.log
+      - uses: qoomon/actions--context@v5
+      - name: "Check for unrecognized parameters"
+        if: ${{ format('{0}',inputs.expectUnrecognized) == '0' }}
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          find testSuite/outputs -name "*.log" | xargs grep "unrecognized parameter" > $GALACTICUS_EXEC_PATH/unrecognized.txt || true
+          cd ${{ inputs.runPath }}
+          grep "unrecognized parameter" test.log >> $GALACTICUS_EXEC_PATH/unrecognized.txt || true
+          cd $GALACTICUS_EXEC_PATH
+          if [ -s "unrecognized.txt" ]; then
+           echo "# :warning: Unrecognized parameters from ${GITHUB_JOB_NAME} :warning:" >> $GITHUB_STEP_SUMMARY
+           echo ":information_source: Job log can be found [here](${GITHUB_JOB_URL})" >> $GITHUB_STEP_SUMMARY
+           cat unrecognized.txt >> $GITHUB_STEP_SUMMARY
+          fi
       - name: "Clean datasets"
         if: ${{ format('{0}',inputs.cacheData) == '1' }}
         run: |

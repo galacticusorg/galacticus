@@ -255,7 +255,7 @@ contains
     block
       type(hdf5Object) :: file
       
-      if (.not.File_Exists(char(self%fileName))) call Error_Report('Unable to find intergalactic medium state file "' //char(self%fileName)//'"'//{introspection:location})
+      if (.not.File_Exists(self%fileName)) call Error_Report('Unable to find intergalactic medium state file "' //char(self%fileName)//'"'//{introspection:location})
       !$ call hdf5Access%set()
       ! Open the file.
       file=hdf5Object(self%fileName,readOnly=.true.)

@@ -21,28 +21,6 @@
 Contains custom functions for the standard disk component.
 !!}
 
-subroutine Node_Component_Disk_Standard_Attach_Pipes(self)
-  !!{
-  Attach cooling pipes to the standard disk component.
-  !!}
-  use :: Error, only : Error_Report
-  implicit none
-  class(nodeComponentDiskStandard), intent(in   ) :: self
-  type (nodeComponentHotHalo     )                :: hotHalo
-  !$GLC attributes unused :: self
-
-  if (hotHalo%hotHaloCoolingMassRateIsAttached           ()) &
-       call Error_Report('expected to find unclaimed hot halo mass cooling pipe'            //{introspection:location})
-  if (hotHalo%hotHaloCoolingAngularMomentumRateIsAttached()) &
-       call Error_Report('expected to find unclaimed hot halo angular momentum cooling pipe'//{introspection:location})
-  if (hotHalo%hotHaloCoolingAbundancesRateIsAttached     ()) &
-       call Error_Report('expected to find unclaimed hot halo abundances cooling pipe'      //{introspection:location})
-  call hotHalo%hotHaloCoolingMassRateFunction           (DiskStandardMassGasRateGeneric        )
-  call hotHalo%hotHaloCoolingAngularMomentumRateFunction(DiskStandardAngularMomentumRateGeneric)
-  call hotHalo%hotHaloCoolingAbundancesRateFunction     (DiskStandardAbundancesGasRateGeneric  )
-  return
-end subroutine Node_Component_Disk_Standard_Attach_Pipes
-
 function Node_Component_Disk_Standard_Mass_Distribution(self,componentType,massType,weightBy,weightIndex) result(massDistribution_)
   !!{
   Return the mass distribution for the standard disk component.

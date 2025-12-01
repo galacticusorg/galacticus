@@ -496,7 +496,7 @@ contains
        allocate(forestSnapshotHaloCounts(0,0))
     end if
     ! Open the merger tree file.
-    mergerTreeFileIsBinary=File_Exists(char(self%mergerTreeFile//".bin"))
+    mergerTreeFileIsBinary=File_Exists(self%mergerTreeFile//".bin")
     mergerTreeFileConvert =.false.
     if (mergerTreeFileIsBinary) then
        open   (newUnit=fileUnit   ,file=char(self%mergerTreeFile//".bin"),status='old'    ,form='unformatted',ioStat=ioStat)
@@ -928,7 +928,7 @@ contains
     call displayMessage('Building node index',verbosityLevelWorking)
     nodeIndexRanks=sortIndex(nodeSelfIndices)
     ! Re-open the merger tree file.
-    mergerTreeFileIsBinary=File_Exists(char(self%mergerTreeFile//".bin"))
+    mergerTreeFileIsBinary=File_Exists(self%mergerTreeFile//".bin")
     if (mergerTreeFileIsBinary) then
        open(newUnit=fileUnit,file=char(self%mergerTreeFile//".bin"),status='old',form='unformatted',ioStat=ioStat)
     else

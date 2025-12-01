@@ -914,8 +914,8 @@ contains
       ! If our table is insufficient (or does not yet exist), attempt to read the table from file.
       haveLock=.false.
       if (tableIsInsufficient()) then
-         call Directory_Make(char(File_Path(char(self%filenameTable))))
-         call File_Lock(char(self%filenameTable),fileLock,lockIsShared=.false.)
+         call Directory_Make(File_Path(self%filenameTable))
+         call File_Lock(self%filenameTable,fileLock,lockIsShared=.false.)
          haveLock=.true.
          if (File_Exists(self%filenameTable)) then
             message='Reading Blitz2006 star formation rate tabulation from file: '//self%filenameTable
@@ -1029,7 +1029,7 @@ contains
          ! Write the table to file.
          message='Writing Blitz2006 star formation rate tabulation to file: '//self%filenameTable
          call displayMessage(message,verbosityLevelWorking)
-         call Directory_Make(char(File_Path(char(self%filenameTable))))
+         call Directory_Make(File_Path(self%filenameTable))
          !$ call hdf5Access%set()
          file=hdf5Object(char(self%filenameTable),overWrite=.true.,readOnly=.false.)
          call file%writeAttribute(self%coefficientFactorBoostMinimum                       ,'coefficientFactorBoostMinimum'                      )

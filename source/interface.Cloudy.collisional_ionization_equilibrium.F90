@@ -94,13 +94,13 @@ contains
     ! Ensure the requested file format version is compatible.
     if (versionFileFormat /= versionFileFormatCurrent) call Error_Report(var_str("this interface supports file format version ")//versionFileFormatCurrent//" but version "//versionFileFormat//" was requested"//{introspection:location})
     ! Determine if we need to compute cooling functions.
-    call Directory_Make(char(File_Path(char(fileNameCoolingFunction))))
-    call Directory_Make(char(File_Path(char(fileNameChemicalState  ))))
+    call Directory_Make(File_Path(fileNameCoolingFunction))
+    call Directory_Make(File_Path(fileNameChemicalState  ))
     computeCoolingFunctions=.false.
     computeChemicalStates  =.false.
     do i=1,2
-       call File_Lock(char(fileNameCoolingFunction),fileLockCoolingFunction,lockIsShared=i == 1 .or. .not.computeCoolingFunctions)
-       call File_Lock(char(fileNameChemicalState  ),fileLockChemicalState  ,lockIsShared=i == 1 .or. .not.computeChemicalStates  )
+       call File_Lock(fileNameCoolingFunction,fileLockCoolingFunction,lockIsShared=i == 1 .or. .not.computeCoolingFunctions)
+       call File_Lock(fileNameChemicalState  ,fileLockChemicalState  ,lockIsShared=i == 1 .or. .not.computeChemicalStates  )
        computeCoolingFunctions=.false.
        computeChemicalStates  =.false.
        if (File_Exists(fileNameCoolingFunction)) then

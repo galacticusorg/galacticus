@@ -138,7 +138,7 @@ contains
     call File_Lock(char(self%fileName),self%fileLock,lockIsShared=.false.)
     ! Check existence of file.
     buildFile=.false.
-    if (File_Exists(char(self%fileName))) then
+    if (File_Exists(self%fileName)) then
        ! Check file version number.
        !$ call hdf5Access%set()
        outputFile=hdf5Object(char(self%fileName),overwrite=.false.,readOnly=.true.)
@@ -179,11 +179,11 @@ contains
           read (recFastUnit,*) redshift(i),electronFraction(i),hIonizedFraction(i),heIonizedFraction(i),matterTemperature(i)
        end do
        close(recFastUnit)
-       call File_Remove(char(recFastFile  ))
-       call File_Remove(char(parameterFile))
+       call File_Remove(recFastFile  )
+       call File_Remove(parameterFile)
        ! Create the output file.
        !$ call hdf5Access%set()
-       outputFile=hdf5Object(char(self%fileName),overwrite=.true.)
+       outputFile=hdf5Object(self%fileName,overwrite=.true.)
        call outputFile%writeDataset  (redshift           ,'redshift'         ,'Redshift'                                            )
        call outputFile%writeDataset  (electronFraction   ,'electronFraction' ,'Electron fraction'                                   )
        call outputFile%writeDataset  (hIonizedFraction   ,'hIonizedFraction' ,'Fraction of ionized hydrogen'                        )

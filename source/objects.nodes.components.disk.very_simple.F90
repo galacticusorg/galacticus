@@ -71,14 +71,14 @@ module Node_Component_Disk_Very_Simple
       <name>massGas</name>
       <type>double</type>
       <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
       <output unitsInSI="massSolar" comment="Mass of gas in the very simple disk."/>
     </property>
     <property>
       <name>abundancesGas</name>
       <type>abundances</type>
       <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
       <output unitsInSI="massSolar" comment="Mass of metals in the gas phase of the standard disk."/>
     </property>
     <property>
@@ -96,8 +96,7 @@ module Node_Component_Disk_Very_Simple
     </property>
    </properties>
    <bindings>
-    <binding method="attachPipe"   function="Node_Component_Disk_Very_Simple_Attach_Pipe"   description="Attach pipes to the very simple disk component." bindsTo="component" returnType="\void" arguments=""/>
-    <binding method="massBaryonic" function="Node_Component_Disk_Very_Simple_Mass_Baryonic"                                                               bindsTo="component"                                />
+    <binding method="massBaryonic" function="Node_Component_Disk_Very_Simple_Mass_Baryonic"/>
    </bindings>
    <functions>objects.nodes.components.disk.very_simple.bound_functions.inc</functions>
   </component>
@@ -139,9 +138,8 @@ contains
     use :: Galacticus_Nodes, only : defaultDiskComponent, nodeComponentDiskVerySimple
     use :: Input_Parameters, only : inputParameter      , inputParameters
     implicit none
-    type(inputParameters            ), intent(inout) :: parameters
-    type(nodeComponentDiskVerySimple)                :: diskVerySimpleComponent
-    type(inputParameters            )                :: subParameters
+    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters)                :: subParameters
 
     ! Initialize the module if necessary.
     if (defaultDiskComponent%verySimpleIsActive()) then
@@ -186,8 +184,6 @@ contains
          <source>parameters</source>
        </inputParameter>
        !!]
-       ! Attach the cooling mass pipe from the hot halo component.
-       call diskVerySimpleComponent%attachPipe()
     end if
     return
   end subroutine Node_Component_Disk_Very_Simple_Initialize

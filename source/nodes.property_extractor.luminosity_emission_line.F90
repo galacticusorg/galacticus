@@ -595,7 +595,8 @@ contains
     use :: IO_HDF5                 , only : hdf5Object
     use :: Output_HDF5             , only : outputFile
     use :: Numerical_Comparison    , only : Values_Agree
-    use :: File_Utilities          , only : File_Exists                  , File_Lock                             , File_Unlock, lockDescriptor
+    use :: File_Utilities          , only : File_Exists                  , File_Lock                             , File_Unlock, lockDescriptor, &
+         &                                  Directory_Make               , File_Path
     use :: String_Handling         , only : operator(//)
     use :: Input_Paths             , only : inputPath                    , pathTypeDataDynamic
     use :: Star_Formation_Histories, only : starFormationHistoryAgesFixed, starFormationHistoryAgesFixedPerOutput
@@ -657,7 +658,8 @@ contains
        !$ call hdf5Access%unset()
        ! Check if the templates can be retrieved from file.
        !! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-       call File_Lock(char(fileName),fileLock,lockIsShared=.false.)
+       call Directory_Make(File_Path(fileName))
+       call File_Lock(fileName,fileLock,lockIsShared=.false.)
        if (File_Exists(fileName)) then
           !$ call hdf5Access%set()
           file=hdf5Object(char(fileName))
