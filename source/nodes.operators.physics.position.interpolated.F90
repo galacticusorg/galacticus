@@ -859,7 +859,7 @@ contains
       type            (history              )                            :: positionHistory
       integer                                                            :: i                                   , j                    , &
            &                                                                k
-      double precision                                                   :: expansionFactor
+      double precision                                                   :: expansionFactor                     , expansionFactorHost
 
       ! Iterate over position and velocity.
       do k=1,2
@@ -878,6 +878,7 @@ contains
             ! Extract positional components and history.
             position        => trace_  %node    %position       ()
             positionHost    => trace_  %nodeHost%position       ()
+            basicHost       => trace_  %nodeHost%basic          ()
             positionHistory =  position         %positionHistory()
             ! Find displacement vectors (in physical coordinates) from the host center.
             select case (k)
@@ -887,12 +888,13 @@ contains
                positionHost_     =positionHost   %position(                   )
                ! Handle periodic positions.
                if (self%isPeriodic) then
-                  expansionFactor=self%cosmologyFunctions_%expansionFactor(trace_%time)
+                  expansionFactor    =self%cosmologyFunctions_%expansionFactor(trace_   %time  )
+                  expansionFactorHost=self%cosmologyFunctions_%expansionFactor(basicHost%time())
                   do j=1,3
-                     if (positionSatellite_(j)/expansionFactor > positionReference(j)+0.5d0*self%lengthBox) positionSatellite_(j)=positionSatellite_(j)-self%lengthBox*expansionFactor
-                     if (positionSatellite_(j)/expansionFactor < positionReference(j)-0.5d0*self%lengthBox) positionSatellite_(j)=positionSatellite_(j)+self%lengthBox*expansionFactor
-                     if (positionHost_     (j)/expansionFactor > positionReference(j)+0.5d0*self%lengthBox) positionHost_     (j)=positionHost_     (j)-self%lengthBox*expansionFactor
-                     if (positionHost_     (j)/expansionFactor < positionReference(j)-0.5d0*self%lengthBox) positionHost_     (j)=positionHost_     (j)+self%lengthBox*expansionFactor
+                     if (positionSatellite_(j)/expansionFactor     > positionReference(j)+0.5d0*self%lengthBox) positionSatellite_(j)=positionSatellite_(j)-self%lengthBox*expansionFactor
+                     if (positionSatellite_(j)/expansionFactor     < positionReference(j)-0.5d0*self%lengthBox) positionSatellite_(j)=positionSatellite_(j)+self%lengthBox*expansionFactor
+                     if (positionHost_     (j)/expansionFactorHost > positionReference(j)+0.5d0*self%lengthBox) positionHost_     (j)=positionHost_     (j)-self%lengthBox*expansionFactorHost
+                     if (positionHost_     (j)/expansionFactorHost < positionReference(j)-0.5d0*self%lengthBox) positionHost_     (j)=positionHost_     (j)+self%lengthBox*expansionFactorHost
                   end do
                end if
                positionRelative(i,:)=positionSatellite_                          -positionHost_
@@ -979,7 +981,7 @@ contains
       !!{
       Compute coefficients of a cubic polynomial interpolation for position and velocity.
       !!}
-      use :: Galacticus_Nodes                , only : nodeComponentPosition
+      use :: Galacticus_Nodes                , only : nodeComponentPosition, nodeComponentBasic
       use :: Histories                       , only : history
       use :: Linear_Algebra                  , only : vector               , matrix, assignment(=)
       use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr
@@ -988,6 +990,7 @@ contains
       double precision                                  , dimension(4,3)              :: coefficientsCubicPolynomial
       type            (nodeTrace                       ), intent(in   ) , target      :: trace
       logical                                           , intent(in   )               :: useHost
+      class           (nodeComponentBasic              )                , pointer     :: basic
       class           (nodeComponentPosition           )                , pointer     :: position
       type            (nodeTrace                       )                , pointer     :: trace_
       double precision                                  , dimension(2  )              :: times
@@ -998,6 +1001,7 @@ contains
       integer                                                                         :: i                           , j
       type            (history                         )                              :: positionHistory
       logical                                                                         :: isClone
+      double precision                                                                :: expansionFactor
       
       do i=1,2
          select case (i)
@@ -1008,9 +1012,12 @@ contains
          end select
          times(i)=trace_%time
          if (useHost) then
-            position => trace_%nodeHost%position()
+            position        => trace_%nodeHost           %position       (              )
+            basic           => trace_%nodeHost           %basic          (              )
+            expansionFactor =  self  %cosmologyFunctions_%expansionFactor(basic%time ( ))
          else
-            position => trace_%node    %position()
+            position        => trace_%node               %position       (              )
+            expansionFactor =  self  %cosmologyFunctions_%expansionFactor(      times(i))
          end if
          if (.not.useHost .and. trace_%isSatellite) then
             positionHistory      =position       %positionHistory(                   )
@@ -1021,8 +1028,8 @@ contains
             velocityPhysical(i,:)=position       %velocity       (                   )
          end if
          ! Convert from physical to comoving coordinates, and, for velocities, from km/s to Mpc/Gyr.
-         positionComoving(i,:)=positionPhysical(i,:)/self%cosmologyFunctions_%expansionFactor(times(i))
-         velocityComoving(i,:)=velocityPhysical(i,:)/self%cosmologyFunctions_%expansionFactor(times(i))/MpcPerKmPerSToGyr
+         positionComoving(i,:)=positionPhysical(i,:)/expansionFactor
+         velocityComoving(i,:)=velocityPhysical(i,:)/expansionFactor/MpcPerKmPerSToGyr
       end do
       ! Handle periodic positions.
       if (self%isPeriodic) then
