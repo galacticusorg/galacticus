@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "e32181bf27fc720d78222dc337fbc680730fb48d",
-        "message": "Merge pull request #970 from galacticusorg/featPostprocessing\n\nAdd postprocessing functionality\n",
-        "timestamp": "2025-11-21 17:03:14+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/e32181bf27fc720d78222dc337fbc680730fb48d"
+        "id": "2473ecce8a8e6d5be099483957f8dfe86943f8d5",
+        "message": "Merge pull request #976 from galacticusorg/fixLightconeInterpolation\n\nUse the correct expansion factor when converting from comoving to physical coordinates\n",
+        "timestamp": "2025-12-02 15:36:04+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/2473ecce8a8e6d5be099483957f8dfe86943f8d5"
     },
     "results": [
         {
