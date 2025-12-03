@@ -1,12 +1,26 @@
 #!/usr/bin/env python3
 import subprocess
 import re
+import os
 
 # Check that strict handling of parameter files works as intended.
 # Andrew Benson (03-December-2025)
 
+# Specify models.
+models = [ "strictUnrecognized", "unstrictUnrecognized" ]
+## Determine if we have the Git2 library and so can test outdated parameter files.
+haveGit2 = False
+config   = open(os.environ['GALACTICUS_EXEC_PATH']+"/work/build/Makefile_Config_Git2","r")
+for line in config:
+    if re.search(r'\-DGIT2AVAIL',line):
+        haveGit2 = True
+config.close()
+if haveGit2:
+    models.append("strictOutdated"  )
+    models.append("unstrictOutdated")
+
 # Iterate over models.
-for model in ( "strictOutdated", "unstrictOutdated", "strictUnrecognized", "unstrictUnrecognized" ):
+for model in models:
     # Run the model and check for completion.
     print(f"Running model '{model}'...")
     status = subprocess.run("mkdir -p outputs",shell=True)
