@@ -1262,7 +1262,8 @@ jobs:
                 test-pruneLightcone.py,
                 test-soliton-coremass.py,
                 test-promptCuspNFW.py,
-                test-postprocessing.py ]
+                test-postprocessing.py,
+                test-strict-parameters.py ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}

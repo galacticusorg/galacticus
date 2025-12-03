@@ -128,7 +128,7 @@ module Input_Parameters
      type   (inputParameter ), pointer, public :: parameters             => null()
      type   (inputParameters), pointer, public :: parent                 => null() , original                  => null()
      logical                                   :: outputParametersCopied =  .false., outputParametersTemporary = .false., &
-          &                                       isNull                 =  .false.
+          &                                       isNull                 =  .false., strict                    = .false.
      type   (integerHash    ), allocatable     :: warnedDefaults
      type   (ompLock        ), pointer         :: lock                   => null()
    contains
@@ -586,17 +586,17 @@ contains
     use            :: Display           , only : displayGreen                     , displayMessage  , displayMagenta  , displayReset  , &
          &                                       verbosityLevelSilent
     use            :: File_Utilities    , only : File_Name_Temporary              , File_Remove
-    use            :: FoX_dom           , only : getOwnerDocument                 , node            , setLiveNodeLists, getTextContent, &
-         &                                       hasAttribute                     , getAttributeNode
+    use            :: FoX_dom           , only : getOwnerDocument                 , node            , setLiveNodeLists  , getTextContent, &
+         &                                       hasAttribute                     , getAttributeNode, extractDataContent
     use            :: Error             , only : Error_Report
 #ifdef GIT2AVAIL
     use, intrinsic :: ISO_C_Binding     , only : c_null_char
     use            :: Input_Paths       , only : pathTypeExec                     , inputPath
     use            :: Output_Versioning , only : Version
 #else
-    use            :: Error             , only : Warn
+    use            :: Error             , only : Warn                             , Error_Report
 #endif
-    use            :: ISO_Varying_String, only : assignment(=)                    , char           , operator(//)    , operator(/=), &
+    use            :: ISO_Varying_String, only : assignment(=)                    , char           , operator(//)      , operator(/=)   , &
          &                                       var_str
     use            :: String_Handling   , only : String_Strip,String_C_To_Fortran , operator(//)
     use            :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
@@ -610,15 +610,16 @@ contains
     character(len=*          )              , intent(in   ), optional :: fileName
     type     (hdf5Object     ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                 , intent(in   ), optional :: noOutput                   , noBuild
-#ifdef GIT2AVAIL
     type     (varying_string )                                        :: message
-    type     (node           ), pointer                               :: lastModifiedNode           , revisionNode
+#ifdef GIT2AVAIL
+    type     (node           ), pointer                               :: lastModifiedNode           , revisionNode       , &
+         &                                                               strictNode
     integer  (c_int          ), dimension(:), allocatable             :: isAncestorOfParameters
     integer  (c_int          )                                        :: isAncestorOfSelf
     character(len=41         )                                        :: commitHashSelf             , commitHashParameters
     character(len=42         )                                        :: commitHashSelf_
     integer                                                           :: i
-    logical                                                           :: hasRevision
+    logical                                                           :: hasRevision                , hasStrict
 #endif
     type     (varying_string ), dimension(:), allocatable  , save     :: allowedParameterNamesGlobal
     !$omp threadprivate(allowedParameterNamesGlobal)
@@ -692,9 +693,14 @@ contains
           !$omp critical (FoX_DOM_Access)
           lastModifiedNode => XML_Get_First_Element_By_Tag_Name(self%rootNode        ,'lastModified')
           hasRevision      =  hasAttribute                     (     lastModifiedNode,'revision'    )
+          hasStrict        =  hasAttribute                     (     lastModifiedNode,'strict'      )
           if (hasRevision) then
              revisionNode         => getAttributeNode(lastModifiedNode,'revision')
              commitHashParameters =  getTextContent  (revisionNode               )//c_null_char
+          end if
+          if (hasStrict  ) then
+             strictNode           => getAttributeNode(lastModifiedNode,'strict'  )
+             call extractDataContent(strictNode,self%strict)
           end if
           !$omp end critical (FoX_DOM_Access)
           if (hasRevision) then
@@ -712,22 +718,46 @@ contains
                 isAncestorOfParameters(i)=gitDescendantOf(char(inputPath(pathTypeExec))//c_null_char,commitHashParameters,commitHash(i))
              end do
              if (any(isAncestorOfParameters /= 0_c_int .and. isAncestorOfParameters /= 1_c_int)) then
-                call displayMessage(var_str(displayMagenta()//"WARNING:"//displayReset()//" parameter file revision check failed (#1; error code; ")//maxval(isAncestorOfParameters)//")")
+                message=var_str("parameter file revision check failed (#1; error code; ")//maxval(isAncestorOfParameters)//")"
+                if (self%strict) then
+                   call Error_Report(message//{introspection:location})
+                else
+                   call displayMessage(displayMagenta()//"WARNING: "//displayReset()//message)
+                end if
              else if (any(isAncestorOfParameters == 0)) then
                 ! Parameter file is missing migrations - issue a warning.
-                message=displayMagenta()//"WARNING:"//displayReset()//" parameter file may be missing important parameter updates - consider updating by running:"//char(10)//char(10)//"              ./scripts/aux/parametersMigrate.pl "//trim(fileName)//" newParameterFile.xml"
-                call displayMessage(message//char(10),verbosityLevelSilent)
+                message="parameter file may be missing important parameter updates - consider updating by running:"//char(10)//char(10)//"              ./scripts/aux/parametersMigrate.pl "//trim(fileName)//" newParameterFile.xml"
+                if (self%strict) then
+                   call Error_Report(message//{introspection:location})
+                else
+                   call displayMessage(displayMagenta()//"WARNING: "//displayReset()//message//char(10),verbosityLevelSilent)
+                end if
              end if
              isAncestorOfSelf=gitDescendantOf(char(inputPath(pathTypeExec))//c_null_char,commitHashSelf,commitHashParameters)
              if (isAncestorOfSelf /= 0_c_int .and. isAncestorOfSelf /= 1_c_int) then
-                call displayMessage(var_str(displayMagenta()//"WARNING:"//displayReset()//" parameter file revision check failed (#2; error code: ")//isAncestorOfSelf//")")
+                message=var_str("parameter file revision check failed (#2; error code: ")//isAncestorOfSelf//")"
+                if (self%strict) then
+                   call Error_Report(message//{introspection:location})
+                else
+                   call displayMessage(displayMagenta()//"WARNING: "//displayReset()//message)
+                end if
              else if (isAncestorOfSelf == 0_c_int) then
                 ! Parameters are more recent than the executable - issue a warning.
-                call displayMessage(displayMagenta()//"WARNING:"//displayReset()//" parameter file revision is newer than this executable - consider updating your copy of Galacticus",verbosityLevelSilent)
+                message="parameter file revision is newer than this executable - consider updating your copy of Galacticus"
+                if (self%strict) then
+                   call Error_Report(message//{introspection:location})
+                else
+                   call displayMessage(displayMagenta()//"WARNING: "//displayReset()//message,verbosityLevelSilent)
+                end if
              end if
           end if
 #else
-          call Warn(displayMagenta()//"WARNING:"//displayReset()//" can not check if parameter file is up to date (`libgit` is not available)")
+          message="can not check if parameter file is up to date (`libgit` is not available)"
+          if (self%strict) then
+             call Error_Report(message//{introspection:location})
+          else
+             call Warn(displayMagenta()//"WARNING: "//displayReset()//message)
+          end if
 #endif
        end if
     end if
@@ -1520,6 +1550,7 @@ contains
        end do
     end if
     if (warningsFound .and. verbose) call displayUnindent('')
+    if (warningsFound .and. self%strict) call Error_Report('warnings found and strict compliance requested'//{introspection:location})
     return
   end subroutine inputParametersCheckParameters
 
