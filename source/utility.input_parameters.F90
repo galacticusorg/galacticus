@@ -688,7 +688,6 @@ contains
     ! Check for migration information.
     if (present(fileName)) then
        if (XML_Path_Exists(self%rootNode,"lastModified")) then
-#ifdef GIT2AVAIL
           ! Look for a "lastModified" element in the parameter file.
           !$omp critical (FoX_DOM_Access)
           lastModifiedNode => XML_Get_First_Element_By_Tag_Name(self%rootNode        ,'lastModified')
@@ -703,6 +702,7 @@ contains
              call extractDataContent(strictNode,self%strict)
           end if
           !$omp end critical (FoX_DOM_Access)
+#ifdef GIT2AVAIL
           if (hasRevision) then
              ! A revision was available in the parameter file.
              !! Build an array of known migration commit hashes.
