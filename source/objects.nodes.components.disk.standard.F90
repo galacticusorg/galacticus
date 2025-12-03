@@ -1098,16 +1098,18 @@ contains
    <unitName>Node_Component_Disk_Standard_Radius_Solver</unitName>
   </radiusSolverTask>
   !!]
-  subroutine Node_Component_Disk_Standard_Radius_Solver(node,componentActive,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get&
+  subroutine Node_Component_Disk_Standard_Radius_Solver(node,componentActive,component,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get&
        &,Velocity_Set)
     !!{
     Interface for the size solver algorithm.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentDisk             , nodeComponentDiskStandard, treeNode
+    use :: Galactic_Structure_Options      , only : enumerationComponentTypeType  , componentTypeDisk
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     type            (treeNode                                     ), intent(inout)          :: node
     logical                                                        , intent(  out)          :: componentActive
+    type            (enumerationComponentTypeType                 ), intent(  out)          :: component
     logical                                                        , intent(in   )          :: specificAngularMomentumRequired
     double precision                                               , intent(  out)          :: specificAngularMomentum
     procedure       (Node_Component_Disk_Standard_Radius_Solve    ), intent(  out), pointer :: Radius_Get                     , Velocity_Get
@@ -1118,10 +1120,11 @@ contains
 
     ! Determine if node has an active disk component supported by this module.
     componentActive         =  .false.
+    component               =  componentTypeDisk
     specificAngularMomentum =  0.0d0
     disk                    => node%disk()
     select type (disk)
-       class is (nodeComponentDiskStandard)
+    class is (nodeComponentDiskStandard)
        componentActive=.true.
        ! Get the angular momentum.
        if (specificAngularMomentumRequired) then
