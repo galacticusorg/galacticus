@@ -4,10 +4,10 @@
 
   <!-- Change the dark matter particle to a fuzzy dark matter particle -->
   <change type="replace" path="darkMatterParticle">
-    <darkMatterParticle value="fuzzyDarkMatter">
-      <mass            value="10.0"/> <!-- In unis of 1.0e-22 eV -->
-      <densityFraction value=" 1.0"/>
-    </darkMatterParticle>
+  <darkMatterParticle value="fuzzyDarkMatter">
+    <mass            value="10.0"/> <!-- In unis of 1.0e-22 eV -->
+    <densityFraction value=" 1.0"/>
+  </darkMatterParticle>
   </change>
 
   <!-- Replace the transfer function with one generated from AxionCAMB (https://github.com/dgrin1/axionCAMB). -->
@@ -34,5 +34,211 @@
   </change>
   <change type="replaceWith" path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileDMO" target="darkMatterProfileDMO/darkMatterProfileDMO"/>
   <change type="update" path="darkMatterProfileDMO/darkMatterProfileDMO" value="solitonNFW"/>
+
+  <!-- Add the soliton node operator for soliton+NFW dark matter halo profiles. -->
+  <change type="append" path="nodeOperator">
+    <nodeOperator value="darkMatterProfileSoliton">
+      <darkMatterParticle value="fuzzyDarkMatter">
+        <mass value="10.0"/> <!-- In unis of 1.0e-22 eV -->
+        <densityFraction value=" 1.0"/>
+      </darkMatterParticle>
+    </nodeOperator>
+  </change>
+
+  <!-- Change the dark matter scale radius model -->
+  <change type="replace" path="darkMatterProfileScaleRadius">
+  <darkMatterProfileScaleRadius value="concentrationLimiter">
+    <!-- Limit scale radii to keep concentrations within a reasonable range. -->
+    <concentrationMinimum value="  3.0"/>
+    <concentrationMaximum value="100.0"/>
+    <darkMatterProfileScaleRadius value="johnson2021">
+      <!-- Scale radii are computed using the energy random walk model of Johnson, Benson, & Grin (2021; ApJ; 908; 33; http://adsabs.harvard.edu/abs/2021ApJ...908...33J). -->
+      <!-- Best-fit values of the parameters are taken from https://github.com/galacticusorg/galacticus/wiki/Constraints:-Halo-spins-and-concentrations.                   -->
+      <darkMatterProfileDMO value="NFW"/>
+      <energyBoost value="0.797003643180003"/>
+      <massExponent value="2.168409985653090"/>
+      <unresolvedEnergy value="0.550000000000000"/>
+      <darkMatterProfileScaleRadius value="ludlow2016">
+        <C value="700.27000"/> <!-- Best fit values from Johnson, Benson, & Grin (2020). -->
+        <f value="  0.07534"/>
+        <timeFormationSeekDelta value="  0.00000"/>
+        <darkMatterProfileScaleRadius value="concentration">
+          <correctForConcentrationDefinition value="true"/>
+
+          <darkMatterProfileConcentration value="schneider2015">
+            <!-- Define a reference CDM universe - the Schneider algorithm works by finding halos with the same formation epoch in this
+                 reference universe .-->
+            <reference>
+              <!-- Insert place-holder parameters here - we will later copy in the originals of these from the original parameter
+             set. -->
+              <darkMatterParticle value="CDM"/>
+              <darkMatterProfileConcentration value="diemerJoyce2019">
+                <!-- Use the Diemer & Joyce (2019; ApJ; 871; 168; http://adsabs.harvard.edu/abs/2019ApJ...871..168D) model for concentrations. -->
+
+                <cosmologicalMassVariance value="filteredPower">
+                  <sigma_8 value="0.8111"/> <!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+                  <tolerance value="3.0e-4"/>
+                  <toleranceTopHat value="3.0e-4"/>
+                  <nonMonotonicIsFatal value="false"/>
+                  <monotonicInterpolation value="true"/>
+                </cosmologicalMassVariance>
+
+                <criticalOverdensity value="environmental">
+                  <!-- Use an environmentally-dependant critical overdensity in tree building, to match the model of Benson, Ludlow & Cole
+                       (2019; https://ui.adsabs.harvard.edu/abs/2019MNRAS.485.5010B). The value of the parameter "a" is taken from that
+                       work. -->
+                  <a value="0.077"/>
+                  <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt">
+                    <formatVersion>2</formatVersion>
+                    <lastModified revision="49430476890d1e0d92c686020f046e972952f81e" time="2025-07-17T15:12:42"/>
+
+                    <!-- Dark matter properties -->
+                    <darkMatterParticle value="CDM"/>
+
+
+                  </criticalOverdensity>
+                </criticalOverdensity>
+
+                <powerSpectrumPrimordial value="powerLaw">
+                  <index value="0.9649"/> <!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+                  <wavenumberReference value="1.0000"/>
+                  <running value="0.0000"/> <!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+                </powerSpectrumPrimordial>
+
+                <powerSpectrumPrimordialTransferred value="simple"/>
+
+                <powerSpectrumWindowFunction value="topHat"/>
+
+                <transferFunction value="CAMB">
+                  <redshift value="100.0"/>
+                  <!-- Include cosmological model explicitly here so that baryons are included in the transfer function even for dark matter-only models. -->
+                  <formatVersion>2</formatVersion>
+                  <lastModified revision="49430476890d1e0d92c686020f046e972952f81e" time="2025-07-17T15:12:42"/>
+
+                  <!-- Cosmological parameters and options -->
+                  <cosmologyFunctions value="matterLambda"/>
+                  <cosmologyParameters value="simple">
+                    <HubbleConstant value="67.36000"/>  <!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+                    <OmegaMatter value=" 0.31530"/>     <!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+                    <OmegaDarkEnergy value=" 0.68470"/> <!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+                    <OmegaBaryon value=" 0.04930"/>     <!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+                    <temperatureCMB value=" 2.72548"/>
+                  </cosmologyParameters>
+
+
+                  <formatVersion>2</formatVersion>
+                  <lastModified revision="49430476890d1e0d92c686020f046e972952f81e" time="2025-07-17T15:12:42"/>
+
+                  <!-- Dark matter properties -->
+                  <darkMatterParticle value="CDM"/>
+
+
+                </transferFunction>
+              </darkMatterProfileConcentration>
+              <criticalOverdensity value="environmental">
+                <!-- Use an environmentally-dependant critical overdensity in tree building, to match the model of Benson, Ludlow & Cole
+                     (2019; https://ui.adsabs.harvard.edu/abs/2019MNRAS.485.5010B). The value of the parameter "a" is taken from that
+                     work. -->
+                <a value="0.077"/>
+                <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt">
+                  <formatVersion>2</formatVersion>
+                  <lastModified revision="49430476890d1e0d92c686020f046e972952f81e" time="2025-07-17T15:12:42"/>
+
+                  <!-- Dark matter properties -->
+                  <darkMatterParticle value="CDM"/>
+
+
+                </criticalOverdensity>
+              </criticalOverdensity>
+              <cosmologicalMassVariance value="scaled">
+                <scale value="0.689"/>
+                <cosmologicalMassVariance value="filteredPower">
+                  <sigma_8 value="0.8111"/> <!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+                  <tolerance value="3.0e-4"/>
+                  <toleranceTopHat value="3.0e-4"/>
+                  <nonMonotonicIsFatal value="false"/>
+                  <monotonicInterpolation value="true"/>
+              </cosmologicalMassVariance></cosmologicalMassVariance>
+              <powerSpectrumPrimordial value="powerLaw">
+                <index value="0.9649"/> <!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+                <wavenumberReference value="1.0000"/>
+                <running value="0.0000"/> <!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+              </powerSpectrumPrimordial>
+              <powerSpectrumPrimordialTransferred value="simple"/>
+              <powerSpectrumWindowFunction value="sharpKSpace">
+                <normalization value="2.5"/> <!-- Taken from Benson et al. (2013; https://ui.adsabs.harvard.edu/abs/2013MNRAS.428.1774B) - chosen to ensure a match to the location of the turnover in WDM mass functions. -->
+              </powerSpectrumWindowFunction>
+              <transferFunction value="CAMB">
+                <redshift value="100.0"/>
+                <!-- Include cosmological model explicitly here so that baryons are included in the transfer function even for dark matter-only models. -->
+                <formatVersion>2</formatVersion>
+                <lastModified revision="49430476890d1e0d92c686020f046e972952f81e" time="2025-07-17T15:12:42"/>
+
+                <!-- Cosmological parameters and options -->
+                <cosmologyFunctions value="matterLambda"/>
+                <cosmologyParameters value="simple">
+                  <HubbleConstant value="67.36000"/>    <!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+                  <OmegaMatter value=" 0.31530"/>       <!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+                  <OmegaDarkEnergy value=" 0.68470"/>   <!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+                  <OmegaBaryon value=" 0.04930"/>       <!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+                  <temperatureCMB value=" 2.72548"/>
+                </cosmologyParameters>
+
+
+                <formatVersion>2</formatVersion>
+                <lastModified revision="49430476890d1e0d92c686020f046e972952f81e" time="2025-07-17T15:12:42"/>
+
+                <!-- Dark matter properties -->
+                <darkMatterParticle value="CDM"/>
+
+
+              </transferFunction>
+            </reference>
+          </darkMatterProfileConcentration>
+
+        </darkMatterProfileScaleRadius>
+      </darkMatterProfileScaleRadius>
+
+    </darkMatterProfileScaleRadius>
+  </darkMatterProfileScaleRadius>
+  </change>
+
+  <!-- Change the virial orbit model -->
+  <change type="replace" path="virialOrbit">
+  <virialOrbit value="spinCorrelated">
+    <darkMatterProfileDMO value="NFW"/>
+    <!-- Best fit value for correlation with host spin from https://github.com/galacticusorg/galacticus/wiki/Constraints:-Halo-spins-and-concentrations. -->
+    <alpha value="0.155573112534425"/>
+    <virialOrbit value="jiang2014">
+      <!-- Best fit value from Benson, Behrens, & Lu (2020) -->
+      <bRatioHigh value="+2.88333 +4.06371 +3.86726"/>
+      <bRatioIntermediate value="+1.05361 +1.56868 +2.89027"/>
+      <bRatioLow value="+0.07432 +0.54554 +1.04721"/>
+      <gammaRatioHigh value="+0.07124 +0.04737 -0.01913"/>
+      <gammaRatioIntermediate value="+0.10069 +0.07821 +0.04231"/>
+      <gammaRatioLow value="+0.10866 +0.11260 +0.11698"/>
+      <muRatioHigh value="+1.10168 +1.09639 +1.09819"/>
+      <muRatioIntermediate value="+1.18205 +1.19573 +1.24581"/>
+      <muRatioLow value="+1.22053 +1.22992 +1.25528"/>
+      <sigmaRatioHigh value="+0.09244 +0.14335 +0.21079"/>
+      <sigmaRatioIntermediate value="+0.07397 +0.09590 +0.10941"/>
+      <sigmaRatioLow value="+0.07458 +0.09040 +0.06981"/>
+    </virialOrbit>
+  </virialOrbit>
+  </change>
+
+  <change type="replace" path="componentSatellite">
+  <componentSatellite value="orbiting"/>
+  </change>
+
+    
+  <change type="replace" path="nodeOperator/nodeOperator[@value='haloAngularMomentumVitvitska2002']">
+    <nodeOperator value="haloAngularMomentumVitvitska2002">
+      <darkMatterProfileDMO value="NFW"/>
+      <exponentMass value="1.10475"/> <!-- Best fit value from Benson, Behrens, & Lu (2020) offset for fix to Keplerian orbit propagation -->
+    </nodeOperator>
+  </change>
+
+  <change type="update" path="mergerTreeMassResolution/massResolution" value="1.0e9"/>
 
 </changes>

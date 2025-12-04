@@ -32,7 +32,7 @@
   <mergerTreeBuildMasses value="replicate">
     <replicationCount value="4"/>
     <mergerTreeBuildMasses value="readHDF5">
-      <fileName value="%DATASTATICPATH%/darkMatter/hostHaloMasses_Symphony_MilkyWay_resolutionX1_CDM_z0.000.hdf5"/>
+      <fileName value="%DATASTATICPATH%/darkMatter/hostHaloMasses_Symphony_MilkyWay_resolutionX1_CDM.hdf5"/>
     </mergerTreeBuildMasses>
   </mergerTreeBuildMasses>
 
