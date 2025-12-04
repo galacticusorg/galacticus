@@ -583,6 +583,7 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily inputParameters} class from a FoX node.
     !!}
+    use, intrinsic :: ISO_C_Binding     , only : c_null_char
     use            :: Display           , only : displayGreen                     , displayMessage  , displayMagenta  , displayReset  , &
          &                                       verbosityLevelSilent
     use            :: File_Utilities    , only : File_Name_Temporary              , File_Remove
@@ -590,11 +591,10 @@ contains
          &                                       hasAttribute                     , getAttributeNode, extractDataContent
     use            :: Error             , only : Error_Report
 #ifdef GIT2AVAIL
-    use, intrinsic :: ISO_C_Binding     , only : c_null_char
     use            :: Input_Paths       , only : pathTypeExec                     , inputPath
     use            :: Output_Versioning , only : Version
 #else
-    use            :: Error             , only : Warn                             , Error_Report
+    use            :: Error             , only : Warn
 #endif
     use            :: ISO_Varying_String, only : assignment(=)                    , char           , operator(//)      , operator(/=)   , &
          &                                       var_str
@@ -611,15 +611,16 @@ contains
     type     (hdf5Object     ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                 , intent(in   ), optional :: noOutput                   , noBuild
     type     (varying_string )                                        :: message
-#ifdef GIT2AVAIL
     type     (node           ), pointer                               :: lastModifiedNode           , revisionNode       , &
          &                                                               strictNode
+    logical                                                           :: hasRevision                , hasStrict
+    character(len=41         )                                        :: commitHashParameters
+#ifdef GIT2AVAIL
     integer  (c_int          ), dimension(:), allocatable             :: isAncestorOfParameters
     integer  (c_int          )                                        :: isAncestorOfSelf
-    character(len=41         )                                        :: commitHashSelf             , commitHashParameters
+    character(len=41         )                                        :: commitHashSelf
     character(len=42         )                                        :: commitHashSelf_
     integer                                                           :: i
-    logical                                                           :: hasRevision                , hasStrict
 #endif
     type     (varying_string ), dimension(:), allocatable  , save     :: allowedParameterNamesGlobal
     !$omp threadprivate(allowedParameterNamesGlobal)
