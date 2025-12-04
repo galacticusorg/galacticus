@@ -9,12 +9,10 @@ import os
 # Specify models.
 models = [ "strictUnrecognized", "unstrictUnrecognized" ]
 ## Determine if we have the Git2 library and so can test outdated parameter files.
-haveGit2 = False
-config   = open(os.environ['GALACTICUS_EXEC_PATH']+"/work/build/Makefile_Config_Git2","r")
-for line in config:
-    if re.search(r'\-DGIT2AVAIL',line):
-        haveGit2 = True
-config.close()
+log = open(f"outputs/test-strict-git2.log","w")
+status = subprocess.run(f"cd ..; ./Galacticus.exe parameters/report.xml | grep -q GIT2AVAIL",stdout=log,stderr=log,shell=True)
+log.close()
+haveGit2 = status.returncode == 0
 if haveGit2:
     models.append("strictOutdated"  )
     models.append("unstrictOutdated")
