@@ -37,14 +37,15 @@
      private
      double precision :: radiusCore, densitySolitonCentral
    contains
-     procedure :: massEnclosedBySphere   => solitonMassEnclosedBySphere
-     procedure :: density                => solitonDensity
-     procedure :: densityGradientRadial  => solitonDensityGradientRadial
-     procedure :: radiusEnclosingDensity => solitonRadiusEnclosingDensity
-     procedure :: parameters             => solitonParameters
-     procedure :: factoryTabulation      => solitonFactoryTabulation
-     procedure :: descriptor             => solitonDescriptor
-     procedure :: suffix                 => solitonSuffix
+     procedure :: massEnclosedBySphere            => solitonMassEnclosedBySphere
+     procedure :: density                         => solitonDensity
+     procedure :: densityGradientRadial           => solitonDensityGradientRadial
+     procedure :: radiusEnclosingDensity          => solitonRadiusEnclosingDensity
+     procedure :: radiusEnclosingDensityNumerical => solitonRadiusEnclosingDensityNumerical
+     procedure :: parameters                      => solitonParameters
+     procedure :: factoryTabulation               => solitonFactoryTabulation
+     procedure :: descriptor                      => solitonDescriptor
+     procedure :: suffix                          => solitonSuffix
   end type massDistributionSoliton
   
    interface massDistributionSoliton
@@ -309,6 +310,23 @@ contains
     return
   end function solitonRadiusEnclosingDensity
 
+  double precision function solitonRadiusEnclosingDensityNumerical(self,density,radiusGuess) result(radius)
+     !!{
+     Computes the radius enclosing a given mean density for soliton mass distributions.
+     !!}
+     implicit none
+     class           (massDistributionSoliton), intent(inout), target   :: self
+     double precision                         , intent(in   )           :: density
+     double precision                         , intent(in   ), optional :: radiusGuess
+
+     if (density >= self%densitySolitonCentral) then
+        radius=0.0d0
+     else
+        radius=massDistributionRadiusEnclosingDensityNumerical(self,density,radiusGuess)
+     end if
+     return
+   end function solitonRadiusEnclosingDensityNumerical
+
    subroutine solitonParameters(self,densityNormalization,radiusNormalization,parameters,container)
       !!{
       Establish parameters for tabulation.
@@ -322,30 +340,30 @@ contains
       if (.not.containerSolitonInitialized) then
          allocate(containerSoliton)
          call containerSoliton%initialize(0)
-         containerSoliton%mass                      %radiusCountPer       =+20_c_size_t
-         containerSoliton%mass                      %parametersCountPer   =+20_c_size_t
-         containerSoliton%radiusEnclosingDensity    %radiusCountPer       =+20_c_size_t
-         containerSoliton%radiusEnclosingDensity    %parametersCountPer   =+20_c_size_t
-         containerSoliton%potential                 %radiusCountPer       =+20_c_size_t
-         containerSoliton%potential                 %parametersCountPer   =+20_c_size_t
-         containerSoliton%velocityDispersion1D      %radiusCountPer       =+20_c_size_t
-         containerSoliton%velocityDispersion1D      %parametersCountPer   =+20_c_size_t
-         containerSoliton%energy                    %radiusCountPer       =+20_c_size_t
-         containerSoliton%energy                    %parametersCountPer   =+20_c_size_t
-         containerSoliton%radiusFreefall            %radiusCountPer       =+20_c_size_t
-         containerSoliton%radiusFreefall            %parametersCountPer   =+20_c_size_t
-         containerSoliton%radiusFreefallIncreaseRate%radiusCountPer       =+20_c_size_t
-         containerSoliton%radiusFreefallIncreaseRate%parametersCountPer   =+20_c_size_t
-         containerSoliton%densityRadialMoment0      %radiusCountPer       =+20_c_size_t
-         containerSoliton%densityRadialMoment0      %parametersCountPer   =+20_c_size_t
-         containerSoliton%densityRadialMoment1      %radiusCountPer       =+20_c_size_t
-         containerSoliton%densityRadialMoment1      %parametersCountPer   =+20_c_size_t
-         containerSoliton%densityRadialMoment2      %radiusCountPer       =+20_c_size_t
-         containerSoliton%densityRadialMoment2      %parametersCountPer   =+20_c_size_t
-         containerSoliton%densityRadialMoment3      %radiusCountPer       =+20_c_size_t
-         containerSoliton%densityRadialMoment3      %parametersCountPer   =+20_c_size_t
-         containerSoliton%fourierTransform          %radiusCountPer       =+20_c_size_t
-         containerSoliton%fourierTransform          %parametersCountPer   =+20_c_size_t
+         containerSoliton%mass                      %radiusCountPer       =+ 20_c_size_t
+         containerSoliton%mass                      %parametersCountPer   =+ 20_c_size_t
+         containerSoliton%radiusEnclosingDensity    %radiusCountPer       =+100_c_size_t
+         containerSoliton%radiusEnclosingDensity    %parametersCountPer   =+ 20_c_size_t
+         containerSoliton%potential                 %radiusCountPer       =+ 20_c_size_t
+         containerSoliton%potential                 %parametersCountPer   =+ 20_c_size_t
+         containerSoliton%velocityDispersion1D      %radiusCountPer       =+ 20_c_size_t
+         containerSoliton%velocityDispersion1D      %parametersCountPer   =+ 20_c_size_t
+         containerSoliton%energy                    %radiusCountPer       =+ 20_c_size_t
+         containerSoliton%energy                    %parametersCountPer   =+ 20_c_size_t
+         containerSoliton%radiusFreefall            %radiusCountPer       =+ 20_c_size_t
+         containerSoliton%radiusFreefall            %parametersCountPer   =+ 20_c_size_t
+         containerSoliton%radiusFreefallIncreaseRate%radiusCountPer       =+ 20_c_size_t
+         containerSoliton%radiusFreefallIncreaseRate%parametersCountPer   =+ 20_c_size_t
+         containerSoliton%densityRadialMoment0      %radiusCountPer       =+ 20_c_size_t
+         containerSoliton%densityRadialMoment0      %parametersCountPer   =+ 20_c_size_t
+         containerSoliton%densityRadialMoment1      %radiusCountPer       =+ 20_c_size_t
+         containerSoliton%densityRadialMoment1      %parametersCountPer   =+ 20_c_size_t
+         containerSoliton%densityRadialMoment2      %radiusCountPer       =+ 20_c_size_t
+         containerSoliton%densityRadialMoment2      %parametersCountPer   =+ 20_c_size_t
+         containerSoliton%densityRadialMoment3      %radiusCountPer       =+ 20_c_size_t
+         containerSoliton%densityRadialMoment3      %parametersCountPer   =+ 20_c_size_t
+         containerSoliton%fourierTransform          %radiusCountPer       =+ 20_c_size_t
+         containerSoliton%fourierTransform          %parametersCountPer   =+ 20_c_size_t
          containerSolitonInitialized                                      =.true.
       end if
       densityNormalization =  self%densitySolitonCentral

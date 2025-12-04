@@ -386,7 +386,7 @@ contains
            kinematicsDistributionSolitonNFWHeated(                                                                                            &amp;
             &amp;                                 toleranceRelativeVelocityDispersion       =self%toleranceRelativeVelocityDispersion       , &amp;
             &amp;                                 toleranceRelativeVelocityDispersionMaximum=self%toleranceRelativeVelocityDispersionMaximum  &amp;
-	        &amp;                                )
+	    &amp;                                )
 	 </constructor>
        </referenceConstruct>
        !!]
@@ -537,8 +537,8 @@ contains
 
     coordinates=[radius,0.0d0,0.0d0]
 
-    f      =+                densityCore_                &
-         &  /(1.0d0+0.091d0*(radius/radiusCore_ )**2)**8 &
+    f      =+                densityCore_                      &
+         &  /(1.0d0+0.091d0*(radius/radiusCore_ )**2)**8       &
          &  -self_%massDistributionHeated_%density(coordinates)
     return
   end function radiusTransitionRoot
