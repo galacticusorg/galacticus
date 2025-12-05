@@ -240,6 +240,4 @@
 
   <change type="update" path="mergerTreeMassResolution/massResolution" value="1.0e9"/>
 
-  <change type="update" path="outputFileName" value="validate_fuzzyDarkMatter.hdf5"/>
-
 </changes>
