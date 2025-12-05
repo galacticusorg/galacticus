@@ -59,8 +59,8 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type (nodePropertyExtractorRadiiHalfLightProperties)                :: self
-    type (inputParameters                              ), intent(inout) :: parameters
+    type(nodePropertyExtractorRadiiHalfLightProperties)                :: self
+    type(inputParameters                              ), intent(inout) :: parameters
 
     self=nodePropertyExtractorRadiiHalfLightProperties()
      !![
