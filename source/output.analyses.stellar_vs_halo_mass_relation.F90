@@ -493,7 +493,7 @@ contains
     !![
     <referenceConstruct object="outputAnalysisPropertyUnoperator_"                             constructor="outputAnalysisPropertyOperatorAntiLog10                       (                                                                                                                              )"/>
     !!]
-    ! Create a halo mass weight property extractor.
+    ! Create a halo mass property extractor.
     if (haloMassDefinition == "spherical collapse" .or. haloMassDefinition == "virial") then
        allocate(virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt :: virialDensityContrastDefinition_                                )
        select type (virialDensityContrastDefinition_)
