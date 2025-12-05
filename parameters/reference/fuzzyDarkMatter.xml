@@ -230,7 +230,6 @@
   <change type="replace" path="componentSatellite">
   <componentSatellite value="orbiting"/>
   </change>
-
     
   <change type="replace" path="nodeOperator/nodeOperator[@value='haloAngularMomentumVitvitska2002']">
     <nodeOperator value="haloAngularMomentumVitvitska2002">
@@ -240,5 +239,7 @@
   </change>
 
   <change type="update" path="mergerTreeMassResolution/massResolution" value="1.0e9"/>
+
+  <change type="update" path="outputFileName" value="validate_fuzzyDarkMatter.hdf5"/>
 
 </changes>

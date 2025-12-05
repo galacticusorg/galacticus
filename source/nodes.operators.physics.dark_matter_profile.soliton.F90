@@ -236,7 +236,10 @@ contains
          &                 +basic%accretionRate()      &
          &                 /massHalo                   &
          &                )
-    call darkMatterProfile%floatRank0MetaPropertyRate(self%massCoreNormalID,massCoreRate)
+    call darkMatterProfile%floatRank0MetaPropertyRate(          &
+         &                               self%massCoreNormalID, &
+         &                               massCoreRate           &
+         &                              )
     return
   end subroutine darkMatterProfileSolitonDifferentialEvolution
 
