@@ -207,7 +207,7 @@ contains
                      &                   +(   69.0d0+  20.0d0*logRadius)/(   200.0d0*radius**2) &
                      &                   +(-  97.0d0-  60.0d0*logRadius)/(  1200.0d0*radius**3) &
                      &                   +(   71.0d0+ 105.0d0*logRadius)/(  3675.0d0*radius**4) &
-                     &                   +(-   1.0d0-  56.0d0*logradius)/(  3136.0d0*radius**5) &
+                     &                   +(-   1.0d0-  56.0d0*logRadius)/(  3136.0d0*radius**5) &
                      &                   +(-1271.0d0+2520.0d0*logRadius)/(211680.0d0*radius**6)
              else if (radius >= minimumRadiusForExactSolution) then
                 onePlusRadius                 =      1.0d0+radius
@@ -253,7 +253,7 @@ contains
                &                   *massDistributionEmbedding%densityNormalization &
                &                  )                                                &
                &             *      massDistributionEmbedding%scaleLength
-          class default
+       class default
           velocityDispersion=0.0d0
           call Error_Report('expecting an NFW mass distribution, but received '//char(massDistributionEmbedding%objectType())//{introspection:location})
        end select

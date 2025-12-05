@@ -110,7 +110,7 @@
      double precision                            , allocatable, dimension(:) :: parametersMinimumLimit, parametersMaximumLimit
      ! Tabulations for individual quantities.
      type            (massDistributionTabulation)                            :: mass                      =massDistributionTabulation(quantityMass                      ,.true. ,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
-     type            (massDistributionTabulation)                            :: radiusEnclosingDensity    =massDistributionTabulation(quantityRadiusEnclosingDensity    ,.true. ,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
+     type            (massDistributionTabulation)                            :: radiusEnclosingDensity    =massDistributionTabulation(quantityRadiusEnclosingDensity    ,.false.,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
      type            (massDistributionTabulation)                            :: potential                 =massDistributionTabulation(quantityPotential                 ,.false.,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
      type            (massDistributionTabulation)                            :: energy                    =massDistributionTabulation(quantityEnergy                    ,.false.,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
      type            (massDistributionTabulation)                            :: fourierTransform          =massDistributionTabulation(quantityFourierTransform          ,.false.,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
@@ -604,6 +604,8 @@ contains
                tabulation%parametersInverseStep=dble(tabulation%countParameters-1_c_size_t)/log(tabulation%parametersMaximum/tabulation%parametersMinimum)
                if (allocated(tabulation%table)) deallocate(tabulation%table)
                select case(size(tabulation%countParameters))
+               case (0)
+                  allocate(tabulation%table(tabulation%countRadii,1                            ,1                            ,1                            ))
                case (1)
                   allocate(tabulation%table(tabulation%countRadii,tabulation%countParameters(1),1                            ,1                            ))
                case (2)
@@ -719,6 +721,8 @@ contains
                      if (tabulation%logTransform) quantity_=+log(quantity_)
                      ! Store the quantity.
                      select case(size(tabulation%countParameters))
+                     case (0)
+                        tabulation%table(iRadius,1             ,1             ,1             )=quantity_
                      case (1)
                         tabulation%table(iRadius,iParameters(1),1             ,1             )=quantity_
                      case (2)
@@ -801,6 +805,19 @@ contains
     interpolated=0.0d0
     counter     =multiCounter(spread(2_c_size_t,1,size(parameters)))
     select case(size(parameters))
+    case (0)
+          do jRadius=1,2
+             interpolated=+interpolated                                                 &
+                  &       +tabulation %table(                                           &
+                  &                          iRadius       +jRadius       -1_c_size_t,  &
+                  &                                                        1_c_size_t,  &
+                  &                                                        1_c_size_t,  &
+                  &                                                        1_c_size_t   &
+                  &                         )                                           &
+                  &       *hRadius          (                                           &
+                  &                                         jRadius                     &
+                  &                         )
+          end do
     case (1)
        do while (counter%increment())
           jParameters=counter%states()

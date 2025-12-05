@@ -935,6 +935,18 @@ jobs:
       uploadFile: ./testSuite/outputs/*.json
       uploadName: validate-darkMatterOnlySubhalos-decayingDarkMatter
     secrets: inherit
+  Validate-Fuzzy-Dark-Matter:
+    needs: Build-Executable-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-fuzzyDarkMatter.py
+      artifact: galacticus-exec
+      runPath: ./testSuite
+      cacheData: 1
+      uploadFile: ./testSuite/outputs/*.json
+      uploadName: validate-fuzzyDarkMatter
+    secrets: inherit
   # Tests
   ## Linux
   ### Test Codes
