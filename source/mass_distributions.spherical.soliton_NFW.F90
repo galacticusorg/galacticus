@@ -196,11 +196,13 @@ contains
      if (present(radiusCore   )) then
         self%radiusCore             =+radiusCore
      else
+        self%radiusCore             =+0.0d0
         call Error_Report('no means to determine core radius')
      end if
      if (present(radiusSoliton)) then
         self%radiusSoliton          =+radiusSoliton
      else
+        self%radiusSoliton          =+0.0d0
         call Error_Report('no means to determine Soliton radius')
      end if
      if      (                            &
@@ -214,19 +216,21 @@ contains
         self%radiusScale            =+radiusVirial  &
              &                       /concentration
      else
+        self%radiusScale            =+0.0d0
         call Error_Report('no means to determine scale radius')
      end if
      if (present(densityNormalizationNFW)) then
         self%densityNormalizationNFW=+densityNormalizationNFW
      else
+        self%densityNormalizationNFW=+0.0d0
         call Error_Report('densityNormalizationNFW must be specified')
      end if
      if (present(densitySolitonCentral)) then
         self%densitySolitonCentral  =+densitySolitonCentral
      else
+        self%densitySolitonCentral  =+0.0d0
         call Error_Report('densitySolitonCentral must be specified')
      end if
-     
      if (present(dimensionless)) then
         self%dimensionless          =dimensionless
      else
