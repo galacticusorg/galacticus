@@ -37,12 +37,7 @@
 
   <!-- Add the soliton node operator for soliton+NFW dark matter halo profiles. -->
   <change type="append" path="nodeOperator">
-    <nodeOperator value="darkMatterProfileSoliton">
-      <darkMatterParticle value="fuzzyDarkMatter">
-        <mass value="10.0"/> <!-- In unis of 1.0e-22 eV -->
-        <densityFraction value=" 1.0"/>
-      </darkMatterParticle>
-    </nodeOperator>
+    <nodeOperator value="darkMatterProfileSoliton"/>
   </change>
 
   <!-- Change the dark matter scale radius model -->
