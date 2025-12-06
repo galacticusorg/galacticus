@@ -25,7 +25,8 @@ RUN     cd /opt &&\
 
 # Build Galacticus.
 RUN     cd /opt/galacticus &&\
-	make -j4 Galacticus.exe
+	make -j4 Galacticus.exe &&\
+	rm -rf work/build
 
 # Build external tools.
 RUN     cd /opt/galacticus &&\

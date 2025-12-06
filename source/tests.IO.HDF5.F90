@@ -839,7 +839,7 @@ program Tests_IO_HDF5
      ! the chunksize to less than the maximum allowed.
      if (iPass == 2) then
         if (allocated(doubleValueArray4dReread)) deallocate(doubleValueArray4dReread)
-        allocate(doubleValueArray4dReread(600,100,100,100))
+        allocate(doubleValueArray4dReread(540,100,100,100))
         call fileObject%writeDataset(doubleValueArray4dReread,'bigDataset','A dataset larger than 4GB.',chunkSize=1024_hsize_t)
      end if
 
