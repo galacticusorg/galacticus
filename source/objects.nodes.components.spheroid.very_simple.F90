@@ -713,16 +713,18 @@ contains
    <unitName>Node_Component_Spheroid_Very_Simple_Radius_Solver</unitName>
   </radiusSolverTask>
   !!]
-  subroutine Node_Component_Spheroid_Very_Simple_Radius_Solver(node,componentActive,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get&
+  subroutine Node_Component_Spheroid_Very_Simple_Radius_Solver(node,componentActive,component,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get&
        &,Radius_Set,Velocity_Get,Velocity_Set)
     !!{
     Interface for the size solver algorithm.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpheroid, nodeComponentSpheroidVerySimple, treeNode, &
-         &                          nodeComponentSpin
+    use :: Galacticus_Nodes          , only : nodeComponentBasic          , nodeComponentSpheroid, nodeComponentSpheroidVerySimple, treeNode, &
+         &                                    nodeComponentSpin
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeType, componentTypeSpheroid
     implicit none
     type            (treeNode                                      ), intent(inout)          :: node
     logical                                                         , intent(  out)          :: componentActive
+    type            (enumerationComponentTypeType                  ), intent(  out)          :: component
     logical                                                         , intent(in   )          :: specificAngularMomentumRequired
     double precision                                                , intent(  out)          :: specificAngularMomentum
     procedure       (Node_Component_Spheroid_Very_Simple_Radius    ), intent(  out), pointer :: Radius_Get                     , Velocity_Get
@@ -732,8 +734,10 @@ contains
     class           (nodeComponentSpin                             )               , pointer :: spin
 
     ! Determine if node has an active spheroid component supported by this module.
-    componentActive =  .false.
-    spheroid        => node%spheroid()
+    componentActive         =  .false.
+    component               =  componentTypeSpheroid
+    spheroid                => node%spheroid()
+    specificAngularMomentum =  0.0d0
     select type (spheroid)
     class is (nodeComponentSpheroidVerySimple)
        componentActive        =  .true.

@@ -149,7 +149,19 @@
     </galacticStructureSolver>
     <galacticStructureSolver value="simple"/>
     <galacticStructureSolver value="linear"/>
-    <galacticStructureSolver value="fixed"/>
+    <galacticStructureSolver value="fixed">
+      <factor value="0.707"/>
+    </galacticStructureSolver>
+    <galacticStructureSolver value="fixed">
+      <factorDisk value="0.71"/>
+    </galacticStructureSolver>
+    <galacticStructureSolver value="fixed">
+      <factorSpheroid value="0.4"/>
+    </galacticStructureSolver>
+    <galacticStructureSolver value="fixed">
+      <factorDisk value="0.71"/>
+      <factorSpheroid value="0.4"/>
+    </galacticStructureSolver>
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>

@@ -40,13 +40,13 @@
   !![
   <galacticStructureSolver name="galacticStructureSolverFixed">
    <description>
-    A galactic structure solver that determines the sizes of galactic components by assuming that radius equals
-    \begin{equation}
-     r = f_\mathrm{r} \lambda r_0
-    \end{equation}
-    where $r_0$ is the virial or turnaround radius of the \gls{node} if {\normalfont \ttfamily [radiusFixed]}$=${\normalfont
-    \ttfamily virialRadius} or {\normalfont \ttfamily turnaround} respectively, $\lambda$ is its spin parameter and
-    $f_\mathrm{r}=${\normalfont \ttfamily [radiusFixed]} is a parameter.
+    A galactic structure solver that determines the sizes of galactic components by assuming that radius equals \begin{equation} r
+    = f_\mathrm{r} \lambda r_0 \end{equation} where $r_0$ is the virial or turnaround radius of the \gls{node} if {\normalfont
+    \ttfamily [radiusFixed]}$=${\normalfont \ttfamily virialRadius} or {\normalfont \ttfamily turnaround} respectively, $\lambda$
+    is its spin parameter and $f_\mathrm{r}=${\normalfont \ttfamily [factor]} is a parameter. Optionally, different values of
+    $f_\mathrm{r}$ can be specified for disks and spheroids using the {\normalfont \ttfamily [factorDisk]} and {\normalfont
+    \ttfamily [factorSpheroid]} parameters respectively---if either or both are not provided the value of {\normalfont \ttfamily
+    [factor]} will be used for the corresponding component.
    </description>
   </galacticStructureSolver>
   !!]
@@ -56,7 +56,8 @@
      proportion to specific angular momentum).
      !!}
      private
-     double precision                                      :: factor
+     double precision                                      :: factor                          , factorDisk        , &
+          &                                                   factorSpheroid
      type            (enumerationRadiusFixedType)          :: radiusFixed
      class           (darkMatterHaloScaleClass  ), pointer :: darkMatterHaloScale_   => null()
      class           (virialDensityContrastClass), pointer :: virialDensityContrast_ => null()
@@ -88,7 +89,8 @@ contains
     type            (inputParameters             ), intent(inout) :: parameters
     class           (darkMatterHaloScaleClass    ), pointer       :: darkMatterHaloScale_
     class           (virialDensityContrastClass  ), pointer       :: virialDensityContrast_
-    double precision                                              :: factor
+    double precision                                              :: factor                , factorDisk, &
+         &                                                           factorSpheroid
     type            (varying_string              )                :: radiusFixed
 
     !![
@@ -96,7 +98,21 @@ contains
       <name>factor</name>
       <defaultSource>\citep{mo_formation_1998}</defaultSource>
       <defaultValue>sqrt(0.5d0)</defaultValue>
-      <description>The ratio of galaxy radius to $\lambda r_\mathrm{vir}$ in the ``fixed'' galactic structure radius solver algorithm.</description>
+      <description>The ratio of galaxy radius to $\lambda r_\mathrm{vir}$ in the ``fixed'' galactic structure radius solver algorithm. This will be applied to any component for which no component-specific value is provided.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>factorDisk</name>
+      <defaultSource>\citep{mo_formation_1998}</defaultSource>
+      <defaultValue>sqrt(0.5d0)</defaultValue>
+      <description>The ratio of galaxy radius to $\lambda r_\mathrm{vir}$ in the ``fixed'' galactic structure radius solver algorithm for disks. This will override the generic value supplied by {\normalfont \ttfamily [factor]} for disks.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>factorSpheroid</name>
+      <defaultSource>\citep{mo_formation_1998}</defaultSource>
+      <defaultValue>sqrt(0.5d0)</defaultValue>
+      <description>The ratio of galaxy radius to $\lambda r_\mathrm{vir}$ in the ``fixed'' galactic structure radius solver algorithm for spheroids. This will override the generic value supplied by {\normalfont \ttfamily [factor]} for spheroids.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -107,9 +123,11 @@ contains
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="parameters"/>
     <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
-    !!]
-    self=galacticStructureSolverFixed(factor,enumerationRadiusFixedEncode(char(radiusFixed),includesPrefix=.false.),darkMatterHaloScale_,virialDensityContrast_)
-    !![
+    <conditionalCall>
+      <call>self=galacticStructureSolverFixed(darkMatterHaloScale_,virialDensityContrast_,enumerationRadiusFixedEncode(char(radiusFixed),includesPrefix=.false.),factor{conditions})</call>
+      <argument name="factorDisk"     value="factorDisk"     parameterPresent="parameters"/>
+      <argument name="factorSpheroid" value="factorSpheroid" parameterPresent="parameters"/>
+    </conditionalCall>
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_"  />
     <objectDestructor name="virialDensityContrast_"/>
@@ -117,22 +135,25 @@ contains
     return
   end function fixedConstructorParameters
 
-  function fixedConstructorInternal(factor,radiusFixed,darkMatterHaloScale_,virialDensityContrast_) result(self)
+  function fixedConstructorInternal(darkMatterHaloScale_,virialDensityContrast_,radiusFixed,factor,factorDisk,factorSpheroid) result(self)
     !!{
     Internal constructor for the \refClass{galacticStructureSolverFixed} galactic structure solver class.
     !!}
     use :: Error, only : Error_Report
     implicit none
-    type            (galacticStructureSolverFixed)                        :: self
-    double precision                              , intent(in   )         :: factor
-    type            (enumerationRadiusFixedType  ), intent(in   )         :: radiusFixed
-    class           (darkMatterHaloScaleClass    ), intent(in   ), target :: darkMatterHaloScale_
-    class           (virialDensityContrastClass  ), intent(in   ), target :: virialDensityContrast_
+    type            (galacticStructureSolverFixed)                          :: self
+    class           (darkMatterHaloScaleClass    ), intent(in   ), target   :: darkMatterHaloScale_
+    class           (virialDensityContrastClass  ), intent(in   ), target   :: virialDensityContrast_
+    type            (enumerationRadiusFixedType  ), intent(in   )           :: radiusFixed
+    double precision                              , intent(in   )           :: factor
+    double precision                              , intent(in   ), optional :: factorDisk            , factorSpheroid
     !![
-    <constructorAssign variables="factor, radiusFixed, *darkMatterHaloScale_, *virialDensityContrast_"/>
+    <constructorAssign variables="factor, radiusFixed, *darkMatterHaloScale_, *virialDensityContrast_, factorDisk, factorSpheroid"/>
     !!]
 
     if (.not.enumerationRadiusFixedIsValid(radiusFixed)) call Error_Report('invalid radiusFixed'//{introspection:location})
+    if (.not.present(factorDisk    )) self%factorDisk    =factor
+    if (.not.present(factorSpheroid)) self%factorSpheroid=factor
     return
   end function fixedConstructorInternal
 
@@ -216,7 +237,8 @@ contains
     Solve for the structure of galactic components assuming no self-gravity of baryons, and that size simply scales in
     proportion to specific angular momentum.
     !!}
-    use :: Calculations_Resets, only : Calculations_Reset
+    use :: Calculations_Resets       , only : Calculations_Reset
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeType
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
@@ -228,6 +250,7 @@ contains
     procedure       (solverSet                   ), pointer                 :: radiusSet                              , velocitySet
     logical                                                                 :: componentActive
     double precision                                                        :: specificAngularMomentum
+    type            (enumerationComponentTypeType)                          :: component
     !![
     <optionalArgument name="plausibilityOnly" defaultsTo=".false."/>
     !!]
@@ -243,32 +266,43 @@ contains
 
   contains
 
-    subroutine radiusSolve(node,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet)
+    subroutine radiusSolve(node,component,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet)
       !!{
       Solve for the equilibrium radius of the given component.
       !!}
       use :: Dark_Matter_Halo_Spins    , only : Dark_Matter_Halo_Angular_Momentum_Scale
       use :: Galacticus_Nodes          , only : nodeComponentBasic                     , nodeComponentSpin, treeNode
       use :: Mass_Distributions        , only : massDistributionClass
-      use :: Galactic_Structure_Options, only : componentTypeDarkMatterOnly            , massTypeDark
+      use :: Galactic_Structure_Options, only : componentTypeDarkMatterOnly            , massTypeDark     , componentTypeDisk, componentTypeSpheroid
       implicit none
-      type            (treeNode             ), intent(inout)          :: node
-      double precision                       , intent(in   )          :: specificAngularMomentum
-      procedure       (solverGet            ), intent(in   ), pointer :: radiusGet              , velocityGet
-      procedure       (solverSet            ), intent(in   ), pointer :: radiusSet              , velocitySet
-      class           (nodeComponentSpin    )               , pointer :: spin
-      class           (nodeComponentBasic   )               , pointer :: basic
-      class           (massDistributionClass)               , pointer :: massDistribution_
-      double precision                                                :: radius                 , velocity
+      type            (treeNode                    ), intent(inout)          :: node
+      type            (enumerationComponentTypeType), intent(in   )          :: component
+      double precision                              , intent(in   )          :: specificAngularMomentum
+      procedure       (solverGet                   ), intent(in   ), pointer :: radiusGet              , velocityGet
+      procedure       (solverSet                   ), intent(in   ), pointer :: radiusSet              , velocitySet
+      class           (nodeComponentSpin           )               , pointer :: spin
+      class           (nodeComponentBasic          )               , pointer :: basic
+      class           (massDistributionClass       )               , pointer :: massDistribution_
+      double precision                                                       :: radius                 , velocity   , &
+           &                                                                    factor
       !$GLC attributes unused :: radiusGet, velocityGet, specificAngularMomentum
 
+      ! Determine the factor to use.
+      select case (component%ID)
+      case (componentTypeDisk    %ID)
+         factor=self%factorDisk
+      case (componentTypeSpheroid%ID)
+         factor=self%factorSpheroid
+      case default
+         factor=self%factor
+      end select
       ! Find the radius of the component, assuming radius is a fixed fraction of radius times spin parameter.
       spin => node%spin()
       select case (self%radiusFixed%ID)
       case (radiusFixedVirial    %ID)
          velocity          =  +self             %darkMatterHaloScale_  %velocityVirial              (     node                                                          )
          radius            =  +self             %darkMatterHaloScale_  %radiusVirial                (     node                                                          ) &
-              &               *self                                    %factor                                                                                            &
+              &               *                                         factor                                                                                            &
               &               *spin                                    %angularMomentum             (                                                                   ) &
               &               /Dark_Matter_Halo_Angular_Momentum_Scale                              (     node                       ,     self %darkMatterHaloScale_   )
       case (radiusFixedTurnaround%ID)
@@ -277,7 +311,7 @@ contains
          velocity          =  +massDistribution_                       %velocityRotationCurveMaximum(                                                                   )
          radius            =  +self             %darkMatterHaloScale_  %radiusVirial                (     node                                                          ) &
               &               *self             %virialDensityContrast_%turnAroundOverVirialRadii   (mass=basic%mass()               ,time=basic%timeLastIsolated     ()) &
-              &               *self                                    %factor                                                                                            &
+              &               *                                         factor                                                                                            &
               &               *spin                                    %angularMomentum             (                                                                   ) &
               &               /Dark_Matter_Halo_Angular_Momentum_Scale                              (     node                       ,     self %darkMatterHaloScale_   )
          !![
