@@ -449,7 +449,7 @@ contains
      class           (massDistributionSolitonNFW), intent(inout), target   :: self
      double precision                            , intent(in   )           :: density
      double precision                            , intent(in   ), optional :: radiusGuess
-     double precision                            , parameter               :: epsilonDeltaDensityFractional=4.0d-2
+     double precision                            , parameter               :: epsilonDeltaDensityFractional=5.0d-2
      
      if      (density >= self%densitySolitonCentral                                      ) then
         ! Above the central density, return a radius of zero.
