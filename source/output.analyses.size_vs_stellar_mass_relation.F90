@@ -90,23 +90,24 @@
      A stellar vs halo mass relation output analysis class.
      !!}
      private
-     class           (starFormationRateDisksClass              ), pointer                   :: starFormationRateDisks_                      => null()
-     class           (starFormationRateSpheroidsClass          ), pointer                   :: starFormationRateSpheroids_                  => null()
-     class           (starFormationRateNuclearStarClustersClass), pointer                   :: starFormationRateNuclearStarClusters_        => null()
-     class           (outputAnalysisClass                     ), pointer                     :: outputAnalysis_                             => null()
-     class           (cosmologyParametersClass                ), pointer                     :: cosmologyParameters_                        => null()
-     class           (cosmologyFunctionsClass                 ), pointer                     :: cosmologyFunctions_                         => null()
-     class           (outputTimesClass                        ), pointer                     :: outputTimes_                                => null()
-     logical                                                                                 :: computeScatter                                       , likelihoodNormalize                            , &
-          &                                                                                     likelihoodBinsAutomatic
-     integer         (c_size_t                                ), allocatable, dimension(:  ) :: likelihoodBins
-     integer                                                                                 :: sample
-     double precision                                          , allocatable, dimension(:  ) :: radiusEffectiveLogarithmicTarget                     , radiusEffectiveScatterTarget                   , &
-          &                                                                                     systematicErrorPolynomialCoefficient                 , systematicErrorMassStellarPolynomialCoefficient, &
-          &                                                                                     randomErrorMassStellarPolynomialCoefficient                                                           
-     double precision                                          , allocatable, dimension(:,:) :: radiusEffectiveLogarithmicCovarianceTarget           , radiusEffectiveScatterCovarianceTarget
-     double precision                                                                        :: randomErrorMassStellarMinimum                        , randomErrorMassStellarMaximum
-     type            (varying_string                          )                              :: analysisLabel                                        , fileNameTarget
+     class           (starFormationRateDisksClass              ), pointer                     :: starFormationRateDisks_                     => null()
+     class           (starFormationRateSpheroidsClass          ), pointer                     :: starFormationRateSpheroids_                 => null()
+     class           (starFormationRateNuclearStarClustersClass), pointer                     :: starFormationRateNuclearStarClusters_       => null()
+     class           (outputAnalysisClass                      ), pointer                     :: outputAnalysis_                             => null()
+     class           (cosmologyParametersClass                 ), pointer                     :: cosmologyParameters_                        => null()
+     class           (cosmologyFunctionsClass                  ), pointer                     :: cosmologyFunctions_                         => null()
+     class           (outputTimesClass                         ), pointer                     :: outputTimes_                                => null()
+     logical                                                                                  :: computeScatter                                       , likelihoodNormalize                            , &
+          &                                                                                      likelihoodBinsAutomatic
+     integer         (c_size_t                                 ), allocatable, dimension(:  ) :: likelihoodBins
+     integer                                                                                  :: sample
+     double precision                                           , allocatable, dimension(:  ) :: radiusEffectiveLogarithmicTarget                     , radiusEffectiveScatterTarget                   , &
+          &                                                                                      systematicErrorPolynomialCoefficient                 , systematicErrorMassStellarPolynomialCoefficient, &
+          &                                                                                      randomErrorMassStellarPolynomialCoefficient
+     double precision                                           , allocatable, dimension(:,:) :: radiusEffectiveLogarithmicCovarianceTarget           , radiusEffectiveScatterCovarianceTarget
+     double precision                                                                         :: randomErrorMassStellarMinimum                        , randomErrorMassStellarMaximum
+     type            (varying_string                           )                              :: analysisLabel                                        , fileNameTarget                                 , &
+          &                                                                                      selection
    contains
      final     ::                  sizeVsStellarMassRelationDestructor
      procedure :: analyze       => sizeVsStellarMassRelationAnalyze
@@ -606,12 +607,12 @@ contains
     !!]
     ! Build the object.
     if (computeScatter) then
-       analysisLabel            =var_str('stellarHaloMassRelationScatter' )//labelTarget//'Sample'//sample
+       analysisLabel            =var_str('stellarSizeMassRelationScatter' )//labelTarget//'Sample'//sample
        weightPropertyLabel      =var_str('radiusEffectiveLog10Scatter'    )
        weightPropertyDescription=var_str('σ_{log₁₀(Effective radius/Mpc)}')
        allocate(outputAnalysisScatterFunction1D :: self%outputAnalysis_)
     else
-       analysisLabel            =var_str('stellarHaloMassRelation'        )//labelTarget//'Sample'//sample
+       analysisLabel            =var_str('stellarSizeMassRelation'        )//labelTarget//'Sample'//sample
        weightPropertyLabel      =var_str('radiusEffectiveLog10'           )
        weightPropertyDescription=var_str('⟨log₁₀(Effective radius/Mpc)⟩'  )
        allocate(outputAnalysisMeanFunction1D    :: self%outputAnalysis_)
@@ -809,6 +810,7 @@ contains
     end if
     analysisGroup=inGroup%openGroup(char(self%analysisLabel))
     call    analysisGroup%writeAttribute(self%logLikelihood(),'logLikelihood')
+    call    analysisGroup%writeAttribute(self%selection      ,'selection'    )
     call    analysisGroup%close         (                                    )
     if (present(groupName)) &
          & call subGroup %close         (                                    )
