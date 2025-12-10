@@ -153,7 +153,7 @@ contains
     implicit none
     class           (kinematicsDistributionSolitonNFW), intent(inout)          :: self
     class           (coordinate                      ), intent(in   )          :: coordinates
-    class           (massDistributionClass           ), intent(inout), target  :: massDistribution_   , massDistributionEmbedding
+    class           (massDistributionClass           ), intent(inout), target  :: massDistribution_ , massDistributionEmbedding
     class           (massDistributionClass           )               , pointer :: massDistribution__
     double precision                                                           :: radius
 
@@ -194,7 +194,6 @@ contains
        velocityDispersion=+self%velocityDispersion1DNumerical(coordinates,massDistribution_,massDistributionEmbedding)
     end if
     return
-
 
   contains
 

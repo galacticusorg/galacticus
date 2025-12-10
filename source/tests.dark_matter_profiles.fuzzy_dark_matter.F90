@@ -91,6 +91,7 @@ program Test_Dark_Matter_Profiles_Fuzzy_Dark_Matter
        &                                                                                                         densityEnclosed
   type            (coordinateSpherical                                           )                            :: coordinates                              , coordinatesReference
   type            (varying_string                                                )                            :: fileName
+
   call displayVerbositySet(verbosityLevelStandard)
   call Unit_Tests_Begin_Group("Chowdhury2021 dark matter profiles")
   parameters=inputParameters('testSuite/parameters/darkMatterProfilesChowdhury2021.xml')
