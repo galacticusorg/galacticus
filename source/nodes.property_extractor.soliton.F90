@@ -76,12 +76,12 @@ contains
     type(nodePropertyExtractorSoliton) :: self
     
     !![
-    <addMetaProperty component="darkMatterProfile" name="massCoreNormal" id="self%massCoreNormalID" isEvolvable="yes" isCreator="no"/>
-    <addMetaProperty component="darkMatterProfile" name="massCore"       id="self%massCoreID"       isEvolvable="no"  isCreator="no"/>
-    <addMetaProperty component="darkMatterProfile" name="densityCore"    id="self%densityCoreID"    isEvolvable="no"  isCreator="no"/>
-    <addMetaProperty component="darkMatterProfile" name="radiusCore"     id="self%radiusCoreID"     isEvolvable="no"  isCreator="no"/>
-    <addMetaProperty component="darkMatterProfile" name="radiusSoliton"  id="self%radiusSolitonID"  isEvolvable="no"  isCreator="no"/>
-    <addMetaProperty component="darkMatterProfile" name="zeta"           id="self%zetaID"           isEvolvable="no"  isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="solitonMassCoreNormal" id="self%massCoreNormalID" isEvolvable="yes" isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="solitonMassCore"       id="self%massCoreID"       isEvolvable="no"  isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="solitonDensityCore"    id="self%densityCoreID"    isEvolvable="no"  isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="solitonRadiusCore"     id="self%radiusCoreID"     isEvolvable="no"  isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="solitonRadiusSoliton"  id="self%radiusSolitonID"  isEvolvable="no"  isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="solitonZeta"           id="self%zetaID"           isEvolvable="no"  isCreator="no"/>
     !!]
     return
   end function solitonConstructorInternal
@@ -150,12 +150,12 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(names(6))
-    names(1)=var_str('massCoreNormal')
-    names(2)=var_str('massCore'      )
-    names(3)=var_str('densityCore'   )
-    names(4)=var_str('radiusCore'    )
-    names(5)=var_str('radiusSoliton' )
-    names(6)=var_str('zetazOverZeta0')
+    names(1)=var_str('solitonMassCoreNormal')
+    names(2)=var_str('solitonMassCore'      )
+    names(3)=var_str('solitonDensityCore'   )
+    names(4)=var_str('solitonRadiusCore'    )
+    names(5)=var_str('solitonRadiusSoliton' )
+    names(6)=var_str('solitonZetazOverZeta0')
     return
   end subroutine solitonNames
 

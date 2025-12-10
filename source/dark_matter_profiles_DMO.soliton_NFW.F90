@@ -83,7 +83,8 @@
   end interface darkMatterProfileDMOSolitonNFW
 
   ! Sub-module scope variable used in root finding.
-  double precision :: radiusCore_, radiusScale_, densityScale_, densityCore_
+  double precision :: radiusCore_  , radiusScale_, &
+       &              densityScale_, densityCore_
   !$omp threadprivate(radiusCore_, radiusScale_, densityScale_, densityCore_)
 
 contains
@@ -160,13 +161,13 @@ contains
          &                                                                   scatterFractional
     !![
     <constructorAssign variables="*darkMatterHaloScale_, *darkMatterParticle_, *cosmologyFunctions_, *cosmologyParameters_, *virialDensityContrast_, toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, scatterFractional"/>
-    <addMetaProperty component="darkMatterProfile" name="randomOffset"   id="self%randomOffsetID"   isEvolvable="no"  isCreator="yes"/>
-    <addMetaProperty component="darkMatterProfile" name="densityCore"    id="self%densityCoreID"    isEvolvable="no"  isCreator="yes"/>
-    <addMetaProperty component="darkMatterProfile" name="radiusCore"     id="self%radiusCoreID"     isEvolvable="no"  isCreator="yes"/>
-    <addMetaProperty component="darkMatterProfile" name="radiusSoliton"  id="self%radiusSolitonID"  isEvolvable="no"  isCreator="yes"/>
-    <addMetaProperty component="darkMatterProfile" name="massCoreNormal" id="self%massCoreNormalID" isEvolvable="yes" isCreator="no"/>
-    <addMetaProperty component="darkMatterProfile" name="massCore"       id="self%massCoreID"       isEvolvable="no"  isCreator="yes"/>
-    <addMetaProperty component="darkMatterProfile" name="zeta"           id="self%zetaID"           isEvolvable="no"  isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="solitonRandomOffset"   id="self%randomOffsetID"   isEvolvable="no"  isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="solitonDensityCore"    id="self%densityCoreID"    isEvolvable="no"  isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="solitonRadiusCore"     id="self%radiusCoreID"     isEvolvable="no"  isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="solitonRadiusSoliton"  id="self%radiusSolitonID"  isEvolvable="no"  isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="solitonMassCoreNormal" id="self%massCoreNormalID" isEvolvable="yes" isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="solitonMassCore"       id="self%massCoreID"       isEvolvable="no"  isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="solitonZeta"           id="self%zetaID"           isEvolvable="no"  isCreator="yes"/>
     !!]
 
     self%lastUniqueID=-huge(1_kind_int8)
@@ -376,7 +377,6 @@ contains
     use :: Galacticus_Nodes                , only : treeNode  , nodeComponentBasic       , nodeComponentDarkMatterProfile
     use :: Numerical_Constants_Math        , only : Pi
     use :: Root_Finder                     , only : rootFinder, rangeExpandMultiplicative, rangeExpandSignExpectPositive , rangeExpandSignExpectNegative
-
     implicit none
     class           (darkMatterProfileDMOSolitonNFW), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -475,9 +475,9 @@ contains
            exit
        end if
     end do
-    call darkMatterProfile%floatRank0MetaPropertySet(self%densityCoreID,densityCore )
-    call darkMatterProfile%floatRank0MetaPropertySet(self%radiusCoreID ,radiusCore  )
-    call darkMatterProfile%floatRank0MetaPropertySet(self%zetaID       ,zeta_z/zeta_0)
+    call darkMatterProfile%floatRank0MetaPropertySet(self%densityCoreID,densityCore       )
+    call darkMatterProfile%floatRank0MetaPropertySet(self%radiusCoreID , radiusCore       )
+    call darkMatterProfile%floatRank0MetaPropertySet(self%zetaID       ,zeta_z     /zeta_0)
     return
   end subroutine solitonNFWComputeProperties
 

@@ -124,7 +124,7 @@ contains
     !!]
 
     !![
-    <addMetaProperty component="darkMatterProfile" name="massCoreNormal" id="self%massCoreNormalID" isEvolvable="yes" isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="solitonMassCoreNormal" id="self%massCoreNormalID" isEvolvable="yes" isCreator="yes"/>
     !!]
     select type (darkMatterParticle__ => self%darkMatterParticle_)
     class is (darkMatterParticleFuzzyDarkMatter)
