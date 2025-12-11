@@ -24,7 +24,7 @@ program Tests_IO_HDF5
   use :: Display           , only : displayVerbositySet, verbosityLevelStandard
   use :: HDF5              , only : HSIZE_T
   use :: IO_HDF5           , only : IO_HDF5_Is_HDF5    , hdf5Object            , hdf5VarDouble       , hdf5VarInteger8  , &
-       &                            hdf5VarDouble2D
+       &                            hdf5VarDouble2D    , hdf5DataTypeDouble
   use :: ISO_Varying_String, only : assignment(=)      , trim                  , varying_string      , var_str          , char
   use :: Kind_Numbers      , only : kind_int8
   use :: System_Command    , only : System_Command_Do
@@ -835,12 +835,11 @@ program Tests_IO_HDF5
         deallocate(datasetNames)
      end if
 
-     ! Write a very large (>4GB) dataset to test that chunking limits
-     ! the chunksize to less than the maximum allowed.
+     ! Create a very large (>4GB) dataset to test that chunking limits the chunksize to less than the maximum allowed. We do not
+     ! actually write this dataset to avoid creating a huge file - creating the dataset is sufficient to test chunking limits.
      if (iPass == 2) then
-        if (allocated(doubleValueArray4dReread)) deallocate(doubleValueArray4dReread)
-        allocate(doubleValueArray4dReread(540,100,100,100))
-        call fileObject%writeDataset(doubleValueArray4dReread,'bigDataset','A dataset larger than 4GB.',chunkSize=1024_hsize_t)
+        datasetObject=fileObject%openDataset('bigDataset','A dataset larger than 4GB.',hdf5DataTypeDouble,[600_hsize_t,100_hsize_t,100_hsize_t,100_hsize_t],chunkSize=1024_hsize_t)
+        call datasetObject%close()
      end if
 
      ! Write an attribute of length >64KB by forcing dense storage of
