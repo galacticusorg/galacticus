@@ -420,12 +420,7 @@
     <nodeOperator value="darkMatterProfileScaleSet"/>
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Halo profile -->
-    <nodeOperator value="darkMatterProfileSoliton">
-      <darkMatterParticle value="fuzzyDarkMatter">
-        <mass value="5.0"/> <!-- In unis of 1.0e-22 eV -->
-        <densityFraction value=" 1.0"/>
-      </darkMatterParticle>
-    </nodeOperator>
+    <nodeOperator value="darkMatterProfileSoliton"/>
     <!-- Halo angular momentum -->
     <nodeOperator value="haloAngularMomentumVitvitska2002">
       <darkMatterProfileDMO value="NFW"/>	    
@@ -451,7 +446,7 @@
 
   <nodePropertyExtractor value="multi">
     <nodePropertyExtractor value="nodeIndices"/>
-    <nodePropertyExtractor value="solitonMassCore"/>
+    <nodePropertyExtractor value="soliton"/>
     <nodePropertyExtractor value="redshift"/>
     <nodePropertyExtractor value="densityContrastVirial"/>
   </nodePropertyExtractor>

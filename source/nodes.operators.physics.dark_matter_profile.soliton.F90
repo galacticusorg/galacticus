@@ -50,7 +50,7 @@
      class           (cosmologyFunctionsClass   ), pointer   :: cosmologyFunctions_    => null()
      class           (cosmologyParametersClass  ), pointer   :: cosmologyParameters_   => null()
      class           (virialDensityContrastClass), pointer   :: virialDensityContrast_ => null()
-     integer                                                 :: massCoreID
+     integer                                                 :: massCoreNormalID
      double precision                                        :: massParticle                    , massCoreMinimum
    contains
      final     ::                                darkMatterProfileSolitonDestructor
@@ -124,7 +124,7 @@ contains
     !!]
 
     !![
-    <addMetaProperty component="darkMatterProfile" name="massCore" id="self%massCoreID" isEvolvable="yes" isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="solitonMassCoreNormal" id="self%massCoreNormalID" isEvolvable="yes" isCreator="yes"/>
     !!]
     select type (darkMatterParticle__ => self%darkMatterParticle_)
     class is (darkMatterParticleFuzzyDarkMatter)
@@ -172,7 +172,7 @@ contains
 
     ! Set the absolute tolerance scale for ODE integration to 10% of the minimum solitonic core mass.
     darkMatterProfile => node%darkMatterProfile()
-    call darkMatterProfile%floatRank0MetaPropertyScale(self%massCoreID,scaleRelative*self%massCoreMinimum)
+    call darkMatterProfile%floatRank0MetaPropertyScale(self%massCoreNormalID,scaleRelative*self%massCoreMinimum)
     return
   end subroutine darkMatterProfileSolitonDifferentialEvolutionScales
 
@@ -236,14 +236,17 @@ contains
          &                 +basic%accretionRate()      &
          &                 /massHalo                   &
          &                )
-    call darkMatterProfile%floatRank0MetaPropertyRate(self%massCoreID,massCoreRate)
+    call darkMatterProfile%floatRank0MetaPropertyRate(          &
+         &                               self%massCoreNormalID, &
+         &                               massCoreRate           &
+         &                              )
     return
   end subroutine darkMatterProfileSolitonDifferentialEvolution
 
   subroutine darkMatterProfileSolitonNodeTreeInitialize(self,node)
     !!{
     Initialize solitonic core properties for a tree node. Computes the initial core mass using the analytic core–halo relation,
-    records it as the minimum core mass for tolerance scaling, and stores the value in the node's meta-property database.    
+    records it as the minimum core mass for tolerance scaling, and stores the value in the meta-property database of the node.    
     !!}
     use :: Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
@@ -284,6 +287,9 @@ contains
          &                 )**(1.5d0*(alpha-1.0d0)) &
          &               )                          &
          &              /sqrt(expansionFactor)
-    call darkMatterProfile%floatRank0MetaPropertySet(self%massCoreID,massCoreNormal)
+    call darkMatterProfile%floatRank0MetaPropertySet(           &
+         &                               self%massCoreNormalID, &
+         &                               massCoreNormal         &
+         &                              )
     return
   end subroutine darkMatterProfileSolitonNodeTreeInitialize
