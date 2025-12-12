@@ -944,7 +944,7 @@ jobs:
       artifact: galacticus-exec
       runPath: ./testSuite
       cacheData: 1
-      ompNumThreads: 3
+      ompNumThreads: 2
       uploadFile: ./testSuite/outputs/*.json
       uploadName: validate-fuzzyDarkMatter
     secrets: inherit
