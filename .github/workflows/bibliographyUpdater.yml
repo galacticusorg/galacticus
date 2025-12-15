@@ -38,7 +38,7 @@ jobs:
           ./scripts/aux/bibliographyUpdate.pl ${{ secrets.NASA_ADS_API_TOKEN }}
       - name: Create Pull Request
         if: ${{ ( env.appid != '' ) && ( env.adstoken != '' ) }}
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           title: "fix: Update bibliography records"
           commit-message: "fix: Update bibliography records"
