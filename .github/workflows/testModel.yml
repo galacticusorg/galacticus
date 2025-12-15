@@ -91,7 +91,7 @@ jobs:
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: Cache dynamically-generated datasets
         if: ${{ format('{0}',inputs.cacheData) == '1' }}
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ github.workspace }}/datasets/dynamic
           key: ${{ hashFiles(format('{0}',inputs.file)) }}-${{ github.run_id }}
