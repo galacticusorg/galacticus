@@ -108,7 +108,7 @@ jobs:
         run: |
           echo "OMP_NUM_THREADS=${{ inputs.ompNumThreads }}" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: ${{ inputs.artifact }}
       - name: Install packages
