@@ -27,7 +27,7 @@ jobs:
           repo: cmbant/CAMB
       - name: Create Pull Request
         if: ${{ env.appid != '' }}
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
           commit-message: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
@@ -59,7 +59,7 @@ jobs:
           repo: cmbant/forutils
       - name: Create Pull Request
         if: ${{ env.appid != '' }}
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
           commit-message: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
@@ -92,7 +92,7 @@ jobs:
           tag: true
       - name: Create Pull Request
         if: ${{ env.appid != '' }}
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
           commit-message: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
@@ -124,7 +124,7 @@ jobs:
           repo: cconroy20/fsps
       - name: Create Pull Request
         if: ${{ env.appid != '' }}
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
           commit-message: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
@@ -162,7 +162,7 @@ jobs:
           echo "branch=cloudy" >> "$GITHUB_OUTPUT"
       - name: Create Pull Request
         if: ${{ env.appid != '' }}
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.branch }} to ${{ steps.depup.outputs.latest }}"
           commit-message: "fix(deps): update ${{ steps.depup.outputs.branch }} to ${{ steps.depup.outputs.latest }}"
@@ -194,7 +194,7 @@ jobs:
           repo: galacticusorg/mangle
       - name: Create Pull Request
         if: ${{ env.appid != '' }}
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
           commit-message: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
