@@ -86,12 +86,12 @@ jobs:
           grep -vqzi warning:        build.log || (echo "FAIL: warnings found in build.log"        && false)
           grep -vqzi 'is up to date' build.log || (echo "FAIL: 'is up to date' found in build.log" && false)
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: galacticus-exec
           path: 'Galacticus.exe'
       - name: Upload build profile
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: build-profile
           path: 'buildProfile.html'
@@ -138,12 +138,12 @@ jobs:
           ! grep -n Warning: build.log
           ! grep -v 'is up to date' build.log | grep -n -C 5 make:
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: galacticus-exec-non-static
           path: 'Galacticus.exe'
       - name: Upload test code executables
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: test-execs
           path: 'tests.*.exe'
@@ -172,7 +172,7 @@ jobs:
           export GALACTICUS_CPPFLAGS="$GALACTICUS_CPPFLAGS -pg"
           make -j4 Galacticus.exe
       - name: Upload executables
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: galacticus-exec-instrumented
           path: 'Galacticus.exe'
@@ -199,7 +199,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           make -j4 Galacticus.exe
       - name: Upload executables
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: galacticus-exec-dmo
           path: 'Galacticus.exe'
@@ -225,12 +225,12 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           make -j4 GALACTICUS_BUILD_OPTION=MPI Galacticus.exe tests.MPI.exe tests.radiative_transfer.atomic_matter.state_solver.exe
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: galacticus-exec-MPI
           path: 'Galacticus.exe'
       - name: Upload test code executables
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: test-execs-MPI
           path: 'tests.*.exe'
@@ -257,7 +257,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           make -j4 Galacticus.exe tests.debugging.exe
       - name: Upload test code executables
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: test-execs-debugging
           path: 'tests.*.exe'
@@ -294,7 +294,7 @@ jobs:
           mv libgalacticus.so galacticus/lib/
           tar cvfj libgalacticus.tar.bz2 galacticus
       - name: Upload library
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: galacticus-library
           path: 'libgalacticus.tar.bz2'
@@ -356,7 +356,7 @@ jobs:
           ./scripts/doc/Build_Documentation.sh -f yes -p 2 2>&1 | tee docBuild.log
           grep -vqzi 'warning: missing method descriptions in class' docBuild.log || (echo "FAIL: issing method description warnings found in docBuild.log" && false)
       - name: Upload docs
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: galacticus-docs
           path: |
@@ -429,7 +429,7 @@ jobs:
             dynamic/fsps-${fspsVersion}/ISOCHRONES \
             dynamic/mangle-${mangleVersion}/bin/harmonize
       - name: Upload tools
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: galacticus-tools
           path: ./datasets/tools.tar.bz2
@@ -457,17 +457,17 @@ jobs:
           zip -r debugSymbolsMacOS.zip Galacticus.exe.dSYM
           mv Galacticus.exe Galacticus_MacOS.exe
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: galacticus-exec-MacOS
           path: 'Galacticus_MacOS.exe'
       - name: Upload test code executables
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: test-execs-MacOS
           path: 'tests.*.exe'
       - name: Upload Galacticus debug symbols
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: galacticus-debug-MacOS
           path: 'debugSymbolsMacOS.zip'
@@ -492,12 +492,12 @@ jobs:
           zip -r debugSymbolsMacOS-M1.zip Galacticus.exe.dSYM
           mv Galacticus.exe Galacticus_MacOS-M1.exe
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: galacticus-exec-MacOS-M1
           path: 'Galacticus_MacOS-M1.exe'
       - name: Upload Galacticus debug symbols
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: galacticus-debug-MacOS-M1
           path: 'debugSymbolsMacOS-M1.zip'
@@ -529,7 +529,7 @@ jobs:
           mv libgalacticus.so galacticus/lib/
           zip -r libgalacticusMacOS.zip galacticus
       - name: Upload library
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: galacticus-library-MacOS
           path: 'libgalacticusMacOS.zip'
@@ -605,7 +605,7 @@ jobs:
             dynamic/fsps-${fspsVersion}/ISOCHRONES \
             dynamic/mangle-${mangleVersion}/bin/harmonize
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: galacticus-tools-MacOS
           path: './datasets/toolsMacOS.zip'
@@ -682,7 +682,7 @@ jobs:
             dynamic/fsps-${fspsVersion}/ISOCHRONES \
             dynamic/mangle-${mangleVersion}/bin/harmonize
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: galacticus-tools-MacOS-M1
           path: './datasets/toolsMacOSM1.zip'
@@ -1573,7 +1573,7 @@ jobs:
       - name: Perform a test inference
         run: ${GITHUB_WORKSPACE}/virtualenv/bin/python3 scripts/emulation/emulatorSubhaloQuadLensingInference.py --outputDirectory testSuite/outputs/emulation-subhalos
       - name: Upload plots
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: emulation-subhalos
           path: ./testSuite/outputs/emulation-subhalos/*.pdf
