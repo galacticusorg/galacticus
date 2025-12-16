@@ -269,7 +269,7 @@ program Test_Mass_Distributions
   select type (massDistribution_)
   type is (massDistributionExponentialDisk)
      massDistribution_=massDistributionExponentialDisk(scaleHeight=0.01d0,dimensionless=.true.)
-     ! Test that the mass within a cyclindrical radius matches analytical results.
+     ! Test that the mass within a cylindrical radius matches analytical results.
      call Unit_Tests_Begin_Group("Mass within cylindrical radius matches analytical results")
      call Assert("Mass enclosed by cylinder at r=½",massDistribution_%massEnclosedByCylinder(0.5d0),(2.0d0-3.0d0/sqrt(e))/2.0d0,relTol=1.0d-6)
      call Assert("Mass enclosed by cylinder at r=1",massDistribution_%massEnclosedByCylinder(1.0d0),(e-2.0d0)/e                ,relTol=1.0d-6)
