@@ -45,6 +45,10 @@
     true then scale radii will be included in the output (if they are available and have been set).  If {\normalfont \ttfamily
     [includeAngularMomenta]} is true then halo angular momenta will be included in the output (if they are available and have been
     set).
+
+    If {\normalfont \ttfamily [includeSubhalos]} is true then subhalos are included in the exported data. Note that if particle
+    positions were used to track subhalos after their destruction in an N-body simulation, attempting to output subhalos may lead
+    to errors.
    </description>
   </mergerTreeOperator>
   !!]
@@ -58,8 +62,9 @@
      class  (cosmologicalMassVarianceClass  ), pointer :: cosmologicalMassVariance_ => null()
      type   (varying_string                 )          :: outputFileName
      type   (enumerationMergerTreeFormatType)          :: exportFormat
-     logical                                           :: snapshotsRequired                  , includeScaleRadii  , &
-          &                                               includeAngularMomenta              , skipSingleNodeTrees
+     logical                                           :: snapshotsRequired                  , includeScaleRadii, &
+          &                                               includeAngularMomenta              , includeSubhalos  , &
+          &                                               skipSingleNodeTrees
    contains
      final     ::                         exportDestructor
      procedure :: operatePreEvolution  => exportOperatePreEvolution
@@ -89,8 +94,8 @@ contains
     class  (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
     class  (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
     type   (varying_string               )                :: outputFileName           , exportFormat
-    logical                                               :: includeAngularMomenta    , includeScaleRadii, &
-         &                                                   skipSingleNodeTrees
+    logical                                               :: includeAngularMomenta    , includeScaleRadii  , &
+         &                                                   includeSubhalos          , skipSingleNodeTrees
 
     !![
     <inputParameter>
@@ -123,11 +128,17 @@ contains
       <defaultValue>.false.</defaultValue>
       <description>If true, include angular momenta (if available) in the output.</description>
     </inputParameter>
+    <inputParameter>
+      <name>includeSubhalos</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>If true, subhalos are included in the exported data. (Note that subhalo export is not supported in cases where particle data was used to track halos after they are destroyed in an N-body simulation.)</description>
+    </inputParameter>
     <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     !!]
-    self=exportConstructorInternal(char(outputFileName),enumerationMergerTreeFormatEncode(char(exportFormat),includesPrefix=.false.),skipSingleNodeTrees,includeScaleRadii,includeAngularMomenta,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_)
+    self=exportConstructorInternal(char(outputFileName),enumerationMergerTreeFormatEncode(char(exportFormat),includesPrefix=.false.),skipSingleNodeTrees,includeScaleRadii,includeAngularMomenta,includeSubhalos,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"     />
@@ -137,7 +148,7 @@ contains
     return
   end function exportConstructorParameters
 
-  function exportConstructorInternal(outputFileName,exportFormat,skipSingleNodeTrees,includeScaleRadii,includeAngularMomenta,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_) result(self)
+  function exportConstructorInternal(outputFileName,exportFormat,skipSingleNodeTrees,includeScaleRadii,includeAngularMomenta,includeSubhalos,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_) result(self)
     !!{
     Internal constructor for the export merger tree operator class.
     !!}
@@ -148,12 +159,12 @@ contains
     character(len=*                          ), intent(in   )         :: outputFileName
     type     (enumerationMergerTreeFormatType), intent(in   )         :: exportFormat
     logical                                   , intent(in   )         :: includeScaleRadii        , includeAngularMomenta, &
-         &                                                               skipSingleNodeTrees
+         &                                                               includeSubhalos          , skipSingleNodeTrees
     class    (cosmologyParametersClass       ), intent(in   ), target :: cosmologyParameters_
     class    (cosmologyFunctionsClass        ), intent(in   ), target :: cosmologyFunctions_
     class    (cosmologicalMassVarianceClass  ), intent(in   ), target :: cosmologicalMassVariance_
     !![
-    <constructorAssign variables="outputFileName, exportFormat, skipSingleNodeTrees, includeScaleRadii, includeAngularMomenta, *cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_"/>
+    <constructorAssign variables="outputFileName, exportFormat, skipSingleNodeTrees, includeScaleRadii, includeAngularMomenta, includeSubhalos, *cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_"/>
     !!]
 
     ! Validate the export format.
@@ -296,31 +307,33 @@ contains
           basic     => node%basic    ()
           satellite => node%satellite()
           position  => node%position ()
-          if (satellite%boundMassHistoryIsGettable()) then
-             historyMassBound=satellite%boundMassHistory()
-             if (allocated(historyMassBound%time)) then
-                if (historyMassBound%time(1) == basic%time()) then
-                   nodeCount=nodeCount+size(historyMassBound%time)-1_c_size_t
-                else
-                   nodeCount=nodeCount+size(historyMassBound%time)
+          if (self%includeSubhalos) then
+             if (satellite%boundMassHistoryIsGettable()) then
+                historyMassBound=satellite%boundMassHistory()
+                if (allocated(historyMassBound%time)) then
+                   if (historyMassBound%time(1) == basic%time()) then
+                      nodeCount=nodeCount+size(historyMassBound%time)-1_c_size_t
+                   else
+                      nodeCount=nodeCount+size(historyMassBound%time)
+                   end if
                 end if
-             end if
-          else if (satellite%nodeIndexHistoryIsGettable()) then
-             historyNodeIndex=satellite%nodeIndexHistory()
-             if (allocated(historyNodeIndex%time)) then
-                if (historyNodeIndex%time(1) == basic%time()) then
-                   nodeCount=nodeCount+size(historyNodeIndex%time)-1_c_size_t
-                else
-                   nodeCount=nodeCount+size(historyNodeIndex%time)
+             else if (satellite%nodeIndexHistoryIsGettable()) then
+                historyNodeIndex=satellite%nodeIndexHistory()
+                if (allocated(historyNodeIndex%time)) then
+                   if (historyNodeIndex%time(1) == basic%time()) then
+                      nodeCount=nodeCount+size(historyNodeIndex%time)-1_c_size_t
+                   else
+                      nodeCount=nodeCount+size(historyNodeIndex%time)
+                   end if
                 end if
-             end if
-          else if (position%positionHistoryIsGettable()) then
-             historyPosition=position%positionHistory()
-             if (allocated(historyPosition%time)) then
-                if (historyPosition%time(1) == basic%time()) then
-                   nodeCount=nodeCount+size(historyPosition%time)-1_c_size_t
-                else
-                   nodeCount=nodeCount+size(historyPosition%time)
+             else if (position%positionHistoryIsGettable()) then
+                historyPosition=position%positionHistory()
+                if (allocated(historyPosition%time)) then
+                   if (historyPosition%time(1) == basic%time()) then
+                      nodeCount=nodeCount+size(historyPosition%time)-1_c_size_t
+                   else
+                      nodeCount=nodeCount+size(historyPosition%time)
+                   end if
                 end if
              end if
           end if
@@ -451,247 +464,248 @@ contains
           if (self%snapshotsRequired  ) nodeSnapshot   (nodeCount  )=snapshotInterpolator%locate(basic            %time    (),closest=.true.)
           ! Handle subhalo histories (mass, position and velocity). Note that we assume that scale radii and angular momenta do
           ! not change, as Galacticus currently ignores these for subhalo evolution.
-          !
-          ! First, determine which histories we have available.
-          haveMassHistory=.false.
-          if (satellite%boundMassHistoryIsGettable()) then
-             historyMassBound=satellite%boundMassHistory()
-             if (allocated(historyMassBound%time)) haveMassHistory     =.true.
-          end if
-          haveNodeIndexHistory=.false.
-          if (satellite%nodeIndexHistoryIsGettable()) then
-             historyNodeIndex=satellite%nodeIndexHistory()
-             if (allocated(historyNodeIndex%time)) haveNodeIndexHistory=.true.
-          end if
-          havePositionHistory=.false.
-          if (position % positionHistoryIsGettable()) then
-             historyPosition=position%positionHistory()
-             if (allocated(historyPosition %time)) havePositionHistory =.true.
-          end if
-          ! Determine what events (if any) are associated with this subhalo.
-          descendantIndexEvent=-1_kind_int8
-          if (allocated(timeEvent )) deallocate(timeEvent )
-          if (allocated(nodeEvent_)) deallocate(nodeEvent_)
-          if (allocated(orderEvent)) deallocate(orderEvent)
-          countEvent          =0
-          haveSubhaloPromotion=.false.
-          haveBranchJump      =.false.
-          ! First count the number of branch jumps.
-          event => node%event
-          do while (associated(event))
-             if (associated(event%task)) then
-                select type (event)
-                type is (nodeEventBranchJump)
-                   countEvent=countEvent+1
-                end select
+          if (self%includeSubhalos) then
+             ! First, determine which histories we have available.
+             haveMassHistory=.false.
+             if (satellite%boundMassHistoryIsGettable()) then
+                historyMassBound=satellite%boundMassHistory()
+                if (allocated(historyMassBound%time)) haveMassHistory     =.true.
              end if
-             event => event%next
-          end do
-          ! Build a list of branch jump events, and record if any subhalo promotion occurs.
-          allocate(timeEvent (countEvent))
-          allocate(nodeEvent_(countEvent))
-          allocate(orderEvent(countEvent))
-          countEvent =  0
-          event      => node%event
-          do while (associated(event))
-             if (associated(event%task)) then
-                select type (event)
-                type is (nodeEventBranchJump)
-                   ! Branch jump - record the node jumped to, and the time of the jump.
-                   countEvent    =countEvent+1
-                   haveBranchJump=.true.
-                   nodeEvent_(countEvent)%node => event%node
-                   timeEvent (countEvent)      =  event%time
-                   orderEvent(countEvent)      =  countEvent
-                type is (nodeEventSubhaloPromotion)
-                   ! Subhalo promotion - simply set the descendant to the target node.
-                   haveSubhaloPromotion=.true.
-                   descendantIndexEvent=event%node%index()
-                class default
-                   call Error_Report('unknown event type'//{introspection:location})
-                end select
+             haveNodeIndexHistory=.false.
+             if (satellite%nodeIndexHistoryIsGettable()) then
+                historyNodeIndex=satellite%nodeIndexHistory()
+                if (allocated(historyNodeIndex%time)) haveNodeIndexHistory=.true.
              end if
-             event => event%next
-          end do
-          ! Determine the time ordering of branch jumps.
-          orderEvent=sortIndex(timeEvent)
-          ! If histories are available, initialize the host node.
-          if (haveMassHistory .or. haveNodeIndexHistory .or. havePositionHistory) then
-             countEvent=1
-             if (node%isSatellite()) then
-                ! The node is an initial satellite.
-                if (node%parent%parent%index() == node%parent%index()) then
-                   ! Cloned parent - first move to the cloned parent, then the host of our first step in the history is that
-                   ! parent's parent.
-                   nodeHost => node%parent%parent%parent
-                else
-                   ! Non-cloned parent - the host of our first step in the history is that parent's parent.
-                   nodeHost => node%parent%parent
-                end if
-                ! Check for an immediate branch jump.
-                if (haveBranchJump .and. timeEvent(orderEvent(countEvent)) == basic%time()) then
-                   ! Branch jump occurs at the initial time. Move the host pointer to the jumped-to branch.
-                   nodeHost   => nodeEvent_(orderEvent(countEvent))%node
-                   countEvent =  countEvent+1
-                   if (countEvent > size(timeEvent)) haveBranchJump=.false.
-                end if
-             else
-                ! Node is not an initial satellite. The host of our first step in the history is simply the node's parent.
-                nodeHost => node%parent
+             havePositionHistory=.false.
+             if (position % positionHistoryIsGettable()) then
+                historyPosition=position%positionHistory()
+                if (allocated(historyPosition %time)) havePositionHistory =.true.
              end if
-             ! Determine the initial time in the subhalo history, and the number of entries in that history.
-             if (haveMassHistory) then
-                timeHistory =     historyMassBound%time(1)
-                countHistory=size(historyMassBound%time   )
-             else if (haveNodeIndexHistory) then
-                timeHistory =     historyNodeIndex%time(1)
-                countHistory=size(historyNodeIndex%time   )
-             else
-                timeHistory =     historyPosition %time(1)
-                countHistory=size(historyPosition %time   )
-             end if
-             ! Determine the starting point in the history.
-             if (timeHistory == basic%time()) then
-                ! Initial satellite - skip the first entry in the history.
-                indexHistoryStart=2_c_size_t
-             else
-                ! Not an initial satellite - begin from the first entry in the history.
-                indexHistoryStart=1_c_size_t
-             end if
-             ! Iterate over all history entries.
-             do indexHistory=1_c_size_t,countHistory+1_c_size_t-indexHistoryStart
-                ! Determine the time at this step in this history.
-                if (haveMassHistory) then
-                   timeHistory=historyMassBound%time(indexHistory-1_c_size_t+indexHistoryStart)
-                else if (haveNodeIndexHistory) then
-                   timeHistory=historyNodeIndex%time(indexHistory-1_c_size_t+indexHistoryStart)
-                else
-                   timeHistory=historyPosition %time(indexHistory-1_c_size_t+indexHistoryStart)
+             ! Determine what events (if any) are associated with this subhalo.
+             descendantIndexEvent=-1_kind_int8
+             if (allocated(timeEvent )) deallocate(timeEvent )
+             if (allocated(nodeEvent_)) deallocate(nodeEvent_)
+             if (allocated(orderEvent)) deallocate(orderEvent)
+             countEvent          =0
+             haveSubhaloPromotion=.false.
+             haveBranchJump      =.false.
+             ! First count the number of branch jumps.
+             event => node%event
+             do while (associated(event))
+                if (associated(event%task)) then
+                   select type (event)
+                   type is (nodeEventBranchJump)
+                      countEvent=countEvent+1
+                   end select
                 end if
-                ! Determine node and descendant indices.
-                if (haveNodeIndexHistory) then
-                   ! Node index history is available - simply use the indices from the history.
-                   nodeIndex      (nodeCount+indexHistory)=historyNodeIndex%data(indexHistory-1_c_size_t+indexHistoryStart,1)
-                   if (indexHistory == countHistory-1_c_size_t+indexHistoryStart) then
-                      ! At the end of history - set a null descendant index for now.
-                      descendantIndex(nodeCount+indexHistory)=-1_c_size_t
-                   else
-                      descendantIndex(nodeCount+indexHistory)=historyNodeIndex%data(indexHistory-1_c_size_t+indexHistoryStart+1_c_size_t,1)
-                   end if
-                else
-                   ! Node index history is not available - generate unique indices for history entries using our offset.
-                   nodeIndex      (nodeCount+indexHistory)=nodeIndex(nodeCount)+(indexHistory-1_c_size_t+indexHistoryStart           )*nodeIndexOffset
-                   descendantIndex(nodeCount+indexHistory)=nodeIndex(nodeCount)+(indexHistory-1_c_size_t+indexHistoryStart+1_c_size_t)*nodeIndexOffset
-                end if
-                ! Set ths host index to that of the current host.
-                hostIndex      (nodeCount+indexHistory)=nodeHost%index()
-                ! Set node mass.
-                if (haveMassHistory) then
-                   ! A mass history is available - use it to set the mass.
-                   nodeMass(nodeCount+indexHistory)=historyMassBound%data(indexHistory-1_c_size_t+indexHistoryStart,1)
-                else
-                   ! No node mass history is available - assuming no change in mass from the original node.
-                   nodeMass(nodeCount+indexHistory)=nodeMass             (nodeCount                                  )
-                end if
-                ! Set node redshift using the current history time.
-                nodeRedshift      (nodeCount+indexHistory) = self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(timeHistory))
-                ! Set node position and velocity.
-                if (havePositionHistory) then
-                   ! A position history is available - use it to set the position and velocity.
-                   nodePosition   (nodeCount+indexHistory,:)=historyPosition%data    (indexHistory-1_c_size_t+indexHistoryStart,1:3)
-                   nodeVelocity   (nodeCount+indexHistory,:)=historyPosition%data    (indexHistory-1_c_size_t+indexHistoryStart,4:6)
-                else
-                   ! No position history is available - assume no change in position from the original node.
-                   nodePosition   (nodeCount+indexHistory,:)=position       %position(                                             )
-                   nodeVelocity   (nodeCount+indexHistory,:)=position       %velocity(                                             )
-                end if
-                ! Set the scale radius if available. This does not change from the original node.
-                if (haveRadiusScale) nodeRadiusScale(nodeCount+indexHistory)=nodeRadiusScale(nodeCount)
-                ! Set the angular momentum if available. This does not change from the original node.
-                if (haveAngularMomentum) then
-                   if (angularMomentumIsVector) then
-                      nodeAngularMomentum3D(nodeCount+indexHistory,:)=nodeAngularMomentum3D(nodeCount,:)
-                   else
-                      nodeAngularMomentum  (nodeCount+indexHistory  )=nodeAngularMomentum  (nodeCount  )
-                   end if
-                end if
-                ! Set snapshot index if required.
-                if (self%snapshotsRequired) nodeSnapshot(nodeCount+indexHistory)=snapshotInterpolator%locate(timeHistory,closest=.true.)
-                ! Check for a branch jump at this time step.
-                if (haveBranchJump .and. timeHistory == timeEvent(orderEvent(countEvent))) then
-                   ! Move the host to the jumped-to node, an increment the event counter to the next branch jump.
-                   nodeHost   => nodeEvent_(orderEvent(countEvent))%node
-                   countEvent =  countEvent+1
-                   ! If no more branch jumps exist, indicate that.
-                   if (countEvent > size(timeEvent)) haveBranchJump=.false.
-                else
-                   ! No branch jump occurs at this timestep - simply move the host pointer to its parent.
-                   nodeHost => nodeHost%parent
-                end if
+                event => event%next
              end do
-             ! Set the descendant index for the original node.
-             if (haveNodeIndexHistory) then
-                ! A node index history is available, so use the first entry from that history.
-                descendantIndex(nodeCount)=historyNodeIndex%data(indexHistoryStart,1)
-             else
-                ! No node index history is available, so use the offset index.
-                descendantIndex(nodeCount)=nodeIndex(nodeCount)+nodeIndexOffset
-             end if
-             ! Increment the node count by the number that were added.
-             nodeCount=nodeCount+countHistory-indexHistoryStart+1_c_size_t
-             ! Act on any subhalo promotion.             
-             if (haveSubhaloPromotion) then
-                ! A subhalo promotion occurs at the end of the subhalo history - set the final descendant to the target node of
-                ! the promotion.
-                descendantIndex(nodeCount)=descendantIndexEvent
-             else
-                ! No subhalo promotion occurs - check for any merge target.
-                if (associated(node%mergeTarget)) then
-                   ! A merge target is defined - set the descendant index to that of the merge target.
-                   basicTarget                => node%mergeTarget%basic()
-                   descendantIndex(nodeCount) =  node%mergeTarget%index()
-                   if (satellite%timeOfMerging() > basicTarget%time()) then
-                      if (associated(node%mergeTarget%parent) .and. node%mergeTarget%parent%index() == node%mergeTarget%index()) then
-                         ! Merge target is a clone - satellite information is attached to the target node's parent clone.
-                         satelliteTarget => node%mergeTarget%parent%satellite()
+             ! Build a list of branch jump events, and record if any subhalo promotion occurs.
+             allocate(timeEvent (countEvent))
+             allocate(nodeEvent_(countEvent))
+             allocate(orderEvent(countEvent))
+             countEvent =  0
+             event      => node%event
+             do while (associated(event))
+                if (associated(event%task)) then
+                   select type (event)
+                   type is (nodeEventBranchJump)
+                      ! Branch jump - record the node jumped to, and the time of the jump.
+                      countEvent    =countEvent+1
+                      haveBranchJump=.true.
+                      nodeEvent_(countEvent)%node => event%node
+                      timeEvent (countEvent)      =  event%time
+                      orderEvent(countEvent)      =  countEvent
+                   type is (nodeEventSubhaloPromotion)
+                      ! Subhalo promotion - simply set the descendant to the target node.
+                      haveSubhaloPromotion=.true.
+                      descendantIndexEvent=event%node%index()
+                      class default
+                      call Error_Report('unknown event type'//{introspection:location})
+                   end select
+                end if
+                event => event%next
+             end do
+             ! Determine the time ordering of branch jumps.
+             orderEvent=sortIndex(timeEvent)
+             ! If histories are available, initialize the host node.
+             if (haveMassHistory .or. haveNodeIndexHistory .or. havePositionHistory) then
+                countEvent=1
+                if (node%isSatellite()) then
+                   ! The node is an initial satellite.
+                   if (node%parent%parent%index() == node%parent%index()) then
+                      ! Cloned parent - first move to the cloned parent, then the host of our first step in the history is that
+                      ! parent's parent.
+                      nodeHost => node%parent%parent%parent
+                   else
+                      ! Non-cloned parent - the host of our first step in the history is that parent's parent.
+                      nodeHost => node%parent%parent
+                   end if
+                   ! Check for an immediate branch jump.
+                   if (haveBranchJump .and. timeEvent(orderEvent(countEvent)) == basic%time()) then
+                      ! Branch jump occurs at the initial time. Move the host pointer to the jumped-to branch.
+                      nodeHost   => nodeEvent_(orderEvent(countEvent))%node
+                      countEvent =  countEvent+1
+                      if (countEvent > size(timeEvent)) haveBranchJump=.false.
+                   end if
+                else
+                   ! Node is not an initial satellite. The host of our first step in the history is simply the node's parent.
+                   nodeHost => node%parent
+                end if
+                ! Determine the initial time in the subhalo history, and the number of entries in that history.
+                if (haveMassHistory) then
+                   timeHistory =     historyMassBound%time(1)
+                   countHistory=size(historyMassBound%time   )
+                else if (haveNodeIndexHistory) then
+                   timeHistory =     historyNodeIndex%time(1)
+                   countHistory=size(historyNodeIndex%time   )
+                else
+                   timeHistory =     historyPosition %time(1)
+                   countHistory=size(historyPosition %time   )
+                end if
+                ! Determine the starting point in the history.
+                if (timeHistory == basic%time()) then
+                   ! Initial satellite - skip the first entry in the history.
+                   indexHistoryStart=2_c_size_t
+                else
+                   ! Not an initial satellite - begin from the first entry in the history.
+                   indexHistoryStart=1_c_size_t
+                end if
+                ! Iterate over all history entries.
+                do indexHistory=1_c_size_t,countHistory+1_c_size_t-indexHistoryStart
+                   ! Determine the time at this step in this history.
+                   if (haveMassHistory) then
+                      timeHistory=historyMassBound%time(indexHistory-1_c_size_t+indexHistoryStart)
+                   else if (haveNodeIndexHistory) then
+                      timeHistory=historyNodeIndex%time(indexHistory-1_c_size_t+indexHistoryStart)
+                   else
+                      timeHistory=historyPosition %time(indexHistory-1_c_size_t+indexHistoryStart)
+                   end if
+                   ! Determine node and descendant indices.
+                   if (haveNodeIndexHistory) then
+                      ! Node index history is available - simply use the indices from the history.
+                      nodeIndex      (nodeCount+indexHistory)=historyNodeIndex%data(indexHistory-1_c_size_t+indexHistoryStart,1)
+                      if (indexHistory == countHistory-1_c_size_t+indexHistoryStart) then
+                         ! At the end of history - set a null descendant index for now.
+                         descendantIndex(nodeCount+indexHistory)=-1_c_size_t
                       else
-                         ! Merge target is not a clone - satellite information is attached directly to the target node.
-                         satelliteTarget => node%mergeTarget       %satellite()
+                         descendantIndex(nodeCount+indexHistory)=historyNodeIndex%data(indexHistory-1_c_size_t+indexHistoryStart+1_c_size_t,1)
                       end if
-                      if (satelliteTarget%nodeIndexHistoryIsGettable()) then
-                         historyNodeIndexTarget=satelliteTarget%nodeIndexHistory()
-                         if (allocated(historyNodeIndexTarget%time)) then
-                            do indexHistory=1,size(historyNodeIndexTarget%time)
-                               if (historyNodeIndexTarget%time(indexHistory) == satellite%timeOfMerging()) then
-                                  descendantIndex(nodeCount)=historyNodeIndexTarget%data(indexHistory,1)
-                                  exit
-                               end if
-                            end do
+                   else
+                      ! Node index history is not available - generate unique indices for history entries using our offset.
+                      nodeIndex      (nodeCount+indexHistory)=nodeIndex(nodeCount)+(indexHistory-1_c_size_t+indexHistoryStart           )*nodeIndexOffset
+                      descendantIndex(nodeCount+indexHistory)=nodeIndex(nodeCount)+(indexHistory-1_c_size_t+indexHistoryStart+1_c_size_t)*nodeIndexOffset
+                   end if
+                   ! Set ths host index to that of the current host.
+                   hostIndex      (nodeCount+indexHistory)=nodeHost%index()
+                   ! Set node mass.
+                   if (haveMassHistory) then
+                      ! A mass history is available - use it to set the mass.
+                      nodeMass(nodeCount+indexHistory)=historyMassBound%data(indexHistory-1_c_size_t+indexHistoryStart,1)
+                   else
+                      ! No node mass history is available - assuming no change in mass from the original node.
+                      nodeMass(nodeCount+indexHistory)=nodeMass             (nodeCount                                  )
+                   end if
+                   ! Set node redshift using the current history time.
+                   nodeRedshift      (nodeCount+indexHistory) = self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(timeHistory))
+                   ! Set node position and velocity.
+                   if (havePositionHistory) then
+                      ! A position history is available - use it to set the position and velocity.
+                      nodePosition   (nodeCount+indexHistory,:)=historyPosition%data    (indexHistory-1_c_size_t+indexHistoryStart,1:3)
+                      nodeVelocity   (nodeCount+indexHistory,:)=historyPosition%data    (indexHistory-1_c_size_t+indexHistoryStart,4:6)
+                   else
+                      ! No position history is available - assume no change in position from the original node.
+                      nodePosition   (nodeCount+indexHistory,:)=position       %position(                                             )
+                      nodeVelocity   (nodeCount+indexHistory,:)=position       %velocity(                                             )
+                   end if
+                   ! Set the scale radius if available. This does not change from the original node.
+                   if (haveRadiusScale) nodeRadiusScale(nodeCount+indexHistory)=nodeRadiusScale(nodeCount)
+                   ! Set the angular momentum if available. This does not change from the original node.
+                   if (haveAngularMomentum) then
+                      if (angularMomentumIsVector) then
+                         nodeAngularMomentum3D(nodeCount+indexHistory,:)=nodeAngularMomentum3D(nodeCount,:)
+                      else
+                         nodeAngularMomentum  (nodeCount+indexHistory  )=nodeAngularMomentum  (nodeCount  )
+                      end if
+                   end if
+                   ! Set snapshot index if required.
+                   if (self%snapshotsRequired) nodeSnapshot(nodeCount+indexHistory)=snapshotInterpolator%locate(timeHistory,closest=.true.)
+                   ! Check for a branch jump at this time step.
+                   if (haveBranchJump .and. timeHistory == timeEvent(orderEvent(countEvent))) then
+                      ! Move the host to the jumped-to node, and increment the event counter to the next branch jump.
+                      nodeHost   => nodeEvent_(orderEvent(countEvent))%node
+                      countEvent =  countEvent+1
+                      ! If no more branch jumps exist, indicate that.
+                      if (countEvent > size(timeEvent)) haveBranchJump=.false.
+                   else
+                      ! No branch jump occurs at this timestep - simply move the host pointer to its parent.
+                      nodeHost => nodeHost%parent
+                   end if
+                end do
+                ! Set the descendant index for the original node.
+                if (haveNodeIndexHistory) then
+                   ! A node index history is available, so use the first entry from that history.
+                   descendantIndex(nodeCount)=historyNodeIndex%data(indexHistoryStart,1)
+                else
+                   ! No node index history is available, so use the offset index.
+                   descendantIndex(nodeCount)=nodeIndex(nodeCount)+nodeIndexOffset
+                end if
+                ! Increment the node count by the number that were added.
+                nodeCount=nodeCount+countHistory-indexHistoryStart+1_c_size_t
+                ! Act on any subhalo promotion.             
+                if (haveSubhaloPromotion) then
+                   ! A subhalo promotion occurs at the end of the subhalo history - set the final descendant to the target node of
+                   ! the promotion.
+                   descendantIndex(nodeCount)=descendantIndexEvent
+                else
+                   ! No subhalo promotion occurs - check for any merge target.
+                   if (associated(node%mergeTarget)) then
+                      ! A merge target is defined - set the descendant index to that of the merge target.
+                      basicTarget                => node%mergeTarget%basic()
+                      descendantIndex(nodeCount) =  node%mergeTarget%index()
+                      if (satellite%timeOfMerging() > basicTarget%time()) then
+                         if (associated(node%mergeTarget%parent) .and. node%mergeTarget%parent%index() == node%mergeTarget%index()) then
+                            ! Merge target is a clone - satellite information is attached to the target node's parent clone.
+                            satelliteTarget => node%mergeTarget%parent%satellite()
+                         else
+                            ! Merge target is not a clone - satellite information is attached directly to the target node.
+                            satelliteTarget => node%mergeTarget       %satellite()
+                         end if
+                         if (satelliteTarget%nodeIndexHistoryIsGettable()) then
+                            historyNodeIndexTarget=satelliteTarget%nodeIndexHistory()
+                            if (allocated(historyNodeIndexTarget%time)) then
+                               do indexHistory=1,size(historyNodeIndexTarget%time)
+                                  if (historyNodeIndexTarget%time(indexHistory) == satellite%timeOfMerging()) then
+                                     descendantIndex(nodeCount)=historyNodeIndexTarget%data(indexHistory,1)
+                                     exit
+                                  end if
+                               end do
+                            end if
                          end if
                       end if
+                   else
+                      ! No merge target exists. Either merge targets were not set (in which case the assumption is that the subhalo
+                      ! merges with its current host), or the final time was reached, in which case the subhalo has no descendant
+                      ! (and neither does its host). In either case, we can therefore simply set the descendant index to the current
+                      ! host node index (note that this host node will have been progressed one step beyond the end of the subhalo
+                      ! history).
+                      descendantIndex(nodeCount)=nodeHost%index()
                    end if
-                else
-                   ! No merge target exists. Either merge targets were not set (in which case the assumption is that the subhalo
-                   ! merges with its current host), or the final time was reached, in which case the subhalo has no descendant
-                   ! (and neither does its host). In either case, we can therefore simply set the descendent index to the current
-                   ! host node index (note that this host node will have been progressed one step beyond the end of the subhalo
-                   ! history).
-                   descendantIndex(nodeCount)=nodeHost%index()
                 end if
-             end if
-          else if (associated(node%mergeTarget)) then
-             ! Handle immediate subhalo-subhalo mergers.
-             basicTarget     => node%mergeTarget%basic   ()
-             satelliteTarget => node%mergeTarget%satellite()
-             if (satellite%timeOfMerging() > basicTarget%time()) then
-                if (satelliteTarget%nodeIndexHistoryIsGettable()) then
-                   historyNodeIndexTarget=satelliteTarget%nodeIndexHistory()
-                   do indexHistory=1,size(historyNodeIndexTarget%time)
-                      if (historyNodeIndexTarget%time(indexHistory) == satellite%timeOfMerging()) then
-                         descendantIndex(nodeCount)=historyNodeIndexTarget%data(indexHistory,1)
-                         exit
-                      end if
-                   end do
+             else if (associated(node%mergeTarget)) then
+                ! Handle immediate subhalo-subhalo mergers.
+                basicTarget     => node%mergeTarget%basic   ()
+                satelliteTarget => node%mergeTarget%satellite()
+                if (satellite%timeOfMerging() > basicTarget%time()) then
+                   if (satelliteTarget%nodeIndexHistoryIsGettable()) then
+                      historyNodeIndexTarget=satelliteTarget%nodeIndexHistory()
+                      do indexHistory=1,size(historyNodeIndexTarget%time)
+                         if (historyNodeIndexTarget%time(indexHistory) == satellite%timeOfMerging()) then
+                            descendantIndex(nodeCount)=historyNodeIndexTarget%data(indexHistory,1)
+                            exit
+                         end if
+                      end do
+                   end if
                 end if
              end if
           end if
