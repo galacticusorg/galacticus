@@ -22,7 +22,13 @@ for tree in testTreeExportBranchJumps                         \
     ./Galacticus.exe testSuite/parameters/testTreeExport.xml
     if [ $? -eq 0 ]; then
 	./scripts/aux/mergerTreeExportVerify.py testSuite/outputs/testTreeExportOriginal.hdf5 testSuite/outputs/testTreeExportExported.hdf5
-	if [ $? -ne 0 ]; then
+	if [ $? -eq 0 ]; then
+	    mv testSuite/outputs/testTreeExportExported.hdf5 testSuite/outputs/testTreeExportOriginal.hdf5
+	    ./Galacticus.exe testSuite/parameters/testTreeExport.xml
+	    if [ $? -ne 0 ]; then
+		status="FAILED {model re-run}"
+	    fi
+	else
 	    status="FAILED {verify}"
 	fi
     else
