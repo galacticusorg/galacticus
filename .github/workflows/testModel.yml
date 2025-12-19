@@ -166,6 +166,10 @@ jobs:
            cd ${{ inputs.runPath }}
            chmod u=wrx ./${{ inputs.file }}
            ./${{ inputs.file }} ${{ inputs.options }} 2>&1 | tee test.log
+          elif [[ ${{ inputs.file }} =~ \.sh$ ]]; then
+           cd ${{ inputs.runPath }}
+           chmod u=wrx ./${{ inputs.file }}
+           ./${{ inputs.file }} ${{ inputs.options }} 2>&1 | tee test.log
           elif [[ ${{ inputs.file }} =~ \.py$ ]]; then
            if [[ ${{ inputs.runner }} =~ ^macos ]]; then
             echo Python tests not supported on MacOS
