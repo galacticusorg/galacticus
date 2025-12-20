@@ -465,6 +465,7 @@ contains
     <referenceConstruct object="galacticFilterStellarMass_"     constructor="galacticFilterStellarMass    (  massThreshold=fractionMassStellarLimit*massStellar(1))"/>
     <referenceConstruct object="galacticFilterRadiusEffective_" constructor="galacticFilterRadiusEffective(radiusThreshold=radiusEffectiveLimit                   )"/>
     !!]
+    self%selection=selection
     if      (                             &
          &    selection == 'none'         &
          &  ) then
