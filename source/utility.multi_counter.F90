@@ -38,6 +38,7 @@ module Multi_Counters
      an arbitrary range.
      !!}
      integer(c_size_t), allocatable, dimension(:) :: ranges, values
+     logical                                      :: isNew
    contains
      !![
      <methods>
@@ -64,6 +65,7 @@ module Multi_Counters
      !!{
      Constructors for multi-counters.
      !!}
+     module procedure multiCounterConstructorNull
      module procedure multiCounterConstructor
      module procedure multiCounterConstructorShortInt
   end interface multiCounter
@@ -88,6 +90,17 @@ contains
     call self%reset()
     return
   end function multiCounterConstructor
+
+  function multiCounterConstructorNull() result (self)
+    !!{
+    Constructor for multi-counters where no ranges are provided.
+    !!}
+    implicit none
+    type(multiCounter) :: self
+
+    self%isNew=.true.
+    return
+  end function multiCounterConstructorNull
 
   function multiCounterConstructorShortInt(ranges) result (self)
     !!{
@@ -120,6 +133,7 @@ contains
     class(multiCounter), intent(inout) :: self
 
     self%values=0_c_size_t
+    self%isNew =.true.
     return
   end subroutine multiCounterReset
 
@@ -212,21 +226,29 @@ contains
     ! Assume incrementing was possible.
     multiCounterIncrement=.true.
     ! Increment.
-    if (all(self%values == 0_c_size_t)) then
-       ! Counter is in initial state, put into first state.
-       self%values=1_c_size_t
+    if (size(self%ranges) == 0_c_size_t) then
+       ! Special handling for zero-dimensioned counters.
+       multiCounterIncrement=self%isNew
+       self%isNew           =.false.
     else
-       do i=1,size(self%ranges)
-          self%values(i)=self%values(i)+1_c_size_t
-          if (self%values(i) > self%ranges(i)) then
-             self%values(i)=1_c_size_t
-          else
-             return
-          end if
-       end do
-       ! All values exceeded their range - the counter has been fully iterated over.
-       self%values          =0_c_size_t
-       multiCounterIncrement=.false.
+       ! Non-zero-dimensioned counters.
+       if (self%isNew) then
+          ! Counter is in initial state, put into first state.
+          self%values=1_c_size_t
+          self%isNew =.false.
+       else
+          do i=1,size(self%ranges)
+             self%values(i)=self%values(i)+1_c_size_t
+             if (self%values(i) > self%ranges(i)) then
+                self%values(i)=1_c_size_t
+             else
+                return
+             end if
+          end do
+          ! All values exceeded their range - the counter has been fully iterated over.
+          self%values          =0_c_size_t
+          multiCounterIncrement=.false.
+       end if
     end if
     return
   end function multiCounterIncrement

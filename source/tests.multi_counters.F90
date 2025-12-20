@@ -30,8 +30,10 @@ program Test_Multi_Counters
   use            :: Multi_Counters, only : multiCounter
   use            :: Unit_Tests    , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
-  type   (multiCounter)                   :: counter1, counter2
+  type   (multiCounter)                   :: counter1, counter2, &
+       &                                     counter3
   logical              , dimension(2,5,3) :: state
+  integer(c_size_t    ), dimension(0    ) :: zeroSize
   integer(c_size_t    )                   :: i       , j       , &
        &                                     k
 
@@ -44,6 +46,7 @@ program Test_Multi_Counters
   ! Construct the counters.
   counter1=multiCounter([2_c_size_t,5_c_size_t,3_c_size_t])
   counter2=multiCounter(                                  )
+  counter3=multiCounter(zeroSize                          )
   call counter2%append(2_c_size_t)
   call counter2%append(5_c_size_t)
   call counter2%append(3_c_size_t)
@@ -67,6 +70,13 @@ program Test_Multi_Counters
      state(i,j,k)=.true.
   end do
   call Assert('coverage appended ranges',all(state),.true.)
+
+  ! Iterate over third counter.
+  i=0
+  do while (counter3%increment())
+     i=i+1
+  end do
+  call Assert('zero dimension counter',i,1_c_size_t)
 
   ! End unit tests.
   call Unit_Tests_End_Group()
