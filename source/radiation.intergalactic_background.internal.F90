@@ -494,7 +494,7 @@ contains
     use            :: Stellar_Population_Spectra  , only : stellarPopulationSpectraClass
     use            :: Stellar_Populations         , only : stellarPopulationClass
     implicit none
-    class           (universeEvent                       ), intent(in   ) :: event
+    class           (universeEvent                       ), intent(inout) :: event
     type            (universe                            ), intent(inout) :: universe_
     type            (mergerTreeList                      ), pointer       :: forest
     type            (treeNode                            ), pointer       :: node

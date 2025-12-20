@@ -188,7 +188,7 @@ module Galacticus_Nodes
   abstract interface
      logical function universeEventTask(event,universe_)
        import universeEvent, universe
-       class  (universeEvent), intent(in   ) :: event
+       class  (universeEvent), intent(inout) :: event
        type   (universe     ), intent(inout) :: universe_
      end function universeEventTask
   end interface

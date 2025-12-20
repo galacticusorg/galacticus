@@ -398,7 +398,7 @@ contains
      use            :: Numerical_Constants_Math, only : Pi
      use            :: Numerical_ODE_Solvers   , only : odeSolver
      implicit none
-     class           (universeEvent     ), intent(in   )            :: event
+     class           (universeEvent     ), intent(inout)            :: event
      type            (universe          ), intent(inout)            :: universe_
      type            (universeEvent     ), pointer                  :: newEvent
      double precision                    , parameter                :: odeToleranceAbsolute =1.0d-3     ,                 &
