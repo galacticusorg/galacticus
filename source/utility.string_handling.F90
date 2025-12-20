@@ -44,6 +44,11 @@ module String_Handling
      module procedure String_Split_Words_Char
   end interface String_Split_Words
 
+  interface String_Count_Words
+     module procedure String_Count_Words_VarString
+     module procedure String_Count_Words_Char
+  end interface String_Count_Words
+
   interface char
      module procedure Char_Logical
   end interface char
@@ -77,7 +82,21 @@ module String_Handling
 
 contains
 
-  integer function String_Count_Words(inputString,separator,bracketing)
+  integer function String_Count_Words_VarString(inputString,separator,bracketing) result(countWords)
+    !!{
+    Return a count of the number of space separated words in {\normalfont \ttfamily inputString}.
+    !!}
+    use :: ISO_Varying_String, only : varying_string, char
+    implicit none
+    type     (varying_string), intent(in   )           :: inputString
+    character(len=*         ), intent(in   ), optional :: separator
+    character(len=2         ), intent(in   ), optional :: bracketing
+
+    countWords=String_Count_Words(char(inputString),separator,bracketing)
+    return
+  end function String_Count_Words_VarString
+
+  integer function String_Count_Words_Char(inputString,separator,bracketing) result(countWords)
     !!{
     Return a count of the number of space separated words in {\normalfont \ttfamily inputString}.
     !!}
@@ -97,9 +116,9 @@ contains
        separatorActual=charactersWhiteSpace
     end if
 
-    String_Count_Words=0
-    inWord            =.false.
-    inBracket         = 0
+    countWords=0
+    inWord    =.false.
+    inBracket = 0
     do iCharacter=1,len_trim(inputString)
        if (present(bracketing)) then
           if (inputString(iCharacter:iCharacter) == bracketing(1:1)) inBracket=inBracket+1
@@ -107,16 +126,16 @@ contains
        end if
        if (index(separatorActual,inputString(iCharacter:iCharacter)) /= 0) then
           if (inBracket == 0) then
-             if (inWord) String_Count_Words=String_Count_Words+1
+             if (inWord) countWords=countWords+1
              inWord=.false.
           end if
        else
           inWord=.true.
        end if
     end do
-    if (inWord) String_Count_Words=String_Count_Words+1
+    if (inWord) countWords=countWords+1
     return
-  end function String_Count_Words
+  end function String_Count_Words_Char
 
   subroutine String_Split_Words_VarString(words,inputString,separator,bracketing)
     !!{

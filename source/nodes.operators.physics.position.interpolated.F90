@@ -23,6 +23,7 @@
   
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
   use :: Galacticus_Nodes   , only : treeNode
+  use :: Kind_Numbers       , only : kind_int8
   
   !![
   <nodeOperator name="nodeOperatorPositionInterpolated">
@@ -36,10 +37,11 @@
      A node operator class that interpolates positions of nodes using the approach of \cite{merson_lightcone_2013}.
      !!}
      private
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
-     double precision                                   :: lengthBox
-     logical                                            :: isPeriodic                   , wrapPeriodic
-     integer                                            :: coefficientsID
+     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_ => null()
+     integer         (kind_int8              ), allocatable, dimension(:) :: nodeIndicesReport
+     double precision                                                     :: lengthBox
+     logical                                                              :: isPeriodic                   , wrapPeriodic
+     integer                                                              :: coefficientsID
    contains
      !![
      <methods>
@@ -85,12 +87,23 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type            (nodeOperatorPositionInterpolated)                :: self
-    type            (inputParameters                 ), intent(inout) :: parameters
-    class           (cosmologyFunctionsClass         ), pointer       :: cosmologyFunctions_
-    double precision                                                  :: lengthBox
-    logical                                                           :: wrapPeriodic
+    type            (nodeOperatorPositionInterpolated)                            :: self
+    type            (inputParameters                 ), intent(inout)             :: parameters
+    class           (cosmologyFunctionsClass         ), pointer                   :: cosmologyFunctions_
+    integer         (kind_int8                       ), allocatable, dimension(:) :: nodeIndicesReport
+    double precision                                                              :: lengthBox
+    logical                                                                       :: wrapPeriodic
 
+    allocate(nodeIndicesReport(parameters%count('nodeIndicesReport',zeroIfNotPresent=.true.)))
+    if (parameters%isPresent('nodeIndicesReport')) then
+       !![
+       <inputParameter>
+	 <name>nodeIndicesReport</name>
+	 <description>A list of node indices for which reporting should be performed.</description>
+	 <source>parameters</source>
+       </inputParameter>
+       !!]
+    end if
     !![
     <inputParameter>
       <name>lengthBox</name>
@@ -106,7 +119,7 @@ contains
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !!]
-    self=nodeOperatorPositionInterpolated(lengthBox,wrapPeriodic,cosmologyFunctions_)
+    self=nodeOperatorPositionInterpolated(lengthBox,wrapPeriodic,nodeIndicesReport,cosmologyFunctions_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_" />
@@ -114,18 +127,19 @@ contains
     return
   end function positionInterpolatedConstructorParameters
 
-  function positionInterpolatedConstructorInternal(lengthBox,wrapPeriodic,cosmologyFunctions_) result(self)
+  function positionInterpolatedConstructorInternal(lengthBox,wrapPeriodic,nodeIndicesReport,cosmologyFunctions_) result(self)
     !!{
     Constructor for the \refClass{nodeOperatorPositionInterpolated} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type            (nodeOperatorPositionInterpolated)                        :: self
-    double precision                                  , intent(in   )         :: lengthBox
-    logical                                           , intent(in   )         :: wrapPeriodic
-    class           (cosmologyFunctionsClass         ), intent(in   ), target :: cosmologyFunctions_
+    type            (nodeOperatorPositionInterpolated)                              :: self
+    double precision                                  , intent(in   )               :: lengthBox
+    logical                                           , intent(in   )               :: wrapPeriodic
+    class           (cosmologyFunctionsClass         ), intent(in   ), target       :: cosmologyFunctions_
+    integer         (kind_int8                       ), intent(in   ), dimension(:) :: nodeIndicesReport
     !![
-    <constructorAssign variables="lengthBox, wrapPeriodic, *cosmologyFunctions_"/>
+    <constructorAssign variables="lengthBox, wrapPeriodic, nodeIndicesReport, *cosmologyFunctions_"/>
     !!]
 
     self%isPeriodic=lengthBox > 0.0d0
@@ -198,6 +212,7 @@ contains
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentPosition, nodeComponentBasic
     use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr
+    use :: Display                         , only : displayMessage       , displayIndent     , displayUnindent
     implicit none
     class           (nodeOperatorPositionInterpolated), intent(inout)                  :: self
     type            (treeNode                        ), intent(inout)                  :: node
@@ -213,10 +228,16 @@ contains
     integer         (c_size_t                        )                                 :: countTrace         , iTrace               , &
          &                                                                                offset
     integer                                                                            :: i
-    logical                                                                            :: isSpiral
+    logical                                                                            :: isSpiral           , report
     double precision                                                                   :: lengthBox
+    character       (len=1024                        )                                 :: label
     !$GLC attributes initialized :: coefficients
-    
+
+    report=any(node%index() == self%nodeIndicesReport)
+    if (report) then
+       write (label,'(i12," | ",e12.6)') node%index(),time
+       call displayIndent("Position interpolation for node | time: "//trim(adjustl(label)))
+    end if
     ! Extract all interpolation coefficients.
     position     => node    %position                 (                   )
     coefficients =  position%floatRank1MetaPropertyGet(self%coefficientsID)
@@ -227,6 +248,10 @@ contains
     do while (iTrace < countTrace .and. time >= coefficients(iTrace+1_c_size_t))
        iTrace=iTrace+1_c_size_t
     end do
+    if (report) then
+       write (label,'(i4,1x,"of",1x,i4," at time ",e12.6)') iTrace,countTrace,coefficients(iTrace)
+       call displayMessage("Index: "//trim(adjustl(label)))
+    end if
     ! Extract cubic polynomial coefficients for this time.
     isSpiral         =coefficients(countTrace+iTrace) > 0.0d0
     offset           =2_c_size_t*countTrace+(countCoefficientsCubicPolynomial+countCoefficientsLogarithmicSpiral)*(iTrace-1_c_size_t)
@@ -247,28 +272,40 @@ contains
     velocity_=+velocity_                                      &
          &    *self%cosmologyFunctions_%expansionFactor(time) &
          &    *MpcPerKmPerSToGyr 
+    if (report) then
+       write (label,'(12(e12.6,1x))                ') coefficientsCubic
+       call displayMessage("Cubic polynomial coefficients:        "//trim(adjustl(label)))
+       write (label,'(3(e12.6,1x),"| ",3(e12.6,1x))') position_,velocity_
+       call displayMessage("Cubic polynomial position|velocity:   "//trim(adjustl(label)))
+    end if
     if (isSpiral) then
-      ! Add on logarithmic spiral interpolation in physical position for satellite nodes.
-      offset               =offset+countCoefficientsCubicPolynomial
-      coefficientsSpiral   =coefficients(offset+1_c_size_t:offset+countCoefficientsLogarithmicSpiral)
-      vectorInPlaneNormal  =reshape(coefficientsSpiral( 1:12),[2,2,3])
-      coefficientsAngle    =reshape(coefficientsSpiral(13:16),[2,2  ])
-      coefficientsLogRadius=reshape(coefficientsSpiral(17:20),[2,2  ])
-      angle                =coefficientsAngle    (:,1)+coefficientsAngle    (:,2)*time
-      logRadius            =coefficientsLogRadius(:,1)+coefficientsLogRadius(:,2)*time
-      position_            =+position_                                  &
-           &                +(                                          &
-           &                  +vectorInPlaneNormal(1,1,:)*cos(angle(1)) &
-           &                  +vectorInPlaneNormal(1,2,:)*sin(angle(1)) &
-           &                 )                                          &
-           &                *exp(logRadius(1))
-      velocity_            =+velocity_                                  &
-           &                +(                                          &
-           &                  +vectorInPlaneNormal(2,1,:)*cos(angle(2)) &
-           &                  +vectorInPlaneNormal(2,2,:)*sin(angle(2)) &
-           &                 )                                          &
-           &                *exp(logRadius(2))
-   end if
+       ! Add on logarithmic spiral interpolation in physical position for satellite nodes.
+       offset               =offset+countCoefficientsCubicPolynomial
+       coefficientsSpiral   =coefficients(offset+1_c_size_t:offset+countCoefficientsLogarithmicSpiral)
+       vectorInPlaneNormal  =reshape(coefficientsSpiral( 1:12),[2,2,3])
+       coefficientsAngle    =reshape(coefficientsSpiral(13:16),[2,2  ])
+       coefficientsLogRadius=reshape(coefficientsSpiral(17:20),[2,2  ])
+       angle                =coefficientsAngle    (:,1)+coefficientsAngle    (:,2)*time
+       logRadius            =coefficientsLogRadius(:,1)+coefficientsLogRadius(:,2)*time
+       position_            =+position_                                  &
+            &                +(                                          &
+            &                  +vectorInPlaneNormal(1,1,:)*cos(angle(1)) &
+            &                  +vectorInPlaneNormal(1,2,:)*sin(angle(1)) &
+            &                 )                                          &
+            &                *exp(logRadius(1))
+       velocity_            =+velocity_                                  &
+            &                +(                                          &
+            &                  +vectorInPlaneNormal(2,1,:)*cos(angle(2)) &
+            &                  +vectorInPlaneNormal(2,2,:)*sin(angle(2)) &
+            &                 )                                          &
+            &                *exp(logRadius(2))
+       if (report) then
+          write (label,'(20(e12.6,1x))'                ) coefficientsSpiral
+          call displayMessage("Logarithmic spiral coefficients:      "//trim(adjustl(label)))
+          write (label,'(3(e12.6,1x),"| ",3(e12.6,1x))') position_,velocity_
+          call displayMessage("Logarithmic spiral position|velocity: "//trim(adjustl(label)))
+       end if
+    end if
     ! Handle periodic boundaries.
     if (self%isPeriodic .and. self%wrapPeriodic) then
        lengthBox=self%lengthBox*self%cosmologyFunctions_%expansionFactor(time)
@@ -284,6 +321,7 @@ contains
     ! Set the position and velocity.
     call position%positionSet(position_)
     call position%velocitySet(velocity_)
+    if (report) call displayUnindent("")
     return
   end subroutine positionInterpolatedInterpolate
 
@@ -292,6 +330,7 @@ contains
     Trigger interpolation calculation at node initialization
     !!}
     use :: Error                       , only : Error_Report
+    use :: Display                     , only : displayIndent            , displayUnindent      , displayMessage
     use :: Galacticus_Nodes            , only : nodeComponentBasic       , nodeComponentPosition, nodeComponentSatellite            , nodeEvent                   , &
          &                                      nodeEventSubhaloPromotion, nodeEventBranchJump  , nodeEventSubhaloPromotionIntertree, nodeEventBranchJumpIntertree
     use :: Histories                   , only : history
@@ -313,7 +352,8 @@ contains
     double precision                                  , dimension(4 ,3)              :: coefficientsCubic
     double precision                                  , dimension(20  )              :: coefficientsSpiral
     double precision                                  , dimension( :  ), allocatable :: coefficients
-    character       (len=12                          )                               :: label
+    character       (len=128                         )                               :: label
+    character       (len=512                         )                               :: message
     type            (history                         )                               :: positionHistory     , positionHistoryMergeTarget
     double precision                                                                 :: time                , timeMerger                , &
          &                                                                              timeBranchJump      , timeSubhaloPromotion      , &
@@ -324,10 +364,11 @@ contains
     logical                                                                          :: isSatellite         , haveHistory               , &
          &                                                                              haveMerger          , haveBranchJump            , &
          &                                                                              haveSubhaloPromotion, isInitialSatellite        , &
-         &                                                                              isHost
+         &                                                                              isHost              , reporting
 
     ! Consider only branch tips.
     if (associated(node%firstChild)) return
+    reporting=any(node%index() == self%nodeIndicesReport)
     ! Look for subhalo promotion events. Halos that are apparently at the tip of a branch, but have a subhalo promotion associated
     ! with their initial time are actually the target of the promotion. We do not want to process them here. Instead, the subhalo
     ! that promotes to them will be processed, and will trace through this subhalo promotion.
@@ -372,6 +413,12 @@ contains
     timeMerger      =  huge(0.0d0)
     nodeMergeTarget => null()    
     ! Follow the node through the tree.
+    if (reporting) then
+       write (label,'(i12)') node%index()
+       call displayIndent('Tracing node: '//trim(adjustl(label)))
+       call displayMessage('time         timeHost     isSatellite iHistory countHistory')
+       call displayMessage('-----------------------------------------------------------')
+    end if
     do while (associated(nodeDescendant))
        ! Determine if any position history is available for the current descendant.
        basic           => nodeDescendant %basic          ()
@@ -396,6 +443,10 @@ contains
        if (.not.haveMerger .and. satellite%timeOfMerging() < satelliteMergeTimeInfinite) then
           haveMerger=.true.
           timeMerger=satellite%timeOfMerging()
+          if (reporting) then
+             write (label,'(e12.6)') timeMerger
+             call displayMessage("merger - time: "//trim(adjustl(label)))
+          end if
           ! Use any cloned copy of this node (if available) to determine the merge target.
           if (associated(nodeDescendant%parent) .and. nodeDescendant%parent%index() == nodeDescendant%index()) then
              nodeMergeTarget => nodeDescendant%parent%mergeTarget
@@ -465,6 +516,10 @@ contains
           allocate(traceHead     )
           traceTail => traceHead
        end if
+       if (reporting) then
+          write (label,'(e12.6,1x,e12.6,1x,l1,1x,i4,1x,i4)') time,basicHost%time(),isSatellite,iHistory,countHistory
+          call displayMessage(trim(adjustl(label)))
+       end if
        traceTail%time        =  time
        traceTail%isSatellite =  isSatellite
        traceTail%iHistory    =  iHistory
@@ -483,6 +538,10 @@ contains
             &   (     haveHistory .and. iHistory == countHistory)      & ! 4. We have reached the end of the node's position history.  It becomes an orphan
             & ) then                                                     !    in its parent, so move our pointer to that parent such that we will follow its position.
           !! Check for a subhalo promotion.
+          if (reporting) then
+             write (label,'(l1)') haveSubhaloPromotion
+             call displayMessage("trace to parent - promotion?: "//trim(adjustl(label)))
+          end if
           if (haveSubhaloPromotion) then
              ! We have a subhalo promotion - move our pointer to that node.
              nodeDescendant => event         %node
@@ -510,6 +569,10 @@ contains
              iHistory=iHistory+1_c_size_t
           end if
           ! Check if we have not yet reached the end of history.
+          if (reporting) then
+             write (label,'(l1)') iHistory == countHistory
+             call displayMessage("trace history - last?: "//trim(adjustl(label)))
+          end if
           if (iHistory <= countHistory) then
              ! Update the time to this new history step.
              time=positionHistory%time(iHistory)
@@ -517,7 +580,18 @@ contains
              basicHost => nodeHost%basic()
              do while (associated(nodeHost) .and. basicHost%time() < time)
                 nodeHost => nodeHost%parent
-                if (associated(nodeHost)) basicHost => nodeHost%basic()
+                if (associated(nodeHost)) then
+                   basicHost => nodeHost%basic()
+                   if (reporting) then
+                      write (label,'(2(e12.6,1x))') time,basicHost%time()
+                      call displayMessage("trace host - time, timeHost: "//trim(adjustl(label)))
+                   end if
+                else
+                   if (reporting) then
+                      write (label,'(1(e12.6,1x),"???")') time
+                      call displayMessage("trace host - time, timeHost: "//trim(adjustl(label)))
+                   end if
+                end if
              end do
              ! If the host exists after our current descendant, back up to the previous host.
              if (associated(nodeHost) .and. basicHost%time() > time) nodeHost => nodeHost%firstChild
@@ -540,15 +614,18 @@ contains
                 time  =  basic         %time ()
              end if
           end if
-
        end if
        ! Check for a merger.
        if (haveMerger .and. time >= timeMerger) then
           ! Move to the host, unless the merger time is before the current time, in which case we need to back up to the host's
           ! progenitor.
+          if (reporting) then
+             write (label,'(l1)') associated(nodeMergeTarget)
+             call displayMessage("trace merger - target?: "//trim(adjustl(label)))
+          end if
           if (associated(nodeMergeTarget)) then
              ! A merge target is available - move to that node.
-             nodeDescendant   => nodeMergeTarget
+             nodeDescendant => nodeMergeTarget
              ! Determine if this descendant is its own host.
              !! If it is the primary progenitor, then it must be its own host.
              isHost=nodeDescendant%isPrimaryProgenitor().or..not.associated(nodeDescendant%parent)
@@ -619,11 +696,16 @@ contains
        ! branch jump right away.
        if (associated(nodeDescendant) .and. .not.associated(nodeDescendant,nodeHost)) call findEvents(presentOnly=.true.)
        ! Check for a branch jump.
+       if (reporting) then
+          write (label,'(l1,1x,2(e12.6,1x))') haveBranchJump,time,timeBranchJump
+          call displayMessage("trace events - branch jump?, time, timeJump: "//trim(adjustl(label)))
+       end if
        if (haveBranchJump .and. time == timeBranchJump) then
           if (associated(nodeDescendant,nodeHost)) nodeDescendant => event%node ! Orphanized, so descendant always follows the host.
           nodeHost => event%node
        end if
     end do
+    if (reporting) call displayUnindent("")
     ! Allocate storage for all coefficients.    
     !! NOTE: This is currently inefficient - we allocate enough space for both logarithmic spiral and cubic polynomial
     !! coefficients for each timestep, but for non-satellites we only need the cubic polynomial coefficients.
@@ -640,9 +722,19 @@ contains
             &            /self           %cosmologyFunctions_%expansionFactor(traceTail%time        )
     end if
     ! Walk through the trace and compute interpolations.
+    if (reporting) then
+       write (label,'(i12)') node%index()
+       call displayIndent('Trace report for node: '//trim(adjustl(label)))
+       call displayMessage('nodeIndex    hostIndex    time     isSatellite indexHistory')
+       call displayMessage('___________________________________________________________')
+    end if
     traceTail => traceHead
     iTrace    =  0_c_size_t
     do while (associated(traceTail))
+       if (reporting) then
+          write (message,'(i12,1x,i12,1x,f8.5,1x,l1,10x,i4)') traceTail%node%index(),traceTail%nodeHost%index(),traceTail%time,traceTail%isSatellite,traceTail%iHistory
+          call displayMessage(message)
+       end if
        ! Determine the interpolation coefficients for this step.
        if (associated(traceTail%next)) then ! Skip the final step as we can't interpolate into the future.
           ! Catch any duplicated times.
@@ -665,6 +757,14 @@ contains
              coefficients(offset+1_c_size_t:offset+countCoefficientsCubicPolynomial  )=reshape(coefficientsCubic ,[countCoefficientsCubicPolynomial  ])
              offset                                                                   =offset+countCoefficientsCubicPolynomial
              coefficients(offset+1_c_size_t:offset+countCoefficientsLogarithmicSpiral)=reshape(coefficientsSpiral,[countCoefficientsLogarithmicSpiral])
+             if (reporting) then
+                call displayIndent("logarithmic spiral")
+                write (message,'(20(e12.6,1x))') reshape(coefficientsSpiral,[countCoefficientsLogarithmicSpiral])
+                call displayMessage("satellite: "//trim(message))
+                write (message,'(12(e12.6,1x))') reshape(coefficientsCubic ,[countCoefficientsCubicPolynomial  ])
+                call displayMessage("     host: "//trim(message))
+                call displayUnindent("")
+             end if
           else
              ! Polynomial interpolation - whenever the node is not a satellite at this and the next step.
              coefficients(1_c_size_t+(countTrace-1_c_size_t)+iTrace)=0.0d0
@@ -681,6 +781,7 @@ contains
        traceTail => traceHead
        iTrace    =  iTrace+1_c_size_t
     end do
+    if (reporting) call displayUnindent('done')
     position => node%position()
     call position%floatRank1MetaPropertySet(self%coefficientsID,coefficients)
     return
@@ -739,7 +840,7 @@ contains
       !!{
       Compute coefficients of a logarithmic spiral interpolation for position and velocity.
       !!}
-      use :: Galacticus_Nodes                , only : nodeComponentPosition
+      use :: Galacticus_Nodes                , only : nodeComponentPosition, nodeComponentBasic
       use :: Histories                       , only : history
       use :: Vectors                         , only : Vector_Product       , Vector_Magnitude
       implicit none
@@ -747,6 +848,7 @@ contains
       type            (nodeTrace            ), intent(in   )   , target  :: trace
       type            (nodeTrace            )                  , pointer :: trace_
       class           (nodeComponentPosition)                  , pointer :: position                            , positionHost      
+      class           (nodeComponentBasic   )                  , pointer :: basicHost
       double precision                       , dimension(  2  )          :: time
       double precision                       , dimension(  2,3)          :: positionRelative
       double precision                       , dimension(  2,2)          :: coefficientsAngle                   , coefficientsLogRadius
@@ -757,7 +859,7 @@ contains
       type            (history              )                            :: positionHistory
       integer                                                            :: i                                   , j                    , &
            &                                                                k
-      double precision                                                   :: expansionFactor
+      double precision                                                   :: expansionFactor                     , expansionFactorHost
 
       ! Iterate over position and velocity.
       do k=1,2
@@ -776,6 +878,7 @@ contains
             ! Extract positional components and history.
             position        => trace_  %node    %position       ()
             positionHost    => trace_  %nodeHost%position       ()
+            basicHost       => trace_  %nodeHost%basic          ()
             positionHistory =  position         %positionHistory()
             ! Find displacement vectors (in physical coordinates) from the host center.
             select case (k)
@@ -785,12 +888,13 @@ contains
                positionHost_     =positionHost   %position(                   )
                ! Handle periodic positions.
                if (self%isPeriodic) then
-                  expansionFactor=self%cosmologyFunctions_%expansionFactor(trace_%time)
+                  expansionFactor    =self%cosmologyFunctions_%expansionFactor(trace_   %time  )
+                  expansionFactorHost=self%cosmologyFunctions_%expansionFactor(basicHost%time())
                   do j=1,3
-                     if (positionSatellite_(j)/expansionFactor > positionReference(j)+0.5d0*self%lengthBox) positionSatellite_(j)=positionSatellite_(j)-self%lengthBox*expansionFactor
-                     if (positionSatellite_(j)/expansionFactor < positionReference(j)-0.5d0*self%lengthBox) positionSatellite_(j)=positionSatellite_(j)+self%lengthBox*expansionFactor
-                     if (positionHost_     (j)/expansionFactor > positionReference(j)+0.5d0*self%lengthBox) positionHost_     (j)=positionHost_     (j)-self%lengthBox*expansionFactor
-                     if (positionHost_     (j)/expansionFactor < positionReference(j)-0.5d0*self%lengthBox) positionHost_     (j)=positionHost_     (j)+self%lengthBox*expansionFactor
+                     if (positionSatellite_(j)/expansionFactor     > positionReference(j)+0.5d0*self%lengthBox) positionSatellite_(j)=positionSatellite_(j)-self%lengthBox*expansionFactor
+                     if (positionSatellite_(j)/expansionFactor     < positionReference(j)-0.5d0*self%lengthBox) positionSatellite_(j)=positionSatellite_(j)+self%lengthBox*expansionFactor
+                     if (positionHost_     (j)/expansionFactorHost > positionReference(j)+0.5d0*self%lengthBox) positionHost_     (j)=positionHost_     (j)-self%lengthBox*expansionFactorHost
+                     if (positionHost_     (j)/expansionFactorHost < positionReference(j)-0.5d0*self%lengthBox) positionHost_     (j)=positionHost_     (j)+self%lengthBox*expansionFactorHost
                   end do
                end if
                positionRelative(i,:)=positionSatellite_                          -positionHost_
@@ -877,7 +981,7 @@ contains
       !!{
       Compute coefficients of a cubic polynomial interpolation for position and velocity.
       !!}
-      use :: Galacticus_Nodes                , only : nodeComponentPosition
+      use :: Galacticus_Nodes                , only : nodeComponentPosition, nodeComponentBasic
       use :: Histories                       , only : history
       use :: Linear_Algebra                  , only : vector               , matrix, assignment(=)
       use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr
@@ -886,6 +990,7 @@ contains
       double precision                                  , dimension(4,3)              :: coefficientsCubicPolynomial
       type            (nodeTrace                       ), intent(in   ) , target      :: trace
       logical                                           , intent(in   )               :: useHost
+      class           (nodeComponentBasic              )                , pointer     :: basic
       class           (nodeComponentPosition           )                , pointer     :: position
       type            (nodeTrace                       )                , pointer     :: trace_
       double precision                                  , dimension(2  )              :: times
@@ -896,6 +1001,7 @@ contains
       integer                                                                         :: i                           , j
       type            (history                         )                              :: positionHistory
       logical                                                                         :: isClone
+      double precision                                                                :: expansionFactor
       
       do i=1,2
          select case (i)
@@ -906,9 +1012,12 @@ contains
          end select
          times(i)=trace_%time
          if (useHost) then
-            position => trace_%nodeHost%position()
+            position        => trace_%nodeHost           %position       (              )
+            basic           => trace_%nodeHost           %basic          (              )
+            expansionFactor =  self  %cosmologyFunctions_%expansionFactor(basic%time ( ))
          else
-            position => trace_%node    %position()
+            position        => trace_%node               %position       (              )
+            expansionFactor =  self  %cosmologyFunctions_%expansionFactor(      times(i))
          end if
          if (.not.useHost .and. trace_%isSatellite) then
             positionHistory      =position       %positionHistory(                   )
@@ -919,8 +1028,8 @@ contains
             velocityPhysical(i,:)=position       %velocity       (                   )
          end if
          ! Convert from physical to comoving coordinates, and, for velocities, from km/s to Mpc/Gyr.
-         positionComoving(i,:)=positionPhysical(i,:)/self%cosmologyFunctions_%expansionFactor(times(i))
-         velocityComoving(i,:)=velocityPhysical(i,:)/self%cosmologyFunctions_%expansionFactor(times(i))/MpcPerKmPerSToGyr
+         positionComoving(i,:)=positionPhysical(i,:)/expansionFactor
+         velocityComoving(i,:)=velocityPhysical(i,:)/expansionFactor/MpcPerKmPerSToGyr
       end do
       ! Handle periodic positions.
       if (self%isPeriodic) then

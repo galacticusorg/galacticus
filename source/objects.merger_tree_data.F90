@@ -782,7 +782,7 @@ contains
     !!{
     Set a property in the merger trees.
     !!}
-    use :: Error            , only : Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (mergerTreeData             )              , intent(inout) :: mergerTrees
     type            (enumerationPropertyTypeType)              , intent(in   ) :: propertyType
@@ -794,30 +794,40 @@ contains
     ! Assign to the relevant property.
     select case (propertyType%ID)
     case (propertyTypeTreeWeight     %ID)
-       mergerTrees%hasForestWeight  =.true.
-       if (allocated(mergerTrees%forestWeightNode)) deallocate(mergerTrees%forestWeightNode)
-       allocate(mergerTrees%forestWeightNode (size(property)))
+       mergerTrees%hasForestWeight           =.true.
+       if (allocated(mergerTrees%forestWeightNode        )) deallocate(mergerTrees%forestWeightNode)
+       allocate(mergerTrees%forestWeightNode        (size(property)))
        mergerTrees%forestWeightNode =property
     case (propertyTypeRedshift       %ID)
-       mergerTrees%hasRedshift       =.true.
-       if (allocated(mergerTrees%redshift        )) deallocate(mergerTrees%redshift        )
-       allocate(mergerTrees%redshift       (size(property)))
+       mergerTrees%hasRedshift                =.true.
+       if (allocated(mergerTrees%redshift                )) deallocate(mergerTrees%redshift        )
+       allocate(mergerTrees%redshift                (size(property)))
        mergerTrees%redshift       =property
     case (propertyTypeNodeMass       %ID)
-       mergerTrees%hasNodeMass       =.true.
-       if (allocated(mergerTrees%nodeMass        )) deallocate(mergerTrees%nodeMass        )
-       allocate(mergerTrees%nodeMass       (size(property)))
+       mergerTrees%hasNodeMass                =.true.
+       if (allocated(mergerTrees%nodeMass                )) deallocate(mergerTrees%nodeMass        )
+       allocate(mergerTrees%nodeMass                (size(property)))
        mergerTrees%nodeMass       =property
     case (propertyTypeNodeMass200Mean%ID)
-       mergerTrees%hasNodeMass200Mean=.true.
-       if (allocated(mergerTrees%nodeMass200Mean )) deallocate(mergerTrees%nodeMass200Mean )
-       allocate(mergerTrees%nodeMass200Mean(size(property)))
+       mergerTrees%hasNodeMass200Mean         =.true.
+       if (allocated(mergerTrees%nodeMass200Mean         )) deallocate(mergerTrees%nodeMass200Mean )
+       allocate(mergerTrees%nodeMass200Mean         (size(property)))
        mergerTrees%nodeMass200Mean=property
     case (propertyTypeNodeMass200Crit%ID)
-       mergerTrees%hasNodeMass200Crit=.true.
-       if (allocated(mergerTrees%nodeMass200Crit )) deallocate(mergerTrees%nodeMass200Crit )
-       allocate(mergerTrees%nodeMass200Crit(size(property)))
+       mergerTrees%hasNodeMass200Crit         =.true.
+       if (allocated(mergerTrees%nodeMass200Crit         )) deallocate(mergerTrees%nodeMass200Crit )
+       allocate(mergerTrees%nodeMass200Crit         (size(property)))
        mergerTrees%nodeMass200Crit=property
+    case (propertyTypeScaleRadius    %ID)
+       mergerTrees%hasScaleRadius             =.true.
+       if (allocated(mergerTrees%scaleRadius             )) deallocate(mergerTrees%scaleRadius )
+       allocate(mergerTrees%scaleRadius             (size(property)))
+       mergerTrees%scaleRadius=property
+    case (propertyTypeAngularMomentum%ID)
+       mergerTrees%hasAngularMomentumMagnitude=.true.
+       if (allocated(mergerTrees%angularMomentumMagnitude)) deallocate(mergerTrees%angularMomentumMagnitude )
+       allocate(mergerTrees%angularMomentumMagnitude(size(property)))
+       mergerTrees%angularMomentumMagnitude=property
     case (propertyTypePositionX      %ID)
        if (                                             &
             & allocated(mergerTrees%position)           &
@@ -825,9 +835,9 @@ contains
             & .and..not.mergerTrees%hasPositionY        &
             & .and..not.mergerTrees%hasPositionZ        &
             &) deallocate(mergerTrees%position)
-       mergerTrees%hasPositionX=.true.
-       if (.not.allocated(mergerTrees%position)) allocate(mergerTrees%position(3,size(property)))
-       mergerTrees%position(1,:)=property
+       mergerTrees%hasPositionX       =.true.
+       if (.not.allocated(mergerTrees%position       )) allocate(mergerTrees%position       (3,size(property)))
+       mergerTrees%position       (1,:)=property
     case (propertyTypePositionY      %ID)
        if (                                             &
             & allocated(mergerTrees%position)           &
@@ -835,9 +845,9 @@ contains
             & .and..not.mergerTrees%hasPositionY        &
             & .and..not.mergerTrees%hasPositionZ        &
             &) deallocate(mergerTrees%position)
-       mergerTrees%hasPositionY=.true.
-       if (.not.allocated(mergerTrees%position)) allocate(mergerTrees%position(3,size(property)))
-       mergerTrees%position(2,:)=property
+       mergerTrees%hasPositionY       =.true.
+       if (.not.allocated(mergerTrees%position       )) allocate(mergerTrees%position       (3,size(property)))
+       mergerTrees%position       (2,:)=property
     case (propertyTypePositionZ      %ID)
        if (                                             &
             & allocated(mergerTrees%position)           &
@@ -845,9 +855,9 @@ contains
             & .and..not.mergerTrees%hasPositionY        &
             & .and..not.mergerTrees%hasPositionZ        &
             &) deallocate(mergerTrees%position)
-       mergerTrees%hasPositionZ=.true.
-       if (.not.allocated(mergerTrees%position)) allocate(mergerTrees%position(3,size(property)))
-       mergerTrees%position(3,:)=property
+       mergerTrees%hasPositionZ       =.true.
+       if (.not.allocated(mergerTrees%position       )) allocate(mergerTrees%position       (3,size(property)))
+       mergerTrees%position       (3,:)=property
     case (propertyTypeVelocityX      %ID)
        if (                                             &
             & allocated(mergerTrees%velocity)           &
@@ -855,9 +865,9 @@ contains
             & .and..not.mergerTrees%hasVelocityY        &
             & .and..not.mergerTrees%hasVelocityZ        &
             &) deallocate(mergerTrees%velocity)
-       mergerTrees%hasVelocityX=.true.
-       if (.not.allocated(mergerTrees%velocity)) allocate(mergerTrees%velocity(3,size(property)))
-       mergerTrees%velocity(1,:)=property
+       mergerTrees%hasVelocityX       =.true.
+       if (.not.allocated(mergerTrees%velocity       )) allocate(mergerTrees%velocity       (3,size(property)))
+       mergerTrees%velocity       (1,:)=property
     case (propertyTypeVelocityY      %ID)
        if (                                             &
             & allocated(mergerTrees%velocity)           &
@@ -865,19 +875,49 @@ contains
             & .and..not.mergerTrees%hasVelocityY        &
             & .and..not.mergerTrees%hasVelocityZ        &
             &) deallocate(mergerTrees%velocity)
-       mergerTrees%hasVelocityY=.true.
-       if (.not.allocated(mergerTrees%velocity)) allocate(mergerTrees%velocity(3,size(property)))
-       mergerTrees%velocity(2,:)=property
-    case (propertyTypeVelocityZ      %ID)
+       mergerTrees%hasVelocityY       =.true.
+       if (.not.allocated(mergerTrees%velocity       )) allocate(mergerTrees%velocity       (3,size(property)))
+       mergerTrees%velocity       (2,:)=property
+    case (propertyTypeVelocityZ            %ID)
        if (                                             &
             & allocated(mergerTrees%velocity)           &
             & .and..not.mergerTrees%hasVelocityX        &
             & .and..not.mergerTrees%hasVelocityY        &
             & .and..not.mergerTrees%hasVelocityZ        &
             &) deallocate(mergerTrees%velocity)
-       mergerTrees%hasVelocityZ=.true.
-       if (.not.allocated(mergerTrees%velocity)) allocate(mergerTrees%velocity(3,size(property)))
-       mergerTrees%velocity(3,:)=property
+       mergerTrees%hasVelocityZ       =.true.
+       if (.not.allocated(mergerTrees%velocity       )) allocate(mergerTrees%velocity       (3,size(property)))
+       mergerTrees%velocity       (3,:)=property
+    case (propertyTypeAngularMomentumX      %ID)
+       if (                                             &
+            & allocated(mergerTrees%angularMomentum)    &
+            & .and..not.mergerTrees%hasAngularMomentumX &
+            & .and..not.mergerTrees%hasAngularMomentumY &
+            & .and..not.mergerTrees%hasAngularMomentumZ &
+            &) deallocate(mergerTrees%angularMomentum)
+       mergerTrees%hasAngularMomentumX=.true.
+       if (.not.allocated(mergerTrees%angularMomentum)) allocate(mergerTrees%angularMomentum(3,size(property)))
+       mergerTrees%angularMomentum(1,:)=property
+    case (propertyTypeAngularMomentumY      %ID)
+       if (                                             &
+            & allocated(mergerTrees%angularMomentum)    &
+            & .and..not.mergerTrees%hasAngularMomentumX &
+            & .and..not.mergerTrees%hasAngularMomentumY &
+            & .and..not.mergerTrees%hasAngularMomentumZ &
+            &) deallocate(mergerTrees%angularMomentum)
+       mergerTrees%hasAngularMomentumY=.true.
+       if (.not.allocated(mergerTrees%angularMomentum)) allocate(mergerTrees%angularMomentum(3,size(property)))
+       mergerTrees%angularMomentum(2,:)=property
+    case (propertyTypeAngularMomentumZ      %ID)
+       if (                                             &
+            & allocated(mergerTrees%angularMomentum)    &
+            & .and..not.mergerTrees%hasAngularMomentumX &
+            & .and..not.mergerTrees%hasAngularMomentumY &
+            & .and..not.mergerTrees%hasAngularMomentumZ &
+            &) deallocate(mergerTrees%angularMomentum)
+       mergerTrees%hasAngularMomentumZ=.true.
+       if (.not.allocated(mergerTrees%angularMomentum)) allocate(mergerTrees%angularMomentum(3,size(property)))
+       mergerTrees%angularMomentum(3,:)=property
     case default
        call Error_Report('unrecognized double property'//{introspection:location})
     end select

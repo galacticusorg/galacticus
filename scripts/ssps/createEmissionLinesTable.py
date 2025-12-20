@@ -75,29 +75,30 @@ def establishGridSSP(grid,args):
     deltaWavelength             = copy.deepcopy(wavelength)
     deltaWavelength[0:-2]       = wavelength[1:-1]-deltaWavelength[0:-2]
     deltaWavelength[  -1]       =                  deltaWavelength[  -2]
-    # Refine the range of metallicities, by interpolating the spectra to intermediate points.
-    refineMetallicityBy       = 2
-    countRefinedMetallicities = refineMetallicityBy*(len(logMetallicities)-1)+1
+    # Supersample the range of metallicities, by interpolating the spectra to intermediate points. Simultaneously subsample ages.
+    agesRefined               = ages[::args.ageSubsample]
+    countRefinedAges          =                              len(agesRefined     )
+    countRefinedMetallicities = args.metallicitySupersample*(len(logMetallicities)-1)+1
     logMetallicitiesRefined   = np.zeros([countRefinedMetallicities                                  ])
-    spectraRefined            = np.zeros([countRefinedMetallicities,spectra.shape[1],spectra.shape[2]])
+    spectraRefined            = np.zeros([countRefinedMetallicities,countRefinedAges,spectra.shape[2]])
     for i in range(len(logMetallicities)-1):
         deltaLogMetallicity = logMetallicities[i+1]-logMetallicities[i]
-        for j in range(refineMetallicityBy):
-            zero    = (spectra[i,:,:] <= 0.0) | (spectra[i+1,:,:] <= 0.0)
-            nonZero = (spectra[i,:,:] >  0.0) & (spectra[i+1,:,:] >  0.0)
+        for j in range(args.metallicitySupersample):
+            zero    = (spectra[i,::args.ageSubsample,:] <= 0.0) | (spectra[i+1,::args.ageSubsample,:] <= 0.0)
+            nonZero = (spectra[i,::args.ageSubsample,:] >  0.0) & (spectra[i+1,::args.ageSubsample,:] >  0.0)
             # Spectra are interpolated in log-log space where possible (i.e. where the spectrum is non-zero at both endpoints of the
             # interpolation), and in lin-log space otherwise. Metallicities are always interpolated in log space.
-            spectraRefined         [(i*refineMetallicityBy+j),:,:][   zero] =        +       spectra     [(i  ),:,:][   zero] *(1.0-(j/refineMetallicityBy)) \
-                                                                                     +       spectra     [(i+1),:,:][   zero] *(0.0+(j/refineMetallicityBy))
-            spectraRefined         [(i*refineMetallicityBy+j),:,:][nonZero] = np.exp(
-                                                                                     +np.log(spectra     [(i  ),:,:][nonZero])*(1.0-(j/refineMetallicityBy))
-                                                                                     +np.log(spectra     [(i+1),:,:][nonZero])*(0.0+(j/refineMetallicityBy))
+            spectraRefined         [(i*args.metallicitySupersample+j),:,:][   zero] =        +       spectra     [(i  ),::args.ageSubsample,:][   zero] *(1.0-(j/args.metallicitySupersample)) \
+                                                                                             +       spectra     [(i+1),::args.ageSubsample,:][   zero] *(0.0+(j/args.metallicitySupersample))
+            spectraRefined         [(i*args.metallicitySupersample+j),:,:][nonZero] = np.exp(
+                                                                                             +np.log(spectra     [(i  ),::args.ageSubsample,:][nonZero])*(1.0-(j/args.metallicitySupersample))
+                                                                                             +np.log(spectra     [(i+1),::args.ageSubsample,:][nonZero])*(0.0+(j/args.metallicitySupersample))
                                                                                	    )
-            logMetallicitiesRefined[(i*refineMetallicityBy+j)    ]          =        +logMetallicities   [(i  )    ]                                         \
- 		                                                                     +deltaLogMetallicity                     *     (j/refineMetallicityBy)
-    logMetallicitiesRefined[-1    ] = logMetallicities[-1    ]
-    spectraRefined         [-1,:,:] = spectra         [-1,:,:]
-    grid['ages'            ] = ages
+            logMetallicitiesRefined[(i*args.metallicitySupersample+j)    ]          =        +logMetallicities   [(i  )                      ]                                                 \
+                                                                                             +deltaLogMetallicity                                       *     (j/args.metallicitySupersample)
+    logMetallicitiesRefined[-1    ] = logMetallicities[-1                      ]
+    spectraRefined         [-1,:,:] = spectra         [-1,::args.ageSubsample,:]
+    grid['ages'            ] = agesRefined
     grid['logMetallicities'] = logMetallicitiesRefined
     grid['spectra'         ] = spectraRefined
     grid['wavelength'      ] = wavelength
@@ -300,6 +301,8 @@ def linesParse(job):
         return
     # Allow multiple attempts to read the lines file in case the file is written over NFS and we must wait for it to catch up.    
     attemptsMaximum = 10
+    if "countAttempts" in job:
+        attemptsMaximum = job['countAttempts']
     linesFound      = {}
     for attempt in range(attemptsMaximum):
  	# Read the lines file.
@@ -385,13 +388,14 @@ def reprocessSSP(grid,args):
                     statusOld = grid['lineData']['status'][iAge,iMetallicity,iNormalization,iLogHydrogenDensity]
                     linesParse(
                         {
+                            "countAttempts":        1                                                   ,
                             "label":                               "emissionLines"+str(jobNumber)       ,
                             "launchFile":           args.workspace+"emissionLines"+str(jobNumber)+".sh" ,
                             "logOutput":            args.workspace+"emissionLines"+str(jobNumber)+".log",
                             "logError":             args.workspace+"emissionLines"+str(jobNumber)+".log",
                             "jobNumber":            jobNumber                                           ,
                             "grid":                 grid                                                ,
- 	                    "cloudyScriptFileName": args.workspace+cloudyScriptFileName                 ,
+ 	                    "cloudyScriptFileName": args.workspace+"cloudyInput"  +str(jobNumber)+".txt",
  	                    "linesFileName":        args.workspace+"lines"        +str(jobNumber)+".out",
  	                    "continuumFileName":    args.workspace+"continuum"    +str(jobNumber)+".out",
  	                    "indices":              ( iAge, iMetallicity, iNormalization, iLogHydrogenDensity ),
@@ -426,13 +430,14 @@ def reprocessAGN(grid,args):
                     statusOld = grid['lineData']['status'][iSpectralIndex,iMetallicity,iIonizationParameter,iLogHydrogenDensity]
                     linesParse(
                         {
+                            "countAttempts":        1                                                   ,
                             "label":                               "emissionLines"+str(jobNumber)       ,
                             "launchFile":           args.workspace+"emissionLines"+str(jobNumber)+".sh" ,
                             "logOutput":            args.workspace+"emissionLines"+str(jobNumber)+".log",
                             "logError":             args.workspace+"emissionLines"+str(jobNumber)+".log",
                             "jobNumber":            jobNumber                                           ,
                             "grid":                 grid                                                ,
- 	                    "cloudyScriptFileName": args.workspace+cloudyScriptFileName                 ,
+ 	                    "cloudyScriptFileName": args.workspace+"cloudyInput"  +str(jobNumber)+".txt",
  	                    "linesFileName":        args.workspace+"lines"        +str(jobNumber)+".out",
  	                    "continuumFileName":    args.workspace+"continuum"    +str(jobNumber)+".out",
  	                    "indices":              ( iSpectralIndex, iMetallicity, iIonizationParameter, iLogHydrogenDensity ),
@@ -447,6 +452,9 @@ def generateJobSSP(grid,args):
     iMetallicity           = grid['counter'][1]
     iNormalization         = grid['counter'][2]
     iLogHydrogenDensity    = grid['counter'][3]
+    # Do not generate jobs for populations older than the maximum age to be considered.
+    if grid['ages'][iAge] > args.ageMaximum:
+        return
     # If this is a rerun, load line data and status.
     if args.rerun:
         if not 'rerunStatusRead' in grid:
@@ -478,10 +486,8 @@ def generateJobSSP(grid,args):
     # Get abundances for this metallicity.
     ## Compute metallicity relative to Solar.
     metallicity                                    = 10.0**grid['logMetallicities'][iMetallicity]
-    ## Specify a dust-to-metals ratio. The following corresponds to the dust-to-metals ratio for the reference model of
-    # Gutkin, Charlot & Bruzual (2016; https://ui.adsabs.harvard.edu/abs/2016MNRAS.462.1757G; table 1). It differs slightly
-    # from their stated value, but agrees with our internal calculation of this value from their data.
-    dustToMetals                                   = 0.401
+    ## Get the dust-to-metals ratio and adjust abundances appropriately.
+    dustToMetals                                   = args.dustToMetalsRatio
     (dustToMetalsBoostLogarithmic, abundances)     = adjustAbundances(abundancesReference,metallicity,dustToMetals)
     # Compute the Strömgren radius for this model.
     radiusStromgrenLogarithmic = (logHydrogenLuminosity-np.log10(4.0*np.pi/3.0*coefficientRecombinationCaseB)-2.0*grid['logHydrogenDensities'][iLogHydrogenDensity])/3.0
@@ -580,7 +586,10 @@ def generateJobSSP(grid,args):
     cloudyScript += "stop temperature off\n"
     cloudyScript += "stop efrac "                +str(         args.stopElectronFraction  )+"\n"
     cloudyScript += "stop Lyman optical depth = "+str(np.log10(args.stopLymanOpticalDepth))+"\n"
-    cloudyScript += "iterate to convergence\n"
+    if args.iterationsMaximum == 0:
+        cloudyScript += "iterate to convergence\n"
+    else:
+        cloudyScript += "iterate "+str(args.iterationsMaximum)+"\n"
     ## Set overview output.
     if args.overview:
         cloudyScript += "save overview \"overview"+str(jobNumber)+".out\"\n"
@@ -633,10 +642,8 @@ def generateJobAGN(grid,args):
     # Get abundances for this metallicity.
     ## Compute metallicity relative to Solar.
     metallicity                                    = 10.0**grid['logMetallicities'][iMetallicity]
-    ## Specify a dust-to-metals ratio. The following corresponds to the dust-to-metals ratio for the reference model of
-    # Gutkin, Charlot & Bruzual (2016; https://ui.adsabs.harvard.edu/abs/2016MNRAS.462.1757G; table 1). It differs slightly
-    # from their stated value, but agrees with our internal calculation of this value from their data.
-    dustToMetals                                   = 0.401
+    ## Get the dust-to-metals ratio and adjust abundances appropriately.
+    dustToMetals                                   = args.dustToMetalsRatio
     (dustToMetalsBoostLogarithmic, abundances)     = adjustAbundances(abundancesReference,metallicity,dustToMetals)
     # Create a depletion file that can be read by Cloudy. Cloudy does not permit digits in these file names. To work around this,
     # we translate our numerical metallicity index into ASCII characters, by mapping digits (0→A, 1→B, etc.).
@@ -700,7 +707,10 @@ def generateJobAGN(grid,args):
     cloudyScript += "stop temperature off\n"
     cloudyScript += "stop efrac "                +str(         args.stopElectronFraction  )+"\n"
     cloudyScript += "stop Lyman optical depth = "+str(np.log10(args.stopLymanOpticalDepth))+"\n"
-    cloudyScript += "iterate to convergence\n"
+    if args.iterationsMaximum == 0:
+        cloudyScript += "iterate to convergence\n"
+    else:
+        cloudyScript += "iterate "+str(args.iterationsMaximum)+"\n"
     ## Output the continuum for reference.
     cloudyScript += "punch continuum \"continuum"+str(jobNumber)+".out\"\n"
     ## Set line output options.
@@ -930,7 +940,7 @@ def validateSSP(grid,args):
     axes.add_patch(target)
     plt.savefig(args.workspace+'bptDiagramNIIOII.svg')  
     plt.clf()
-    ## OIII vs. OIIOII
+    ## OIII vs. OIIOIII
     figure, axes = plt.subplots(tight_layout=True)
     axes.set_xlabel("log([OII]3727/[OIII]5007)" )
     axes.set_ylabel("log([OIII]5007/H$\\beta$)" )
@@ -1188,9 +1198,17 @@ parser.add_argument('--noClean'                                           ,actio
 parser.add_argument('--noGrains'                                          ,action='store_true'                       ,help='do not include dust grains in the models'                                                                     )
 parser.add_argument('--normalization'        ,default='ionizingLuminosity',action='store'                            ,help='specify how the spectrum is to be normalized (`ionizingLuminosity` or `massStellar`)'                         )
 parser.add_argument('--factorMorphology'     ,default='1.0'               ,action='store'      ,type=restricted_float,help='set the morphology factor (f=R_{in}/R_{Strömgren}; https://ui.adsabs.harvard.edu/abs/2016A%2526A...594A..37M)')
+parser.add_argument('--metallicitySupersample',default='2'                ,action='store'      ,type=restricted_int  ,help='the factor by which to supersample stellar metallicities)'                                                    )
+parser.add_argument('--ageSubsample'          ,default='1'                ,action='store'      ,type=restricted_int  ,help='the factor by which to subsample stellar ages)'                                                               )
+#  Dust-to-metals ratio. Defaults to 0.401 corresponding to the dust-to-metals ratio for the reference model of Gutkin, Charlot &
+#  Bruzual (2016; https://ui.adsabs.harvard.edu/abs/2016MNRAS.462.1757G; table 1). This differs slightly from their stated value,
+#  but agrees with our internal calculation of this value from their data.'
+parser.add_argument('--dustToMetalsRatio'    ,default='0.401'             ,action='store'      ,type=restricted_float,help='set the dust-to-metals ratio (ξ; https://ui.adsabs.harvard.edu/abs/2016MNRAS.462.1757G).'                     )
 parser.add_argument('--stopOuterRadius'                                   ,action='store_true'                       ,help='set Cloudy to stop at the cloud outer radius'                                                                 )
 parser.add_argument('--stopElectronFraction' ,default='0.01'              ,action='store'      ,type=restricted_float,help='set the elctron fraction at which to stop the Cloudy models'                                                  )
 parser.add_argument('--stopLymanOpticalDepth',default='10.0'              ,action='store'      ,type=restricted_float,help='set the Lyman optical depth at which to stop the Cloudy models'                                               )
+parser.add_argument('--ageMaximum'           ,default='1.0e30'            ,action='store'      ,type=restricted_float,help='set the maximum age of stellar populations for which to compute models'                                       )
+parser.add_argument('--iterationsMaximum'    ,default='0'                 ,action='store'      ,type=restricted_int  ,help='set the maximum number of iterations in Cloudy (0 to iterate to convergence)'                                 )
 parser.add_argument('--cloudyVersion'        ,default="23.01"             ,action='store'                            ,help='the version of Cloudy to use'                                                                                 )
 parser.add_argument('--suffixGitHubPages'                                 ,action='store'                            ,help='update GitHub pages content using this suffix'                                                                )
 parser.add_argument('--model'                                             ,action='store'      ,type=restricted_int  ,help='run only the given model number'                                                                              )

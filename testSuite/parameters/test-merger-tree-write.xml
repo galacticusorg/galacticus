@@ -37,6 +37,7 @@
       <componentPosition value="cartesian" parameterLevel="top"/>
       <mergerTreeOperator value="export" parameterLevel="top">
         <outputFileName value="testSuite/outputs/test-merger-tree-write/exportedTreesIRATE.hdf5"/>
+	<includeSubhalos value="false"/>
         <exportFormat value="irate"/>
       </mergerTreeOperator>
       <presetOrbits value="false"/>

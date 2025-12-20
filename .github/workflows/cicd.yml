@@ -86,12 +86,12 @@ jobs:
           grep -vqzi warning:        build.log || (echo "FAIL: warnings found in build.log"        && false)
           grep -vqzi 'is up to date' build.log || (echo "FAIL: 'is up to date' found in build.log" && false)
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: galacticus-exec
           path: 'Galacticus.exe'
       - name: Upload build profile
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: build-profile
           path: 'buildProfile.html'
@@ -138,12 +138,12 @@ jobs:
           ! grep -n Warning: build.log
           ! grep -v 'is up to date' build.log | grep -n -C 5 make:
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: galacticus-exec-non-static
           path: 'Galacticus.exe'
       - name: Upload test code executables
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: test-execs
           path: 'tests.*.exe'
@@ -172,7 +172,7 @@ jobs:
           export GALACTICUS_CPPFLAGS="$GALACTICUS_CPPFLAGS -pg"
           make -j4 Galacticus.exe
       - name: Upload executables
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: galacticus-exec-instrumented
           path: 'Galacticus.exe'
@@ -199,7 +199,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           make -j4 Galacticus.exe
       - name: Upload executables
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: galacticus-exec-dmo
           path: 'Galacticus.exe'
@@ -225,12 +225,12 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           make -j4 GALACTICUS_BUILD_OPTION=MPI Galacticus.exe tests.MPI.exe tests.radiative_transfer.atomic_matter.state_solver.exe
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: galacticus-exec-MPI
           path: 'Galacticus.exe'
       - name: Upload test code executables
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: test-execs-MPI
           path: 'tests.*.exe'
@@ -257,7 +257,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           make -j4 Galacticus.exe tests.debugging.exe
       - name: Upload test code executables
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: test-execs-debugging
           path: 'tests.*.exe'
@@ -294,7 +294,7 @@ jobs:
           mv libgalacticus.so galacticus/lib/
           tar cvfj libgalacticus.tar.bz2 galacticus
       - name: Upload library
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: galacticus-library
           path: 'libgalacticus.tar.bz2'
@@ -356,7 +356,7 @@ jobs:
           ./scripts/doc/Build_Documentation.sh -f yes -p 2 2>&1 | tee docBuild.log
           grep -vqzi 'warning: missing method descriptions in class' docBuild.log || (echo "FAIL: issing method description warnings found in docBuild.log" && false)
       - name: Upload docs
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: galacticus-docs
           path: |
@@ -388,7 +388,7 @@ jobs:
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "GALACTICUS_FCFLAGS+=\ -static" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: galacticus-exec
       - name: Build tools
@@ -429,7 +429,7 @@ jobs:
             dynamic/fsps-${fspsVersion}/ISOCHRONES \
             dynamic/mangle-${mangleVersion}/bin/harmonize
       - name: Upload tools
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: galacticus-tools
           path: ./datasets/tools.tar.bz2
@@ -457,17 +457,17 @@ jobs:
           zip -r debugSymbolsMacOS.zip Galacticus.exe.dSYM
           mv Galacticus.exe Galacticus_MacOS.exe
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: galacticus-exec-MacOS
           path: 'Galacticus_MacOS.exe'
       - name: Upload test code executables
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: test-execs-MacOS
           path: 'tests.*.exe'
       - name: Upload Galacticus debug symbols
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: galacticus-debug-MacOS
           path: 'debugSymbolsMacOS.zip'
@@ -492,12 +492,12 @@ jobs:
           zip -r debugSymbolsMacOS-M1.zip Galacticus.exe.dSYM
           mv Galacticus.exe Galacticus_MacOS-M1.exe
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: galacticus-exec-MacOS-M1
           path: 'Galacticus_MacOS-M1.exe'
       - name: Upload Galacticus debug symbols
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: galacticus-debug-MacOS-M1
           path: 'debugSymbolsMacOS-M1.zip'
@@ -529,7 +529,7 @@ jobs:
           mv libgalacticus.so galacticus/lib/
           zip -r libgalacticusMacOS.zip galacticus
       - name: Upload library
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: galacticus-library-MacOS
           path: 'libgalacticusMacOS.zip'
@@ -605,7 +605,7 @@ jobs:
             dynamic/fsps-${fspsVersion}/ISOCHRONES \
             dynamic/mangle-${mangleVersion}/bin/harmonize
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: galacticus-tools-MacOS
           path: './datasets/toolsMacOS.zip'
@@ -682,7 +682,7 @@ jobs:
             dynamic/fsps-${fspsVersion}/ISOCHRONES \
             dynamic/mangle-${mangleVersion}/bin/harmonize
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: galacticus-tools-MacOS-M1
           path: './datasets/toolsMacOSM1.zip'
@@ -934,6 +934,19 @@ jobs:
       cacheData: 0
       uploadFile: ./testSuite/outputs/*.json
       uploadName: validate-darkMatterOnlySubhalos-decayingDarkMatter
+    secrets: inherit
+  Validate-Fuzzy-Dark-Matter:
+    needs: Build-Executable-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-fuzzyDarkMatter.py
+      artifact: galacticus-exec
+      runPath: ./testSuite
+      cacheData: 1
+      ompNumThreads: 2
+      uploadFile: ./testSuite/outputs/*.json
+      uploadName: validate-fuzzyDarkMatter
     secrets: inherit
   # Tests
   ## Linux
@@ -1262,7 +1275,9 @@ jobs:
                 test-pruneLightcone.py,
                 test-soliton-coremass.py,
                 test-promptCuspNFW.py,
-                test-postprocessing.py ]
+                test-postprocessing.py,
+                test-strict-parameters.py,
+                test-merger-tree-export.sh ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
@@ -1271,9 +1286,15 @@ jobs:
     secrets: inherit
   Miscellaneous-Unexpected:
     needs: Build-Executable-Linux
+    strategy:
+      # Ensure all jobs are run, even if some fail.
+      fail-fast: false
+      matrix:
+        file: [ test-allowed-parameters.pl,
+                test-strict-parameters.py   ]
     uses: ./.github/workflows/testModel.yml
     with:
-      file: test-allowed-parameters.pl
+      file: ${{ matrix.file }}
       artifact: galacticus-exec
       runPath: ./testSuite
       expectUnrecognized: 1
@@ -1516,7 +1537,7 @@ jobs:
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "PYTHONPATH=$GITHUB_WORKSPACE/python" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: galacticus-exec-dmo
       - name: Install Python
@@ -1553,7 +1574,7 @@ jobs:
       - name: Perform a test inference
         run: ${GITHUB_WORKSPACE}/virtualenv/bin/python3 scripts/emulation/emulatorSubhaloQuadLensingInference.py --outputDirectory testSuite/outputs/emulation-subhalos
       - name: Upload plots
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: emulation-subhalos
           path: ./testSuite/outputs/emulation-subhalos/*.pdf
@@ -1579,7 +1600,7 @@ jobs:
           apt -y update && apt -y upgrade
           apt -y install python3
       - name: Download library
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: galacticus-library
       - name: Test interface
@@ -1920,15 +1941,15 @@ jobs:
           threshold: '250%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Download artifacts (validate-PonosV)
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: validate-PonosV
       - name: Download artifacts (validate-baryonicSuppression)
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: validate-baryonicSuppression
       - name: Download artifacts (build-profile)
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: build-profile
       - name: Push validation results
@@ -2048,19 +2069,19 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v6
       - name: Download artifacts (executable-linux)
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: galacticus-exec
       - name: Download artifacts (library-linux)
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: galacticus-library
       - name: Download artifacts (docs)
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: galacticus-docs
       - name: Download artifacts (tools-linux)
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: galacticus-tools
       - name: Upload assets to release
@@ -2070,31 +2091,31 @@ jobs:
           gh release upload bleeding-edge ./Galacticus.exe ./libgalacticus.tar.bz2 ./Galacticus_Usage.pdf ./Galacticus_Physics.pdf ./Galacticus_Development.pdf ./Galacticus_Source.pdf ./tools.tar.bz2 --clobber
           rm ./Galacticus.exe ./libgalacticus.tar.bz2 ./Galacticus_Usage.pdf ./Galacticus_Physics.pdf ./Galacticus_Development.pdf ./Galacticus_Source.pdf ./tools.tar.bz2
       - name: Download artifacts (executable-macos)
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: galacticus-exec-MacOS
       - name: Download artifacts (debug-macos)
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: galacticus-debug-MacOS
       - name: Download artifacts (executable-macos-m1)
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: galacticus-exec-MacOS-M1
       - name: Download artifacts (debug-macos-m1)
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: galacticus-debug-MacOS-M1
       - name: Download artifacts (library-macos)
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: galacticus-library-MacOS
       - name: Download artifacts (tools-macos)
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: galacticus-tools-MacOS
       - name: Download artifacts (tools-macos-m1)
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: galacticus-tools-MacOS-M1
       - name: Upload assets to release
@@ -2104,27 +2125,27 @@ jobs:
           gh release upload bleeding-edge ./Galacticus_MacOS.exe ./Galacticus_MacOS-M1.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip ./toolsMacOSM1.zip ./debugSymbolsMacOS.zip ./debugSymbolsMacOS-M1.zip --clobber
           rm ./Galacticus_MacOS.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip ./toolsMacOSM1.zip ./debugSymbolsMacOS.zip
       - name: Download artifacts (perf-darkMatterOnlySubHalos)
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: perf-darkMatterOnlySubHalos
       - name: Download artifacts (perf-milkyWay)
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: perf-milkyWay
       - name: Download artifacts (perf-milkyWay_SIDM)
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: perf-milkyWay_SIDM
       - name: Download artifacts (perf-darkMatterOnlySubHalos-gprof)
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: perf-darkMatterOnlySubHalos-gprof
       - name: Download artifacts (perf-milkyWay-gprof)
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: perf-milkyWay-gprof
       - name: Download artifacts (perf-milkyWay_SIDM-gprof)
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: perf-milkyWay_SIDM-gprof
       - name: Upload assets to release

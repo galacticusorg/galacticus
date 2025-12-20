@@ -1,0 +1,610 @@
+<?xml version="1.0"?>
+<!-- Parameters for default Roman model. -->
+<parameters>
+  <lastModified revision="e4897b4d895b215ba5092568a0b8a86a93dab836" time="2025-12-01T22:22:32"/>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <!-- Dark matter properties -->
+  <darkMatterParticle value="CDM"/>
+
+  <!-- UNIT simulation -->
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple" id="cosmoUNIT">  
+    <HubbleConstant value="67.74000"/>
+    <OmegaMatter value=" 0.30890"/>
+    <OmegaDarkEnergy value=" 0.69110"/>
+    <OmegaBaryon value=" 0.04620"/>
+    <temperatureCMB value=" 2.72548"/>
+  </cosmologyParameters>
+  <simulation ignoreWarnings="true">
+    <massParticle value="=1.2e9/([cosmologyParameters::HubbleConstant]/100.0)" ignoreWarnings="true"/>
+  </simulation>
+  <!-- Power spectrum options -->
+  <cosmologicalMassVariance value="filteredPower">
+    <sigma_8 value="0.8147"/>
+    <tolerance value="3.0e-4"/>
+    <toleranceTopHat value="3.0e-4"/>
+    <nonMonotonicIsFatal value="false"/>
+    <monotonicInterpolation value="true"/>
+    <powerSpectrumWindowFunction value="topHat"/>
+  </cosmologicalMassVariance>
+  <transferFunction value="CAMB">
+    <redshift value="100.0"/>
+    <!-- Include cosmological model explicitly here so that baryons are included in the transfer function even for dark matter-only models. -->
+    <cosmologyFunctions value="matterLambda"/>
+    <cosmologyParameters idRef="cosmoUNIT"/>  
+  </transferFunction>
+  <powerSpectrumPrimordial value="powerLaw">
+    <index value="0.9667"/>
+    <wavenumberReference value="1.0000"/>
+    <running value="0.0000"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+
+  <!-- Structure formation options -->
+  <linearGrowth value="collisionlessMatter"/>
+  <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <haloMassFunction value="shethTormen">
+    <a value="0.791"/> <!-- Best fit values from Benson, Ludlow, & Cole (2019). -->
+    <normalization value="0.302"/>
+    <p value="0.218"/>
+  </haloMassFunction>
+
+  <!-- Dark matter halo profile options -->
+  <darkMatterProfileDMO value="heated">
+    <darkMatterProfileDMO value="NFW"/>
+    <nonAnalyticSolver value="numerical"/>
+    <toleranceRelativeVelocityDispersionMaximum value="0.1"/>
+  </darkMatterProfileDMO>
+
+  <!-- Dark matter profile scale radii model -->
+  
+     
+  <darkMatterProfileScaleRadius value="concentrationLimiter">
+    <!-- Limit scale radii to keep concentrations within a reasonable range. -->
+    <concentrationMinimum value="  3.0"/>
+    <concentrationMaximum value="100.0"/>
+    <!-- Use the Diemer & Joyce (2019; ApJ; 871; 168; http://adsabs.harvard.edu/abs/2019ApJ...871..168D) model for concentrations. -->
+    <darkMatterProfileScaleRadius value="concentration">
+      <correctForConcentrationDefinition value="true"/>
+      <darkMatterProfileConcentration value="diemerJoyce2019">
+      </darkMatterProfileConcentration>
+    </darkMatterProfileScaleRadius>
+  </darkMatterProfileScaleRadius>
+
+  
+
+  <!-- Dark matter halo spin -->
+  <haloSpinDistribution value="bett2007">
+    <!-- For leaf nodes in the tree we fall back to drawing spins from the distribution function given by -->
+    <!-- Benson (2017; MNRAS; 471; 2871; http://adsabs.harvard.edu/abs/2017MNRAS.471.2871B).              -->
+    <!-- Best fit paramter values are taken from that paper.                                              -->
+    <alpha value="1.7091800"/>
+    <lambda0 value="0.0420190"/>
+  </haloSpinDistribution>
+
+ <!-- Component selection -->
+  <componentBasic value="standard"/>
+  <componentBlackHole value="standard"/>
+  <componentDarkMatterProfile value="scale"/>
+  <componentDisk value="standard">
+    <massDistributionDisk value="exponentialDisk">
+      <dimensionless value="true"/>
+    </massDistributionDisk>
+    <ratioAngularMomentumSolverRadius value="0.5"/>
+    <postStepZeroNegativeMasses value="false"/>
+  </componentDisk>
+  <componentHotHalo value="standard">
+    
+    <starveSatellites value="false"/>
+    
+    
+  </componentHotHalo>
+
+  <hotHaloOutflowStripping value="standard">
+
+  <efficiency value="0.1"/>
+
+  </hotHaloOutflowStripping>
+
+  <coolingInfallTorque value="fixed">
+
+  <fractionLossAngularMomentum value="0.3"/>
+
+  </coolingInfallTorque>
+
+  <circumgalacticMediumHeating value="AGNFeedback"/>
+  <componentPosition value="cartesian"/>
+  <componentSatellite value="preset"/>
+  <componentSpheroid value="standard">
+    <ratioAngularMomentumScaleRadius value="0.1185581220590025"/>
+    <efficiencyEnergeticOutflow value="1.0e-2"/>
+    <massDistributionSpheroid value="hernquist">
+      <dimensionless value="true"/>
+    </massDistributionSpheroid>
+    <postStepZeroNegativeMasses value="false"/>
+  </componentSpheroid>
+  <componentSpin value="vector"/>
+  
+  <!-- Intergalactic background radiation -->
+  <radiationFieldIntergalacticBackground value="summation">
+    <radiationField value="cosmicMicrowaveBackground"/>
+    <radiationField value="intergalacticBackgroundFile">
+      <fileName value="%DATASTATICPATH%/radiation/Cosmic_Background_Radiation_FG20.hdf5"/>
+    </radiationField>
+  </radiationFieldIntergalacticBackground>
+  
+  <!-- Halo accretion options -->
+  <accretionHalo value="naozBarkana2007"/>
+  <intergalacticMediumFilteringMass value="gnedin2000"/>
+  <intergalacticMediumState value="metallicityPolynomial">
+    <coefficients value="-1.3 -1.9"/>
+    <intergalacticMediumState value="instantReionization">
+      <electronScatteringOpticalDepth value="0.0633"/>
+      <reionizationTemperature value="2.0e4"/>
+      <presentDayTemperature value="1.0e3"/>
+      <intergalacticMediumState value="recFast"/>
+    </intergalacticMediumState>
+  </intergalacticMediumState>
+
+  <!-- Hot halo gas cooling model options -->
+  <hotHaloMassDistribution value="betaProfile"/>
+  <hotHaloTemperatureProfile value="virial"/>
+  <hotHaloMassDistributionCoreRadius value="virialFraction">
+    <coreRadiusOverVirialRadius value="0.3"/>
+  </hotHaloMassDistributionCoreRadius>
+  <coolingSpecificAngularMomentum value="constantRotation">
+    <sourceAngularMomentumSpecificMean value="hotGas"/>
+    <sourceNormalizationRotation value="hotGas"/>
+  
+   <useInteriorMean value="true"/>
+  </coolingSpecificAngularMomentum>
+  
+    <hotHaloOutflowReincorporation value="henriques2013">
+      <gamma value="4.3895975809570364"/>
+      <delta1 value="-1.4841745278384948"/>
+      <delta2 value="-0.4325586894318513"/>
+    </hotHaloOutflowReincorporation>
+  
+
+  
+  <coolingFunction value="atomicCIECloudy"/> <!-- EPS runs include more cooling mechanisms, does this make sense? -->
+
+
+  
+  
+
+  <coolingRadius value="simple"/>
+  <coolingRate value="multiplier">
+    <multiplier value="0.5"/>
+    <coolingRate value="whiteFrenk1991">
+      <velocityCutOff value="10000"/>
+    </coolingRate>
+  </coolingRate>
+  <coolingTime value="simple">
+    <degreesOfFreedom value="3.0"/>
+  </coolingTime>
+  
+    <coolingTimeAvailable value="bensonBower2010"/>
+  
+  
+  <!-- Hot halo ram pressure stripping options -->
+  <hotHaloRamPressureStripping value="font2008">
+    <solverFailureIsFatal value="false"/>
+  </hotHaloRamPressureStripping>
+  <hotHaloRamPressureForce value="relativePosition"/>
+  <hotHaloRamPressureTimescale value="ramPressureAcceleration"/>
+  
+  <!-- Galactic structure solver options -->
+  <galacticStructureSolver value="equilibrium"/>
+  <darkMatterProfile value="adiabaticGnedin2004">
+    <A value="0.73"/>
+    <omega value="0.70"/>
+  </darkMatterProfile>
+  
+  <!-- Star formation rate options -->
+  <starFormationRateDisks value="intgrtdSurfaceDensity"/>
+  <starFormationRateSurfaceDensityDisks value="blitz2006">
+    <starFormationFrequencyNormalization value="1.432e-9"/>
+    <useTabulation value="true"/>
+  </starFormationRateSurfaceDensityDisks>
+  <starFormationRateSpheroids value="timescale">
+    <starFormationTimescale value="dynamicalTime">
+      <efficiency value="0.1"/>
+      <exponentVelocity value="2.000"/>
+      <timescaleMinimum value="0.001"/>
+    </starFormationTimescale>
+  </starFormationRateSpheroids>
+
+  <!-- Stellar populations options -->
+  <stellarPopulationProperties value="instantaneous"/>
+  <stellarPopulationSpectra value="FSPS"/>
+  <stellarPopulationSelector value="fixed"/>
+
+  <initialMassFunction value="chabrier2001"/>
+  <stellarPopulation value="standard">
+    <recycledFraction value="0.460"/>
+    <metalYield value="0.035"/>
+  </stellarPopulation>
+
+  <!-- AGN feedback options -->
+  
+  <blackHoleWind value="ciotti2009">
+    <efficiencyWind value="0.0024"/>
+    <efficiencyWindScalesWithEfficiencyRadiative value="true"/>
+  </blackHoleWind>
+  <blackHoleCGMHeating value="jetPower">
+    <efficiencyRadioMode value="0.2290335508970814"/>
+  </blackHoleCGMHeating>
+
+  <!-- Accretion disk properties -->
+  <accretionDisks value="switched">
+    <accretionRateThinDiskMaximum value="0.30"/>
+    <accretionRateThinDiskMinimum value="0.01"/>
+    <scaleADAFRadiativeEfficiency value="true"/>
+    <accretionDisksShakuraSunyaev value="shakuraSunyaev"/>
+    <accretionDisksADAF value="ADAF">
+      <efficiencyRadiationType value="thinDisk"/>
+      <adiabaticIndex value="1.444"/>
+      <energyOption value="pureADAF"/>
+      <efficiencyRadiation value="0.01"/>
+      <viscosityOption value="fit"/>
+    </accretionDisksADAF>
+  </accretionDisks>
+
+  <!-- Black hole options -->
+  <blackHoleAccretionRate value="standard">
+    <bondiHoyleAccretionEnhancementSpheroid value="  5.0"/>
+    <bondiHoyleAccretionEnhancementHotHalo value="  6.0"/>
+    <bondiHoyleAccretionTemperatureSpheroid value="100.0"/>
+    <bondiHoyleAccretionHotModeOnly value="true"/>
+  </blackHoleAccretionRate>
+  <blackHoleBinaryMerger value="rezzolla2008"/>
+
+  <!-- Galaxy merger options -->
+  <mergerMassMovements value="simple">
+    <destinationGasMinorMerger value="spheroid"/>
+    <massRatioMajorMerger value="0.25"/>
+  </mergerMassMovements>
+  <mergerRemnantSize value="cole2000">
+    <energyOrbital value="1.0"/>
+  </mergerRemnantSize>
+  
+  <!-- Node evolution and physics -->
+  <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+    <!-- Halo concentrations -->
+    <!-- <nodeOperator value="darkMatterProfileScaleSet"/> -->
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <nodeOperator value="haloAngularMomentumRandom">
+      <factorReset value="2.0"/>
+    </nodeOperator>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
+    <!-- Subhalo hierarchy -->
+    <!-- Allows for promotion of sub-sub-halos to become sub-halos etc. -->
+    
+    <!-- Subhalo orbits -->
+    <!-- Apply all orbital physics to the evolution of subhalos. -->
+    
+    
+    
+    
+    
+    
+    <!-- CGM -->
+    
+    <!-- Star formation -->
+    <nodeOperator value="starFormationDisks"/>
+    <nodeOperator value="starFormationSpheroids"/>
+    <!--Stellar feedback outflows-->
+    <nodeOperator value="stellarFeedbackDisks">
+      <stellarFeedbackOutflows value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value="182.4141178001062"/>
+          <exponent value="2.4949976085279038"/>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+    <nodeOperator value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflows value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value="100.0"/>
+          <exponent value="  2.0"/>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+    <!-- Bar instability in galactic disks -->
+    <nodeOperator value="barInstability">
+      <galacticDynamicsBarInstability value="efstathiou1982">
+        <fractionAngularMomentumRetainedSpheroid value="0.2"/>
+        <fractionAngularMomentumRetainedDisk value="=1.0-[.::fractionAngularMomentumRetainedSpheroid]"/>
+        <stabilityThresholdGaseous value="0.7"/>
+        <stabilityThresholdStellar value="1.1"/>
+      </galacticDynamicsBarInstability>
+    </nodeOperator>
+    <nodeOperator value="nodeFormationTimeMassFraction">
+      <fractionMassFormation value="0.5"/>
+    </nodeOperator>
+    <!-- Black hole physics -->
+    <nodeOperator value="blackHolesSeed">
+      <blackHoleSeeds value="fixed">
+        <mass value="100"/>
+        <spin value="0"/>
+      </blackHoleSeeds>
+    </nodeOperator>
+    <nodeOperator value="blackHolesAccretion"/>
+    <nodeOperator value="blackHolesWinds"/>
+    
+    <nodeOperator value="CGMAccretion">
+      <allowNegativeCGMMass value="true"/>
+      <angularMomentumAlwaysGrows value="false"/>
+    </nodeOperator>
+    <nodeOperator value="CGMOutflowReincorporation">
+      <includeSatellites value="true"/>
+    </nodeOperator>
+  <nodeOperator value="CGMCoolingHeating">
+
+  <component value="disk"/>
+
+  <coolingFrom value="currentNode"/>
+
+  <excessHeatDrivesOutflow value="true"/>
+
+  <rateMaximumExpulsion value="1.0"/>
+
+  </nodeOperator>
+
+  
+    <nodeOperator value="coolingEnergyRadiated"/>
+   <!-- Does this work? I don't really understand the insert before/after stuff given that order doesn't matter (I thought) -->
+<nodeOperator value="assemblyHistoryHeuristics">
+  <exponentGrowth value="100.0"/>
+  <nbodyHaloMassError value="trenti2010">
+    <correlationMassExponent value="1.000e0"/>
+    <correlationNormalization value="1.000e0"/>
+    <correlationRedshiftExponent value="0.000e0"/>
+    <massParticle value="=[simulation::massParticle]"/>
+  </nbodyHaloMassError>
+  <sigmaThreshold value="5.0"/>
+</nodeOperator>
+
+    <nodeOperator value="positionInterpolated">
+      <lengthBox value="=[geometryLightcone::lengthReplication]*(([cosmologyParameters::HubbleConstant]/100.0)^[geometryLightcone::lengthHubbleExponent])*([geometryLightcone::lengthUnitsInSI]/3.08567758e+22)"/>
+      <wrapPeriodic value="false"/>
+    </nodeOperator>
+  </nodeOperator>
+  <starFormationHistory value="fixedAges">
+      <ageMinimum value="0.001"/>
+      <countAges value="50"/>
+      <countMetallicities value="11"/>
+    </starFormationHistory>
+    
+
+  <!-- Merger tree evolution -->
+  <mergerTreeEvolver value="standard">
+    <!-- Standard merger tree evolver with parameters chosen to (somewhat) optimize the evolution. -->
+    <timestepHostAbsolute value="1.00"/>
+    <timestepHostRelative value="0.10"/>
+    <fractionTimestepSatelliteMinimum value="0.75"/>
+    <backtrackToSatellites value="true"/>
+  
+    <allTreesExistAtFinalTime value="false"/>
+  </mergerTreeEvolver>
+  <mergerTreeNodeEvolver value="standard">
+    <!-- Standard node evolve with parameters chosen to (somewhat) optimize the evolution. -->
+    <odeToleranceAbsolute value="0.0001"/>
+    <odeToleranceRelative value="0.0001"/>
+    <reuseODEStepSize value="false"/>
+  </mergerTreeNodeEvolver>
+  <mergerTreeEvolveTimestep value="multi">
+    <!-- Standard time-stepping rule -->
+    <mergerTreeEvolveTimestep value="simple">
+      <timeStepAbsolute value="1.000"/>
+      <timeStepRelative value="0.100"/>
+    </mergerTreeEvolveTimestep>
+    <!-- Limit timesteps based on star formation history times - ensures accurate recording of star formation history.
+	 (Will have no effect if star formation history is not being recorded.) -->
+    <mergerTreeEvolveTimestep value="starFormationHistory"/>
+    <!-- Limit timesteps based on satellite evolution -->
+    <mergerTreeEvolveTimestep value="satellite">
+      <timeOffsetMaximumAbsolute value="0.0"/>
+      <timeOffsetMaximumRelative value="0.0"/>
+    </mergerTreeEvolveTimestep>
+    
+    
+  
+    <mergerTreeEvolveTimestep value="lightconeCrossing">
+      <mergerTreeOutputter value="standard">
+        <outputReferences value="false"/>
+        <outputsGroupName value="Lightcone"/>
+      </mergerTreeOutputter>
+    </mergerTreeEvolveTimestep>
+  </mergerTreeEvolveTimestep>
+
+  <!-- Satellite Orbits -->
+  <virialOrbit value="isotropic">
+    <virialOrbit value="benson2005"/>
+  </virialOrbit>
+  
+  <!-- Set verbosity to standard level. -->
+  <verbosityLevel value="standard"/>
+
+  <!-- Evolve merger tree forests. -->
+  <task value="evolveForests"/>
+
+  <!-- Merger tree building options -->
+   
+  <mergerTreeConstructor value="read">
+    <!-- Specify the merger tree files to read. -->
+    <fileNames value="testSuite/outputs/testTreeExportOriginal.hdf5"/>
+    <!-- Consistency checks and validation. -->
+    <outputTimeSnapTolerance value="0.001"/>
+    <missingHostsAreFatal value="true     "/>
+    <!-- Specify tree structure options. -->
+    <allowSubhaloPromotions value="true"/>
+    <allowBranchJumps value="true"/>
+    <!-- Ensure that the most massive progenitor is always the one to be promoted, even if it is a subhalo. -->
+    <alwaysPromoteMostMassive value="true"/>
+    <!-- Preset the indices of subhalos to match those in the merger tree file. -->
+    <presetSubhaloIndices value="true"/>
+    <!-- Use merger tree node positions to compute orbits at the virial radius. -->
+    <presetMergerTimes value="true"/>
+    <presetMergerNodes value="true"/>
+    <presetOrbits value="true"/>
+    <presetOrbitsSetAll value="true"/>
+    <presetOrbitsAssertAllSet value="true"/>
+    <presetOrbitsBoundOnly value="true"/>
+    <!-- Preset structural properties of the halos. -->
+    <presetSubhaloMasses value="true"/>
+    <presetScaleRadii value="true"/>
+    <presetScaleRadiiConcentrationMinimum value="1.0e-30"/>
+    <presetScaleRadiiConcentrationMaximum value="1.0e+30"/>
+    <presetAngularMomenta value="false"/>
+    <scaleRadiiFailureIsFatal value="false"/>
+    <!-- Preset the halo positions/velocities. -->
+    <presetPositions value="true"/>
+  </mergerTreeConstructor>
+
+  <mergerTreeOperator value="export">
+    <exportFormat value="galacticus"/>
+    <outputFileName value="testSuite/outputs/testTreeExportExported.hdf5"/>
+    <includeScaleRadii value="true"/>
+    <includeAngularMomenta value="true"/>
+  </mergerTreeOperator>
+
+  <mergerTreeBuilder value="cole2000">
+    <accretionLimit value="0.1"/>
+    <mergeProbability value="0.1"/>
+   </mergerTreeBuilder>
+  <mergerTreeBranchingProbability value="parkinsonColeHelly">
+    <G0 value="+0.57"/>
+    <gamma1 value="+0.38"/>
+    <gamma2 value="-0.01"/>
+    <accuracyFirstOrder value="+0.10"/>
+  </mergerTreeBranchingProbability>
+  <mergerTreeBuildMassDistribution value="haloMassFunction"/>
+  <mergerTreeBuildMasses value="sampledDistributionUniform">
+    <massTreeMinimum value="1.0e11"/> 
+    <massTreeMaximum value="1.0e15"/> <!-- 1.0e13 -->
+    <treesPerDecade value="30"/> <!-- 200 -->
+  </mergerTreeBuildMasses>
+  <mergerTreeMassResolution value="fixed">
+    <massResolution value="2.0e10"/> <!-- approximate resolution of UNIT halos (1e9 Msun/h particles) -->
+  </mergerTreeMassResolution>
+  
+
+  <!-- Output epochs -->
+  <outputTimes value="list">
+   <!-- This is the full range of snapshot redshifts in the UNIT simulations -->
+    <!-- <redshifts value="13.265335 12.966481 12.661202 12.351135 12.054830 11.771392 11.500000 11.224939 10.961723 10.695906 10.441648 10.185682 9.940919 9.706638 9.471204 9.235415 9.010010 8.794319 8.578544 8.372071 8.165903 7.960574 7.764242 7.576329 7.389262 7.203445 7.025682 6.849294 6.674597 6.507507 6.342144 6.183908 6.022472 5.872852 5.720430 5.574622 5.430868 5.289308 5.150062 5.016847 4.882353 4.753740 4.627462 4.506608 4.385030 4.265930 4.151983 4.037783 3.928536 3.819277 3.714757 3.610419 3.510600 3.411116 3.314064 3.221190 3.127115 3.037142 2.949447 2.862495 2.777862 2.695492 2.614023 2.534818 2.457815 2.381806 2.307972 2.235199 2.164557 2.095017 2.027551 1.961208 1.896033 1.832861 1.770851 1.710027 1.650411 1.592689 1.535497 1.480159 1.425418 1.372479 1.320724 1.269632 1.219756 1.171553 1.123593 1.077275 1.031694 0.987281 0.943635 0.901141 0.859427 0.818843 0.778726 0.740038 0.701838 0.664447 0.628134 0.592357 0.557390 0.523229 0.489869 0.457301 0.425314 0.394117 0.363698 0.333689 0.304461 
+0.275998 0.247972 0.220703 0.193887 0.167679 0.142204 0.117194 0.092657 0.068719 0.045260 0.022390 0.000000"/> -->
+    <redshifts value="9.0 0.0"/>
+  </outputTimes>
+
+  <!-- Analyses -->
+  
+    <mergerTreeOutputter value="null"/>
+  
+
+  <!-- Comparison with observational data  -->
+  <gravitationalLensing value="null"/> 
+  <outputAnalysis value="null"/>
+
+  <!-- Save some things -->
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="radiusHalfMassStellar"/>
+    <nodePropertyExtractor value="nodeIndices"/>
+    <nodePropertyExtractor value="spin"/>
+    <nodePropertyExtractor value="radiativeEfficiencyBlackHoles"/> 
+    <nodePropertyExtractor value="massAccretionRateBlackHoles"/>
+    <nodePropertyExtractor value="jetPowerBlackHoles"/>
+    <nodePropertyExtractor value="spinBlackHoles"/>
+    <nodePropertyExtractor value="starFormationRate">
+      <component value="disk"/>
+    </nodePropertyExtractor>
+    <nodePropertyExtractor value="starFormationRate">
+      <component value="spheroid"/>
+    </nodePropertyExtractor>
+  
+      <nodePropertyExtractor value="redshift"/>
+      <nodePropertyExtractor value="lightcone">
+        <atCrossing value="true"/>
+        <includeObservedRedshift value="true"/>
+        <includeAngularCoordinates value="true"/>
+      </nodePropertyExtractor>
+  
+    <nodePropertyExtractor value="luminosityEmissionLine">
+      <cloudyTableFileName value="%DATASTATICPATH%/hiiRegions/emissionLineLuminosities_BC2003_highResolution_imfChabrier.hdf5"/>
+      <lineNames value="balmerAlpha6565 balmerBeta4863 balmerDelta4103 balmerGamma4342 nitrogenII6550 nitrogenII6585 oxygenII3727 oxygenII3730 oxygenIII4933 oxygenIII4960 oxygenIII5008 paschenAlpha18756 paschenBeta12822 sulfurII6718 sulfurII6733 sulfurIII9071 sulfurIII9533"/>
+      <component value="disk"/>
+      <toleranceRelative value="1.0d-2"/>
+      <hiiRegionLuminosityFunction value="powerLaw">
+      <exponent value="2.5d0"/>
+      </hiiRegionLuminosityFunction>
+      <hiiRegionEscapeFraction value="fixed">
+      <escapeFraction value="0.1"/>
+      <ageLimit value="0.01"/>
+      </hiiRegionEscapeFraction>
+    </nodePropertyExtractor>
+    <nodePropertyExtractor value="luminosityEmissionLine">
+      <cloudyTableFileName value="%DATASTATICPATH%/hiiRegions/emissionLineLuminosities_BC2003_highResolution_imfChabrier.hdf5"/>
+      <lineNames value="balmerAlpha6565 balmerBeta4863 balmerDelta4103 balmerGamma4342 nitrogenII6550 nitrogenII6585 oxygenII3727 oxygenII3730 oxygenIII4933 oxygenIII4960 oxygenIII5008 paschenAlpha18756 paschenBeta12822 sulfurII6718 sulfurII6733 sulfurIII9071 sulfurIII9533"/>
+      <component value="spheroid"/>
+      <toleranceRelative value="1.0d-2"/>
+      <hiiRegionLuminosityFunction value="powerLaw">
+      <exponent value="2.5d0"/>
+      </hiiRegionLuminosityFunction>
+      <hiiRegionEscapeFraction value="fixed">
+      <escapeFraction value="0.1"/>
+      <ageLimit value="0.01"/>
+      </hiiRegionEscapeFraction>
+    </nodePropertyExtractor>
+    <nodePropertyExtractor value="lmnstyEmssnLineAGN">
+      <densityHydrogen value="1.0d3"/>
+      <lineNames value="balmerAlpha6565 balmerBeta4863 balmerDelta4103 balmerGamma4342 nitrogenII6550 nitrogenII6585 oxygenII3727 oxygenII3730 oxygenIII4933 oxygenIII4960 oxygenIII5008 paschenAlpha18756 paschenBeta12822 sulfurII6718 sulfurII6733 sulfurIII9071 sulfurIII9533"/>
+      <indexSpectralShortWavelength value="-1.7"/>
+      <factorFillingVolume value="0.01"/>
+    </nodePropertyExtractor>
+  
+    <nodePropertyExtractor value="starFormationHistory">
+      <component value="disk"/>
+    </nodePropertyExtractor>
+    <nodePropertyExtractor value="starFormationHistory">
+      <component value="spheroid"/>
+    </nodePropertyExtractor>
+  </nodePropertyExtractor>
+  
+  <!-- Output file -->
+  <outputFileName value="testSuite/outputs/testTreeExport.hdf5"/>
+
+
+    <randomNumberGenerator value="GSL">
+      <seed value="42"/>
+    </randomNumberGenerator>
+  
+  <mergerTreeImporter>
+    <fatalMismatches value="true"/>
+    <reweightTrees value="false"/>
+    <validateData value="false"/>
+  </mergerTreeImporter>
+  <mergerTreeInitializor/>
+
+    <geometryLightcone value="square">
+      <lengthReplication value="1000"/>
+      <lengthHubbleExponent value="-1"/>
+      <lengthUnitsInSI value="3.08567758e+22"/>
+      <timeEvolvesAlongLightcone value="true"/>
+      <angularSize value="0.16"/>
+      <origin value=" 0.0             0.0             0.0"/>
+      <unitVector1 value="+0.666666666667 +0.333333333333 +0.666666666667"/>
+      <unitVector2 value="+0.000000000000 +0.894427191000 -0.447213595500"/>
+      <unitVector3 value="-0.745355992500 +0.298142397000 +0.596284794000"/>
+    </geometryLightcone>
+  </parameters>

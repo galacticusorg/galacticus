@@ -50,7 +50,7 @@ with h5py.File(pathOutputModel, 'r') as file:
     # Iterate over outputs.
     for i in range(1, 7):  # Output1 ~ Output6
         output           = file[f"/Outputs/Output{i}/nodeData"]
-        massCore         = output["solitonMassCore"      ][:]
+        massCore         = output["solitonMassCoreNormal"][:]
         densityContrastZ = output["densityContrastVirial"][:]
         redshift         = output["redshift"             ][:]
         massHalo         = output["basicMass"            ][:]

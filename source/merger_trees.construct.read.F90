@@ -2894,10 +2894,10 @@ contains
                    jumpToHost => jumpToHost%host
                 end do
                 call readCreateBranchJumpEvent(                                                    &
-                     &                        nodeList(iIsolatedNode                      )%node, &
-                     &                        nodeList(jumpToHost%primaryIsolatedNodeIndex)%node, &
-                     &                        timeOfJump                                          &
-                     &                       )
+                     &                         nodeList(iIsolatedNode                      )%node, &
+                     &                         nodeList(jumpToHost%primaryIsolatedNodeIndex)%node, &
+                     &                         timeOfJump                                          &
+                     &                        )
              end if
           end if
           ! If a subhalo was found, follow its descent.
@@ -2936,11 +2936,18 @@ contains
                       subhaloJumps=.true.
                    else
                       ! In nested hierarchies we must find the isolated node which hosts our node and our node's host.
+                      !! First find the ultimate host of our descendant.
                       isolatedHostNode     => descendantNode     %descendant%host
                       do while (associated(isolatedHostNode    %host).and..not.associated(isolatedHostNode    %host,isolatedHostNode    ))
                          isolatedHostNode     => isolatedHostNode    %host
                       end do
-                      isolatedHostHostNode => descendantNode%host%descendant%host
+                      !! Next find our ultimate host...
+                      isolatedHostHostNode => descendantNode%host
+                      do while (associated(isolatedHostHostNode%host).and..not.associated(isolatedHostHostNode%host,isolatedHostHostNode))
+                         isolatedHostHostNode => isolatedHostHostNode%host
+                      end do
+                      !! and then find the ultimate host of its descendant.
+                      isolatedHostHostNode => isolatedHostHostNode%descendant%host
                       do while (associated(isolatedHostHostNode%host).and..not.associated(isolatedHostHostNode%host,isolatedHostHostNode))
                          isolatedHostHostNode => isolatedHostHostNode%host
                       end do
