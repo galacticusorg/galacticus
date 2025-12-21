@@ -544,7 +544,11 @@ contains
           self%propertyValuesActiveSaved  (1:self%propertyCountActive  )=self%propertyValuesActive  (1:self%propertyCountActive  )
           self%propertyValuesInactiveSaved(1:self%propertyCountInactive)=self%propertyValuesInactive(1:self%propertyCountInactive)
           ! Find properties that must be non-negative.
-          if (self%enforceNonNegativity) call node%serializeNonNegative(self%isNonNegative)
+          if (self%enforceNonNegativity) then
+             call node%serializeNonNegative(self%isNonNegative)
+          else
+             self%isNonNegative=.false.
+          end if
           ! Compute scales for all properties and extract from the node.
           call node%odeStepScalesInitialize()
           !![
