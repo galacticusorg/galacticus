@@ -6,10 +6,10 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "0ce30cf062010a1b1f0690f6f59939321afc6af7",
-        "message": "Merge pull request #985 from galacticusorg/featMergerTreeExport\n\nImprove merger tree export\n",
-        "timestamp": "2025-12-19 14:29:29+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/0ce30cf062010a1b1f0690f6f59939321afc6af7"
+        "id": "372971d60deb4602455fde9f3cfe24ec3f41ac2c",
+        "message": "Merge pull request #986 from galacticusorg/fixRefactorClassInterface\n\nRefactor the CLASS interface code\n",
+        "timestamp": "2025-12-21 00:42:29+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/372971d60deb4602455fde9f3cfe24ec3f41ac2c"
     },
     "surfaceDensity": {
         "percentageBelow": 32.14285714285714,
@@ -17,8 +17,8 @@ window.PONOSV_DATA = {
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 33.33333333333333,
-        "percentageAbove": 66.66666666666667,
+        "percentageBelow": 44.44444444444444,
+        "percentageAbove": 55.55555555555556,
         "target": 0.85
     }
 }
