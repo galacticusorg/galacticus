@@ -38,498 +38,440 @@
   </style>
  </head>
 <body>
-Total compile time = 3648 seconds<p>
-Build profile (all tasks which ran for 20 seconds or longer: 66.23% of total time)<br>
+Total compile time = 3578 seconds<p>
+Build profile (all tasks which ran for 20 seconds or longer: 62.97% of total time)<br>
 <div>
 <table id="chart" style="border-spacing: 0; border-collapse: separate; border-top: 1px">
 </table>
 </div><p>
 Task costs (ordered)<br>
 <table>
-<tr><td>merger_trees.construct.read.o (compile)</td><td> 125.00</td><td>( 3.43%)</td></tr>
-<tr><td>output.analyses.o (compile)</td><td> 100.67</td><td>( 2.76%)</td></tr>
-<tr><td>objects.nodes.o (compile)</td><td>  83.50</td><td>( 2.29%)</td></tr>
-<tr><td>nodes.property_extractor.F90 (preprocess)</td><td>  81.50</td><td>( 2.23%)</td></tr>
-<tr><td>chemical.reaction_rates.hydrogen.o (compile)</td><td>  79.50</td><td>( 2.18%)</td></tr>
-<tr><td>nodes.operators.o (compile)</td><td>  70.00</td><td>( 1.92%)</td></tr>
-<tr><td>objects.nodes.components.hot_halo.standard.o (compile)</td><td>  64.17</td><td>( 1.76%)</td></tr>
-<tr><td>objects.nodes.components.spheroid.standard.o (compile)</td><td>  61.00</td><td>( 1.67%)</td></tr>
-<tr><td>mass_distributions.o (compile)</td><td>  58.00</td><td>( 1.59%)</td></tr>
-<tr><td>if echo " -j4 --jobserver-auth=3,4 -- GALACTICUS_BUILD_OPTION=compileprof" | grep -q -E -- ' -j1( |$)'; then \</td><td>  58.00</td><td>( 1.59%)</td></tr>
-<tr><td>output.analyses.F90 (preprocess)</td><td>  53.00</td><td>( 1.45%)</td></tr>
-<tr><td>objects.nodes.components.spheroid.very_simple.o (compile)</td><td>  50.50</td><td>( 1.38%)</td></tr>
-<tr><td>if [ ! -e source/FFTlog/fftlog.f ]; then \</td><td>  47.50</td><td>( 1.30%)</td></tr>
-<tr><td>nodes.operators.F90 (preprocess)</td><td>  45.00</td><td>( 1.23%)</td></tr>
-<tr><td>accretion.halo.Naoz_Barkana_2007.o (compile)</td><td>  43.50</td><td>( 1.19%)</td></tr>
-<tr><td>utility.IO.HDF5.o (compile)</td><td>  43.00</td><td>( 1.18%)</td></tr>
-<tr><td>tasks.o (compile)</td><td>  42.00</td><td>( 1.15%)</td></tr>
-<tr><td>moduleDependencies</td><td>  41.50</td><td>( 1.14%)</td></tr>
-<tr><td>tasks.evolve_forests.o (compile)</td><td>  38.00</td><td>( 1.04%)</td></tr>
-<tr><td>mass_distributions.F90 (preprocess)</td><td>  37.50</td><td>( 1.03%)</td></tr>
-<tr><td>objects.nodes.components.disk.very_simple.o (compile)</td><td>  37.50</td><td>( 1.03%)</td></tr>
-<tr><td>objects.nodes.components.satellite.orbiting.o (compile)</td><td>  36.50</td><td>( 1.00%)</td></tr>
-<tr><td>accretion.halo.simple.o (compile)</td><td>  34.00</td><td>( 0.93%)</td></tr>
-<tr><td>merger_trees.outputter.standard.o (compile)</td><td>  33.00</td><td>( 0.90%)</td></tr>
-<tr><td>objects.nodes.components.black_hole.standard.o (compile)</td><td>  30.00</td><td>( 0.82%)</td></tr>
-<tr><td>useDependencies</td><td>  29.50</td><td>( 0.81%)</td></tr>
-<tr><td>black_holes.fundamentals.o (compile)</td><td>  29.50</td><td>( 0.81%)</td></tr>
-<tr><td>merger_trees.node_evolver.standard.o (compile)</td><td>  27.67</td><td>( 0.76%)</td></tr>
-<tr><td>merger_trees.evolver.standard.o (compile)</td><td>  27.00</td><td>( 0.74%)</td></tr>
-<tr><td>dark_matter_profiles_DMO.F90 (preprocess)</td><td>  26.50</td><td>( 0.73%)</td></tr>
-<tr><td>geometry.lightcones.square.o (compile)</td><td>  26.50</td><td>( 0.73%)</td></tr>
-<tr><td>objects.nodes.components.disk.standard.o (compile)</td><td>  26.50</td><td>( 0.73%)</td></tr>
-<tr><td>nodes.property_extractor.o (compile)</td><td>  25.17</td><td>( 0.69%)</td></tr>
-<tr><td>star_formation.histories.fixed_ages.o (compile)</td><td>  25.00</td><td>( 0.69%)</td></tr>
-<tr><td>objects.nodes.components.nuclear_star_cluster.standard.o (compile)</td><td>  24.50</td><td>( 0.67%)</td></tr>
-<tr><td>accretion_disks.ADAF.o (compile)</td><td>  24.00</td><td>( 0.66%)</td></tr>
-<tr><td>nodes.operators.physics.satellite.minimum_distance.o (compile)</td><td>  24.00</td><td>( 0.66%)</td></tr>
-<tr><td>nodes.property_extractor.luminosity_emission_line.o (compile)</td><td>  23.00</td><td>( 0.63%)</td></tr>
-<tr><td>nodes.property_extractor.SED.o (compile)</td><td>  23.00</td><td>( 0.63%)</td></tr>
-<tr><td>merger_trees.operators.augment.o (compile)</td><td>  23.00</td><td>( 0.63%)</td></tr>
-<tr><td>galactic.filters.F90 (preprocess)</td><td>  22.50</td><td>( 0.62%)</td></tr>
-<tr><td>satellites.merging.virial_orbits.Li2020.o (compile)</td><td>  22.50</td><td>( 0.62%)</td></tr>
-<tr><td>objects.nodes.components.o (compile)</td><td>  22.33</td><td>( 0.61%)</td></tr>
-<tr><td>output.analyses.luminosity_function.Halpha.o (compile)</td><td>  22.33</td><td>( 0.61%)</td></tr>
-<tr><td>objects.nodes.components.disk.very_simple.size.o (compile)</td><td>  22.00</td><td>( 0.60%)</td></tr>
-<tr><td>nodes.operators.physics.impulsive_outflow_energy.o (compile)</td><td>  22.00</td><td>( 0.60%)</td></tr>
-<tr><td>objects.nodes.components.hot_halo.cold_mode.o (compile)</td><td>  21.67</td><td>( 0.59%)</td></tr>
-<tr><td>structure_formation.cosmological_density_field.F90 (preprocess)</td><td>  21.50</td><td>( 0.59%)</td></tr>
-<tr><td>merger_trees.construct.builder.Cole2000.o (compile)</td><td>  21.33</td><td>( 0.58%)</td></tr>
-<tr><td>dark_matter_halos.scales.virial_density_contrast.o (compile)</td><td>  21.00</td><td>( 0.58%)</td></tr>
-<tr><td>nodes.operators.analyses.star_formation_rate.interoutput.o (compile)</td><td>  21.00</td><td>( 0.58%)</td></tr>
-<tr><td>satellites.merging.virial_orbits.loss_cone.o (compile)</td><td>  19.50</td><td>( 0.53%)</td></tr>
-<tr><td>output.analyses.progenitor_mass_functions.o (compile)</td><td>  19.50</td><td>( 0.53%)</td></tr>
-<tr><td>galactic_structure.radius_solver.simple.o (compile)</td><td>  19.33</td><td>( 0.53%)</td></tr>
-<tr><td>nodes.operators.physics.dark_matter_profile_axis_ratios.MenkerBenson2022.o (compile)</td><td>  19.00</td><td>( 0.52%)</td></tr>
-<tr><td>nodes.operators.metadata.index_last_host.o (compile)</td><td>  18.50</td><td>( 0.51%)</td></tr>
-<tr><td>output.analyses.spin_distribution.o (compile)</td><td>  18.50</td><td>( 0.51%)</td></tr>
-<tr><td>nodes.operators.analyses.hierarchy.o (compile)</td><td>  18.00</td><td>( 0.49%)</td></tr>
-<tr><td>nBody.operator.F90 (preprocess)</td><td>  17.50</td><td>( 0.48%)</td></tr>
-<tr><td>nodes.operators.physics.circumgalactic_medium.accretion.o (compile)</td><td>  16.50</td><td>( 0.45%)</td></tr>
-<tr><td>nodes.operators.physics.cooling_energy_radiated.o (compile)</td><td>  15.50</td><td>( 0.42%)</td></tr>
-<tr><td>state.o (compile)</td><td>  15.33</td><td>( 0.42%)</td></tr>
-<tr><td>tasks.F90 (preprocess)</td><td>  14.50</td><td>( 0.40%)</td></tr>
-<tr><td>objects.nodes.components.dark_matter_profile.scale.o (compile)</td><td>  14.50</td><td>( 0.40%)</td></tr>
-<tr><td>nodes.operators.physics.Bertschinger_mass.interpolate.o (compile)</td><td>  14.50</td><td>( 0.40%)</td></tr>
-<tr><td>merger_trees.operators.o (compile)</td><td>  14.00</td><td>( 0.38%)</td></tr>
-<tr><td>nodes.operators.physics.black_holes.seed.o (compile)</td><td>  13.50</td><td>( 0.37%)</td></tr>
-<tr><td>merger_trees.operators.F90 (preprocess)</td><td>  13.00</td><td>( 0.36%)</td></tr>
-<tr><td>dark_matter_profiles_DMO.o (compile)</td><td>  13.00</td><td>( 0.36%)</td></tr>
-<tr><td>nodes.operators.analyses.galaxy_merger_tree.o (compile)</td><td>  13.00</td><td>( 0.36%)</td></tr>
-<tr><td>nodes.operators.utilities.o (compile)</td><td>  12.50</td><td>( 0.34%)</td></tr>
-<tr><td>galactic.filters.o (compile)</td><td>  12.33</td><td>( 0.34%)</td></tr>
-<tr><td>component.component.xml (build)</td><td>  12.00</td><td>( 0.33%)</td></tr>
-<tr><td>output.analyses.correlation_function.o (compile)</td><td>  10.83</td><td>( 0.30%)</td></tr>
-<tr><td>galactic_structure.radius_solver.fixed.o (compile)</td><td>  10.67</td><td>( 0.29%)</td></tr>
-<tr><td>galactic_structure.radius_solver.equilibrium.o (compile)</td><td>  10.67</td><td>( 0.29%)</td></tr>
-<tr><td>merger_trees.build.controller.constrained.o (compile)</td><td>  10.50</td><td>( 0.29%)</td></tr>
-<tr><td>nodes.operators.physics.dark_matter_only_mass.interpolate.o (compile)</td><td>  10.50</td><td>( 0.29%)</td></tr>
+<tr><td>merger_trees.construct.read.o (compile)</td><td> 135.83</td><td>( 3.80%)</td></tr>
+<tr><td>output.analyses.o (compile)</td><td> 100.33</td><td>( 2.80%)</td></tr>
+<tr><td>objects.nodes.o (compile)</td><td>  83.50</td><td>( 2.33%)</td></tr>
+<tr><td>nodes.property_extractor.F90 (preprocess)</td><td>  82.50</td><td>( 2.31%)</td></tr>
+<tr><td>chemical.reaction_rates.hydrogen.o (compile)</td><td>  78.00</td><td>( 2.18%)</td></tr>
+<tr><td>nodes.operators.o (compile)</td><td>  71.00</td><td>( 1.98%)</td></tr>
+<tr><td>objects.nodes.components.hot_halo.standard.o (compile)</td><td>  61.00</td><td>( 1.70%)</td></tr>
+<tr><td>mass_distributions.o (compile)</td><td>  59.00</td><td>( 1.65%)</td></tr>
+<tr><td>objects.nodes.components.spheroid.standard.o (compile)</td><td>  58.83</td><td>( 1.64%)</td></tr>
+<tr><td>if echo " -j4 --jobserver-auth=3,4 -- GALACTICUS_BUILD_OPTION=compileprof" | grep -q -E -- ' -j1( |$)'; then \</td><td>  58.00</td><td>( 1.62%)</td></tr>
+<tr><td>output.analyses.F90 (preprocess)</td><td>  54.00</td><td>( 1.51%)</td></tr>
+<tr><td>objects.nodes.components.spheroid.very_simple.o (compile)</td><td>  50.50</td><td>( 1.41%)</td></tr>
+<tr><td>if [ ! -e source/FFTlog/fftlog.f ]; then \</td><td>  49.00</td><td>( 1.37%)</td></tr>
+<tr><td>nodes.operators.F90 (preprocess)</td><td>  44.00</td><td>( 1.23%)</td></tr>
+<tr><td>utility.IO.HDF5.o (compile)</td><td>  43.00</td><td>( 1.20%)</td></tr>
+<tr><td>moduleDependencies</td><td>  42.50</td><td>( 1.19%)</td></tr>
+<tr><td>objects.nodes.components.satellite.orbiting.o (compile)</td><td>  42.50</td><td>( 1.19%)</td></tr>
+<tr><td>mass_distributions.F90 (preprocess)</td><td>  41.00</td><td>( 1.15%)</td></tr>
+<tr><td>accretion.halo.Naoz_Barkana_2007.o (compile)</td><td>  40.00</td><td>( 1.12%)</td></tr>
+<tr><td>tasks.o (compile)</td><td>  38.00</td><td>( 1.06%)</td></tr>
+<tr><td>objects.nodes.components.disk.very_simple.o (compile)</td><td>  36.00</td><td>( 1.01%)</td></tr>
+<tr><td>tasks.evolve_forests.o (compile)</td><td>  35.00</td><td>( 0.98%)</td></tr>
+<tr><td>useDependencies</td><td>  31.50</td><td>( 0.88%)</td></tr>
+<tr><td>accretion.halo.simple.o (compile)</td><td>  31.00</td><td>( 0.87%)</td></tr>
+<tr><td>objects.nodes.components.black_hole.standard.o (compile)</td><td>  29.00</td><td>( 0.81%)</td></tr>
+<tr><td>black_holes.fundamentals.o (compile)</td><td>  27.50</td><td>( 0.77%)</td></tr>
+<tr><td>merger_trees.outputter.standard.o (compile)</td><td>  27.00</td><td>( 0.75%)</td></tr>
+<tr><td>objects.nodes.components.disk.standard.o (compile)</td><td>  26.83</td><td>( 0.75%)</td></tr>
+<tr><td>dark_matter_profiles_DMO.F90 (preprocess)</td><td>  26.50</td><td>( 0.74%)</td></tr>
+<tr><td>merger_trees.node_evolver.standard.o (compile)</td><td>  26.33</td><td>( 0.74%)</td></tr>
+<tr><td>geometry.lightcones.square.o (compile)</td><td>  25.50</td><td>( 0.71%)</td></tr>
+<tr><td>nodes.operators.physics.cooling_energy_radiated.o (compile)</td><td>  25.50</td><td>( 0.71%)</td></tr>
+<tr><td>nodes.property_extractor.o (compile)</td><td>  24.50</td><td>( 0.68%)</td></tr>
+<tr><td>accretion_disks.ADAF.o (compile)</td><td>  24.00</td><td>( 0.67%)</td></tr>
+<tr><td>star_formation.histories.fixed_ages.o (compile)</td><td>  23.50</td><td>( 0.66%)</td></tr>
+<tr><td>objects.nodes.components.nuclear_star_cluster.standard.o (compile)</td><td>  23.33</td><td>( 0.65%)</td></tr>
+<tr><td>objects.nodes.components.disk.very_simple.size.o (compile)</td><td>  23.00</td><td>( 0.64%)</td></tr>
+<tr><td>merger_trees.operators.augment.o (compile)</td><td>  23.00</td><td>( 0.64%)</td></tr>
+<tr><td>objects.nodes.components.o (compile)</td><td>  22.67</td><td>( 0.63%)</td></tr>
+<tr><td>galactic.filters.F90 (preprocess)</td><td>  22.50</td><td>( 0.63%)</td></tr>
+<tr><td>nodes.property_extractor.SED.o (compile)</td><td>  22.00</td><td>( 0.61%)</td></tr>
+<tr><td>nodes.operators.physics.satellite.minimum_distance.o (compile)</td><td>  22.00</td><td>( 0.61%)</td></tr>
+<tr><td>merger_trees.evolver.standard.o (compile)</td><td>  22.00</td><td>( 0.61%)</td></tr>
+<tr><td>structure_formation.cosmological_density_field.F90 (preprocess)</td><td>  21.50</td><td>( 0.60%)</td></tr>
+<tr><td>output.analyses.luminosity_function.Halpha.o (compile)</td><td>  21.50</td><td>( 0.60%)</td></tr>
+<tr><td>dark_matter_halos.scales.virial_density_contrast.o (compile)</td><td>  21.00</td><td>( 0.59%)</td></tr>
+<tr><td>nodes.operators.physics.impulsive_outflow_energy.o (compile)</td><td>  21.00</td><td>( 0.59%)</td></tr>
+<tr><td>satellites.merging.virial_orbits.Li2020.o (compile)</td><td>  20.50</td><td>( 0.57%)</td></tr>
+<tr><td>objects.nodes.components.hot_halo.cold_mode.o (compile)</td><td>  20.50</td><td>( 0.57%)</td></tr>
+<tr><td>satellites.merging.virial_orbits.loss_cone.o (compile)</td><td>  19.00</td><td>( 0.53%)</td></tr>
+<tr><td>output.analyses.progenitor_mass_functions.o (compile)</td><td>  18.50</td><td>( 0.52%)</td></tr>
+<tr><td>output.analyses.spin_distribution.o (compile)</td><td>  18.50</td><td>( 0.52%)</td></tr>
+<tr><td>nodes.operators.physics.Bertschinger_mass.interpolate.o (compile)</td><td>  17.50</td><td>( 0.49%)</td></tr>
+<tr><td>nBody.operator.F90 (preprocess)</td><td>  17.00</td><td>( 0.48%)</td></tr>
+<tr><td>nodes.operators.physics.circumgalactic_medium.accretion.o (compile)</td><td>  17.00</td><td>( 0.48%)</td></tr>
+<tr><td>nodes.operators.analyses.hierarchy.o (compile)</td><td>  16.50</td><td>( 0.46%)</td></tr>
+<tr><td>objects.nodes.components.dark_matter_profile.scale.o (compile)</td><td>  15.00</td><td>( 0.42%)</td></tr>
+<tr><td>merger_trees.operators.o (compile)</td><td>  15.00</td><td>( 0.42%)</td></tr>
+<tr><td>tasks.F90 (preprocess)</td><td>  14.50</td><td>( 0.41%)</td></tr>
+<tr><td>state.o (compile)</td><td>  14.17</td><td>( 0.40%)</td></tr>
+<tr><td>merger_trees.construct.builder.Cole2000.o (compile)</td><td>  14.17</td><td>( 0.40%)</td></tr>
+<tr><td>merger_trees.operators.F90 (preprocess)</td><td>  13.50</td><td>( 0.38%)</td></tr>
+<tr><td>dark_matter_profiles_DMO.o (compile)</td><td>  13.50</td><td>( 0.38%)</td></tr>
+<tr><td>nodes.operators.analyses.galaxy_merger_tree.o (compile)</td><td>  12.50</td><td>( 0.35%)</td></tr>
+<tr><td>component.component.xml (build)</td><td>  12.00</td><td>( 0.34%)</td></tr>
+<tr><td>nodes.operators.physics.black_holes.seed.o (compile)</td><td>  12.00</td><td>( 0.34%)</td></tr>
+<tr><td>galactic_structure.radius_solver.equilibrium.o (compile)</td><td>  11.50</td><td>( 0.32%)</td></tr>
+<tr><td>galactic_structure.radius_solver.fixed.o (compile)</td><td>  11.50</td><td>( 0.32%)</td></tr>
+<tr><td>nodes.operators.utilities.o (compile)</td><td>  11.00</td><td>( 0.31%)</td></tr>
 </table>
   <script type="text/javascript">
    function makeChart() {
     var chartContent = ''
     chartContent += '<tr><th class="headcol">component.component.xml (build)</th>'
-    chartContent += '<td/>'.repeat(12)
+    chartContent += '<td/>'.repeat(14)
     chartContent += '<td style="background: #aaff00ff"/>'.repeat(24)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">moduleDependencies</th>'
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(12)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(14)
     chartContent += '<td style="background: #aaff00ff"/>'.repeat(24)
     chartContent += '<td style="background: #ffaa00ff"/>'.repeat(1)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(33)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(31)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">useDependencies</th>'
-    chartContent += '<td/>'.repeat(37)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(33)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(13)
+    chartContent += '<td/>'.repeat(39)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(31)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(16)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">if [ ! -e source/FFTlog/fftlog.f ]; then \</th>'
-    chartContent += '<td/>'.repeat(84)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(17)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(61)
+    chartContent += '<td/>'.repeat(86)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(19)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(60)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">mass_distributions.F90 (preprocess)</th>'
-    chartContent += '<td/>'.repeat(101)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(61)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(7)
+    chartContent += '<td/>'.repeat(105)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(60)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(11)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">structure_formation.cosmological_density_field.F90 (preprocess)</th>'
-    chartContent += '<td/>'.repeat(191)
+    chartContent += '<td/>'.repeat(196)
     chartContent += '<td style="background: #ffaa00ff"/>'.repeat(21)
     chartContent += '<td style="background: #aaff00ff"/>'.repeat(1)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">dark_matter_profiles_DMO.F90 (preprocess)</th>'
-    chartContent += '<td/>'.repeat(212)
+    chartContent += '<td/>'.repeat(217)
     chartContent += '<td style="background: #aaff00ff"/>'.repeat(1)
     chartContent += '<td style="background: #ffaa00ff"/>'.repeat(26)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">galactic.filters.F90 (preprocess)</th>'
-    chartContent += '<td/>'.repeat(259)
+    chartContent += '<td/>'.repeat(265)
     chartContent += '<td style="background: #ffaa00ff"/>'.repeat(14)
     chartContent += '<td style="background: #aaff00ff"/>'.repeat(17)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">merger_trees.operators.F90 (preprocess)</th>'
-    chartContent += '<td/>'.repeat(326)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(26)
+    chartContent += '<td/>'.repeat(332)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(27)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">nodes.property_extractor.F90 (preprocess)</th>'
-    chartContent += '<td/>'.repeat(273)
+    chartContent += '<td/>'.repeat(279)
     chartContent += '<td style="background: #aaff00ff"/>'.repeat(17)
     chartContent += '<td style="background: #ffaa00ff"/>'.repeat(36)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(26)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(27)
     chartContent += '<td style="background: #ffaa00ff"/>'.repeat(22)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(4)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(5)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">tasks.F90 (preprocess)</th>'
-    chartContent += '<td/>'.repeat(397)
+    chartContent += '<td/>'.repeat(404)
     chartContent += '<td style="background: #aaff00ff"/>'.repeat(23)
     chartContent += '<td style="background: #00ff00ff"/>'.repeat(9)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">nodes.operators.F90 (preprocess)</th>'
-    chartContent += '<td/>'.repeat(374)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(4)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(19)
+    chartContent += '<td/>'.repeat(381)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(5)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(18)
     chartContent += '<td style="background: #aaff00ff"/>'.repeat(23)
     chartContent += '<td style="background: #00ff00ff"/>'.repeat(9)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(19)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(18)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">nBody.operator.F90 (preprocess)</th>'
-    chartContent += '<td/>'.repeat(464)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(35)
+    chartContent += '<td/>'.repeat(470)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(34)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">output.analyses.F90 (preprocess)</th>'
-    chartContent += '<td/>'.repeat(420)
+    chartContent += '<td/>'.repeat(427)
     chartContent += '<td style="background: #00ff00ff"/>'.repeat(9)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(19)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(18)
     chartContent += '<td style="background: #ffaa00ff"/>'.repeat(16)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(35)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(7)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(34)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(9)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">utility.IO.HDF5.o (compile)</th>'
-    chartContent += '<td/>'.repeat(537)
+    chartContent += '<td/>'.repeat(543)
     chartContent += '<td style="background: #ffaa00ff"/>'.repeat(43)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">mass_distributions.o (compile)</th>'
-    chartContent += '<td/>'.repeat(622)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(58)
+    chartContent += '<td/>'.repeat(627)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(59)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">objects.nodes.o (compile)</th>'
-    chartContent += '<td/>'.repeat(719)
+    chartContent += '<td/>'.repeat(725)
     chartContent += '<td style="background: #ffaa00ff"/>'.repeat(83)
     chartContent += '<td style="background: #aaff00ff"/>'.repeat(1)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">black_holes.fundamentals.o (compile)</th>'
-    chartContent += '<td/>'.repeat(802)
+    chartContent += '<td/>'.repeat(808)
     chartContent += '<td style="background: #aaff00ff"/>'.repeat(1)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(29)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(27)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">objects.nodes.components.disk.very_simple.size.o (compile)</th>'
-    chartContent += '<td/>'.repeat(834)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(22)
+    chartContent += '<td/>'.repeat(839)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(23)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">accretion_disks.ADAF.o (compile)</th>'
-    chartContent += '<td/>'.repeat(914)
+    chartContent += '<td/>'.repeat(919)
     chartContent += '<td style="background: #ffaa00ff"/>'.repeat(24)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">dark_matter_halos.scales.virial_density_contrast.o (compile)</th>'
-    chartContent += '<td/>'.repeat(969)
+    chartContent += '<td/>'.repeat(973)
     chartContent += '<td style="background: #ffaa00ff"/>'.repeat(21)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">objects.nodes.components.black_hole.standard.o (compile)</th>'
-    chartContent += '<td/>'.repeat(1065)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(30)
+    chartContent += '<td/>'.repeat(1070)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(29)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">objects.nodes.components.spheroid.very_simple.o (compile)</th>'
-    chartContent += '<td/>'.repeat(1132)
+    chartContent += '<td/>'.repeat(1137)
     chartContent += '<td style="background: #ffaa00ff"/>'.repeat(42)
     chartContent += '<td style="background: #aaff00ff"/>'.repeat(17)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">geometry.lightcones.square.o (compile)</th>'
-    chartContent += '<td/>'.repeat(1174)
+    chartContent += '<td/>'.repeat(1179)
     chartContent += '<td style="background: #aaff00ff"/>'.repeat(17)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(18)
-     chartContent += '</tr>'
-    chartContent += '<tr><th class="headcol">dark_matter_profiles_DMO.o (compile)</th>'
-    chartContent += '<td/>'.repeat(1210)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(5)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(16)
-     chartContent += '</tr>'
-    chartContent += '<tr><th class="headcol">star_formation.histories.fixed_ages.o (compile)</th>'
-    chartContent += '<td/>'.repeat(1215)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(16)
     chartContent += '<td style="background: #ffaa00ff"/>'.repeat(17)
      chartContent += '</tr>'
+    chartContent += '<tr><th class="headcol">dark_matter_profiles_DMO.o (compile)</th>'
+    chartContent += '<td/>'.repeat(1214)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(6)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(15)
+     chartContent += '</tr>'
+    chartContent += '<tr><th class="headcol">star_formation.histories.fixed_ages.o (compile)</th>'
+    chartContent += '<td/>'.repeat(1220)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(15)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(16)
+     chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">objects.nodes.components.nuclear_star_cluster.standard.o (compile)</th>'
-    chartContent += '<td/>'.repeat(1284)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(5)
-    chartContent += '<td style="background: #00ff00ff"/>'.repeat(66)
+    chartContent += '<td/>'.repeat(1288)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(4)
+    chartContent += '<td style="background: #00ff00ff"/>'.repeat(64)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">objects.nodes.components.disk.standard.o (compile)</th>'
-    chartContent += '<td/>'.repeat(1284)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(5)
-    chartContent += '<td style="background: #00ff00ff"/>'.repeat(66)
+    chartContent += '<td/>'.repeat(1287)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(1)
     chartContent += '<td style="background: #aaff00ff"/>'.repeat(4)
+    chartContent += '<td style="background: #00ff00ff"/>'.repeat(64)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(5)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">objects.nodes.components.spheroid.standard.o (compile)</th>'
-    chartContent += '<td/>'.repeat(1289)
-    chartContent += '<td style="background: #00ff00ff"/>'.repeat(66)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(4)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(37)
+    chartContent += '<td/>'.repeat(1292)
+    chartContent += '<td style="background: #00ff00ff"/>'.repeat(64)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(5)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(35)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">objects.nodes.components.dark_matter_profile.scale.o (compile)</th>'
-    chartContent += '<td/>'.repeat(1517)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(7)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(15)
+    chartContent += '<td/>'.repeat(1518)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(8)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(14)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">objects.nodes.components.disk.very_simple.o (compile)</th>'
-    chartContent += '<td/>'.repeat(1524)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(15)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(30)
+    chartContent += '<td/>'.repeat(1526)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(14)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(29)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">chemical.reaction_rates.hydrogen.o (compile)</th>'
     chartContent += '<td/>'.repeat(1612)
     chartContent += '<td style="background: #ffaa00ff"/>'.repeat(73)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(13)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(10)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">accretion.halo.simple.o (compile)</th>'
     chartContent += '<td/>'.repeat(1685)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(13)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(27)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(1)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(10)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(26)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">accretion.halo.Naoz_Barkana_2007.o (compile)</th>'
-    chartContent += '<td/>'.repeat(1725)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(1)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(43)
+    chartContent += '<td/>'.repeat(1721)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(40)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">objects.nodes.components.hot_halo.cold_mode.o (compile)</th>'
-    chartContent += '<td/>'.repeat(1774)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(22)
-    chartContent += '<td style="background: #00ff00ff"/>'.repeat(32)
+    chartContent += '<td/>'.repeat(1767)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(1)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(21)
+    chartContent += '<td style="background: #00ff00ff"/>'.repeat(27)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">nodes.property_extractor.o (compile)</th>'
-    chartContent += '<td/>'.repeat(1796)
-    chartContent += '<td style="background: #00ff00ff"/>'.repeat(32)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(29)
+    chartContent += '<td/>'.repeat(1789)
+    chartContent += '<td style="background: #00ff00ff"/>'.repeat(27)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(31)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">objects.nodes.components.hot_halo.standard.o (compile)</th>'
-    chartContent += '<td/>'.repeat(1774)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(22)
-    chartContent += '<td style="background: #00ff00ff"/>'.repeat(32)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(29)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(28)
-     chartContent += '</tr>'
-    chartContent += '<tr><th class="headcol">nodes.property_extractor.luminosity_emission_line.o (compile)</th>'
-    chartContent += '<td/>'.repeat(1916)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(23)
+    chartContent += '<td/>'.repeat(1768)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(21)
+    chartContent += '<td style="background: #00ff00ff"/>'.repeat(27)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(31)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(26)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">nodes.property_extractor.SED.o (compile)</th>'
-    chartContent += '<td/>'.repeat(2079)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(23)
-     chartContent += '</tr>'
-    chartContent += '<tr><th class="headcol">galactic.filters.o (compile)</th>'
-    chartContent += '<td/>'.repeat(2137)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(7)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(4)
-    chartContent += '<td style="background: #00ff00ff"/>'.repeat(10)
+    chartContent += '<td/>'.repeat(2078)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(22)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">galactic_structure.radius_solver.equilibrium.o (compile)</th>'
-    chartContent += '<td/>'.repeat(2144)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(4)
-    chartContent += '<td style="background: #00ff00ff"/>'.repeat(10)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(10)
-    chartContent += '<td style="background: #00ff00ff"/>'.repeat(1)
+    chartContent += '<td/>'.repeat(2139)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(1)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(21)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">galactic_structure.radius_solver.fixed.o (compile)</th>'
-    chartContent += '<td/>'.repeat(2148)
-    chartContent += '<td style="background: #00ff00ff"/>'.repeat(10)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(10)
-    chartContent += '<td style="background: #00ff00ff"/>'.repeat(1)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(4)
-     chartContent += '</tr>'
-    chartContent += '<tr><th class="headcol">galactic_structure.radius_solver.simple.o (compile)</th>'
-    chartContent += '<td/>'.repeat(2168)
-    chartContent += '<td style="background: #00ff00ff"/>'.repeat(1)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(4)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(17)
+    chartContent += '<td/>'.repeat(2140)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(21)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(1)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">satellites.merging.virial_orbits.Li2020.o (compile)</th>'
-    chartContent += '<td/>'.repeat(2243)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(18)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(9)
+    chartContent += '<td/>'.repeat(2229)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(17)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(7)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">satellites.merging.virial_orbits.loss_cone.o (compile)</th>'
-    chartContent += '<td/>'.repeat(2261)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(9)
+    chartContent += '<td/>'.repeat(2246)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(7)
     chartContent += '<td style="background: #ffaa00ff"/>'.repeat(15)
-     chartContent += '</tr>'
-    chartContent += '<tr><th class="headcol">merger_trees.build.controller.constrained.o (compile)</th>'
-    chartContent += '<td/>'.repeat(2307)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(21)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(1)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">objects.nodes.components.satellite.orbiting.o (compile)</th>'
-    chartContent += '<td/>'.repeat(2289)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(18)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(21)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(8)
+    chartContent += '<td/>'.repeat(2268)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(1)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(42)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">state.o (compile)</th>'
-    chartContent += '<td/>'.repeat(2356)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(30)
-    chartContent += '<td style="background: #00ff00ff"/>'.repeat(1)
+    chartContent += '<td/>'.repeat(2330)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(23)
+    chartContent += '<td style="background: #00ff00ff"/>'.repeat(8)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">objects.nodes.components.o (compile)</th>'
-    chartContent += '<td/>'.repeat(2356)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(30)
-    chartContent += '<td style="background: #00ff00ff"/>'.repeat(1)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(14)
+    chartContent += '<td/>'.repeat(2328)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(2)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(23)
+    chartContent += '<td style="background: #00ff00ff"/>'.repeat(8)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(13)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">merger_trees.construct.builder.Cole2000.o (compile)</th>'
-    chartContent += '<td/>'.repeat(2386)
-    chartContent += '<td style="background: #00ff00ff"/>'.repeat(1)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(14)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(14)
+    chartContent += '<td/>'.repeat(2353)
+    chartContent += '<td style="background: #00ff00ff"/>'.repeat(8)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(13)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(5)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">merger_trees.operators.o (compile)</th>'
-    chartContent += '<td/>'.repeat(2422)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(28)
+    chartContent += '<td/>'.repeat(2387)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(4)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(22)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">merger_trees.operators.augment.o (compile)</th>'
-    chartContent += '<td/>'.repeat(2460)
+    chartContent += '<td/>'.repeat(2429)
     chartContent += '<td style="background: #aaff00ff"/>'.repeat(46)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">nodes.operators.o (compile)</th>'
-    chartContent += '<td/>'.repeat(2420)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(2)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(28)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(10)
+    chartContent += '<td/>'.repeat(2391)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(22)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(16)
     chartContent += '<td style="background: #aaff00ff"/>'.repeat(46)
     chartContent += '<td style="background: #ffaa00ff"/>'.repeat(21)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">nodes.operators.analyses.galaxy_merger_tree.o (compile)</th>'
-    chartContent += '<td/>'.repeat(2578)
+    chartContent += '<td/>'.repeat(2546)
     chartContent += '<td style="background: #ffaa00ff"/>'.repeat(4)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(18)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(17)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">nodes.operators.analyses.hierarchy.o (compile)</th>'
-    chartContent += '<td/>'.repeat(2582)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(18)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(9)
-     chartContent += '</tr>'
-    chartContent += '<tr><th class="headcol">nodes.operators.analyses.star_formation_rate.interoutput.o (compile)</th>'
-    chartContent += '<td/>'.repeat(2623)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(21)
-     chartContent += '</tr>'
-    chartContent += '<tr><th class="headcol">nodes.operators.metadata.index_last_host.o (compile)</th>'
-    chartContent += '<td/>'.repeat(2654)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(15)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(7)
+    chartContent += '<td/>'.repeat(2550)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(17)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(8)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">nodes.operators.physics.Bertschinger_mass.interpolate.o (compile)</th>'
-    chartContent += '<td/>'.repeat(2669)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(7)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(7)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(8)
+    chartContent += '<td/>'.repeat(2635)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(13)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(9)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">nodes.operators.physics.black_holes.seed.o (compile)</th>'
-    chartContent += '<td/>'.repeat(2683)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(8)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(3)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(13)
+    chartContent += '<td/>'.repeat(2648)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(9)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(2)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(11)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">nodes.operators.physics.circumgalactic_medium.accretion.o (compile)</th>'
-    chartContent += '<td/>'.repeat(2694)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(13)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(9)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(2)
-     chartContent += '</tr>'
-    chartContent += '<tr><th class="headcol">nodes.operators.physics.dark_matter_only_mass.interpolate.o (compile)</th>'
-    chartContent += '<td/>'.repeat(2720)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(21)
+    chartContent += '<td/>'.repeat(2659)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(11)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(10)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(3)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">nodes.operators.physics.cooling_energy_radiated.o (compile)</th>'
-    chartContent += '<td/>'.repeat(2716)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(2)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(2)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(25)
-     chartContent += '</tr>'
-    chartContent += '<tr><th class="headcol">nodes.operators.physics.dark_matter_profile_axis_ratios.MenkerBenson2022.o (compile)</th>'
-    chartContent += '<td/>'.repeat(2741)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(4)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(17)
-     chartContent += '</tr>'
-    chartContent += '<tr><th class="headcol">nodes.operators.physics.impulsive_outflow_energy.o (compile)</th>'
-    chartContent += '<td/>'.repeat(2773)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(22)
-     chartContent += '</tr>'
-    chartContent += '<tr><th class="headcol">nodes.operators.physics.satellite.minimum_distance.o (compile)</th>'
-    chartContent += '<td/>'.repeat(2804)
+    chartContent += '<td/>'.repeat(2680)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(3)
     chartContent += '<td style="background: #ffaa00ff"/>'.repeat(24)
      chartContent += '</tr>'
-    chartContent += '<tr><th class="headcol">nodes.operators.utilities.o (compile)</th>'
-    chartContent += '<td/>'.repeat(2880)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(25)
+    chartContent += '<tr><th class="headcol">nodes.operators.physics.impulsive_outflow_energy.o (compile)</th>'
+    chartContent += '<td/>'.repeat(2735)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(21)
      chartContent += '</tr>'
-    chartContent += '<tr><th class="headcol">merger_trees.node_evolver.standard.o (compile)</th>'
-    chartContent += '<td/>'.repeat(2908)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(36)
-    chartContent += '<td style="background: #00ff00ff"/>'.repeat(29)
-     chartContent += '</tr>'
-    chartContent += '<tr><th class="headcol">output.analyses.o (compile)</th>'
-    chartContent += '<td/>'.repeat(2875)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(5)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(25)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(3)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(36)
-    chartContent += '<td style="background: #00ff00ff"/>'.repeat(29)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(105)
-     chartContent += '</tr>'
-    chartContent += '<tr><th class="headcolbold">merger_trees.construct.read.o (compile)</th>'
-    chartContent += '<td/>'.repeat(2944)
-    chartContent += '<td style="background: #00ff00ff"/>'.repeat(29)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(105)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(52)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(21)
-    chartContent += '<td style="background: #00ff00ff"/>'.repeat(1)
-     chartContent += '</tr>'
-    chartContent += '<tr><th class="headcol">output.analyses.correlation_function.o (compile)</th>'
-    chartContent += '<td/>'.repeat(3130)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(21)
-    chartContent += '<td style="background: #00ff00ff"/>'.repeat(1)
-     chartContent += '</tr>'
-    chartContent += '<tr><th class="headcol">output.analyses.luminosity_function.Halpha.o (compile)</th>'
-    chartContent += '<td/>'.repeat(3151)
-    chartContent += '<td style="background: #00ff00ff"/>'.repeat(1)
+    chartContent += '<tr><th class="headcol">nodes.operators.physics.satellite.minimum_distance.o (compile)</th>'
+    chartContent += '<td/>'.repeat(2766)
     chartContent += '<td style="background: #ffaa00ff"/>'.repeat(22)
      chartContent += '</tr>'
+    chartContent += '<tr><th class="headcol">nodes.operators.utilities.o (compile)</th>'
+    chartContent += '<td/>'.repeat(2840)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(22)
+     chartContent += '</tr>'
+    chartContent += '<tr><th class="headcol">merger_trees.node_evolver.standard.o (compile)</th>'
+    chartContent += '<td/>'.repeat(2867)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(36)
+    chartContent += '<td style="background: #00ff00ff"/>'.repeat(25)
+     chartContent += '</tr>'
+    chartContent += '<tr><th class="headcol">output.analyses.o (compile)</th>'
+    chartContent += '<td/>'.repeat(2835)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(5)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(22)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(5)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(36)
+    chartContent += '<td style="background: #00ff00ff"/>'.repeat(25)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(106)
+     chartContent += '</tr>'
+    chartContent += '<tr><th class="headcolbold">merger_trees.construct.read.o (compile)</th>'
+    chartContent += '<td/>'.repeat(2903)
+    chartContent += '<td style="background: #00ff00ff"/>'.repeat(25)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(106)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(74)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(1)
+     chartContent += '</tr>'
+    chartContent += '<tr><th class="headcol">output.analyses.luminosity_function.Halpha.o (compile)</th>'
+    chartContent += '<td/>'.repeat(3108)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(1)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(21)
+     chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">output.analyses.progenitor_mass_functions.o (compile)</th>'
-    chartContent += '<td/>'.repeat(3184)
+    chartContent += '<td/>'.repeat(3138)
     chartContent += '<td style="background: #ffaa00ff"/>'.repeat(16)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(7)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(5)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">output.analyses.spin_distribution.o (compile)</th>'
-    chartContent += '<td/>'.repeat(3200)
-    chartContent += '<td style="background: #aaff00ff"/>'.repeat(7)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(15)
+    chartContent += '<td/>'.repeat(3154)
+    chartContent += '<td style="background: #aaff00ff"/>'.repeat(5)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(16)
      chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">merger_trees.outputter.standard.o (compile)</th>'
-    chartContent += '<td/>'.repeat(3331)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(33)
-     chartContent += '</tr>'
-    chartContent += '<tr><th class="headcol">merger_trees.evolver.standard.o (compile)</th>'
-    chartContent += '<td/>'.repeat(3418)
+    chartContent += '<td/>'.repeat(3279)
     chartContent += '<td style="background: #ffaa00ff"/>'.repeat(27)
      chartContent += '</tr>'
-    chartContent += '<tr><th class="headcol">tasks.o (compile)</th>'
-    chartContent += '<td/>'.repeat(3458)
-    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(42)
+    chartContent += '<tr><th class="headcol">merger_trees.evolver.standard.o (compile)</th>'
+    chartContent += '<td/>'.repeat(3362)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(22)
      chartContent += '</tr>'
-    chartContent += '<tr><th class="headcol">tasks.evolve_forests.o (compile)</th>'
-    chartContent += '<td/>'.repeat(3513)
+    chartContent += '<tr><th class="headcol">tasks.o (compile)</th>'
+    chartContent += '<td/>'.repeat(3397)
     chartContent += '<td style="background: #ffaa00ff"/>'.repeat(38)
      chartContent += '</tr>'
+    chartContent += '<tr><th class="headcol">tasks.evolve_forests.o (compile)</th>'
+    chartContent += '<td/>'.repeat(3447)
+    chartContent += '<td style="background: #ffaa00ff"/>'.repeat(35)
+     chartContent += '</tr>'
     chartContent += '<tr><th class="headcol">if echo " -j4 --jobserver-auth=3,4 -- GALACTICUS_BUILD_OPTION=compileprof" | grep -q -E -- ' -j1( |$)'; then \</th>'
-    chartContent += '<td/>'.repeat(3591)
+    chartContent += '<td/>'.repeat(3521)
     chartContent += '<td style="background: #ffaa00ff"/>'.repeat(58)
      chartContent += '</tr>'
     document.getElementById('chart').innerHTML = chartContent
