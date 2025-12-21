@@ -110,6 +110,7 @@ for type in "Usage" "Physics" "Development" "Source"; do
 	    bibtex Galacticus_$type
 	fi
 	if [ $? -ne 0 ]; then
+	    pdflatex Galacticus_$type | grep -v -i -e overfull -e underfull | sed -r /'^$'/d | sed -r /'\[[0-9]*\]'/d
 	    bibtex Galacticus_$type
 	    echo bibtex failed
 	    exit 1
@@ -122,6 +123,7 @@ for type in "Usage" "Physics" "Development" "Source"; do
 	    makeindex Galacticus_$type
 	fi
 	if [ $? -ne 0 ]; then
+	    pdflatex Galacticus_$type | grep -v -i -e overfull -e underfull | sed -r /'^$'/d | sed -r /'\[[0-9]*\]'/d
 	    makeindex Galacticus_$type
 	    echo makeindex failed for main index
 	    exit 1
@@ -134,6 +136,7 @@ for type in "Usage" "Physics" "Development" "Source"; do
 	    makeglossaries Galacticus_$type
 	fi
 	if [ $? -ne 0 ]; then
+	    pdflatex Galacticus_$type | grep -v -i -e overfull -e underfull | sed -r /'^$'/d | sed -r /'\[[0-9]*\]'/d
 	    makeglossaries Galacticus_$type
 	    echo make glossaries failed
 	    exit 1
