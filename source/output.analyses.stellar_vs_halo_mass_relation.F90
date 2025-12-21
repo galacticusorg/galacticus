@@ -303,7 +303,7 @@ contains
     character       (len=4                                          )                                :: redshiftMinimumLabel                                          , redshiftMaximumLabel
     type(enumerationFixedDensityTypeType) :: densityType
     !![
-    <constructorAssign variables="fileNameTarget, redshiftInterval, likelihoodBins, likelihoodNormalize, computeScatter, systematicErrorPolynomialCoefficient, systematicErrorMassHaloPolynomialCoefficient, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_, *outputTimes_"/>
+    <constructorAssign variables="fileNameTarget, redshiftInterval, likelihoodBins, likelihoodBinsAutomatic, likelihoodNormalize, computeScatter, systematicErrorPolynomialCoefficient, systematicErrorMassHaloPolynomialCoefficient, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_, *outputTimes_"/>
     !!]
 
     ! Open the target data file and read basic information.

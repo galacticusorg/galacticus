@@ -345,7 +345,7 @@ contains
     character       (len=4                                              )                                :: redshiftMinimumLabel                                          , redshiftMaximumLabel
     type            (enumerationFilterTypeType                          )                                :: filterType
     !![
-    <constructorAssign variables="fileNameTarget, sample, likelihoodBins, likelihoodNormalize, computeScatter, systematicErrorPolynomialCoefficient, systematicErrorMassStellarPolynomialCoefficient, randomErrorMassStellarPolynomialCoefficient, randomErrorMassStellarMinimum, randomErrorMassStellarMaximum, *cosmologyParameters_, *cosmologyFunctions_, *outputTimes_, *starFormationRateDisks_, *starFormationRateSpheroids_, *starFormationRateNuclearStarClusters_"/>
+    <constructorAssign variables="fileNameTarget, sample, likelihoodBins, likelihoodBinsAutomatic, likelihoodNormalize, computeScatter, systematicErrorPolynomialCoefficient, systematicErrorMassStellarPolynomialCoefficient, randomErrorMassStellarPolynomialCoefficient, randomErrorMassStellarMinimum, randomErrorMassStellarMaximum, *cosmologyParameters_, *cosmologyFunctions_, *outputTimes_, *starFormationRateDisks_, *starFormationRateSpheroids_, *starFormationRateNuclearStarClusters_"/>
     !!]
 
     ! Open the target data file and read basic information.
