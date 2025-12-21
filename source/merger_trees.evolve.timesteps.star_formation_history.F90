@@ -33,6 +33,7 @@
      private
      class(starFormationHistoryClass), pointer :: starFormationHistory_ => null()
    contains
+     final     ::                 starFormationHistoryDestructor
      procedure :: timeEvolveTo => starFormationHistoryTimeEvolveTo
   end type mergerTreeEvolveTimestepStarFormationHistory
 
