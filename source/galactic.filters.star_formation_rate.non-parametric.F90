@@ -180,7 +180,9 @@ contains
          &               +self              %starFormationRateNuclearStarClusters_%rate(node)
     if (massStellar > 0.0d0) then
        starFormationRateThreshold=exp(self%interpolator_%interpolate(log(massStellar)))
-       passes                    =starFormationRate >= starFormationRateThreshold .or. self%filterType == filterTypeLowPass
+       passes                    = (starFormationRate >= starFormationRateThreshold) &
+            &                     .eqv.&
+            &                      (self%filterType   == filterTypeHighPass        )
     else
        passes                    =                                                     self%filterType == filterTypeLowPass
     end if
