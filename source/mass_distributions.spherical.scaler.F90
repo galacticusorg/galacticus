@@ -50,9 +50,11 @@
      procedure :: densityGradientRadial             => sphericalScalerDensityGradientRadial
      procedure :: densityRadialMoment               => sphericalScalerDensityRadialMoment
      procedure :: massEnclosedBySphere              => sphericalScalerMassEnclosedBySphere
+     procedure :: massEnclosedByCylinder            => sphericalScalerMassEnclosedByCylinder
      procedure :: velocityRotationCurveMaximum      => sphericalScalerVelocityRotationCurveMaximum
      procedure :: radiusRotationCurveMaximum        => sphericalScalerRadiusRotationCurveMaximum
      procedure :: radiusEnclosingMass               => sphericalScalerRadiusEnclosingMass
+     procedure :: radiusCylindricalEnclosingMass    => sphericalScalerRadiusCylindricalEnclosingMass
      procedure :: radiusEnclosingDensity            => sphericalScalerRadiusEnclosingDensity
      procedure :: radiusFromSpecificAngularMomentum => sphericalScalerRadiusFromSpecificAngularMomentum
      procedure :: fourierTransform                  => sphericalScalerFourierTransform
@@ -224,6 +226,22 @@ contains
          &                              *self                  %factorScalingMass
     return
   end function sphericalScalerMassEnclosedBySphere
+
+  double precision function sphericalScalerMassEnclosedByCylinder(self,radius) result(mass)
+    !!{
+    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for a scaled spherical mass distribution.
+    !!}
+    implicit none
+    class           (massDistributionSphericalScaler), intent(inout), target :: self
+    double precision                                 , intent(in   )         :: radius
+
+    mass   =+self%massDistribution_%massEnclosedByCylinder(                          &
+         &                                                 +     radius              &
+         &                                                 /self%factorScalingLength &
+         &                                                )                          &
+         &  *self                  %factorScalingMass
+    return
+  end function sphericalScalerMassEnclosedByCylinder
 
   logical function sphericalScalerPotentialIsAnalytic(self) result(isAnalytic)
     !!{
@@ -553,6 +571,35 @@ contains
          & *self%factorScalingLength
     return
   end function sphericalScalerRadiusEnclosingMass
+  
+  double precision function sphericalScalerRadiusCylindricalEnclosingMass(self,mass,massFractional) result(radius)
+    !!{
+    Computes the radius enclosing a given mass or mass fraction for spherical scaled mass distributions.
+    !!}
+    implicit none
+    class           (massDistributionSphericalScaler), intent(inout), target   :: self
+    double precision                                 , intent(in   ), optional :: mass, massFractional
+
+    if (present(massFractional)) then
+       if (massFractional <= 0.0d0) then
+          radius=+0.0d0
+       else
+          radius=+self%massDistribution_%radiusCylindricalEnclosingMass(massFractional=massFractional                       )
+       end if
+    else if (present(mass)) then
+       if (mass <= 0.0d0) then
+          radius=+0.0d0
+       else
+          radius=+self%massDistribution_%radiusCylindricalEnclosingMass(mass          =mass          *self%factorScalingMass)
+       end if
+    else
+       radius=+0.0d0
+       call Error_Report('either "mass" or "massFractional" must be provided'//{introspection:location})
+    end if
+    radius=+radius                   &
+         & *self%factorScalingLength
+    return
+  end function sphericalScalerRadiusCylindricalEnclosingMass
   
   double precision function sphericalScalerRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
     !!{

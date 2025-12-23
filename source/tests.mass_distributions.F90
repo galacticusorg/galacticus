@@ -37,7 +37,7 @@ program Test_Mass_Distributions
        &                                    massDistributionList             , massDistributionSymmetryCylindrical, enumerationMassDistributionSymmetryType, massDistributionSphericalScaler     , &
        &                                    massDistributionCylindricalScaler, massDistributionCylindrical        , massDistributionPatejLoeb2015          , massDistributionNFW                 , &
        &                                    massDistributionIsothermal       , kinematicsDistributionClass        , kinematicsDistributionLocal
-  use :: Numerical_Constants_Math  , only : Pi
+  use :: Numerical_Constants_Math  , only : Pi                               , e
   use :: Tensors                   , only : assignment(=)
   use :: Unit_Tests                , only : Assert                           , Unit_Tests_Begin_Group             , Unit_Tests_End_Group                   , Unit_Tests_Finish
   implicit none
@@ -102,9 +102,9 @@ program Test_Mass_Distributions
   select type (massDistribution_)
   class is (massDistributionSpherical)
      position=[1.0d0,0.0d0,0.0d0]
-     call Assert("Half mass radius          (dimensionless)",massDistribution_%radiusHalfMass      (        ), 1.0d0+sqrt(2.0d0)        ,absTol=1.0d-6)
-     call Assert("Mass within scale radius  (dimensionless)",massDistribution_%massEnclosedBySphere(1.0d0   ), 0.25d0                   ,absTol=1.0d-6)
-     call Assert("Potential at scale radius (dimensionless)",massDistribution_%potential           (position),-0.50d0                   ,absTol=1.0d-6)
+     call Assert("Half mass radius          (        dimensionless)",massDistribution_%radiusHalfMass      (        ), 1.0d0+sqrt(2.0d0)        ,absTol=1.0d-6)
+     call Assert("Mass within scale radius  (        dimensionless)",massDistribution_%massEnclosedBySphere(1.0d0   ), 0.25d0                   ,absTol=1.0d-6)
+     call Assert("Potential at scale radius (        dimensionless)",massDistribution_%potential           (position),-0.50d0                   ,absTol=1.0d-6)
   end select
   deallocate(massDistribution_)
   allocate(massDistributionHernquist :: massDistribution_)
@@ -114,9 +114,11 @@ program Test_Mass_Distributions
   end select
   select type (massDistribution_)
   class is (massDistributionSpherical)
-     position=[2.0d0,0.0d0,0.0d0]
-     call Assert("Half mass radius          (dimensionful )",massDistribution_%radiusHalfMass      (        ),2.0d0*( 1.0d0+sqrt(2.0d0)),absTol=1.0d-6)
-     call Assert("Mass within scale radius  (dimensionful )",massDistribution_%massEnclosedBySphere(2.0d0   ),2.0d0*( 0.25d0           ),absTol=1.0d-6)
+     call Assert("Half mass radius          (        dimensionful )",massDistribution_%radiusHalfMass         (        ),2.0d0     *(+1.0d0+sqrt(2.0d0))                              ,absTol=1.0d-6)
+     call Assert("Mass within scale radius  (        dimensionful )",massDistribution_%massEnclosedBySphere   (2.0d0   ),2.0d0     *(+0.25d0           )                              ,absTol=1.0d-6)
+     call Assert("Mass within cylinder      (r=0.5rₛ; dimensionful )",massDistribution_%massEnclosedByCylinder(1.0d0   ),2.0d0/3.0d0*(-1.0d0+2.0d0*log(2.0d0+sqrt(3.0d0))/sqrt(3.0d0)),absTol=1.0d-6)
+     call Assert("Mass within cylinder      (r=1.0rₛ; dimensionful )",massDistribution_%massEnclosedByCylinder(2.0d0   ),2.0d0/3.0d0                                                  ,absTol=1.0d-6)
+     call Assert("Mass within cylinder      (r=2.0rₛ; dimensionful )",massDistribution_%massEnclosedByCylinder(4.0d0   ),8.0d0/3.0d0*(+1.0d0-Pi/3.0d0                    /sqrt(3.0d0)),absTol=1.0d-6)
   end select
   deallocate(massDistribution_)
   call Unit_Tests_End_Group()
@@ -267,6 +269,12 @@ program Test_Mass_Distributions
   select type (massDistribution_)
   type is (massDistributionExponentialDisk)
      massDistribution_=massDistributionExponentialDisk(scaleHeight=0.01d0,dimensionless=.true.)
+     ! Test that the mass within a cylindrical radius matches analytical results.
+     call Unit_Tests_Begin_Group("Mass within cylindrical radius matches analytical results")
+     call Assert("Mass enclosed by cylinder at r=½",massDistribution_%massEnclosedByCylinder(0.5d0),(2.0d0-3.0d0/sqrt(e))/2.0d0,relTol=1.0d-6)
+     call Assert("Mass enclosed by cylinder at r=1",massDistribution_%massEnclosedByCylinder(1.0d0),(e-2.0d0)/e                ,relTol=1.0d-6)
+     call Assert("Mass enclosed by cylinder at r=2",massDistribution_%massEnclosedByCylinder(2.0d0),1.0d0-3.0d0/e**2           ,relTol=1.0d-6)
+     call Unit_Tests_End_Group()
      ! Test that the rotation curve gradient matches a finite-difference estimate.
      call Unit_Tests_Begin_Group("Rotation curve gradient matches finite-difference estimate")
      do i=1,3
@@ -487,13 +495,17 @@ program Test_Mass_Distributions
      massDistribution_=massDistributionComposite(massDistributions)
   end select
   symmetry_=massDistribution_%symmetry()
-  call Assert("Maximal symmetry [cylindrical]"         ,symmetry_        %ID                                ,massDistributionSymmetryCylindrical%ID              )
+  call Assert("Maximal symmetry [cylindrical]",symmetry_%ID,massDistributionSymmetryCylindrical%ID)
   massDistributionDisk_     => massDistribution_%subset(componentType=componentTypeDisk    )
   massDistributionSpheroid_ => massDistribution_%subset(componentType=componentTypeSpheroid)
   positionCartesian         =  [1.0d-3,0.0d0,0.0d0]
-  call Assert("Density at (x,y,z)=(1,0,0) kpc"         ,massDistribution_        %density(positionCartesian),1.47756308872d18                      ,relTol=1.0d-6)
-  call Assert("Spheroid density at (x,y,z)=(1,0,0) kpc",massDistributionSpheroid_%density(positionCartesian),2.04086330446d17                      ,relTol=1.0d-6)
-  call Assert("Disk density at (x,y,z)=(1,0,0) kpc"    ,massDistributionDisk_    %density(positionCartesian),1.27347675828d18                      ,relTol=1.0d-6)
+  call Assert("Density at (x,y,z)=(1,0,0) kpc"         ,massDistribution_        %density(positionCartesian),1.47756308872d18,relTol=1.0d-6)
+  call Assert("Spheroid density at (x,y,z)=(1,0,0) kpc",massDistributionSpheroid_%density(positionCartesian),2.04086330446d17,relTol=1.0d-6)
+  call Assert("Disk density at (x,y,z)=(1,0,0) kpc"    ,massDistributionDisk_    %density(positionCartesian),1.27347675828d18,relTol=1.0d-6)
+  ! Mass within cylindrical radius.
+  call Assert("Mass within cylinder of radius 1.3 kpc" ,massDistribution_%massEnclosedByCylinder(1.3d-3),4.557847074d9+4.271864472d9,relTol=1.0d-6)
+  ! Mass within cylindrical radius.
+  call Assert("Cylindrical half-mass radius"           ,massDistribution_%massEnclosedByCylinder(massDistribution_%radiusCylindricalEnclosingMass(massFractional=0.50d0)),0.5d0*(9.0d9+5.7d10),relTol=1.0d-6)
   nullify   (massDistributions)
   deallocate(massDistribution_)
   !![
