@@ -6,19 +6,19 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "372971d60deb4602455fde9f3cfe24ec3f41ac2c",
-        "message": "Merge pull request #986 from galacticusorg/fixRefactorClassInterface\n\nRefactor the CLASS interface code\n",
-        "timestamp": "2025-12-21 00:42:29+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/372971d60deb4602455fde9f3cfe24ec3f41ac2c"
+        "id": "b8361eea84b8e7b35d57b0c9a3e6262055dc458c",
+        "message": "Merge pull request #980 from galacticusorg/featOutputAnalysisGalaxySizes\n\nAdd an output analysis for galaxy sizes as a function of stellar mass\n",
+        "timestamp": "2025-12-23 03:56:10+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/b8361eea84b8e7b35d57b0c9a3e6262055dc458c"
     },
     "surfaceDensity": {
-        "percentageBelow": 32.14285714285714,
-        "percentageAbove": 67.85714285714286,
+        "percentageBelow": 39.285714285714285,
+        "percentageAbove": 60.714285714285715,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 44.44444444444444,
-        "percentageAbove": 55.55555555555556,
+        "percentageBelow": 63.63636363636363,
+        "percentageAbove": 36.36363636363637,
         "target": 0.85
     }
 }
