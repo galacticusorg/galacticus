@@ -305,9 +305,9 @@ contains
     class(radiationFieldIntergalacticBackgroundInternal), intent(inout) :: self
 
     ! Hook to universe pre-evolve events.
-    !$omp master
+    !$omp masked
     call universePreEvolveEventGlobal%attach(self,intergalacticBackgroundInternalUniversePreEvolve,label='radiationFieldIntergalacticBackgroundInternal')
-    !$omp end master
+    !$omp end masked
     return
   end subroutine intergalacticBackgroundInternalAutoHook
 
@@ -331,9 +331,9 @@ contains
     <objectDestructor name="self%outputTimes_"                      />
     !!]
     if (associated(self%accretionDiskSpectra_)) call accretionDiskSpectraDestruct_(self%accretionDiskSpectra_)
-    !$omp master
+    !$omp masked
     if (universePreEvolveEventGlobal%isAttached(self,intergalacticBackgroundInternalUniversePreEvolve)) call universePreEvolveEventGlobal%detach(self,intergalacticBackgroundInternalUniversePreEvolve)
-    !$omp end master
+    !$omp end masked
     return
   end subroutine intergalacticBackgroundInternalDestructor
 

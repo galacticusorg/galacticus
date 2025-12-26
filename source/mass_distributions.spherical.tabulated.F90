@@ -643,10 +643,10 @@ contains
                   !$omp barrier
                   workRemains=counter%increment()
                   if (.not.workRemains) exit
-                  !$omp master
+                  !$omp masked
                   call displayCounter(int(100.0d0*dble(iterationCount)/dble(iterationCountTotal)),iterationCount==0,verbosityLevelWorking)
                   iterationCount=iterationCount+1_c_size_t
-                  !$omp end master
+                  !$omp end masked
                   iParameters   =counter%states()
                   parameters_   =exp(log(tabulation%parametersMinimum)+dble(iParameters-1_c_size_t)/tabulation%parametersInverseStep)
                   ! Call the factory function in the child class to get an instance built with the current parameters.
@@ -737,9 +737,9 @@ contains
                   deallocate(instance)
                   nullify   (instance)
                end do
-               !$omp master
+               !$omp masked
                call displayCounterClear(verbosityLevelWorking)
-               !$omp end master
+               !$omp end masked
                tabulating=.false.
                !$omp end parallel
                ! Store tabulation to file.

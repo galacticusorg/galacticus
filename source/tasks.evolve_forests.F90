@@ -533,7 +533,7 @@ contains
     parameters=inputParameters(self%parameters)
     call Node_Components_Thread_Initialize(parameters)
     ! Allow events to be attached to the universe.
-    !$omp master
+    !$omp masked
     self%universeWaiting%event => null()
     !![
     <eventHook name="universePreEvolve">
@@ -545,7 +545,7 @@ contains
        call postEvolveEvent%attach(self,evolveForestsCheckpoint,openMPThreadBindingAllLevels,label='evolveForests')
        call self%timer_    %start (                                                                               )
     end if
-    !$omp end master
+    !$omp end masked
     !$omp barrier
     ! Begin processing trees.
     treeProcess : do while (.not.finished)
@@ -815,7 +815,7 @@ contains
           ! single sections have an implicit barrier at the end, which would desynchronize threads when multiple threads are
           ! used to process a single tree. Using a master section avoids that implicit barrier - we instead handle the barrier
           ! (and sharing of the "finished" status back to other threads) explicitly if needed.
-          !$omp master
+          !$omp masked
           ! Check whether any tree evolution occurred. If it did not, we have a universe-level deadlock.
           if ((.not.treesDidEvolve.and.treesCouldEvolve).or.deadlockReport) then
              ! If we already did the deadlock reporting pass it's now time to finish that report and exit. Otherwise, set deadlock
@@ -866,7 +866,7 @@ contains
           end if
           call self%universeWaiting  %lock%unset()
           call self%universeProcessed%lock%unset()
-          !$omp end master
+          !$omp end masked
           !$omp barrier
           if (universeUpdated) finished=.false.
           !$omp barrier
@@ -892,9 +892,9 @@ contains
     !$omp end critical(evolveForestReset)
     !$omp barrier
     deallocate(parameters)
-    !$omp master
+    !$omp masked
     if (postEvolveEvent%isAttached(self,evolveForestsCheckpoint)) call postEvolveEvent%detach(self,evolveForestsCheckpoint)
-    !$omp end master
+    !$omp end masked
     !$omp end parallel
 
     ! Finalize outputs.

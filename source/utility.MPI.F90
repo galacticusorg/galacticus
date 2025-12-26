@@ -2217,7 +2217,7 @@ contains
 
     if (mpiSelf%rank() == 0) then
        ! The rank-0 process resets the counter.
-       !$omp master
+       !$omp masked
        ! Reset the counter to zero.
        call MPI_Win_Lock(MPI_Lock_Exclusive,0,0,self%window%window,iError)
        if (iError /= 0) call Error_Report('failed to lock RMA window'  //{introspection:location})
@@ -2226,7 +2226,7 @@ contains
        if (iError /= 0) call Error_Report('failed to set MPI counter'  //{introspection:location})
        call MPI_Win_Unlock(0,self%window%window,iError)
        if (iError /= 0) call Error_Report('failed to unlock RMA window'//{introspection:location})
-       !$omp end master
+       !$omp end masked
     end if
     self%countThreadsWaiting=0_c_size_t
     self%countIncrementsHeld=0_c_size_t

@@ -801,7 +801,7 @@ contains
        !!]
        !$omp end critical(nodePropertyExtractSEDDeepCopy)
     end if
-    !$omp master
+    !$omp masked
     if (parallelize_) then
        if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixed) then
           call displayIndent("computing template SEDs"                                        ,verbosityLevelWorking)
@@ -813,7 +813,7 @@ contains
        end if
        call timer_%start()
     end if
-    !$omp end master
+    !$omp end masked
     ! Iterate over (wavelength,time,metallicity).
     !$omp do
     do iterator=0,counterMaximum-1
@@ -878,14 +878,14 @@ contains
        end if
     end do
     !$omp end do
-    !$omp master
+    !$omp masked
     if (parallelize_) then
        call timer_%stop()
        call displayCounterClear(                                                                                          verbosityLevelWorking)
        call displayMessage     ("table is "//trim(adjustl(siFormat(dble(sizeof(sedLuminosityMean)),'f9.3')))//"B in size",verbosityLevelWorking)
        call displayUnindent    ("done in " //trim(adjustl(timer_%reportText()                             ))             ,verbosityLevelWorking)
     end if
-    !$omp end master
+    !$omp end masked
     !![
     <objectDestructor name="stellarPopulationSpectra_"             />
     <objectDestructor name="stellarPopulationSpectraPostprocessor_"/>

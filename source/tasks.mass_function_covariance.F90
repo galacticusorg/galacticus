@@ -1171,9 +1171,10 @@ contains
     !!{
     Compute variance due to large scale structure by integration over the angular power spectrum.
     !!}
-    use :: Display                 , only : displayCounter, displayCounterClear
-    use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Integration   , only : integrator
+    !$ use :: OMP_Lib                 , only : OMP_Set_Max_Active_Levels, OMP_Get_Supported_Active_Levels
+    use    :: Display                 , only : displayCounter           , displayCounterClear
+    use    :: Numerical_Constants_Math, only : Pi
+    use    :: Numerical_Integration   , only : integrator
     implicit none
     class           (taskMassFunctionCovariance), intent(inout), target           :: self
     integer                                     , intent(in   )                   :: massBinCount
@@ -1190,7 +1191,7 @@ contains
     type            (integrator                )                                  :: integrator_
 
     countFields=self_%surveyGeometry_%fieldCount()
-    !$ call OMP_Set_Nested(.true.)
+    !$ call OMP_Set_Max_Active_Levels(OMP_Get_Supported_Active_Levels())
     taskTotal  =massBinCount*(massBinCount+1)/2
     taskCount  =0
     !$omp parallel private (i,j,wavenumberMinimum,wavenumberMaximum,integrator_)

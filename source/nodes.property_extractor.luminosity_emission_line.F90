@@ -765,14 +765,14 @@ contains
     allocate(interpolatorMetallicity)
     interpolatorTime       =interpolator(self%ages         )
     interpolatorMetallicity=interpolator(self%metallicities)
-    !$omp master
+    !$omp masked
     if (parallelize_) then
        !$omp critical(gfortranInternalIO)
        write (label,'(f12.8)') time
        !$omp end critical(gfortranInternalIO)
        call displayIndent("computing template emission line luminosities for time "//trim(adjustl(label))//" Gyr",verbosityLevelWorking)
     end if
-    !$omp end master
+    !$omp end masked
     ! Iterate over (time,metallicity).
     !$omp do
     do iterator=0,counterMaximum-1
@@ -822,12 +822,12 @@ contains
        end if
     end do
     !$omp end do
-    !$omp master
+    !$omp masked
     if (parallelize_) then
        call displayCounterClear(       verbosityLevelWorking)
        call displayUnindent    ("done",verbosityLevelWorking)
     end if
-    !$omp end master
+    !$omp end masked
     deallocate(integratorTime         )
     deallocate(integratorMetallicity  )
     deallocate(interpolatorTime       )
