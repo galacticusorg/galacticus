@@ -42,7 +42,6 @@ Implements a tidal field property extractor class.
       A property extractor class which extracts the radial component of the tidal tensor assuming spherical symmetry in units of $\mathrm{Gyr^{-2}}$.
      !!}
    contains
-     final     ::                tidalFieldDestructor
      procedure :: extract     => tidalFieldExtract
      procedure :: name        => tidalFieldName
      procedure :: description => tidalFieldDescription
@@ -54,7 +53,6 @@ Implements a tidal field property extractor class.
      Constructors for the \refClass{nodePropertyExtractorTidalField} output analysis class.
      !!}
      module procedure tidalFieldConstructorParameters
-     module procedure tidalFieldConstructorInternal
   end interface nodePropertyExtractorTidalField
 
 contains
@@ -63,11 +61,10 @@ contains
     !!{
     Constructor for the \refClass{nodePropertyExtractorTidalField} property extractor class which takes a parameter set as input.
     !!}
-    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
-    type (nodePropertyExtractorTidalField)                :: self
-    type (inputParameters                ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
+    type(nodePropertyExtractorTidalField)                :: self
+    type(inputParameters                ), intent(inout) :: parameters
 
     self=nodePropertyExtractorTidalField()
     !![
@@ -76,40 +73,18 @@ contains
     return
   end function tidalFieldConstructorParameters
 
-  function tidalFieldConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorTidalField} property extractor class.
-    !!}
-    implicit none
-    type (nodePropertyExtractorTidalField  ) :: self
-    !$GLC attributes unused :: self
-
-    return
-  end function tidalFieldConstructorInternal
-
-  subroutine tidalFieldDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorTidalField} property extractor class.
-    !!}
-    implicit none
-    type(nodePropertyExtractorTidalField), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    return
-  end subroutine tidalFieldDestructor
-
   double precision function tidalFieldExtract(self,node,instance)
     !!{
     Return the radial part of the tidal tensor for satellite halos assuming spherical symmetry of the host.
     !!}
-    use :: coordinates                     , only : coordinatespherical                     , assignment(=)
-    use :: galacticus_nodes                , only : nodecomponentsatellite        , treenode
-    use :: mass_distributions              , only : massdistributionclass
-    use :: numerical_constants_math        , only : pi
-    use :: numerical_constants_astronomical, only : gravitationalconstant_internal, gigaYear,               &
+    use :: Coordinates                     , only : coordinateSpherical                     , assignment(=)
+    use :: Galacticus_Nodes                , only : nodeComponentSatellite        , treeNode
+    use :: Mass_Distributions              , only : massDistributionClass
+    use :: Numerical_Constants_Math        , only : Pi
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal, gigaYear, &
          &                                          megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo 
-    use :: vectors                         , only : vector_magnitude
+    use :: vectors                         , only : Vector_Magnitude
     implicit none
     class           (nodePropertyExtractorTidalField), intent(inout), target   :: self
     type            (treeNode                       ), intent(inout), target   :: node
@@ -120,7 +95,7 @@ contains
     double precision                                                           :: densityHost       , enclosedMassHost, &
          &                                                                        radiusOrbital     , velocityOrbital
     type            (coordinateSpherical            )                          :: coordinatesOrbital
-    !$glc attributes unused :: self, instance
+    !$GLC attributes unused :: self, instance
 
     ! For isolated halos, always return zero tidal field.
     if (node%isSatellite()) then
@@ -128,12 +103,9 @@ contains
        nodeHost  => node%parent
        ! Get the satellite component.
        satellite => node%satellite()
-       ! Get the postition components
-
        ! Compute orbital radius and velocity
        radiusOrbital      =  +Vector_Magnitude(satellite%position())
        velocityOrbital    =  +Vector_Magnitude(satellite%velocity())
-
        coordinatesOrbital =  [radiusOrbital,0.0d0,0.0d0]
        massDistribution_  => nodeHost         %massDistribution    (                  )
        densityHost        =  massDistribution_%density             (coordinatesOrbital)
@@ -143,14 +115,13 @@ contains
        !!]
        ! Compute the tidal field.
        tidalFieldExtract  = +gravitationalConstant_internal*enclosedMassHost/radiusOrbital **3 &
-            &                   -4.0d0*Pi*gravitationalConstant_internal*densityHost           &
-            &                   +(velocityOrbital/radiusOrbital)**2
-
+            &               -4.0d0*Pi*gravitationalConstant_internal*densityHost               &
+            &               +(velocityOrbital/radiusOrbital)**2
        ! Convert to Gyr⁻² units.
        tidalFieldExtract  = +tidalFieldExtract                                                 &
-            &                   *gigaYear**2                                                   &
-            &                   *kilo**2                                                       &
-            &                   /megaParsec**2        
+            &               *gigaYear**2                                                       &
+            &               *kilo**2                                                           &
+            &               /megaParsec**2
     else
        tidalFieldExtract  = +0.0d0
     end if
@@ -162,8 +133,8 @@ contains
     Return the name of the tidal radius property.
     !!}
     implicit none
-    type (varying_string                  )                         :: tidalFieldName
-    class(nodePropertyExtractorTidalField), intent(inout)           :: self
+    type (varying_string                 )                :: tidalFieldName
+    class(nodePropertyExtractorTidalField), intent(inout) :: self
     !$GLC attributes unused :: self
 
     tidalFieldName=var_str('satelliteTidalField')
@@ -192,7 +163,7 @@ contains
     class(nodePropertyExtractorTidalField), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    tidalFieldUnitsInSI= 1 / gigaYear**2
+    tidalFieldUnitsInSI=1.0d0/gigaYear**2
     return
   end function tidalFieldUnitsInSI
 
