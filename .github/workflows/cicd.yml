@@ -945,8 +945,6 @@ jobs:
       runPath: ./testSuite
       cacheData: 1
       ompNumThreads: 2
-      uploadFile: ./testSuite/outputs/*.json
-      uploadName: validate-fuzzyDarkMatter
     secrets: inherit
   # Tests
   ## Linux
