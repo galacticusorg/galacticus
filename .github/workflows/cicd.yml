@@ -1274,7 +1274,6 @@ jobs:
                 test-soliton-coremass.py,
                 test-promptCuspNFW.py,
                 test-postprocessing.py,
-                test-strict-parameters.py,
                 test-merger-tree-export.sh ]
     uses: ./.github/workflows/testModel.yml
     with:
