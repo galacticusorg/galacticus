@@ -42,7 +42,6 @@
      Constructors for the \refClass{kinematicsDistributionZhao1996} kinematic distribution class.
      !!}
      module procedure zhao1996ConstructorParameters
-     module procedure zhao1996ConstructorInternal
   end interface kinematicsDistributionZhao1996
 
 contains
@@ -63,16 +62,6 @@ contains
     !!]
     return
   end function zhao1996ConstructorParameters
-
-  function zhao1996ConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{kinematicsDistributionZhao1996} kinematic distribution class.
-    !!}
-    implicit none
-    type(kinematicsDistributionZhao1996) :: self
-    
-    return
-  end function zhao1996ConstructorInternal
   
   logical function zhao1996IsCollisional(self)
     !!{

@@ -45,7 +45,6 @@
      Constructors for the \refClass{kinematicsDistributionSIDMIsothermal} kinematic distribution class.
      !!}
      module procedure sidmIsothermalConstructorParameters
-     module procedure sidmIsothermalConstructorInternal
   end interface kinematicsDistributionSIDMIsothermal
 
 contains
@@ -66,16 +65,6 @@ contains
     !!]
     return
   end function sidmIsothermalConstructorParameters
-
-  function sidmIsothermalConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{kinematicsDistributionSIDMIsothermal} kinematic distribution class.
-    !!}
-    implicit none
-    type(kinematicsDistributionSIDMIsothermal) :: self
-    
-    return
-  end function sidmIsothermalConstructorInternal
   
   logical function sidmIsothermalIsCollisional(self)
     !!{

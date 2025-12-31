@@ -40,7 +40,6 @@
      Constructors for the \refClass{kinematicsDistributionBurkert} kinematic distribution class.
      !!}
      module procedure burkertConstructorParameters
-     module procedure burkertConstructorInternal
   end interface kinematicsDistributionBurkert
 
 contains
@@ -61,16 +60,6 @@ contains
     !!]
     return
   end function burkertConstructorParameters
-
-  function burkertConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{kinematicsDistributionBurkert} kinematic distribution class.
-    !!}
-    implicit none
-    type   (kinematicsDistributionBurkert)                :: self
-    
-    return
-  end function burkertConstructorInternal
   
   logical function burkertIsCollisional(self)
     !!{
