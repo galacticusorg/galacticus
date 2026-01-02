@@ -39,7 +39,6 @@
      Constructors for the \refClass{kinematicsDistributionShi2016} kinematic distribution class.
      !!}
      module procedure shi2016KinematicsConstructorParameters
-     module procedure shi2016KinematicsConstructorInternal
   end interface kinematicsDistributionShi2016
 
 contains
@@ -60,16 +59,6 @@ contains
     !!]
     return
   end function shi2016KinematicsConstructorParameters
-
-  function shi2016KinematicsConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{kinematicsDistributionShi2016} kinematic distribution class.
-    !!}
-    implicit none
-    type(kinematicsDistributionShi2016) :: self
-    
-    return
-  end function shi2016KinematicsConstructorInternal
   
   double precision function shi2016KinematicsVelocityRadial(self,coordinates,massDistributionEmbedding) result(velocityRadial)
     !!{
