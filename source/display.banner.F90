@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -100,7 +100,7 @@ contains
           write (output_unit,*)
           write (output_unit,*) '© 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016,'
           write (output_unit,*) '  2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024,'
-          write (output_unit,*) '  2025                                           '
+          write (output_unit,*) '  2025, 2026                                     '
           write (output_unit,*) '  - Andrew Benson'
           write (output_unit,*)
        end if
