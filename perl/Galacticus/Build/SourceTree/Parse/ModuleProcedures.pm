@@ -41,11 +41,11 @@ sub Parse_ModuleProcedures {
 		# Determine if line is a module procedure line.
 		my $isModuleProcedure = 0;
 		$isModuleProcedure    = 1
-		    if ( $processedLine =~ m/^\s*module\s+procedure\s+(.*?)\s*$/ );
+		    if ( $processedLine =~ m/^\s*module\s+procedure\s*(::)??\s*(\S*?)\s*$/ );
 		# Accumulate raw text.
 		if ( $isModuleProcedure == 1 ) {
 		    $rawModuleProcedure .= $rawLine;
-		    push(@moduleProcedures,$1);
+		    push(@moduleProcedures,$2);
 		} else {
 		    $rawCode            .= $rawLine;
 		}
