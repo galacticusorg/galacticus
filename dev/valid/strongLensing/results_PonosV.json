@@ -6,19 +6,19 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "5992c02a80404d08b56dd616df76f7b88c5bde9b",
-        "message": "Merge pull request #988 from cgannonucm/master\n\nfeat: Implement tidal \"nodePropertyExtractorTidalField\"\n",
-        "timestamp": "2025-12-30 20:22:03+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/5992c02a80404d08b56dd616df76f7b88c5bde9b"
+        "id": "3663cfdcec92fc7d14cf19eba4940f9570bf82bb",
+        "message": "Merge pull request #989 from galacticusorg/featEmptyConstructorDestructor\n\nAdd static analysis to detect empty constructors/destructors\n",
+        "timestamp": "2026-01-02 02:11:44+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/3663cfdcec92fc7d14cf19eba4940f9570bf82bb"
     },
     "surfaceDensity": {
-        "percentageBelow": 35.71428571428571,
-        "percentageAbove": 64.28571428571429,
+        "percentageBelow": 42.857142857142854,
+        "percentageAbove": 57.142857142857146,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 88.88888888888889,
-        "percentageAbove": 11.11111111111111,
+        "percentageBelow": 63.63636363636363,
+        "percentageAbove": 36.36363636363637,
         "target": 0.85
     }
 }
