@@ -71,7 +71,7 @@ while ( $node ) {
     ## Last, check any constructor functions.
     if ( $node->{'type'} eq "function" && grep {$_ eq lc($node->{'name'})} @constructors ) {
 	# Check for arguments.
-	if ( $node->{'opener'} =~ m/function\s+[a-zA-Z0-9_]+\(\)/ ) {
+	if ( $node->{'opener'} =~ m/function\s+[a-zA-Z0-9_]+\(\)/ && $node->{'opener'} !~ m/^\s*module\s+function/ ) {
 	    # No arguments - check for empty function.
 	    if ( &functionIsEmpty($node) ) {
 		print "Empty constructor function '".$node->{'name'}."' in file '".$fileName."'\n";
