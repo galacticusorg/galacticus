@@ -240,6 +240,13 @@ module Mass_Distributions
     <selfTarget>yes</selfTarget>
     <argument>double precision, intent(in   ) :: radius</argument>
    </method>
+   <method name="massEnclosedByCylinder" >
+    <description>Return the mass enclosed in the distribution by a cylinder of given radius.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <argument>double precision, intent(in   ) :: radius</argument>
+   </method>
    <method name="radiusEnclosingMass" >
     <description>Return the radius enclosing a specified mass.</description>
     <type>double precision</type>
@@ -259,7 +266,7 @@ module Mass_Distributions
     <modules>Root_Finder</modules>
     <code>
       type            (rootFinder)            :: finder
-      double precision            , parameter :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-6
+      double precision            , parameter :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
       double precision                        :: massTarget
 
       if      (present(mass          )) then
@@ -287,6 +294,56 @@ module Mass_Distributions
             &amp;            )
       call self%solverSet  (massTarget=massTarget)
       massDistributionRadiusEnclosingMassNumerical=finder%find(rootGuess=1.0d0)
+      call self%solverUnset(                     )
+    </code>
+   </method>
+   <method name="radiusCylindricalEnclosingMass" >
+    <description>Return the cylindrical radius enclosing a specified mass.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <argument>double precision, intent(in   ), optional :: mass, massFractional</argument>
+    <code>
+      massDistributionRadiusCylindricalEnclosingMass=self%radiusCylindricalEnclosingMassNumerical(mass,massFractional)
+    </code>
+   </method>
+   <method name="radiusCylindricalEnclosingMassNumerical" >
+    <description>Return the cylindrical radius enclosing a specified mass using a numerical calculation.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <argument>double precision, intent(in   ), optional :: mass, massFractional</argument>
+    <modules>Root_Finder</modules>
+    <code>
+      type            (rootFinder)            :: finder
+      double precision            , parameter :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
+      double precision                        :: massTarget
+
+      if      (present(mass          )) then
+       massTarget=     mass
+      else if (present(massFractional)) then
+       massTarget=self%massTotal()*massFractional
+      else
+       massTarget=0.0d0
+       call Error_Report('either "mass" or "massFractional" must be provided'//{introspection:location})
+      end if
+      if (massTarget &lt;= 0.0d0 .or. self%massEnclosedByCylinder(0.0d0) &gt;= massTarget) then
+       massDistributionRadiusCylindricalEnclosingMassNumerical=0.0d0
+       return
+      end if
+      finder      =rootFinder(                                                             &amp;
+            &amp;             rootFunction                 =massEnclosedCylindricalRoot  , &amp;
+            &amp;             toleranceAbsolute            =toleranceAbsolute            , &amp;
+            &amp;             toleranceRelative            =toleranceRelative            , &amp;
+            &amp;             solverType                   =GSL_Root_fSolver_Brent       , &amp;
+            &amp;             rangeExpandUpward            =2.0d0                        , &amp;
+            &amp;             rangeExpandDownward          =0.5d0                        , &amp;
+            &amp;             rangeExpandType              =rangeExpandMultiplicative    , &amp;
+            &amp;             rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &amp;
+            &amp;             rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &amp;
+            &amp;            )
+      call self%solverSet  (massTarget=massTarget)
+      massDistributionRadiusCylindricalEnclosingMassNumerical=finder%find(rootGuess=1.0d0)
       call self%solverUnset(                     )
     </code>
    </method>
@@ -354,7 +411,7 @@ module Mass_Distributions
     <modules>Root_Finder</modules>
     <code>
       type            (rootFinder)            :: finder
-      double precision            , parameter :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-3
+      double precision            , parameter :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
       double precision                        :: radiusGuess_
 
       finder     =rootFinder(                                                             &amp;
@@ -741,7 +798,7 @@ module Mass_Distributions
    <data>type            (interpolator), allocatable               :: velocityDispersion1D__                                                                                       </data>
    <data>double precision              , allocatable, dimension(:) :: velocityDispersionRadialVelocity__                     , velocityDispersionRadialRadius__                    </data>
    <data>double precision                                          :: velocityDispersionRadialRadiusMinimum__   =+huge(0.0d0), velocityDispersionRadialRadiusMaximum__=-huge(0.0d0)</data>
-   <data>double precision                                          :: velocityDispersionRadialRadiusOuter__                                                                        </data>
+   <data>double precision                                          :: velocityDispersionRadialRadiusOuter__     =+huge(0.0d0)                                                      </data>
    <data>double precision                                          :: toleranceRelativeVelocityDispersion       =1.0d-6                                                            </data>
    <data>double precision                                          :: toleranceRelativeVelocityDispersionMaximum=1.0d-3                                                            </data>
   </functionClass>
@@ -946,6 +1003,18 @@ contains
          &           -massSolvers(massSolversCount)     %massTarget
     return
   end function massEnclosedRoot
+  
+  double precision function massEnclosedCylindricalRoot(radius)
+    !!{
+    Root function used in finding cylindrical radii enclosing a target mass.
+    !!}
+    implicit none
+    double precision, intent(in   ) :: radius
+
+    massEnclosedCylindricalRoot=+massSolvers(massSolversCount)%self%massEnclosedByCylinder(radius) &
+         &                      -massSolvers(massSolversCount)     %massTarget
+    return
+  end function massEnclosedCylindricalRoot
   
   double precision function densityEnclosedRoot(radius)
     !!{

@@ -219,9 +219,10 @@ contains
     !!{
     Solve for the structure of galactic components.
     !!}
-    use :: Calculations_Resets, only : Calculations_Reset
-    use :: Display            , only : displayMessage
-    use :: Error              , only : Error_Report      , Warn
+    use :: Calculations_Resets       , only : Calculations_Reset
+    use :: Display                   , only : displayMessage
+    use :: Error                     , only : Error_Report                , Warn
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeType
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
@@ -234,6 +235,7 @@ contains
     procedure       (solverSet                         ), pointer                 :: radiusSet                             , velocitySet
     logical                                                                       :: componentActive
     double precision                                                              :: specificAngularMomentum
+    type            (enumerationComponentTypeType      )                          :: component
     !![
     <optionalArgument name="plausibilityOnly" defaultsTo=".false."/>
     !!]
@@ -285,7 +287,7 @@ contains
 
   contains
 
-    subroutine radiusSolve(node,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet)
+    subroutine radiusSolve(node,component,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet)
       !!{
       Solve for the equilibrium radius of the given component.
       !!}
@@ -297,26 +299,28 @@ contains
       use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
       use :: String_Handling                 , only : operator(//)
       implicit none
-      type            (treeNode             ), intent(inout)                     :: node
-      double precision                       , intent(in   )                     :: specificAngularMomentum
-      procedure       (solverGet            ), intent(in   ) , pointer           :: radiusGet                         , velocityGet
-      procedure       (solverSet            ), intent(in   ) , pointer           :: radiusSet                         , velocitySet
-      double precision                       , dimension(:,:), allocatable, save :: radiusHistory
+      type            (treeNode                    ), intent(inout)                     :: node
+      type            (enumerationComponentTypeType), intent(in   )                     :: component
+      double precision                              , intent(in   )                     :: specificAngularMomentum
+      procedure       (solverGet                   ), intent(in   ) , pointer           :: radiusGet                         , velocityGet
+      procedure       (solverSet                   ), intent(in   ) , pointer           :: radiusSet                         , velocitySet
+      double precision                              , dimension(:,:), allocatable, save :: radiusHistory
       !$omp threadprivate(radiusHistory)
-      double precision                       , dimension(:,:), allocatable       :: radiusHistoryTemporary
-      double precision                       , dimension(:  ), allocatable       :: radiusStoredTmp                   , velocityStoredTmp
-      class           (massDistributionClass), pointer                           :: massDistribution_
-      integer                                , parameter                         :: storeIncrement                 =10
-      integer                                , parameter                         :: iterationsForBisectionMinimum  =10
-      integer                                , parameter                         :: activeComponentMaximumIncrement= 2
-      integer                                                                    :: activeComponentMaximumCurrent
-      character       (len=14               )                                    :: label
-      type            (varying_string       ), save                              :: message
+      double precision                              , dimension(:,:), allocatable       :: radiusHistoryTemporary
+      double precision                              , dimension(:  ), allocatable       :: radiusStoredTmp                   , velocityStoredTmp
+      class           (massDistributionClass       ), pointer                           :: massDistribution_
+      integer                                       , parameter                         :: storeIncrement                 =10
+      integer                                       , parameter                         :: iterationsForBisectionMinimum  =10
+      integer                                       , parameter                         :: activeComponentMaximumIncrement= 2
+      integer                                                                           :: activeComponentMaximumCurrent
+      character       (len=14                      )                                    :: label
+      type            (varying_string              ), save                              :: message
       !$omp threadprivate(message)
-      double precision                                                           :: baryonicVelocitySquared           , darkMatterMassFinal, &
-           &                                                                        darkMatterVelocitySquared         , velocity           , &
-           &                                                                        radius                            , radiusNew          , &
-           &                                                                        specificAngularMomentumMaximum
+      double precision                                                                  :: baryonicVelocitySquared           , darkMatterMassFinal, &
+           &                                                                               darkMatterVelocitySquared         , velocity           , &
+           &                                                                               radius                            , radiusNew          , &
+           &                                                                               specificAngularMomentumMaximum
+      !$GLC attributes unused :: component
 
       ! Count the number of active components.
       countComponentsActive=countComponentsActive+1

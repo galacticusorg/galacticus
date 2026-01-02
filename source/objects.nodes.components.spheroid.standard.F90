@@ -148,8 +148,8 @@ module Node_Component_Spheroid_Standard
     </property>
    </properties>
    <bindings>
-    <binding method="massDistribution" function="Node_Component_Spheroid_Standard_Mass_Distribution" bindsTo="component"/>
-    <binding method="massBaryonic"     function="Node_Component_Spheroid_Standard_Mass_Baryonic"     bindsTo="component"/>
+    <binding method="massDistribution" function="Node_Component_Spheroid_Standard_Mass_Distribution"/>
+    <binding method="massBaryonic"     function="Node_Component_Spheroid_Standard_Mass_Baryonic"    />
    </bindings>
    <functions>objects.nodes.components.spheroid.standard.bound_functions.inc</functions>
   </component>
@@ -1358,15 +1358,17 @@ contains
    <unitName>Node_Component_Spheroid_Standard_Radius_Solver</unitName>
   </radiusSolverTask>
   !!]
-  subroutine Node_Component_Spheroid_Standard_Radius_Solver(node,componentActive,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get&
+  subroutine Node_Component_Spheroid_Standard_Radius_Solver(node,componentActive,component,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get&
        &,Velocity_Set)
     !!{
     Interface for the size solver algorithm.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode
+    use :: Galacticus_Nodes          , only : nodeComponentSpheroid       , nodeComponentSpheroidStandard, treeNode
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeType, componentTypeSpheroid
     implicit none
     type            (treeNode                                         ), intent(inout)          :: node
     logical                                                            , intent(  out)          :: componentActive
+    type            (enumerationComponentTypeType                     ), intent(  out)          :: component
     logical                                                            , intent(in   )          :: specificAngularMomentumRequired
     double precision                                                   , intent(  out)          :: specificAngularMomentum
     procedure       (Node_Component_Spheroid_Standard_Radius_Solve_Set), intent(  out), pointer :: Radius_Set                     , Velocity_Set
@@ -1376,8 +1378,10 @@ contains
          &                                                                                         massSpheroid
 
     ! Determine if node has an active disk component supported by this module.
-    componentActive=.false.
-    spheroid => node%spheroid()
+    componentActive         =  .false.
+    component               =  componentTypeSpheroid
+    spheroid                => node%spheroid()
+    specificAngularMomentum =  0.0d0
     select type (spheroid)
        class is (nodeComponentSpheroidStandard)
        componentActive=.true.

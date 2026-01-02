@@ -243,14 +243,14 @@ contains
     !$omp end critical(sphrclCllpsCllsnlssMttrCsmlgclCnstntCache)
     if (useCache /=0 ) return
     if (tableStore) then
-       call     Directory_Make(char(File_Path(char(fileName)))                              )
-       call     File_Lock     (               char(fileName)  ,fileLock,lockIsShared=.true. )
+       call     Directory_Make(File_Path(fileName)                              )
+       call     File_Lock     (          fileName ,fileLock,lockIsShared=.true. )
     end if
     call       self%restoreTable(time,table_,fileName       ,tableStore,status)
     if (status /= errorStatusSuccess) then
        if (tableStore) then
-          call  File_Unlock   (fileLock                                ,sync        =.false.)
-          call  File_Lock     (               char(fileName)  ,fileLock,lockIsShared=.false.)
+          call  File_Unlock   (fileLock                    ,sync        =.false.)
+          call  File_Lock     (          fileName ,fileLock,lockIsShared=.false.)
        end if
        call    self%restoreTable(time,table_,fileName       ,tableStore,status)
        if (status /= errorStatusSuccess) then
@@ -701,9 +701,9 @@ contains
        ! Read map from file if available.
        if (File_Exists(self%fileNameNonLinearMap)) then
           ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-          call File_Lock(char(self%fileNameNonLinearMap),fileLock,lockIsShared=.true.)
+          call File_Lock(self%fileNameNonLinearMap,fileLock,lockIsShared=.true.)
           !$ call hdf5Access%set()
-          call file%openFile(char(self%fileNameNonLinearMap))
+          call file%openFile(self%fileNameNonLinearMap)
           call file%readDataset('time'               ,times               )
           call file%readDataset('overdensitiesLinear',overdensitiesLinear )
           call file%readDataset('linearNonlinearMap' ,linearNonlinearMap__)
@@ -913,9 +913,9 @@ contains
           ! Ensure that the directory exists.
           call Directory_Make(File_Path(self%fileNameNonLinearMap))
           ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-          call File_Lock(char(self%fileNameNonLinearMap),fileLock,lockIsShared=.false.)
+          call File_Lock(self%fileNameNonLinearMap,fileLock,lockIsShared=.false.)
           !$ call hdf5Access%set()
-          call file%openFile(char(self%fileNameNonLinearMap),overWrite=.true.,readOnly=.false.)
+          call file%openFile(self%fileNameNonLinearMap,overWrite=.true.,readOnly=.false.)
           call file%writeDataset(times               ,'time'               )
           call file%writeDataset(overdensitiesLinear ,'overdensitiesLinear')
           call file%writeDataset(linearNonlinearMap__,'linearNonlinearMap' )
@@ -995,7 +995,7 @@ contains
     if (.not.tableStore) return
     if (File_Exists(fileName)) then
        !$ call hdf5Access%set()
-       call file%openFile(char(fileName),readOnly=.true.)
+       call file%openFile(fileName,readOnly=.true.)
        call file%readDataset('time',timeTable)
        if     (                                    &
             &   timeTable(1              ) <= time &
@@ -1040,9 +1040,9 @@ contains
     !$GLC attributes unused :: self
 
     if (.not.tableStore) return
-    call Directory_Make(char(File_Path(char(fileName))))
+    call Directory_Make(File_Path(fileName))
     !$ call hdf5Access%set()
-    call file%openFile    (char   (fileName                           )        ,overWrite=.true.,readOnly=.false.)
+    call file%openFile    (        fileName                                    ,overWrite=.true.,readOnly=.false.)
     call file%writeDataset(        storeTable%xs()                     ,'time'                                   )
     call file%writeDataset(reshape(storeTable%ys(),[storeTable%size()]),'value'                                  )
     call file%close       (                                                                                      )

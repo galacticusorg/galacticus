@@ -303,7 +303,7 @@ contains
     character       (len=4                                          )                                :: redshiftMinimumLabel                                          , redshiftMaximumLabel
     type(enumerationFixedDensityTypeType) :: densityType
     !![
-    <constructorAssign variables="fileNameTarget, redshiftInterval, likelihoodBins, likelihoodNormalize, computeScatter, systematicErrorPolynomialCoefficient, systematicErrorMassHaloPolynomialCoefficient, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_, *outputTimes_"/>
+    <constructorAssign variables="fileNameTarget, redshiftInterval, likelihoodBins, likelihoodBinsAutomatic, likelihoodNormalize, computeScatter, systematicErrorPolynomialCoefficient, systematicErrorMassHaloPolynomialCoefficient, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_, *outputTimes_"/>
     !!]
 
     ! Open the target data file and read basic information.
@@ -493,7 +493,7 @@ contains
     !![
     <referenceConstruct object="outputAnalysisPropertyUnoperator_"                             constructor="outputAnalysisPropertyOperatorAntiLog10                       (                                                                                                                              )"/>
     !!]
-    ! Create a halo mass weight property extractor.
+    ! Create a halo mass property extractor.
     if (haloMassDefinition == "spherical collapse" .or. haloMassDefinition == "virial") then
        allocate(virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt :: virialDensityContrastDefinition_                                )
        select type (virialDensityContrastDefinition_)

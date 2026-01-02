@@ -68,12 +68,12 @@ module Galacticus_Nodes
      !!{
      The merger tree object type.
      !!}
-     integer         (kind=kind_int8            )                  :: index
+     integer         (kind=kind_int8            )                  :: index                  =  -huge(0_kind_int8)
      type            (hdf5Object                )                  :: hdf5Group
-     double precision                                              :: volumeWeight                    , initializedUntil
-     logical                                                       :: isTreeInitialized
+     double precision                                              :: volumeWeight           =  -huge(0.0d0      ), initializedUntil =  -huge(0.0d0)
+     logical                                                       :: isTreeInitialized      =  .false.
      type            (treeNode                  ), pointer         :: nodeBase               => null()
-     type            (mergerTree                ), pointer         :: nextTree               => null(), firstTree        => null()
+     type            (mergerTree                ), pointer         :: nextTree               => null()            , firstTree        => null()
      type            (universe                  ), pointer         :: hostUniverse           => null()
      type            (treeEvent                 ), pointer, public :: event                  => null()
      class           (randomNumberGeneratorClass), pointer         :: randomNumberGenerator_ => null()
@@ -101,13 +101,6 @@ module Galacticus_Nodes
      procedure :: latestTime           => Merger_Tree_Latest_Time
      procedure :: sizeOf               => Merger_Tree_Size_Of
   end type mergerTree
-
-  interface mergerTree
-     !!{
-     Interface to merger tree constructors.
-     !!}
-     module procedure mergerTreeConstructor
-  end interface mergerTree
     
   type, public :: treeEvent
      !!{
@@ -1496,16 +1489,6 @@ module Galacticus_Nodes
     call self%attributes%initialize()
     return
   end function universeConstructor
-
-  function mergerTreeConstructor() result(self)
-    !!{
-    Constructor for the merger tree class. Currently does nothing.
-    !!}
-    implicit none
-    type(mergerTree) :: self
-    
-    return
-  end function mergerTreeConstructor
 
   subroutine Merger_Tree_Destroy(tree)
     !!{

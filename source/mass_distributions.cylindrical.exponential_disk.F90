@@ -79,6 +79,7 @@
      procedure :: densitySphericalAverage                 => exponentialDiskDensitySphericalAverage
      procedure :: surfaceDensity                          => exponentialDiskSurfaceDensity
      procedure :: massEnclosedBySphere                    => exponentialDiskMassEnclosedBySphere
+     procedure :: massEnclosedByCylinder                  => exponentialDiskMassEnclosedByCylinder
      procedure :: radiusEnclosingSurfaceDensity           => exponentialDiskRadiusEnclosingSurfaceDensity
      procedure :: potentialIsAnalytic                     => exponentialDiskPotentialIsAnalytic
      procedure :: potential                               => exponentialDiskPotential
@@ -426,10 +427,23 @@ contains
     return
   end function exponentialDiskDensitySphericalAverage
 
-  double precision function exponentialDiskMassEnclosedBySphere(self,radius)
+  double precision function exponentialDiskMassEnclosedBySphere(self,radius) result(mass)
     !!{
     Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for exponential disk mass
     distributions. Note that this assumes the thin-disk approximation.
+    !!}
+    implicit none
+    class           (massDistributionExponentialDisk), intent(inout), target :: self
+    double precision                                 , intent(in   )         :: radius
+
+    mass=self%massEnclosedByCylinder(radius)
+    return
+  end function exponentialDiskMassEnclosedBySphere
+
+  double precision function exponentialDiskMassEnclosedByCylinder(self,radius) result(mass)
+    !!{
+    Computes the mass enclosed within a cylinder of given {\normalfont \ttfamily radius} for exponential disk mass
+    distributions.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -437,22 +451,22 @@ contains
     double precision                                 , intent(in   )         :: radius
     double precision                                                         :: fractionalRadius
 
-    fractionalRadius                   =+radius                              &
-         &                              /self%scaleRadius
-    exponentialDiskMassEnclosedBySphere=+2.0d0                               &
-         &                              *Pi                                  &
-         &                              *self%scaleRadius                **2 &
-         &                              *self%surfaceDensityNormalization    &
-         &                              *(                                   &
-         &                                +1.0d0                             &
-         &                                -(                                 &
-         &                                  +1.0d0                           &
-         &                                  +fractionalRadius                &
-         &                                 )                                 &
-         &                                *exp(-fractionalRadius)            &
-         &                              )
+    fractionalRadius=+radius                              &
+         &           /self%scaleRadius
+    mass            =+2.0d0                               &
+         &           *Pi                                  &
+         &           *self%scaleRadius                **2 &
+         &           *self%surfaceDensityNormalization    &
+         &           *(                                   &
+         &             +1.0d0                             &
+         &             -(                                 &
+         &               +1.0d0                           &
+         &               +fractionalRadius                &
+         &              )                                 &
+         &             *exp(-fractionalRadius)            &
+         &           )
     return
-  end function exponentialDiskMassEnclosedBySphere
+  end function exponentialDiskMassEnclosedByCylinder
 
   double precision function exponentialDiskSurfaceDensity(self,coordinates)
     !!{
@@ -1090,9 +1104,9 @@ contains
            &   '_h'                          // &
            &   trim(adjustl(label))          // &
            &   '.hdf5'
-      call Directory_Make(char(File_Path(char(fileName))))
+      call Directory_Make(File_Path(fileName))
       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-      call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
+      call File_Lock(fileName,fileLock,lockIsShared=.true.)
       if (File_Exists(fileName)) then
          !$ call hdf5Access%set()
          call file%openFile    (char(fileName                     ),readOnly=.true.                 )

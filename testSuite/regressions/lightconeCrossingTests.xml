@@ -3,7 +3,7 @@
 <!-- This version does not include subresolution merging timescale for orphan halos.                                                   -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="d4bf2d8db876eb8e44d94e1672bc36a6ea8135cc" time="2025-09-03T18:23:58"/>
+  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
 
 
   <!-- Include required parameters -->
@@ -42,6 +42,7 @@
 						testSuite/data/lightconeCrossingTestTree16444349582.hdf5
 						testSuite/data/lightconeCrossingTestTree16436414104.hdf5
 						testSuite/data/lightconeCrossingTestTree16314989494.hdf5
+						testSuite/data/lightconeCrossingTestTree16390188387.hdf5
 						"/>
     <!-- Consistency checks and validation. -->
     <outputTimeSnapTolerance              value="0.001"    />

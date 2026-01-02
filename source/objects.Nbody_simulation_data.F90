@@ -51,10 +51,6 @@ module NBody_Simulation_Data
      final :: nBodyDataDestructorScalar, nBodyDataDestructorRank1
   end type nBodyData
 
-  interface nBodyData
-     module procedure nBodyDataConstructor
-  end interface nBodyData
-
   !![
   <enumeration>
    <name>propertyType</name>
@@ -67,16 +63,6 @@ module NBody_Simulation_Data
   !!]
   
 contains
-
-  function nBodyDataConstructor() result (self)
-    !!{
-    A default constructor for the {\normalfont \ttfamily nBodyData} class.
-    !!}
-    implicit none
-    type(nBodyData) :: self
-
-    return
-  end function nBodyDataConstructor
 
   subroutine nBodyDataDestructorScalar(self)
     !!{

@@ -80,21 +80,21 @@ module Node_Component_Disk_Standard
       <name>massGas</name>
       <type>double</type>
       <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" isNonNegative="true" />
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true" />
       <output unitsInSI="massSolar" comment="Mass of gas in the standard disk."/>
     </property>
     <property>
       <name>abundancesGas</name>
       <type>abundances</type>
       <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" isNonNegative="true" />
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true" />
       <output unitsInSI="massSolar" comment="Mass of metals in the gas phase of the standard disk."/>
     </property>
     <property>
       <name>angularMomentum</name>
       <type>double</type>
       <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" isNonNegative="true" />
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true" />
       <output unitsInSI="massSolar*megaParsec*kilo" comment="Angular momentum of the standard disk."/>
     </property>
     <property>
@@ -139,9 +139,8 @@ module Node_Component_Disk_Standard
     </property>
    </properties>
    <bindings>
-    <binding method="attachPipes"      function="Node_Component_Disk_Standard_Attach_Pipes"      bindsTo="component" description="Attach pipes to the standard disk component." returnType="\void" arguments=""/>
-    <binding method="massDistribution" function="Node_Component_Disk_Standard_Mass_Distribution" bindsTo="component"                                                                                           />
-    <binding method="massBaryonic"     function="Node_Component_Disk_Standard_Mass_Baryonic"     bindsTo="component"                                                                                           />
+    <binding method="massDistribution" function="Node_Component_Disk_Standard_Mass_Distribution"/>
+    <binding method="massBaryonic"     function="Node_Component_Disk_Standard_Mass_Baryonic"    />
    </bindings>
    <functions>objects.nodes.components.disk.standard.bound_functions.inc</functions>
   </component>
@@ -177,9 +176,6 @@ module Node_Component_Disk_Standard
   double precision                            :: ratioAngularMomentumSolverRadius        , diskRadiusSolverFlatVsSphericalFactor
   !$omp threadprivate(ratioAngularMomentumSolverRadius,diskRadiusSolverFlatVsSphericalFactor)
 
-  ! Pipe attachment status.
-  logical                                     :: pipesAttached                             =.false.
-
   ! A threadprivate object used to track to which thread events are attached.
   integer :: thread
   !$omp threadprivate(thread)
@@ -200,18 +196,12 @@ contains
     use :: Galacticus_Nodes    , only : defaultDiskComponent     , nodeComponentDiskStandard
     use :: Input_Parameters    , only : inputParameter           , inputParameters
     implicit none
-    type(inputParameters          ), intent(inout) :: parameters
-    type(nodeComponentDiskStandard)                :: diskStandardComponent
-    type(inputParameters          )                :: subParameters
+    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters)                :: subParameters
 
     if (defaultDiskComponent%standardIsActive()) then
        ! Get number of abundance properties.
        abundancesCount  =Abundances_Property_Count            ()
-       ! Attach the cooling mass/angular momentum pipes from the hot halo component.
-       if (.not.pipesAttached) then
-          call diskStandardComponent%attachPipes()
-          pipesAttached=.true.
-       end if
        ! Find our parameters.
        subParameters=parameters%subParameters('componentDisk')
        ! Read parameters controlling the physical implementation.
@@ -1108,16 +1098,18 @@ contains
    <unitName>Node_Component_Disk_Standard_Radius_Solver</unitName>
   </radiusSolverTask>
   !!]
-  subroutine Node_Component_Disk_Standard_Radius_Solver(node,componentActive,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get&
+  subroutine Node_Component_Disk_Standard_Radius_Solver(node,componentActive,component,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get&
        &,Velocity_Set)
     !!{
     Interface for the size solver algorithm.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentDisk             , nodeComponentDiskStandard, treeNode
+    use :: Galactic_Structure_Options      , only : enumerationComponentTypeType  , componentTypeDisk
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     type            (treeNode                                     ), intent(inout)          :: node
     logical                                                        , intent(  out)          :: componentActive
+    type            (enumerationComponentTypeType                 ), intent(  out)          :: component
     logical                                                        , intent(in   )          :: specificAngularMomentumRequired
     double precision                                               , intent(  out)          :: specificAngularMomentum
     procedure       (Node_Component_Disk_Standard_Radius_Solve    ), intent(  out), pointer :: Radius_Get                     , Velocity_Get
@@ -1128,10 +1120,11 @@ contains
 
     ! Determine if node has an active disk component supported by this module.
     componentActive         =  .false.
+    component               =  componentTypeDisk
     specificAngularMomentum =  0.0d0
     disk                    => node%disk()
     select type (disk)
-       class is (nodeComponentDiskStandard)
+    class is (nodeComponentDiskStandard)
        componentActive=.true.
        ! Get the angular momentum.
        if (specificAngularMomentumRequired) then

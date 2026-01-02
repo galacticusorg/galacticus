@@ -84,6 +84,7 @@
      double precision                          , dimension(3  )            :: origin                             , nodePositionCrossing   , &
           &                                                                   nodeVelocityCrossing               , unitVector1            , &
           &                                                                   unitVector2                        , unitVector3
+     integer         (kind_int8               ), dimension(:), allocatable :: nodeIndicesReport
      double precision                          , dimension(:), allocatable :: distanceMinimum                    , distanceMaximum        , &
           &                                                                   timeMinimum_                       , timeMaximum_           , &
           &                                                                   outputTimes
@@ -182,20 +183,31 @@ contains
     use :: Numerical_Constants_Astronomical, only : degreesToRadians      , megaParsec
     use :: Functions_Global                , only : nodeOperatorConstruct_, nodeOperatorDestruct_
     implicit none
-    type            (geometryLightconeSquare )                 :: self
-    type            (inputParameters         ), intent(inout)  :: parameters
-    double precision                          , dimension(3,3) :: unitVector
-    double precision                          , dimension(3)   :: origin                     , unitVector1         , &
-         &                                                        unitVector2                , unitVector3
-    class           (cosmologyParametersClass), pointer        :: cosmologyParameters_
-    class           (cosmologyFunctionsClass ), pointer        :: cosmologyFunctions_
-    class           (outputTimesClass        ), pointer        :: outputTimes_
-    class           (*                       ), pointer        :: nodeOperator_
-    double precision                                           :: lengthReplication          , angularSize         , &
-         &                                                        lengthUnitsInSI            , unitConversionLength
-    integer                                                    :: lengthHubbleExponent
-    logical                                                    :: timeEvolvesAlongLightcone
+    type            (geometryLightconeSquare )                                :: self
+    type            (inputParameters         ), intent(inout)                 :: parameters
+    double precision                                         , dimension(3,3) :: unitVector
+    double precision                                         , dimension(3  ) :: origin                   , unitVector1         , &
+         &                                                                       unitVector2              , unitVector3
+    integer         (kind_int8               ), allocatable  , dimension(:  ) :: nodeIndicesReport
+    class           (cosmologyParametersClass), pointer                       :: cosmologyParameters_
+    class           (cosmologyFunctionsClass ), pointer                       :: cosmologyFunctions_
+    class           (outputTimesClass        ), pointer                       :: outputTimes_
+    class           (*                       ), pointer                       :: nodeOperator_
+    double precision                                                          :: lengthReplication        , angularSize         , &
+         &                                                                       lengthUnitsInSI          , unitConversionLength
+    integer                                                                   :: lengthHubbleExponent
+    logical                                                                   :: timeEvolvesAlongLightcone
 
+    allocate(nodeIndicesReport(parameters%count('nodeIndicesReport',zeroIfNotPresent=.true.)))
+    if (parameters%isPresent('nodeIndicesReport')) then
+       !![
+       <inputParameter>
+	 <name>nodeIndicesReport</name>
+	 <description>A list of node indices for which reporting should be performed.</description>
+	 <source>parameters</source>
+       </inputParameter>
+       !!]
+    end if
     !![
     <inputParameter>
       <name>origin</name>
@@ -272,7 +284,7 @@ contains
     origin              =origin           *unitConversionLength
     lengthReplication   =lengthReplication*unitConversionLength
     ! Construct the object.
-    self                     =geometryLightconeSquare(origin,unitVector,angularSize,lengthReplication,timeEvolvesAlongLightcone,cosmologyParameters_,cosmologyFunctions_,outputTimes_,nodeOperator_)
+    self                     =geometryLightconeSquare(origin,unitVector,angularSize,lengthReplication,timeEvolvesAlongLightcone,nodeIndicesReport,cosmologyParameters_,cosmologyFunctions_,outputTimes_,nodeOperator_)
     self%lengthUnitsInSI     =lengthUnitsInSI
     self%lengthHubbleExponent=lengthHubbleExponent
     !![
@@ -285,7 +297,7 @@ contains
     return
   end function squareConstructorParameters
 
-  function squareConstructorInternal(origin,unitVector,angularSize,lengthReplication,timeEvolvesAlongLightcone,cosmologyParameters_,cosmologyFunctions_,outputTimes_,nodeOperator_) result(self)
+  function squareConstructorInternal(origin,unitVector,angularSize,lengthReplication,timeEvolvesAlongLightcone,nodeIndicesReport,cosmologyParameters_,cosmologyFunctions_,outputTimes_,nodeOperator_) result(self)
     !!{
     Internal constructor for the \refClass{geometryLightconeSquare} lightcone geometry distribution class.
     !!}
@@ -305,6 +317,7 @@ contains
     class           (*                       ), target        , intent(in   ) :: nodeOperator_
     double precision                                          , intent(in   ) :: lengthReplication                 , angularSize
     logical                                                   , intent(in   ) :: timeEvolvesAlongLightcone
+    integer         (kind_int8               ), dimension(:)  , intent(in   ) :: nodeIndicesReport
     double precision                          , parameter                     :: orthogonalityTolerance   =1.000d-6
     double precision                          , parameter                     :: angularSizeSmall         =0.017d+0
     integer                                                                   :: i                                 , j
@@ -316,7 +329,7 @@ contains
     character       (len=12                  )                                :: label
     type            (varying_string          )                                :: message
     !![
-    <constructorAssign variables="origin, unitVector, angularSize, lengthReplication, timeEvolvesAlongLightcone, *cosmologyParameters_, *cosmologyFunctions_, *outputTimes_, *nodeOperator_"/>
+    <constructorAssign variables="origin, unitVector, angularSize, lengthReplication, timeEvolvesAlongLightcone, nodeIndicesReport, *cosmologyParameters_, *cosmologyFunctions_, *outputTimes_, *nodeOperator_"/>
     !!]
 
     ! Store unit vectors.
@@ -863,6 +876,7 @@ contains
     Return the time of the next lightcone crossing for this node.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentBasic                      , nodeComponentPosition
+    use :: Display                         , only : displayIndent                           , displayUnindent      , displayMessage
     use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr                       , gigaYear             , megaParsec
     use :: Numerical_Constants_Physical    , only : speedLight
     use :: Vectors                         , only : Vector_Magnitude
@@ -874,22 +888,32 @@ contains
     type            (treeNode               ), intent(inout)                                        :: node
     double precision                         , intent(in   )                                        :: timeStart                   , timeEnd
     double precision                         , intent(inout), dimension(:  ), allocatable, optional :: timesCrossing
-    double precision                                        , dimension(:  ), allocatable           :: timesCrossingTmp
+    double precision                                        , dimension(:  ), allocatable           :: timesCrossingTmp            , timeSeek          , &
+         &                                                                                             distanceSeek
     integer                                                 , dimension(3,2)                        :: periodicRange
     class           (nodeComponentBasic     ), pointer                                              :: basic
     class           (nodeComponentPosition  ), pointer                                              :: position
     double precision                                        , dimension(3  )                        :: positionReference           , nodePositionStart , &
          &                                                                                             nodePositionEnd
+    double precision                         , parameter                                            :: timeSeekStep         =1.0d-3 ! Timestep used in reporting of crossing times.
     double precision                         , parameter                                            :: speedMaximum         =2000.0 ! Maximum plausible physical speed for any node.
     double precision                                                                                :: distanceMinimum             , distanceMaximum   , &
          &                                                                                             distanceNodeStart           , distanceNodeEnd   , &
          &                                                                                             radiusBuffer                , timeCrossing      , &
-         &                                                                                             timeOriginal                , timeStart_
-    logical                                                                                         :: isInFieldOfView
+         &                                                                                             timeOriginal                , timeStart_        , &
+         &                                                                                             distanceCrossingSeek
+    logical                                                                                         :: isInFieldOfView             , reporting
     integer                                                                                         :: i                           , j                 , &
-         &                                                                                             k
+         &                                                                                             k                           , countSeek         , &
+         &                                                                                             iSeek                       , countSteps
     type            (rootFinder             )                                                       :: finder
+    character       (len= 64                )                                                       :: label
 
+    reporting=any(node%index() == self%nodeIndicesReport)
+    if (reporting) then
+       write (label,'(i12)') node%index()
+       call displayIndent('Lightcone crossing report for node: '//trim(adjustl(label)))
+    end if
     basic                       => node    %basic                               (          )
     position                    => node    %position                            (          ) 
     positionReference           =  position%position                            (          )
@@ -905,31 +929,92 @@ contains
          &                         /MpcPerKmPerSToGyr
     ! Find the range of replicants in which this node might cross the lightcone.
     periodicRange=self%periodicRange(distanceMinimum,distanceMaximum,radiusBuffer)
+    if (reporting) then
+       write (label,'(3(e12.6,1x))') positionReference
+       call displayMessage('Position reference: '//trim(adjustl(label)))
+       write (label,'(1(e12.6,1x))') timeOriginal
+       call displayMessage('Time original:      '//trim(adjustl(label)))
+       write (label,'(1(e12.6,1x))') timeStart
+       call displayMessage('Time start:         '//trim(adjustl(label)))
+       write (label,'(2(e12.6,1x))') distanceMinimum,distanceMaximum
+       call displayMessage('Distance min/max:   '//trim(adjustl(label)))
+       write (label,'(1(e12.6,1x))') radiusBuffer
+       call displayMessage('Buffer radius:      '//trim(adjustl(label)))
+       write (label,'(6(i4,1x))') periodicRange
+       call displayMessage('Periodic range:     '//trim(adjustl(label)))
+    end if
     ! Iterate over replicants of interest.
     squareTimeLightconeCrossing=huge(0.0d0)
     finder                     =rootFinder(rootFunction=timeCrossingRoot,toleranceRelative=1.0d-9)
     do i=periodicRange(1,1),periodicRange(1,2)
        do j=periodicRange(2,1),periodicRange(2,2)
           do k=periodicRange(3,1),periodicRange(3,2)
+             if (reporting) then
+                write (label,'(3(i4,1x))') i,j,k
+                call displayIndent("Periodic replicant: "//trim(adjustl(label)))
+             end if
              ! Compute position of node in lightcone coordinate system.
-             nodePositionStart=self%nodePositionReplicant(node             ,timeStart_,self%origin,[i,j,k],setTime=.true.)
-             nodePositionEnd  =self%nodePositionReplicant(node             ,timeEnd   ,self%origin,[i,j,k],setTime=.true.)
+             nodePositionStart=self%nodePositionReplicant(node             ,timeStart_,self%origin,[i,j,k],setTime=.true.,report=reporting)
+             nodePositionEnd  =self%nodePositionReplicant(node             ,timeEnd   ,self%origin,[i,j,k],setTime=.true.,report=reporting)
              distanceNodeStart=Vector_Magnitude          (nodePositionStart                                              )
              distanceNodeEnd  =Vector_Magnitude          (nodePositionEnd                                                )
+             if (reporting) then
+                write (label,'(3(e12.6,1x),"| ",e12.6)') nodePositionStart,distanceNodeStart
+                call displayMessage("Postion start: "//trim(adjustl(label)))
+                write (label,'(3(e12.6,1x),"| ",e12.6)') nodePositionEnd  ,distanceNodeEnd
+                call displayMessage("Postion end:   "//trim(adjustl(label)))
+             end if
              if     (                                      &
                   &   distanceNodeStart <  distanceMaximum &
                   &  .and.                                 &
                   &   distanceNodeEnd   >= distanceMinimum &
                   & ) then
                 ! Find the precise time of lightcone crossing.
+                countSeek   =0
                 timeCrossing=finder%find(rootRange=[timeStart_,timeEnd])
+                if (reporting) then
+                   call displayIndent("Lightcone crossing seek:")
+                   call displayMessage("time         distance root")
+                   call displayMessage("__________________________")
+                   call sort(timeSeek(1:countSeek),distanceSeek(1:countSeek))
+                   do iSeek=1,countSeek
+                      write (label,'(e12.6,1x,e12.6)') timeSeek(iSeek),distanceSeek(iSeek)
+                      call displayMessage(trim(adjustl(label)))
+                   end do
+                   call displayUnindent("")
+                   deallocate(timeSeek    )
+                   deallocate(distanceSeek)
+                end if
                 ! Check that the node is in the field of view at this time, that this is the earliest crossing, and that the
                 ! crossing occurs at least some small time after the current time of the node. (This last condition is to ensure
                 ! that a node which was stopped at precisely the time of lightcone crossing is not marked to be crossing the
                 ! lightcone again at that same time.)
                 nodePositionStart=self%nodePositionReplicant(node             ,timeCrossing,self%origin,[i,j,k],setTime=.true.)
                 isInFieldOfView  =self%isInFieldOfView      (nodePositionStart                                                )
+                if (reporting) then
+                   write (label,'(e12.6)') timeCrossing
+                   call displayMessage("Time crossing: "//trim(adjustl(label)))
+                   write (label,'(l1)'   ) isInFieldOfView
+                   call displayMessage("In FOV:        "//trim(adjustl(label)))
+                end if
                 if (isInFieldOfView) then
+                   if (reporting) then
+                      countSeek=0
+                      countSteps=int((timeEnd-timeStart_)/timeSeekStep)+1
+                      do iSeek=1,countSteps
+                         distanceCrossingSeek=timeCrossingRoot(min(timeStart_+dble(iSeek-1)*timeSeekStep,timeEnd))
+                      end do
+                      call displayIndent("Lightcone crossing seek fine:")
+                      call displayMessage("time         distance root")
+                      call displayMessage("__________________________")
+                     do iSeek=1,countSteps
+                         write (label,'(e12.6,1x,e12.6)') timeSeek(iSeek),distanceSeek(iSeek)
+                         call displayMessage(trim(adjustl(label)))
+                      end do
+                      call displayUnindent("")
+                      deallocate(timeSeek    )
+                      deallocate(distanceSeek)
+                   end if
                    ! Only set this crossing as the result if it is the earliest crossing time found so far.
                    if (timeCrossing < squareTimeLightconeCrossing) then
                       squareTimeLightconeCrossing                     =timeCrossing
@@ -951,9 +1036,11 @@ contains
                    end if
                 end if
              end if
+             if (reporting) call displayUnindent("")
           end do
        end do
     end do
+    if (reporting) call displayUnindent('')
     ! Must reset position and velocity as these can be used in the pre-determined solution.
     call nodeOperatorPredeterminedSolveAnalytics_(self%nodeOperator_,node,timeOriginal)
     ! Sort crossing times if necessary.
@@ -973,14 +1060,33 @@ contains
       Function used to find the time at which a node crosses the lightcone.
       !!}
       implicit none
-      double precision, intent(in   ) :: time
-      double precision, dimension(3)  :: positionNode
-      double precision                :: distanceNode
+      double precision, intent(in   )             :: time
+      double precision, dimension(3)              :: positionNode
+      double precision, dimension(:), allocatable :: timeSeek_   , distanceSeek_
+      double precision                            :: distanceNode
 
       positionNode    =self%nodePositionReplicant(node,time,self%origin,[i,j,k],setTime=.true.)
       distanceNode    =Vector_Magnitude(positionNode)
       timeCrossingRoot=+                         distanceNode           &
            &           -self%cosmologyFunctions_%distanceComoving(time)
+      if (reporting) then
+         if (countSeek == 0) then
+            allocate(timeSeek    (32))
+            allocate(distanceSeek(32))
+         else if (countSeek == size(timeSeek)) then
+            call move_alloc(timeSeek    ,timeSeek_    )
+            call move_alloc(distanceSeek,distanceSeek_)
+            allocate(timeSeek    (countSeek*2))
+            allocate(distanceSeek(countSeek*2))
+            timeSeek    (1:countSeek)=timeSeek_
+            distanceSeek(1:countSeek)=distanceSeek_
+            deallocate(timeSeek_    )
+            deallocate(distanceSeek_)
+         end if
+         countSeek=countSeek+1
+         timeSeek    (countSeek)=time
+         distanceSeek(countSeek)=timeCrossingRoot
+      end if
       return
     end function timeCrossingRoot
       
@@ -1164,12 +1270,13 @@ contains
     return
   end function squarePeriodicRange
 
-  function squareNodePositionReplicant(self,node,time,origin,replicant,setTime)
+  function squareNodePositionReplicant(self,node,time,origin,replicant,setTime,report)
     !!{
     Compute the comoving position of the given node in the given replicant.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic                      , nodeComponentPosition
     use :: Functions_Global, only : nodeOperatorPredeterminedSolveAnalytics_
+    use :: Display         , only : displayMessage                          , displayIndent        , displayUnindent
     implicit none
     double precision                                        , dimension(3)           :: squareNodePositionReplicant
     class           (geometryLightconeSquare), intent(inout)                         :: self
@@ -1177,14 +1284,16 @@ contains
     double precision                         , intent(in   )                         :: time
     double precision                         , intent(in   ), dimension(3)           :: origin
     integer                                  , intent(in   ), dimension(3)           :: replicant
-    logical                                  , intent(in   )              , optional :: setTime
+    logical                                  , intent(in   )              , optional :: setTime                    , report
     class           (nodeComponentBasic     ), pointer                               :: basic
     class           (nodeComponentPosition  ), pointer                               :: position
     double precision                                        , dimension(3)           :: positionComovingNode
     integer                                                                          :: i
     double precision                                                                 :: timeOriginal               , expansionFactor
+    character       (len=64                 )                                        :: label
     !![
     <optionalArgument name="setTime" defaultsTo=".false." />
+    <optionalArgument name="report"  defaultsTo=".false." />
     !!]
 
     if (setTime_) then
@@ -1196,6 +1305,16 @@ contains
     expansionFactor      =  +self    %cosmologyFunctions_%expansionFactor(time)
     positionComovingNode =  +position%position                           (    ) &
          &                  /                             expansionFactor
+    if (report_) then
+       call displayIndent("Replicant position")
+       write (label,'(3(e12.6,1x))') time
+       call displayMessage("Time:              "//trim(adjustl(label)))
+       write (label,'(3(e12.6,1x))') expansionFactor
+       call displayMessage("Expansion factor:  "//trim(adjustl(label)))
+       write (label,'(3(e12.6,1x))') positionComovingNode
+       call displayMessage("Position comoving: "//trim(adjustl(label)))
+       call displayUnindent("")
+    end if
     do i=1,3
        squareNodePositionReplicant(i)=Dot_Product(positionComovingNode-origin+self%lengthReplication*dble(replicant),self%unitVector(:,i))
     end do

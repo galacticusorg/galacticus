@@ -67,9 +67,8 @@ sub Bind_Set_Functions {
 	{type => "procedure", name => $property->{'name'}."Set", function => $property->{'setFunction'}->{'content'}}
 	)
 	if (
-	                                   $property->{'attributes' }->{'isGettable'}                &&
-	    !                              $property->{'setFunction'}->{'build'     }                &&
-	                                   $property->{'setFunction'}->{'bindsTo'   } eq "component" &&
+	                                   $property->{'attributes' }->{'isGettable'}  &&
+	    !                              $property->{'setFunction'}->{'build'     }  &&
 	    ! grep {$_ eq "set"} split(":",$property->{'attributes' }->{'isDeferred'})
 	)
 }

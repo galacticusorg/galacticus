@@ -60,6 +60,7 @@ module Galactic_Structure_Options
    <entry label="darkHalo"           description="The dark matter halo component"/>
    <entry label="blackHole"          description="The black hole component"      />
    <entry label="darkMatterOnly"     description="The dark matter only component"/>
+   <entry label="none"               description="No component"                  />
    <entry label="unknown"            description="Unknown components"            />
   </enumeration>
   !!]

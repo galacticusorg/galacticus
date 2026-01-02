@@ -147,9 +147,9 @@ contains
     !!{
     Initialize the \gls{cgm} content of a node.
     !!}
-    use :: Accretion_Halos     , only : accretionModeTotal       , accretionModeHot
-    use :: Galacticus_Nodes    , only : nodeComponentHotHalo     , nodeComponentBasic, nodeComponentSpin, nodeEvent, &
-         &                              nodeEventSubhaloPromotion
+    use :: Accretion_Halos , only : accretionModeTotal       , accretionModeHot
+    use :: Galacticus_Nodes, only : nodeComponentHotHalo     , nodeComponentBasic, nodeComponentSpin, nodeEvent, &
+         &                          nodeEventSubhaloPromotion
     implicit none
     class           (nodeOperatorCGMAccretion), intent(inout), target  :: self
     type            (treeNode                ), intent(inout), target  :: node

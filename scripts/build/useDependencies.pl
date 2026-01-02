@@ -193,7 +193,13 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 	foreach my $eventHook ( @{$directives->{'eventHook'}} ) {
 	    next
 		unless ( exists($eventHook->{'import'}) );
-	    foreach my $module ( &List::ExtraUtils::as_array($eventHook->{'import'}->{'module'}) ) {
+	    my @modules;
+	    if ( exists($eventHook->{'import'}->{'module'}->{'name'}) ) {
+		@modules = &List::ExtraUtils::as_array($eventHook->{'import'}->{'module'}                 );
+	    } else {
+		@modules = &List::ExtraUtils::hashList($eventHook->{'import'}->{'module'}, keyAs => "name");
+	    }
+	    foreach my $module ( @modules ) {
 		push(@eventHookModules,$workDirectoryName.lc($module->{'name'}).".mod");
 	    }
 	}

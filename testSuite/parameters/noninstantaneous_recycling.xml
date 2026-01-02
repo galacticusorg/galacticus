@@ -4,7 +4,7 @@
 <!-- 30-November-2020                                                                   -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="d4bf2d8db876eb8e44d94e1672bc36a6ea8135cc" time="2025-09-03T18:23:58"/>
+  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
 
 
   <verbosityLevel value="working"/>
@@ -21,16 +21,22 @@
 
   <componentDarkMatterProfile value="scale"/>
   <componentDisk value="standard">
-  <massDistributionDisk value="exponentialDisk">
-    <dimensionless value="true"/>
-  </massDistributionDisk>
+    <toleranceAbsoluteMass value="1.0e-6"/>
+    <inactiveLuminositiesStellar value="true"/>
+    <massDistributionDisk value="exponentialDisk">
+      <dimensionless value="true"/>
+    </massDistributionDisk>
   </componentDisk>
   <componentHotHalo value="coldMode"/>
   <componentSatellite value="standard"/>
   <componentSpheroid value="standard">
-  <massDistributionSpheroid value="hernquist">
-    <dimensionless value="true"/>
-  </massDistributionSpheroid>
+    <toleranceAbsoluteMass value="1.0e-6"/>
+    <inactiveLuminositiesStellar value="true"/>
+    <ratioAngularMomentumScaleRadius value="0.50"/>
+    <efficiencyEnergeticOutflow value="1.0e-2"/>
+    <massDistributionSpheroid value="hernquist">
+      <dimensionless value="true"/>
+    </massDistributionSpheroid>
   </componentSpheroid>
   <componentSpin value="vector"/>
   
@@ -190,7 +196,7 @@
   </accretionHalo>
   
   <coldModeInfallRate value="dynamicalTime">
-  <dynamicalRateFraction value="2.0"/>
+    <dynamicalRateFraction value="2.0"/>
   </coldModeInfallRate>
   
   <!-- CGM gas cooling model options -->
@@ -206,45 +212,37 @@
   <hotHaloOutflowReincorporation value="haloDynamicalTime">
     <multiplier value="7.84401490527569"/>
   </hotHaloOutflowReincorporation>
-  
-  
+  <hotHaloOutflowStripping value="standard">
+     <efficiency value="0.1"/>
+  </hotHaloOutflowStripping>
+  <coolingInfallTorque value="fixed">
+     <fractionLossAngularMomentum value="0.0871188291891892"/>
+  </coolingInfallTorque>
   <coolingFunction value="velocityCutOff">
-  <velocityCutOff value="19.0"/>
-  <redshiftCutOff value="1.0e6"/>
-  <whenCutOff value="after"/>
-  
-  
-  
-  <coolingFunction value="atomicCIECloudy"/>
-  
-  
-  
-  
+    <velocityCutOff value="19.0"/>
+    <redshiftCutOff value="1.0e6"/>
+    <whenCutOff value="after"/>
+    <coolingFunction value="atomicCIECloudy"/>
   </coolingFunction>
-  
   <coolingRate value="multiplier">
     <multiplier value="15"/>
-  <coolingRate value="whiteFrenk1991">
-    <velocityCutOff value="10000"/>
+    <coolingRate value="whiteFrenk1991">
+      <velocityCutOff value="10000"/>
+    </coolingRate>
   </coolingRate>
-  </coolingRate>
-  
   <coolingTime value="simple">
     <degreesOfFreedom value="3.0"/>
   </coolingTime>
   <coolingTimeAvailable value="whiteFrenk1991">
     <ageFactor value="0.774282113742516"/>
   </coolingTimeAvailable>
-  <hotHaloAngularMomentumLossFraction value="0.0871188291891892"/>
+  <circumgalacticMediumHeating value="AGNFeedback"/>
   <starveSatellites value="false"/>
 
   <!-- Hot halo ram pressure stripping options -->
- 
   <hotHaloRamPressureStripping value="font2008"/>
   <hotHaloRamPressureForce value="font2008"/>
   <hotHaloRamPressureTimescale value="ramPressureAcceleration"/>
-  <hotHaloOutflowStrippingEfficiency value="0.1"/>
-  <hotHaloTrackStrippedGas value="true"/>
   
    <satelliteTidalField value="sphericalSymmetry"/>
   <satelliteTidalStripping value="zentner2005"/>
@@ -252,7 +250,6 @@
   <!-- Galactic structure options -->
   <galacticStructureSolver value="simple"/>
   <darkMatterProfile value="darkMatterOnly"/>
-  <spheroidAngularMomentumAtScaleRadius value="0.50"/>
 
   <!-- Star formation rate options -->
     <starFormationRateSurfaceDensityDisks value="blitz2006">
@@ -283,7 +280,6 @@
   <initialMassFunction value="chabrier2001"/>
 
   <!-- AGN feedback options -->
-  <hotHaloExcessHeatDrivesOutflow value="true"/>
   <blackHoleWind value="ciotti2009">
     <efficiencyWind                              value="0.211884639031352"/>
     <efficiencyWindScalesWithEfficiencyRadiative value="true"             />
@@ -292,19 +288,7 @@
     <efficiencyRadioMode value="00140338137883176"/>
   </blackHoleCGMHeating>
 
-  <blackHoleAccretionRate value="standard">
-
-  <bondiHoyleAccretionEnhancementSpheroid value="5.0e0"/>
-
-  <bondiHoyleAccretionEnhancementHotHalo value="6.0e0"/>
-
-  <bondiHoyleAccretionHotModeOnly value="true"/>
-
-  <bondiHoyleAccretionTemperatureSpheroid value="1.0e2"/>
-
-  </blackHoleAccretionRate>
   <stellarWinds value="leitherer1992"/>
-  <initialMassForSupernovaTypeII value="8.0"/>
   <supernovaeTypeIa value="nagashima2005"/>
   <supernovaePopulationIII value="hegerWoosley2002"/>
   <stellarFeedback value="standard"/>
@@ -337,9 +321,6 @@
   <mergerRemnantSize value="cole2000">
     <energyOrbital value="1.41586769307318"/>
   </mergerRemnantSize>
-
-  <!-- Spheroid options -->
-  <spheroidEnergeticOutflowMassRate value="1.0e-2"/>
 
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
@@ -439,7 +420,6 @@
     </nodeOperator>
     <nodeOperator value="blackHolesAccretion"/>
     <nodeOperator value="blackHolesWinds"/>
-    <nodeOperator value="blackHolesCGMHeating"/>
     <!-- CGM physics -->
     <nodeOperator value="CGMAccretion">
       <allowNegativeCGMMass value="true"/>
@@ -447,6 +427,16 @@
     </nodeOperator>
     <nodeOperator value="CGMOutflowReincorporation">
       <includeSatellites value="true"/>
+    </nodeOperator>
+    <nodeOperator value="CGMCoolingHeating">
+      <component value="disk"/>
+      <coolingFrom value="currentNode"/>
+      <excessHeatDrivesOutflow value="true"/>
+      <rateMaximumExpulsion value="1.0"/>
+    </nodeOperator>
+    <nodeOperator value="CGMColdModeInflow">
+      <component value="disk"/>
+      <coolingFrom value="currentNode"/>
     </nodeOperator>
   </nodeOperator>
   
@@ -479,15 +469,6 @@
       <timeOffsetMaximumRelative value="0.001"/>
     </mergerTreeEvolveTimestep>
   </mergerTreeEvolveTimestep>
-  <diskMassToleranceAbsolute value="1.0e-6"/>
-  <spheroidMassToleranceAbsolute value="1.0e-6"/>
-  <diskLuminositiesStellarInactive value="true"/>
-  <spheroidLuminositiesStellarInactive value="true"/>
-
-  
-
-   
-  
   <elementsToTrack value="Fe"/>
   <mergerTreeOutputter value="standard">
     <outputReferences value="false"/>

@@ -11,7 +11,7 @@ jobs:
     env: 
       appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: tibdex/github-app-token@v2
         if: ${{ env.appid != '' }}
         id: generate-token
@@ -27,7 +27,7 @@ jobs:
           repo: cmbant/CAMB
       - name: Create Pull Request
         if: ${{ env.appid != '' }}
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
           commit-message: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
@@ -43,7 +43,7 @@ jobs:
     env: 
       appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: tibdex/github-app-token@v2
         if: ${{ env.appid != '' }}
         id: generate-token
@@ -59,7 +59,7 @@ jobs:
           repo: cmbant/forutils
       - name: Create Pull Request
         if: ${{ env.appid != '' }}
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
           commit-message: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
@@ -75,7 +75,7 @@ jobs:
     env: 
       appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: tibdex/github-app-token@v2
         if: ${{ env.appid != '' }}
         id: generate-token
@@ -92,7 +92,7 @@ jobs:
           tag: true
       - name: Create Pull Request
         if: ${{ env.appid != '' }}
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
           commit-message: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
@@ -108,7 +108,7 @@ jobs:
     env: 
       appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: tibdex/github-app-token@v2
         if: ${{ env.appid != '' }}
         id: generate-token
@@ -124,7 +124,7 @@ jobs:
           repo: cconroy20/fsps
       - name: Create Pull Request
         if: ${{ env.appid != '' }}
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
           commit-message: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
@@ -140,7 +140,7 @@ jobs:
     env: 
       appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: tibdex/github-app-token@v2
         if: ${{ env.appid != '' }}
         id: generate-token
@@ -162,7 +162,7 @@ jobs:
           echo "branch=cloudy" >> "$GITHUB_OUTPUT"
       - name: Create Pull Request
         if: ${{ env.appid != '' }}
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.branch }} to ${{ steps.depup.outputs.latest }}"
           commit-message: "fix(deps): update ${{ steps.depup.outputs.branch }} to ${{ steps.depup.outputs.latest }}"
@@ -178,7 +178,7 @@ jobs:
     env: 
       appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: tibdex/github-app-token@v2
         if: ${{ env.appid != '' }}
         id: generate-token
@@ -194,7 +194,7 @@ jobs:
           repo: galacticusorg/mangle
       - name: Create Pull Request
         if: ${{ env.appid != '' }}
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
           commit-message: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"

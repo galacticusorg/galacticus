@@ -3,8 +3,7 @@
 <!-- 23-November-2020                                           -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="d4bf2d8db876eb8e44d94e1672bc36a6ea8135cc" time="2025-09-03T18:23:58"/>
-
+  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
   
   <!-- Include parameters -->
   <xi:include href="progenitorMassFunctionParameters.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
@@ -34,7 +33,7 @@
     <!-- 1/5th of 300 times the particle mass - such that our resolution is well below any mass scale that we care about -->
     <massResolution value="=[simulation/massParticle/resolutionX1]*[resolution/progenitorHaloParticleCountMinimum]/5.0"/>
   </mergerTreeMassResolution>
-  
+
   <!-- Output options -->
   <outputFileName  value="BigMDPL.hdf5"/>
   <mergerTreeOutputter value="analyzer"/>

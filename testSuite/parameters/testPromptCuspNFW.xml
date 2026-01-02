@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!-- Compute prompt cusp parameters - used in testing the calculation again Sten Delos' implementation. -->
 <parameters>
-  <lastModified revision="96a67de3715f078c0f0967ff5c8d362a00fd6585" time="2025-09-15T16:15:01"/>
+  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
 
@@ -61,7 +61,8 @@
       <toleranceTopHat value="3.0e-4"/>
       <nonMonotonicIsFatal value="false"/>
       <monotonicInterpolation value="true"/>
-  </cosmologicalMassVariance></cosmologicalMassVariance>
+    </cosmologicalMassVariance>
+  </cosmologicalMassVariance>
   
   <powerSpectrumPrimordial value="powerLaw">
     <!-- Parameter value is from the Planck Collaboration (2020; A&A, 641, 10) -->
@@ -251,11 +252,11 @@
 	  <!--  specifically the "TT,TE,EE+lowE+lensing" results in Table 2          -->
 	  <sigma_8 value="0.8111"/>
 	  <tolerance value="1.0e-3"/>
-	  
 	  <toleranceTopHat value="3.0e-4"/>
 	  <nonMonotonicIsFatal value="false"/>
 	  <monotonicInterpolation value="true"/>
-      </cosmologicalMassVariance></cosmologicalMassVariance>
+	</cosmologicalMassVariance>	
+      </cosmologicalMassVariance>
       <powerSpectrumPrimordial value="powerLaw">
 	<!-- Parameter value is from the Planck Collaboration (2020; A&A, 641, 10) -->
 	<!--  specifically the "TT,TE,EE+lowE+lensing" results in Table 2          -->

@@ -540,11 +540,11 @@ $(BUILDPATH)/%.m : ./source/%.F90
 %.exe: $(BUILDPATH)/%.o $(BUILDPATH)/%.d `cat $(BUILDPATH)/$*.d` $(MAKE_DEPS)
 	./scripts/build/parameterDependencies.pl `pwd` $*.exe
 	$(FCCOMPILER) -c $(BUILDPATH)/$*.parameters.F90 -o $(BUILDPATH)/$*.parameters.o $(FCFLAGS)
-	@if echo "$(MAKEFLAGS)" | grep -q -P -- ' -j1( |$$)'; then \
+	@if echo "$(MAKEFLAGS)" | grep -q -E -- ' -j1( |$$)'; then \
 	 useLocks=no; \
-	elif echo "$(MAKEFLAGS)" | grep -q -P -- ' -j( |$$)'; then \
+	elif echo "$(MAKEFLAGS)" | grep -q -E -- ' -j( |$$)'; then \
 	 useLocks=$(LOCKMD5); \
-	elif echo "$(MAKEFLAGS)" | grep -q -P -- ' -j[0-9]+( |$$)'; then \
+	elif echo "$(MAKEFLAGS)" | grep -q -E -- ' -j[0-9]+( |$$)'; then \
 	 useLocks=$(LOCKMD5); \
 	else \
 	 useLocks=no; \
@@ -569,11 +569,11 @@ $(BUILDPATH)/libgalacticus.inc : $(BUILDPATH)/libgalacticus.p.Inc Makefile
 libgalacticus.so: $(BUILDPATH)/libgalacticus.o $(BUILDPATH)/libgalacticus_classes.d
 	./scripts/build/parameterDependencies.pl `pwd` libgalacticus.o
 	$(FCCOMPILER) -c $(BUILDPATH)/libgalacticus.parameters.F90 -o $(BUILDPATH)/libgalacticus.parameters.o $(FCFLAGS)
-	@if echo "$(MAKEFLAGS)" | grep -q -P -- ' -j1( |$$)'; then \
+	@if echo "$(MAKEFLAGS)" | grep -q -E -- ' -j1( |$$)'; then \
 	 useLocks=no; \
-	elif echo "$(MAKEFLAGS)" | grep -q -P -- ' -j( |$$)'; then \
+	elif echo "$(MAKEFLAGS)" | grep -q -E -- ' -j( |$$)'; then \
 	 useLocks=$(LOCKMD5); \
-	elif echo "$(MAKEFLAGS)" | grep -q -P -- ' -j[0-9]+( |$$)'; then \
+	elif echo "$(MAKEFLAGS)" | grep -q -E -- ' -j[0-9]+( |$$)'; then \
 	 useLocks=$(LOCKMD5); \
 	else \
 	 useLocks=no; \

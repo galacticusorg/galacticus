@@ -83,6 +83,11 @@
      module procedure stateRestoredConstructorInternal
   end interface mergerTreeConstructorStateRestored
 
+  interface mergerTreeStateFromFile
+    module procedure mergerTreeStateFromFileName
+    module procedure mergerTreeStateFromFileUnit
+  end interface mergerTreeStateFromFile
+  
 contains
 
   function stateRestoredConstructorParameters(parameters) result(self)
@@ -179,12 +184,14 @@ contains
     <unitName>mergerTreeStateStore</unitName>
     <type>void</type>
     <module>Galacticus_Nodes, only : mergerTree</module>
+    <module>ISO_C_Binding   , only : c_size_t  </module>
     <arguments>type     (mergerTree), intent(in   ), target   :: tree              </arguments>
     <arguments>character(len=*     ), intent(in   )           :: storeFile         </arguments>
+    <arguments>integer  (c_size_t  ), intent(in   ), optional :: indexOutput       </arguments>
     <arguments>logical              , intent(in   ), optional :: snapshot  , append</arguments>
   </functionGlobal>
   !!]
-  subroutine mergerTreeStateStore(tree,storeFile,snapshot,append)
+  subroutine mergerTreeStateStore(tree,storeFile,indexOutput,snapshot,append)
     !!{
     Store the complete internal state of a merger tree to file.
     !!}
@@ -197,6 +204,7 @@ contains
     implicit none
     type     (mergerTree                          ), intent(in   ), target       :: tree
     character(len=*                               ), intent(in   )               :: storeFile
+    integer  (c_size_t                            ), intent(in   ), optional     :: indexOutput
     logical                                        , intent(in   ), optional     :: snapshot         , append
     type     (mergerTree                          ), pointer                     :: treeCurrent
     type     (treeNode                            ), pointer                     :: node
@@ -224,11 +232,13 @@ contains
        open(newunit=fileUnit,file=trim(storeFile),status='unknown',form='unformatted'                )
     end if
     !$omp end critical (mergerTreeStateStore)
+    ! Store the output index if provided.
+    if (present(indexOutput)) write (fileUnit) indexOutput
     ! Count trees and check for events attached to trees.
     treeCount   =  0
     treeCurrent => tree
     do while (associated(treeCurrent))
-       if (associated(treeCurrent%event)) call Error_Report('tree events not current supported'//{introspection:location})
+       if (associated(treeCurrent%event)) call Error_Report('tree events not currently supported'//{introspection:location})
        treeCount   =  treeCount           +1
        treeCurrent => treeCurrent%nextTree
     end do
@@ -270,7 +280,7 @@ contains
        ! Indices.
        write (fileUnit) node%index(),node%uniqueID()
        ! Pointers to other nodes.
-       write (fileUnit)                                                      &
+       write (fileUnit)                                           &
             & nodeArrayPosition(node%parent        ,nodeIndices), &
             & nodeArrayPosition(node%firstChild    ,nodeIndices), &
             & nodeArrayPosition(node%sibling       ,nodeIndices), &
@@ -340,44 +350,46 @@ contains
 
   end subroutine mergerTreeStateStore
 
-  subroutine mergerTreeStateFromFile(tree,fileName,randomNumberGenerator_,mergerTreeSeeds_,deleteAfterRead)
+  subroutine mergerTreeStateFromFileUnit(tree,fileUnit,randomNumberGenerator_,mergerTreeSeeds_,status)
     !!{
-    Read the state of a merger tree from file.
+    Read the state of a merger tree from file given the file unit.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : Galacticus_Nodes_Unique_ID_Set, mergerTree  , nodeEvent, nodeEventBuildFromRaw, &
-          &                         treeNode                      , treeNodeList
-    use :: Kind_Numbers    , only : kind_int8
-    use :: String_Handling , only : operator(//)
+    use, intrinsic :: ISO_Fortran_Env , only : IOStat_End
+    use            :: Error           , only : Error_Report                  , errorStatusSuccess
+    use            :: Galacticus_Nodes, only : Galacticus_Nodes_Unique_ID_Set, mergerTree        , nodeEvent, nodeEventBuildFromRaw, &
+          &                                    treeNode                      , treeNodeList
+    use            :: Kind_Numbers    , only : kind_int8
+    use            :: String_Handling , only : operator(//)
     implicit none
     type     (mergerTree                ), intent(inout), target       :: tree
-    character(len=*                     ), intent(in   )               :: fileName
     class    (randomNumberGeneratorClass), intent(inout)               :: randomNumberGenerator_
     class    (mergerTreeSeedsClass      ), intent(inout)               :: mergerTreeSeeds_
-    logical                              , intent(in   ), optional     :: deleteAfterRead
-    integer                                                            :: treeUnit           , ioStatus
+    integer                              , intent(in   )               :: fileUnit
+    integer                              , intent(  out), optional     :: status
     type     (mergerTree                )               , pointer      :: treeCurrent
     type     (treeNodeList              ), allocatable  , dimension(:) :: nodes
     integer                              , allocatable  , dimension(:) :: nodeCountTree
-    class    (nodeEvent                 ), pointer                     :: event              , eventPrevious
-    integer                                                            :: fileStatus         , firstChildIndex   , firstMergeeIndex   , &
-         &                                                                firstSatelliteIndex, formationNodeIndex, iNode              , &
-         &                                                                mergeTargetIndex   , nodeArrayIndex    , nodeCount          , &
-         &                                                                parentIndex        , siblingIndex      , siblingMergeeIndex , &
-         &                                                                treeCount          , iTree             , iNodeTree          , &
-         &                                                                eventCount         , iEvent            , eventNodeIndex
-    integer  (kind_int8                 )                              :: nodeIndex          , nodeUniqueID      , nodeUniqueIDMaximum
+    class    (nodeEvent                 ), pointer                     :: event                 , eventPrevious
+    integer                                                            :: fileStatus            , firstChildIndex   , firstMergeeIndex   , &
+         &                                                                firstSatelliteIndex   , formationNodeIndex, iNode              , &
+         &                                                                mergeTargetIndex      , nodeArrayIndex    , nodeCount          , &
+         &                                                                parentIndex           , siblingIndex      , siblingMergeeIndex , &
+         &                                                                treeCount             , iTree             , iNodeTree          , &
+         &                                                                eventCount            , iEvent            , eventNodeIndex     , &
+         &                                                                status_
+    integer  (kind_int8                 )                              :: nodeIndex             , nodeUniqueID      , nodeUniqueIDMaximum
     type     (varying_string            )                              :: message
 
-    !![
-    <optionalArgument name="deleteAfterRead" defaultsTo=".false." />
-    !!]
-
-    ! Open the file.
-    open(newUnit=treeUnit,file=fileName,status='old',form='unformatted',iostat=ioStatus)
-    if (ioStatus /= 0) call Error_Report('unable to open file "'//trim(fileName)//'"'//{introspection:location})
+    if (present(status)) status=errorStatusSuccess
     ! Read number of trees.
-    read (treeUnit) treeCount
+    read (fileUnit,iostat=status_) treeCount
+    if (status_ /= 0) then
+       if (status_ == IOStat_End .and. present(status)) then
+          status=status_
+          return
+       end if
+       call Error_Report('failed to read forest from file'//{introspection:location})
+    end if
     ! Create trees
     if (treeCount > 1) then
        treeCurrent => tree
@@ -388,7 +400,7 @@ contains
     end if
     ! Read number of nodes.
     allocate(nodeCountTree(treeCount))
-    read (treeUnit) nodeCountTree
+    read (fileUnit) nodeCountTree
     nodeCount=sum(nodeCountTree)
     ! Allocate a list of nodes.
     allocate(nodes(nodeCount))
@@ -397,7 +409,7 @@ contains
     iNode       =  0
     do iTree=1,treeCount
        ! Read basic tree information.
-       read (treeUnit,iostat=fileStatus) treeCurrent%index,treeCurrent%volumeWeight,treeCurrent%initializedUntil,treeCurrent%isTreeInitialized,nodeArrayIndex
+       read (fileUnit,iostat=fileStatus) treeCurrent%index,treeCurrent%volumeWeight,treeCurrent%initializedUntil,treeCurrent%isTreeInitialized,nodeArrayIndex
        ! Create nodes.
        do iNodeTree=1,nodeCountTree(iTree)
           iNode             =  iNode                         +1
@@ -417,11 +429,11 @@ contains
     do iNode=1,nodeCount
        ! Read all node information.
        ! Indices.
-       read (treeUnit) nodeIndex,nodeUniqueID
+       read (fileUnit) nodeIndex,nodeUniqueID
        call nodes(iNode)%node%indexSet   (nodeIndex   )
        call nodes(iNode)%node%uniqueIDSet(nodeUniqueID)
        ! Pointers to other nodes.
-       read (treeUnit) parentIndex,firstChildIndex,siblingIndex,firstSatelliteIndex,mergeTargetIndex,firstMergeeIndex&
+       read (fileUnit) parentIndex,firstChildIndex,siblingIndex,firstSatelliteIndex,mergeTargetIndex,firstMergeeIndex&
             &,siblingMergeeIndex,formationNodeIndex
        nodes(iNode)%node%parent         => nodePointer(parentIndex        ,nodes)
        nodes(iNode)%node%firstChild     => nodePointer(firstChildIndex    ,nodes)
@@ -432,17 +444,17 @@ contains
        nodes(iNode)%node%siblingMergee  => nodePointer(siblingMergeeIndex ,nodes)
        nodes(iNode)%node%formationNode  => nodePointer(formationNodeIndex ,nodes)
        ! Read the node.
-       call nodes(iNode)%node%deserializeRaw(treeUnit)
+       call nodes(iNode)%node%deserializeRaw(fileUnit)
        ! Find the highest uniqueID.
        nodeUniqueIDMaximum=max(nodeUniqueIDMaximum,nodeUniqueID)
        ! Read any events attached to the node.
        eventPrevious => null()
-       read (treeUnit) eventCount
+       read (fileUnit) eventCount
        do iEvent=1,eventCount
           ! Build an event of the correct type from the file.
-          event => nodeEventBuildFromRaw(treeUnit)
+          event => nodeEventBuildFromRaw(fileUnit)
           ! Read and assign any node pointer that the event may have.
-          read (treeUnit) eventNodeIndex
+          read (fileUnit) eventNodeIndex
           event%node => nodePointer(eventNodeIndex,nodes)
           ! Link the event to the node.
           if (iEvent == 1) then
@@ -470,12 +482,6 @@ contains
     end do
     ! Destroy the list of nodes.
     deallocate(nodes)
-    ! Close the file.
-    if (deleteAfterRead_) then
-       close(treeUnit,status='delete')
-    else
-       close(treeUnit                )
-    end if
     ! Restart the random number sequence.
     allocate(tree%randomNumberGenerator_,mold=randomNumberGenerator_)
     !$omp critical(mergerTreeStateRestoreDeepCopyReset)
@@ -507,4 +513,36 @@ contains
       return
     end function nodePointer
 
-  end subroutine mergerTreeStateFromFile
+  end subroutine mergerTreeStateFromFileUnit
+
+  subroutine mergerTreeStateFromFileName(tree,fileName,randomNumberGenerator_,mergerTreeSeeds_,status,deleteAfterRead)
+    !!{
+    Read the state of a merger tree from file given a file name.
+    !!}
+    use :: Error           , only : Error_Report
+    use :: Galacticus_Nodes, only : mergerTree
+    implicit none
+    type     (mergerTree                ), intent(inout), target   :: tree
+    character(len=*                     ), intent(in   )           :: fileName
+    class    (randomNumberGeneratorClass), intent(inout)           :: randomNumberGenerator_
+    class    (mergerTreeSeedsClass      ), intent(inout)           :: mergerTreeSeeds_
+    integer                              , intent(  out), optional :: status
+    logical                              , intent(in   ), optional :: deleteAfterRead
+    integer                                                        :: fileUnit              , ioStatus
+    !![
+    <optionalArgument name="deleteAfterRead" defaultsTo=".false." />
+    !!]
+
+    ! Open the file.
+    open(newUnit=fileUnit,file=fileName,status='old',form='unformatted',iostat=ioStatus)
+    if (ioStatus /= 0) call Error_Report('unable to open file "'//trim(fileName)//'"'//{introspection:location})
+    ! Perform the read.
+    call mergerTreeStateFromFile(tree,fileUnit,randomNumberGenerator_,mergerTreeSeeds_,status)
+    ! Close the file.
+    if (deleteAfterRead_) then
+       close(fileUnit,status='delete')
+    else
+       close(fileUnit                )
+    end if
+    return
+  end subroutine mergerTreeStateFromFileName

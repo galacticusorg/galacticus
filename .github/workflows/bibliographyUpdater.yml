@@ -18,7 +18,7 @@ jobs:
       appid: ${{ secrets.DEPLOY_APP_ID }}
       adstoken: ${{ secrets.NASA_ADS_API_TOKEN }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: tibdex/github-app-token@v2
         if: ${{ env.appid != '' }}
         id: generate-token
@@ -38,7 +38,7 @@ jobs:
           ./scripts/aux/bibliographyUpdate.pl ${{ secrets.NASA_ADS_API_TOKEN }}
       - name: Create Pull Request
         if: ${{ ( env.appid != '' ) && ( env.adstoken != '' ) }}
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           title: "fix: Update bibliography records"
           commit-message: "fix: Update bibliography records"
