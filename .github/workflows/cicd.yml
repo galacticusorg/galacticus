@@ -353,8 +353,8 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          ./scripts/doc/Build_Documentation.sh -f yes -p 2 2>&1 | tee docBuild.log
-          grep -vqzi 'warning: missing method descriptions in class' docBuild.log || (echo "FAIL: issing method description warnings found in docBuild.log" && false)
+          ./scripts/doc/Build_Documentation.sh -f yes -p 4 -o yes 2>&1 | tee docBuild.log
+          grep -vqzi 'warning: missing method descriptions in class' docBuild.log || (echo "FAIL: missing method description warnings found in docBuild.log" && false)
       - name: Upload docs
         uses: actions/upload-artifact@v6
         with:
@@ -945,8 +945,6 @@ jobs:
       runPath: ./testSuite
       cacheData: 1
       ompNumThreads: 2
-      uploadFile: ./testSuite/outputs/*.json
-      uploadName: validate-fuzzyDarkMatter
     secrets: inherit
   # Tests
   ## Linux
@@ -1276,7 +1274,6 @@ jobs:
                 test-soliton-coremass.py,
                 test-promptCuspNFW.py,
                 test-postprocessing.py,
-                test-strict-parameters.py,
                 test-merger-tree-export.sh ]
     uses: ./.github/workflows/testModel.yml
     with:

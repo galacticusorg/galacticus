@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -57,7 +57,9 @@
      procedure :: surfaceDensity                          => cylindricalScalerSurfaceDensity
      procedure :: radiusHalfMass                          => cylindricalScalerRadiusHalfMass
      procedure :: massEnclosedBySphere                    => cylindricalScalerMassEnclosedBySphere
+     procedure :: massEnclosedByCylinder                  => cylindricalScalerMassEnclosedByCylinder
      procedure :: radiusEnclosingMass                     => cylindricalScalerRadiusEnclosingMass
+     procedure :: radiusCylindricalEnclosingMass          => cylindricalScalerRadiusCylindricalEnclosingMass
      procedure :: radiusEnclosingDensity                  => cylindricalScalerRadiusEnclosingDensity
      procedure :: radiusEnclosingSurfaceDensity           => cylindricalScalerRadiusEnclosingSurfaceDensity
      procedure :: potentialIsAnalytic                     => cylindricalScalerPotentialIsAnalytic
@@ -284,6 +286,23 @@ contains
     return
   end function cylindricalScalerMassEnclosedBySphere
 
+  double precision function cylindricalScalerMassEnclosedByCylinder(self,radius) result(mass)
+    !!{
+    Computes the mass enclosed within a cylinder of given {\normalfont \ttfamily radius} for a scaled cylindrical mass
+    distribution.
+    !!}
+    implicit none
+    class           (massDistributionCylindricalScaler), intent(inout), target :: self
+    double precision                                   , intent(in   )         :: radius
+
+    mass   =+self%massDistribution_%massEnclosedByCylinder(                           &
+         &                                                 +     radius               &
+         &                                                 /self%factorScalingLength  &
+         &                                                )                           &
+         &  *self                  %factorScalingMass
+    return
+  end function cylindricalScalerMassEnclosedByCylinder
+
   double precision function cylindricalScalerRadiusEnclosingMass(self,mass,massFractional) result(radius)
     !!{
     Computes the radius enclosing a given mass or mass fraction for cylindrically-scaled mass distributions.
@@ -301,6 +320,24 @@ contains
     end if
     return
   end function cylindricalScalerRadiusEnclosingMass
+
+  double precision function cylindricalScalerRadiusCylindricalEnclosingMass(self,mass,massFractional) result(radius)
+    !!{
+    Computes the radius enclosing a given mass or mass fraction for cylindrically-scaled mass distributions.
+    !!}    
+    implicit none
+    class           (massDistributionCylindricalScaler), intent(inout), target   :: self
+    double precision                                   , intent(in   ), optional :: mass, massFractional
+
+    if (present(mass)) then
+       radius=+self%massDistribution_%radiusCylindricalEnclosingMass(mass/self%factorScalingMass,massFractional) &
+            & *self                  %factorScalingLength
+    else
+       radius=+self%massDistribution_%radiusCylindricalEnclosingMass(mass                       ,massFractional) &
+            & *self                  %factorScalingLength
+    end if
+    return
+  end function cylindricalScalerRadiusCylindricalEnclosingMass
 
   double precision function cylindricalScalerRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
     !!{

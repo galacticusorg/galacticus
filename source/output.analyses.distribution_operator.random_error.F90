@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -34,6 +34,7 @@ Implements a random error output analysis distribution operator class.
      A random error output distribution operator class.
      !!}
      private
+     type(outputAnalysisDistributionOperatorIdentity) :: identity=outputAnalysisDistributionOperatorIdentity()
    contains
      !![
      <methods>
@@ -75,18 +76,23 @@ contains
     !$GLC attributes unused :: outputIndex, propertyType
 
     rootVariance=self%rootVariance(propertyValue,node)
-    if     (                               &
-         &   propertyValue == +huge(0.0d0) &
-         &  .or.                           &
-         &   propertyValue == -huge(0.0d0) &
-         & ) then
-       randomErrorOperateScalar=+0.0d0
+    if (rootVariance > 0.0d0) then
+       if     (                               &
+            &   propertyValue == +huge(0.0d0) &
+            &  .or.                           &
+            &   propertyValue == -huge(0.0d0) &
+            & ) then
+          randomErrorOperateScalar=+0.0d0
+       else
+          randomErrorOperateScalar=+0.5d0                                                                &
+               &                   *(                                                                    &
+               &                     +erf((propertyValueMaximum-propertyValue)/rootVariance/sqrt(2.0d0)) &
+               &                     -erf((propertyValueMinimum-propertyValue)/rootVariance/sqrt(2.0d0)) &
+               &                    )
+       end if
     else
-       randomErrorOperateScalar=+0.5d0                                                                &
-            &                   *(                                                                    &
-            &                     +erf((propertyValueMaximum-propertyValue)/rootVariance/sqrt(2.0d0)) &
-            &                     -erf((propertyValueMinimum-propertyValue)/rootVariance/sqrt(2.0d0)) &
-            &                    )
+       ! Zero variance - treat as an identity operator.
+       randomErrorOperateScalar=self%identity%operateScalar(propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
     end if
     return
   end function randomErrorOperateScalar

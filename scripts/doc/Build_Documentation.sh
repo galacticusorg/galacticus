@@ -9,9 +9,10 @@ FORCE=yes
 SUFFIX=
 DIR=./work/build/
 CLEAN=no
+OPTIMIZE=no
 
 # Get options.
-while getopts ":p:f:d:s:c:" option; do
+while getopts ":p:f:d:s:c:o:" option; do
 case "${option}"
 in
 f) FORCE=${OPTARG};;
@@ -19,6 +20,7 @@ p) PPN=${OPTARG};;
 d) DIR=${OPTARG};;
 s) SUFFIX=${OPTARG};;
 c) CLEAN=${OPTARG};;
+o) OPTIMIZE=${OPTARG};;
 \?) echo "Invalid option: $OPTARG";;
 :) echo "Invalid option: $OPTARG requires an argument";;
 esac
@@ -39,6 +41,12 @@ make -j$PPN GALACTICUS_BUILD_DOCS=yes SUFFIX=$SUFFIX BUILDPATH=$DIR all
 if [ $? -ne 0 ]; then
  echo Failed to build all executables
  exit 1
+fi
+
+# Optimize storage if requested.
+if [ "$OPTIMIZE" = "yes" ]; then
+    rm -f $DIR/*.o $DIR/*.md5.blob
+    rm -f *.exe$SUFFIX
 fi
 
 # Extract source code data.
@@ -110,6 +118,7 @@ for type in "Usage" "Physics" "Development" "Source"; do
 	    bibtex Galacticus_$type
 	fi
 	if [ $? -ne 0 ]; then
+	    pdflatex Galacticus_$type | grep -v -i -e overfull -e underfull | sed -r /'^$'/d | sed -r /'\[[0-9]*\]'/d
 	    bibtex Galacticus_$type
 	    echo bibtex failed
 	    exit 1
@@ -122,6 +131,7 @@ for type in "Usage" "Physics" "Development" "Source"; do
 	    makeindex Galacticus_$type
 	fi
 	if [ $? -ne 0 ]; then
+	    pdflatex Galacticus_$type | grep -v -i -e overfull -e underfull | sed -r /'^$'/d | sed -r /'\[[0-9]*\]'/d
 	    makeindex Galacticus_$type
 	    echo makeindex failed for main index
 	    exit 1
@@ -134,6 +144,7 @@ for type in "Usage" "Physics" "Development" "Source"; do
 	    makeglossaries Galacticus_$type
 	fi
 	if [ $? -ne 0 ]; then
+	    pdflatex Galacticus_$type | grep -v -i -e overfull -e underfull | sed -r /'^$'/d | sed -r /'\[[0-9]*\]'/d
 	    makeglossaries Galacticus_$type
 	    echo make glossaries failed
 	    exit 1
@@ -148,7 +159,7 @@ done
 if [ "$CLEAN" = "yes" ]; then
     cd ..
     rm -rf $DIR
-    rm *.exe$SUFFIX
+    rm -f *.exe$SUFFIX
 fi
 
 exit 0

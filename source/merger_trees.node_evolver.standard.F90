@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -545,7 +545,11 @@ contains
           self%propertyValuesActiveSaved  (1:self%propertyCountActive  )=self%propertyValuesActive  (1:self%propertyCountActive  )
           self%propertyValuesInactiveSaved(1:self%propertyCountInactive)=self%propertyValuesInactive(1:self%propertyCountInactive)
           ! Find properties that must be non-negative.
-          if (self%enforceNonNegativity) call node%serializeNonNegative(self%isNonNegative)
+          if (self%enforceNonNegativity) then
+             call node%serializeNonNegative(self%isNonNegative)
+          else
+             self%isNonNegative=.false.
+          end if
           ! Compute scales for all properties and extract from the node.
           call node%odeStepScalesInitialize()
           !![

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -34,14 +34,15 @@
      double precision :: densityNormalization, mass, &
           &              scaleLength
    contains
-     procedure :: massTotal             => hernquistMassTotal
-     procedure :: density               => hernquistDensity
-     procedure :: densityGradientRadial => hernquistDensityGradientRadial
-     procedure :: densityRadialMoment   => hernquistDensityRadialMoment
-     procedure :: massEnclosedBySphere  => hernquistMassEnclosedBySphere
-     procedure :: potentialIsAnalytic   => hernquistPotentialIsAnalytic
-     procedure :: potential             => hernquistPotential
-     procedure :: radiusHalfMass        => hernquistRadiusHalfMass
+     procedure :: massTotal              => hernquistMassTotal
+     procedure :: density                => hernquistDensity
+     procedure :: densityGradientRadial  => hernquistDensityGradientRadial
+     procedure :: densityRadialMoment    => hernquistDensityRadialMoment
+     procedure :: massEnclosedBySphere   => hernquistMassEnclosedBySphere
+     procedure :: massEnclosedByCylinder => hernquistMassEnclosedByCylinder
+     procedure :: potentialIsAnalytic    => hernquistPotentialIsAnalytic
+     procedure :: potential              => hernquistPotential
+     procedure :: radiusHalfMass         => hernquistRadiusHalfMass
   end type massDistributionHernquist
 
   interface massDistributionHernquist
@@ -298,6 +299,54 @@ contains
     end if
     return
   end function hernquistMassEnclosedBySphere
+
+  double precision function hernquistMassEnclosedByCylinder(self,radius) result(mass)
+    !!{
+    Computes the mass enclosed within a cylinder of given {\normalfont \ttfamily radius} for Hernquist mass distributions.
+    !!}
+    implicit none
+    class           (massDistributionHernquist), intent(inout), target :: self
+    double precision                           , intent(in   )         :: radius
+    double precision                           , parameter             :: fractionalRadiusLarge=1.0d6
+    double precision                                                   :: fractionalRadius           , X
+
+    fractionalRadius=+     radius      &
+         &           /self%scaleLength
+    if (fractionalRadius > fractionalRadiusLarge) then
+       ! For very large radius approximate the mass enclosed as the total mass.
+       mass=self%mass
+    else
+       ! Use the analytic result - equation (37) of Hernquist (1990).
+       if      (fractionalRadius <= 0.0d0) then
+          mass      =+0.0d0
+       else if (fractionalRadius == 1.0d0) then
+          mass      =+self%mass                                 &
+               &     /3.0d0
+       else
+          if (fractionalRadius >  1.0d0) then
+             X      =+acos(                                     &
+                  &        +1.0d0                               &
+                  &        /fractionalRadius                    &
+                  &       )                                     &
+                  &  /sqrt(-1.0d0+fractionalRadius**2)
+          else
+             X      =+log   (                                   &
+                  &          +(                                 &
+                  &            +1.0d0                           &
+                  &            +sqrt(1.0d0-fractionalRadius**2) &
+                  &           )                                 &
+                  &          /fractionalRadius                  &
+                  &         )                                   &
+                  &  /sqrt(+1.0d0-fractionalRadius**2)
+          end if
+          mass   =+self%mass                    &
+               &  *        fractionalRadius**2  &
+               &  *(-1.0d0+X                  ) &
+               &  /(+1.0d0-fractionalRadius**2)
+       end if
+    end if
+    return
+  end function hernquistMassEnclosedByCylinder
 
   logical function hernquistPotentialIsAnalytic(self) result(isAnalytic)
     !!{

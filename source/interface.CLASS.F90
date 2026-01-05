@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -136,8 +136,7 @@ contains
     !!}
     use               :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsLittleH
     use               :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make     , File_Exists   , File_Lock     , &
-         &                                                        File_Path                   , File_Remove        , File_Unlock   , lockDescriptor, &
-         &                                                        Directory_Remove
+         &                                                        File_Path                   , File_Remove        , File_Unlock   , lockDescriptor
     use               :: Error                           , only : Error_Report
     use               :: Input_Paths                     , only : inputPath                   , pathTypeDataDynamic
     use               :: HDF5                            , only : hsize_t
@@ -175,21 +174,14 @@ contains
     type            (varying_string          ), allocatable  , dimension(:    ) :: datasetNames
     integer         (hsize_t                 ), parameter                       :: chunkSize                   =100_hsize_t
     type            (lockDescriptor          )                                  :: fileLock
-    character       (len=255                 )                                  :: hostName                                , classTransferLine
-    type            (varying_string          )                                  :: classVersion                            , parameterFile           , &
-         &                                                                         classPath
-    double precision                                                            :: wavenumberCLASS
-    integer                                                                     :: status                                  , classParameterFile      , &
-         &                                                                         i                                       , classTransferFile       , &
-         &                                                                         j                                       , countRedshiftsUnique
-    integer         (c_size_t                )                                  :: countWavenumber
+    integer                                                                     :: i                                       , j                       , &
+         &                                                                         countRedshiftsUnique
     type            (hdf5Object              )                                  :: classOutput                             , parametersGroup         , &
          &                                                                         extrapolationWavenumberGroup            , extrapolationGroup      , &
          &                                                                         speciesGroup
     character       (len=32                  )                                  :: parameterLabel                          , datasetName             , &
          &                                                                         redshiftLabel
-    type            (varying_string          )                                  :: uniqueLabel                             , workPath                , &
-         &                                                                         transferFileName                        , fileName_
+    type            (varying_string          )                                  :: uniqueLabel                             , fileName_
     type            (inputParameters         )                                  :: descriptor
     logical                                                                     :: allEpochsFound
     !![
@@ -256,7 +248,7 @@ contains
        !$ call hdf5Access%unset()
     end if
     if (.not.allocated(wavenumbers) .or. wavenumberRequired > wavenumbers(size(wavenumbers)) .or. .not.allEpochsFound) then
-       ! If the wavenumber if out of range, or if not all requested epochs exist within the file, recompute the CLASS transfer function.
+       ! If the wavenumber is out of range, or if not all requested epochs exist within the file, recompute the CLASS transfer function.
        ! Find all existing epochs in the file, create a union of these and the requested epochs.
        if (File_Exists(fileName_)) then
           !$ call hdf5Access%set()
@@ -296,106 +288,8 @@ contains
              i=i+1
           end if
        end do
-       ! Ensure CLASS is initialized.
-       call Interface_CLASS_Initialize(classPath,classVersion)
-       ! Determine maximum wavenumber.
-       wavenumberCLASS=exp(max(log(wavenumberRequired)+1.0d0,classLogWavenumberMaximumDefault))
-       if (wavenumberCLASS > wavenumberMaximum) then
-          wavenumberCLASS=wavenumberMaximum
-          if (present(wavenumberMaximumReached)) wavenumberMaximumReached=.true.
-       end if
-       if (allocated(wavenumbers)) wavenumberCLASS=max(wavenumberCLASS,wavenumbers(size(wavenumbers)))
-       ! Construct input file for CLASS.
-       call Get_Environment_Variable('HOSTNAME',hostName)
-       workPath     =inputPath(pathTypeDataDynamic)//'largeScaleStructure/class_transfer_function_'//trim(hostName)//'_'//GetPID()
-       !$ workPath     =workPath     //'_'//OMP_Get_Thread_Num()
-       !$ parameterFile=parameterFile//'_'//OMP_Get_Thread_Num()
-#ifdef USEMPI
-       workPath        =workPath     //'_'//mpiSelf%rankLabel()
-#endif
-       parameterFile=workPath//'/parameters.ini'
-       call Directory_Make(workPath)
-       open(newunit=classParameterFile,file=char(parameterFile),status='unknown',form='formatted')
-       write        (classParameterFile,'(a,1x,"=",1x,a,a  )') 'root               ',char(workPath),'/output'
-       write        (classParameterFile,'(a,1x,"=",1x,a    )') 'overwrite_root     ','yes'
-       write        (classParameterFile,'(a,1x,"=",1x,a    )') 'headers            ','yes'
-       write        (classParameterFile,'(a,1x,"=",1x,a    )') 'format             ','class'
-       write        (classParameterFile,'(a,1x,"=",1x,a    )') 'output             ','mTk'
-       write        (classParameterFile,'(a,1x,"=",1x,a    )') 'modes              ','s'
-       write        (classParameterFile,'(a,1x,"=",1x,a    )') 'ic                 ','ad'
-       write        (classParameterFile,'(a,1x,"=",1x,e12.6)') 'h                  ',                                                                                     cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
-       write        (classParameterFile,'(a,1x,"=",1x,e12.6)') 'T_cmb              ',       cosmologyParameters_%temperatureCMB()
-       write        (classParameterFile,'(a,1x,"=",1x,e12.6)') 'omega_b            ',(      cosmologyParameters_%OmegaBaryon   ()                                       )*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2
-       write        (classParameterFile,'(a,1x,"=",1x,e12.6)') 'omega_cdm          ',(      cosmologyParameters_%OmegaMatter   ()-cosmologyParameters_%OmegaBaryon    ())*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2
-       write        (classParameterFile,'(a,1x,"=",1x,e12.6)') 'Omega_k            ',(1.0d0-cosmologyParameters_%OmegaMatter   ()-cosmologyParameters_%OmegaDarkEnergy())*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2
-       write        (classParameterFile,'(a,1x,"=",1x,e12.6)') 'N_ur               ',3.044d0
-       write        (classParameterFile,'(a,1x,"=",1x,e12.6)') 'YHe                ',heliumByMassPrimordial
-       write        (classParameterFile,'(a,1x,"=",1x,e12.6)') 'P_k_max_1/Mpc      ',wavenumberCLASS
-       if (countPerDecade_ > 0) &
-            & write (classParameterFile,'(a,1x,"=",1x,i3   )') 'k_per_decade_for_pk',countPerDecade_
-       write        (classParameterFile,'(a,1x,"=",$       )') 'z_pk               '
-       do i=countRedshiftsUnique,1,-1
-          write     (classParameterFile,'(1x,a,$           )') trim(adjustl(redshiftLabelsCombined(i)))
-          if (i > 1 ) write (classParameterFile,'(",",$)')
-       end do
-       write        (classParameterFile,'(a)'                ) ''
-       close(classParameterFile)
-       ! Run CLASS.
-       call System_Command_Do(classPath//"class "//parameterFile)
-       ! Read the CLASS transfer function file.
-       if (allocated(wavenumbers      )) deallocate(wavenumbers      )
-       if (allocated(transferFunctions)) deallocate(transferFunctions)
-       allocate(wavenumbers      (0    ))
-       allocate(transferFunctions(0,0,0))
-       countWavenumber=0
-       do j=1,countRedshiftsUnique
-          if (countRedshiftsUnique > 1) then
-             transferFileName=workPath//'/output_z'//j//'_tk.dat'
-          else
-             transferFileName=workPath//'/output_tk.dat'
-          end if
-          if (j == 1) then
-             countWavenumber=Count_Lines_In_File(transferFileName,"#")
-             if (allocated(wavenumbers      )) deallocate(wavenumbers      )
-             if (allocated(transferFunctions)) deallocate(transferFunctions)
-             allocate(wavenumbers      (countWavenumber                       ))
-             allocate(transferFunctions(countWavenumber,3,countRedshiftsUnique))
-          end if
-          open(newunit=classTransferFile,file=char(transferFileName),status='old',form='formatted')
-          i=0
-          do while (i < countWavenumber)
-             read (classTransferFile,'(a)',iostat=status) classTransferLine
-             if (status == 0) then
-                if (classTransferLine(1:1) /= "#") then
-                   i=i+1
-                   read (classTransferLine,*) wavenumbers(i),transferFunctions(i,classSpeciesPhotons%ID,j),transferFunctions(i,classSpeciesBaryons%ID,j),transferFunctions(i,classSpeciesDarkMatter%ID,j)
-                end if
-             else
-                call Error_Report('unable to read CLASS transfer function file'//{introspection:location})
-             end if
-          end do
-          close(classTransferFile)
-       end do
-       ! Remove temporary files.
-       call File_Remove(parameterFile)
-       do i=1,countRedshiftsUnique
-           if (countRedshiftsUnique > 1) then
-             transferFileName=workPath//'/output_z'//j//'_tk.dat'
-          else
-             transferFileName=workPath//'/output_tk.dat'
-          end if
-          call File_Remove(transferFileName)
-       end do
-       call Directory_Remove(workPath)
-       ! Convert from CLASS units to Galacticus units.
-       wavenumbers=+wavenumbers                                                   &
-            &      *cosmologyParameters_%HubbleConstant(units=hubbleUnitsLittleH)
-       ! Convert transfer functions to standard form.
-       do i=1,3
-          do j=1,countRedshiftsUnique
-             transferFunctions(:,i,j)=-transferFunctions(:,i,j)/wavenumbers**2
-          end do
-       end do
+       ! Run CLASS to get transfer functions.
+       call Interface_CLASS_Run(cosmologyParameters_,redshiftsCombined,wavenumberRequired,wavenumberMaximum,countPerDecade,wavenumberMaximumReached,wavenumbers,transferFunctions)
        ! Construct the output HDF5 file.
        !$ call hdf5Access%set()
        classOutput=hdf5Object(char(fileName_),objectsOverwritable=.true.)
@@ -484,40 +378,26 @@ contains
     !!{
     Run CLASS to compute the ratio $\sigma_8^2/A_s$.
     !!}
-    use               :: Cosmology_Parameters            , only : cosmologyParametersClass, hubbleUnitsLittleH
-    use               :: File_Utilities                  , only : Directory_Remove        , Directory_Make     , File_Exists , File_Lock     , &
-         &                                                        File_Path               , File_Remove        , File_Unlock , lockDescriptor
-    use               :: Error                           , only : Error_Report
+    use               :: Cosmology_Parameters            , only : cosmologyParametersClass
+    use               :: File_Utilities                  , only : Directory_Make          , File_Exists       , File_Lock     , File_Unlock, &
+         &                                                        File_Path               , lockDescriptor
     use               :: Input_Paths                     , only : inputPath               , pathTypeDataDynamic
     use               :: Hashes_Cryptographic            , only : Hash_MD5
     use               :: HDF5_Access                     , only : hdf5Access
     use               :: IO_HDF5                         , only : hdf5Object
+    use               :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
     use   , intrinsic :: ISO_C_Binding                   , only : c_size_t
     use               :: ISO_Varying_String              , only : varying_string          , char               , operator(//)
     use               :: Input_Parameters                , only : inputParameters
-#ifdef USEMPI
-    use               :: MPI_Utilities                   , only : mpiSelf
-#endif
-    use               :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
-    !$ use            :: OMP_Lib                         , only : OMP_Get_Thread_Num
     use               :: String_Handling                 , only : String_C_To_Fortran     , operator(//)
     use               :: System_Command                  , only : System_Command_Do
     implicit none
-    class           (cosmologyParametersClass), intent(inout)                   :: cosmologyParameters_
-    double precision                          , parameter                       :: normalizationAs     =1.0d-9
-    type            (lockDescriptor          )                                  :: fileLock
-    character       (len=255                 )                                  :: hostName
-    type            (varying_string          )                                  :: classVersion               , parameterFile     , &
-         &                                                                         classPath
-    double precision                                                            :: sigma8
-    integer                                                                     :: status                     , classParameterFile, &
-         &                                                                         classLog, offset
-    type            (hdf5Object              )                                  :: classOutput
-    character       (len=32                  )                                  :: line, parameterLabel
-    type            (varying_string          )                                  :: uniqueLabel                , workPath          , &
-         &                                                                         fileName
-    type            (inputParameters         )                                  :: descriptor
-    logical :: found
+    class    (cosmologyParametersClass), intent(inout)                   :: cosmologyParameters_
+    type     (lockDescriptor          )                                  :: fileLock
+    type     (hdf5Object              )                                  :: classOutput
+    character(len=32                  )                                  :: parameterLabel
+    type     (varying_string          )                                  :: uniqueLabel                , fileName
+    type     (inputParameters         )                                  :: descriptor
   
     ! Get a constructor descriptor for this object.
     descriptor=inputParameters()
@@ -546,40 +426,144 @@ contains
        call    classOutput%readAttribute('normalization',normalization)      
        !$ call hdf5Access %unset        (                             )
     else
-       ! Ensure CLASS is initialized.
-       call Interface_CLASS_Initialize(classPath,classVersion)
-       ! Construct input file for CLASS.
-       call Get_Environment_Variable('HOSTNAME',hostName)
-       workPath        =inputPath(pathTypeDataDynamic)//'largeScaleStructure/class_normalization_'//trim(hostName)//'_'//GetPID()
-       !$ workPath     =workPath     //'_'//OMP_Get_Thread_Num()
-       !$ parameterFile=parameterFile//'_'//OMP_Get_Thread_Num()
+       ! Run CLASS to compute the normalization.
+       call Interface_CLASS_Run(cosmologyParameters_,ratioSigma8SquaredAs=normalization)
+       ! Construct the output HDF5 file.
+       !$ call hdf5Access %set           (                              )
+       classOutput=hdf5Object(char(fileName),objectsOverwritable=.true.)
+       call    classOutput%writeAttribute(normalization ,'normalization')
+       !$ call hdf5Access %unset         (                              )
+    end if
+    ! Unlock the file.
+    call File_Unlock(fileLock)
+    return
+  end function Interface_CLASS_Normalization
+
+  subroutine Interface_CLASS_Run(cosmologyParameters_,redshifts,wavenumberRequired,wavenumberMaximum,countPerDecade,wavenumberMaximumReached,wavenumbers,transferFunctions,ratioSigma8SquaredAs)
+    !!{
+    Run CLASS and extract required information.
+    !!}
 #ifdef USEMPI
-       workPath        =workPath     //'_'//mpiSelf%rankLabel()
+    use               :: MPI_Utilities                   , only : mpiSelf
 #endif
-       parameterFile=workPath//'/parameters.ini'
-       call Directory_Make(workPath)
-       open(newunit=classParameterFile,file=char(parameterFile),status='unknown',form='formatted')
-       write (classParameterFile,'(a,1x,"=",1x,a,a  )') 'root            ',char(workPath),'/output'
-       write (classParameterFile,'(a,1x,"=",1x,a    )') 'overwrite_root  ','yes'
-       write (classParameterFile,'(a,1x,"=",1x,a    )') 'headers         ','yes'
-       write (classParameterFile,'(a,1x,"=",1x,a    )') 'format          ','class'
-       write (classParameterFile,'(a,1x,"=",1x,a    )') 'output          ','mPk'
-       write (classParameterFile,'(a,1x,"=",1x,a    )') 'modes           ','s'
-       write (classParameterFile,'(a,1x,"=",1x,a    )') 'ic              ','ad'
-       write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'h               ',                                                                                     cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
-       write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'T_cmb           ',       cosmologyParameters_%temperatureCMB()
-       write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'omega_b         ',(      cosmologyParameters_%OmegaBaryon   ()                                       )*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2
-       write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'omega_cdm       ',(      cosmologyParameters_%OmegaMatter   ()-cosmologyParameters_%OmegaBaryon    ())*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2
-       write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'Omega_k         ',(1.0d0-cosmologyParameters_%OmegaMatter   ()-cosmologyParameters_%OmegaDarkEnergy())*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2
-       write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'N_ur            ',3.044d+0
-       write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'YHe             ',heliumByMassPrimordial
-       write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'A_s             ',normalizationAs
-       write (classParameterFile,'(a,1x,"=",1x,i1   )') 'fourier_verbose ',1
-       write (classParameterFile,'(a)'                ) ''
-       close(classParameterFile)
-       ! Run CLASS.
-       call System_Command_Do(classPath//"class "//parameterFile//" > "//workPath//"/class.log")
-       ! Read the CLASS output.
+    !$ use            :: OMP_Lib                         , only : OMP_Get_Thread_Num
+    use               :: Cosmology_Parameters            , only : cosmologyParametersClass, hubbleUnitsLittleH
+    use               :: Error                           , only : Error_Report
+    use               :: File_Utilities                  , only : Directory_Make          , File_Remove        , Directory_Remove, Count_Lines_In_File
+    use               :: Input_Paths                     , only : inputPath               , pathTypeDataDynamic
+    use   , intrinsic :: ISO_C_Binding                   , only : c_size_t
+    use               :: ISO_Varying_String              , only : varying_string          , char               , operator(//)
+    use               :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
+    use               :: Sorting                         , only : sortIndex
+    use               :: String_Handling                 , only : operator(//)
+    use               :: System_Command                  , only : System_Command_Do
+    implicit none
+    class           (cosmologyParametersClass), intent(inout)                                          :: cosmologyParameters_
+    double precision                          , intent(in   ), optional, dimension(:    )              :: redshifts
+    double precision                          , intent(in   ), optional                                :: wavenumberRequired               , wavenumberMaximum
+    integer                                   , intent(in   ), optional                                :: countPerDecade
+    logical                                   , intent(inout), optional                                :: wavenumberMaximumReached
+    double precision                          , intent(inout), optional, dimension(:    ), allocatable :: wavenumbers
+    double precision                          , intent(inout), optional, dimension(:,:,:), allocatable :: transferFunctions
+    double precision                          , intent(  out), optional                                :: ratioSigma8SquaredAs
+    double precision                          , parameter                                              :: normalizationAs           =1.0d-9
+    integer         (c_size_t                ), allocatable            , dimension(:    )              :: redshiftRanks
+    character       (len= 9                  ), allocatable            , dimension(:    )              :: redshiftLabels
+    character       (len=255                 )                                                         :: hostName                         , classTransferLine
+    character       (len= 32                 )                                                         :: line                             , outputs
+    integer         (c_size_t                )                                                         :: countWavenumber
+    integer                                                                                            :: classParameterFile               , classLog               , &
+         &                                                                                                offset                           , status                 , &
+         &                                                                                                classTransferFile                , i                      , &
+         &                                                                                                j
+    type            (varying_string          )                                                         :: classVersion                     , parameterFile          , &
+         &                                                                                                classPath                        , workPath               , &
+         &                                                                                                transferFileName
+    logical                                                                                            :: found                            , haveTransferFunctions  , &
+         &                                                                                                haveNormalization
+    double precision                                                                                   :: sigma8                           , wavenumberCLASS
+    !![
+    <optionalArgument name="countPerDecade" defaultsTo="0"/>
+    !!]
+
+    ! Ensure CLASS is initialized.
+    call Interface_CLASS_Initialize(classPath,classVersion)
+    ! Determine the types of output needed.
+    outputs=''
+    haveNormalization=present(ratioSigma8SquaredAs)
+    if (haveNormalization) then
+       outputs=trim(outputs)//' mPk'
+    end if
+    haveTransferFunctions=present(transferFunctions)
+    if (haveTransferFunctions) then
+       outputs=trim(outputs)//' mTk'
+       if (.not.present(redshifts         )) call Error_Report('`redshifts` is required for transfer function calculation'         //{introspection:location})
+       if (.not.present(wavenumberRequired)) call Error_Report('`wavenumberRequired` is required for transfer function calculation'//{introspection:location})
+       if (.not.present(wavenumberMaximum )) call Error_Report('`wavenumberMaximum` is required for transfer function calculation' //{introspection:location})
+       if (.not.present(wavenumbers       )) call Error_Report('`wavenumbers` is required for transfer function calculation'       //{introspection:location})
+    end if
+    if (trim(outputs) == 'no outputs added') call Error_Report(''//{introspection:location})
+    ! Determine maximum wavenumber.
+    if (haveTransferFunctions) then
+       wavenumberCLASS=exp(max(log(wavenumberRequired)+1.0d0,classLogWavenumberMaximumDefault))
+       if (wavenumberCLASS > wavenumberMaximum) then
+          wavenumberCLASS=wavenumberMaximum
+          if (present(wavenumberMaximumReached)) wavenumberMaximumReached=.true.
+       end if
+       if (allocated(wavenumbers)) wavenumberCLASS=max(wavenumberCLASS,wavenumbers(size(wavenumbers)))
+    end if
+    ! Generate redshift labels.
+    if (haveTransferFunctions) then
+       allocate(redshiftRanks (size(redshifts)))
+       allocate(redshiftLabels(size(redshifts)))
+       redshiftRanks=sortIndex(redshifts)
+       do i=1,size(redshifts)
+          write (redshiftLabels(i),'(f9.4)') redshifts(redshiftRanks(i))
+       end do
+    end if
+    ! Construct input file for CLASS.
+    call Get_Environment_Variable('HOSTNAME',hostName)
+    workPath        =inputPath(pathTypeDataDynamic)//'largeScaleStructure/class_work_'//trim(hostName)//'_'//GetPID()
+    !$ workPath     =workPath     //'_'//OMP_Get_Thread_Num()
+    !$ parameterFile=parameterFile//'_'//OMP_Get_Thread_Num()
+#ifdef USEMPI
+    workPath        =workPath     //'_'//mpiSelf%rankLabel()
+#endif
+    parameterFile=workPath//'/parameters.ini'
+    call Directory_Make(workPath)
+    open(newunit=classParameterFile,file=char(parameterFile),status='unknown',form='formatted')
+    write (classParameterFile,'(a,1x,"=",1x,a,a  )') 'root            ',char(workPath),'/output'
+    write (classParameterFile,'(a,1x,"=",1x,a    )') 'overwrite_root  ','yes'
+    write (classParameterFile,'(a,1x,"=",1x,a    )') 'headers         ','yes'
+    write (classParameterFile,'(a,1x,"=",1x,a    )') 'format          ','class'
+    write (classParameterFile,'(a,1x,"=",1x,a    )') 'output          ',trim(adjustl(outputs))
+    write (classParameterFile,'(a,1x,"=",1x,a    )') 'modes           ','s'
+    write (classParameterFile,'(a,1x,"=",1x,a    )') 'ic              ','ad'
+    write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'h               ',                                                                                     cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
+    write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'T_cmb           ',       cosmologyParameters_%temperatureCMB()
+    write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'omega_b         ',(      cosmologyParameters_%OmegaBaryon   ()                                       )*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2
+    write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'omega_cdm       ',(      cosmologyParameters_%OmegaMatter   ()-cosmologyParameters_%OmegaBaryon    ())*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2
+    write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'Omega_k         ',(1.0d0-cosmologyParameters_%OmegaMatter   ()-cosmologyParameters_%OmegaDarkEnergy())*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2
+    write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'N_ur            ',3.044d+0
+    write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'YHe             ',heliumByMassPrimordial
+    write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'A_s             ',normalizationAs
+    write (classParameterFile,'(a,1x,"=",1x,i1   )') 'fourier_verbose ',1
+    if (haveTransferFunctions) then
+       write        (classParameterFile,'(a,1x,"=",1x,e12.6)') 'P_k_max_1/Mpc      ',wavenumberCLASS
+       if (countPerDecade_ > 0) &
+            & write (classParameterFile,'(a,1x,"=",1x,i3   )') 'k_per_decade_for_pk',countPerDecade_
+       write        (classParameterFile,'(a,1x,"=",$       )') 'z_pk               '
+       do i=size(redshifts),1,-1
+          write     (classParameterFile,'(1x,a,$           )') trim(adjustl(redshiftLabels(i)))
+          if (i > 1 ) write (classParameterFile,'(",",$)')
+       end do
+    end if
+    write (classParameterFile,'(a)') ''
+    close(classParameterFile)
+    ! Run CLASS.
+    call System_Command_Do(classPath//"class "//parameterFile//" > "//workPath//"/class.log")
+    ! Extract the ratio σ₈²/Aₛ.
+    if (haveNormalization) then
        found=.false.
        open(newUnit=classLog,file=char(workPath)//"/class.log",form="formatted",status="old",iostat=status)
        do while (status == 0)
@@ -592,22 +576,72 @@ contains
        end do
        close(classLog)
        if (.not.found) call Error_Report("CLASS σ₈ value not found"//{introspection:location})
-       normalization=+sigma8         **2 &
-            &        /normalizationAs
-       ! Remove temporary files.
-       call      File_Remove(parameterFile             )
-       call      File_Remove(workPath//"/class.log"    )
-       call      File_Remove(workPath//"/output_pk.dat")
-       call Directory_Remove(workPath                  )
-       ! Construct the output HDF5 file.
-       !$ call hdf5Access %set           (                              )
-       classOutput=hdf5Object(char(fileName),objectsOverwritable=.true.)
-       call    classOutput%writeAttribute(normalization ,'normalization')
-       !$ call hdf5Access %unset         (                              )
+       ratioSigma8SquaredAs=+sigma8         **2 &
+            &               /normalizationAs
     end if
-    ! Unlock the file.
-    call File_Unlock(fileLock)
+    ! Read the CLASS transfer function file.
+    if (haveTransferFunctions) then
+       if (allocated(wavenumbers      )) deallocate(wavenumbers      )
+       if (allocated(transferFunctions)) deallocate(transferFunctions)
+       allocate(wavenumbers      (0    ))
+       allocate(transferFunctions(0,0,0))
+       countWavenumber=0
+       do j=1,size(redshifts)
+          if (size(redshifts) > 1) then
+             transferFileName=workPath//'/output_z'//j//'_tk.dat'
+          else
+             transferFileName=workPath//'/output_tk.dat'
+          end if
+          if (j == 1) then
+             countWavenumber=Count_Lines_In_File(transferFileName,"#")
+             if (allocated(wavenumbers      )) deallocate(wavenumbers      )
+             if (allocated(transferFunctions)) deallocate(transferFunctions)
+             allocate(wavenumbers      (countWavenumber                  ))
+             allocate(transferFunctions(countWavenumber,3,size(redshifts)))
+          end if
+          open(newunit=classTransferFile,file=char(transferFileName),status='old',form='formatted')
+          i=0
+          do while (i < countWavenumber)
+             read (classTransferFile,'(a)',iostat=status) classTransferLine
+             if (status == 0) then
+                if (classTransferLine(1:1) /= "#") then
+                   i=i+1
+                   read (classTransferLine,*) wavenumbers(i),transferFunctions(i,classSpeciesPhotons%ID,j),transferFunctions(i,classSpeciesBaryons%ID,j),transferFunctions(i,classSpeciesDarkMatter%ID,j)
+                end if
+             else
+                call Error_Report('unable to read CLASS transfer function file'//{introspection:location})
+             end if
+          end do
+          close(classTransferFile)
+       end do
+       ! Convert from CLASS units to Galacticus units.
+       wavenumbers=+wavenumbers                                                   &
+            &      *cosmologyParameters_%HubbleConstant(units=hubbleUnitsLittleH)
+       ! Convert transfer functions to standard form.
+       do i=1,3
+          do j=1,size(redshifts)
+             transferFunctions(:,i,j)=-transferFunctions(:,i,j)/wavenumbers**2
+          end do
+       end do
+    end if
+    ! Remove temporary files.
+    call File_Remove(parameterFile             )
+    call File_Remove(workPath//"/class.log"    )
+    if (haveNormalization) then
+       call File_Remove(workPath//"/output_pk.dat")
+    end if
+    if (haveTransferFunctions) then
+       do i=1,size(redshifts)
+          if (size(redshifts) > 1) then
+             transferFileName=workPath//'/output_z'//i//'_tk.dat'
+          else
+             transferFileName=workPath//'/output_tk.dat'
+          end if
+          call File_Remove(transferFileName)
+       end do
+    end if
+    call Directory_Remove(workPath)
     return
-  end function Interface_CLASS_Normalization
+  end subroutine Interface_CLASS_Run
 
 end module Interfaces_CLASS

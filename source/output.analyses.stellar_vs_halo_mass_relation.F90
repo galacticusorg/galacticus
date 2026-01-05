@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -303,7 +303,7 @@ contains
     character       (len=4                                          )                                :: redshiftMinimumLabel                                          , redshiftMaximumLabel
     type(enumerationFixedDensityTypeType) :: densityType
     !![
-    <constructorAssign variables="fileNameTarget, redshiftInterval, likelihoodBins, likelihoodNormalize, computeScatter, systematicErrorPolynomialCoefficient, systematicErrorMassHaloPolynomialCoefficient, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_, *outputTimes_"/>
+    <constructorAssign variables="fileNameTarget, redshiftInterval, likelihoodBins, likelihoodBinsAutomatic, likelihoodNormalize, computeScatter, systematicErrorPolynomialCoefficient, systematicErrorMassHaloPolynomialCoefficient, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_, *outputTimes_"/>
     !!]
 
     ! Open the target data file and read basic information.
@@ -491,7 +491,7 @@ contains
     !![
     <referenceConstruct object="outputAnalysisPropertyUnoperator_"                             constructor="outputAnalysisPropertyOperatorAntiLog10                       (                                                                                                                              )"/>
     !!]
-    ! Create a halo mass weight property extractor.
+    ! Create a halo mass property extractor.
     if (haloMassDefinition == "spherical collapse" .or. haloMassDefinition == "virial") then
        allocate(virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt :: virialDensityContrastDefinition_                                )
        select type (virialDensityContrastDefinition_)
