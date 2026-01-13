@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "681a3d8f9320bd6b4a27dd44b993aaf4252790da",
-        "message": "Merge pull request #991 from galacticusorg/featBump2026\n\nBump copyright year to 2026\n",
-        "timestamp": "2026-01-03 19:48:29+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/681a3d8f9320bd6b4a27dd44b993aaf4252790da"
+        "id": "e314c1a6751cf8d2221a38e051cfd5ec6bd25d49",
+        "message": "fix(style): Formatting only\n",
+        "timestamp": "2026-01-12 07:30:58-08:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/e314c1a6751cf8d2221a38e051cfd5ec6bd25d49"
     },
     "results": [
         {

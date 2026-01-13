@@ -4,21 +4,21 @@ window.PONOSV_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "681a3d8f9320bd6b4a27dd44b993aaf4252790da",
-        "message": "Merge pull request #991 from galacticusorg/featBump2026\n\nBump copyright year to 2026\n",
-        "timestamp": "2026-01-03 19:48:29+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/681a3d8f9320bd6b4a27dd44b993aaf4252790da"
+        "id": "e314c1a6751cf8d2221a38e051cfd5ec6bd25d49",
+        "message": "fix(style): Formatting only\n",
+        "timestamp": "2026-01-12 07:30:58-08:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/e314c1a6751cf8d2221a38e051cfd5ec6bd25d49"
     },
     "surfaceDensity": {
-        "percentageBelow": 32.14285714285714,
-        "percentageAbove": 67.85714285714286,
+        "percentageBelow": 42.857142857142854,
+        "percentageAbove": 57.142857142857146,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 33.33333333333333,
-        "percentageAbove": 66.66666666666667,
+        "percentageBelow": 72.72727272727272,
+        "percentageAbove": 27.272727272727273,
         "target": 0.85
     }
 }
