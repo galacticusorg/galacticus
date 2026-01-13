@@ -302,7 +302,7 @@ contains
           massFunctionCovarianceOriginal=0.0d0
           do i=1,size(massOriginal)
              do j=1,size(massOriginal)
-                if   (                                           &
+                if   (                                             &
                      &   massFunctionCountOriginal(i) > 0_c_size_t &
                      &  .and.                                      &
                      &   massFunctionCountOriginal(j) > 0_c_size_t &
@@ -453,7 +453,7 @@ contains
          &                                                                                        rootVarianceLate                              , rootVarianceEarly                   , &
          &                                                                                        rootVarianceLogarithmicGradientLate           , rootVarianceLogarithmicGradientEarly, &
          &                                                                                        widthBinMassLogarithmic                       , peakHeightEffective                 , &
-         &                                                                                        fractionMassProgenitors                       , correlation                         , &
+         &                                                                                        fractionMassProgenitors                       , correlationSquared                  , &
          &                                                                                        yCopula
     type            (varying_string                           )                                :: message
     character       (len=17                                   )                                :: label
@@ -732,21 +732,19 @@ contains
                                fractionMassProgenitors=+0.4d0                                     & ! "Global fit" from Cole et al. (2008; https://ui.adsabs.harvard.edu/abs/2008MNRAS.383..546C).
                                     &                  *    ( peakHeightEffective**0.75d0       ) &
                                     &                  *exp (-peakHeightEffective**3     /10.0d0)
-                               correlation            =+min(                                                              & ! Limit correlation to maximum of 1.0 - this can be exceeded
-                                    &                       +1.0d0                                                      , & ! if the current model mass function has unrealistic redshift
-                                    &                       +sqrt(                                                        & ! evolution.
-                                    &                             +self%mass        (i      )/self%mass        (j      )  &
-                                    &                             *     massFunction(i,iTime)/     massFunction(j,jTime)  &
-                                    &                             *    fractionMassProgenitors                            &
-                                    &                             *abs(rootVarianceLogarithmicGradientLate)               &
-                                    &                             *    widthBinMassLogarithmic                            &
-                                    &                            )                                                        &
+                               correlationSquared     =+min(                                                        & ! Limit correlation to maximum of 1.0 - this can be exceeded
+                                    &                       +1.0d0                                                , & ! if the current model mass function has unrealistic redshift
+                                    &                       +self%mass        (i      )/self%mass        (j      )  &
+                                    &                       *     massFunction(i,iTime)/     massFunction(j,jTime)  &
+                                    &                       *    fractionMassProgenitors                            &
+                                    &                       *abs(rootVarianceLogarithmicGradientLate)               &
+                                    &                       *    widthBinMassLogarithmic                            &
                                     &                      )
                             else
-                               correlation            =+0.0d0
+                               correlationSquared     =+0.0d0
                             end if
-                            correlationCopula(iCopula,jCopula)=correlation
-                            correlationCopula(jCopula,iCopula)=correlation
+                            correlationCopula(iCopula,jCopula)=correlationSquared
+                            correlationCopula(jCopula,iCopula)=correlationSquared
                          end do
                       end do
                    end do
