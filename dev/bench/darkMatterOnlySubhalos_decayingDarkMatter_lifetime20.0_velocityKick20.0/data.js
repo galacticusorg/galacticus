@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1767495022500,
+  "lastUpdate": 1768277287614,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=20 km/s)": [
@@ -4061,6 +4061,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
             "value": 5.46073079725327,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "e314c1a6751cf8d2221a38e051cfd5ec6bd25d49",
+          "message": "fix(style): Formatting only",
+          "timestamp": "2026-01-12T07:30:58-08:00",
+          "tree_id": "64ecdb654c47b8637646b211eaeb8102d9894c24",
+          "url": "https://github.com/galacticusorg/galacticus/commit/e314c1a6751cf8d2221a38e051cfd5ec6bd25d49"
+        },
+        "date": 1768277286354,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - mass function",
+            "value": 6.078984592607344,
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
+            "value": 4.7877902067701354,
             "unit": "-logℒ"
           }
         ]
