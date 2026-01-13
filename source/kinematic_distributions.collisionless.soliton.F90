@@ -127,13 +127,12 @@ contains
     !!{
     Return the 1D velocity dispersion at the specified {\normalfont \ttfamily coordinates} in a soliton kinematic distribution.
     !!}
-    use :: Error                           , only : Error_Report
-    use :: Coordinates                     , only : coordinateSpherical     , assignment(=)
+    use :: Error      , only : Error_Report
+    use :: Coordinates, only : coordinateSpherical, assignment(=)
     implicit none
-    class           (kinematicsDistributionSoliton), intent(inout)          :: self
-    class           (coordinate                   ), intent(in   )          :: coordinates
-    class           (massDistributionClass        ), intent(inout), target  :: massDistribution_   , massDistributionEmbedding
-    double precision                                                        :: radius
+    class(kinematicsDistributionSoliton), intent(inout)         :: self
+    class(coordinate                   ), intent(in   )         :: coordinates
+    class(massDistributionClass        ), intent(inout), target :: massDistribution_, massDistributionEmbedding
 
     select type (massDistributionEmbedding)
     class is (massDistributionSoliton)
