@@ -121,6 +121,7 @@ module Linear_Algebra
      !!}
      module procedure matrixConstructor
      module procedure matrixZeroConstructor
+     module procedure matrixDiagonalConstructor
      module procedure matrixCopyConstructor
   end interface matrix
   
@@ -761,6 +762,29 @@ contains
     return
   end subroutine matrixAssignmentConstructor
   
+  function matrixDiagonalConstructor(array) result(self)
+    !!{
+    Constructor for {\normalfont \ttfamily matrix} class which builds the matrix and initializes the diagonal elements to the
+    given array (and all other elements to zero).
+    !!}
+    implicit none
+    type            (matrix  )                              :: self
+    double precision          , intent(in   ), dimension(:) :: array
+    integer         (c_size_t)                              :: i
+
+    allocate(self%matrix_)
+    self%isSquare                =.true.
+    self%size_                   =[size(array),size(array)]
+    self%nonZeroRowColumnsChecked=.false.
+    self%hasZeroRowColumns       =.false.
+    self%matrix_                 =gsl_matrix_alloc(self%size_(1),self%size_(2))
+    call gsl_matrix_set_zero(self%matrix_)
+    do i=1,size(array,dim=1,kind=c_size_t)
+       call gsl_matrix_set(self%matrix_,i-1_c_size_t,i-1_c_size_t,array(i))
+    end do
+    return
+  end function matrixDiagonalConstructor
+
   subroutine matrixUnassignment(array,self)
     !!{
     Assign elements of a {\normalfont \ttfamily matrix} class to an array
