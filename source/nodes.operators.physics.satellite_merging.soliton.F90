@@ -309,6 +309,8 @@ contains
     class(nodeComponentDarkMatterProfile), pointer               :: darkMatterProfile , darkMatterProfileHost
     double precision                                             :: massCoreHost      , massCoreSatellite      , &
             &                                                       massCoreNormalHost, massCoreNormalSatellite
+    !$GLC attributes unused :: self
+
     ! Find the host node.
     nodeHost     => node%mergesWith()
     darkMatterProfileHost    => nodeHost%darkMatterProfile ()
