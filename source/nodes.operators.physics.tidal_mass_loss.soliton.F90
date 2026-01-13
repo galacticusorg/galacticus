@@ -35,7 +35,6 @@
      private
      integer   :: massCoreNormalID, massCoreID, densityCoreID
    contains
-     final     ::                                tidalMassLossSolitonDestructor
      procedure :: differentialEvolution       => tidalMassLossSolitonDifferentialEvolution
      procedure :: differentialEvolutionScales => tidalMassLossSolitonDifferentialEvolutionScales
   end type nodeOperatorTidalMassLossSoliton
@@ -79,16 +78,6 @@ contains
     !!]
     return
   end function tidalMassLossSolitonConstructorInternal
-
-  subroutine tidalMassLossSolitonDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorTidalMassLossSoliton} node operator class.
-    !!}
-    implicit none
-    type(nodeOperatorTidalMassLossSoliton), intent(inout) :: self
-
-    return
-  end subroutine tidalMassLossSolitonDestructor
 
   subroutine tidalMassLossSolitonDifferentialEvolutionScales(self,node)
     !!{
