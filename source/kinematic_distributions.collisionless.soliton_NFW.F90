@@ -66,9 +66,6 @@
      module procedure solitonNFWKinematicsConstructorDecorated
   end interface kinematicsDistributionSolitonNFW
 
-  ! Coefficient of the dimensionless radius in the soliton profile.
-   double precision, parameter :: coefficientCore=0.091d0 ! Schive et al. (2014; https://ui.adsabs.harvard.edu/abs/2014PhRvL.113z1302S; equation 3).
-
 contains
 
   function solitonNFWKinematicsConstructorParameters(parameters) result(self)
@@ -113,7 +110,7 @@ contains
     !![
     <constructorAssign variables="toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum"/>
     !!]
-
+    
     return
   end function solitonNFWKinematicsConstructorInternal
   
@@ -146,17 +143,18 @@ contains
     !!{
     Return the 1D velocity dispersion at the specified {\normalfont \ttfamily coordinates} in a soliton-NFW kinematic distribution.
     !!}
-    use :: Error                           , only : Error_Report
-    use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
-    use :: Numerical_Constants_Math        , only : Pi
+    use :: Error                               , only : Error_Report
+    use :: Coordinates                         , only : coordinateSpherical           , assignment(=)
+    use :: Mass_Distribution_Soliton_Schive2014, only : coefficientCore
+    use :: Numerical_Constants_Astronomical    , only : gravitationalConstant_internal
+    use :: Numerical_Constants_Math            , only : Pi
     implicit none
     class           (kinematicsDistributionSolitonNFW), intent(inout)          :: self
     class           (coordinate                      ), intent(in   )          :: coordinates
     class           (massDistributionClass           ), intent(inout), target  :: massDistribution_ , massDistributionEmbedding
     class           (massDistributionClass           )               , pointer :: massDistribution__
     double precision                                                           :: radius
-
+    
     massDistribution__ => massDistribution_
     if (associated(massDistribution__,massDistributionEmbedding)) then
        ! For the case of a self-gravitating NFW distribution we have an analytic solution for the velocity dispersion.
@@ -196,11 +194,12 @@ contains
     return
 
   contains
-
+    
     double precision function jeansIntegralSoliton(radius)
       !!{
       Compute the Jeans integral in the soliton region of a soliton-NFW profile.
       !!}
+      use :: Mass_Distribution_Soliton_Schive2014, only : coefficientCore
       implicit none
       double precision, intent(in   ) :: radius
       double precision                :: radiusScaleFree, radiusFactor
@@ -265,7 +264,7 @@ contains
       end select
       return
     end function jeansIntegralSoliton
-         
+    
     double precision function velocityDispersionSquareNFW(radius)
       !!{
       Compute the square of the velocity dispersion in the NFW region of a soliton-NFW profile.

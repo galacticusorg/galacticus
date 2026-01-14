@@ -35,10 +35,10 @@
      A node operator that triggers satellite merging in FDM models when the orbital radius falls below the sum of the soliton core radii of the host and satellite.
      !!}
      private
-     logical                       :: recordMergedSubhaloProperties                  , recordFirstLevelOnly
-     integer                       :: mergedSubhaloIDs             (keplerOrbitCount), nodeHierarchyLevelMaximumID
-     integer                       :: radiusCoreID                                   , massCoreID                 , &
-             &                        randomOffsetID                                 , massCoreNormalID
+     logical :: recordMergedSubhaloProperties                  , recordFirstLevelOnly
+     integer :: mergedSubhaloIDs             (keplerOrbitCount), nodeHierarchyLevelMaximumID
+     integer :: radiusCoreID                                   , massCoreID                 , &
+                randomOffsetID                                 , massCoreNormalID
    contains
      !![
      <methods>
@@ -71,9 +71,9 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type            (nodeOperatorSatelliteMergingSoliton)                :: self
-    type            (inputParameters                    ), intent(inout) :: parameters
-    logical                                                              :: recordMergedSubhaloProperties, recordFirstLevelOnly
+    type   (nodeOperatorSatelliteMergingSoliton)                :: self
+    type   (inputParameters                    ), intent(inout) :: parameters
+    logical                                                     :: recordMergedSubhaloProperties, recordFirstLevelOnly
 
     !![
     <inputParameter>
@@ -153,7 +153,6 @@ contains
     type(nodeOperatorSatelliteMergingSoliton), intent(inout) :: self
 
     if (satelliteMergerEvent%isAttached(self,satelliteMerger)) call satelliteMergerEvent%detach(self,satelliteMerger)
-
     return
   end subroutine satelliteMergingSolitonDestructor
   
@@ -255,7 +254,7 @@ contains
              propertyCurrent=basicHost%floatRank1MetaPropertyGet(self_%mergedSubhaloIDs(ID))
              allocate(propertyNew(size(propertyCurrent)+1_c_size_t))
              propertyNew(1_c_size_t:size(propertyCurrent))=propertyCurrent(:)
-             propertyNew(size(propertyNew))=property
+             propertyNew(           size(propertyNew    ))=property
              call basicHost%floatRank1MetaPropertySet(self_%mergedSubhaloIDs(ID),propertyNew)
              deallocate(propertyCurrent)
              deallocate(propertyNew    )
@@ -265,66 +264,71 @@ contains
     return
   end subroutine mergerTrigger
 
-  double precision function satelliteMergingSolitonRadiusMerge(self,node)
+  double precision function satelliteMergingSolitonRadiusMerge(self,node) result(radiusMerge)
     !!{
     Compute the merging radius for a node.
     !!}
-    use :: Galacticus_Nodes          , only : nodeComponentBasic    , nodeComponentSatellite, nodeComponentDarkMatterProfile, treeNode
+    use :: Galacticus_Nodes          , only : nodeComponentSatellite, nodeComponentDarkMatterProfile, treeNode
     use :: Galactic_Structure_Options, only : massTypeGalactic
     use :: Mass_Distributions        , only : massDistributionClass
     implicit none
     class           (nodeOperatorSatelliteMergingSoliton), intent(inout) :: self
-    class           (nodeComponentBasic                 ), pointer       :: basic
     class           (nodeComponentDarkMatterProfile     ), pointer       :: darkMatterProfile, darkMatterProfileHost
     type            (treeNode                           ), intent(inout) :: node
     type            (treeNode                           ), pointer       :: nodeHost
-    double precision                                                     :: radiusCoreHost, radiusCoreSatellite
+    double precision                                                     :: radiusCoreHost   , radiusCoreSatellite
 
-    ! Find the host node.
-    nodeHost     => node%mergesWith()
-    darkMatterProfileHost    => nodeHost%darkMatterProfile ()
-
-    ! Satellite
-    basic             => node%basic     ()
-    darkMatterProfile => node%darkMatterProfile()
-
-    radiusCoreHost       = darkMatterProfileHost%floatRank0MetaPropertyGet(self%radiusCoreID)
-    radiusCoreSatellite  = darkMatterProfile%floatRank0MetaPropertyGet(self%radiusCoreID)
-
-    satelliteMergingSolitonRadiusMerge=radiusCoreHost+radiusCoreSatellite
-
+    ! Find the host node profile.
+    nodeHost              => node    %mergesWith       ()
+    darkMatterProfileHost => nodeHost%darkMatterProfile()
+    ! Get the satellite profile.
+    darkMatterProfile     => node    %darkMatterProfile()
+    ! Compute the merging radius.
+    radiusCoreHost     =+darkMatterProfileHost%floatRank0MetaPropertyGet(self%radiusCoreID)
+    radiusCoreSatellite=+darkMatterProfile    %floatRank0MetaPropertyGet(self%radiusCoreID)
+    radiusMerge        =+radiusCoreHost      &
+         &              +radiusCoreSatellite
     return
   end function satelliteMergingSolitonRadiusMerge
 
   subroutine satelliteMerger(self,node)
     !!{
-    Remove any hot halo associated with {\normalfont \ttfamily node} before it merges with its host halo.
+    Merge the solitonic cores of the satellite and host halos.
     !!}
-    use :: Galacticus_Nodes          , only : nodeComponentBasic    , nodeComponentSatellite, nodeComponentDarkMatterProfile, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentDarkMatterProfile, treeNode
     implicit none
-    class(*                             ), intent(inout)         :: self
-    type (treeNode                      ), intent(inout), target :: node
-    type (treeNode                      ), pointer               :: nodeHost
-    class(nodeComponentBasic            ), pointer               :: basic
-    class(nodeComponentDarkMatterProfile), pointer               :: darkMatterProfile , darkMatterProfileHost
-    double precision                                             :: massCoreHost      , massCoreSatellite      , &
-            &                                                       massCoreNormalHost, massCoreNormalSatellite
+    class           (*                             ), intent(inout)         :: self
+    type            (treeNode                      ), intent(inout), target :: node
+    type            (treeNode                      ), pointer               :: nodeHost
+    class           (nodeComponentDarkMatterProfile), pointer               :: darkMatterProfile         , darkMatterProfileHost
+    double precision                                , parameter             :: fractionMassRetained=0.7d0
+    double precision                                                        :: massCoreHost              , massCoreSatellite      , &
+            &                                                                  massCoreNormalHost        , massCoreNormalSatellite
     !$GLC attributes unused :: self
 
-    ! Find the host node.
-    nodeHost     => node%mergesWith()
-    darkMatterProfileHost    => nodeHost%darkMatterProfile ()
-    ! Satellite
-    basic             => node%basic     ()
-    darkMatterProfile => node%darkMatterProfile()
-    ! Get massCore.
-    massCoreNormalHost       = darkMatterProfileHost%floatRank0MetaPropertyGet(self_%massCoreNormalID)
-    massCoreNormalSatellite  = darkMatterProfile    %floatRank0MetaPropertyGet(self_%massCoreNormalID)
-    massCoreHost             = darkMatterProfileHost%floatRank0MetaPropertyGet(self_%massCoreID)
-    massCoreSatellite        = darkMatterProfile    %floatRank0MetaPropertyGet(self_%massCoreID)
-    call darkMatterProfileHost%floatRank0MetaPropertySet(self_%massCoreNormalID,0.7d0*(massCoreNormalHost+massCoreNormalSatellite))
-    call darkMatterProfileHost%floatRank0MetaPropertySet(self_%massCoreID      ,0.7d0*(massCoreHost+massCoreSatellite))
-    call darkMatterProfileHost%floatRank0MetaPropertySet(self_%randomOffsetID  ,0.7d0*(massCoreHost+massCoreSatellite)-0.7d0*(massCoreNormalHost+massCoreNormalSatellite))
+    ! Find the host node profile.
+    nodeHost              => node    %mergesWith       ()
+    darkMatterProfileHost => nodeHost%darkMatterProfile()
+    ! Get the satellite profile.
+    darkMatterProfile     => node    %darkMatterProfile()
+    ! Compute the new core mass.
+    massCoreNormalHost     = darkMatterProfileHost%floatRank0MetaPropertyGet(self_%massCoreNormalID)
+    massCoreNormalSatellite= darkMatterProfile    %floatRank0MetaPropertyGet(self_%massCoreNormalID)
+    massCoreHost           = darkMatterProfileHost%floatRank0MetaPropertyGet(self_%massCoreID      )
+    massCoreSatellite      = darkMatterProfile    %floatRank0MetaPropertyGet(self_%massCoreID      )
+    call darkMatterProfileHost%floatRank0MetaPropertySet(                                                                    &
+         &                                                self_%massCoreNormalID                                           , &
+         &                                               +fractionMassRetained*(massCoreNormalHost+massCoreNormalSatellite)  &
+         &                                              )
+    call darkMatterProfileHost%floatRank0MetaPropertySet(                                                                    &
+         &                                                self_%massCoreID                                                 , &
+         &                                               +fractionMassRetained*(massCoreHost      +massCoreSatellite      )  &
+         &                                              )
+    call darkMatterProfileHost%floatRank0MetaPropertySet(                                                                    &
+         &                                                self_%randomOffsetID                                             , &
+         &                                               +fractionMassRetained*(massCoreHost      +massCoreSatellite      )  &
+         &                                               -fractionMassRetained*(massCoreNormalHost+massCoreNormalSatellite)  &
+         &                                              )
     return
   end subroutine satelliteMerger
 

@@ -25,12 +25,12 @@
 
   !![
   <kinematicsDistribution name="kinematicsDistributionSolitonNFWHeated">
-   <description>A kinematic distribution class for the Soliton-NFW Heated mass distribution.</description>
+   <description>A kinematic distribution class for the soliton-NFW heated mass distribution.</description>
   </kinematicsDistribution>
   !!]
   type, public, extends(kinematicsDistributionCollisionless) :: kinematicsDistributionSolitonNFWHeated
      !!{
-     A kinematics distribution for the Soliton-NFW Heated mass distribution.
+     A kinematics distribution for the soliton-NFW heated mass distribution.
      !!}
    contains
      procedure :: velocityDispersion1D => solitonNFWHeatedKinematicsVelocityDispersion1D
@@ -143,13 +143,13 @@ contains
           ! radius using the result for a power-law ρ(r) ∝ r⁰ profile.
           coordinatesReference=[radiusSolitonFreeSmall*massDistributionEmbedding%radiusSoliton,0.0d0,0.0d0]
           velocityDispersion  =+self%velocityDispersion1DNumerical(coordinatesReference,massDistribution_,massDistributionEmbedding) &
-             &               *radiusSolitonFree                                                                                    &    
-             &               /radiusSolitonFreeSmall
+               &               *radiusSolitonFree                                                                                    &    
+               &               /radiusSolitonFreeSmall
        else
           velocityDispersion  =+self%velocityDispersion1DNumerical(coordinates         ,massDistribution_,massDistributionEmbedding)
        end if
     class default
-       velocityDispersion        =+0.0d0
+       velocityDispersion     =+0.0d0
        call Error_Report('expecting a soliton-NFW Heated mass distribution, but received '//char(massDistributionEmbedding%objectType())//{introspection:location})
     end select
     return
