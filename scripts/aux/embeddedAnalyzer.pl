@@ -161,6 +161,7 @@ sub testLaTeX {
     print $LaTeX "\\usepackage{amssymb}\n";
     print $LaTeX "\\usepackage{amsmath}\n";
     print $LaTeX "\\usepackage{color}\n";
+    print $LaTeX "\\usepackage{listings}\n";
     print $LaTeX "\\usepackage{tensor}\n";
     print $LaTeX "\\input{".$ENV{'GALACTICUS_EXEC_PATH'}."/doc/commands}\n";
     print $LaTeX "\\input{".$ENV{'GALACTICUS_EXEC_PATH'}."/doc/Glossary}\n";
