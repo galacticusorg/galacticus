@@ -163,16 +163,16 @@ runs:
            sudo port install openssl11
            export OPENSSL_PREFIX=/opt/local/libexec/openssl11
         fi
-        curl -L https://cpan.metacpan.org/authors/id/C/CH/CHRISN/Net-SSLeay-1.90.tar.gz --output Net-SSLeay-1.90.tar.gz
-        tar xvfz Net-SSLeay-1.90.tar.gz
-        cd Net-SSLeay-1.90
+        curl -L https://cpan.metacpan.org/authors/id/C/CH/CHRISN/Net-SSLeay-1.94.tar.gz --output Net-SSLeay-1.94.tar.gz
+        tar xvfz Net-SSLeay-1.94.tar.gz
+        cd Net-SSLeay-1.94
         perl Makefile.PL
         make -j3
         sudo make install
         cd ..
-        curl -L https://cpan.metacpan.org/authors/id/S/SU/SULLR/IO-Socket-SSL-1.966.tar.gz --output IO-Socket-SSL-1.966.tar.gz
-        tar xvfz IO-Socket-SSL-1.966.tar.gz
-        cd IO-Socket-SSL-1.966
+        curl -L https://cpan.metacpan.org/authors/id/S/SU/SULLR/IO-Socket-SSL-2.098.tar.gz --output IO-Socket-SSL-2.098.tar.gz
+        tar xvfz IO-Socket-SSL-2.098.tar.gz
+        cd IO-Socket-SSL-2.098
         perl Makefile.PL
         make -j3
         sudo make install
