@@ -47,9 +47,6 @@
      module procedure solitonKinematicsConstructorDecorated
   end interface kinematicsDistributionSoliton
 
-  ! Coefficient of the dimensionless radius in the soliton profile.
-   double precision, parameter :: coefficientCore=0.091d0 ! Schive et al. (2014; https://ui.adsabs.harvard.edu/abs/2014PhRvL.113z1302S; equation 3).
-
 contains
 
   function solitonKinematicsConstructorParameters(parameters) result(self)

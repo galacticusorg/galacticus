@@ -46,28 +46,28 @@
      !!}
      private
      double precision                                             :: massParticle
-     class           (darkMatterHaloScaleClass         ), pointer :: darkMatterHaloScale_               => null()
-     class           (darkMatterProfileDMOClass        ), pointer :: darkMatterProfileDMO_              => null()
-     class           (darkMatterProfileHeatingClass    ), pointer :: darkMatterProfileHeating_          => null()
-     class           (massDistributionClass            ), pointer :: massDistributionHeated_            => null()
-     class           (cosmologyParametersClass         ), pointer :: cosmologyParameters_               => null()
-     class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_                => null()
-     class           (darkMatterParticleClass          ), pointer :: darkMatterParticle_                => null()
-     class           (virialDensityContrastClass       ), pointer :: virialDensityContrast_             => null()
+     class           (darkMatterHaloScaleClass         ), pointer :: darkMatterHaloScale_                => null()
+     class           (darkMatterProfileDMOClass        ), pointer :: darkMatterProfileDMO_               => null()
+     class           (darkMatterProfileHeatingClass    ), pointer :: darkMatterProfileHeating_           => null()
+     class           (massDistributionClass            ), pointer :: massDistributionHeated_             => null()
+     class           (cosmologyParametersClass         ), pointer :: cosmologyParameters_                => null()
+     class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_                 => null()
+     class           (darkMatterParticleClass          ), pointer :: darkMatterParticle_                 => null()
+     class           (virialDensityContrastClass       ), pointer :: virialDensityContrast_              => null()
      type            (distributionFunction1DNormal     )          :: massCoreScatter
      type            (enumerationNonAnalyticSolversType)          :: nonAnalyticSolver
-     logical                                                      :: tolerateVelocityMaximumFailure     , tolerateEnclosedMassIntegrationFailure    , &
-          &                                                          toleratePotentialIntegrationFailure, velocityDispersionApproximate
-     double precision                                             :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, &
-          &                                                           fractionRadiusFinalSmall          , toleranceRelativePotential
-     double precision                                             :: radiusVirialPrevious               , radiusScalePrevious                       , &
-          &                                                          radiusCorePrevious                 , radiusSolitonPrevious                     , &
-          &                                                          densityCorePrevious                , densityScalePrevious                      , &
-          &                                                          massCorePrevious                   , scatterFractional   
+     logical                                                      :: tolerateVelocityMaximumFailure               , tolerateEnclosedMassIntegrationFailure    , &
+          &                                                          toleratePotentialIntegrationFailure          , velocityDispersionApproximate
+     double precision                                             :: toleranceRelativeVelocityDispersion          , toleranceRelativeVelocityDispersionMaximum, &
+          &                                                          fractionRadiusFinalSmall                     , toleranceRelativePotential
+     double precision                                             :: radiusVirialPrevious                         , radiusScalePrevious                       , &
+          &                                                          radiusCorePrevious                           , radiusSolitonPrevious                     , &
+          &                                                          densityCorePrevious                          , densityScalePrevious                      , &
+          &                                                          massCorePrevious                             , scatterFractional   
      integer          (kind_int8                      )           :: lastUniqueID
-     integer                                                      :: randomOffsetID                     , densityCoreID                             , &
-          &                                                          radiusCoreID                       , radiusSolitonID                           , &
-          &                                                          massCoreNormalID                   , massCoreID                                , &
+     integer                                                      :: randomOffsetID                               , densityCoreID                             , &
+          &                                                          radiusCoreID                                 , radiusSolitonID                           , &
+          &                                                          massCoreNormalID                             , massCoreID                                , &
           &                                                          zetaID
    contains    
      !![
@@ -92,8 +92,8 @@
   end interface darkMatterProfileDMOSolitonNFWHeated
 
   ! Sub-module scope variable used in root finding.
-  class           (darkMatterProfileDMOSolitonNFWHeated), pointer  :: self_                    => null()
-  double precision                                                 :: radiusCore_, densityCore_
+  class           (darkMatterProfileDMOSolitonNFWHeated), pointer  :: self_       => null()
+  double precision                                                 :: radiusCore_          , densityCore_
   !$omp threadprivate(self_, radiusCore_, densityCore_)
 
 contains
@@ -103,7 +103,7 @@ contains
     Constructor for the \refClass{darkMatterProfileDMOSolitonNFWHeated} dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversEncode
-    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters  , only : inputParameter                     , inputParameters
     implicit none
     type            (darkMatterProfileDMOSolitonNFWHeated)                :: self
     type            (inputParameters                     ), intent(inout) :: parameters
@@ -190,13 +190,13 @@ contains
     !!]
     self = darkMatterProfileDMOSolitonNFWHeated(enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),darkMatterHaloScale_,darkMatterParticle_,darkMatterProfileHeating_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,tolerateEnclosedMassIntegrationFailure,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,velocityDispersionApproximate,fractionRadiusFinalSmall,toleranceRelativePotential,scatterFractional)
     !![
-    <inputParametersValidate source="parameters"               />
-    <objectDestructor        name  ="darkMatterHaloScale_"     />
-    <objectDestructor        name  ="darkMatterParticle_"      />
-    <objectDestructor        name  ="darkMatterProfileHeating_"/>
-    <objectDestructor        name  ="cosmologyFunctions_"      />
-    <objectDestructor        name  ="cosmologyParameters_"     />
-    <objectDestructor        name  ="virialDensityContrast_"   />
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloScale_"     />
+    <objectDestructor name="darkMatterParticle_"      />
+    <objectDestructor name="darkMatterProfileHeating_"/>
+    <objectDestructor name="cosmologyFunctions_"      />
+    <objectDestructor name="cosmologyParameters_"     />
+    <objectDestructor name="virialDensityContrast_"   />
     !!]
     return
   end function solitonNFWHeatedConstructorParameters
@@ -219,10 +219,10 @@ contains
     class           (cosmologyParametersClass            ), intent(in), target :: cosmologyParameters_
     class           (virialDensityContrastClass          ), intent(in), target :: virialDensityContrast_
     type            (enumerationNonAnalyticSolversType   ), intent(in)         :: nonAnalyticSolver
-    logical                                               , intent(in)         :: tolerateVelocityMaximumFailure        , toleratePotentialIntegrationFailure , &
+    logical                                               , intent(in)         :: tolerateVelocityMaximumFailure        , toleratePotentialIntegrationFailure       , &
          &                                                                        tolerateEnclosedMassIntegrationFailure, velocityDispersionApproximate          
-    double precision                                      , intent(in)         :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum , & 
-         &                                                                        fractionRadiusFinalSmall              , toleranceRelativePotential          , &
+    double precision                                      , intent(in)         :: toleranceRelativeVelocityDispersion   , toleranceRelativeVelocityDispersionMaximum, & 
+         &                                                                        fractionRadiusFinalSmall              , toleranceRelativePotential                , &
          &                                                                        scatterFractional
     !![
     <constructorAssign variables="nonAnalyticSolver,*darkMatterHaloScale_,*darkMatterParticle_,*darkMatterProfileHeating_,*cosmologyFunctions_,*cosmologyParameters_,*virialDensityContrast_,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,tolerateEnclosedMassIntegrationFailure,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,velocityDispersionApproximate,fractionRadiusFinalSmall,toleranceRelativePotential,scatterFractional"/>
@@ -235,8 +235,8 @@ contains
     <addMetaProperty component="darkMatterProfile" name="solitonZeta"           id="self%zetaID"           isEvolvable="no"  isCreator="yes"/>
     !!]
 
-    self%lastUniqueID=-huge(1_kind_int8)
-    self%massCoreScatter = distributionFunction1DNormal(mean=0.0d0,variance=log10(1.0d0+scatterFractional)**2)
+    self%lastUniqueID   =-huge(1_kind_int8)
+    self%massCoreScatter=distributionFunction1DNormal(mean=0.0d0,variance=log10(1.0d0+scatterFractional)**2)
     select type (darkMatterParticle_ => self%darkMatterParticle_)
     class is (darkMatterParticleFuzzyDarkMatter)
        self%massParticle=+darkMatterParticle_%mass()*kilo
@@ -255,7 +255,6 @@ contains
         &      )
     ! Validate.
     if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Error_Report('invalid non-analytic solver type'//{introspection:location})
-    
     ! Construct an NFW profile.
     allocate(darkMatterProfileDMONFW :: self%darkMatterProfileDMO_)
     select type (darkMatterProfileDMO_ => self%darkMatterProfileDMO_)
@@ -319,14 +318,14 @@ contains
     integer(kind_int8                           ), intent(in   ) :: uniqueID
     !$GLC attributes unused :: node
 
-    self%lastUniqueID            =uniqueID
-    self%radiusVirialPrevious    =-huge(0.0d0)
-    self%radiusScalePrevious     =-huge(0.0d0)
-    self%radiusCorePrevious      =-huge(0.0d0)
-    self%radiusSolitonPrevious   =-huge(0.0d0)
-    self%densityCorePrevious     =-huge(0.0d0)
-    self%densityScalePrevious    =-huge(0.0d0)
-    self%massCorePrevious        =-huge(0.0d0)
+    self%lastUniqueID         =uniqueID
+    self%radiusVirialPrevious =-huge(0.0d0)
+    self%radiusScalePrevious  =-huge(0.0d0)
+    self%radiusCorePrevious   =-huge(0.0d0)
+    self%radiusSolitonPrevious=-huge(0.0d0)
+    self%densityCorePrevious  =-huge(0.0d0)
+    self%densityScalePrevious =-huge(0.0d0)
+    self%massCorePrevious     =-huge(0.0d0)
     return
   end subroutine solitonNFWHeatedCalculationReset
 
@@ -343,7 +342,7 @@ contains
     implicit none
     class           (darkMatterProfileDMOSolitonNFWHeated), intent(inout)           :: self
     class           (massDistributionClass               ), pointer                 :: massDistribution_
-    class           (kinematicsDistributionClass         ), pointer                 :: kinematicsDistribution_, kinematicsDistributionNFW_
+    class           (kinematicsDistributionClass         ), pointer                 :: kinematicsDistribution_ , kinematicsDistributionNFW_
     class           (massDistributionClass               ), pointer                 :: massDistributionNFW_
     class           (massDistributionHeatingClass        ), pointer                 :: massDistributionHeating_
     type            (treeNode                            ), intent(inout)           :: node
@@ -351,9 +350,9 @@ contains
     type            (enumerationWeightByType             ), intent(in   ), optional :: weightBy
     integer                                               , intent(in   ), optional :: weightIndex
     type            (enumerationWeightByType             )                          :: weightBy_
-    double precision                                                                :: radiusCore             , radiusScale , &
-         &                                                                             radiusSoliton          , radiusVirial, &
-         &                                                                             densityScale           , densityCore , &
+    double precision                                                                :: radiusCore              , radiusScale               , &
+         &                                                                             radiusSoliton           , radiusVirial              , &
+         &                                                                             densityScale            , densityCore               , &
          &                                                                             massCore
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
@@ -381,11 +380,10 @@ contains
     densityCore  =self%densityCorePrevious
     densityScale =self%densityScalePrevious
     massCore     =self%massCorePrevious
-
     ! Construct the distribution.
     if (radiusSoliton <= 0.0d0 .or. densityCore <= 0.0d0) then
        ! No soliton - build a simple NFW mass distribution.
-       allocate(massDistributionNFW       :: massDistributionNFW_      )
+       allocate(massDistributionNFW :: massDistributionNFW_)
        select type(massDistributionNFW_)
        type is (massDistributionNFW)
           basic => node%basic()
@@ -409,9 +407,9 @@ contains
           !![
 	  <referenceConstruct object="kinematicsDistributionNFW_">
 	    <constructor>
-              kinematicsDistributionNFW(                                                                 &amp;
-	      &amp;                    useSeriesApproximation=.true. &amp;
-	      &amp;                   )
+              kinematicsDistributionNFW(                              &amp;
+	      &amp;                     useSeriesApproximation=.true. &amp;
+	      &amp;                    )
 	    </constructor>
 	  </referenceConstruct>
           !!]
@@ -420,29 +418,28 @@ contains
        !![
        <objectDestructor name="kinematicsDistributionNFW_"/>
        !!]
-
        allocate(massDistributionSphericalHeated :: massDistribution_)
        allocate(kinematicsDistributionHeated :: kinematicsDistribution_)
        select type(massDistribution_)
        type is (massDistributionSphericalHeated)
-          massDistributionHeating_  => self%darkMatterProfileHeating_%get(node                     )
+          massDistributionHeating_  => self%darkMatterProfileHeating_%get(node)
           select type (massDistributionNFW_)
           class is (massDistributionSpherical)
              !![
              <referenceConstruct object="massDistribution_">
                 <constructor>
                  massDistributionSphericalHeated(                                                                                    &amp;
-               &amp;                          nonAnalyticSolver                     =self%nonAnalyticSolver                     , &amp;
-               &amp;                          tolerateVelocityMaximumFailure        =self%tolerateVelocityMaximumFailure        , &amp;
-               &amp;                          tolerateEnclosedMassIntegrationFailure=self%tolerateEnclosedMassIntegrationFailure, &amp;
-               &amp;                          toleratePotentialIntegrationFailure   =self%toleratePotentialIntegrationFailure   , &amp;
-               &amp;                          fractionRadiusFinalSmall              =self%fractionRadiusFinalSmall              , &amp;
-               &amp;                          toleranceRelativePotential            =self%toleranceRelativePotential            , &amp;
-               &amp;                          massDistribution_                     =     massDistributionNFW_                  , &amp;
-               &amp;                          massDistributionHeating_              =     massDistributionHeating_              , &amp;
-               &amp;                          componentType                         =     componentTypeDarkHalo                 , &amp;
-               &amp;                          massType                              =     massTypeDark                            &amp;
-               &amp;                         )
+                 &amp;                           nonAnalyticSolver                     =self%nonAnalyticSolver                     , &amp;
+                 &amp;                           tolerateVelocityMaximumFailure        =self%tolerateVelocityMaximumFailure        , &amp;
+                 &amp;                           tolerateEnclosedMassIntegrationFailure=self%tolerateEnclosedMassIntegrationFailure, &amp;
+                 &amp;                           toleratePotentialIntegrationFailure   =self%toleratePotentialIntegrationFailure   , &amp;
+                 &amp;                           fractionRadiusFinalSmall              =self%fractionRadiusFinalSmall              , &amp;
+                 &amp;                           toleranceRelativePotential            =self%toleranceRelativePotential            , &amp;
+                 &amp;                           massDistribution_                     =     massDistributionNFW_                  , &amp;
+                 &amp;                           massDistributionHeating_              =     massDistributionHeating_              , &amp;
+                 &amp;                           componentType                         =     componentTypeDarkHalo                 , &amp;
+                 &amp;                           massType                              =     massTypeDark                            &amp;
+                 &amp;                          )
                 </constructor>
              </referenceConstruct>
              !!]
@@ -456,11 +453,11 @@ contains
           <referenceConstruct object="kinematicsDistribution_">
             <constructor>
                kinematicsDistributionHeated(                                                                                            &amp;
-         &amp;                       nonAnalyticSolver                         =self%nonAnalyticSolver                         , &amp;
-         &amp;                       velocityDispersionApproximate             =self%velocityDispersionApproximate             , &amp;
-         &amp;                       toleranceRelativeVelocityDispersion       =self%toleranceRelativeVelocityDispersion       , &amp;
-         &amp;                       toleranceRelativeVelocityDispersionMaximum=self%toleranceRelativeVelocityDispersionMaximum  &amp;
-	 &amp;                      )
+               &amp;                        nonAnalyticSolver                         =self%nonAnalyticSolver                         , &amp;
+               &amp;                        velocityDispersionApproximate             =self%velocityDispersionApproximate             , &amp;
+               &amp;                        toleranceRelativeVelocityDispersion       =self%toleranceRelativeVelocityDispersion       , &amp;
+               &amp;                        toleranceRelativeVelocityDispersionMaximum=self%toleranceRelativeVelocityDispersionMaximum  &amp;
+	       &amp;                       )
             </constructor>
           </referenceConstruct>
           !!]
@@ -480,13 +477,13 @@ contains
           !![
           <referenceConstruct object="massDistribution_">
             <constructor>
-              massDistributionSolitonNFWHeated(                                                       &amp;
-               &amp;                           radiusCore             =radiusCore                   , &amp;
-               &amp;                           radiusSoliton          =radiusSoliton                , &amp;
-               &amp;                           densitySolitonCentral  =densityCore                  , &amp;
-               &amp;                           massDistributionHeated_=massDistributionHeated_      , &amp;
-               &amp;                           componentType          =componentTypeDarkHalo        , &amp;
-               &amp;                           massType               =massTypeDark                   &amp;
+              massDistributionSolitonNFWHeated(                                                 &amp;
+               &amp;                           radiusCore             =radiusCore             , &amp;
+               &amp;                           radiusSoliton          =radiusSoliton          , &amp;
+               &amp;                           densitySolitonCentral  =densityCore            , &amp;
+               &amp;                           massDistributionHeated_=massDistributionHeated_, &amp;
+               &amp;                           componentType          =componentTypeDarkHalo  , &amp;
+               &amp;                           massType               =massTypeDark             &amp;
                &amp;                          )
             </constructor>
           </referenceConstruct>
@@ -501,9 +498,9 @@ contains
           <referenceConstruct object="kinematicsDistribution_">
             <constructor>
               kinematicsDistributionSolitonNFWHeated(                                                                                            &amp;
-            &amp;                                 toleranceRelativeVelocityDispersion       =self%toleranceRelativeVelocityDispersion       , &amp;
-            &amp;                                 toleranceRelativeVelocityDispersionMaximum=self%toleranceRelativeVelocityDispersionMaximum  &amp;
-            &amp;                                )
+              &amp;                                  toleranceRelativeVelocityDispersion       =self%toleranceRelativeVelocityDispersion       , &amp;
+              &amp;                                  toleranceRelativeVelocityDispersionMaximum=self%toleranceRelativeVelocityDispersionMaximum  &amp;
+              &amp;                                 )
             </constructor>
           </referenceConstruct>
           !!]
@@ -517,36 +514,35 @@ contains
   end function solitonNFWHeatedGet
 
   subroutine solitonNFWHeatedComputeProperties(self,node,radiusVirial,radiusScale,radiusCore,radiusSoliton,densityCore,densityScale,massCore,weightBy,weightIndex)
-    use :: Galacticus_Nodes          , only : treeNode                       , nodeComponentBasic         , nodeComponentDarkMatterProfile
-    use :: Galactic_Structure_Options, only : componentTypeDarkHalo          , massTypeDark               , weightByMass
+    use :: Galacticus_Nodes          , only : treeNode                       , nodeComponentBasic          , nodeComponentDarkMatterProfile
+    use :: Galactic_Structure_Options, only : componentTypeDarkHalo          , massTypeDark                , weightByMass
     use :: Numerical_Constants_Math  , only : Pi
-    use :: Root_Finder               , only : rootFinder                     , rangeExpandMultiplicative  , rangeExpandSignExpectPositive , rangeExpandSignExpectNegative
-    use :: Mass_Distributions        , only : massDistributionSphericalHeated, kinematicsDistributionHeated, massDistributionSpherical    , massDistributionHeatingClass
+    use :: Root_Finder               , only : rootFinder                     , rangeExpandMultiplicative   , rangeExpandSignExpectPositive , rangeExpandSignExpectNegative
+    use :: Mass_Distributions        , only : massDistributionSphericalHeated, kinematicsDistributionHeated, massDistributionSpherical     , massDistributionHeatingClass
     implicit none
     class           (darkMatterProfileDMOSolitonNFWHeated), intent(inout), target   :: self
     type            (treeNode                            ), intent(inout)           :: node
     type            (enumerationWeightByType             ), intent(in   ), optional :: weightBy
     integer                                               , intent(in   ), optional :: weightIndex
     type            (enumerationWeightByType             )                          :: weightBy_
-    double precision                                      , intent(  out)           :: radiusVirial              , radiusScale               , &
-         &                                                                             radiusCore                , radiusSoliton             , &
-         &                                                                             densityCore               , densityScale              , &
+    double precision                                      , intent(  out)           :: radiusVirial                     , radiusScale               , &
+         &                                                                             radiusCore                       , radiusSoliton             , &
+         &                                                                             densityCore                      , densityScale              , &
          &                                                                             massCore
     class           (nodeComponentBasic                  ), pointer                 :: basic
     class           (nodeComponentDarkMatterProfile      ), pointer                 :: darkMatterProfile
     class           (massDistributionClass               ), pointer                 :: massDistributionDecorated
     class           (massDistributionHeatingClass        ), pointer                 :: massDistributionHeating_
     type            (rootFinder                          ), save                    :: finder
-    logical                                               , save                    :: finderInitialized =.false.
+    logical                                               , save                    :: finderInitialized        =.false.
     !$omp threadprivate(finder, finderInitialized)
-    double precision                                      , parameter               :: toleranceAbsolute = 0.0d0 , toleranceRelative = 1.0d-3
-    double precision                                                                :: massHalo                  , expansionFactor           , &
-         &                                                                             redshift                  , concentration             , &
-         &                                                                             randomOffset              , massCoreNormal            , &
-         &                                                                             zeta_0                    , zeta_z
+    double precision                                      , parameter               :: toleranceAbsolute        =0.0d0  , toleranceRelative = 1.0d-3
+    double precision                                                                :: massHalo                         , expansionFactor           , &
+         &                                                                             redshift                         , concentration             , &
+         &                                                                             randomOffset                     , massCoreNormal            , &
+         &                                                                             zeta_0                           , zeta_z
     integer                                                                         :: sampleCountMaximum=50
-    integer                                                                         :: status                    , sampleCount
-         
+    integer                                                                         :: status                           , sampleCount
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
     !!]
@@ -577,7 +573,6 @@ contains
          &            +              log(1.0d0+concentration) &
          &            -concentration/   (1.0d0+concentration) &
          &          )
-
     ! If weighting is not by mass, return a null profile.
     if (weightBy_ /= weightByMass) return
     ! Create the mass distribution.
@@ -677,15 +672,14 @@ contains
     !!{
     Root function used in seeking the transition radius in fuzzy dark matter profiles.
     !!}
-    use :: Coordinates          , only          : coordinateCartesian, assignment(=)
+    use :: Coordinates, only : coordinateCartesian, assignment(=)
     implicit none
-    double precision            , intent(in)    :: radius
-    type   (coordinateCartesian)                :: coordinates
+    double precision                     , intent(in) :: radius
+    type            (coordinateCartesian)             :: coordinates
 
     coordinates=[radius,0.0d0,0.0d0]
-
-    f      =+                densityCore_                      &
-         &  /(1.0d0+0.091d0*(radius/radiusCore_ )**2)**8       &
-         &  -self_%massDistributionHeated_%density(coordinates)
+    f          =+                densityCore_                       &
+         &      /(1.0d0+0.091d0*(radius/radiusCore_ )**2)**8        &
+         &      -self_%massDistributionHeated_%density(coordinates)
     return
   end function radiusTransitionRoot

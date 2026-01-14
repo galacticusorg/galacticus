@@ -69,96 +69,93 @@
    type   (massDistributionContainer), pointer   :: containerSolitonNFW
    !$omp threadprivate(containerSolitonNFW,containerSolitonNFWInitialized)
 
-   ! Coefficient of the dimensionless radius in the soliton profile.
-   double precision                  , parameter :: coefficientCore               =0.091d0 ! Schive et al. (2014; https://ui.adsabs.harvard.edu/abs/2014PhRvL.113z1302S; equation 3).
-
    !![
    <sourceDigest name="massDistributionSolitonNFWSourceDigest"/>
    !!]
 
-contains
-
+ contains
+   
    function solitonNFWConstructorParameters(parameters) result(self)
-      !!{
-      Constructor for the soliton and NFW mass distribution class which builds the object from a parameter set.
-      !!}
-      use :: Input_Parameters          , only : inputParameter                , inputParameters
-      use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
-      implicit none
-      type            (massDistributionSolitonNFW)                :: self
-      type            (inputParameters           ), intent(inout) :: parameters
-      double precision                                            :: radiusScale          , radiusCore                , &
-         &                                                           densitySolitonCentral, densityNormalizationNFW   , &
-         &                                                           radiusSoliton        , radiusVirial              , &
-         &                                                           concentration        , toleranceRelativePotential
-      logical                                                     :: dimensionless
-      type            (varying_string            )                :: componentType
-      type            (varying_string            )                :: massType
-
-      !![
-      <inputParameter>
-         <name>radiusScale</name>
-         <description>The scale radius of the NFW component of the mass distribution.</description>
-         <source>parameters</source>
-      </inputParameter>
-      <inputParameter>
-         <name>radiusCore</name>
-         <description>The soliton core radius.</description>
-         <source>parameters</source>
-      </inputParameter>
-      <inputParameter>
-         <name>radiusSoliton</name>
-         <description>The soliton transition radius.</description>
-         <source>parameters</source>
-      </inputParameter>
-      <inputParameter>
-         <name>densitySolitonCentral</name>
-         <description>The central density of the soliton.</description>
-         <source>parameters</source>
-      </inputParameter>
-      <inputParameter>
-         <name>densityNormalizationNFW</name>
-         <description>The density normalization of the NFW profile.</description>
-         <source>parameters</source>
-      </inputParameter>
-      <inputParameter>
-         <name>concentration</name>
-         <description>The concentration of the NFW profile.</description>
-         <source>parameters</source>
-      </inputParameter>
-      <inputParameter>
-         <name>radiusVirial</name>
-         <description>The virial radius of the NFW profile.</description>
-         <source>parameters</source>
-      </inputParameter>
-      <inputParameter>
-         <name>toleranceRelativePotential</name>
-         <defaultValue>1.0d-3</defaultValue>
-         <description>The relative tolerance for numerical solutions.</description>
-         <source>parameters</source>
-      </inputParameter>
-      <inputParameter>
-         <name>dimensionless</name>
-         <defaultValue>.true.</defaultValue>
-         <description>If true the profile is dimensionless.</description>
-         <source>parameters</source>
-      </inputParameter>
-      <inputParameter>
-         <name>componentType</name>
-         <defaultValue>var_str('unknown')</defaultValue>
-         <description>The component type for the profile.</description>
-         <source>parameters</source>
-      </inputParameter>
-      <inputParameter>
-         <name>massType</name>
-         <defaultValue>var_str('unknown')</defaultValue>
-         <description>The mass type for the profile.</description>
-         <source>parameters</source>
-      </inputParameter>
-      <conditionalCall>
-	<call>
-	  self=massDistributionSolitonNFW(toleranceRelativePotential=toleranceRelativePotential,componentType=enumerationComponentTypeEncode(componentType,includesPrefix=.false.),massType=enumerationMassTypeEncode(massType,includesPrefix=.false.){conditions})
-	</call>
+     !!{
+     Constructor for the soliton and NFW mass distribution class which builds the object from a parameter set.
+     !!}
+     use :: Input_Parameters          , only : inputParameter                , inputParameters
+     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
+     implicit none
+     type            (massDistributionSolitonNFW)                :: self
+     type            (inputParameters           ), intent(inout) :: parameters
+     double precision                                            :: radiusScale          , radiusCore                , &
+          &                                                         densitySolitonCentral, densityNormalizationNFW   , &
+          &                                                         radiusSoliton        , radiusVirial              , &
+          &                                                         concentration        , toleranceRelativePotential
+     logical                                                     :: dimensionless
+     type            (varying_string            )                :: componentType
+     type            (varying_string            )                :: massType
+     
+     !![
+     <inputParameter>
+       <name>radiusScale</name>
+       <description>The scale radius of the NFW component of the mass distribution.</description>
+       <source>parameters</source>
+     </inputParameter>
+     <inputParameter>
+       <name>radiusCore</name>
+       <description>The soliton core radius.</description>
+       <source>parameters</source>
+     </inputParameter>
+     <inputParameter>
+       <name>radiusSoliton</name>
+       <description>The soliton transition radius.</description>
+       <source>parameters</source>
+     </inputParameter>
+     <inputParameter>
+       <name>densitySolitonCentral</name>
+       <description>The central density of the soliton.</description>
+       <source>parameters</source>
+     </inputParameter>
+     <inputParameter>
+       <name>densityNormalizationNFW</name>
+       <description>The density normalization of the NFW profile.</description>
+       <source>parameters</source>
+     </inputParameter>
+     <inputParameter>
+       <name>concentration</name>
+       <description>The concentration of the NFW profile.</description>
+       <source>parameters</source>
+     </inputParameter>
+     <inputParameter>
+       <name>radiusVirial</name>
+       <description>The virial radius of the NFW profile.</description>
+       <source>parameters</source>
+     </inputParameter>
+     <inputParameter>
+       <name>toleranceRelativePotential</name>
+       <defaultValue>1.0d-3</defaultValue>
+       <description>The relative tolerance for numerical solutions.</description>
+       <source>parameters</source>
+     </inputParameter>
+     <inputParameter>
+       <name>dimensionless</name>
+       <defaultValue>.true.</defaultValue>
+       <description>If true the profile is dimensionless.</description>
+       <source>parameters</source>
+     </inputParameter>
+     <inputParameter>
+       <name>componentType</name>
+       <defaultValue>var_str('unknown')</defaultValue>
+       <description>The component type for the profile.</description>
+       <source>parameters</source>
+     </inputParameter>
+     <inputParameter>
+       <name>massType</name>
+       <defaultValue>var_str('unknown')</defaultValue>
+       <description>The mass type for the profile.</description>
+       <source>parameters</source>
+     </inputParameter>
+     <conditionalCall>
+       <call>
+	 self=massDistributionSolitonNFW(toleranceRelativePotential=toleranceRelativePotential,componentType=enumerationComponentTypeEncode(componentType,includesPrefix=.false.),massType=enumerationMassTypeEncode(massType,includesPrefix=.false.){conditions})
+       </call>
        <argument name="radiusCore"              value="radiusCore"              parameterPresent="parameters"/>
        <argument name="radiusSoliton"           value="radiusSoliton"           parameterPresent="parameters"/>
        <argument name="densitySolitonCentral"   value="densitySolitonCentral"   parameterPresent="parameters"/>
@@ -167,12 +164,12 @@ contains
        <argument name="radiusVirial"            value="radiusVirial"            parameterPresent="parameters"/>
        <argument name="concentration"           value="concentration"           parameterPresent="parameters"/>
        <argument name="dimensionless"           value="dimensionless"           parameterPresent="parameters"/>
-      </conditionalCall>
-      <inputParametersValidate source="parameters"/>
-      !!]
-      return
+     </conditionalCall>
+     <inputParametersValidate source="parameters"/>
+     !!]
+     return
    end function solitonNFWConstructorParameters
-
+   
    function solitonNFWConstructorInternal(radiusScale,radiusCore,radiusSoliton,densitySolitonCentral,densityNormalizationNFW,radiusVirial,concentration,dimensionless,componentType,massType,toleranceRelativePotential) result(self)
      !!{
      Internal constructor for ``soliton and NFW'' mass distribution class.
@@ -254,197 +251,200 @@ contains
      self%densityTransition      =+self%density(coordinates)
      return
    end function solitonNFWConstructorInternal
-
+   
    function solitonNFWFactoryTabulation(self,parameters) result(instance)
-      !!{
-      Construct an instance of this class using tabulation parameters.
-      !!}
-      implicit none
-      class           (massDistributionSphericalTabulated), pointer                  :: instance
-      class           (massDistributionSolitonNFW)        , intent(inout)            :: self
-      double precision                                    , intent(in), dimension(:) :: parameters
-    
-      allocate(massDistributionSolitonNFW :: instance)
-      select type(instance)
-      type is (massDistributionSolitonNFW)
-         instance= massDistributionSolitonNFW(                                                            &
-              &                               radiusScale               =     1.0d0                     , &
-              &                               densityNormalizationNFW   =     1.0d0                     , &
-              &                               radiusCore                =     parameters(1)             , &
-              &                               radiusSoliton             =     parameters(2)             , &
-              &                               densitySolitonCentral     =     parameters(3)             , &
-              &                               toleranceRelativePotential=self%toleranceRelativePotential  &
-              &                              )
-      end select
-      return
+     !!{
+     Construct an instance of this class using tabulation parameters.
+     !!}
+     implicit none
+     class           (massDistributionSphericalTabulated), pointer                  :: instance
+     class           (massDistributionSolitonNFW)        , intent(inout)            :: self
+     double precision                                    , intent(in), dimension(:) :: parameters
+     
+     allocate(massDistributionSolitonNFW :: instance)
+     select type(instance)
+     type is (massDistributionSolitonNFW)
+        instance= massDistributionSolitonNFW(                                                            &
+             &                               radiusScale               =     1.0d0                     , &
+             &                               densityNormalizationNFW   =     1.0d0                     , &
+             &                               radiusCore                =     parameters(1)             , &
+             &                               radiusSoliton             =     parameters(2)             , &
+             &                               densitySolitonCentral     =     parameters(3)             , &
+             &                               toleranceRelativePotential=self%toleranceRelativePotential  &
+             &                              )
+     end select
+     return
    end function solitonNFWFactoryTabulation
-
+   
    double precision function solitonNFWMassEnclosedBySphere(self,radius) result(mass)
-      !!{
-      Return the mass at the specified {\normalfont \ttfamily coordinates} in a soliton and NFW mass distribution.
-      !!}
-      use :: Numerical_Constants_Math, only : Pi
-      implicit none
-      class           (massDistributionSolitonNFW), intent(inout), target :: self
-      double precision                            , intent(in   )         :: radius
-      double precision                                                    :: termLogarithmic, termInverse
-
-      if      (radius <= 0.0d0             ) then
-         ! Zero radius.
-         mass           =+0.0d0
-      else if (radius <= self%radiusSoliton) then
-         ! Soliton regime.
-         mass           =+massSoliton(radius)
-      else
-         ! NFW regime.
-         termInverse    =+self%radiusScale                             &
-              &          *(                                            &
-              &           +1.0d0/(     radius     +self%radiusScale  ) &
-              &           -1.0d0/(self%radiusScale+self%radiusSoliton) &
-              &          )
-         termLogarithmic=+log(     radius     +self%radiusScale  ) &
-              &          -log(self%radiusScale+self%radiusSoliton)
-         mass           =+massSoliton(self%radiusSoliton) &
-              &          +4.0d0                           &
-              &          *Pi                              &
-              &          *self%densityNormalizationNFW    &
-              &          *self%radiusScale**3             &
-              &          *(                               &
-              &            +termInverse                   &
-              &            +termLogarithmic               &
-              &          )
-      end if
-      return
-
-    contains
-
-      double precision function massSoliton(radius_) result(mass)
-        !!{
-        Return the mass at the specified {\normalfont \ttfamily coordinates} in the soliton region.
-        !!}
-        implicit none
-        double precision, intent(in   ) :: radius_
-        double precision, parameter     :: fractionRadiusSmall=0.1d0
-        double precision                :: termArcTangent           , termPrefactor , &
-             &                             termCore                 , termPolynomial
-
-        if (radius_ < fractionRadiusSmall*self%radiusCore) then
-           ! At small radii use a Taylor series for numerical accuracy.
-           mass          =+  4.0d0/3.0d0*Pi                   *self%densitySolitonCentral*radius_**3                    &
-                &         - 32.0d0/5.0d0*Pi*coefficientCore   *self%densitySolitonCentral*radius_**5/self%radiusCore**2 &
-                &         +144.0d0/7.0d0*Pi*coefficientCore**2*self%densitySolitonCentral*radius_**7/self%radiusCore**4
-        else
-           ! Use the exact solution.
-           termCore      =+sqrt(coefficientCore)                              &
-                &         *                 radius_                           &
-                &         *                            self%radiusCore        &
-                &         /(coefficientCore*radius_**2+self%radiusCore**2)**7
-           termPolynomial=+  3465.0d0*coefficientCore**6*radius_**12                     &
-                &         + 23100.0d0*coefficientCore**5*radius_**10*self%radiusCore** 2 &
-                &         + 65373.0d0*coefficientCore**4*radius_** 8*self%radiusCore** 4 &
-                &         +101376.0d0*coefficientCore**3*radius_** 6*self%radiusCore** 6 &
-                &         + 92323.0d0*coefficientCore**2*radius_** 4*self%radiusCore** 8 &
-                &         + 48580.0d0*coefficientCore*   radius_** 2*self%radiusCore**10 &
-                &         -  3465.0d0                               *self%radiusCore**12
-           termArcTangent=+3465.0d0                                            &
-                &         *atan(sqrt(coefficientCore)*radius_/self%radiusCore)
-           termPrefactor =+Pi                            &
-                &         *self%densitySolitonCentral    &
-                &         *self%radiusCore           **3 &
-                &         /(                             &
-                &           +53760.0d0                   &
-                &           *coefficientCore**1.5d0      &
-                &         )
-           mass          = + termPrefactor               &
-                &         *(                             &
-                &           +termArcTangent              &
-                &           +termCore                    &
-                &           *termPolynomial              &
-                &          )
-        end if
-        return
-      end function massSoliton
-      
-    end function solitonNFWMassEnclosedBySphere
-
-    double precision function solitonNFWDensity(self,coordinates) result(density)
-      !!{
-      Return the density at the specified {\normalfont \ttfamily coordinates} in a soliton and NFW mass distribution.
-      !!}
-      implicit none
-      class           (massDistributionSolitonNFW), intent(inout) :: self
-      class           (coordinate                ), intent(in   ) :: coordinates
-      double precision                                            :: radiusScaleFree, radiusCoreFree
-
-      radiusScaleFree=+coordinates%rSpherical()/self%radiusScale
-      radiusCoreFree =+coordinates%rSpherical()/self%radiusCore
-      
-      if (coordinates%rSpherical() <= 0.0d0) then
-         ! Zero radius.
-         density=+self%densitySolitonCentral
-      else if (coordinates%rSpherical() < self%radiusSoliton) then
-         ! Soliton regime.
-         density=+self%densitySolitonCentral                  /(+1.0d0+coefficientCore*radiusCoreFree**2)**8
-      else
-         ! NFW regime.
-         density=+self%densityNormalizationNFW/radiusScaleFree/(+1.0d0+                radiusScaleFree  )**2
-      end if
-      return
+     !!{
+     Return the mass at the specified {\normalfont \ttfamily coordinates} in a soliton and NFW mass distribution.
+     !!}
+     use :: Numerical_Constants_Math, only : Pi
+     implicit none
+     class           (massDistributionSolitonNFW), intent(inout), target :: self
+     double precision                            , intent(in   )         :: radius
+     double precision                                                    :: termLogarithmic, termInverse
+     
+     if      (radius <= 0.0d0             ) then
+        ! Zero radius.
+        mass           =+0.0d0
+     else if (radius <= self%radiusSoliton) then
+        ! Soliton regime.
+        mass           =+massSoliton(radius)
+     else
+        ! NFW regime.
+        termInverse    =+self%radiusScale                             &
+             &          *(                                            &
+             &           +1.0d0/(     radius     +self%radiusScale  ) &
+             &           -1.0d0/(self%radiusScale+self%radiusSoliton) &
+             &          )
+        termLogarithmic=+log(     radius     +self%radiusScale  ) &
+             &          -log(self%radiusScale+self%radiusSoliton)
+        mass           =+massSoliton(self%radiusSoliton) &
+             &          +4.0d0                           &
+             &          *Pi                              &
+             &          *self%densityNormalizationNFW    &
+             &          *self%radiusScale**3             &
+             &          *(                               &
+             &            +termInverse                   &
+             &            +termLogarithmic               &
+             &          )
+     end if
+     return
+     
+   contains
+     
+     double precision function massSoliton(radius_) result(mass)
+       !!{
+       Return the mass at the specified {\normalfont \ttfamily coordinates} in the soliton region.
+       !!}
+       use :: Mass_Distribution_Soliton_Schive2014, only : coefficientCore
+       implicit none
+       double precision, intent(in   ) :: radius_
+       double precision, parameter     :: fractionRadiusSmall=0.1d0
+       double precision                :: termArcTangent           , termPrefactor , &
+            &                             termCore                 , termPolynomial
+       
+       if (radius_ < fractionRadiusSmall*self%radiusCore) then
+          ! At small radii use a Taylor series for numerical accuracy.
+          mass          =+  4.0d0/3.0d0*Pi                   *self%densitySolitonCentral*radius_**3                    &
+               &         - 32.0d0/5.0d0*Pi*coefficientCore   *self%densitySolitonCentral*radius_**5/self%radiusCore**2 &
+               &         +144.0d0/7.0d0*Pi*coefficientCore**2*self%densitySolitonCentral*radius_**7/self%radiusCore**4
+       else
+          ! Use the exact solution.
+          termCore      =+sqrt(coefficientCore)                              &
+               &         *                 radius_                           &
+               &         *                            self%radiusCore        &
+               &         /(coefficientCore*radius_**2+self%radiusCore**2)**7
+          termPolynomial=+  3465.0d0*coefficientCore**6*radius_**12                     &
+               &         + 23100.0d0*coefficientCore**5*radius_**10*self%radiusCore** 2 &
+               &         + 65373.0d0*coefficientCore**4*radius_** 8*self%radiusCore** 4 &
+               &         +101376.0d0*coefficientCore**3*radius_** 6*self%radiusCore** 6 &
+               &         + 92323.0d0*coefficientCore**2*radius_** 4*self%radiusCore** 8 &
+               &         + 48580.0d0*coefficientCore*   radius_** 2*self%radiusCore**10 &
+               &         -  3465.0d0                               *self%radiusCore**12
+          termArcTangent=+3465.0d0                                            &
+               &         *atan(sqrt(coefficientCore)*radius_/self%radiusCore)
+          termPrefactor =+Pi                            &
+               &         *self%densitySolitonCentral    &
+               &         *self%radiusCore           **3 &
+               &         /(                             &
+               &           +53760.0d0                   &
+               &           *coefficientCore**1.5d0      &
+               &         )
+          mass          = + termPrefactor               &
+               &         *(                             &
+               &           +termArcTangent              &
+               &           +termCore                    &
+               &           *termPolynomial              &
+               &          )
+       end if
+       return
+     end function massSoliton
+     
+   end function solitonNFWMassEnclosedBySphere
+   
+   double precision function solitonNFWDensity(self,coordinates) result(density)
+     !!{
+     Return the density at the specified {\normalfont \ttfamily coordinates} in a soliton and NFW mass distribution.
+     !!}
+     use :: Mass_Distribution_Soliton_Schive2014, only : coefficientCore
+     implicit none
+     class           (massDistributionSolitonNFW), intent(inout) :: self
+     class           (coordinate                ), intent(in   ) :: coordinates
+     double precision                                            :: radiusScaleFree, radiusCoreFree
+     
+     radiusScaleFree=+coordinates%rSpherical()/self%radiusScale
+     radiusCoreFree =+coordinates%rSpherical()/self%radiusCore
+     
+     if (coordinates%rSpherical() <= 0.0d0) then
+        ! Zero radius.
+        density=+self%densitySolitonCentral
+     else if (coordinates%rSpherical() < self%radiusSoliton) then
+        ! Soliton regime.
+        density=+self%densitySolitonCentral                  /(+1.0d0+coefficientCore*radiusCoreFree**2)**8
+     else
+        ! NFW regime.
+        density=+self%densityNormalizationNFW/radiusScaleFree/(+1.0d0+                radiusScaleFree  )**2
+     end if
+     return
    end function solitonNFWDensity
-
+   
    double precision function solitonNFWDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
-      !!{
-      Return the radial density gradient at the specified {\normalfont \ttfamily coordinates} in a soliton and NFW mass distribution.
-      !!}
-      implicit none
-      class           (massDistributionSolitonNFW) , intent(inout), target   :: self
-      class           (coordinate              )   , intent(in   )           :: coordinates
-      logical                                      , intent(in   ), optional :: logarithmic
-      double precision                                                       :: radiusScaleFree, radiusCoreFree
-      !![
-      <optionalArgument name="logarithmic" defaultsTo=".false."/>
-      !!]
-
-      radiusScaleFree=+coordinates%rSpherical()/self%radiusScale
-      radiusCoreFree =+coordinates%rSpherical()/self%radiusCore
-
-      if (coordinates%rSpherical() <= 0.0d0) then
-         ! Zero radius.
-         densityGradient   =0.0d0
-      else if (coordinates%rSpherical() < self%radiusSoliton) then
-         ! Soliton regime.
-         if (logarithmic) then
-            densityGradient=-16.0d0                                       &
-                 &          *       coefficientCore*radiusCoreFree**2     &
-                 &          /(1.0d0+coefficientCore*radiusCoreFree**2)
-         else
-            densityGradient=-16.0d0                                       &
-                 &          *self%densitySolitonCentral                   &
-                 &          /self%radiusCore                              &
-                 &          *       coefficientCore*radiusCoreFree        &
-                 &          /(1.0d0+coefficientCore*radiusCoreFree**2)**9
-         end if
-      else
-         ! NFW regime.
-         if (logarithmic) then
-            densityGradient=  -1.0d0                  &
-                 &            -2.0d0*radiusScaleFree  &
-                 &          /(+1.0d0+radiusScaleFree)
-         else
-            densityGradient=-self%densityNormalizationNFW      &
-                 &          /self%radiusScale                  &
-                 &          *(+1.0d0+3.0d0*radiusScaleFree)    &
-                 &          /(+1.0d0+      radiusScaleFree)**3 &
-                 &          /              radiusScaleFree **2
-         end if
-      end if
-      return
+     !!{
+     Return the radial density gradient at the specified {\normalfont \ttfamily coordinates} in a soliton and NFW mass distribution.
+     !!}
+     use :: Mass_Distribution_Soliton_Schive2014, only : coefficientCore
+     implicit none
+     class           (massDistributionSolitonNFW) , intent(inout), target   :: self
+     class           (coordinate              )   , intent(in   )           :: coordinates
+     logical                                      , intent(in   ), optional :: logarithmic
+     double precision                                                       :: radiusScaleFree, radiusCoreFree
+     !![
+     <optionalArgument name="logarithmic" defaultsTo=".false."/>
+     !!]
+     
+     radiusScaleFree=+coordinates%rSpherical()/self%radiusScale
+     radiusCoreFree =+coordinates%rSpherical()/self%radiusCore     
+     if (coordinates%rSpherical() <= 0.0d0) then
+        ! Zero radius.
+        densityGradient   =0.0d0
+     else if (coordinates%rSpherical() < self%radiusSoliton) then
+        ! Soliton regime.
+        if (logarithmic) then
+           densityGradient=-16.0d0                                       &
+                &          *       coefficientCore*radiusCoreFree**2     &
+                &          /(1.0d0+coefficientCore*radiusCoreFree**2)
+        else
+           densityGradient=-16.0d0                                       &
+                &          *self%densitySolitonCentral                   &
+                &          /self%radiusCore                              &
+                &          *       coefficientCore*radiusCoreFree        &
+                &          /(1.0d0+coefficientCore*radiusCoreFree**2)**9
+        end if
+     else
+        ! NFW regime.
+        if (logarithmic) then
+           densityGradient=  -1.0d0                  &
+                &            -2.0d0*radiusScaleFree  &
+                &          /(+1.0d0+radiusScaleFree)
+        else
+           densityGradient=-self%densityNormalizationNFW      &
+                &          /self%radiusScale                  &
+                &          *(+1.0d0+3.0d0*radiusScaleFree)    &
+                &          /(+1.0d0+      radiusScaleFree)**3 &
+                &          /              radiusScaleFree **2
+        end if
+     end if
+     return
    end function solitonNFWDensityGradientRadial
    
    double precision function solitonNFWRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
      !!{
      Computes the radius enclosing a given mean density for soliton NFW mass distributions.
      !!}
+     use :: Mass_Distribution_Soliton_Schive2014, only : coefficientCore
      implicit none
      class           (massDistributionSolitonNFW), intent(inout), target   :: self
      double precision                            , intent(in   )           :: density
@@ -478,12 +478,13 @@ contains
      !!{
      Computes the radius enclosing a given mean density for soliton NFW mass distributions.
      !!}
+     use :: Mass_Distribution_Soliton_Schive2014, only : coefficientCore
      implicit none
      class           (massDistributionSolitonNFW), intent(inout), target   :: self
      double precision                            , intent(in   )           :: density
      double precision                            , intent(in   ), optional :: radiusGuess
      double precision                            , parameter               :: epsilonDeltaDensityFractional=1.0d-2
-
+     
      if      (density >= self%densitySolitonCentral                                      ) then
         radius=0.0d0
      else if (density >  self%densitySolitonCentral*(1.0d0-epsilonDeltaDensityFractional)) then
@@ -507,98 +508,99 @@ contains
    end function solitonNFWRadiusEnclosingDensityNumerical
    
    subroutine solitonNFWParameters(self,densityNormalization,radiusNormalization,parameters,container)
-      !!{
-      Establish parameters for tabulation.
-      !!}
-      implicit none
-      class           (massDistributionSolitonNFW), intent(inout)                            :: self
-      double precision                            , intent(  out)                            :: densityNormalization, radiusNormalization
-      double precision                            , intent(inout), allocatable, dimension(:) :: parameters
-      type             (massDistributionContainer), intent(  out), pointer                   :: container
-
-      if (.not.containerSolitonNFWInitialized) then
-         allocate(containerSolitonNFW)
-         call containerSolitonNFW%initialize(3)
-         containerSolitonNFW%mass                      %radiusCountPer       =+20_c_size_t
-         containerSolitonNFW%mass                      %parametersCountPer   =+20_c_size_t
-         containerSolitonNFW%radiusEnclosingDensity    %radiusCountPer       =+20_c_size_t
-         containerSolitonNFW%radiusEnclosingDensity    %parametersCountPer   =+20_c_size_t
-         containerSolitonNFW%potential                 %radiusCountPer       =+20_c_size_t
-         containerSolitonNFW%potential                 %parametersCountPer   =+20_c_size_t
-         containerSolitonNFW%velocityDispersion1D      %radiusCountPer       =+20_c_size_t
-         containerSolitonNFW%velocityDispersion1D      %parametersCountPer   =+20_c_size_t
-         containerSolitonNFW%energy                    %radiusCountPer       =+20_c_size_t
-         containerSolitonNFW%energy                    %parametersCountPer   =+20_c_size_t
-         containerSolitonNFW%radiusFreefall            %radiusCountPer       =+20_c_size_t
-         containerSolitonNFW%radiusFreefall            %parametersCountPer   =+20_c_size_t
-         containerSolitonNFW%radiusFreefallIncreaseRate%radiusCountPer       =+20_c_size_t
-         containerSolitonNFW%radiusFreefallIncreaseRate%parametersCountPer   =+20_c_size_t
-         containerSolitonNFW%densityRadialMoment0      %radiusCountPer       =+20_c_size_t
-         containerSolitonNFW%densityRadialMoment0      %parametersCountPer   =+20_c_size_t
-         containerSolitonNFW%densityRadialMoment1      %radiusCountPer       =+20_c_size_t
-         containerSolitonNFW%densityRadialMoment1      %parametersCountPer   =+20_c_size_t
-         containerSolitonNFW%densityRadialMoment2      %radiusCountPer       =+20_c_size_t
-         containerSolitonNFW%densityRadialMoment2      %parametersCountPer   =+20_c_size_t
-         containerSolitonNFW%densityRadialMoment3      %radiusCountPer       =+20_c_size_t
-         containerSolitonNFW%densityRadialMoment3      %parametersCountPer   =+20_c_size_t
-         containerSolitonNFW%fourierTransform          %radiusCountPer       =+20_c_size_t
-         containerSolitonNFW%fourierTransform          %parametersCountPer   =+20_c_size_t
-         containerSolitonNFW%nameParameters                               (1)='radiusCoreOverRadiusScale'
-         containerSolitonNFW%descriptionParameters                        (1)='The ratio of core to scale radii(r_c/rₛ).'
-         containerSolitonNFW%nameParameters                               (2)='radiusSolitonOverRadiusScale'
-         containerSolitonNFW%descriptionParameters                        (2)='The ratio of soliton to scale radii(rₛₒₗ/rₛ).'
-         containerSolitonNFW%nameParameters                               (3)='densitySolitonCentralOverDensityScale'
-         containerSolitonNFW%descriptionParameters                        (3)='The ratio of soliton central to scale densities(ρ₀/ρₛ).'
-         containerSolitonNFWInitialized                                      =.true.
-      end if
-      allocate(parameters(3))
-      densityNormalization =  self%densityNormalizationNFW
-      radiusNormalization  =  self%radiusScale
-      parameters(1)        =  self%radiusCoreScaleFree
-      parameters(2)        =  self%radiusSolitonScaleFree
-      parameters(3)        =  self%densitySolitonScaleFree
-      container            => containerSolitonNFW
-      return
+     !!{
+     Establish parameters for tabulation.
+     !!}
+     implicit none
+     class           (massDistributionSolitonNFW), intent(inout)                            :: self
+     double precision                            , intent(  out)                            :: densityNormalization, radiusNormalization
+     double precision                            , intent(inout), allocatable, dimension(:) :: parameters
+     type             (massDistributionContainer), intent(  out), pointer                   :: container
+     
+     if (.not.containerSolitonNFWInitialized) then
+        allocate(containerSolitonNFW)
+        call containerSolitonNFW%initialize(3)
+        containerSolitonNFW%mass                      %radiusCountPer       =+20_c_size_t
+        containerSolitonNFW%mass                      %parametersCountPer   =+20_c_size_t
+        containerSolitonNFW%radiusEnclosingDensity    %radiusCountPer       =+20_c_size_t
+        containerSolitonNFW%radiusEnclosingDensity    %parametersCountPer   =+20_c_size_t
+        containerSolitonNFW%potential                 %radiusCountPer       =+20_c_size_t
+        containerSolitonNFW%potential                 %parametersCountPer   =+20_c_size_t
+        containerSolitonNFW%velocityDispersion1D      %radiusCountPer       =+20_c_size_t
+        containerSolitonNFW%velocityDispersion1D      %parametersCountPer   =+20_c_size_t
+        containerSolitonNFW%energy                    %radiusCountPer       =+20_c_size_t
+        containerSolitonNFW%energy                    %parametersCountPer   =+20_c_size_t
+        containerSolitonNFW%radiusFreefall            %radiusCountPer       =+20_c_size_t
+        containerSolitonNFW%radiusFreefall            %parametersCountPer   =+20_c_size_t
+        containerSolitonNFW%radiusFreefallIncreaseRate%radiusCountPer       =+20_c_size_t
+        containerSolitonNFW%radiusFreefallIncreaseRate%parametersCountPer   =+20_c_size_t
+        containerSolitonNFW%densityRadialMoment0      %radiusCountPer       =+20_c_size_t
+        containerSolitonNFW%densityRadialMoment0      %parametersCountPer   =+20_c_size_t
+        containerSolitonNFW%densityRadialMoment1      %radiusCountPer       =+20_c_size_t
+        containerSolitonNFW%densityRadialMoment1      %parametersCountPer   =+20_c_size_t
+        containerSolitonNFW%densityRadialMoment2      %radiusCountPer       =+20_c_size_t
+        containerSolitonNFW%densityRadialMoment2      %parametersCountPer   =+20_c_size_t
+        containerSolitonNFW%densityRadialMoment3      %radiusCountPer       =+20_c_size_t
+        containerSolitonNFW%densityRadialMoment3      %parametersCountPer   =+20_c_size_t
+        containerSolitonNFW%fourierTransform          %radiusCountPer       =+20_c_size_t
+        containerSolitonNFW%fourierTransform          %parametersCountPer   =+20_c_size_t
+        containerSolitonNFW%nameParameters                               (1)='radiusCoreOverRadiusScale'
+        containerSolitonNFW%descriptionParameters                        (1)='The ratio of core to scale radii(r_c/rₛ).'
+        containerSolitonNFW%nameParameters                               (2)='radiusSolitonOverRadiusScale'
+        containerSolitonNFW%descriptionParameters                        (2)='The ratio of soliton to scale radii(rₛₒₗ/rₛ).'
+        containerSolitonNFW%nameParameters                               (3)='densitySolitonCentralOverDensityScale'
+        containerSolitonNFW%descriptionParameters                        (3)='The ratio of soliton central to scale densities(ρ₀/ρₛ).'
+        containerSolitonNFWInitialized                                      =.true.
+     end if
+     allocate(parameters(3))
+     densityNormalization =  self%densityNormalizationNFW
+     radiusNormalization  =  self%radiusScale
+     parameters(1)        =  self%radiusCoreScaleFree
+     parameters(2)        =  self%radiusSolitonScaleFree
+     parameters(3)        =  self%densitySolitonScaleFree
+     container            => containerSolitonNFW
+     return
    end subroutine solitonNFWParameters
-
+   
    subroutine solitonNFWDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
-      !!{
-      Return an input parameter list descriptor which could be used to recreate this object.
-      !!}
-      use :: Input_Parameters, only : inputParameters
-      implicit none
-      class    (massDistributionSolitonNFW), intent(inout)           :: self
-      type     (inputParameters           ), intent(inout)           :: descriptor
-      logical                              , intent(in   ), optional :: includeClass  , includeFileModificationTimes
-      character(len=18)                                              :: parameterLabel
-      type     (inputParameters           )                          :: parameters
-      !$GLC attributes unused :: includeFileModificationTimes
-
-      if (.not.present(includeClass) .or. includeClass) call descriptor%addParameter('massDistribution','solitonNFW')
-      parameters = descriptor%subparameters('massDistribution')
-      write(parameterLabel,'(e17.10)') self%densityNormalizationNFW
-      call parameters%addParameter('densityNormalizationNFW',trim(adjustl(parameterLabel)))
-      write(parameterLabel,'(e17.10)') self%radiusScale
-      call parameters%addParameter('radiusScale'            ,trim(adjustl(parameterLabel)))
-      write(parameterLabel,'(e17.10)') self%radiusCore
-      call parameters%addParameter('radiusCore'             ,trim(adjustl(parameterLabel)))
-      write(parameterLabel,'(e17.10)') self%radiusSoliton
-      call parameters%addParameter('radiusSoliton'          ,trim(adjustl(parameterLabel)))
-      write(parameterLabel,'(e17.10)') self%densitySolitonCentral
-      call parameters%addParameter('densitySolitonCentral'  ,trim(adjustl(parameterLabel)))
-      return
+     !!{
+     Return an input parameter list descriptor which could be used to recreate this object.
+     !!}
+     use :: Input_Parameters, only : inputParameters
+     implicit none
+     class    (massDistributionSolitonNFW), intent(inout)           :: self
+     type     (inputParameters           ), intent(inout)           :: descriptor
+     logical                              , intent(in   ), optional :: includeClass  , includeFileModificationTimes
+     character(len=18)                                              :: parameterLabel
+     type     (inputParameters           )                          :: parameters
+     !$GLC attributes unused :: includeFileModificationTimes
+     
+     if (.not.present(includeClass) .or. includeClass) call descriptor%addParameter('massDistribution','solitonNFW')
+     parameters = descriptor%subparameters('massDistribution')
+     write(parameterLabel,'(e17.10)') self%densityNormalizationNFW
+     call parameters%addParameter('densityNormalizationNFW',trim(adjustl(parameterLabel)))
+     write(parameterLabel,'(e17.10)') self%radiusScale
+     call parameters%addParameter('radiusScale'            ,trim(adjustl(parameterLabel)))
+     write(parameterLabel,'(e17.10)') self%radiusCore
+     call parameters%addParameter('radiusCore'             ,trim(adjustl(parameterLabel)))
+     write(parameterLabel,'(e17.10)') self%radiusSoliton
+     call parameters%addParameter('radiusSoliton'          ,trim(adjustl(parameterLabel)))
+     write(parameterLabel,'(e17.10)') self%densitySolitonCentral
+     call parameters%addParameter('densitySolitonCentral'  ,trim(adjustl(parameterLabel)))
+     return
    end subroutine solitonNFWDescriptor
-
+   
    function solitonNFWSuffix(self) result(suffix)
-      !!{
-      Return a suffix for tabulated file names.
-      !!}
-      use :: String_Handling, only : String_C_To_Fortran
-      implicit none
-      type (varying_string          )                  :: suffix
-      class(massDistributionSolitonNFW), intent(inout) :: self
-      !$GLC attributes unused :: self
-
-      suffix=String_C_To_Fortran(massDistributionSolitonNFWSourceDigest)
-      return
+     !!{
+     Return a suffix for tabulated file names.
+     !!}
+     use :: String_Handling, only : String_C_To_Fortran
+     implicit none
+     type (varying_string          )                  :: suffix
+     class(massDistributionSolitonNFW), intent(inout) :: self
+     !$GLC attributes unused :: self
+     
+     suffix=String_C_To_Fortran(massDistributionSolitonNFWSourceDigest)
+     return
    end function solitonNFWSuffix
+

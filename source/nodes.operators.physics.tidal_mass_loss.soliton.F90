@@ -19,24 +19,29 @@
 
   !+    Contributions to this file made by: Yu Zhao
 
-  !!{
-  Implements a node operator class that accumulates the tidal-heating source term from the FDM solitonic core, following the model of \cite{Du_tidal_2018}.
+  !!{  
+  Implements a node operator class that accumulates the tidal-heating source term from the FDM solitonic core, following the model
+  of \cite{du_tidal_2018}.
   !!}
 
   !![
   <nodeOperator name="nodeOperatorTidalMassLossSoliton">
-   <description>A node operator class that accumulates the tidal-heating source term from the FDM solitonic core, following the model of \cite{Du_tidal_2018}.</description>
+    <description>
+      A node operator class that accumulates the tidal-heating source term from the FDM solitonic core, following the model of
+      \cite{du_tidal_2018}.
+    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorTidalMassLossSoliton
      !!{
-     A node operator class that accumulates the tidal-heating source term from the FDM solitonic core, following the model of \cite{Du_tidal_2018}.
+     A node operator class that accumulates the tidal-heating source term from the FDM solitonic core, following the model of
+     \cite{du_tidal_2018}.
      !!}
      private
-     integer   :: massCoreNormalID, massCoreID, densityCoreID
+     integer :: massCoreNormalID, massCoreID, &
+          &     densityCoreID
    contains
-     procedure :: differentialEvolution       => tidalMassLossSolitonDifferentialEvolution
-     procedure :: differentialEvolutionScales => tidalMassLossSolitonDifferentialEvolutionScales
+     procedure :: differentialEvolution => tidalMassLossSolitonDifferentialEvolution
   end type nodeOperatorTidalMassLossSoliton
   
   interface nodeOperatorTidalMassLossSoliton
@@ -58,7 +63,7 @@ contains
     type (nodeOperatorTidalMassLossSoliton )                :: self
     type (inputParameters                  ), intent(inout) :: parameters
 
-    self = nodeOperatorTidalMassLossSoliton()
+    self=nodeOperatorTidalMassLossSoliton()
     !![
     <inputParametersValidate source="parameters"/>
     !!]
@@ -70,7 +75,7 @@ contains
     Internal constructor for the \refClass{nodeOperatorTidalMassLossSoliton} node operator class.
     !!}
     implicit none
-    type (nodeOperatorTidalMassLossSoliton )                        :: self
+    type(nodeOperatorTidalMassLossSoliton) :: self
     !![
     <addMetaProperty component="darkMatterProfile" name="solitonMassCoreNormal" id="self%massCoreNormalID" isEvolvable="yes" isCreator="no"/>
     <addMetaProperty component="darkMatterProfile" name="solitonMassCore"       id="self%massCoreID"       isEvolvable="no"  isCreator="no"/>
@@ -79,20 +84,9 @@ contains
     return
   end function tidalMassLossSolitonConstructorInternal
 
-  subroutine tidalMassLossSolitonDifferentialEvolutionScales(self,node)
-    !!{
-    Set absolute ODE solver scale for the energy radiated from the hot halo due to cooling following the model of \cite{benson_galaxy_2010-1}.
-    !!}
-    implicit none
-    class           (nodeOperatorTidalMassLossSoliton), intent(inout) :: self
-    type            (treeNode                        ), intent(inout) :: node
-
-    return
-  end subroutine tidalMassLossSolitonDifferentialEvolutionScales
-
   subroutine tidalMassLossSolitonDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
     !!{
-    Accumulates an estimate of the energy radiated from the hot halo due to cooling following the model of \cite{benson_galaxy_2010-1}.
+    Set the rate of tidal mass loss from the soliton following the model of \cite{du_tidal_2018}.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentDarkMatterProfile, nodeComponentSatellite, treeNode
     use :: Mass_Distributions              , only : massDistributionClass
@@ -106,16 +100,18 @@ contains
     class           (nodeComponentSatellite          ), pointer                   :: satellite
     class           (nodeComponentDarkMatterProfile  ), pointer                   :: darkMatterProfile
     class           (massDistributionClass           ), pointer                   :: massDistribution_
-    double precision                                  , dimension(3    )          :: position                      , velocity
-    double precision                                  , parameter                 :: frequencyFractionalTiny=1.0d-6
-    double precision                                  , parameter                 :: a=5.89794d-5                  , b=-8.72733d-2     , &
-         &                                                                           c=1.6774d0                    , gamma=1.5d0
-    double precision                                                              :: massSatellite                 , frequencyAngular  , &
-         &                                                                           periodOrbital                 , radius            , &
-         &                                                                           frequencyOrbital              , frequencyRadial   , &
-         &                                                                           massHost                      , densityHost       , &
-         &                                                                           densityCore                   , densityRatio      , &
-         &                                                                           energyIm                      , massCore
+    double precision                                  , dimension(3    )          :: position                          , velocity
+    double precision                                  , parameter                 :: frequencyFractionalTiny=1.00000d-6
+    ! Parameters appearing in the fitting function for soliton energy from equation (7) of Du et al. (2018; PRD; 97; 3507;
+    ! https://ui.adsabs.harvard.edu/abs/2018PhRvD..97f3507D).
+    double precision                                  , parameter                 :: energyFitA             =5.89794d-5, energyFitB      =-8.72733d-2, &
+         &                                                                           energyFitC             =1.67740d+0, energyFitGamma  =+1.50000d+0
+    double precision                                                              :: massSatellite                     , frequencyAngular            , &
+         &                                                                           periodOrbital                     , radius                      , &
+         &                                                                           frequencyOrbital                  , frequencyRadial             , &
+         &                                                                           massHost                          , densityHost                 , &
+         &                                                                           densityCore                       , densityRatio                , &
+         &                                                                           energyIm                          , massCore
     logical                                           , intent   (inout)          :: interrupt
     procedure       (interruptTask                   ), intent   (inout), pointer :: functionInterrupt
     integer                                           , intent   (in   )          :: propertyType
@@ -150,38 +146,46 @@ contains
     periodOrbital      =   +2.0d0             &
             &              *Pi                &
             &              /frequencyOrbital
-    
     ! Get required quantities from the host node.
-    massDistribution_  => node%parent%massDistribution()
-    massHost=max(0.0d0,massDistribution_         %massEnclosedBySphere(radius))
-    densityHost = 3.0d0*massHost/(4.0d0*Pi*radius**3)
-
-    darkMatterProfile => node%darkMatterProfile()
-    densityCore       = darkMatterProfile%floatRank0MetaPropertyGet(self%densityCoreID)
-    massCore          = darkMatterProfile%floatRank0MetaPropertyGet(self%massCoreID)
-
-    ! Compute the density ratio between the central density of the soliton and the average density of the host within the orbital radius
-    densityRatio = densityCore/densityHost
-
-    if (densityRatio>300.0d0) then
-       densityRatio = 300.0d0
-    end if
-
-    ! Compute the imaginary part of the energy eigenvalue E, using the fitting formula, Equation (7) of Du et al. (2018; PRD; 97; 3507; https://ui.adsabs.harvard.edu/abs/2018PhRvD..97f3507D/abstract).
-    energyIm = -exp(+a*(3.0d0*densityRatio/2.0d0/gamma)**2  &
-         &          +b*(3.0d0*densityRatio/2.0d0/gamma)     &
-         &          +c                            &
-         &         )/periodOrbital
-    
-    ! Set the soliton core mass evolution rate following Du et al. (2018).
-    ! From Eq. (17), the core mass obeys (1/M_c) dM_c/dt = (1/2) Im(E), where Im(E) is given by the fitting formula in Eq. (7).
-    ! Here we set dM_c/dt = (1/2) Im(E) * M_c for time integration.
+    darkMatterProfile  => node       %darkMatterProfile()
+    massDistribution_  => node%parent%massDistribution ()
+    massHost           =  max(0.0d0,massDistribution_%massEnclosedBySphere     (     radius       ))
+    massCore           =            darkMatterProfile%floatRank0MetaPropertyGet(self%   massCoreID)
+    densityCore        =            darkMatterProfile%floatRank0MetaPropertyGet(self%densityCoreID)
+    densityHost        =  +3.0d0       &
+         &                /4.0d0       &
+         &                /Pi          &
+         &                *massHost    &
+         &                /radius  **3
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
+    ! Compute the density ratio between the central density of the soliton and the average density of the host within the orbital
+    ! radius. Note that equation (7) of Du et al. (2018; PRD; 97; 3507; https://ui.adsabs.harvard.edu/abs/2018PhRvD..97f3507D) is
+    ! calibrated for μ < 300. When μ > 300, the core stripping through quantum tunneling is negligible, so Im(E) can either be
+    ! fixed at its value at μ = 300 or simply set it to 0. Otherwise, Im(E) from the fitting formula will have an unphysical
+    ! increase at very large μ. Here we choose to fix Im(E) at its value at μ = 300.
+    densityRatio=min(              &
+         &           +densityCore  &
+         &           /densityHost, &
+         &           +300.0d0      &
+         &          )
+    ! Compute the imaginary part of the energy eigenvalue E, using the fitting formula, equation (7) of Du et al. (2018; PRD; 97;
+    ! 3507; https://ui.adsabs.harvard.edu/abs/2018PhRvD..97f3507D).
+    energyIm=-exp(+energyFitA*(3.0d0*densityRatio/2.0d0/energyFitGamma)**2 &
+         &        +energyFitB*(3.0d0*densityRatio/2.0d0/energyFitGamma)    &
+         &        +energyFitC                                              &
+         &       )                                                         &
+         &   /periodOrbital
+    ! Set the soliton core mass evolution rate following Du et al. (2018). From Eq. (17), the core mass obeys (1/M_c) dM_c/dt =
+    ! (1/2) Im(E), where Im(E) is given by the fitting formula in Eq. (7). Here we set dM_c/dt = (1/2) Im(E) M_c for time
+    ! integration.
     call darkMatterProfile%floatRank0MetaPropertyRate(                       &
             &                                         self%massCoreNormalID, &
             &                                         +0.5d0                 &
             &                                         *energyIm              &
             &                                         *massCore              &
-            &                                 )
+            &                                        )
     return
   end subroutine tidalMassLossSolitonDifferentialEvolution
 
