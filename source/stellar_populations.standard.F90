@@ -68,27 +68,27 @@
       testing and comparison) by setting:
       \begin{lstlisting}[language=XML]
       &lt;stellarPopulations value="standard"&gt;
-      	&lt;!-- Force the calculation of recycling, yields etc. to   --&gt;
-      	&lt;!-- be done assuming instantaneous recycling             --&gt;
-      	&lt;instantaneousRecyclingApproximation value="true"/&gt;
-      	&lt;!-- Set the recycled fraction and yield --&gt;
-      	&lt;recycledFraction value="0.35"/&gt;
-      	&lt;metalYield       value="0.02"/&gt;
+      &nbsp;&nbsp;&lt;!-- Force the calculation of recycling, yields etc. to   --&gt;
+      &nbsp;&nbsp;&lt;!-- be done assuming instantaneous recycling             --&gt;
+      &nbsp;&nbsp;&lt;instantaneousRecyclingApproximation value="true"/&gt;
+      &nbsp;&nbsp;&lt;!-- Set the recycled fraction and yield --&gt;
+      &nbsp;&nbsp;&lt;recycledFraction value="0.35"/&gt;
+      &nbsp;&nbsp;&lt;metalYield       value="0.02"/&gt;
       &lt;/stellarPopulationProperties&gt;
       \end{lstlisting}
       where the recycled fraction and metal yield are specified directly, or
       \begin{lstlisting}[language=XML]
-      	&lt;stellarPopulations value="standard"&gt;
-      	&lt;!-- Force the calculation of recycling to be done       --&gt;
-      	&lt;!-- assuming the instantaneous recycling approximation  --&gt;
-      	&lt;instantaneousRecyclingApproximation value="true"/&gt;
-      	&lt;!-- Set the mass of stars which should be used as the    --&gt;
-      	&lt;!-- dividing line between long-lived and instantaneously --&gt;
-      	&lt;!-- evolving in this approximation.                      --&gt;
-      	&lt;massLongLived value="1.0"/&gt;
-      	&lt;!-- Set the effective age of populations to use in this --&gt;
-      	&lt;!-- approximation when computing SNe numbers.           --&gt;
-      	&lt;ageEffective value="13.8"/&gt;
+      &nbsp;&nbsp;&lt;stellarPopulations value="standard"&gt;
+      &nbsp;&nbsp;&lt;!-- Force the calculation of recycling to be done       --&gt;
+      &nbsp;&nbsp;&lt;!-- assuming the instantaneous recycling approximation  --&gt;
+      &nbsp;&nbsp;&lt;instantaneousRecyclingApproximation value="true"/&gt;
+      &nbsp;&nbsp;&lt;!-- Set the mass of stars which should be used as the    --&gt;
+      &nbsp;&nbsp;&lt;!-- dividing line between long-lived and instantaneously --&gt;
+      &nbsp;&nbsp;&lt;!-- evolving in this approximation.                      --&gt;
+      &nbsp;&nbsp;&lt;massLongLived value="1.0"/&gt;
+      &nbsp;&nbsp;&lt;!-- Set the effective age of populations to use in this --&gt;
+      &nbsp;&nbsp;&lt;!-- approximation when computing SNe numbers.           --&gt;
+      &nbsp;&nbsp;&lt;ageEffective value="13.8"/&gt;
       &lt;/stellarPopulationProperties&gt;
       \end{lstlisting}
       in which case the recycled fraction and metal yield will be computed that all stars with mass greater than {\normalfont
@@ -98,23 +98,23 @@
       Similar options are available to control whether metal yields and energy input from stellar populations are computed using
       the fully non-instantaneous or instantaneous approximations, e.g.:
       \begin{lstlisting}[language=XML]
-      	&lt;stellarPopulations value="standard"&gt;
-      	&lt;!-- Force the calculation of recycling to be done       --&gt;
-      	&lt;!-- assuming the instantaneous recycling approximation  --&gt;
-      	&lt;instantaneousRecyclingApproximation value="true"/&gt;
-      	&lt;!-- Force the calculation of yields to be done          --&gt;
-      	&lt;!-- assuming the instantaneous recycling approximation  --&gt;
-      	&lt;instantaneousYieldApproximation value="true"/&gt;
-      	&lt;!-- Force the calculation of energy input to be done    --&gt;
-      	&lt;!-- assuming the instantaneous recycling approximation  --&gt;
-      	&lt;instantaneousEnergyInputApproximation value="true"/&gt;
-      	&lt;!-- Set the mass of stars which should be used as the    --&gt;
-      	&lt;!-- dividing line between long-lived and instantaneously --&gt;
-      	&lt;!-- evolving in this approximation.                      --&gt;
-      	&lt;massLongLived value="1.0"/&gt;
-      	&lt;!-- Set the effective age of populations to use in this --&gt;
-      	&lt;!-- approximation when computing SNe numbers.           --&gt;
-      	&lt;ageEffective value="13.8"/&gt;
+      &nbsp;&nbsp;&lt;stellarPopulations value="standard"&gt;
+      &nbsp;&nbsp;&lt;!-- Force the calculation of recycling to be done       --&gt;
+      &nbsp;&nbsp;&lt;!-- assuming the instantaneous recycling approximation  --&gt;
+      &nbsp;&nbsp;&lt;instantaneousRecyclingApproximation value="true"/&gt;
+      &nbsp;&nbsp;&lt;!-- Force the calculation of yields to be done          --&gt;
+      &nbsp;&nbsp;&lt;!-- assuming the instantaneous recycling approximation  --&gt;
+      &nbsp;&nbsp;&lt;instantaneousYieldApproximation value="true"/&gt;
+      &nbsp;&nbsp;&lt;!-- Force the calculation of energy input to be done    --&gt;
+      &nbsp;&nbsp;&lt;!-- assuming the instantaneous recycling approximation  --&gt;
+      &nbsp;&nbsp;&lt;instantaneousEnergyInputApproximation value="true"/&gt;
+      &nbsp;&nbsp;&lt;!-- Set the mass of stars which should be used as the    --&gt;
+      &nbsp;&nbsp;&lt;!-- dividing line between long-lived and instantaneously --&gt;
+      &nbsp;&nbsp;&lt;!-- evolving in this approximation.                      --&gt;
+      &nbsp;&nbsp;&lt;massLongLived value="1.0"/&gt;
+      &nbsp;&nbsp;&lt;!-- Set the effective age of populations to use in this --&gt;
+      &nbsp;&nbsp;&lt;!-- approximation when computing SNe numbers.           --&gt;
+      &nbsp;&nbsp;&lt;ageEffective value="13.8"/&gt;
       &lt;/stellarPopulationProperties&gt;
       \end{lstlisting}
     </description>
