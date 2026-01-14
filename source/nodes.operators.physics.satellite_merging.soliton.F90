@@ -326,8 +326,10 @@ contains
          &                                              )
     call darkMatterProfileHost%floatRank0MetaPropertySet(                                                                    &
          &                                                self_%randomOffsetID                                             , &
-         &                                               +fractionMassRetained*(massCoreHost      +massCoreSatellite      )  &
-         &                                               -fractionMassRetained*(massCoreNormalHost+massCoreNormalSatellite)  &
+         &                                               +log10(                                                             &
+         &                                                      +(massCoreHost      +massCoreSatellite      )                &
+         &                                                      /(massCoreNormalHost+massCoreNormalSatellite)                &
+         &                                                     )                                                             &
          &                                              )
     return
   end subroutine satelliteMerger
