@@ -136,7 +136,7 @@ contains
     return
   end function Gamma_Function
 
-  double precision function Gamma_Function_Logarithmic(exponent)
+  impure elemental double precision function Gamma_Function_Logarithmic(exponent)
     !!{
     Computes the logarithm of the Gamma function.
     !!}
