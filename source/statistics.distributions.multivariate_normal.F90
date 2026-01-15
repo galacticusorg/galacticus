@@ -240,7 +240,6 @@ contains
     use :: Models_Likelihoods_Constants, only : logImprobable
     use :: Interface_GSL               , only : GSL_ERange           , GSL_ETol               , GSL_Success
     use :: Error                       , only : signalHandlerRegister, signalHandlerDeregister, signalHandlerInterface
-    use :: MPI_Utilities, only : mpiSelf
     implicit none
     class           (distributionFunctionMultivariateNormal), intent(inout)                             :: self
     double precision                                        , intent(in   ), dimension(         :     ) :: xLow         , xHigh
