@@ -239,6 +239,8 @@ contains
              datasetDescription="ID of isolated host."
           case ('descendantHostID'         )
              datasetDescription="ID of descendant's immediate host"
+          case ('hostedRootID'         )
+             datasetDescription="ID of the hosted halo root halo"
           case ('isPhantom'                )
              datasetDescription="Zero (0) for real particles, non-zero for phantom particles."
           case default
