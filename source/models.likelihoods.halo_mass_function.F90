@@ -229,8 +229,8 @@ contains
     double precision                                           , allocatable  , dimension(:,:) :: massFunctionCovarianceOriginal
     character       (len=12                                   )                                :: redshiftLabel
     type            (hdf5Object                               )                                :: massFunctionFile                  , simulationGroup
-    integer                                                                                    :: i                                 , j               , &
-         &                                                                                        ii                                , jj              , &
+    integer                                                                                    :: i                                 , j                  , &
+         &                                                                                        ii                                , jj                 , &
          &                                                                                        massCountReduced                  , iRedshift
     double precision                                                                           :: massIntervalLogarithmic
     type            (matrix                                   )                                :: eigenVectors
@@ -251,6 +251,8 @@ contains
     end do
     ! Record that we have not yet checked if model discrepancy terms should be included.
     self%includeDiscrepancyChecked=.false.
+    ! Validate.
+    if (size(redshifts) /= size(fileNames)) call Error_Report('number of file names and number of redshifts do not match'//{introspection:location})
     ! Read the halo mass function files.
     do iRedshift=1,size(redshifts)
        write (redshiftLabel,'(f6.3)') redshifts(iRedshift)
@@ -276,6 +278,7 @@ contains
              massCountReduced=massCountReduced+1
           end do
           if (massCountReduced == 0) call Error_Report("no usable bins in mass function from file '"//trim(fileNames(iRedshift))//"'"//{introspection:location})
+          ! Construct the reduced mass function.
           if (iRedshift == 1) then
              allocate(self%mass        (massCountReduced                ))
              allocate(self%massFunction(massCountReduced,size(redshifts)))
@@ -539,11 +542,11 @@ contains
              end if
           else
             massFunction(i,iTime)=+haloMassFunction_%differential(                                &
-                  &                                                       self%times      (iTime), &
-                  &                                                       self%mass       (i    ), &
-                  &                                                node  =     node                &
-                  &                                               )                                &
-                  &                *                                      self%mass       (i    )
+                  &                                                      self%times      (iTime), &
+                  &                                                      self%mass       (i    ), &
+                  &                                               node  =     node                &
+                  &                                              )                                &
+                  &                *                                     self%mass       (i    )
           end if
        end do
        if (evaluationFailed) exit
@@ -650,7 +653,7 @@ contains
                          if (yCopula < 1.0d0) then
                             xCopulaLow (iCopula)=+distributionFunctionNormal_    %inverse                (         yCopula                      )
                          else
-                            ! The marginal probabiltiy is 1 to numerical precision. In this case, we can exploit the fact that the
+                            ! The marginal probability is 1 to numerical precision. In this case, we can exploit the fact that the
                             ! standard normal distribution is symmetric. We find the complementary cumulative probabilty (i.e. 1
                             ! minus the usual cumulative probability) - which can be determined more accurately in this regime - then
                             ! find the argument of the standard normal that gives this same probability, and then negate it so that
@@ -695,7 +698,9 @@ contains
           if (self%includeCorrelations) then
              logLikelihoodUncorrelated=logLikelihood
              if (self%likelihoodPoisson) then
-                ! Construct the copula and evaluate the probability.
+                ! Construct the copula and evaluate the probability. Note that this approach likely overestimates the correlation,
+                ! as is ignores any variance in the fraction of mass in progenitors of a halo (i.e. in the
+                ! `fractionMassProgenitors` variable below).
                 dimensionCopula=+size(self%mass ) &
                      &          *size(self%times)
                 allocate(meanCopula       (dimensionCopula                ))
@@ -732,13 +737,13 @@ contains
                                fractionMassProgenitors=+0.4d0                                     & ! "Global fit" from Cole et al. (2008; https://ui.adsabs.harvard.edu/abs/2008MNRAS.383..546C).
                                     &                  *    ( peakHeightEffective**0.75d0       ) &
                                     &                  *exp (-peakHeightEffective**3     /10.0d0)
-                               correlationSquared     =+min(                                                        & ! Limit correlation to maximum of 1.0 - this can be exceeded
-                                    &                       +1.0d0                                                , & ! if the current model mass function has unrealistic redshift
-                                    &                       +self%mass        (i      )/self%mass        (j      )  &
-                                    &                       *     massFunction(i,iTime)/     massFunction(j,jTime)  &
-                                    &                       *    fractionMassProgenitors                            &
-                                    &                       *abs(rootVarianceLogarithmicGradientLate)               &
-                                    &                       *    widthBinMassLogarithmic                            &
+                               correlationSquared     =+min(                                                              & ! Limit correlation to maximum of 1.0 - this can be exceeded
+                                    &                       +1.0d0                                                      , & ! if the current model mass function has unrealistic redshift
+                                    &                       +     self%mass        (i      )/self%mass        (j      )   &
+                                    &                       *sqrt(     massFunction(i,iTime)/     massFunction(j,jTime))  &
+                                    &                       *     fractionMassProgenitors             **2                 &
+                                    &                       *abs (rootVarianceLogarithmicGradientLate)**2                 &
+                                    &                       *     widthBinMassLogarithmic             **2                 &
                                     &                      )
                             else
                                correlationSquared     =+0.0d0
@@ -749,8 +754,8 @@ contains
                       end do
                    end do
                 end do
-                distributionFunctionMultivariateNormal_=distributionFunctionMultivariateNormal            (meanCopula,correlationCopula,errorAbsolute=0.0d0 ,errorRelative=1.0d-2,countTrialsMaximum=1000,randomNumberGenerator_=self%randomNumberGenerator_)
-                logLikelihood                          =distributionFunctionMultivariateNormal_%cumulative(xCopulaLow,xCopulaHigh      ,logarithmic  =.true.,status       =status                                                                           )
+                distributionFunctionMultivariateNormal_= distributionFunctionMultivariateNormal            (meanCopula,correlationCopula,errorAbsolute=0.0d0 ,errorRelative=1.0d-2,countTrialsMaximum=1000,randomNumberGenerator_=self%randomNumberGenerator_)
+                logLikelihood                          =+distributionFunctionMultivariateNormal_%cumulative(xCopulaLow,xCopulaHigh      ,logarithmic  =.true.,status       =status                                                                           )
                 select case (status)
                 case (GSL_Success             )
                    ! Successful evaluation - proceed.
