@@ -407,7 +407,7 @@ sub stepIdentifyAlwaysIsolated {
 		    # Modify file names.
 		    $parameters->{'outputFileName'}                                      ->{'value'} = $entry->{'path'}."identifyAlwaysIsolatedGLC_".$i."_".$j."_".$k.".hdf5";
 		    $parameters->{'nbodyImporter' }                        ->{'fileName'}->{'value'} = $entry->{'path'}."tree_"                     .$i."_".$j."_".$k.".dat" ;
-		    $parameters->{'nbodyOperator' }->{'nbodyOperator'}->[3]->{'fileName'}->{'value'} = $entry->{'path'}."alwaysIsolated_subVolume"  .$i."_".$j."_".$k.".hdf5";
+		    $parameters->{'nbodyOperator' }->{'nbodyOperator'}->[4]->{'fileName'}->{'value'} = $entry->{'path'}."alwaysIsolated_subVolume"  .$i."_".$j."_".$k.".hdf5";
 		    # Modify cosmological parameters.
 		    $parameters->{'cosmologyParameters'}->{$_}->{'value'} = $entry->{'suite'}->{'cosmology'}->{$_}
 		        foreach ( 'HubbleConstant', 'OmegaMatter', 'OmegaDarkEnergy', 'OmegaBaryon' );
@@ -469,7 +469,7 @@ sub stepExtractHalos {
 			# Modify file names.
 			$parameters->{'outputFileName'}                                           ->{'value'} = $entry->{'path'}."alwaysIsolated_subVolumeGLC"                     .$i."_".$j."_".$k.".hdf5";
 			$parameters->{'nbodyImporter' }                        ->{'fileName'     }->{'value'} = $entry->{'path'}."alwaysIsolated_subVolume"                        .$i."_".$j."_".$k.".hdf5";
-			$parameters->{'nbodyImporter' }                        ->{'properties'   }->{'value'} = "particleID isFlyby expansionFactor massVirial radiusVirial radiusScale";
+			$parameters->{'nbodyImporter' }                        ->{'properties'   }->{'value'} = "particleID isFlyby expansionFactor massVirial hostedRootID";
 			$parameters->{'nbodyOperator' }->{'nbodyOperator'}->[0]->{'propertyNames'}->{'value'} = "isFlyby expansionFactor";
 			$parameters->{'nbodyOperator' }->{'nbodyOperator'}->[0]->{'rangeLow'     }->{'value'} = "0 ".$expansionFactorLow ;
 			$parameters->{'nbodyOperator' }->{'nbodyOperator'}->[0]->{'rangeHigh'    }->{'value'} = "0 ".$expansionFactorHigh;
@@ -895,6 +895,8 @@ sub symphonyProcessExtractHalos {
     open(my $primaryHaloDataFile,">",$primaryHaloFileName);
     print $primaryHaloDataFile $xml->XMLout($primaryHaloData, RootName => "primaryHalo");
     close($primaryHaloDataFile);
+    # Add read of virial and scale radii columns.
+    $parameters->{'nbodyImporter'}                        ->{'properties'   }->{'value'} .= " radiusScale radiusVirial";
     # Add read of (x,y,z) coordinate columns, and subsequent delete.
     $parameters->{'nbodyImporter'}                        ->{'properties'   }->{'value'} .= " position"         ;
     $parameters->{'nbodyOperator'}->{'nbodyOperator'}->[1]->{'propertyNames'}->{'value'} .= " distanceFromPoint";
@@ -909,8 +911,8 @@ sub symphonyProcessExtractHalos {
 	    point         => {value => $entry->{$expansionFactorLabel}}
 	},
 	{
-	    value         =>           "filterProperties"                                   ,
-	    propertyNames => {value => "distanceFromPoint"                                 },
+	    value         =>           "filterProperties"                                              ,
+	    propertyNames => {value => "distanceFromPoint"                                            },
 	    rangeLow      => {value => $entry->{$epoch->{'redshiftLabel'}}->{'sphericalRadiusMinimum'}},
 	    rangeHigh     => {value => $entry->{$epoch->{'redshiftLabel'}}->{'sphericalRadiusMaximum'}},
 	},

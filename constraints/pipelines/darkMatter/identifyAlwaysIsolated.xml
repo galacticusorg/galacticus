@@ -21,6 +21,9 @@
     <nbodyOperator value="identifyFlybysMansfieldKravtsov2020" >
       <missingHostsAreFatal value="false"/>
     </nbodyOperator>
+    <nbodyOperator value="hostedRootID" >
+      <missingHalosAreFatal value="false"/>
+    </nbodyOperator>
     <nbodyOperator value="deleteProperties">
       <propertyNames value="descendantID hostID isolatedHostID isMostMassiveProgenitor radiusVirial position snapshotID"/>
     </nbodyOperator>

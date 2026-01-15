@@ -12,7 +12,7 @@
   <nbodyImporter value="IRATE">
     <fileName value="" />
     <snapshot value="1"/>
-    <properties value="particleID alwaysIsolated expansionFactor massVirial"/>
+    <properties value="particleID alwaysIsolated expansionFactor massVirial hostedRootID"/>
   </nbodyImporter>
 
   <nbodyOperator value="sequence">
