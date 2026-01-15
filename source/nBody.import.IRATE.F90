@@ -152,13 +152,13 @@ contains
     !!{
     Import data from a IRATE file.
     !!}
-    use :: Display         , only : displayIndent     , displayUnindent         , verbosityLevelStandard
-    use :: Error, only : errorStatusSuccess
-    use :: Hashes          , only : doubleHash        , integerSizeTHash        , rank1DoublePtrHash    , rank1IntegerSizeTPtrHash, &
-          &                         rank2DoublePtrHash, rank2IntegerSizeTPtrHash, varyingStringHash     , genericHash
-    use :: HDF5_Access     , only : hdf5Access
-    use :: IO_HDF5         , only : H5T_NATIVE_DOUBLES, H5T_NATIVE_INTEGERS     , hdf5Object
-    use :: IO_IRATE        , only : irate
+    use :: Display    , only : displayIndent     , displayUnindent         , verbosityLevelStandard
+    use :: Error      , only : errorStatusSuccess
+    use :: Hashes     , only : doubleHash        , integerSizeTHash        , rank1DoublePtrHash    , rank1IntegerSizeTPtrHash, &
+          &                    rank2DoublePtrHash, rank2IntegerSizeTPtrHash, varyingStringHash     , genericHash
+    use :: HDF5_Access, only : hdf5Access
+    use :: IO_HDF5    , only : H5T_NATIVE_DOUBLES, H5T_NATIVE_INTEGERS     , hdf5Object
+    use :: IO_IRATE   , only : irate
     implicit none
     class           (nbodyImporterIRATE), intent(inout)                              :: self
     type            (nBodyData         ), intent(  out), dimension(:  ), allocatable :: simulations
