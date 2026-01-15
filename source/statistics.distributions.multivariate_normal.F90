@@ -69,7 +69,8 @@
   double precision, dimension(:), allocatable :: xlow__                          , xhigh__
   logical         , dimension(:), allocatable :: useTransform_
   double precision                            :: probabilityLogarithmicReference_
-  !$omp threadprivate(xLow__,xHigh__,usetransform_,probabilityLogarithmicReference_)
+  integer                                     :: signalDirect
+  !$omp threadprivate(xLow__,xHigh__,usetransform_,probabilityLogarithmicReference_,signalDirect)
   
 contains
 
@@ -202,7 +203,7 @@ contains
           status=status_
           return
        else
-          call Error_Report(var_str('covariance product failed  (GSL error ')//status//')'//{introspection:location})
+          call Error_Report(var_str('covariance product failed  (GSL error ')//status_//')'//{introspection:location})
        end if
     end if
     if (logarithmic_) then
@@ -237,7 +238,9 @@ contains
     Return the cumulative probability of a multivariate normal distribution.
     !!}
     use :: Models_Likelihoods_Constants, only : logImprobable
-    use :: Interface_GSL               , only : GSL_ERange   , GSL_ETol, GSL_Success
+    use :: Interface_GSL               , only : GSL_ERange           , GSL_ETol               , GSL_Success
+    use :: Error                       , only : signalHandlerRegister, signalHandlerDeregister, signalHandlerInterface
+    use :: MPI_Utilities, only : mpiSelf
     implicit none
     class           (distributionFunctionMultivariateNormal), intent(inout)                             :: self
     double precision                                        , intent(in   ), dimension(         :     ) :: xLow         , xHigh
@@ -245,6 +248,7 @@ contains
     integer                                                 , intent(  out), optional                   :: status
     double precision                                                       , dimension(size(self%mean)) :: offsetLow    , offsetHigh
     integer                                                                , dimension(size(self%mean)) :: infinite
+    procedure       (signalHandlerInterface                ), pointer                                   :: handler
     integer                                                                                             :: maximumValues, status_
     double precision                                                                                    :: error
     !![
@@ -264,8 +268,12 @@ contains
        end if
        return
     end if
-    offsetLow    =(+xLow -self%mean)/self%rootVariance
-    offsetHigh   =(+xHigh-self%mean)/self%rootVariance
+    where (xLow  > -huge(0.0d0))
+       offsetLow    =(+xLow -self%mean)/self%rootVariance
+    end where
+    where (xHigh < +huge(0.0d0))
+       offsetHigh   =(+xHigh-self%mean)/self%rootVariance
+    end where
     infinite     =-1
     where (xLow  > -huge(0.0d0))
        infinite=infinite+2
@@ -274,33 +282,44 @@ contains
        infinite=infinite+1
     end where
     maximumValues=1000*size(self%mean)
+    ! Register an error handler so that we can diagnose any floating point errors.
+    handler      => fpeHandlerDirect
+    signalDirect =  0
+    call signalHandlerRegister(handler)
     call mvndst(size(self%mean),offsetLow,offsetHigh,infinite,self%correlation,maximumValues,self%errorAbsolute,self%errorRelative,error,probability,status_)
-    select case (status_)
-    case (1)
-       if (present(status)) then
-          status=GSL_ETol
-          return
-       else
-          call Error_Report('requested tolerance not obtained'//{introspection:location})
+    ! Deregister our error handler.
+    call signalHandlerDeregister(handler)
+    ! Check for an error in direct calculation.
+    if (signalDirect == 0) then
+       select case (status_)
+       case (1)
+          if (present(status)) then
+             status=GSL_ETol
+          else
+             call Error_Report('requested tolerance not obtained'//{introspection:location})
+          end if
+       case (2)
+          if (present(status)) then
+             status=GSL_ERange
+          else
+             if (size(self%mean) <   1) call Error_Report('too few dimensions' //{introspection:location})
+             if (size(self%mean) > 500) call Error_Report('too many dimensions'//{introspection:location})
+          end if
+       end select
+       if (logarithmic_) then
+          if (probability > 0.0d0) then
+             probability=log(probability)
+          else
+             ! Integration failed to give a non-zero answer. But, logarithmic probability was requested. Attempt to provide an
+             ! approximate answer using Monte Carlo integration. Use a relatively small maximum number of trials here - we only need
+             ! an approximate answer.
+             if (present(status)) status=GSL_Success
+             probability=self%cumulativeMonteCarlo(xLow,xHigh,logarithmic,status)
+          end if
        end if
-    case (2)
-      if (present(status)) then
-          status=GSL_ERange
-          return
-       else
-          if (size(self%mean) <   1) call Error_Report('too few dimensions' //{introspection:location})
-          if (size(self%mean) > 500) call Error_Report('too many dimensions'//{introspection:location})
-       end if
-    end select
-    if (logarithmic_) then
-       if (probability > 0.0d0) then
-          probability=log(probability)
-       else
-          ! Integration failed to give a non-zero answer. But, logarithmic probability was requested. Attempt to provide an
-          ! approximate answer using Monte Carlo integration. Use a relatively small maximum number of trials here - we only need
-          ! an approximate answer.
-          probability=self%cumulativeMonteCarlo(xLow,xHigh,logarithmic,status)
-       end if
+    else
+       ! Direct calculation failed (likely a floating point error). Try Monte Carlo approach.
+       probability=self%cumulativeMonteCarlo(xLow,xHigh,logarithmic,status)
     end if
     return
   end function multivariateNormalCumulative
@@ -311,7 +330,7 @@ contains
     !!}
     use :: Interface_GSL               , only : GSL_Success  , GSL_EMaxIter
     use :: Models_Likelihoods_Constants, only : logImprobable
-    use :: Error                       , only : Error_Report, signalHandlerRegister, signalHandlerDeregister, signalHandlerInterface
+    use :: Error                       , only : Error_Report , signalHandlerRegister, signalHandlerDeregister, signalHandlerInterface
     implicit none
     class           (distributionFunctionMultivariateNormal), intent(inout), target         :: self
     double precision                                        , intent(in   ), dimension(:  ) :: xLow                                           , xHigh
@@ -418,7 +437,7 @@ contains
        call cleanUp()
        return
     end if
-    !! Use an tanh⁻¹ transform to allow integration over infinite intervals.
+    ! Use a tanh⁻¹ transform to allow integration over infinite intervals.
     useTransform=xLow_ == -huge(0.0d0) .or. xHigh_ == +huge(0.0d0)
     where (useTransform)
        where (xLow_  > -huge(0.0d0))
@@ -450,7 +469,7 @@ contains
     allocate(xHigh__      ,source=xHigh_      )
     allocate(useTransform_,source=useTransform)
     probabilityLogarithmicReference_ =  probabilityLogarithmicReference
-    handler                          => fpeHandler
+    handler                          => fpeHandlerMonteCarlo
     call signalHandlerRegister(handler)
     !! Adjust the offset probability by any tanh transformation terms.    
     probabilityLogarithmicReference=+probabilityLogarithmicReference                                   &
@@ -586,7 +605,7 @@ contains
     return
   end function logCosh
 
-  subroutine fpeHandler(signal)
+  subroutine fpeHandlerMonteCarlo(signal)
     !!{
     Report useful information if a floating point error occurs.
     !!}
@@ -598,7 +617,8 @@ contains
     !$GLC attributes unused :: signal
     
     call displayIndent("multivariate normal CDF MCMC evaluation - reference probability update error occured",verbosityLevelSilent)
-    write (0,*) "probabilityLogarithmicReference = ",probabilityLogarithmicReference_
+    write (message,'(a,e14.6)') "probabilityLogarithmicReference = ",probabilityLogarithmicReference_
+    call displayMessage(message,verbosityLevelSilent)
     do i=1,size(xLow__)
        if (useTransform_(i)) then
           write (message,'(i3," ",e14.6," ",e14.6," ",e14.6)') i,xLow__(i),xHigh__(i),logCosh(min(abs(xlow__(i)),abs(xHigh__(i))))
@@ -609,4 +629,15 @@ contains
     end do
     call displayUnindent("done",verbosityLevelSilent)
     return
-  end subroutine fpeHandler
+  end subroutine fpeHandlerMonteCarlo
+
+  subroutine fpeHandlerDirect(signal)
+    !!{
+    Handle floating point exceptions when evaluating the cumulative distribution function.
+    !!}
+    implicit none
+    integer, intent(in   ) :: signal
+
+    signalDirect=signal
+    return
+  end subroutine fpeHandlerDirect
