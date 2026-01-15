@@ -258,6 +258,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
+          !$ call hdf5Access%set()
           call simulations(iSimulation)%analysis%writeDataset  (massBin                  ,'mass'        )
           call simulations(iSimulation)%analysis%writeDataset  (countBin                 ,'count'       )
           call simulations(iSimulation)%analysis%writeDataset  (massFunction             ,'massFunction')
