@@ -66,6 +66,7 @@ while ( my $line = <$code> ) {
     my $isDirective  = 0;
     my $endDirective = 0;
     (my $strippedLine = $line) =~ s/^\s*\!<\s*//;
+    $strippedLine =~ s/&nbsp;/ /g;
     if ( $inXML ) {
 	# Determine if line is a directive line.
 	$isDirective    = 1
