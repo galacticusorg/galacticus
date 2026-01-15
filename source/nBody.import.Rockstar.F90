@@ -390,15 +390,40 @@ contains
              ! Different versions of Rockstar have slightly different column layouts. Figure out which is used in this file.
              allocate(columnNames(String_Count_Words(line)))
              call String_Split_Words(columnNames,line)
-             if      (columnNames(36) == "Rs_Klypin"      ) then
-                columnMap=1
-             else if (columnNames(36) == "Mvir_all"       ) then
+             if (columnNames(36) == "Mvir_all"       ) then
+                ! This version has `Mvir_all` in column 35 (note Rockstar columns are zero-indexed), and a total of 57 columns.
+                !
+                ! Example:
+                !  #scale(0) id(1) desc_scale(2) desc_id(3) num_prog(4) pid(5) upid(6) desc_pid(7) phantom(8) sam_mvir(9) mvir(10) rvir(11) rs(12) vrms(13) mmp?(14) scale_of_last_MM(15) vmax(16) x(17) y(18) z(19) vx(20) vy(21) vz(22) Jx(23) Jy(24) Jz(25) Spin(26) Breadth_first_ID(27) Depth_first_ID(28) Tree_root_ID(29) Orig_halo_ID(30) Snap_num(31) Next_coprogenitor_depthfirst_ID(32) Last_progenitor_depthfirst_ID(33) Last_mainleaf_depthfirst_ID(34) Mmvir_all M200b M200c M500c M2500c Xoff Voff Spin_Bullock b_to_a c_to_a A[x] A[y] A[z] b_to_a(500c) c_to_a(500c) A[x](500c) A[y](500c) A[z](500c) T/|U| M_pe_Behroozi M_pe_Diemer Halfmass_Radius
+               columnMap=1
+             else if      (columnNames(36) == "Rs_Klypin"      ) then
+                ! This version has `Rs_Klypin` in column 35 (note Rockstar columns are zero-indexed), and a total of 58
+                ! columns. Compared to columnMap=1, it added `Rs_Klypin` in column 36, shifting later columns.
+                !
+                ! Example:
+                !  #scale(0) id(1) desc_scale(2) desc_id(3) num_prog(4) pid(5) upid(6) desc_pid(7) phantom(8) sam_mvir(9) mvir(10) rvir(11) rs(12) vrms(13) mmp?(14) scale_of_last_MM(15) vmax(16) x(17) y(18) z(19) vx(20) vy(21) vz(22) Jx(23) Jy(24) Jz(25) Spin(26) Breadth_first_ID(27) Depth_first_ID(28) Tree_root_ID(29) Orig_halo_ID(30) Snap_num(31) Next_coprogenitor_depthfirst_ID(32) Last_progenitor_depthfirst_ID(33) Last_mainleaf_depthfirst_ID(34) Rs_Klypin Mmvir_all M200b M200c M500c M2500c Xoff Voff Spin_Bullock b_to_a c_to_a A[x] A[y] A[z] b_to_a(500c) c_to_a(500c) A[x](500c) A[y](500c) A[z](500c) T/|U| M_pe_Behroozi M_pe_Diemer Halfmass_Radius
                 columnMap=2
              else if (columnNames(36) == "Tidal_Force(35)") then
-                if      (size(columnNames) == 60) then
+                ! These versions have `Tidal_Force(35)` in column 35 (note Rockstar columns are zero-indexed).
+                if      (size(columnNames) == 59) then
+                   ! This version has 59 columns. Compared to columnMap=2, it added `Tidal_Force(35) Tidal_ID(36)` prior to
+                   ! `Rs_Klypin`, shifting later columns.
+                   !
+                   ! Example:
+                   !  #scale(0) id(1) desc_scale(2) desc_id(3) num_prog(4) pid(5) upid(6) desc_pid(7) phantom(8) sam_mvir(9) mvir(10) rvir(11) rs(12) vrms(13) mmp?(14) scale_of_last_MM(15) vmax(16) x(17) y(18) z(19) vx(20) vy(21) vz(22) Jx(23) Jy(24) Jz(25) Spin(26) Breadth_first_ID(27) Depth_first_ID(28) Tree_root_ID(29) Orig_halo_ID(30) Snap_num(31) Next_coprogenitor_depthfirst_ID(32) Last_progenitor_depthfirst_ID(33) Last_mainleaf_depthfirst_ID(34) Tidal_Force(35) Tidal_ID(36) Rs_Klypin Mmvir_all M200b M200c M500c M2500c Xoff Voff Spin_Bullock b_to_a c_to_a A[x] A[y] A[z] b_to_a(500c) c_to_a(500c) A[x](500c) A[y](500c) A[z](500c) T/|U| M_pe_Behroozi M_pe_Diemer
                    columnMap=3
-                else if (size(columnNames) == 61) then
+                else if (size(columnNames) == 60) then
+                   ! This version has 60 columns. Compared to columnMap=3, it added `Halfmass_Radius` as a final column.
+                   !
+                   ! Note that there are a few different versions of this, where the names of mass columns differ (e.g. "Mmvir_all" vs. "Mvir_all").
+                   !
+                   ! Example:
+                   ! #scale(0) id(1) desc_scale(2) desc_id(3) num_prog(4) pid(5) upid(6) desc_pid(7) phantom(8) sam_Mmvir(9) Mmvir(10) Rmvir(11) rs(12) vrms(13) mmp?(14) scale_of_last_MM(15) vmax(16) x(17) y(18) z(19) vx(20) vy(21) vz(22) Jx(23) Jy(24) Jz(25) Spin(26) Breadth_first_ID(27) Depth_first_ID(28) Tree_root_ID(29) Orig_halo_ID(30) Snap_idx(31) Next_coprogenitor_depthfirst_ID(32) Last_progenitor_depthfirst_ID(33) Last_mainleaf_depthfirst_ID(34) Tidal_Force(35) Tidal_ID(36) Rs_Klypin Mmvir_all M200b M200c M500c M2500c Xoff Voff Spin_Bullock b_to_a c_to_a A[x] A[y] A[z] b_to_a(500c) c_to_a(500c) A[x](500c) A[y](500c) A[z](500c) T/|U| M_pe_Behroozi M_pe_Diemer Halfmass_Radius
                    columnMap=4
+                else if (size(columnNames) == 61) then
+                   ! This version has 61 columns. Compared to columnMap=4, it added `RVmax` as a final column.
+                   ! #scale(0) id(1) desc_scale(2) desc_id(3) num_prog(4) pid(5) upid(6) desc_pid(7) phantom(8) sam_Mvir(9) Mvir(10) Rvir(11) rs(12) vrms(13) mmp?(14) scale_of_last_MM(15) vmax(16) x(17) y(18) z(19) vx(20) vy(21) vz(22) Jx(23) Jy(24) Jz(25) Spin(26) Breadth_first_ID(27) Depth_first_ID(28) Tree_root_ID(29) Orig_halo_ID(30) Snap_idx(31) Next_coprogenitor_depthfirst_ID(32) Last_progenitor_depthfirst_ID(33) Last_mainleaf_depthfirst_ID(34) Tidal_Force(35) Tidal_ID(36) Rs_Klypin Mvir_all M200b M200c M500c M2500c Xoff Voff Spin_Bullock b_to_a c_to_a A[x] A[y] A[z] b_to_a(500c) c_to_a(500c) A[x](500c) A[y](500c) A[z](500c) T/|U| M_pe_Behroozi M_pe_Diemer Halfmass_Radius RVmax
+                   columnMap=5
                 else
                    call Error_Report('unrecognized column layout'//{introspection:location})
                 end if
@@ -414,8 +439,8 @@ contains
                         &  .or.                                              &
                         &   self%readColumns(j) == rockstarColumnTidal_ID    &
                         & ) call Error_Report('tidal properties not available'//{introspection:location})
-                   if (self%readColumns(j)%ID > 34)                  &
-                        & call self%readColumnsMapped(j)%subtract(2)
+                   if (self%readColumns(j)%ID > 33)                  &
+                        & call self%readColumnsMapped(j)%subtract(3)
                    if (self%readColumnsMapped(j)%ID > 54)                                                                      &
                         & call Error_Report(                                                                                   &
                         &                   "property '"                                                                    // &
@@ -431,8 +456,8 @@ contains
                         &  .or.                                              &
                         &   self%readColumns(j) == rockstarColumnTidal_ID    &
                         & ) call Error_Report('tidal properties not available'//{introspection:location})
-                   if (self%readColumns(j)%ID > 33)                  &
-                        & call self%readColumnsMapped(j)%subtract(3)
+                   if (self%readColumns(j)%ID > 34)                  &
+                        & call self%readColumnsMapped(j)%subtract(2)
                    if (self%readColumnsMapped(j)%ID > 54)                                                                      &
                         & call Error_Report(                                                                                   &
                         &                   "property '"                                                                    // &
@@ -461,6 +486,16 @@ contains
                         &                   {introspection:location}                                                           &
                         &                  )
                 end do
+             case (5)
+                do j=1,size(self%readColumns)
+                   if (self%readColumnsMapped(j)%ID > 61)                                                                      &
+                        & call Error_Report(                                                                                   &
+                        &                   "property '"                                                                    // &
+                        &                   enumerationRockstarColumnDecode(self%readColumnsMapped(j),includePrefix=.false.)// &
+                        &                   "' not available"                                                               // &
+                        &                   {introspection:location}                                                           &
+                        &                  )
+                end do
              end select
           end if
           if (.not.isComment) then
@@ -469,17 +504,6 @@ contains
                 i=i+1_c_size_t
                 select case (columnMap)
                 case (1)
-                   ! Older layout with "Rs_Klypin" in column 35.
-                   read (line,*,ioStat=lineStatus) columnsReal   ( 0   ), &
-                        &                          columnsInteger( 1   ), &
-                        &                          columnsReal   ( 2   ), &
-                        &                          columnsInteger( 3: 8), &
-                        &                          columnsReal   ( 9:13), &
-                        &                          columnsInteger(14:14), &
-                        &                          columnsReal   (15:26), &
-                        &                          columnsInteger(27:34), &
-                        &                          columnsReal   (35:54)
-                case (2)
                    ! Older layout with "Mvir_all" in column 35.
                    read (line,*,ioStat=lineStatus) columnsReal   ( 0   ), &
                         &                          columnsInteger( 1   ), &
@@ -490,8 +514,32 @@ contains
                         &                          columnsReal   (15:26), &
                         &                          columnsInteger(27:33), &
                         &                          columnsReal   (35:54)
+                case (2)
+                   ! Older layout with "Rs_Klypin" in column 35.
+                   read (line,*,ioStat=lineStatus) columnsReal   ( 0   ), &
+                        &                          columnsInteger( 1   ), &
+                        &                          columnsReal   ( 2   ), &
+                        &                          columnsInteger( 3: 8), &
+                        &                          columnsReal   ( 9:13), &
+                        &                          columnsInteger(14:14), &
+                        &                          columnsReal   (15:26), &
+                        &                          columnsInteger(27:34), &
+                        &                          columnsReal   (35:54)
                 case (3)
-                   ! Newer layout with "Tidal_Force" in column 35.
+                   ! Newer layout with "Tidal_Force" in column 35 and 58 columns total.
+                   read (line,*,ioStat=lineStatus) columnsReal   ( 0   ), &
+                        &                          columnsInteger( 1   ), &
+                        &                          columnsReal   ( 2   ), &
+                        &                          columnsInteger( 3: 8), &
+                        &                          columnsReal   ( 9:13), &
+                        &                          columnsInteger(14:14), &
+                        &                          columnsReal   (15:26), &
+                        &                          columnsInteger(27:34), &
+                        &                          columnsReal   (35   ), &
+                        &                          columnsInteger(36   ), &
+                        &                          columnsReal   (37:58)
+                case (4)
+                   ! Newer layout with "Tidal_Force" in column 35 and Halfmass_Radius in column 59.
                    read (line,*,ioStat=lineStatus) columnsReal   ( 0   ), &
                         &                          columnsInteger( 1   ), &
                         &                          columnsReal   ( 2   ), &
@@ -503,7 +551,7 @@ contains
                         &                          columnsReal   (35   ), &
                         &                          columnsInteger(36   ), &
                         &                          columnsReal   (37:59)
-                case (4)
+                case (5)
                    ! Newer layout with "Tidal_Force" in column 35 and RVmax in column 60.
                    read (line,*,ioStat=lineStatus) columnsReal   ( 0   ), &
                         &                          columnsInteger( 1   ), &
@@ -519,7 +567,13 @@ contains
                 case default
                    call Error_Report('unknown column layout'//{introspection:location})
                 end select
-                if (lineStatus /= 0) call Error_Report('failed to parse line:'//char(10)//'"'//trim(line)//'"'//{introspection:location})
+                if (lineStatus /= 0) then
+                   block
+                     character(len=1) :: columnMapLabel
+                     write (columnMapLabel,'(i1)') columnMap
+                     call Error_Report('failed to parse line (column map: '//columnMapLabel//'):'//char(10)//'"'//trim(line)//'"'//{introspection:location})
+                   end block
+                end if
                 if (self%expansionFactorNeeded) expansionFactor(i)=columnsReal(0)
                 ! Read any extra columns.
                 if (allocated(self%readColumns)) then
