@@ -59,7 +59,65 @@
 
   !![
   <stellarPopulation name="stellarPopulationStandard">
-   <description>A standard stellar population class.</description>
+    <description>
+      A standard stellar population class, which uses a fully non-instantaneous, metal-depdendent calculation of recycling, metal
+      production and rates. These rates are determined from the \refClass{stellarPopulationClass} object provided by a
+      \refClass{stellarPopulationSelectorClass}.
+
+      It is possible to force this method to operate in the instantaneous recycling approximation limit (which can be useful for
+      testing and comparison) by setting:
+      \begin{lstlisting}[language=XML]
+      &lt;stellarPopulations value="standard"&gt;
+      &nbsp;&nbsp;&lt;!-- Force the calculation of recycling, yields etc. to   --&gt;
+      &nbsp;&nbsp;&lt;!-- be done assuming instantaneous recycling             --&gt;
+      &nbsp;&nbsp;&lt;instantaneousRecyclingApproximation value="true"/&gt;
+      &nbsp;&nbsp;&lt;!-- Set the recycled fraction and yield --&gt;
+      &nbsp;&nbsp;&lt;recycledFraction value="0.35"/&gt;
+      &nbsp;&nbsp;&lt;metalYield       value="0.02"/&gt;
+      &lt;/stellarPopulationProperties&gt;
+      \end{lstlisting}
+      where the recycled fraction and metal yield are specified directly, or
+      \begin{lstlisting}[language=XML]
+      &nbsp;&nbsp;&lt;stellarPopulations value="standard"&gt;
+      &nbsp;&nbsp;&lt;!-- Force the calculation of recycling to be done       --&gt;
+      &nbsp;&nbsp;&lt;!-- assuming the instantaneous recycling approximation  --&gt;
+      &nbsp;&nbsp;&lt;instantaneousRecyclingApproximation value="true"/&gt;
+      &nbsp;&nbsp;&lt;!-- Set the mass of stars which should be used as the    --&gt;
+      &nbsp;&nbsp;&lt;!-- dividing line between long-lived and instantaneously --&gt;
+      &nbsp;&nbsp;&lt;!-- evolving in this approximation.                      --&gt;
+      &nbsp;&nbsp;&lt;massLongLived value="1.0"/&gt;
+      &nbsp;&nbsp;&lt;!-- Set the effective age of populations to use in this --&gt;
+      &nbsp;&nbsp;&lt;!-- approximation when computing SNe numbers.           --&gt;
+      &nbsp;&nbsp;&lt;ageEffective value="13.8"/&gt;
+      &lt;/stellarPopulationProperties&gt;
+      \end{lstlisting}
+      in which case the recycled fraction and metal yield will be computed that all stars with mass greater than {\normalfont
+      \ttfamily massLongLived} have fully evolved, and energy input (from stellar winds and supernovae) will be computed assuming
+      that stellar populations instantaneously reach an age of {\normalfont \ttfamily ageEffective}.
+
+      Similar options are available to control whether metal yields and energy input from stellar populations are computed using
+      the fully non-instantaneous or instantaneous approximations, e.g.:
+      \begin{lstlisting}[language=XML]
+      &nbsp;&nbsp;&lt;stellarPopulations value="standard"&gt;
+      &nbsp;&nbsp;&lt;!-- Force the calculation of recycling to be done       --&gt;
+      &nbsp;&nbsp;&lt;!-- assuming the instantaneous recycling approximation  --&gt;
+      &nbsp;&nbsp;&lt;instantaneousRecyclingApproximation value="true"/&gt;
+      &nbsp;&nbsp;&lt;!-- Force the calculation of yields to be done          --&gt;
+      &nbsp;&nbsp;&lt;!-- assuming the instantaneous recycling approximation  --&gt;
+      &nbsp;&nbsp;&lt;instantaneousYieldApproximation value="true"/&gt;
+      &nbsp;&nbsp;&lt;!-- Force the calculation of energy input to be done    --&gt;
+      &nbsp;&nbsp;&lt;!-- assuming the instantaneous recycling approximation  --&gt;
+      &nbsp;&nbsp;&lt;instantaneousEnergyInputApproximation value="true"/&gt;
+      &nbsp;&nbsp;&lt;!-- Set the mass of stars which should be used as the    --&gt;
+      &nbsp;&nbsp;&lt;!-- dividing line between long-lived and instantaneously --&gt;
+      &nbsp;&nbsp;&lt;!-- evolving in this approximation.                      --&gt;
+      &nbsp;&nbsp;&lt;massLongLived value="1.0"/&gt;
+      &nbsp;&nbsp;&lt;!-- Set the effective age of populations to use in this --&gt;
+      &nbsp;&nbsp;&lt;!-- approximation when computing SNe numbers.           --&gt;
+      &nbsp;&nbsp;&lt;ageEffective value="13.8"/&gt;
+      &lt;/stellarPopulationProperties&gt;
+      \end{lstlisting}
+    </description>
   </stellarPopulation>
   !!]
   type, extends(stellarPopulationClass) :: stellarPopulationStandard
