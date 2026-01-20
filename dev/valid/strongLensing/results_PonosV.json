@@ -4,12 +4,12 @@ window.PONOSV_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "5ec48cc7307039e6c5a31cc169fb32e62402f8d9",
-        "message": "Merge pull request #992 from yzhaoastro/tidal-merge\n\nAdd solitonNFW heating model\n",
-        "timestamp": "2026-01-16 14:12:17+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/5ec48cc7307039e6c5a31cc169fb32e62402f8d9"
+        "id": "e7835ec31f6c58d0209161ff1e6d43195e90448b",
+        "message": "fix: Replace broken link with Internet Archive copy\n",
+        "timestamp": "2026-01-20 07:23:27-08:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/e7835ec31f6c58d0209161ff1e6d43195e90448b"
     },
     "surfaceDensity": {
         "percentageBelow": 32.14285714285714,
@@ -17,8 +17,8 @@ window.PONOSV_DATA = {
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 33.33333333333333,
-        "percentageAbove": 66.66666666666667,
+        "percentageBelow": 44.44444444444444,
+        "percentageAbove": 55.55555555555556,
         "target": 0.85
     }
 }
