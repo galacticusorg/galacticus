@@ -46,6 +46,8 @@ sub Parse_Directives {
 		# Process XML blocks.
 		my $isDirective  = 0;
 		my $endDirective = 0;
+		# Strip the initial "!<" and any following whitespace (but not tabs - this allows us to use tabs for formatting
+		# purposes).
 		(my $strippedLine = $line) =~ s/^\s*\!<\s*//;
 		if ( $inXML ) {
 		    # Determine if line is a directive line.
@@ -64,6 +66,9 @@ sub Parse_Directives {
 		}
 		# Accumulate raw text.
 		if ( $inDirective ) {
+		    # Process non-breaking spaces as a special case.
+		    $strippedLine =~ s/&nbsp;/ /g;
+		    # Accumulate the line.
 		    $rawDirective      .= $line;
 		    $strippedDirective .= $strippedLine;
 		} elsif ( $line !~ m/^\s*!!(\[|\])/ ) {

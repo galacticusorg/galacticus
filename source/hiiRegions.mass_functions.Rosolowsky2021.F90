@@ -87,7 +87,7 @@ contains
     <inputParameter>
       <name>exponent</name>
       <defaultValue>-1.2d0</defaultValue>
-      <defaultSource>\citep[][table 5; ``disk'' sample]{rosolowsky_2021}</defaultSource>
+      <defaultSource>\citep[][table 5; ``disk'' sample]{rosolowsky_giant_2021}</defaultSource>
       <description>Exponent of the differential mass function.</description>
       <source>parameters</source>
     </inputParameter>
@@ -107,7 +107,7 @@ contains
     <inputParameter>
       <name>massCutOff</name>
       <defaultValue>4.7d6</defaultValue>
-      <defaultSource>\citep[][table 5; ``disk'' sample]{rosolowsky_2021}</defaultSource>
+      <defaultSource>\citep[][table 5; ``disk'' sample]{rosolowsky_giant_2021}</defaultSource>
       <description>Cut off mass of giant molecular clouds.</description>
       <source>parameters</source>
     </inputParameter>

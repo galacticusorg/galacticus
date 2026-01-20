@@ -31,6 +31,25 @@
 %% Link to a physics description by class name.
 \newcommand{\refPhysics}[1]{\ifthenelse{\equal{\docname}{Physics}}{{\normalfont \ttfamily #1} (see \S\ref{phys:#1})}{\href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#physics.#1}{\normalfont \ttfamily #1}}}
 
+% Define XML formatting.
+\definecolor{maroon}{rgb}{0.5,0,0}
+\definecolor{darkgreen}{rgb}{0,0.5,0}
+\lstdefinelanguage{XML}
+{
+  basicstyle=\ttfamily\footnotesize,
+  morestring=[b]",
+  moredelim=[s][\bfseries\color{maroon}]{<}{\ },
+  moredelim=[s][\bfseries\color{maroon}]{</}{>},
+  moredelim=[l][\bfseries\color{maroon}]{/>},
+  moredelim=[l][\bfseries\color{maroon}]{>},
+  morecomment=[s]{<?}{?>},
+  morecomment=[s]{<!--}{-->},
+  commentstyle=\color{darkgreen},
+  stringstyle=\color{blue},
+  identifierstyle=\color{red},
+  tabsize=2
+  }
+
 %  These Macros are taken from the AAS TeX macro package version 5.2
 %  and are compatible with the macros in the A&A document class
 %  version 7.0
