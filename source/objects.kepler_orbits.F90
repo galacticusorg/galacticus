@@ -1009,7 +1009,11 @@ contains
        ! Get initial position and velocity.
        vectorRadial     = [sin(orbit%theta())*cos(orbit%phi()),sin(orbit%theta())*sin(orbit%phi()),cos(orbit%theta())]
        vectorTangential1= Vector_Product(vectorRadial     ,[0.0d0,0.0d0,1.0d0])
-       vectorTangential2= Vector_Product(vectorTangential1,vectorRadial       )
+       ! If the radial vector happens to lie precisely along the z-axis, try constructing a tangent vector using a different basis
+       ! vector.
+       if (Vector_Magnitude(vectorTangential1) <= 0.0d0) &
+            & vectorTangential1= Vector_Product(vectorRadial     ,[0.0d0,1.0d0,0.0d0])
+        vectorTangential2= Vector_Product(vectorTangential1,vectorRadial       )
        vectorTangential1= vectorTangential1/Vector_Magnitude(vectorTangential1)
        vectorTangential2= vectorTangential2/Vector_Magnitude(vectorTangential2)
        position         =+  orbit%radius            ()             &

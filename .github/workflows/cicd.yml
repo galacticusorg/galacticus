@@ -1349,7 +1349,8 @@ jobs:
         file: [ testSuite/parameters/mergerTreeEvolverThreaded.xml,
                 testSuite/parameters/constrainedMilkyWay.xml,
                 testSuite/parameters/test-nuclear-star-cluster.xml,
-                testSuite/parameters/zeroVelocityDispersionDisruptingHalo.xml ]
+                testSuite/parameters/zeroVelocityDispersionDisruptingHalo.xml,
+                testSuite/parameters/subhaloOrbitOnZAxis.xml ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
