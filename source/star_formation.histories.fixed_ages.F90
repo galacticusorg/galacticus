@@ -340,6 +340,7 @@ contains
        if (size(timesNodeCrossing) /= size(timesNodeCrossingPrevious)) then
           write (label,'(e16.10)') basic%time()
           call displayIndent(var_str("number of crossing times has changed for node ")//node%index()//' at time '//trim(adjustl(label))//' Gyr')
+          call displayMessage(var_str('star formation histories created in progenitor ')//basic%longIntegerRank0MetaPropertyGet(self%createdInID))
           call displayMessage("times (new | old) are:")
           do i=1,max(size(timesNodeCrossing),size(timesNodeCrossingPrevious))
              if (i <= size(timesNodeCrossing)) then
@@ -362,6 +363,7 @@ contains
        end if
        if (.not.all(Values_Agree(timesNodeCrossing,basic%floatRank1MetaPropertyGet(self%timesCrossingID),relTol=toleranceRelative))) then
           call displayIndent(var_str("crossing times have changed for node ")//node%index())
+          call displayMessage(var_str('star formation histories created in progenitor ')//basic%longIntegerRank0MetaPropertyGet(self%createdInID))
           call displayMessage("times (new | old | difference) are:")
           do i=1,size(timesNodeCrossing)
              write (label,'(e16.10)') timesNodeCrossing(i)
