@@ -544,11 +544,16 @@ contains
           end if
           if (haveSubhaloPromotion) then
              ! We have a subhalo promotion - move our pointer to that node.
-             nodeDescendant => event         %node
-             nodeHost       => nodeDescendant        ! This is always an isolated halo by construction, so must be self-hosting.
+             nodeDescendant    => event         %node
+             nodeHost          => nodeDescendant               ! This is always an isolated halo by construction, so must be self-hosting.
           else
-             nodeDescendant => nodeHost      %parent ! Always move to the host's parent - this allows us to correctly handle satellites that have been orphanized.
-             nodeHost       => nodeDescendant        ! This is always an isolated halo by construction, so must be self-hosting.
+             ! Always move to the host's parent - this allows us to correctly handle satellites that have been orphanized.
+             if (.not.associated(nodeDescendant,nodeHost) .and. associated(nodeHost%parent) .and. nodeHost%parent%index() == nodeHost%index()) then
+                nodeDescendant => nodeHost      %parent%parent ! Parent is a clone (and descendant is a satellite), so skip over it.
+             else
+                nodeDescendant => nodeHost      %parent        ! Parent is not a clone, use directly.
+             end if
+             nodeHost          => nodeDescendant               ! This is always an isolated halo by construction, so must be self-hosting.
           end if
           ! Update the time if the descendant exists.
           if (associated(nodeDescendant)) then
