@@ -865,14 +865,15 @@ contains
       class           (nodeComponentPosition)                  , pointer :: position                            , positionHost      
       class           (nodeComponentBasic   )                  , pointer :: basicHost
       double precision                       , dimension(  2  )          :: time
-      double precision                       , dimension(  2,3)          :: positionRelative
+      double precision                       , dimension(  2,3)          :: positionRelative                    , positionSatelliteComoving, &
+           &                                                                positionHostComoving
       double precision                       , dimension(  2,2)          :: coefficientsAngle                   , coefficientsLogRadius
-      double precision                       , dimension(    3)          :: positionSatellite_                  , positionHost_        , &
+      double precision                       , dimension(    3)          :: positionSatellite_                  , positionHost_            , &
            &                                                                vectorNormal
       double precision                       , dimension(2,2,3)          :: vectorInPlaneNormal
       double precision                       , parameter                 :: separationTiny               =1.0d-6
       type            (history              )                            :: positionHistory
-      integer                                                            :: i                                   , j                    , &
+      integer                                                            :: i                                   , j                        , &
            &                                                                k
       double precision                                                   :: expansionFactor                     , expansionFactorHost
 
@@ -901,10 +902,11 @@ contains
                ! Position.
                positionSatellite_=positionHistory%data    (trace_%iHistory,1:3)
                positionHost_     =positionHost   %position(                   )
+               ! Get expansion factors.
+               expansionFactor    =self%cosmologyFunctions_%expansionFactor(trace_   %time  )
+               expansionFactorHost=self%cosmologyFunctions_%expansionFactor(basicHost%time())
                ! Handle periodic positions.
                if (self%isPeriodic) then
-                  expansionFactor    =self%cosmologyFunctions_%expansionFactor(trace_   %time  )
-                  expansionFactorHost=self%cosmologyFunctions_%expansionFactor(basicHost%time())
                   do j=1,3
                      if (positionSatellite_(j)/expansionFactor     > positionReference(j)+0.5d0*self%lengthBox) positionSatellite_(j)=positionSatellite_(j)-self%lengthBox*expansionFactor
                      if (positionSatellite_(j)/expansionFactor     < positionReference(j)-0.5d0*self%lengthBox) positionSatellite_(j)=positionSatellite_(j)+self%lengthBox*expansionFactor
@@ -912,12 +914,15 @@ contains
                      if (positionHost_     (j)/expansionFactorHost < positionReference(j)-0.5d0*self%lengthBox) positionHost_     (j)=positionHost_     (j)+self%lengthBox*expansionFactorHost
                   end do
                end if
-               positionRelative(i,:)=positionSatellite_                          -positionHost_
                ! Record comoving positions for reporting.
                if (reporting) then
                   positionSatelliteComoving(i,:)=positionSatellite_/expansionFactor
                   positionHostComoving     (i,:)=positionHost_     /expansionFactorHost
                end if
+               ! If the host is not at the same expansion factor as the satellite we must translate its physical position to what it would be at the expansion factor of the satellite.
+               positionHost_=positionHost_*expansionFactor/expansionFactorHost
+               ! Compute the relative physical position.
+               positionRelative         (i,:)=positionSatellite_                          -positionHost_
             case (2)
                ! Velocity
                positionRelative(i,:)=positionHistory   %data(trace_%iHistory,4:6)-positionHost %velocity()
