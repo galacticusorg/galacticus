@@ -312,6 +312,17 @@ contains
     timeNodeEnd               =                    self%geometryLightcone_%timeMaximum()
     timeNodeCrossing          =  self %geometryLightcone_%timeLightconeCrossing    (node                ,timeNodeStart,timeNodeEnd,timesNodeCrossing)
     timesNodeCrossingPrevious =  basic                   %floatRank1MetaPropertyGet(self%timesCrossingID                                            )
+    ! Check for cases where the first crossing time is equal to (or very close to) the current time. These crossing have
+    ! already been processed and so can be ignored.
+    if (size(timesNodeCrossing) == size(timesNodeCrossingPrevious)+1) then
+       if (Values_Agree(timesNodeCrossing(1),basic%time(),absTol=toleranceAbsolute)) then
+          ! The first crossing time is equal to the current time.
+          call move_alloc(timesNodeCrossing,timesNodeCrossingTmp)
+          allocate(timesNodeCrossing(size(timesNodeCrossingTmp)-1))
+          if (size(timesNodeCrossing) > 0) timesNodeCrossing=timesNodeCrossingTmp(2:size(timesNodeCrossingTmp))
+          deallocate(timesNodeCrossingTmp)
+       end if
+    end if
     if (size(timesNodeCrossingPrevious) > 0) then
        ! Rounding errors can lead to tiny shifts in crossing times which can (very occasionally) lead to a previously-found
        ! crossing time being missed if the node is now very close to that crossing time. Check for such occurrences here and add
@@ -325,21 +336,11 @@ contains
              deallocate(timesNodeCrossingTmp)
           end if
        end if
-       ! Check for cases where the first crossing time is equal to (or very close to) the current time. These crossing have
-       ! already been processed and so can be ignored.
-       if (size(timesNodeCrossing) == size(timesNodeCrossingPrevious)+1) then
-          if (Values_Agree(timesNodeCrossing(1),basic%time(),absTol=toleranceAbsolute)) then
-             ! The first crossing time is equal to the current time.
-             call move_alloc(timesNodeCrossing,timesNodeCrossingTmp)
-             allocate(timesNodeCrossing(size(timesNodeCrossingTmp)-1))
-             if (size(timesNodeCrossing) > 0) timesNodeCrossing=timesNodeCrossingTmp(2:size(timesNodeCrossingTmp))
-             deallocate(timesNodeCrossingTmp)
-          end if
-       end if
        ! Validate consistency in the lightcone crossing times.
        if (size(timesNodeCrossing) /= size(timesNodeCrossingPrevious)) then
           write (label,'(e16.10)') basic%time()
           call displayIndent(var_str("number of crossing times has changed for node ")//node%index()//' at time '//trim(adjustl(label))//' Gyr')
+          call displayMessage(var_str('star formation histories created in progenitor ')//basic%longIntegerRank0MetaPropertyGet(self%createdInID))
           call displayMessage("times (new | old) are:")
           do i=1,max(size(timesNodeCrossing),size(timesNodeCrossingPrevious))
              if (i <= size(timesNodeCrossing)) then
@@ -362,6 +363,7 @@ contains
        end if
        if (.not.all(Values_Agree(timesNodeCrossing,basic%floatRank1MetaPropertyGet(self%timesCrossingID),relTol=toleranceRelative))) then
           call displayIndent(var_str("crossing times have changed for node ")//node%index())
+          call displayMessage(var_str('star formation histories created in progenitor ')//basic%longIntegerRank0MetaPropertyGet(self%createdInID))
           call displayMessage("times (new | old | difference) are:")
           do i=1,size(timesNodeCrossing)
              write (label,'(e16.10)') timesNodeCrossing(i)
