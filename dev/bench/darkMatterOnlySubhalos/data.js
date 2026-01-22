@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1769076923026,
+  "lastUpdate": 1769076932543,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "3c03560c145568f0dad0e8618218d0e7b7e5f736",
-          "message": "Merge pull request #758 from galacticusorg/featConstrainedTreeBuild\n\nAdd a constrained merger tree builder",
-          "timestamp": "2024-12-19T14:18:32Z",
-          "tree_id": "bd7d3d29cb6c7cee4c66b75f0a711323eaef9e35",
-          "url": "https://github.com/galacticusorg/galacticus/commit/3c03560c145568f0dad0e8618218d0e7b7e5f736"
-        },
-        "date": 1734648481911,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": "17.28182765243588",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": "9.79891760768824",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": "21962.56169079069",
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8792,6 +8753,45 @@ window.BENCHMARK_DATA = {
             "value": 48.35,
             "range": "0.0809691299194301",
             "unit": "seconds"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "de968065160e1fe4744ab2b62b718636e4f5247a",
+          "message": "Merge pull request #995 from galacticusorg/fixLightconeCrossingBugs\n\nFix bugs in determination of lightcone crossing",
+          "timestamp": "2026-01-22T03:47:11Z",
+          "tree_id": "077bc7dc6e0b7440af306afeb070ca94ffd730b0",
+          "url": "https://github.com/galacticusorg/galacticus/commit/de968065160e1fe4744ab2b62b718636e4f5247a"
+        },
+        "date": 1769076931638,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 1.7715250777890945,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 1.4200678057039755,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 10519.154685472171,
+            "unit": "-logℒ"
           }
         ]
       }
