@@ -839,7 +839,10 @@ program Tests_IO_HDF5
        ! Write a very large (>4GB) dataset to test that chunking limits
        ! the chunksize to less than the maximum allowed.
        if (iPass == 2) then
-          datasetObject=fileObject%openDataset('bigDataset','A dataset larger than 4GB.',hdf5DataTypeDouble,[600_hsize_t,100_hsize_t,100_hsize_t,100_hsize_t],chunkSize=1024_hsize_t)
+          block
+            type(hdf5Object) :: datasetObject
+            datasetObject=fileObject%openDataset('bigDataset','A dataset larger than 4GB.',hdf5DataTypeDouble,[600_hsize_t,100_hsize_t,100_hsize_t,100_hsize_t],chunkSize=1024_hsize_t)
+          end block
        end if
        
        ! Write an attribute of length >64KB by forcing dense storage of
