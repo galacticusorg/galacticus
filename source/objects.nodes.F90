@@ -48,6 +48,14 @@ module Galacticus_Nodes
   public :: nodeClassHierarchyInitialize    , nodeClassHierarchyFinalize, Galacticus_Nodes_Unique_ID_Set, interruptTask   , &
        &    nodeEventBuildFromRaw           , propertyEvaluate          , propertyActive                , propertyInactive, &
        &    massDistributionCalculationReset, massDistributionsLast     , massDistributionsDestroy
+
+  type, public :: nodeHierarchyWrapper
+     !!{
+     Wrapper class for managing the node class hierarchy.
+     !!}
+   contains
+     final :: nodeHierarchyWrapperDestructor
+  end type nodeHierarchyWrapper
   
   type, public :: treeNodeList
      !!{
@@ -1892,5 +1900,16 @@ module Galacticus_Nodes
     end do
     return
   end subroutine massDistributionsDestroy
+
+  subroutine nodeHierarchyWrapperDestructor(self)
+    !!{
+    Destructor for the node hierarchy wrapper class that handles finalization of the node class hierarchy.
+    !!}
+    implicit none
+    type(nodeHierarchyWrapper), intent(inout) :: self
+
+    call nodeClassHierarchyFinalize()
+    return
+  end subroutine nodeHierarchyWrapperDestructor
   
 end module Galacticus_Nodes
