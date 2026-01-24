@@ -119,7 +119,7 @@ contains
        !!]
     end do
     !![
-    <inputParametersValidate source="parameters" multiParameters="mmassDistribution"/>
+    <inputParametersValidate source="parameters" multiParameters="massDistribution"/>
     !!]
     call self%initialize()
     return
