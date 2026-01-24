@@ -171,7 +171,6 @@ module Input_Parameters
        <method description="Reinitialize lock." method="lockReinitialize" />
      </methods>
      !!]
-     final     ::                         inputParametersFinalize
      procedure :: buildTree            => inputParametersBuildTree
      procedure :: resolveReferences    => inputParametersResolveReferences
      procedure :: evaluateConditionals => inputParametersEvaluateConditionals
@@ -597,7 +596,7 @@ contains
     type (inputParameters), intent(in   ) :: parameters
     class(*              ), pointer       :: lock_
 
-    self            =  inputParameters(parameters%rootNode  ,noOutput=.true.,noBuild=.true.)
+    self            =  inputParameters(parameters%rootNode  ,noOutput=.true.,noBuild=.true.,documentManager=parameters%documentManager)
     self%parameters =>                 parameters%parameters
     self%parent     =>                 parameters%parent
     self%original   =>                 parameters%original       
@@ -623,7 +622,7 @@ contains
     return
   end function inputParametersConstructorCopy
 
-  function inputParametersConstructorNode(parametersNode,allowedParameterNames,outputParametersGroup,noOutput,noBuild,fileName) result(self)
+  function inputParametersConstructorNode(parametersNode,allowedParameterNames,outputParametersGroup,noOutput,noBuild,fileName,documentManager) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily inputParameters} class from a FoX node.
     !!}
@@ -654,6 +653,7 @@ contains
     character(len=*          )              , intent(in   ), optional :: fileName
     type     (hdf5Object     ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                 , intent(in   ), optional :: noOutput                   , noBuild
+    type     (resourceManager)              , intent(in   ), optional :: documentManager
     type     (varying_string )                                        :: message
     type     (node           ), pointer                               :: lastModifiedNode           , revisionNode       , &
          &                                                               strictNode
@@ -695,16 +695,20 @@ contains
     allocate(self%document)
     self%document%document => getOwnerDocument(parametersNode)
     call setLiveNodeLists(self%document%document,.false.)
-    !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-      <description>ICE when passing a derived type component to a class(*) function argument.</description>
-    !!]
-    dummyPointer_ => self%document
-    self%documentManager=resourceManager(dummyPointer_)
-    !![
-    </workaround>
-    !!]
     !$omp end critical (FoX_DOM_Access)
+    if (present(documentManager)) then
+       self%documentManager=documentManager
+    else
+       !![
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       !!]
+       dummyPointer_ => self%document
+       self%documentManager=resourceManager(dummyPointer_)
+       !![
+       </workaround>
+       !!]
+    end if
     if (.not.noBuild_) then
        allocate(self%parameters)
        self%parameters%content    => null()
@@ -1151,29 +1155,6 @@ contains
     end if
     return
   end subroutine documentWrapperDestructor
-
-  subroutine inputParametersFinalize(self)
-    !!{
-    Finalizer for the {\normalfont \ttfamily inputParameters} class.
-    !!}
-    implicit none
-    type(inputParameters), intent(inout) :: self
-
-    if (self%isNull) then
-       call self%documentManager%release()
-    else if (associated(self%document)) then
-       nullify(self%document%document)
-    end if
-    nullify(self%rootNode  )
-    nullify(self%parameters)
-    nullify(self%parent    )
-    if (allocated (self%warnedDefaults           )) deallocate(self%warnedDefaults)
-    if (associated(self%document                 )) call self%documentManager                 %release()
-    if (associated(self%lock                     )) call self%lockManager                     %release()
-    if (associated(self%outputParameters         )) call self%outputParametersManager         %release()
-    if (associated(self%outputParametersContainer)) call self%outputParametersContainerManager%release()
-    return
-  end subroutine inputParametersFinalize
 
   subroutine inputParametersAssignment(self,from)
     !!{
@@ -2049,10 +2030,10 @@ contains
        end if
        copyCount                                  =  1
     else
-       copyCount                                  =  self%copiesCount(parameterName        ,requireValue=requireValue                          )
-       parameterNode                              => self%node       (parameterName        ,requireValue=requireValue,copyInstance=copyInstance)
+       copyCount                                  =  self%copiesCount(parameterName        ,requireValue=requireValue                                                               )
+       parameterNode                              => self%node       (parameterName        ,requireValue=requireValue,copyInstance=copyInstance                                     )
        if (associated(parameterNode%referenced)) parameterNode => parameterNode%referenced
-       inputParametersSubParameters               =  inputParameters (parameterNode%content,noOutput    =.true.      ,noBuild     =.true.      )
+       inputParametersSubParameters               =  inputParameters (parameterNode%content,noOutput    =.true.      ,noBuild     =.true.      ,documentManager=self%documentManager)
        inputParametersSubParameters%parameters    => parameterNode
     end if
     inputParametersSubParameters%parent           => self
