@@ -775,23 +775,23 @@ contains
     class(hdf5Object), intent(  out) :: to
     class(hdf5Object), intent(in   ) :: from
 
-     to%isOpenValue         =  from%isOpenValue
-     to%isOverwritable      =  from%isOverwritable
-     to%readOnly            =  from%readOnly
-     to%isTemporary         =  from%isTemporary
-     to%objectID            => from%objectID
-     to%objectManager       =  from%objectManager
-     to%fileID              => from%fileID
-     to%fileManager         =  from%fileManager
-     to%objectLocation      =  from%objectLocation
-     to%objectFile          =  from%objectFile
-     to%objectName          =  from%objectName
-     to%hdf5ObjectType      =  from%hdf5ObjectType
-     to%chunkSize           =  from%chunkSize
-     to%compressionLevel    =  from%compressionLevel
-     to%chunkSizeSet        =  from%chunkSizeSet
-     to%compressionLevelSet =  from%compressionLevelSet
-     to%parentObject        => from%parentObject
+    to%isOpenValue         =  from%isOpenValue
+    to%isOverwritable      =  from%isOverwritable
+    to%readOnly            =  from%readOnly
+    to%isTemporary         =  from%isTemporary
+    to%objectID            => from%objectID
+    to%objectManager       =  from%objectManager
+    to%fileID              => from%fileID
+    to%fileManager         =  from%fileManager
+    to%objectLocation      =  from%objectLocation
+    to%objectFile          =  from%objectFile
+    to%objectName          =  from%objectName
+    to%hdf5ObjectType      =  from%hdf5ObjectType
+    to%chunkSize           =  from%chunkSize
+    to%compressionLevel    =  from%compressionLevel
+    to%chunkSizeSet        =  from%chunkSizeSet
+    to%compressionLevelSet =  from%compressionLevelSet
+    to%parentObject        => from%parentObject
     return
   end subroutine IO_HDF5_Assign
   
