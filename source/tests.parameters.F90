@@ -37,7 +37,7 @@ program Test_Parameters
   type            (hdf5Object                   )              :: outputFile
   type            (varying_string               )              :: parameterFile            , parameterValue
   class           (cosmologyParametersClass     ), pointer     :: cosmologyParameters_
-  class           (cosmologyFunctionsClass     ), pointer     :: cosmologyFunctions_
+  class           (cosmologyFunctionsClass      ), pointer     :: cosmologyFunctions_
   class           (cosmologicalMassVarianceClass), pointer     :: cosmologicalMassVariance_
   type            (inputParameters              ), target      :: testParameters
   type            (inputParameters              ), allocatable :: wrapper1                 ,  wrapper2
