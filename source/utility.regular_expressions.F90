@@ -36,7 +36,7 @@ module Regular_Expressions
 
   type :: regExWrapper
      !!{
-     Wrapper class for managing GSL quasi-random number generators.
+     Wrapper class for managing C reg-ex objects.
      !!}
      type(c_ptr) :: r=c_null_ptr
    contains
@@ -48,7 +48,7 @@ module Regular_Expressions
      A regular expression object.
      !!}
      type(resourceManager)          :: regExManager
-     type(regExWrapper   ), pointer :: r           => null()
+     type(regExWrapper   ), pointer :: r            => null()
    contains
      !![
      <methods>
