@@ -159,10 +159,12 @@ module Galacticus_Nodes
        <method description="Pop a {\normalfont \ttfamily mergerTree} from this universe."        method="pushTree"   />
      </methods>
      !!]
-     procedure :: createEvent => universeCreateEvent
-     procedure :: removeEvent => universeRemoveEvent
-     procedure :: popTree     => universePopTree
-     procedure :: pushTree    => universePushTree
+     procedure :: createEvent   => universeCreateEvent
+     procedure :: removeEvent   => universeRemoveEvent
+     procedure :: popTree       => universePopTree
+     procedure :: pushTree      => universePushTree
+     procedure ::                  universeAssign
+     generic   :: assignment(=) => universeAssign
   end type universe
 
   interface universe
@@ -1825,6 +1827,27 @@ module Galacticus_Nodes
     end if
     return
   end subroutine universePushTree
+
+  subroutine universeAssign(self,from)
+    !!{
+    Perform assignment of universes.
+    !!}
+    implicit none
+    class(universe), intent(inout) :: self
+    class(universe), intent(in   ) :: from
+
+    self%allTreesBuilt =  from%allTreesBuilt
+    self%attributes    =  from%attributes
+    self%trees         => from%trees
+    self%event         => from%event
+    self%uniqueID      =  from%uniqueID
+    if (allocated(self%lock)) deallocate(self%lock)
+    if (allocated(from%lock)) then
+       allocate(self%lock)
+       self%lock=from%lock
+    end if
+    return
+  end subroutine universeAssign
 
   logical function propertyActive(propertyType)
     !!{
