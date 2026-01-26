@@ -60,7 +60,9 @@ module Stellar_Population_Spectra_Postprocess
      !!}
      class(stellarPopulationSpectraPostprocessorClass), pointer :: stellarPopulationSpectraPostprocessor_ => null()
    contains
-     final :: stellarPopulationSpectraPostprocessorListDestructor
+     final     ::                  stellarPopulationSpectraPostprocessorListDestructor
+     procedure ::                  stellarPopulationSpectraPostprocessorListAssign
+     generic   :: assignment(=) => stellarPopulationSpectraPostprocessorListAssign
   end type stellarPopulationSpectraPostprocessorList
 
   !![
@@ -98,5 +100,20 @@ contains
     !!]
     return
   end subroutine stellarPopulationSpectraPostprocessorListDestructor
+
+  recursive subroutine stellarPopulationSpectraPostprocessorListAssign(self,from)
+    !!{
+    Perform assignment for the \refClass{stellarPopulationSpectraPostprocessorList} class.
+    !!}
+    implicit none
+    class(stellarPopulationSpectraPostprocessorList), intent(  out) :: self
+    class(stellarPopulationSpectraPostprocessorList), intent(in   ) :: from
+
+    self%stellarPopulationSpectraPostprocessor_ => from%stellarPopulationSpectraPostprocessor_
+    !![
+    <referenceCountIncrement owner="self" object="stellarPopulationSpectraPostprocessor_"/>
+    !!]
+    return
+  end subroutine stellarPopulationSpectraPostprocessorListAssign
 
 end module Stellar_Population_Spectra_Postprocess
