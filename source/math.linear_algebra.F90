@@ -857,6 +857,15 @@ contains
     self%matrix_       => from%matrix_
     self%size_         =  from%size_
     self%isSquare      =  from%isSquare
+    select type (self)
+    class is (matrixLU)
+       select type (from)
+       class is (matrixLU)
+          self%decompositionSign  =  from%decompositionSign
+          self%permutationManager =  from%permutationManager
+          self%permutation_       => from%permutation_
+       end select
+    end select
     return
   end subroutine matrixAssign
 
