@@ -250,7 +250,7 @@ sub Tree_Node_Mass_Distribution {
 		 intrinsic  => "type",
 		 type       => "massDistributionList",
 		 attributes => [ "pointer" ],
-		 variables  => [ "massDistributionList_", "next_" ]
+		 variables  => [ "massDistributionList_", "massDistributionListCopy_", "next_", "nextCopy_" ]
 	     },
 	     {
 		 intrinsic  => "class",
@@ -361,8 +361,10 @@ if (iMassDistribution == 0) then
    iMassDistributionAll=iMassDistributionConstruct
   end if
   if (.not.associated(massDistributions__(iMassDistributionConstruct)%massDistribution_)) then
-   massDistributionList_ => null()
-   next_                 => null()
+   massDistributionList_     => null()
+   massDistributionListCopy_ => null()
+   next_                     => null()
+   nextCopy_                 => null()
 CODE
     # Iterate over all component classes
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
@@ -374,14 +376,20 @@ CODE
        massDistributionComponent => self%component{ucfirst($class->{'name'})}(i)%massDistribution(componentType__,massType__,weightBy_,weightIndex_)
        if (associated(massDistributionComponent)) then
           if (associated(massDistributionList_)) then
-            allocate(next_%next)
-            next_ => next_%next
+            allocate(next_    %next)
+            allocate(nextCopy_%next)
+            next_     => next_    %next
+            nextCopy_ => nextCopy_%next
           else
-            allocate(massDistributionList_)
-            next_ => massDistributionList_
+            allocate(massDistributionList_    )
+            allocate(massDistributionListCopy_)
+            next_     => massDistributionList_
+            nextCopy_ => massDistributionListCopy_
           end if
-          next_%massDistribution_ => massDistributionComponent
-          next_%next              => null()
+          next_    %massDistribution_ => massDistributionComponent
+          nextCopy_%massDistribution_ => massDistributionComponent
+          next_    %next              => null()
+          nextCopy_%next              => null()
        end if
      end do
   end if
@@ -400,14 +408,15 @@ CODE
    massDistributions__(iMassDistributionConstruct)%massType     =     massType__
    massDistributions__(iMassDistributionConstruct)%weightBy     =     weightBy_
    massDistributions__(iMassDistributionConstruct)%weightIndex  =     weightIndex_
-   next_ => massDistributionList_
+   next_ => massDistributionListCopy_
    do while (associated(next_))
     !![
     <objectDestructor name="next_%massDistribution_" nullify="no"/>
     !!]
     next_ => next_%next
    end do
-   nullify(massDistributionList_ )
+   deallocate(massDistributionListCopy_)
+   nullify   (massDistributionList_    )
   end if
  end if
  if (isDarkMatterOnly) then
