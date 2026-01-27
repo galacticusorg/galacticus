@@ -197,7 +197,13 @@ sub Process_ObjectBuilder {
 		$builderCode .= "      call ".$node->{'directive'}->{'name'}."%autoHook()\n";
 		$builderCode .= $debugMessage;
 		$builderCode .= $copyLoopClose;
-		$builderCode .= "      if (mpiSelf%isMaster()) call Warn('Using default class for parameter ''['//char(parametersCurrent%path())//'".$parameterName."]''')\n";
+		$builderCode .= "      if (mpiSelf%isMaster()) then\n";
+		$builderCode .= "         block\n";
+		$builderCode .= "            type(varying_string) :: parametersPath\n";
+		$builderCode .= "            parametersPath=parametersCurrent%path()\n";
+		$builderCode .= "            call Warn('Using default class for parameter ''['//char(parametersPath)//'".$parameterName."]''')\n";
+		$builderCode .= "         end block\n";
+		$builderCode .= "      end if\n";
 		$builderCode .= "   end if\n";
 	    }
 	    if ( exists($node->{'directive'}->{'parameterName'}) ) {
@@ -227,6 +233,11 @@ sub Process_ObjectBuilder {
 			{
 			    intrinsic => 0,
 			    only      => {mpiSelf => 1}
+			},
+			"ISO_Varying_String"   =>
+			{
+			    intrinsic => 0,
+			    only      => {varying_string => 1}
 			}
 		    }
 		};
