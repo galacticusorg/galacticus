@@ -569,6 +569,7 @@ contains
     type     (varying_string  )                              :: filePath           , fileLeaf      , &
          &                                                      nameInsert         , fileNameFull  , &
          &                                                      fileName_
+    character(len=1           )                              :: fileNameStart
     logical                                                  :: allElements
 
     ! Expand the file name.
@@ -590,7 +591,8 @@ contains
     allElements=.false.
     do while (stackCount > 0)
        ! Construct the full filename.
-       if (extract(stack(stackCount)%fileName,1,1) == "/") then
+       fileNameStart=extract(stack(stackCount)%fileName,1,1)
+       if (fileNameStart == "/") then
           fileNameFull=          stack(stackCount)%fileName
        else
           fileNameFull=filePath//stack(stackCount)%fileName
