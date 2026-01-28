@@ -1208,9 +1208,15 @@ CODE
 				    grep {$_ eq "pointer"}  @{$declaration   ->{'attributes'     }};
 				foreach my $object ( @{$declaration->{'variables'}} ) {
 				    (my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
-				    if ( $allocatable ) {
-					$assignment->{'code'} .= "    if (allocated(self%".$name.")) deallocate(self%".$name.")\n";
-					$assignment->{'code'} .= "    if (allocated(from%".$name.")) then\n";
+				    my $allocatableThis = $allocatable;
+				    my $allocated       = "allocated";
+				    if ( exists($class->{'assignment'}) && exists($class->{'assignment'}->{'forceArrayAssign'}) && grep {$_ eq $name} split(" ",$class->{'assignment'}->{'forceArrayAssign'}) ) {
+					$allocatableThis = 1;
+					$allocated       = "associated";
+				    }
+				    if ( $allocatableThis ) {
+					$assignment->{'code'} .= "    if (".$allocated."(self%".$name.")) deallocate(self%".$name.")\n";
+					$assignment->{'code'} .= "    if (".$allocated."(from%".$name.")) then\n";
 					# Use `mold=` to get the correct type. Then include a direct assignment after the `allocate`
 					# as this will trigger any defined assignment which is necessary for reference counting.
 					my $bounds = "";
