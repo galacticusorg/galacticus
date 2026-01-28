@@ -340,7 +340,7 @@ contains
     use :: ISO_Varying_String, only : char                             , extract    , operator(==)
     use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name
     use :: FoX_dom           , only : node                             , parseString
-    use :: ISO_Varying_String, only : char                             , extract    , operator(==)
+    use :: ISO_Varying_String, only : char                             , extract    , operator(==), assignment(=)
     implicit none
     type     (inputParameters)                                           :: self
     type     (varying_string    )              , intent(in   )           :: xmlString
@@ -348,9 +348,11 @@ contains
     type     (hdf5Object        ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                    , intent(in   ), optional :: noOutput
     type     (node              ), pointer                               :: doc                  , parameterNode
+    character(len=1             )                                        :: xmlStringStart
 
     ! Check if we have been passed XML or a file name.
-    if (extract(xmlString,1,1) == "<") then
+    xmlStringStart=extract(xmlString,1,1)
+    if (xmlStringStart == "<") then
        ! Parse the string.
        !$omp critical (FoX_DOM_Access)
        doc           => parseString(char(xmlString))
@@ -596,7 +598,7 @@ contains
     type (inputParameters), intent(in   ) :: parameters
     class(*              ), pointer       :: lock_
 
-    self            =  inputParameters(parameters%rootNode  ,noOutput=.true.,noBuild=.true.,documentManager=parameters%documentManager)
+    self            =  inputParameters(parameters%rootNode  ,noOutput=.true.,noBuild=.true.,documentManager=parameters%documentManager,document=parameters%document)
     self%parameters =>                 parameters%parameters
     self%parent     =>                 parameters%parent
     self%original   =>                 parameters%original       
@@ -622,7 +624,7 @@ contains
     return
   end function inputParametersConstructorCopy
 
-  function inputParametersConstructorNode(parametersNode,allowedParameterNames,outputParametersGroup,noOutput,noBuild,fileName,documentManager) result(self)
+  function inputParametersConstructorNode(parametersNode,allowedParameterNames,outputParametersGroup,noOutput,noBuild,fileName,documentManager,document) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily inputParameters} class from a FoX node.
     !!}
@@ -654,7 +656,8 @@ contains
     type     (hdf5Object     ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                 , intent(in   ), optional :: noOutput                   , noBuild
     type     (resourceManager)              , intent(in   ), optional :: documentManager
-    type     (varying_string )                                        :: message
+    type     (documentWrapper), pointer     , intent(in   ), optional :: document
+    type     (varying_string )                                        :: message                    , inputPathC
     type     (node           ), pointer                               :: lastModifiedNode           , revisionNode       , &
          &                                                               strictNode
     logical                                                           :: hasRevision                , hasStrict
@@ -691,14 +694,16 @@ contains
     !![
     </workaround>
     !!]
-    !$omp critical (FoX_DOM_Access)
-    allocate(self%document)
-    self%document%document => getOwnerDocument(parametersNode)
-    call setLiveNodeLists(self%document%document,.false.)
-    !$omp end critical (FoX_DOM_Access)
     if (present(documentManager)) then
-       self%documentManager=documentManager
+       if (.not.present(document)) call Error_Report('If `documentManager` is provided, `document` must also be provided'//{introspection:location})
+       self%document        => document
+       self%documentManager =  documentManager
     else
+       !$omp critical (FoX_DOM_Access)
+       allocate(self%document)
+       self%document%document => getOwnerDocument(parametersNode)
+       call setLiveNodeLists(self%document%document,.false.)
+       !$omp end critical (FoX_DOM_Access)
        !![
        <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
 	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
@@ -808,8 +813,9 @@ contains
              commitHashSelf=trim(commitHashSelf_)//c_null_char
              !! Iterate over known migration commit hashes and check if they are ancestors.
              allocate(isAncestorOfParameters(size(commitHash)))
+             inputPathC=inputPath(pathTypeExec)//c_null_char
              do i=1,size(commitHash)
-                isAncestorOfParameters(i)=gitDescendantOf(char(inputPath(pathTypeExec))//c_null_char,commitHashParameters,commitHash(i))
+                isAncestorOfParameters(i)=gitDescendantOf(char(inputPathC),commitHashParameters,commitHash(i))
              end do
              if (any(isAncestorOfParameters /= 0_c_int .and. isAncestorOfParameters /= 1_c_int)) then
                 message=var_str("parameter file revision check failed (#1; error code; ")//maxval(isAncestorOfParameters)//")"
@@ -827,7 +833,7 @@ contains
                    call displayMessage(displayMagenta()//"WARNING: "//displayReset()//message//char(10),verbosityLevelSilent)
                 end if
              end if
-             isAncestorOfSelf=gitDescendantOf(char(inputPath(pathTypeExec))//c_null_char,commitHashSelf,commitHashParameters)
+             isAncestorOfSelf=gitDescendantOf(char(inputPathC),commitHashSelf,commitHashParameters)
              if (isAncestorOfSelf /= 0_c_int .and. isAncestorOfSelf /= 1_c_int) then
                 message=var_str("parameter file revision check failed (#2; error code: ")//isAncestorOfSelf//")"
                 if (self%strict) then
@@ -2030,10 +2036,10 @@ contains
        end if
        copyCount                                  =  1
     else
-       copyCount                                  =  self%copiesCount(parameterName        ,requireValue=requireValue                                                               )
-       parameterNode                              => self%node       (parameterName        ,requireValue=requireValue,copyInstance=copyInstance                                     )
+       copyCount                                  =  self%copiesCount(parameterName        ,requireValue=requireValue                                                                                      )
+       parameterNode                              => self%node       (parameterName        ,requireValue=requireValue,copyInstance=copyInstance                                                            )
        if (associated(parameterNode%referenced)) parameterNode => parameterNode%referenced
-       inputParametersSubParameters               =  inputParameters (parameterNode%content,noOutput    =.true.      ,noBuild     =.true.      ,documentManager=self%documentManager)
+       inputParametersSubParameters               =  inputParameters (parameterNode%content,noOutput    =.true.      ,noBuild     =.true.      ,documentManager=self%documentManager,document=self%document)
        inputParametersSubParameters%parameters    => parameterNode
     end if
     inputParametersSubParameters%parent           => self
