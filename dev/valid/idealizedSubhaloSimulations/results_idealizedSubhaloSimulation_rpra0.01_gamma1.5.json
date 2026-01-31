@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "de968065160e1fe4744ab2b62b718636e4f5247a",
-        "message": "Merge pull request #995 from galacticusorg/fixLightconeCrossingBugs\n\nFix bugs in determination of lightcone crossing\n",
-        "timestamp": "2026-01-22 03:47:11+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/de968065160e1fe4744ab2b62b718636e4f5247a"
+        "id": "2b31d251742f809d3c94017b9fad2b7901ab7132",
+        "message": "Merge pull request #996 from galacticusorg/fixMergerTreeWeightScale\n\nScale weights in all trees in a forest\n",
+        "timestamp": "2026-01-31 05:39:36+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/2b31d251742f809d3c94017b9fad2b7901ab7132"
     },
     "results": [
         {
