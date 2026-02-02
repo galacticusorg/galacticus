@@ -1444,7 +1444,8 @@ CODE
 		$deepCopy->{'modules'}->{'String_Handling'   } = 1;
 		$deepCopy->{'modules'}->{'Display'           } = 1;
             }
-	    $deepCopy->{'rankMaximum'} = 0;
+	    $deepCopy->{'rankMaximum'       } = 0;
+	    $deepCopy->{'needReferenceCount'} = 0;
             my $linkedListVariables;
             my $linkedListResetVariables;
             my $linkedListFinalizeVariables;
@@ -1559,6 +1560,9 @@ CODE
             # Insert any iterator variables needed.
             $deepCopy->{'code'} = "integer :: ".join(",",map {"i".$_} 1..$deepCopy->{'rankMaximum'})."\n".$deepCopy->{'code'}
                 if ( $deepCopy->{'rankMaximum'} > 0 );
+	    # Insert any reference count variable needed.
+	    $deepCopy->{'code'} = "integer :: referenceCount__\n".$deepCopy->{'code'}
+                if ( $deepCopy->{'needReferenceCount'} );
 	    $methods{'deepCopy'} =
 	    {
 		description => "Perform a deep copy of the object. This is a wrapper around the actual deep-copy code.",
@@ -3551,6 +3555,9 @@ sub deepCopyDeclarations {
 		$deepCopy->{'finalizeCode'} .= "if (associated(self%".$name.")) call self%".$name."%deepCopyFinalize()\n";
 		$deepCopy->{'assignments' } .= "nullify(destination%".$name.")\n";
 		$deepCopy->{'assignments' } .= "if (associated(self%".$name.")) then\n";
+		# Undo the reference count increment that occurred as a result of the `destination=self` assignment.
+		$deepCopy->{'needReferenceCount'} = 1;
+		$deepCopy->{'assignments' } .= " referenceCount__=self%".$name."\%referenceCountDecrement()\n";
 		$deepCopy->{'assignments' } .= " if (associated(self%".$name."\%copiedSelf)) then\n";
 		$deepCopy->{'assignments' } .= "  select type(s => self%".$name."\%copiedSelf)\n";
 		$deepCopy->{'assignments' } .= "  ".$declaration->{'intrinsic'}." is (".$declaration->{'type'}.")\n";
