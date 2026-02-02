@@ -102,4 +102,7 @@ program Tests_IO_XML
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish()
 
+  ! Clean up.
+  deallocate(array1,array2,iarray1,carray1)
+  
 end program Tests_IO_XML

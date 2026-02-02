@@ -341,12 +341,6 @@ program Test_Biases
      ! Assert the result.
      call Assert(char(modelName(iModel)),bias,biasTarget,relTol=modelTolerance(iModel))
      ! Clean up.
-     call parameters%reset  ()
-     call parameters%destroy()
-     deallocate(mass      )
-     deallocate(redshift  )
-     deallocate(bias      )
-     deallocate(biasTarget)
      !![
      <objectDestructor name="darkMatterHaloBias_"                                          />
      <objectDestructor name="virialDensityContrast_"                                       />
@@ -364,6 +358,14 @@ program Test_Biases
      call Node_Components_Thread_Uninitialize()
      call Node_Components_Uninitialize       ()
      call nodeClassHierarchyFinalize         ()
+     call parameters%reset  ()
+     call parameters%destroy()
+     call node      %destroy()
+     deallocate(mass      )
+     deallocate(redshift  )
+     deallocate(bias      )
+     deallocate(biasTarget)
+     deallocate(node      )
   end do
   ! End unit tests.
   call Unit_Tests_End_Group()
