@@ -93,6 +93,8 @@ module Numerical_Integration
        <method description="Reallocate GSL objects."                   method="gslReallocate"/>
      </methods>
      !!]
+     procedure ::                  integratorAssign
+     generic   :: assignment(=) => integratorAssign
      procedure :: integrate     => integratorIntegrate
      procedure :: toleranceSet  => integratorToleranceSet
      procedure :: gslAllocate   => integratorGSLAllocate
@@ -206,6 +208,27 @@ contains
     return
   end function integratorConstructor
 
+  subroutine integratorAssign(to,from)
+    !!{
+    Assignment operator for \refClass{integrator} objects.
+    !!}
+    implicit none
+    class(integrator), intent(  out) :: to
+    class(integrator), intent(in   ) :: from
+
+    to%integrationWorkspace => from%integrationWorkspace
+    to%integrandFunction    => from%integrandFunction
+    to%integrand            => from%integrand
+    to%workspaceManager     =  from%workspaceManager
+    to%functionManager      =  from%functionManager
+    to%integrationRule      =  from%integrationRule
+    to%intervalsMaximum     =  from%intervalsMaximum
+    to%toleranceAbsolute    =  from%toleranceAbsolute
+    to%toleranceRelative    =  from%toleranceRelative
+    to%hasSingularities     =  from%hasSingularities
+    return
+  end subroutine integratorAssign
+  
   subroutine integratorGSLAllocate(self)
     !!{
     Allocate GSL objects.

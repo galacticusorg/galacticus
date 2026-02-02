@@ -263,6 +263,8 @@ module Numerical_Interpolation
        <method description="Reallocate GSL objects."                method="gslReallocate"/>
      </methods>
      !!]
+     procedure ::                  interpolator2DAssign
+     generic   :: assignment(=) => interpolator2DAssign
      procedure :: interpolate   => interpolator2DInterpolate
      procedure :: gslAllocate   => interpolator2DGSLAllocate
      procedure :: gslReallocate => interpolator2DGSLReallocate
@@ -814,6 +816,35 @@ contains
     return
   end function interpolator2DConstructor
 
+  subroutine interpolator2DAssign(self,from)
+    !!{
+    Perform assignment of 2D interpolators.
+    !!}
+    implicit none
+    class(interpolator2D), intent(inout) :: self
+    class(interpolator2D), intent(in   ) :: from
+    
+    self%interpXManager      =  from%interpXManager
+    self%interpYManager      =  from%interpYManager
+    self%interpAccelXManager =  from%interpAccelXManager
+    self%interpAccelYManager =  from%interpAccelYManager
+    self%interpX             => from%interpX
+    self%interpY             => from%interpY
+    self%interpAccelX        => from%interpAccelX
+    self%interpAccelY        => from%interpAccelY
+    self%countArrayX         =  from%countArrayX
+    self%countArrayY         =  from%countArrayY
+    if (allocated(self%gsl_interp_type)) deallocate(self%gsl_interp_type                            )
+    if (allocated(from%gsl_interp_type))   allocate(self%gsl_interp_type,source=from%gsl_interp_type)
+    if (allocated(self%x              )) deallocate(self%x                                          )
+    if (allocated(from%x              ))   allocate(self%x              ,source=from%x              )
+    if (allocated(self%y              )) deallocate(self%y                                          )
+    if (allocated(from%y              ))   allocate(self%y              ,source=from%y              )    
+    if (allocated(self%z              )) deallocate(self%z                                          )
+    if (allocated(from%z              ))   allocate(self%z              ,source=from%z              )    
+    return
+  end subroutine interpolator2DAssign
+  
   subroutine interpolator2DGSLAllocate(self)
     !!{
     Allocate GSL objects.

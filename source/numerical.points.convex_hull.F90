@@ -58,8 +58,10 @@ module Points_Convex_Hull
        <method method="pointIsInHull" description="Return true if the given point is inside the convex hull."/>
      </methods>
      !!]
-     procedure :: volume        => convexHullVolume
-     procedure :: pointIsInHull => convexHullPointIsInHull
+     procedure :: volume           => convexHullVolume
+     procedure :: pointIsInHull    => convexHullPointIsInHull
+     procedure :: convexHullAssign
+     generic   :: assignment(=)    => convexHullAssign
   end type convexHull
 
   interface convexHull
@@ -202,5 +204,18 @@ contains
 #endif
     return
   end function convexHullPointIsInHull
-  
+
+  subroutine convexHullAssign(to,from)
+    !!{
+    Assignment operator for \refClass{convexHull} objects.
+    !!}
+    implicit none
+    class(convexHull), intent(  out) :: to
+    class(convexHull), intent(in   ) :: from
+
+    to%qhull_       => from%qhull_
+    to%qhullManager =  from%qhullManager
+    return
+  end subroutine convexHullAssign
+
 end module Points_Convex_Hull

@@ -212,8 +212,8 @@ module Numerical_ODE_Solvers
      Type providing ODE solving.
      !!}
      private
-     procedure(derivativesTemplate        ), pointer    , nopass :: derivatives
-     procedure(jacobianTemplate           ), pointer    , nopass :: jacobian
+     procedure(derivativesTemplate        ), pointer    , nopass :: derivatives             => null()
+     procedure(jacobianTemplate           ), pointer    , nopass :: jacobian                => null()
      procedure(integrandTemplate          ), pointer    , nopass :: integrands              => null()
      procedure(finalStateTemplate         ), pointer    , nopass :: finalState              => null()
      procedure(postStepTemplate           ), pointer    , nopass :: postStep                => null()
@@ -234,9 +234,11 @@ module Numerical_ODE_Solvers
        <method description="Return estimates of the errors in ODE variables." method="errors"/>
      </methods>
      !!]
-     final     ::           odeSolverDestructor
-     procedure :: solve  => odeSolverSolve
-     procedure :: errors => odeSolverErrors
+     final     ::                  odeSolverDestructor
+     procedure :: solve         => odeSolverSolve
+     procedure :: errors        => odeSolverErrors
+     procedure ::                  odeSolverAssign
+     generic   :: assignment(=) => odeSolverAssign
   end type odeSolver
   
   interface odeSolver
@@ -450,6 +452,37 @@ contains
     nullify(self%integrator)
     return
   end subroutine odeSolverDestructor
+
+  subroutine odeSolverAssign(to,from)
+    !!{
+    Assignment operator for \refClass{odeSolver} objects.
+    !!}
+    implicit none
+    class(odeSolver), intent(  out) :: to
+    class(odeSolver), intent(in   ) :: from
+
+    to%derivatives             => from%derivatives
+    to%jacobian                => from%jacobian
+    to%integrands              => from%integrands
+    to%finalState              => from%finalState
+    to%postStep                => from%postStep
+    to%errorAnalyzer           => from%errorAnalyzer
+    to%errorHandler            => from%errorHandler
+    to%integrator              => from%integrator
+    to%driver                  => from%driver
+    to%system                  => from%system
+    to%driverManager           =  from%driverManager          
+    to%systemManager           =  from%systemManager          
+    to%stepperType             =  from%stepperType            
+    to%dim                     =  from%dim                    
+    to%integratorErrorTolerant =  from%integratorErrorTolerant
+    if (allocated(to%gsl_odeiv2_step_type)) deallocate(to%gsl_odeiv2_step_type)
+    if (allocated(from%gsl_odeiv2_step_type)) then
+       allocate(to%gsl_odeiv2_step_type)
+       to%gsl_odeiv2_step_type=from%gsl_odeiv2_step_type
+    end if
+    return
+  end subroutine odeSolverAssign
 
   subroutine odeSolverSolve(self,x0,x1,y,z,xStep,status)
     !!{

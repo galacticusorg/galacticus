@@ -93,12 +93,14 @@ module Multidimensional_Minimizer
        <method description="Retrieve the function value at the current minimum from the minimizer."   method="x"           />
      </methods>
      !!]
-     procedure :: set          => multiDMinimizerSet
-     procedure :: iterate      => multiDMinimizerIterate
-     procedure :: testGradient => multiDMinimizerTestGradient
-     procedure :: testSize     => multiDMinimizerTestSize
-     procedure :: minimum      => multiDMinimizerMinimum
-     procedure :: x            => multiDMinimizerX
+     procedure ::                  multiDMinimizerAssign
+     generic   :: assignment(=) => multiDMinimizerAssign
+     procedure :: set           => multiDMinimizerSet
+     procedure :: iterate       => multiDMinimizerIterate
+     procedure :: testGradient  => multiDMinimizerTestGradient
+     procedure :: testSize      => multiDMinimizerTestSize
+     procedure :: minimum       => multiDMinimizerMinimum
+     procedure :: x             => multiDMinimizerX
   end type multiDMinimizer
 
   interface multiDMinimizer
@@ -490,6 +492,29 @@ contains
     return
   end subroutine gslMinimizerFDFWrapperDestructor
 
+  subroutine multiDMinimizerAssign(to,from)
+    !!{
+    Assignment operator for \refClass{multiDMinimizer} objects.
+    !!}
+    implicit none
+    class(multiDMinimizer), intent(  out) :: to
+    class(multiDMinimizer), intent(in   ) :: from
+
+    to%minimizer_                 => from%minimizer_
+    to%minimizerFFunction         => from%minimizerFFunction
+    to%minimizerFDFFunction       => from%minimizerFDFFunction
+    to%minimizeFunction           => from%minimizeFunction
+    to%minimizeFunctionDerivative => from%minimizeFunctionDerivative
+    to%minimizeFunctionBoth       => from%minimizeFunctionBoth
+    to%minimizerManager           =  from%minimizerManager
+    to%minimizerFManager          =  from%minimizerFManager
+    to%minimizerFDFManager        =  from%minimizerFDFManager
+    to%gslMinimizerType           =  from%gslMinimizerType
+    to%minimizerType              =  from%minimizerType
+    to%countDimensions            =  from%countDimensions
+    return
+  end subroutine multiDMinimizerAssign
+  
   subroutine multiDMinimizerSet(self,x,stepSize,tolerance)
     !!{
     Set the initial state for a {\normalfont \ttfamily multiDMinimizer} object.
