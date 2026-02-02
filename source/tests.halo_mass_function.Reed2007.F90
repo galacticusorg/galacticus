@@ -193,7 +193,8 @@ program Tests_Halo_Mass_Function_Reed2007
      end select
      time=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift))
      ! Determine number of masses in reference data file and allocate arrays.
-     massCount=Count_Lines_In_File(char(var_str('testSuite/data/haloMassFunction/reed2007MassFunction_z')//int(redshift)//'.txt'))-1
+     fileName=var_str('testSuite/data/haloMassFunction/reed2007MassFunction_z')//int(redshift)//'.txt'
+     massCount=Count_Lines_In_File(fileName)-1
      allocate(mass            (massCount))
      allocate(massFunction    (massCount))
      allocate(massFunctionReed(massCount))

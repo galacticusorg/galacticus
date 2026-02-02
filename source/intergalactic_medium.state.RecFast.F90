@@ -40,7 +40,7 @@
      An \gls{igm} state class which computes state using {\normalfont \scshape RecFast}.
      !!}
      private
-     type (lockDescriptor) :: fileLock
+     type(lockDescriptor) :: fileLock
   end type intergalacticMediumStateRecFast
 
   interface intergalacticMediumStateRecFast
@@ -117,7 +117,7 @@ contains
     ! Compute dark matter density.
     omegaDarkMatter=self%cosmologyParameters_%OmegaMatter()-self%cosmologyParameters_%OmegaBaryon()
     ! Construct the file name.
-    self%fileName=char(inputPath(pathTypeDataDynamic))//'intergalacticMedium/recFast'
+    self%fileName=inputPath(pathTypeDataDynamic)//'intergalacticMedium/recFast'
     write (parameterLabel,'(f6.4)') self%cosmologyParameters_%OmegaMatter    (                   )
     self%fileName=self%fileName//'_OmegaMatter'    //trim(parameterLabel)
     write (parameterLabel,'(f6.4)') self%cosmologyParameters_%OmegaDarkEnergy(                   )

@@ -992,6 +992,8 @@ contains
     type     (DOMException              )                             :: exception
     character(len=parameterLengthMaximum)                             :: parameterName   , parameterLeafName, &
          &                                                               valueTest       , valueParameter
+    character(len=1                     )                             :: bracket_
+    character(len=2                     )                             :: operator_
     logical                                                           :: operatorEquals  , matches          , &
          &                                                               allEvaluated    , didEvaluate
     integer                                                           :: countNames      , i
@@ -1016,16 +1018,18 @@ contains
              if (inException(exception)) call Error_Report('unable to parse conditional'//{introspection:location})
              ! Parse the condition.
              !! Extract the name of the parameter being conditioned upon.
-             if (extract(condition,1,1) == "[" .and. index(condition,"]") > 2) then
+             bracket_=extract(condition,1,1)
+             if (bracket_ == "[" .and. index(condition,"]") > 2) then
                 parameterName=extract(condition,2,index(condition,"]")-1)
                 condition    =adjustl(extract(condition,index(condition,"]")+1))
              else
                 call Error_Report("unable to parse parameter name in conditional"//{introspection:location})
              end if
              !! Extract the operator (currently only `==` and `!=` are supported).
-             if      (extract(condition,1,2) == "==") then
+             operator_=extract(condition,1,2)
+             if      (operator_ == "==") then
                 operatorEquals=.true.
-             else if (extract(condition,1,2) == "!=") then
+             else if (operator_ == "!=") then
                 operatorEquals=.false.
              else
                 operatorEquals=.true.
@@ -1181,12 +1185,16 @@ contains
     self%outputParametersCopied           =  from%outputParametersCopied
     self%outputParametersTemporary        =  from%outputParametersTemporary
     self%isNull                           =  from%isNull
+    self%strict                           =  from%strict
     self%outputParametersManager          =  from%outputParametersManager
     self%outputParametersContainerManager =  from%outputParametersContainerManager
     self%documentManager                  =  from%documentManager
     self%lockManager                      =  from%lockManager
-    if (allocated(self%warnedDefaults)) deallocate(self%warnedDefaults                           )
-    if (allocated(from%warnedDefaults))   allocate(self%warnedDefaults,source=from%warnedDefaults)
+    if (allocated(self%warnedDefaults)) deallocate(self%warnedDefaults)
+    if (allocated(from%warnedDefaults)) then
+       allocate(self%warnedDefaults,mold=from%warnedDefaults)
+       self%warnedDefaults=from%warnedDefaults
+    end if
     return
   end subroutine inputParametersAssignment
   

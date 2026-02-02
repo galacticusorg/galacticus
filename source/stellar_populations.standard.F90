@@ -27,6 +27,7 @@
   use :: Stellar_Population_Spectra                , only : stellarPopulationSpectra, stellarPopulationSpectraClass
   use :: Stellar_Populations_Initial_Mass_Functions, only : initialMassFunction     , initialMassFunctionClass
   use :: Supernovae_Type_Ia                        , only : supernovaeTypeIa        , supernovaeTypeIaClass
+  use :: ISO_Varying_String                        , only : varying_string
 
   abstract interface
      !!{
@@ -48,6 +49,9 @@
      double precision                                                 :: toleranceAbsolute, toleranceRelative
      type            (interpolator     )                              :: interpolatorAge  , interpolatorMetallicity
      logical                                                          :: computed         , instantaneousApproximation
+   contains
+     procedure ::                  populationTableAssign
+     generic   :: assignment(=) => populationTableAssign
   end type populationTable
 
   interface populationTable
@@ -262,6 +266,7 @@ contains
     class           (supernovaeTypeIaClass        ), intent(in   ), target   :: supernovaeTypeIa_
     class           (stellarPopulationSpectraClass), intent(in   ), target   :: stellarPopulationSpectra_
     integer                                                                  :: i                                    , countElements
+    type       (varying_string                        )             :: abundancesName
     !![
     <constructorAssign variables="instantaneousRecyclingApproximation, instantaneousYieldApproximation, instantaneousEnergyInputApproximation, massLongLived, ageEffective, *initialMassFunction_, *stellarAstrophysics_, *stellarFeedback_, *supernovaeTypeIa_, *stellarPopulationSpectra_"/>
     !!]
@@ -283,11 +288,12 @@ contains
        self%metalYield       = huge(0.0d0)
     end if
     countElements=Abundances_Property_Count()
-    self   %recycleFraction   =populationTable('recycledFraction'                ,standardIntegrandRecycledFraction,toleranceAbsolute=1.0d-3,toleranceRelative=1.0d-4,instantaneousApproximation=instantaneousRecyclingApproximation  )
-    self   %energyOutput      =populationTable('energyOutput'                    ,standardIntegrandEnergyOutput    ,toleranceAbsolute=0.0d+0,toleranceRelative=1.0d-3,instantaneousApproximation=instantaneousEnergyInputApproximation)
+    self   %recycleFraction   =populationTable('recycledFraction'  ,standardIntegrandRecycledFraction,toleranceAbsolute=1.0d-3,toleranceRelative=1.0d-4,instantaneousApproximation=instantaneousRecyclingApproximation  )
+    self   %energyOutput      =populationTable('energyOutput'      ,standardIntegrandEnergyOutput    ,toleranceAbsolute=0.0d+0,toleranceRelative=1.0d-3,instantaneousApproximation=instantaneousEnergyInputApproximation)
     allocate(self%yield(countElements))
     do i=1,countElements
-       self%yield          (i)=populationTable('yield'//char(Abundances_Names(i)),standardIntegrandYield           ,toleranceAbsolute=1.0d-4,toleranceRelative=1.0d-5,instantaneousApproximation=instantaneousYieldApproximation      )
+       abundancesName         ='yield'//Abundances_Names(i)
+       self%yield          (i)=populationTable(char(abundancesName),standardIntegrandYield           ,toleranceAbsolute=1.0d-4,toleranceRelative=1.0d-5,instantaneousApproximation=instantaneousYieldApproximation      )
     end do
     return
   end function standardConstructorInternal
@@ -309,6 +315,40 @@ contains
     return
   end subroutine standardDestructor
 
+  subroutine populationTableAssign(to,from)
+    !!{
+    Assignment operator for \refClass{populationTable} objects.
+    !!}
+    implicit none
+    class(populationTable), intent(  out) :: to
+    class(populationTable), intent(in   ) :: from
+
+    if (allocated(to%age)) deallocate(to%age)
+    if (allocated(to%metallicity)) deallocate(to%metallicity)
+    if (allocated(to%property)) deallocate(to%property)
+    if (allocated(from%age)) then
+       allocate(to%age,mold=from%age)
+       to%age=from%age
+    end if
+    if (allocated(from%metallicity)) then
+       allocate(to%metallicity,mold=from%metallicity)
+       to%metallicity=from%metallicity
+    end if
+    if (allocated(from%property)) then
+       allocate(to%property,mold=from%property)
+       to%property=from%property
+    end if
+    to%integrand                  => from%integrand
+    to%label                      =  from%label
+    to%toleranceAbsolute          =  from%toleranceAbsolute
+    to%toleranceRelative          =  from%toleranceRelative
+    to%interpolatorAge            =  from%interpolatorAge
+    to%interpolatorMetallicity    =  from%interpolatorMetallicity
+    to%computed                   =  from%computed
+    to%instantaneousApproximation =  from%instantaneousApproximation
+    return
+  end subroutine populationTableAssign
+  
   double precision function standardRateRecycling(self,abundances_,ageMinimum,ageMaximum)
     !!{
     Return the rate at which mass is being recycled from this stellar population. The mean recycling rate (i.e. the fraction of
@@ -517,8 +557,8 @@ contains
           <objectDestructor name="stellarAstrophysics_"/>
           <objectDestructor name="initialMassFunction_"/>
           <objectDestructor name="stellarFeedback_"    />
-	  <objectDestructor name="supernovaeTypeIa_"   />
-	  !!]
+          <objectDestructor name="supernovaeTypeIa_"   />
+          !!]
           !$omp end parallel
           do iAge=1,tableAgeCount
              do iMetallicity=1,tableMetallicityCount

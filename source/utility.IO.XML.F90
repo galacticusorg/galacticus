@@ -569,7 +569,8 @@ contains
     type     (varying_string  )                              :: filePath           , fileLeaf      , &
          &                                                      nameInsert         , fileNameFull  , &
          &                                                      fileName_
-    character(len=1           )                              :: fileNameStart
+    character(len=1           )                              :: xpointerClose      , fileNameStart
+    character(len=9           )                              :: xpointerOpen
     logical                                                  :: allElements
 
     ! Expand the file name.
@@ -609,8 +610,9 @@ contains
           nodeCurrent => nodesCurrent(i)%element
           if (getNodeName(nodeCurrent) == "xi:include") then
              if (.not.hasAttribute(nodeCurrent,"href")) call Error_Report("missing 'href' in XInclude"//{introspection:location})
-             fileNameFull=getAttribute(nodeCurrent,"href")
-             if (extract(fileNameFull,1,1) /= "/") then
+             fileNameFull =getAttribute(nodeCurrent,"href")
+             fileNameStart=extract(fileNameFull,1,1)
+             if (fileNameStart /= "/") then
                 fileNameFull=File_Path(stack(stackCount)%fileName)//getAttribute(nodeCurrent,"href")
                 call setAttribute(nodeCurrent,"href",char(fileNameFull))
              end if
@@ -694,10 +696,12 @@ contains
                 stack(stackCount)%nodeXInclude =>               nodeCurrent
                 if (hasAttribute(nodeCurrent,"xpointer")) then
                    stack(stackCount)%xPath=getAttribute(nodeCurrent,"xpointer")
-                   if     (                                                                                                           &
-                        &   extract(stack(stackCount)%xPath,                          1 ,                          9 ) == "xpointer(" &
-                        &  .and.                                                                                                      &
-                        &   extract(stack(stackCount)%xPath,len(stack(stackCount)%xPath),len(stack(stackCount)%xPath)) == ")"         &
+                   xpointerOpen =extract(stack(stackCount)%xPath,                          1 ,                          9 )
+                   xpointerClose=extract(stack(stackCount)%xPath,len(stack(stackCount)%xPath),len(stack(stackCount)%xPath))
+                   if     (                              &
+                        &   xpointerOpen  == "xpointer(" &
+                        &  .and.                         &
+                        &   xpointerClose == ")"         &
                         & ) then
                       stack(stackCount)%xPath=extract(stack(stackCount)%xPath,10,len(stack(stackCount)%xPath)-1)
                    else
