@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+<changes>
+
+  <!-- Use a suitable star formation history.                                                                                     -->
+  <!-- Minimum age is chosen to minimum age in the stellar table used below.                                                      -->
+  <!-- Metallicity boundaries are chosen to match those in the stellar table used below, with some additional points for typicaly
+       metallicities to give better resolution. -->
+  <change type="replaceOrAppend" path="starFormationHistory">
+    <!-- The following choice is suitable for "snapshot" outputs. -->
+    <starFormationHistory value="adaptive">
+      <timeStepMinimum       value="1.25893e-4"/>
+      <countTimeStepsMaximum value="200"       />
+      <metallicityBoundaries value="
+				    0.00531914893617 0.010638297872340 0.021276595744680 0.067282503407837
+				    0.21276595744680 0.300896502632573 0.425531914893617 0.490000000000000
+				    0.58000000000000 0.672825034078379 0.750000000000000 0.900000000000000
+				    1.06382978723404 1.200000000000000 1.350000000000000 1.500000000000000
+				    1.68206258519595 1.950000000000000 2.200000000000000 2.450000000000000
+				    2.65957446808511
+				    "/>
+    </starFormationHistory>
+
+    <!-- The following choice is suitable for "lightcone" outputs. -->
+    <!--
+	<starFormationHistory value="fixedAges">
+	  <ageMinimum            value="1.25893e-4"/>
+	  <countAges             value="200"       />
+	  <metallicityBoundaries value="
+					0.00531914893617 0.010638297872340 0.021276595744680 0.067282503407837
+					0.21276595744680 0.300896502632573 0.425531914893617 0.490000000000000
+					0.58000000000000 0.672825034078379 0.750000000000000 0.900000000000000
+					1.06382978723404 1.200000000000000 1.350000000000000 1.500000000000000
+					1.68206258519595 1.950000000000000 2.200000000000000 2.450000000000000
+					2.65957446808511
+					"/>
+	</starFormationHistory>
+    -->
+  </change>
+
+  <!-- Append calibrated HII region property options. -->
+  <change type="append" path="">
+    <hiiRegionEscapeFraction value="fixed">
+      <escapeFraction value="0.10"/>
+      <ageLimit       value="0.01"/>
+    </hiiRegionEscapeFraction>
+    <hiiRegionMassFunction value="rosolowsky2021">
+      <exponent    value="-1.8e0"/>
+      <massMinimum value="+1.0e4"/>
+      <massMaximum value="+1.0e8"/>
+    </hiiRegionMassFunction>
+    <hiiRegionDensityDistribution value="logNormal">
+      <densityHydrogenReference value="3.0e2"/>
+      <densityHydrogenMinimum   value="1.0e1"/>
+      <densityHydrogenMaximum   value="4.0e2"/>
+      <sigma                    value="1.8e0"/>
+    </hiiRegionDensityDistribution>
+  </change>
+
+  <!-- Append nodePropertyExtractors to output stellar and AGN emission line components. -->
+  <!-- Include a typical set of interesting lines.                                       -->
+  <change type="append" path="nodePropertyExtractor">
+    <nodePropertyExtractor value="luminosityEmissionLine">
+      <cloudyTableFileName value="%DATASTATICPATH%/hiiRegions/emissionLineLuminosities:sspSSP:BC2003:IMF:Chabrier:dustMetalsRatio0.4:factorMorphology2.0:abundanceAdjustS:0.2.hdf5"/>
+      <lineNames value="balmerBeta4863 balmerAlpha6565 nitrogenII6550 nitrogenII6585 oxygenII3727 oxygenII3730 oxygenIII5008 sulfurII6718  sulfurII6733 sulfurIII9071 sulfurIII9533"/>
+      <component         value="all"   />
+      <toleranceRelative value="1.0d-2"/>
+    </nodePropertyExtractor>
+    <nodePropertyExtractor value="lmnstyEmssnLineAGN">
+      <cloudyTableFileName value="%DATASTATICPATH%/hiiRegions/emissionLineLuminosities:AGN:dustMetalsRatio0.4:factorMorphology2.0:abundanceAdjustS:0.2.hdf5"/>
+      <lineNames value="balmerBeta4863 balmerAlpha6565 nitrogenII6550 nitrogenII6585 oxygenII3727 oxygenII3730 oxygenIII5008 sulfurII6718  sulfurII6733 sulfurIII9071 sulfurIII9533"/>
+      <densityHydrogen              value="+1.0e3"/>
+      <indexSpectralShortWavelength value="-1.2e0"/>
+      <factorFillingVolume          value="+0.5e0"/>
+    </nodePropertyExtractor>
+  </change>
+
+</changes>
