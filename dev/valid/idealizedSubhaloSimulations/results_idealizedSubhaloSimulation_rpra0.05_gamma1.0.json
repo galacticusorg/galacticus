@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "2b31d251742f809d3c94017b9fad2b7901ab7132",
-        "message": "Merge pull request #996 from galacticusorg/fixMergerTreeWeightScale\n\nScale weights in all trees in a forest\n",
-        "timestamp": "2026-01-31 05:39:36+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/2b31d251742f809d3c94017b9fad2b7901ab7132"
+        "id": "f3934061f79a8904e4b9d18349853645e1df57dc",
+        "message": "Merge pull request #997 from galacticusorg/fixAGNEmissionLines\n\nCorrect normalization of AGN emission lines\n",
+        "timestamp": "2026-02-04 02:49:03+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/f3934061f79a8904e4b9d18349853645e1df57dc"
     },
     "results": [
         {
