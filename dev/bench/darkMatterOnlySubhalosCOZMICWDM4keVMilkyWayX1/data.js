@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1769863203957,
+  "lastUpdate": 1770223896549,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 4keV resolutionX1)": [
@@ -933,6 +933,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (COZMIC WDM:4keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 150.63672174985197,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f3934061f79a8904e4b9d18349853645e1df57dc",
+          "message": "Merge pull request #997 from galacticusorg/fixAGNEmissionLines\n\nCorrect normalization of AGN emission lines",
+          "timestamp": "2026-02-04T02:49:03Z",
+          "tree_id": "d6d7a42150ad5ae480f94381748d839a1b64fb33",
+          "url": "https://github.com/galacticusorg/galacticus/commit/f3934061f79a8904e4b9d18349853645e1df57dc"
+        },
+        "date": 1770223895635,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:4keV resolution X1 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": 0.024015689806104024,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:4keV resolution X1 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 5.289183150715457,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:4keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 129.3467068420693,
             "unit": "-logℒ"
           }
         ]
