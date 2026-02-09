@@ -125,13 +125,11 @@ module IO_HDF5
        <method description="Create a reference to a 2D dataset." method="createReference3D" />
        <method description="Create a reference to a 2D dataset." method="createReference4D" />
        <method description="Create a reference to a 2D dataset." method="createReference5D" />
-       <method description="Destroy an HDF5 object." method="destroy" />
        <method description="Flush an HDF5 file to disk." method="flush" />
        <method description="Returns the path to a given object." method="pathTo" />
        <method description="Returns the name of a given object." method="name" />
        <method description="Returns the name of the file containing a given object." method="fileName" />
        <method description="Return a report on the location of an object suitable for inclusion in an error message." method="locationReport" />
-       <method description="Open an HDF5 file and return an appropriate HDF5 object." method="openFile" />
        <method description="Open an HDF5 group and return an appropriate HDF5 object." method="openGroup" />
        <method description="Open all HDF5 groups along a path and return the appropriate HDF5 objects." method="openGroupPath" />
        <method description="Open an HDF5 dataset." method="openDataset" />
@@ -139,6 +137,7 @@ module IO_HDF5
        <method description="Copy an HDF5 object." method="copy" />
        <method description="Return the parent object." method="parent" />
        <method description="Create a deep copy of the object with a new HDF5 object identifier." method="deepCopy" />
+       <method description="Assign HDF5 objects." method="assignment(=)"/>
      </methods>
      !!]
      final     ::                                           IO_HDF5_Finalize

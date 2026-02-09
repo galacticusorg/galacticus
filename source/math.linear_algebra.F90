@@ -60,6 +60,7 @@ module Linear_Algebra
        <method description="Compute {\normalfont \ttfamily vector1}+{\normalfont \ttfamily vector2}."          method="operator(+)"      />
        <method description="Compute {\normalfont \ttfamily vector1} $\times$ {\normalfont \ttfamily vector2}." method="operator(.cross.)"/>
        <method description="Return a C pointer to the GSL vector object."                                      method="gslObject"        />
+       <method description="Assign vector objects."                                                            method="assignment(=)"    />
      </methods>
      !!]
      procedure ::                        vectorAssign
@@ -117,6 +118,7 @@ module Linear_Algebra
        <method description="Solve the linear system $y = A \cdot x$ where $A$ is ourself and $y$ is the specified vector."     method="linearSystemSolve"     />
        <method description="Compute eigenvectors and eigenvalues of the matrix."                                               method="eigenSystem"           />
        <method description="Compute the Cholesky decomposition of the matrix in place."                                        method="choleskyDecomposition" />
+       <method description="Assign matrix objects."                                                                            method="assignment(=)"         />
      </methods>
      !!]
      procedure ::                           matrixAssign

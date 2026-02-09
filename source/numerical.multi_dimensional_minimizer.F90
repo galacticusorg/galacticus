@@ -85,12 +85,13 @@ module Multidimensional_Minimizer
    contains
      !![
      <methods>
-       <method description="Set the initial state of the minimizer."                                  method="set"         />
-       <method description="Iterate the minimizer."                                                   method="iterate"     />
-       <method description="Test the gradient of the function at the current point in the minimizer." method="testGradient"/>
-       <method description="Test the size of the interval in the minimizer."                          method="testSize"    />
-       <method description="Retrieve the parameter values at the current minimum from the minimizer." method="minimum"     />
-       <method description="Retrieve the function value at the current minimum from the minimizer."   method="x"           />
+       <method description="Set the initial state of the minimizer."                                  method="set"          />
+       <method description="Iterate the minimizer."                                                   method="iterate"      />
+       <method description="Test the gradient of the function at the current point in the minimizer." method="testGradient" />
+       <method description="Test the size of the interval in the minimizer."                          method="testSize"     />
+       <method description="Retrieve the parameter values at the current minimum from the minimizer." method="minimum"      />
+       <method description="Retrieve the function value at the current minimum from the minimizer."   method="x"            />
+       <method description="Assign multidimensional minimizer objects."                               method="assignment(=)"/>
      </methods>
      !!]
      procedure ::                  multiDMinimizerAssign

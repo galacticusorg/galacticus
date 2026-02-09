@@ -153,10 +153,11 @@ module Galacticus_Nodes
    contains
      !![
      <methods>
-       <method description="Create a {\normalfont \ttfamily treeEvent} object in this universe." method="createEvent"/>
-       <method description="Remove a {\normalfont \ttfamily treeEvent} from this universe."      method="removeEvent"/>
-       <method description="Pop a {\normalfont \ttfamily mergerTree} from this universe."        method="popTree"    />
-       <method description="Pop a {\normalfont \ttfamily mergerTree} from this universe."        method="pushTree"   />
+       <method description="Create a {\normalfont \ttfamily treeEvent} object in this universe." method="createEvent"  />
+       <method description="Remove a {\normalfont \ttfamily treeEvent} from this universe."      method="removeEvent"  />
+       <method description="Pop a {\normalfont \ttfamily mergerTree} from this universe."        method="popTree"      />
+       <method description="Pop a {\normalfont \ttfamily mergerTree} from this universe."        method="pushTree"     />
+       <method description="Assign universe objects."                                            method="assignment(=)"/>
      </methods>
      !!]
      procedure :: createEvent   => universeCreateEvent

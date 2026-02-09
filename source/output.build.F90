@@ -145,7 +145,7 @@ contains
          &                                                 FCCOMPILER                   , FCCOMPILER_VERSION, &
          &                                                 FCFLAGS                      , FCFLAGS_NOOPT     , &
          &                                                 LIBS                         , PREPROCESSOR      , &
-         &                                                 versionString
+         &                                                 versionString                , fileName
 
     ! Include build environment definitions.
     include 'output.build.environment.inc' ! NO_USES
@@ -191,14 +191,16 @@ contains
     call buildGroup%writeAttribute(CCOMPILER_VERSION  ,'make_CCOMPILER_VERSION  ')
     call buildGroup%writeAttribute(CPPCOMPILER_VERSION,'make_CPPCOMPILER_VERSION')
 
-    ! Add Mercurial changeset information.
-    if (File_Exists(inputPath(pathTypeExec)//BUILDPATH//"/galacticus.git.patch")) then
-       call changeSet(1)%loadFromFile(char(inputPath(pathTypeExec)//BUILDPATH//'/galacticus.git.patch'))
+    ! Add git changeset information.
+    fileName=inputPath(pathTypeExec)//BUILDPATH//"/galacticus.git.patch"
+    if (File_Exists(fileName)) then
+       call changeSet(1)%loadFromFile(char(fileName))
        if (changeSet(1) /= "" ) call buildGroup%writeDataset(changeSet,'sourceChangeSetDiff','Output of "git diff" - gives the uncommitted source changeset')
        call changeSet(1)%destroy()
     end if
-    if (File_Exists(inputPath(pathTypeExec)//BUILDPATH//"/galacticus.git.bundle")) then
-       call changeSet(1)%loadFromFile(char(inputPath(pathTypeExec)//BUILDPATH//'/galacticus.git.bundle'))
+    fileName=inputPath(pathTypeExec)//BUILDPATH//"/galacticus.git.bundle"
+    if (File_Exists(fileName)) then
+       call changeSet(1)%loadFromFile(char(fileName))
        if (changeSet(1) /= "" ) call buildGroup%writeDataset(changeSet,'sourceChangeSetBundle','Output of "git bundle HEAD ^origin" - gives changesets not in the remote repo')
        call changeSet(1)%destroy()
     end if

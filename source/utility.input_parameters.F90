@@ -169,6 +169,7 @@ module Input_Parameters
        <method description="Destroy the parameters document." method="destroy" />
        <method description="Return the path to this parameters object." method="path" />
        <method description="Reinitialize lock." method="lockReinitialize" />
+       <method description="Assign input parameter objects." method="assignment(=)"/>
      </methods>
      !!]
      procedure :: buildTree            => inputParametersBuildTree

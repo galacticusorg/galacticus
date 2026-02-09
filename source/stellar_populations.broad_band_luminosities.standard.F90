@@ -514,7 +514,6 @@ contains
                       allocate(integrator_)
                       integrator_=integrator(integrandFilteredLuminosity,toleranceRelative=self%integrationToleranceRelative,integrationRule=GSL_Integ_Gauss15,intervalsMaximum=10000_c_size_t)
                       allocate(stellarPopulationSpectra__             ,mold=stellarPopulationSpectra_                                                                 )
-                      allocate(stellarPopulationSpectraPostprocessor__,mold=stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_)
                       !$omp critical(broadBandLuminositiesDeepCopy)
                       !![
                       <deepCopyReset variables="stellarPopulationSpectra_"/>

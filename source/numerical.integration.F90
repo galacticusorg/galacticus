@@ -91,6 +91,7 @@ module Numerical_Integration
        <method description="Set tolerances to use in this integrator." method="toleranceSet" />
        <method description="Allocate GSL objects."                     method="gslAllocate"  />
        <method description="Reallocate GSL objects."                   method="gslReallocate"/>
+       <method description="Assign integrator objects."                method="assignment(=)"/>
      </methods>
      !!]
      procedure ::                  integratorAssign

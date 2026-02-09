@@ -143,13 +143,31 @@ module Tables
      end function Table1D_Interpolate
   end interface
 
+  type :: table1dGenericObjects
+     !!{
+     Container type for interpolators used in 1D generic tables.
+     !!}
+     type   (interpolator) :: interpolator_
+     logical               :: interpolatorInitialized
+  end type table1dGenericObjects
+  
   type, extends(table1D) :: table1DGeneric
      !!{
      Table type supporting generic one dimensional tables.
      !!}
-     type   (interpolator), allocatable, dimension(:) :: interpolator_
-     logical              , allocatable, dimension(:) :: interpolatorInitialized
-     integer                                          :: interpolationType
+     !![
+     <workaround type="gfortran" PR="123938" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=123938">
+       <description>gfortran causes a memory leak with allocatable components in nested derived-types.</description>
+       <note>
+	 Once fixed, the interpolators component could be allocatable and not a pointer, we could replace it with simple
+	 allocatable arrays of interpolator and logical objects and remove the table1dGenericObjects type altogether.
+       </note>
+     !!]
+     type   (table1dGenericObjects), pointer, dimension(:) :: interpolators     => null()
+     !![
+     </workaround>
+     !!]
+     integer                                               :: interpolationType
    contains
      !![
      <methods>
@@ -159,6 +177,7 @@ module Tables
        <method description="Initialize the interpolator." method="interpolatorInitialize" />
      </methods>
      !!]
+     final     ::                             Table_Generic_1D_Destructor
      procedure :: create                   => Table_Generic_1D_Create
      procedure :: destroy                  => Table_Generic_1D_Destroy
      procedure :: populate_                => Table_Generic_1D_Populate
@@ -524,10 +543,9 @@ contains
        ! Set linear interpolation.
        reversedSelf%interpolationType=GSL_Interp_Linear
        ! Build the interpolator.
-       allocate(reversedSelf%interpolator_          (1))
-       allocate(reversedSelf%interpolatorInitialized(1))
-       reversedSelf%interpolator_          (1)=interpolator(reversedSelf%xv,interpolationType=GSL_Interp_Linear,extrapolationType=self%extrapolationType(1))
-       reversedSelf%interpolatorInitialized(1)=.true.
+       allocate(reversedSelf%interpolators(1))
+       reversedSelf%interpolators(1)%interpolator_          =interpolator(reversedSelf%xv,interpolationType=GSL_Interp_Linear,extrapolationType=self%extrapolationType(1))
+       reversedSelf%interpolators(1)%interpolatorInitialized=.true.
     end select
     return
   end subroutine Table_1D_Reverse
@@ -621,23 +639,20 @@ contains
     class is (table1DGeneric)
        select type (to)
        class is (table1DGeneric)
-          if (allocated(from%interpolator_)) then
-             allocate(to%interpolator_(size(from%interpolator_)))
+          if (associated(from%interpolators)) then
+             allocate(to%interpolators(size(from%interpolators)))
              !![
 	     <workaround type="gfortran" PR="46897" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=46897">
 	       <seeAlso type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=57696"/>
 	       <description>Type-bound defined assignment not done because multiple part array references would occur in intermediate expressions.</description>
              !!]
-             do i=1,size(from%interpolator_)
-                to%interpolator_(i)=from%interpolator_(i)
+             do i=1,size(from%interpolators)
+                to%interpolators(i)%interpolator_          =from%interpolators(i)%interpolator_
+                to%interpolators(i)%interpolatorInitialized=from%interpolators(i)%interpolatorInitialized
              end do
              !![
 	     </workaround>
              !!]
-          end if
-          if (allocated(from%interpolatorInitialized)) then
-             allocate(to%interpolatorInitialized(size(from%interpolatorInitialized)))
-             to%interpolatorInitialized=from%interpolatorInitialized
           end if
           to%xCount           =from%xCount
           to%extrapolationType=from%extrapolationType
@@ -799,7 +814,18 @@ contains
     end select
     return
   end subroutine Table1D_Assignment
-    
+
+  subroutine Table_Generic_1D_Destructor(self)
+    !!{
+    Destructor for 1-D generic tables.
+    !!}
+    implicit none
+    type(table1DGeneric), intent(inout) :: self
+
+    if (associated(self%interpolators)) deallocate(self%interpolators)
+    return
+  end subroutine Table_Generic_1D_Destructor
+  
   subroutine Table_Generic_1D_Create(self,x,tableCount,extrapolationType,interpolationType)
     !!{
     Create a 1-D generic table.
@@ -812,6 +838,7 @@ contains
     double precision                                  , dimension(:), intent(in   )           :: x
     integer                                                         , intent(in   ), optional :: interpolationType, tableCount
     type            (enumerationExtrapolationTypeType), dimension(2), intent(in   ), optional :: extrapolationType
+    integer                                                                                   :: i
     !![
     <optionalArgument name="tableCount"        defaultsTo="1"                           />
     <optionalArgument name="extrapolationType" defaultsTo="extrapolationTypeExtrapolate"/>
@@ -829,14 +856,14 @@ contains
     if (any(extrapolationType_ == extrapolationTypeZero)) call Error_Report('zero extrapolation is not supported'//{introspection:location})
     ! Allocate interpolators, and build if possible.
     if (interpolationType_ == GSL_Interp_Linear) then
-       allocate(self%interpolator_          (1))
-       allocate(self%interpolatorInitialized(1))
-       self%interpolator_          (1)=interpolator(self%xv,extrapolationType=self%extrapolationType,interpolationType=self%interpolationType)
-       self%interpolatorInitialized(1)=.true.
+       allocate(self%interpolators(1))
+       self%interpolators(1)%interpolator_          =interpolator(self%xv,extrapolationType=self%extrapolationType,interpolationType=self%interpolationType)
+       self%interpolators(1)%interpolatorInitialized=.true.
     else
-       allocate(self%interpolator_          (tableCount_))
-       allocate(self%interpolatorInitialized(tableCount_))
-       self%interpolatorInitialized   =.false.
+       allocate(self%interpolators(tableCount_))
+       do i=1,tableCount_
+          self%interpolators(i)%interpolatorInitialized=.false.
+       end do
     end if
     return
   end subroutine Table_Generic_1D_Create
@@ -848,8 +875,7 @@ contains
     implicit none
     class(table1DGeneric), intent(inout) :: self
 
-    if (allocated(self%interpolator_          )) deallocate(self%interpolator_          )
-    if (allocated(self%interpolatorInitialized)) deallocate(self%interpolatorInitialized)
+    if (associated(self%interpolators)) deallocate(self%interpolators)
     call Table_1D_Destroy(self)
     return
   end subroutine Table_Generic_1D_Destroy
@@ -907,9 +933,9 @@ contains
     integer                , intent(in   ) :: table
 
     if (self%interpolationType == GSL_Interp_Linear) return
-    if (.not.self%interpolatorInitialized(table)) then
-       self%interpolator_          (table)=interpolator(self%xv,self%yv(:,table),extrapolationType=self%extrapolationType,interpolationType=self%interpolationType)
-       self%interpolatorInitialized(table)=.true.
+    if (.not.self%interpolators(table)%interpolatorInitialized) then
+       self%interpolators(table)%interpolator_          =interpolator(self%xv,self%yv(:,table),extrapolationType=self%extrapolationType,interpolationType=self%interpolationType)
+       self%interpolators(table)%interpolatorInitialized=.true.
     end if
     return
   end subroutine Table_Generic_1D_Interpolator_Initialize
@@ -935,7 +961,7 @@ contains
     else
        interpolator_=table_
     end if
-    Table_Generic_1D_Interpolate=self%interpolator_(interpolator_)%interpolate(self%xEffective(x,status),self%yv(:,table_))
+    Table_Generic_1D_Interpolate=self%interpolators(interpolator_)%interpolator_%interpolate(self%xEffective(x,status),self%yv(:,table_))
     return
   end function Table_Generic_1D_Interpolate
   
@@ -960,7 +986,7 @@ contains
     else
        interpolator_=table_
     end if
-    Table_Generic_1D_Interpolate_Gradient=self%interpolator_(interpolator_)%derivative(self%xEffective(x,status),self%yv(:,table_))
+    Table_Generic_1D_Interpolate_Gradient=self%interpolators(interpolator_)%interpolator_%derivative(self%xEffective(x,status),self%yv(:,table_))
     return
   end function Table_Generic_1D_Interpolate_Gradient
 
@@ -972,9 +998,9 @@ contains
     class  (table1DGeneric), intent(inout) :: self
     integer                                :: i
 
-    if (.not.allocated(self%interpolator_)) return
-    do i=1,size(self%interpolator_)
-       call self%interpolator_(i)%GSLReallocate()
+    if (.not.associated(self%interpolators)) return
+    do i=1,size(self%interpolators)
+       call self%interpolators(i)%interpolator_%GSLReallocate()
     end do
     return
   end subroutine Table_Generic_1D_Interpolator_Reinitialize

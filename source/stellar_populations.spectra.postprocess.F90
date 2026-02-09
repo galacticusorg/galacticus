@@ -60,6 +60,11 @@ module Stellar_Population_Spectra_Postprocess
      !!}
      class(stellarPopulationSpectraPostprocessorClass), pointer :: stellarPopulationSpectraPostprocessor_ => null()
    contains
+     !![
+     <methods>
+       <method method="assignment(=)" description="Assign postprocessor list objects."/>
+     </methods>
+     !!]
      final     ::                  stellarPopulationSpectraPostprocessorListDestructor
      procedure ::                  stellarPopulationSpectraPostprocessorListAssign
      generic   :: assignment(=) => stellarPopulationSpectraPostprocessorListAssign

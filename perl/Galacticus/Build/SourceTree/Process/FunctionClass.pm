@@ -3139,8 +3139,16 @@ sub deepCopyLinkedList {
 	    variables  => [ $linkedList->{'type'}.'item', $linkedList->{'type'}.'destination', $linkedList->{'type'}.'itemNew' ]
 	}
 	)
-	unless ( grep {$_->{'type'} eq $linkedList->{'type'}} @{$linkedListVariables} );
+	unless ( grep {exists($_->{'type'}) && $_->{'type'} eq $linkedList->{'type'}} @{$linkedListVariables} );
     push(
+	@{$linkedListVariables},
+	{
+	    intrinsic  => 'integer',
+	    variables  => [ 'referenceCount___' ]
+	}
+	)
+	unless ( grep {$_->{'variables'}->[0] eq 'referenceCount___'} @{$linkedListVariables} );
+     push(
 	@{$linkedListResetVariables},
 	{
 	    intrinsic  => 'type',
@@ -3149,7 +3157,7 @@ sub deepCopyLinkedList {
 	    variables  => [ $linkedList->{'type'}.'item' ]
 	}
 	)
-	unless ( grep {$_->{'type'} eq $linkedList->{'type'}} @{$linkedListResetVariables} );
+	unless ( grep {exists($_->{'type'}) && $_->{'type'} eq $linkedList->{'type'}} @{$linkedListResetVariables} );
     push(
 	@{$linkedListFinalizeVariables},
 	{
@@ -3159,7 +3167,7 @@ sub deepCopyLinkedList {
 	    variables  => [ $linkedList->{'type'}.'item' ]
 	}
 	)
-	unless ( grep {$_->{'type'} eq $linkedList->{'type'}} @{$linkedListFinalizeVariables} );
+	unless ( grep {exists($_->{'type'}) && $_->{'type'} eq $linkedList->{'type'}} @{$linkedListFinalizeVariables} );
     # Generate code for the walk through the linked list.
     my $deepCopyCode;
     my $deepCopyResetCode;
@@ -3174,6 +3182,15 @@ sub deepCopyLinkedList {
 	$code::debugCode       = $debugging ? "if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".$code::objectType."] : ".$code::object." : ')//loc(".$code::type."itemNew)//' : '//loc(".$code::type."itemNew%".$code::object.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($class->{'node'},$class->{'node'}->{'line'},compact => 1).",verbosityLevelSilent)\n" : "";
 	if ( $i == 0 ) {
 	    $deepCopyCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
+{$type}item             => destination%{$variable}
+do while (associated({$type}item))
+   ! Undo the reference count increment that resulted from the initial intrinsic assignment.
+   referenceCount___={$type}item%{$object}%referenceCountDecrement()
+   nullify({$type}item%{$object})
+   {$type}itemNew => {$type}item%next
+   deallocate({$type}item)
+   {$type}item => {$type}itemNew
+end do
 destination%{$variable} => null            ()
 CODE
 	}
@@ -3638,6 +3655,8 @@ sub deepCopyDeclarations {
 			$deepCopy->{'assignments' } .= "if (associated(self%".$name.")) then\n";
 			$deepCopy->{'resetCode'   } .= "if (associated(self%".$name.")) then\n";
 			$deepCopy->{'finalizeCode'} .= "if (associated(self%".$name.")) then\n";
+			$deepCopy->{'needReferenceCount'} = 1;
+			$deepCopy->{'assignments' } .= "referenceCount__=self%".$name."\%referenceCountDecrement()\n";
 			$deepCopy->{'assignments' } .= "if (associated(self%".$name."\%copiedSelf)) then\n";
 			$deepCopy->{'assignments' } .= "  select type(s => self%".$name."\%copiedSelf)\n";
 			$deepCopy->{'assignments' } .= "  ".$declaration->{'intrinsic'}." is (".$declaration->{'type'}.")\n";

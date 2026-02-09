@@ -204,6 +204,8 @@ program Test_Prada2011_Concentration
   message="Halo concentration at z=0"
   call Assert(char(message),ourLogConcentration,pradaLogConcentration,absTol=0.01d0)
   ! End unit tests.
+  call node%destroy()
+  deallocate(node)
   call Unit_Tests_End_Group               ()
   call Unit_Tests_Finish                  ()
   call Node_Components_Thread_Uninitialize()

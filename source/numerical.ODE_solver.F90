@@ -230,8 +230,9 @@ module Numerical_ODE_Solvers
    contains
      !![
      <methods>
-       <method description="Solve the ODE system."                            method="solve" />
-       <method description="Return estimates of the errors in ODE variables." method="errors"/>
+       <method description="Solve the ODE system."                            method="solve"        />
+       <method description="Return estimates of the errors in ODE variables." method="errors"       />
+       <method description="Assign ODE solver objects."                       method="assignment(=)"/>
      </methods>
      !!]
      final     ::                  odeSolverDestructor

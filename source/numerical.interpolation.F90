@@ -201,6 +201,7 @@ module Numerical_Interpolation
        <method description="Reallocate GSL objects."                                                                method="gslReallocate"       />
        <method description="Initialize GSL interpolator."                                                           method="gslInitialize"       />
        <method description="Assert that the data is interpolatable."                                                method="assertInterpolatable"/>
+       <method description="Assign interpolator objects."                                                           method="assignment(=)"       />
      </methods>
      !!]
      procedure ::                         interpolatorAssign
@@ -261,6 +262,7 @@ module Numerical_Interpolation
        <method description="Interpolate in the tabulated function." method="interpolate"  />
        <method description="Allocate GSL objects."                  method="gslAllocate"  />
        <method description="Reallocate GSL objects."                method="gslReallocate"/>
+       <method description="Assign 2D interpolator objects."        method="assignment(=)"/>
      </methods>
      !!]
      procedure ::                  interpolator2DAssign

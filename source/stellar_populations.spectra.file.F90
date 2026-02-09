@@ -43,7 +43,7 @@
      double precision              , allocatable, dimension(:    ) :: ages                  , metallicities          , &
           &                                                           wavelengths
      double precision              , allocatable, dimension(:,:,:) :: table
-     type            (interpolator)                                :: interpolatorAge       , interpolatorMetallicity, &
+     type            (interpolator), allocatable                   :: interpolatorAge       , interpolatorMetallicity, &
           &                                                           interpolatorWavelength
    contains
      !![
@@ -91,6 +91,7 @@
        <method description="Read the named stellar population spectra file." method="readFile" />
      </methods>
      !!]
+     final     ::                       fileDestructor
      procedure :: readFile           => fileReadFile
      procedure :: luminosity         => fileLuminosity
      procedure :: tabulation         => fileTabulation
@@ -157,6 +158,19 @@ contains
     self%fileRead=.false.
     return
   end function fileConstructorInternal
+
+  subroutine fileDestructor(self)
+    !!{
+    Destructor for the file stellar spectra class.
+    !!}
+    implicit none
+    type(stellarPopulationSpectraFile), intent(inout) :: self
+
+    if (allocated(self%spectra%interpolatorAge        )) deallocate(self%spectra%interpolatorAge        )
+    if (allocated(self%spectra%interpolatorWavelength )) deallocate(self%spectra%interpolatorWavelength )
+    if (allocated(self%spectra%interpolatorMetallicity)) deallocate(self%spectra%interpolatorMetallicity)
+    return
+  end subroutine fileDestructor
 
   double precision function fileLuminosity(self,abundancesStellar,age,wavelength,status)
     !!{
@@ -300,6 +314,9 @@ contains
        !$ call hdf5Access%unset()
        self%fileRead=.true.
        ! Build interpolators.
+       allocate(self%spectra%interpolatorAge        )
+       allocate(self%spectra%interpolatorWavelength )
+       allocate(self%spectra%interpolatorMetallicity)
        self%spectra%interpolatorAge        =interpolator(self%spectra%ages         ,extrapolationType=extrapolationTypeExtrapolate)
        self%spectra%interpolatorWavelength =interpolator(self%spectra%wavelengths  ,extrapolationType=extrapolationTypeZero       )
        self%spectra%interpolatorMetallicity=interpolator(self%spectra%metallicities,extrapolationType=extrapolationTypeFix        )
@@ -390,8 +407,8 @@ contains
     implicit none
     class(spectralTable), intent(inout) :: self
 
-    call self%interpolatorAge        %GSLReallocate()
-    call self%interpolatorMetallicity%GSLReallocate()
-    call self%interpolatorWavelength %GSLReallocate()
+    if (allocated(self%interpolatorAge        )) call self%interpolatorAge        %GSLReallocate()
+    if (allocated(self%interpolatorMetallicity)) call self%interpolatorMetallicity%GSLReallocate()
+    if (allocated(self%interpolatorWavelength )) call self%interpolatorWavelength %GSLReallocate()
     return
   end subroutine spectralTableInterpolatorsDeepCopy

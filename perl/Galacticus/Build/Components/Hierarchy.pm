@@ -194,6 +194,7 @@ sub Hierarchy_Finalization {
 hierarchyInitialized=hierarchyInitialized-1
 if (hierarchyInitialized == 0) then
  {join(" ",map {"deallocate(default".$_->{'name'}."Component)\n"} &List::ExtraUtils::hashList($build->{'componentClasses'}))}
+ call massDistributionsDestroy()
 end if
 !$omp end critical (Node_Class_Hierarchy_Initialize)
 CODE

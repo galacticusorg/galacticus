@@ -50,6 +50,11 @@
      type            (interpolator     )                              :: interpolatorAge  , interpolatorMetallicity
      logical                                                          :: computed         , instantaneousApproximation
    contains
+     !![
+     <methods>
+       <method method="assignment(=)" description="Assign postprocessor list objects."/>       
+     </methods>
+     !!]
      procedure ::                  populationTableAssign
      generic   :: assignment(=) => populationTableAssign
   end type populationTable
@@ -448,15 +453,15 @@ contains
     if (.not.property%computed) then
        ! Check for previously computed data.
        makeFile=.false.
-       fileName=char(inputPath(pathTypeDataDynamic))//'stellarPopulations/'//property%label//'_'//self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)//'.hdf5'
+       fileName=inputPath(pathTypeDataDynamic)//'stellarPopulations/'//property%label//'_'//self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)//'.hdf5'
        call Directory_Make(File_Path(fileName))
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-       call File_Lock(char(fileName),lock,lockIsShared=.false.)
+       call File_Lock(fileName,lock,lockIsShared=.false.)
        if (File_Exists(fileName)) then
           ! Open the file containing cumulative property data.
           call displayIndent('Reading file: '//fileName,verbosityLevelWorking)
           !$ call hdf5Access%set          (                         )
-          file=hdf5Object(char(fileName))
+          file=hdf5Object(fileName)
           call file%readAttribute('fileFormat',fileFormat)
           if (fileFormat /= fileFormatCurrent) then
              makeFile=.true.

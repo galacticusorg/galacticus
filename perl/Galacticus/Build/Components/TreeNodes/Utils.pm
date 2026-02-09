@@ -413,10 +413,11 @@ CODE
     !![
     <objectDestructor name="next_%massDistribution_" nullify="no"/>
     !!]
-    next_ => next_%next
+    nextCopy_ => next_%next
+    deallocate(next_)
+    next_ => nextCopy_
    end do
-   deallocate(massDistributionListCopy_)
-   nullify   (massDistributionList_    )
+   nullify(massDistributionList_)
   end if
  end if
  if (isDarkMatterOnly) then

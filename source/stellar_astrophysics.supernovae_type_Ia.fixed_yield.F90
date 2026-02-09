@@ -75,9 +75,9 @@ contains
     self%elementYield=0.0d0
     self%totalYield  =0.0d0
     ! Read in Type Ia yields.
-    fileName=char(inputPath(pathTypeDataStatic))//'stellarAstrophysics/Supernovae_Type_Ia_Yields.xml'
+    fileName=inputPath(pathTypeDataStatic)//'stellarAstrophysics/Supernovae_Type_Ia_Yields.xml'
     !$omp critical (FoX_DOM_Access)
-    doc => XML_Parse(char(fileName),iostat=ioErr)
+    doc => XML_Parse(fileName,iostat=ioErr)
     if (ioErr /= 0) call Error_Report('Unable to parse yields file'//{introspection:location})
     ! Get a list of all isotopes.
     call XML_Get_Elements_By_Tag_Name(doc,"isotope",isotopesList)

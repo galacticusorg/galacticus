@@ -114,7 +114,7 @@ contains
     character(len= 41       )          :: gitHashDatasets
     character(len=128       )          :: textBufferFixed
     type     (hdf5Object    )          :: versionGroup
-    type     (varying_string)          :: runTime
+    type     (varying_string)          :: runTime        , inputPathStatic
 #ifndef GIT2AVAIL
     integer                            :: status         , hashUnit
     type     (varying_string)          :: hashFileName
@@ -136,7 +136,8 @@ contains
     call versionGroup%writeAttribute(     runTime   ,'runStartTime')
 #ifdef GIT2AVAIL
     ! Use the git2 library to get the hash of the datasets repo.
-    call repoHeadHash(char(inputPath(pathTypeDataStatic))//c_null_char,gitHashDatasets)
+    inputPathStatic=inputPath(pathTypeDataStatic)
+    call repoHeadHash(char(inputPathStatic)//c_null_char,gitHashDatasets)
     gitHashDatasets=char(String_C_to_Fortran(gitHashDatasets))
 #else
     ! Git2 library is not available. If we have the command line `git` installed, use it insted.

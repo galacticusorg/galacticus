@@ -54,6 +54,7 @@ module Points_Convex_Hull
    contains
      !![
      <methods>
+       <method method="assignment(=)" description="Assign convex hull objects."                              />
        <method method="volume"        description="Return the volume of the convex hull."                    />
        <method method="pointIsInHull" description="Return true if the given point is inside the convex hull."/>
      </methods>

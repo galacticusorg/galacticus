@@ -91,6 +91,11 @@ module Events_Hooks
      private
      type(regEx) :: regEx_
    contains
+     !![
+     <methods>
+       <method method="assignment(=)" description="Assign regular expression dependency objects."/>
+     </methods>
+     !!]
      procedure ::                  dependencyRegExAssign
      generic   :: assignment(=) => dependencyRegExAssign
   end type dependencyRegEx

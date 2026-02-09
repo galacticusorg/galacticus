@@ -79,20 +79,20 @@ program Test_Dark_Matter_Profiles_Heated
   class           (nodeComponentBasic                                            ), pointer      :: basic
   class           (nodeComponentSatellite                                        ), pointer      :: satellite
   double precision                                                                , dimension(3) :: radiusVirialFractional                      =[0.1d0,0.5d0,1.0d0]
-  type            (cosmologyParametersSimple                                     )               :: cosmologyParameters_
-  type            (cosmologyFunctionsMatterLambda                                )               :: cosmologyFunctions_
-  type            (darkMatterHaloScaleVirialDensityContrastDefinition            )               :: darkMatterHaloScale_
-  type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt)               :: virialDensityContrast_
-  type            (treeNode                                                      )               :: node
+  type            (cosmologyParametersSimple                                     ), pointer      :: cosmologyParameters_
+  type            (cosmologyFunctionsMatterLambda                                ), pointer      :: cosmologyFunctions_
+  type            (darkMatterHaloScaleVirialDensityContrastDefinition            ), pointer      :: darkMatterHaloScale_
+  type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer      :: virialDensityContrast_
+  type            (treeNode                                                      ), pointer      :: node
   type            (varying_string                                                )               :: parameterFile
   type            (inputParameters                                               )               :: parameters
-  type            (darkMatterProfileDMOIsothermal                                )               :: darkMatterProfileDMOIsothermal_
-  type            (darkMatterProfileDMOHeated                                    ), target       :: darkMatterProfileDMOHeated_
-  type            (darkMatterProfileDMOHeatedMonotonic                           ), target       :: darkMatterProfileDMOHeatedMonotonic_
+  type            (darkMatterProfileDMOIsothermal                                ), pointer      :: darkMatterProfileDMOIsothermal_
+  type            (darkMatterProfileDMOHeated                                    ), pointer      :: darkMatterProfileDMOHeated_
+  type            (darkMatterProfileDMOHeatedMonotonic                           ), pointer      :: darkMatterProfileDMOHeatedMonotonic_
   class           (darkMatterProfileDMOClass                                     ), pointer      :: darkMatterProfileDMO_
-  type            (darkMatterProfileHeatingTidal                                 )               :: darkMatterProfileHeatingTidal_
-  type            (darkMatterParticleCDM                                         )               :: darkMatterParticleCDM_
-  type            (darkMatterParticleSelfInteractingDarkMatter                   )               :: darkMatterParticleSelfInteractingDarkMatter_
+  type            (darkMatterProfileHeatingTidal                                 ), pointer      :: darkMatterProfileHeatingTidal_
+  type            (darkMatterParticleCDM                                         ), pointer      :: darkMatterParticleCDM_
+  type            (darkMatterParticleSelfInteractingDarkMatter                   ), pointer      :: darkMatterParticleSelfInteractingDarkMatter_
   class           (massDistributionSpherical                                     ), pointer      :: massDistributionSphericalHeated_
   class           (kinematicsDistributionClass                                   ), pointer      :: kinematicsDistributionHeated_
   class           (massDistributionHeatingClass                                  ), pointer      :: massDistributionHeatingTidal_
@@ -120,64 +120,118 @@ program Test_Dark_Matter_Profiles_Heated
   call eventsHooksInitialize()
   call nodeClassHierarchyInitialize(parameters)
   ! Create the dark matter profiles.
+  allocate(cosmologyParameters_                        )
+  allocate(cosmologyFunctions_                         )
+  allocate(virialDensityContrast_                      )
+  allocate(darkMatterHaloScale_                        )
+  allocate(darkMatterParticleCDM_                      )
+  allocate(darkMatterParticleSelfInteractingDarkMatter_)
+  allocate(darkMatterProfileHeatingTidal_              )
+  allocate(darkMatterProfileDMOIsothermal_             )
+  allocate(darkMatterProfileDMOHeated_                 )
+  allocate(darkMatterProfileDMOHeatedMonotonic_        )
   !![
   <referenceConstruct object="cosmologyParameters_"  >
    <constructor>
-    cosmologyParametersSimple                                     (                                               &amp;
-     &amp;                                                         OmegaMatter           = 0.2815d0             , &amp;
-     &amp;                                                         OmegaBaryon           = 0.0465d0             , &amp;
-     &amp;                                                         OmegaDarkEnergy       = 0.7185d0             , &amp;
-     &amp;                                                         temperatureCMB        = 2.7800d0             , &amp;
-     &amp;                                                         HubbleConstant        =69.3000d0               &amp;
+    cosmologyParametersSimple                                     (                                                                                      &amp;
+     &amp;                                                         OmegaMatter                            = 0.2815d0                                   , &amp;
+     &amp;                                                         OmegaBaryon                            = 0.0465d0                                   , &amp;
+     &amp;                                                         OmegaDarkEnergy                        = 0.7185d0                                   , &amp;
+     &amp;                                                         temperatureCMB                         = 2.7800d0                                   , &amp;
+     &amp;                                                         HubbleConstant                         =69.3000d0                                     &amp;
      &amp;                                                        )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="cosmologyFunctions_"   >
    <constructor>
-    cosmologyFunctionsMatterLambda                                (                                               &amp;
-     &amp;                                                         cosmologyParameters_  =cosmologyParameters_    &amp;
+    cosmologyFunctionsMatterLambda                                (                                                                                      &amp;
+     &amp;                                                         cosmologyParameters_                   =cosmologyParameters_                          &amp;
      &amp;                                                        )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="virialDensityContrast_">
    <constructor>
-    virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(                                               &amp;
-     &amp;                                                         tableStore            =.true.                , &amp;
-     &amp;                                                         cosmologyFunctions_   =cosmologyFunctions_     &amp;
+    virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(                                                                                      &amp;
+     &amp;                                                         tableStore                             =.true.                                      , &amp;
+     &amp;                                                         cosmologyFunctions_                    =cosmologyFunctions_                           &amp;
      &amp;                                                        )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="darkMatterHaloScale_"                        >
    <constructor>
-    darkMatterHaloScaleVirialDensityContrastDefinition            (                                               &amp;
-     &amp;                                                         cosmologyParameters_  =cosmologyParameters_  , &amp;
-     &amp;                                                         cosmologyFunctions_   =cosmologyFunctions_   , &amp;
-     &amp;                                                         virialDensityContrast_=virialDensityContrast_  &amp;
+    darkMatterHaloScaleVirialDensityContrastDefinition            (                                                                                      &amp;
+     &amp;                                                         cosmologyParameters_                   =cosmologyParameters_                        , &amp;
+     &amp;                                                         cosmologyFunctions_                    =cosmologyFunctions_                         , &amp;
+     &amp;                                                         virialDensityContrast_                 =virialDensityContrast_                        &amp;
      &amp;                                                        )
    </constructor>
   </referenceConstruct>  
   <referenceConstruct object="darkMatterParticleCDM_"                      >
    <constructor>
-    darkMatterParticleCDM                             (                                                                                       &amp;
-     &amp;                                            )
+    darkMatterParticleCDM                                        (                                                                                       &amp;
+     &amp;                                                       )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="darkMatterParticleSelfInteractingDarkMatter_">
    <constructor>
-    darkMatterParticleSelfInteractingDarkMatter       (                                                                                       &amp;
-     &amp;                                             crossSectionSelfInteraction         =1.0d0                                           , &amp;
-     &amp;                                             darkMatterParticle_                 =darkMatterParticleCDM_                            &amp;
-     &amp;                                            )
+    darkMatterParticleSelfInteractingDarkMatter                  (                                                                                       &amp;
+     &amp;                                                        crossSectionSelfInteraction             =1.0d0                                       , &amp;
+     &amp;                                                        darkMatterParticle_                     =darkMatterParticleCDM_                        &amp;
+     &amp;                                                       )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="darkMatterProfileHeatingTidal_"              >
+   <constructor>
+    darkMatterProfileHeatingTidal                                (                                                                                       &amp;
+     &amp;                                                        coefficientSecondOrder0                 =coefficientSecondOrder                      , &amp;
+     &amp;                                                        coefficientSecondOrder1                 =coefficientSecondOrder                      , &amp;
+     &amp;                                                        coefficientSecondOrder2                 =coefficientSecondOrder                      , &amp;
+     &amp;                                                        correlationVelocityRadius               =correlationVelocityRadius                     &amp;
+     &amp;                                                       )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="darkMatterProfileDMOIsothermal_"             >
+   <constructor>
+   darkMatterProfileDMOIsothermal                               (                                                                                        &amp;
+     &amp;                                                       darkMatterHaloScale_                     =darkMatterHaloScale_                          &amp;
+     &amp;                                                      )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="darkMatterProfileDMOHeated_"                 >
+   <constructor>
+   darkMatterProfileDMOHeated                                   (                                                                                        &amp;
+     &amp;                                                       nonAnalyticSolver                         =nonAnalyticSolversNumericalDMO             , &amp;
+     &amp;                                                       velocityDispersionApproximate             =velocityDispersionApproximate              , &amp;
+     &amp;                                                       tolerateEnclosedMassIntegrationFailure    =tolerateEnclosedMassIntegrationFailure     , &amp;
+     &amp;                                                       tolerateVelocityDispersionFailure         =tolerateVelocityDispersionFailure          , &amp;
+     &amp;                                                       tolerateVelocityMaximumFailure            =tolerateVelocityMaximumFailure             , &amp;
+     &amp;                                                       toleratePotentialIntegrationFailure       =toleratePotentialIntegrationFailure        , &amp;
+     &amp;                                                       fractionRadiusFinalSmall                  =fractionRadiusFinalSmall                   , &amp;
+     &amp;                                                       toleranceRelativeVelocityDispersion       =toleranceRelativeVelocityDispersion        , &amp;
+     &amp;                                                       toleranceRelativeVelocityDispersionMaximum=toleranceRelativeVelocityDispersionMaximum , &amp;
+     &amp;                                                       toleranceRelativePotential                =toleranceRelativePotential                 , &amp;
+     &amp;                                                       darkMatterProfileDMO_                     =darkMatterProfileDMOIsothermal_            , &amp;
+     &amp;                                                       darkMatterProfileHeating_                 =darkMatterProfileHeatingTidal_               &amp;
+     &amp;                                                      )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="darkMatterProfileDMOHeatedMonotonic_"        >
+   <constructor>
+   darkMatterProfileDMOHeatedMonotonic                          (                                                                                       &amp;
+     &amp;                                                       nonAnalyticSolver                         =nonAnalyticSolversNumericalDMO            , &amp;
+     &amp;                                                       toleranceRelativeVelocityDispersion       =toleranceRelativeVelocityDispersion       , &amp;
+     &amp;                                                       toleranceRelativeVelocityDispersionMaximum=toleranceRelativeVelocityDispersionMaximum, &amp;
+     &amp;                                                       darkMatterProfileDMO_                     =darkMatterProfileDMOIsothermal_           , &amp;
+     &amp;                                                       darkMatterHaloScale_                      =darkMatterHaloScale_                      , &amp;
+     &amp;                                                       darkMatterProfileHeating_                 =darkMatterProfileHeatingTidal_              &amp;
+     &amp;                                                      )
    </constructor>
   </referenceConstruct>
   !!]
-  darkMatterProfileHeatingTidal_      =darkMatterProfileHeatingTidal      (coefficientSecondOrder       ,coefficientSecondOrder       ,coefficientSecondOrder                                                                                   ,correlationVelocityRadius                                                          )
-  darkMatterProfileDMOIsothermal_     =darkMatterProfileDMOIsothermal     (                                                                                                                                                                                                      darkMatterHaloScale_                               )
-  darkMatterProfileDMOHeated_         =darkMatterProfileDMOHeated         (nonAnalyticSolversNumericalDMO,velocityDispersionApproximate,tolerateEnclosedMassIntegrationFailure,tolerateVelocityDispersionFailure,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,fractionRadiusFinalSmall,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential                           ,darkMatterProfileDMOIsothermal_,darkMatterProfileHeatingTidal_)
-  darkMatterProfileDMOHeatedMonotonic_=darkMatterProfileDMOHeatedMonotonic(nonAnalyticSolversNumericalDMO                              ,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,darkMatterProfileDMOIsothermal_,darkMatterHaloScale_,darkMatterProfileHeatingTidal_)
   ! Set up the node.
-  basic     => node%basic    (autoCreate=.true.)
-  satellite => node%satellite(autoCreate=.true.)
+  node      => treeNode          (                 )
+  basic     => node    %basic    (autoCreate=.true.)
+  satellite => node    %satellite(autoCreate=.true.)
   call basic    %massSet                  (massVirial     )
   call basic    %timeSet                  (time           )
   call basic    %timeLastIsolatedSet      (time           )
@@ -350,6 +404,22 @@ program Test_Dark_Matter_Profiles_Heated
      <objectDestructor name="kinematicsDistributionHeated_"   />
      !!]
   end do
+  call node%destroy()
+  deallocate(node)
+  !![
+  <objectDestructor name="massDistributionIsothermal_"                 />
+  <objectDestructor name="massDistributionHeatingTidal_"               />
+  <objectDestructor name="cosmologyParameters_"                        />
+  <objectDestructor name="cosmologyFunctions_"                         />
+  <objectDestructor name="virialDensityContrast_"                      />
+  <objectDestructor name="darkMatterHaloScale_"                        />
+  <objectDestructor name="darkMatterParticleCDM_"                      />
+  <objectDestructor name="darkMatterParticleSelfInteractingDarkMatter_"/>
+  <objectDestructor name="darkMatterProfileHeatingTidal_"              />
+  <objectDestructor name="darkMatterProfileDMOIsothermal_"             />
+  <objectDestructor name="darkMatterProfileDMOHeated_"                 />
+  <objectDestructor name="darkMatterProfileDMOHeatedMonotonic_"        />
+  !!]
   call nodeClassHierarchyFinalize()
   call Unit_Tests_Finish         ()
 end program Test_Dark_Matter_Profiles_Heated
