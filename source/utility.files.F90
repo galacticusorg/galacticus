@@ -330,7 +330,7 @@ contains
     return
   end function Count_Lines_in_File_Char
 
-  subroutine File_Lock_VarStr(fileName,lock,lockIsShared,timeSleep,countAttempts)
+  subroutine File_Lock_VarStr(fileName,lock,lockIsShared,timeSleep,countAttempts,fileNameLock)
     !!{
     Place a lock on a file.
     !!}
@@ -340,27 +340,30 @@ contains
     type   (lockDescriptor), intent(inout)           :: lock
     logical                , intent(in   ), optional :: lockIsShared
     integer(c_int         ), intent(in   ), optional :: timeSleep   , countAttempts
+    type   (varying_string), intent(in   ), optional :: fileNameLock
 
-    call File_Lock(char(fileName),lock,lockIsShared,timeSleep,countAttempts)
+    call File_Lock(char(fileName),lock,lockIsShared,timeSleep,countAttempts,fileNameLock)
     return
   end subroutine File_Lock_VarStr
   
-  subroutine File_Lock_Char(fileName,lock,lockIsShared,timeSleep,countAttempts)
+  subroutine File_Lock_Char(fileName,lock,lockIsShared,timeSleep,countAttempts,fileNameLock)
     !!{
     Place a lock on a file.
     !!}
     use :: Display                     , only : displayMessage, displayReset, displayMagenta 
     use :: Error                       , only : Error_Report  , Warn
-    use :: ISO_Varying_String          , only : assignment(=) , trim
+    use :: ISO_Varying_String          , only : assignment(=) , trim        , operator(//)  , char
     use :: Numerical_Constants_Prefixes, only : siFormat
     implicit none
     character(len=*         ), intent(in   )           :: fileName
     type     (lockDescriptor), intent(inout)           :: lock
     logical                  , intent(in   ), optional :: lockIsShared
     integer  (c_int         ), intent(in   ), optional :: timeSleep                         , countAttempts
+    type     (varying_string), intent(in   ), optional :: fileNameLock
     logical                  , save                    :: fileLockNotAvailableWarned=.false.
     integer  (c_int         )                          :: lockIsShared_                     , status       , &
          &                                                timeWait
+    character(len=:         ), allocatable             :: fileNameLock_
     !![
     <optionalArgument name="timeSleep"     defaultsTo="1_c_int" />
     <optionalArgument name="countAttempts" defaultsTo="60_c_int"/>
@@ -384,8 +387,13 @@ contains
     ! Now obtain the lock on the file.
     timeWait     =      0_c_int
     status       =-huge(0_c_int)
+    if (present(fileNameLock)) then
+       fileNameLock_=char(fileNameLock)//".lock"//char(0)
+    else
+       fileNameLock_=trim(fileName    )//".lock"//char(0)
+    end if
     do while (status /= 0)
-       status=flock_C(trim(fileName)//".lock"//char(0),lock%lockDescriptorC,lockIsShared_,timeSleep_,countAttempts_)
+       status=flock_C(fileNameLock_,lock%lockDescriptorC,lockIsShared_,timeSleep_,countAttempts_)
        select case (status)
        case ( 0_c_int)
           ! Success.
