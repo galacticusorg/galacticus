@@ -246,6 +246,7 @@ contains
     double precision, intent(  out)                     :: f
     double precision, intent(  out), dimension(size(C)) :: dfdC
     double precision, allocatable  , dimension(     : ) :: dfdC_
+    !$GLC attributes initialized :: dfdC_
     
     call self_%modelFdF(C,separationsBinned(1:binCount),semiVariancesBinned(1:binCount),f,dfdC_)
     dfdC=dfdC_
