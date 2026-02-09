@@ -21,6 +21,7 @@
   Contains a merger tree evolution timestep class which limits the step to the next lightcone crossing.
   !!}
 
+  use :: Kind_Numbers          , only : kind_int8
   use :: Geometry_Lightcones   , only : geometryLightconeClass
   use :: Merger_Tree_Outputters, only : mergerTreeOutputterClass
 
@@ -36,10 +37,11 @@
      Implementation of a merger tree evolution timestep class which limits the step to the next lightcone crossing.
      !!}
      private
-     class           (geometryLightconeClass  ), pointer :: geometryLightcone_   => null()
-     class           (mergerTreeOutputterClass), pointer :: mergerTreeOutputter_ => null()
-     double precision                                    :: timeMinimum                   , timeMaximum
-     integer                                             :: timesCrossingID
+     class           (geometryLightconeClass  ), pointer                   :: geometryLightcone_   => null()
+     class           (mergerTreeOutputterClass), pointer                   :: mergerTreeOutputter_ => null()
+     double precision                                                      :: timeMinimum                   , timeMaximum
+     integer                                                               :: timesCrossingID
+     integer         (kind_int8               ), dimension(:), allocatable :: nodeIndicesReport
     contains
      final     ::                 lightconeCrossingDestructor
      procedure :: timeEvolveTo => lightconeCrossingTimeEvolveTo
@@ -61,16 +63,27 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (mergerTreeEvolveTimestepLightconeCrossing)                :: self
-    type            (inputParameters                          ), intent(inout) :: parameters
-    class           (geometryLightconeClass                   ), pointer       :: geometryLightcone_
-    class           (mergerTreeOutputterClass                 ), pointer       :: mergerTreeOutputter_
-    
+    type            (mergerTreeEvolveTimestepLightconeCrossing)                                :: self
+    type            (inputParameters                          ), intent(inout)                 :: parameters
+    class           (geometryLightconeClass                   ), pointer                       :: geometryLightcone_
+    class           (mergerTreeOutputterClass                 ), pointer                       :: mergerTreeOutputter_
+    integer         (kind_int8                                ), allocatable  , dimension(:  ) :: nodeIndicesReport
+
+    allocate(nodeIndicesReport(parameters%count('nodeIndicesReport',zeroIfNotPresent=.true.)))
+    if (parameters%isPresent('nodeIndicesReport')) then
+       !![
+       <inputParameter>
+	 <name>nodeIndicesReport</name>
+	 <description>A list of node indices for which reporting should be performed.</description>
+	 <source>parameters</source>
+       </inputParameter>
+       !!]
+    end if
     !![
     <objectBuilder class="geometryLightcone"   name="geometryLightcone_"   source="parameters"/>
     <objectBuilder class="mergerTreeOutputter" name="mergerTreeOutputter_" source="parameters"/>
     !!]
-    self=mergerTreeEvolveTimestepLightconeCrossing(geometryLightcone_,mergerTreeOutputter_)
+    self=mergerTreeEvolveTimestepLightconeCrossing(nodeIndicesReport,geometryLightcone_,mergerTreeOutputter_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="geometryLightcone_"  />
@@ -79,16 +92,17 @@ contains
     return
   end function lightconeCrossingConstructorParameters
 
-  function lightconeCrossingConstructorInternal(geometryLightcone_,mergerTreeOutputter_) result(self)
+  function lightconeCrossingConstructorInternal(nodeIndicesReport,geometryLightcone_,mergerTreeOutputter_) result(self)
     !!{
     Constructor for the \refClass{mergerTreeEvolveTimestepLightconeCrossing} merger tree evolution timestep class which takes a parameter set as input.
     !!}
     implicit none
-    type            (mergerTreeEvolveTimestepLightconeCrossing)                        :: self
-    class           (geometryLightconeClass                   ), intent(in   ), target :: geometryLightcone_
-    class           (mergerTreeOutputterClass                 ), intent(in   ), target :: mergerTreeOutputter_
+    type            (mergerTreeEvolveTimestepLightconeCrossing)                              :: self
+    class           (geometryLightconeClass                   ), intent(in   ), target       :: geometryLightcone_
+    class           (mergerTreeOutputterClass                 ), intent(in   ), target       :: mergerTreeOutputter_
+    integer         (kind_int8                                ), intent(in   ), dimension(:) :: nodeIndicesReport
     !![
-    <constructorAssign variables="*geometryLightcone_, *mergerTreeOutputter_"/>
+    <constructorAssign variables="nodeIndicesReport, *geometryLightcone_, *mergerTreeOutputter_"/>
     !!]
 
     self%timeMinimum=self%geometryLightcone_%timeMinimum()
@@ -117,6 +131,7 @@ contains
     !!{
     Determine a suitable timestep for {\normalfont \ttfamily node} such that it does not exceed the time of the next lightconeCrossing merger.
     !!}
+    use :: Display               , only : displayMessage
     use :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
     use :: Galacticus_Nodes      , only : nodeComponentBasic
     implicit none
@@ -129,13 +144,19 @@ contains
     type            (treeNode                                 ), intent(  out), pointer     , optional :: lockNode
     type            (varying_string                           ), intent(  out)              , optional :: lockType
     class           (nodeComponentBasic                       )               , pointer                :: basic
-    double precision                                                                                   :: timeCrossing
     double precision                                           , allocatable  , dimension(:)           :: timesCrossing, timesCrossing_
+    double precision                                                                                   :: timeCrossing
+    character       (len=129                                  )                                        :: label
 
     ! Find the next crossing time for this node.
     lightconeCrossingTimeEvolveTo=huge(0.0d0)
     ! Consider only times after the earliest time specified.
     basic => node%basic()
+    ! Report.
+    if (any(node%index() == self%nodeIndicesReport)) then
+       write (label,'(i12,1x,"/",1x,e12.6,1x,e12.6,1x,e12.6)') node%index(),basic%time(),self%timeMinimum,timeEnd
+       call displayMessage('Lightcone crossing timestep {test} for node/time: '//trim(adjustl(label)))
+    end if
     if (timeEnd >= max(self%timeMinimum,basic%time())) then
        ! Find the current set of crossing times associated with this node.
        timesCrossing=basic%floatRank1MetaPropertyGet(self%timesCrossingID)
@@ -153,6 +174,11 @@ contains
        end if
        ! Set the crossing time to the next time.
        if (timesCrossing(1) <= timeEnd) lightconeCrossingTimeEvolveTo=timesCrossing(1)
+       ! Report.
+       if (any(node%index() == self%nodeIndicesReport)) then
+          write (label,'(i12,1x,"/",1x,e12.6)') node%index(),timesCrossing(1)
+          call displayMessage('Lightcone crossing timestep {times} for node/time: '//trim(adjustl(label)))
+       end if
        ! If a crossing occurs, set the relevant task.
        if (lightconeCrossingTimeEvolveTo < huge(0.0d0)) then
           task                            => lightconeCrossingProcess
@@ -160,6 +186,10 @@ contains
           if (present(lockNode)) lockNode => node
           if (present(lockType)) lockType =  "lightcone crossing"
           if (        report   ) call Evolve_To_Time_Report("lightcone crossing: ",lightconeCrossingTimeEvolveTo)
+          if (any(node%index() == self%nodeIndicesReport)) then
+             write (label,'(i12,1x,"/",1x,e12.6)') node%index(),timesCrossing(1)
+             call displayMessage('Lightcone crossing timestep {triggered} for node/time: '//trim(adjustl(label)))
+          end if
        else
           task                            => null()
           taskSelf                        => null()
@@ -174,6 +204,7 @@ contains
     !!{
     Process a lightconeCrossing node which has undergone a merger with its host node.
     !!}
+    use :: Display                            , only : displayMessage
     use :: Error                              , only : Error_Report
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
     use :: Galacticus_Nodes                   , only : nodeComponentBasic
@@ -184,6 +215,7 @@ contains
     type            (enumerationDeadlockStatusType), intent(inout)               :: deadlockStatus
     class           (nodeComponentBasic           )               , pointer      :: basic
     double precision                               , allocatable  , dimension(:) :: timesCrossing
+    character       (len=129                      )                              :: label
     !$GLC attributes unused :: tree
 
     select type (self)
@@ -192,8 +224,11 @@ contains
        timesCrossing =  basic%floatRank1MetaPropertyGet(self%timesCrossingID)
        if (basic%time() /= timesCrossing(1)) return
        call self%mergerTreeOutputter_%outputNode(node,1_c_size_t)
+       if (any(node%index() == self%nodeIndicesReport)) then
+          write (label,'(i12,1x,"/",1x,e12.6)') node%index(),timesCrossing(1)
+          call displayMessage('Lightcone crossing timestep {process} for node/time: '//trim(adjustl(label)))
+       end if
        ! Remove the crossing time for this node.
-       timesCrossing=basic%floatRank1MetaPropertyGet(self%timesCrossingID)
        call basic%floatRank1MetaPropertySet(self%timesCrossingID,timesCrossing(2:size(timesCrossing)))
        ! The tree was changed, so mark that it is not deadlocked.
        deadlockStatus=deadlockStatusIsNotDeadlocked

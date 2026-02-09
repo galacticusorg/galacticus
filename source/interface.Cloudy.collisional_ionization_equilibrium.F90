@@ -43,10 +43,12 @@ contains
     use :: File_Utilities                  , only : File_Exists                        , File_Lock                     , File_Remove         , File_Unlock   , &
          &                                          Directory_Make                     , File_Path
     use :: Error                           , only : Error_Report
+    use :: Hashes_Cryptographic            , only : Hash_MD5
     use :: HDF5_Access                     , only : hdf5Access
     use :: IO_HDF5                         , only : hdf5Object
     use :: ISO_Varying_String              , only : assignment(=)                      , char                          , operator(//)        , var_str       , &
           &                                         varying_string
+    use :: Input_Paths                     , only : inputPath                          , pathTypeDataDynamic
     use :: Interfaces_Cloudy               , only : Interface_Cloudy_Initialize
     use :: Numerical_Constants_Astronomical, only : heliumToHydrogenAbundancePrimordial, heliumToHydrogenAbundanceSolar
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -81,7 +83,8 @@ contains
          &                                                               i
     type            (varying_string)                                  :: cloudyPath                             , cloudyVersion                        , &
          &                                                               fileNameTempCooling                    , fileNameTempOverview                 , &
-         &                                                               fileNameTempContinuum
+         &                                                               fileNameTempContinuum                  , fileNameCoolingFunctionLock          , &
+         &                                                               fileNameChemicalStateLock
     character       (len=   8      )                                  :: label
     character       (len=1024      )                                  :: line
     double precision                                                  :: dummy                                  , abundanceHelium                      , &
@@ -96,11 +99,14 @@ contains
     ! Determine if we need to compute cooling functions.
     call Directory_Make(File_Path(fileNameCoolingFunction))
     call Directory_Make(File_Path(fileNameChemicalState  ))
+    call Directory_Make(inputPath(pathTypeDataDynamic)//'aux')
+    fileNameCoolingFunctionLock=inputPath(pathTypeDataDynamic)//'aux/cloudyCIE_coolingFunction_'//Hash_MD5(fileNameCoolingFunction)
+    fileNameChemicalStateLock  =inputPath(pathTypeDataDynamic)//'aux/cloudyCIE_chemicalState_'  //Hash_MD5(fileNameChemicalState  )
     computeCoolingFunctions=.false.
     computeChemicalStates  =.false.
     do i=1,2
-       call File_Lock(fileNameCoolingFunction,fileLockCoolingFunction,lockIsShared=i == 1 .or. .not.computeCoolingFunctions)
-       call File_Lock(fileNameChemicalState  ,fileLockChemicalState  ,lockIsShared=i == 1 .or. .not.computeChemicalStates  )
+       call File_Lock(fileNameCoolingFunction,fileLockCoolingFunction,lockIsShared=i == 1 .or. .not.computeCoolingFunctions,fileNameLock=fileNameCoolingFunctionLock)
+       call File_Lock(fileNameChemicalState  ,fileLockChemicalState  ,lockIsShared=i == 1 .or. .not.computeChemicalStates  ,fileNameLock=fileNameChemicalStateLock  )
        computeCoolingFunctions=.false.
        computeChemicalStates  =.false.
        if (File_Exists(fileNameCoolingFunction)) then

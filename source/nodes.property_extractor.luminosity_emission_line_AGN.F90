@@ -37,6 +37,7 @@
       (given by the {\normalfont \ttfamily lineNames} parameter are computed, largely following the model of
       \cite{feltre_nuclear_2016}.
     </description>
+    <runTimeFileDependencies paths="cloudyTableFileName"/>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorLmnstyEmssnLineAGN
@@ -60,6 +61,7 @@
      type            (interpolator                         ), allocatable, dimension(:        ) :: interpolator_
      double precision                                                                           :: indexSpectralShortWavelength               , factorFillingVolume     , &
           &                                                                                        densityHydrogen_                           , temperature
+     type            (varying_string                       )                                    :: cloudyTableFileName
      !$ integer      (omp_lock_kind                        )                                    :: interpolateLock
    contains
      final     ::                 lmnstyEmssnLineAGNDestructor
@@ -104,11 +106,18 @@ contains
     class           (accretionDisksClass                    ), pointer                     :: accretionDisks_
     class           (blackHoleAccretionRateClass            ), pointer                     :: blackHoleAccretionRate_
     class           (atomicRecombinationRateRadiativeClass  ), pointer                     :: atomicRecombinationRateRadiative_
+    type            (varying_string                         )                              :: cloudyTableFileName
     double precision                                                                       :: indexSpectralShortWavelength     , factorFillingVolume, &
          &                                                                                    densityHydrogen                  , temperature
 
     allocate(lineNames(parameters%count('lineNames')))
     !![
+    <inputParameter>
+      <name>cloudyTableFileName</name>
+      <defaultValue>var_str('%DATASTATICPATH%/hiiRegions/emissionLineLuminosities_AGN.hdf5')</defaultValue>
+      <source>parameters</source>
+      <description>The file of emission line luminosities to use.</description>
+    </inputParameter>
     <inputParameter>
       <name>lineNames</name>
       <source>parameters</source>
@@ -143,7 +152,7 @@ contains
     <objectBuilder class="outputTimes"                      name="outputTimes_"                      source="parameters"/>
     <objectBuilder class="atomicRecombinationRateRadiative" name="atomicRecombinationRateRadiative_" source="parameters"/>
     !!]
-    self=nodePropertyExtractorLmnstyEmssnLineAGN(accretionDisks_,blackHoleAccretionRate_,outputTimes_,atomicRecombinationRateRadiative_,lineNames,indexSpectralShortWavelength,factorFillingVolume,densityHydrogen,temperature)
+    self=nodePropertyExtractorLmnstyEmssnLineAGN(cloudyTableFileName,accretionDisks_,blackHoleAccretionRate_,outputTimes_,atomicRecombinationRateRadiative_,lineNames,indexSpectralShortWavelength,factorFillingVolume,densityHydrogen,temperature)
     !![
     <inputParametersValidate source="parameters"              />
     <objectDestructor name="accretionDisks_"                  />
@@ -154,7 +163,7 @@ contains
     return
   end function lmnstyEmssnLineAGNConstructorParameters
 
-  function lmnstyEmssnLineAGNConstructorInternal(accretionDisks_,blackHoleAccretionRate_,outputTimes_,atomicRecombinationRateRadiative_,lineNames,indexSpectralShortWavelength,factorFillingVolume,densityHydrogen_,temperature,outputMask) result(self)
+  function lmnstyEmssnLineAGNConstructorInternal(cloudyTableFileName,accretionDisks_,blackHoleAccretionRate_,outputTimes_,atomicRecombinationRateRadiative_,lineNames,indexSpectralShortWavelength,factorFillingVolume,densityHydrogen_,temperature,outputMask) result(self)
     !!{
     Internal constructor for the \refClass{nodePropertyExtractorLmnstyEmssnLineAGN} output analysis property extractor class.
     !!}
@@ -170,6 +179,7 @@ contains
      use           :: Table_Labels                  , only : extrapolationTypeFix
     implicit none
     type            (nodePropertyExtractorLmnstyEmssnLineAGN)                                                :: self
+    type            (varying_string                         ), intent(in   )                                 :: cloudyTableFileName
     double precision                                         , intent(in   )                                 :: indexSpectralShortWavelength     , factorFillingVolume, &
          &                                                                                                      densityHydrogen_                 , temperature
     type            (varying_string                         ), intent(in   ), dimension(:        )           :: lineNames
@@ -184,12 +194,12 @@ contains
     integer         (c_size_t)                                              , dimension(5        )           :: shapeLines                       , permutation
     double precision                                         , allocatable  , dimension(:,:,:,:,:)           :: luminosity
     !![
-    <constructorAssign variables="lineNames, indexSpectralShortWavelength, factorFillingVolume, densityHydrogen_, temperature, *accretionDisks_, *blackHoleAccretionRate_, *outputTimes_, *atomicRecombinationRateRadiative_"/>
+    <constructorAssign variables="cloudyTableFileName, lineNames, indexSpectralShortWavelength, factorFillingVolume, densityHydrogen_, temperature, *accretionDisks_, *blackHoleAccretionRate_, *outputTimes_, *atomicRecombinationRateRadiative_"/>
     !!]
     
     ! Read the table of emission line luminosities.
     !$ call hdf5Access%set()
-    emissionLinesFile=hdf5Object(char(inputPath(pathTypeDataStatic))//"hiiRegions/emissionLineLuminosities_AGN.hdf5",readOnly=.true.)
+    emissionLinesFile=hdf5Object(self%cloudyTableFileName,readOnly=.true.)
     lines=emissionLinesFile%openGroup('lines')
     do i=1,size(lineNames)
        if (.not.lines%hasDataset(char(self%lineNames(i)))) call Error_Report('line "'//char(self%lineNames(i))//'" not found'//{introspection:location})
@@ -331,21 +341,24 @@ contains
     integer         (c_size_t                                       ), dimension(0:1,4)           :: interpolateIndex
     double precision                                                 , dimension(0:1,4)           :: interpolateFactor
     double precision                                                                              :: weight                                                 
-    double precision                                                                              :: luminosityBolometricUnnormalized, recombinationCoefficient, &
-         &                                                                                           rateMassAccretionSpheroid       , rateMassAccretionHotHalo, &
-         &                                                                                           rateAccretionNuclearStarCluster , luminosityBolometricAGN , &
-         &                                                                                           normalization                                             , &
-         &                                                                                           radiativeEfficiency             , rateAccretionBlackHole  , &
-         &                                                                                           densityHydrogenLogarithmic      , rateIonizingPhotons     , &
-         &                                                                                           ionizationParameterLogarithmic  , massGas                 , &
-         &                                                                                           radiusGalaxy                    , metallicityGas          , &
-         &                                                                                           radiusStromgren                 , massHydrogen
+    double precision                                                                              :: luminosityBolometricUnnormalized       , recombinationCoefficient, &
+         &                                                                                           rateMassAccretionSpheroid              , rateMassAccretionHotHalo, &
+         &                                                                                           rateAccretionNuclearStarCluster        , luminosityBolometricAGN , &
+         &                                                                                           normalization                          ,  radiusStromgren        , &
+         &                                                                                           radiativeEfficiency                    , rateAccretionBlackHole  , &
+         &                                                                                           densityHydrogenLogarithmic             , rateIonizingPhotons     , &
+         &                                                                                           ionizationParameterLogarithmic         , massGas                 , &
+         &                                                                                           radiusGalaxy                           , metallicityGas          , &
+         &                                                                                           ionizationParameterLogarithmicTruncated, massHydrogen
     integer         (c_size_t                                       )                             :: output
-    integer                                                                                       :: i                               , j                       , &
-         &                                                                                           k                               , l                       , &
+    integer                                                                                       :: i                                      , j                       , &
+         &                                                                                           k                                      , l                       , &
          &                                                                                           line
     !$GLC attributes unused :: instance
 
+    ! Initialize luminosities
+    allocate(lmnstyEmssnLineAGNExtract(self%countLines))
+    lmnstyEmssnLineAGNExtract=0.0d0
     ! Retrieve components.
     basic     => node%basic    ()
     disk      => node%disk     ()
@@ -413,6 +426,8 @@ contains
     luminosityBolometricAGN=+rateAccretionBlackHole    &
          &                  *speedLight            **2 &
          &                  *radiativeEfficiency
+    ! Return zero luminosities if the bolometric luminosity is non-positive.
+    if (luminosityBolometricAGN <= 0.0d0) return
     ! Find the emission rate of ionizing photons, Q_H, in s⁻¹. This is done by integrating over the AGN spectrum: 
     ! ∫_vLy^ν(0.001μm) S_ν/hν dν, where νLy is the frequency at the Lyman limit.
     rateIonizingPhotons=+normalization                                              &
@@ -437,19 +452,15 @@ contains
          &             )                                 &
          &           )**(1.0d0/3.0d0)
     ! Compute the ionization parameter.
-    if (luminosityBolometricAGN > 0.0d0) then
-       ionizationParameterLogarithmic=log10(                       &
-            &                               +rateIonizingPhotons   &
-            &                               /4.0d0                 &
-            &                               /Pi                    &
-            &                               /radiusStromgren**2    &
-            &                               /self%densityHydrogen_ &
-            &                               /mega                  &
-            &                               /speedLight            &
-            &                              )
-    else
-      ionizationParameterLogarithmic=0.0d0
-    end if
+    ionizationParameterLogarithmic=log10(                       &
+         &                               +rateIonizingPhotons   &
+         &                               /4.0d0                 &
+         &                               /Pi                    &
+         &                               /radiusStromgren**2    &
+         &                               /self%densityHydrogen_ &
+         &                               /mega                  &
+         &                               /speedLight            &
+         &                              )
     ! Find the logarithmic density.
     densityHydrogenLogarithmic=log10(self%densityHydrogen_)
     ! Truncate properties to table bounds where necessary to avoid unphysical extrapolations.
@@ -459,22 +470,22 @@ contains
        metallicityGas                =self%metallicity        (size(self%metallicity        ))
     end if
     if      (ionizationParameterLogarithmic < self%ionizationParameter(1                             )) then
-       ionizationParameterLogarithmic=self%ionizationParameter(1                             )
+       ionizationParameterLogarithmicTruncated=self%ionizationParameter(1                             )
     else if (ionizationParameterLogarithmic > self%ionizationParameter(size(self%ionizationParameter))) then
-       ionizationParameterLogarithmic=self%ionizationParameter(size(self%ionizationParameter))
+       ionizationParameterLogarithmicTruncated=self%ionizationParameter(size(self%ionizationParameter))
+    else
+       ionizationParameterLogarithmicTruncated=ionizationParameterLogarithmic
     end if
     ! Find interpolating factors in all four interpolants, preventing extrapolation beyond the tabulated ranges.
     !$ call OMP_Set_Lock  (self%interpolateLock)
-    call self%interpolator_(interpolantsDensity            %ID)%linearFactors(densityHydrogenLogarithmic       ,interpolateIndex(0,interpolantsDensity            %ID),interpolateFactor(:,interpolantsDensity            %ID))
-    call self%interpolator_(interpolantsIonizationParameter%ID)%linearFactors(ionizationParameterLogarithmic   ,interpolateIndex(0,interpolantsIonizationParameter%ID),interpolateFactor(:,interpolantsIonizationParameter%ID))
-    call self%interpolator_(interpolantsMetallicity        %ID)%linearFactors(metallicityGas                   ,interpolateIndex(0,interpolantsMetallicity        %ID),interpolateFactor(:,interpolantsMetallicity        %ID))
-    call self%interpolator_(interpolantsSpectralIndex      %ID)%linearFactors(self%indexSpectralShortWavelength,interpolateIndex(0,interpolantsSpectralIndex      %ID),interpolateFactor(:,interpolantsSpectralIndex      %ID))
+    call self%interpolator_(interpolantsDensity            %ID)%linearFactors(densityHydrogenLogarithmic             ,interpolateIndex(0,interpolantsDensity            %ID),interpolateFactor(:,interpolantsDensity            %ID))
+    call self%interpolator_(interpolantsIonizationParameter%ID)%linearFactors(ionizationParameterLogarithmicTruncated,interpolateIndex(0,interpolantsIonizationParameter%ID),interpolateFactor(:,interpolantsIonizationParameter%ID))
+    call self%interpolator_(interpolantsMetallicity        %ID)%linearFactors(metallicityGas                         ,interpolateIndex(0,interpolantsMetallicity        %ID),interpolateFactor(:,interpolantsMetallicity        %ID))
+    call self%interpolator_(interpolantsSpectralIndex      %ID)%linearFactors(self%indexSpectralShortWavelength      ,interpolateIndex(0,interpolantsSpectralIndex      %ID),interpolateFactor(:,interpolantsSpectralIndex      %ID))
     !$ call OMP_Unset_Lock(self%interpolateLock)
-    interpolateIndex(1,:)=interpolateIndex(0,:)+1
-    interpolateFactor=max(min(interpolateFactor,1.0d0),0.0d0)
+    interpolateIndex (1,:)=interpolateIndex(0,:)+1
+    interpolateFactor     =max(min(interpolateFactor,1.0d0),0.0d0)
     ! Iterate over lines.
-    allocate(lmnstyEmssnLineAGNExtract(self%countLines))
-    lmnstyEmssnLineAGNExtract=0.0d0
     do line=1,size(self%luminosity,dim=5)
        ! Interpolate in all four interpolants.
        do i=0,1
@@ -488,12 +499,16 @@ contains
                    lmnstyEmssnLineAGNExtract(line)=+lmnstyEmssnLineAGNExtract        (line  )  &
                         &                          +weight                                     &
                         &                          *(radiusStromgren*hecto)**2                 & ! The quantity given by Cloudy is (4π*intensity in cm⁻²). Multiply by the Strömgren radius squared to convert to luminosity.
-                        &                          *self%luminosity(                           &
-                        &                                           interpolateIndex (l   ,4), &
-                        &                                           interpolateIndex (k   ,3), &
-                        &                                           interpolateIndex (j   ,2), &
-                        &                                           interpolateIndex (i   ,1), &
-                        &                                           line                       &
+                        &                          *10.0d0**(                                         &
+                        &                                    +ionizationParameterLogarithmic          &
+                        &                                    -ionizationParameterLogarithmicTruncated &
+                        &                                   )                                         &
+                        &                          *self%luminosity(                                  &
+                        &                                           interpolateIndex (l   ,4),        &
+                        &                                           interpolateIndex (k   ,3),        &
+                        &                                           interpolateIndex (j   ,2),        &
+                        &                                           interpolateIndex (i   ,1),        &
+                        &                                           line                              &
                         &                                          )
                 end do
              end do

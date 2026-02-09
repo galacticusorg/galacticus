@@ -52,6 +52,7 @@ def establishGridSSP(grid,args):
     # Get an SSP model.
     ## Download data if necessary.
     match = re.match(r'^http.*\/([^\?]+).*',args.sspFileName)
+    grid['sspFileNameOriginal'] = args.sspFileName
     if match:
         fileName = match.group(1)
         if not os.path.isfile(args.workspace+fileName):
@@ -144,10 +145,10 @@ def establishGridAGN(grid,args):
     grid['spectralIndices'        ] = np.array([ -1.2, -1.4, -1.7, -2.0 ])
 
     # Define ionization parameters, Uₛ, to tabulate.
-    grid['logIonizationParameters'] = np.array([ -4.0, -3.0, -2.0, -1.0 ])
+    grid['logIonizationParameters'] = np.array([ -5.00, -4.75, -4.50, -4.25, -4.00, -3.75, -3.50, -3.25, -3.00, -2.75, -2.50, -2.25, -2.00, -1.75, -1.50, -1.25, -1.00, -0.75, -0.50, -0.25, 0.00 ])
     
     # Define metallicities, Z, to tabulate.
-    grid['logMetallicities'       ] = np.array([ -4.0, -3.5, -3.0, -2.5, -2.0, -1.5, -1.0, -0.5, 0.0, 0.5 ])
+    grid['logMetallicities'       ] = np.array([ -4.0, -3.75, -3.50, -3.25, -3.00, -2.75, -2.50, -2.25, -2.00, -1.75, -1.50, -1.25, -1.00, -0.75, -0.50, -0.25, 0.00, 0.25, 0.50 ])
     
     # Define hydrogen densities, nₕ, to tabulate.
     grid['logHydrogenDensities'   ] = np.array([ 1.0,  1.5,  2.0,  2.5,  3.0, 3.5, 4.0 ])
@@ -201,7 +202,7 @@ def establishGridAGN(grid,args):
         grid['spectra'].append(spectrum)
     grid['normalization'] = normalization
 
-def adjustAbundances(abundancesReference,metallicity,dustToMetalsRatio):
+def adjustAbundances(abundancesReference,metallicity,dustToMetalsRatio,args):
     # Copy and modify the provided reference abundances to create abundances suitable for the given metallicity (linear, relative
     # to Solar), and dust-to-metals ratio.
     # Make a copy.
@@ -223,6 +224,15 @@ def adjustAbundances(abundancesReference,metallicity,dustToMetalsRatio):
     for element in elements:
         if 'adjustAbundance' in abundances[element]:
             abundances[element]['adjustAbundance'](abundances,metallicity*metallicityReference)
+    # Apply any adjustments from the command line.
+    for adjustment in args.abundanceAdjust:
+        match = re.match('([A-Za-z]+):([\+\-\.0-9]+)',adjustment)
+        if match:
+            element =       match.group(1)
+            shift   = float(match.group(2))
+            abundances[element]['logAbundanceByNumber'] += shift
+        else:
+            sys.exit(f'can not parse abundance adjustment: {adjustment}')
     # Renormalize to keep the total metallicity fixed.
     abundancesByMassNew   = np.array(list(map(lambda x: abundances[x]['atomicMass']*10.0**abundances[x]['logAbundanceByNumber'],elements)))
     renormalizationFactor = metallicity*metallicityReference/(1.0-metallicity*metallicityReference)*np.sum(abundancesByMassNew[isNotMetal])/np.sum(abundancesByMassNew[isMetal])
@@ -488,7 +498,7 @@ def generateJobSSP(grid,args):
     metallicity                                    = 10.0**grid['logMetallicities'][iMetallicity]
     ## Get the dust-to-metals ratio and adjust abundances appropriately.
     dustToMetals                                   = args.dustToMetalsRatio
-    (dustToMetalsBoostLogarithmic, abundances)     = adjustAbundances(abundancesReference,metallicity,dustToMetals)
+    (dustToMetalsBoostLogarithmic, abundances)     = adjustAbundances(abundancesReference,metallicity,dustToMetals,args)
     # Compute the Strömgren radius for this model.
     radiusStromgrenLogarithmic = (logHydrogenLuminosity-np.log10(4.0*np.pi/3.0*coefficientRecombinationCaseB)-2.0*grid['logHydrogenDensities'][iLogHydrogenDensity])/3.0
     # Determine the inner radius of the cloud.
@@ -644,7 +654,7 @@ def generateJobAGN(grid,args):
     metallicity                                    = 10.0**grid['logMetallicities'][iMetallicity]
     ## Get the dust-to-metals ratio and adjust abundances appropriately.
     dustToMetals                                   = args.dustToMetalsRatio
-    (dustToMetalsBoostLogarithmic, abundances)     = adjustAbundances(abundancesReference,metallicity,dustToMetals)
+    (dustToMetalsBoostLogarithmic, abundances)     = adjustAbundances(abundancesReference,metallicity,dustToMetals,args)
     # Create a depletion file that can be read by Cloudy. Cloudy does not permit digits in these file names. To work around this,
     # we translate our numerical metallicity index into ASCII characters, by mapping digits (0→A, 1→B, etc.).
     if not args.noGrains:
@@ -983,10 +993,11 @@ def validateSSP(grid,args):
             "time":          str(datetime.datetime.now()),
             "gitRevision":   grid['gitRevision'  ],
             "cloudyVersion": grid['cloudyVersion'],
-            "sspURL":        grid['sspURL'       ],
             "commandLine":   grid['commandLine'  ],
             "fileName":      args.outputFileName
         }
+        if 'sspURL' in grid:
+            definition[args.suffixGitHubPages]['sspURL'] = grid['sspURL']
         f = codecs.open(args.workspace+'datasets/hiiRegions/tableDefinitions.json', "w", "utf-8")
         f.write("window.TABLE_DATA =\n")
         f.write(json.dumps(definition,indent=4,ensure_ascii=False))
@@ -1186,36 +1197,37 @@ def outputAGN(grid,args):
 
 # Parse command line arguments.
 parser = argparse.ArgumentParser(prog='analysesPlotcreateEmissionLinesTable.py',description='Generate tables of Cloudy models for use in emission line calculations.')
-parser.add_argument('--outputFileName'                                    ,action='store'                            ,help='the file to which the table should be output'                                                                 )
-parser.add_argument('--sspFileName'                                       ,action='store'                            ,help='the SSP file for which to compute emission line luminosities'                                                 )
-parser.add_argument('--agnModel'                                          ,action='store'                            ,help='the AGN model for which to compute emission line luminosities'                                                )
-parser.add_argument('--workspace'            ,default='cloudyTable/'      ,action='store'                            ,help='the path in which temporary files should be created'                                                          )
-parser.add_argument('--reprocess'                                         ,action='store_true'                       ,help='reprocess models that failed to be read previously'                                                           )
-parser.add_argument('--rerun'                                             ,action='store_true'                       ,help='rerun models that previously failed'                                                                          )
-parser.add_argument('--generateOnly'                                      ,action='store_true'                       ,help='only generate model input files, do not run them'                                                             )
-parser.add_argument('--overview'                                          ,action='store_true'                       ,help='include the Cloudy overview in the output'                                                                    )
-parser.add_argument('--noClean'                                           ,action='store_true'                       ,help='do not clean up temporary files'                                                                              )
-parser.add_argument('--noGrains'                                          ,action='store_true'                       ,help='do not include dust grains in the models'                                                                     )
-parser.add_argument('--normalization'        ,default='ionizingLuminosity',action='store'                            ,help='specify how the spectrum is to be normalized (`ionizingLuminosity` or `massStellar`)'                         )
-parser.add_argument('--factorMorphology'     ,default='1.0'               ,action='store'      ,type=restricted_float,help='set the morphology factor (f=R_{in}/R_{Strömgren}; https://ui.adsabs.harvard.edu/abs/2016A%2526A...594A..37M)')
-parser.add_argument('--metallicitySupersample',default='2'                ,action='store'      ,type=restricted_int  ,help='the factor by which to supersample stellar metallicities)'                                                    )
-parser.add_argument('--ageSubsample'          ,default='1'                ,action='store'      ,type=restricted_int  ,help='the factor by which to subsample stellar ages)'                                                               )
+parser.add_argument('--outputFileName'                                    ,action='store'                            ,help='the file to which the table should be output'                                                                         )
+parser.add_argument('--sspFileName'                                       ,action='store'                            ,help='the SSP file for which to compute emission line luminosities'                                                         )
+parser.add_argument('--agnModel'                                          ,action='store'                            ,help='the AGN model for which to compute emission line luminosities'                                                        )
+parser.add_argument('--workspace'            ,default='cloudyTable/'      ,action='store'                            ,help='the path in which temporary files should be created'                                                                  )
+parser.add_argument('--reprocess'                                         ,action='store_true'                       ,help='reprocess models that failed to be read previously'                                                                   )
+parser.add_argument('--rerun'                                             ,action='store_true'                       ,help='rerun models that previously failed'                                                                                  )
+parser.add_argument('--generateOnly'                                      ,action='store_true'                       ,help='only generate model input files, do not run them'                                                                     )
+parser.add_argument('--overview'                                          ,action='store_true'                       ,help='include the Cloudy overview in the output'                                                                            )
+parser.add_argument('--noClean'                                           ,action='store_true'                       ,help='do not clean up temporary files'                                                                                      )
+parser.add_argument('--noGrains'                                          ,action='store_true'                       ,help='do not include dust grains in the models'                                                                             )
+parser.add_argument('--normalization'        ,default='ionizingLuminosity',action='store'                            ,help='specify how the spectrum is to be normalized (`ionizingLuminosity` or `massStellar`)'                                 )
+parser.add_argument('--factorMorphology'     ,default='1.0'               ,action='store'      ,type=restricted_float,help='set the morphology factor (f=R_{in}/R_{Strömgren}; https://ui.adsabs.harvard.edu/abs/2016A%2526A...594A..37M)'        )
+parser.add_argument('--metallicitySupersample',default='2'                ,action='store'      ,type=restricted_int  ,help='the factor by which to supersample stellar metallicities)'                                                            )
+parser.add_argument('--ageSubsample'          ,default='1'                ,action='store'      ,type=restricted_int  ,help='the factor by which to subsample stellar ages)'                                                                       )
 #  Dust-to-metals ratio. Defaults to 0.401 corresponding to the dust-to-metals ratio for the reference model of Gutkin, Charlot &
 #  Bruzual (2016; https://ui.adsabs.harvard.edu/abs/2016MNRAS.462.1757G; table 1). This differs slightly from their stated value,
 #  but agrees with our internal calculation of this value from their data.'
-parser.add_argument('--dustToMetalsRatio'    ,default='0.401'             ,action='store'      ,type=restricted_float,help='set the dust-to-metals ratio (ξ; https://ui.adsabs.harvard.edu/abs/2016MNRAS.462.1757G).'                     )
-parser.add_argument('--stopOuterRadius'                                   ,action='store_true'                       ,help='set Cloudy to stop at the cloud outer radius'                                                                 )
-parser.add_argument('--stopElectronFraction' ,default='0.01'              ,action='store'      ,type=restricted_float,help='set the elctron fraction at which to stop the Cloudy models'                                                  )
-parser.add_argument('--stopLymanOpticalDepth',default='10.0'              ,action='store'      ,type=restricted_float,help='set the Lyman optical depth at which to stop the Cloudy models'                                               )
-parser.add_argument('--ageMaximum'           ,default='1.0e30'            ,action='store'      ,type=restricted_float,help='set the maximum age of stellar populations for which to compute models'                                       )
-parser.add_argument('--iterationsMaximum'    ,default='0'                 ,action='store'      ,type=restricted_int  ,help='set the maximum number of iterations in Cloudy (0 to iterate to convergence)'                                 )
-parser.add_argument('--cloudyVersion'        ,default="23.01"             ,action='store'                            ,help='the version of Cloudy to use'                                                                                 )
-parser.add_argument('--suffixGitHubPages'                                 ,action='store'                            ,help='update GitHub pages content using this suffix'                                                                )
-parser.add_argument('--model'                                             ,action='store'      ,type=restricted_int  ,help='run only the given model number'                                                                              )
-parser.add_argument('--partition'                                         ,action='store'                            ,help='the partition to which to submit jobs'                                                                        )
-parser.add_argument('--jobMaximum'                                        ,action='store'      ,type=restricted_int  ,help='the maximum number of active jobs to allow'                                                                   )
-parser.add_argument('--waitOnSubmit'                                      ,action='store'      ,type=restricted_int  ,help='the time (in seconds) to wait after submitting each job'                                                      )
-parser.add_argument('--waitOnActive'                                      ,action='store'      ,type=restricted_int  ,help='the time (in seconds) to wait after polling active jobs'                                                      )
+parser.add_argument('--dustToMetalsRatio'    ,default='0.401'             ,action='store'      ,type=restricted_float,help='set the dust-to-metals ratio (ξ; https://ui.adsabs.harvard.edu/abs/2016MNRAS.462.1757G).'                             )
+parser.add_argument('--abundanceAdjust'                                   ,action='append'                           ,help='specify an adjustment to the abundance of an element, e.g. `S:0.2` would increase the abundance of sulfur by 0.2 dex.')
+parser.add_argument('--stopOuterRadius'                                   ,action='store_true'                       ,help='set Cloudy to stop at the cloud outer radius'                                                                         )
+parser.add_argument('--stopElectronFraction' ,default='0.01'              ,action='store'      ,type=restricted_float,help='set the elctron fraction at which to stop the Cloudy models'                                                          )
+parser.add_argument('--stopLymanOpticalDepth',default='10.0'              ,action='store'      ,type=restricted_float,help='set the Lyman optical depth at which to stop the Cloudy models'                                                       )
+parser.add_argument('--ageMaximum'           ,default='1.0e30'            ,action='store'      ,type=restricted_float,help='set the maximum age of stellar populations for which to compute models'                                               )
+parser.add_argument('--iterationsMaximum'    ,default='0'                 ,action='store'      ,type=restricted_int  ,help='set the maximum number of iterations in Cloudy (0 to iterate to convergence)'                                         )
+parser.add_argument('--cloudyVersion'        ,default="23.01"             ,action='store'                            ,help='the version of Cloudy to use'                                                                                         )
+parser.add_argument('--suffixGitHubPages'                                 ,action='store'                            ,help='update GitHub pages content using this suffix'                                                                        )
+parser.add_argument('--model'                                             ,action='store'      ,type=restricted_int  ,help='run only the given model number'                                                                                      )
+parser.add_argument('--partition'                                         ,action='store'                            ,help='the partition to which to submit jobs'                                                                                )
+parser.add_argument('--jobMaximum'                                        ,action='store'      ,type=restricted_int  ,help='the maximum number of active jobs to allow'                                                                           )
+parser.add_argument('--waitOnSubmit'                                      ,action='store'      ,type=restricted_int  ,help='the time (in seconds) to wait after submitting each job'                                                              )
+parser.add_argument('--waitOnActive'                                      ,action='store'      ,type=restricted_int  ,help='the time (in seconds) to wait after polling active jobs'                                                              )
 args = parser.parse_args()
 
 # Validate options.
