@@ -86,6 +86,7 @@ contains
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="mergerTreeBuildMassDistribution_"/>
+    <objectDestructor name="randomNumberGenerator_"          />
     !!]
     return
   end function sampledDistributionPseudoRandomConstructorParameters
