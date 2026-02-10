@@ -485,6 +485,7 @@ contains
          call    extrapolationWavenumberGroup%writeAttribute('extrapolate','high')
          !$ call hdf5Access                  %unset()
        end block
+       deallocate(redshiftsCombined,redshiftRanksCombined,redshiftLabelsCombined)
     end if
     ! If necessary, construct tables of transfer functions.
     if (present(transferFunctionDarkMatter)) then
@@ -538,7 +539,6 @@ contains
          end do
          !$ call hdf5Access%unset()
        end block
-       deallocate(redshiftsCombined,redshiftRanksCombined,redshiftLabelsCombined)
     end if
     ! Unlock the file.
     call File_Unlock(fileLock)
