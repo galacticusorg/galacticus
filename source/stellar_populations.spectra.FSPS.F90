@@ -114,6 +114,9 @@ contains
     !![
     <objectDestructor name="self%initialMassFunction_"/>
     !!]
+    if (allocated(self%spectra%interpolatorAge        )) deallocate(self%spectra%interpolatorAge        )
+    if (allocated(self%spectra%interpolatorWavelength )) deallocate(self%spectra%interpolatorWavelength )
+    if (allocated(self%spectra%interpolatorMetallicity)) deallocate(self%spectra%interpolatorMetallicity)
     return
   end subroutine fspsDestructor
 

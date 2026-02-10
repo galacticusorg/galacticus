@@ -48,9 +48,12 @@
    contains
      !![
      <methods>
-       <method description="Perform deep copy actions on interpolators." method="interpolatorsDeepCopy" />
+       <method description="Perform deep copy actions on interpolators." method="interpolatorsDeepCopy"/>
+       <method description="Assign spectral table objects."              method="assignment(=)"        />
      </methods>
      !!]
+     procedure ::                          spectralTableAssignment
+     generic   :: assignment(=)         => spectralTableAssignment
      procedure :: interpolatorsDeepCopy => spectralTableInterpolatorsDeepCopy
   end type spectralTable
 
@@ -412,3 +415,52 @@ contains
     if (allocated(self%interpolatorWavelength )) call self%interpolatorWavelength %GSLReallocate()
     return
   end subroutine spectralTableInterpolatorsDeepCopy
+
+  subroutine spectralTableAssignment(self,from)
+    !!{
+    Perform assignment of spectral tables.
+    !!}
+    implicit none
+    class(spectralTable), intent(inout) :: self
+    class(spectralTable), intent(in   ) :: from
+    
+    self%agesCount      =  from%agesCount
+    self%metallicityCount =  from%metallicityCount
+    self%wavelengthsCount            = from%wavelengthsCount
+    if (allocated(self%ages                   )) deallocate(self%ages                   )
+    if (allocated(self%metallicities          )) deallocate(self%metallicities          )
+    if (allocated(self%wavelengths            )) deallocate(self%wavelengths            )
+    if (allocated(self%table                  )) deallocate(self%table                  )
+    if (allocated(self%interpolatorAge        )) deallocate(self%interpolatorAge        )
+    if (allocated(self%interpolatorMetallicity)) deallocate(self%interpolatorMetallicity)
+    if (allocated(self%interpolatorWavelength )) deallocate(self%interpolatorWavelength )
+    if (allocated(from%ages                   )) then
+       allocate(self%ages,mold=from%ages)
+       self%ages=from%ages
+    end if
+    if (allocated(from%metallicities                   )) then
+       allocate(self%metallicities,mold=from%metallicities)
+       self%metallicities=from%metallicities
+    end if
+    if (allocated(from%wavelengths                   )) then
+       allocate(self%wavelengths,mold=from%wavelengths)
+       self%wavelengths=from%wavelengths
+    end if
+    if (allocated(from%table                   )) then
+       allocate(self%table,mold=from%table)
+       self%table=from%table
+    end if
+    if (allocated(from%interpolatorAge                   )) then
+       allocate(self%interpolatorAge,mold=from%interpolatorAge)
+       self%interpolatorAge=from%interpolatorAge
+    end if
+    if (allocated(from%interpolatorMetallicity                   )) then
+       allocate(self%interpolatorMetallicity,mold=from%interpolatorMetallicity)
+       self%interpolatorMetallicity=from%interpolatorMetallicity
+    end if
+    if (allocated(from%interpolatorWavelength                   )) then
+       allocate(self%interpolatorWavelength,mold=from%interpolatorWavelength)
+       self%interpolatorWavelength=from%interpolatorWavelength
+    end if
+    return
+  end subroutine spectralTableAssignment
