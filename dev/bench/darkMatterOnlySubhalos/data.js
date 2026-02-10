@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1770223875673,
+  "lastUpdate": 1770698011396,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "c45f348ff1c410d86e767428c4f7b2b7d2c6cba5",
-          "message": "Merge pull request #765 from galacticusorg/fixSampleGridStateSize\n\nFix sample grid state size for the `posteriorSamplesPriorGrid` class",
-          "timestamp": "2025-01-14T14:46:26Z",
-          "tree_id": "2bc2a7c8469ed106929b2d9cc93e730b6f6a4d61",
-          "url": "https://github.com/galacticusorg/galacticus/commit/c45f348ff1c410d86e767428c4f7b2b7d2c6cba5"
-        },
-        "date": 1736889540567,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 49.34,
-            "unit": "seconds",
-            "range": 0.0916406023545097
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8792,6 +8762,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 9102.706094568302,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d62cf7bbc6d30c7bdbb6a224356cbe61aff67938",
+          "message": "Merge pull request #998 from galacticusorg/fixCloudyCIELocks\n\nUse `dynamic` datasets path for Cloudy table lock files",
+          "timestamp": "2026-02-09T15:36:52Z",
+          "tree_id": "f99fe40018df6727ab2f8ce343f4401a78b77dbf",
+          "url": "https://github.com/galacticusorg/galacticus/commit/d62cf7bbc6d30c7bdbb6a224356cbe61aff67938"
+        },
+        "date": 1770698006908,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 49.948,
+            "range": "0.0751505156340642",
+            "unit": "seconds"
           }
         ]
       }
