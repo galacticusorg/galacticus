@@ -204,24 +204,34 @@ CODE
 				    # Type-bound procedure - nothing to do.
 				} elsif ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" ) {
 				    (my $type = $declaration->{'type'}) =~ s/\s//g;
+				    my $pointerStore = exists($directive->{$parentClassName}) && exists($directive->{$parentClassName}->{'pointerStore'});
+				    my @pointerStoreNames = split(" ",$directive->{$parentClassName}->{'pointerStore'}->{'variables'})
+					if ( $pointerStore );
 				    if (
 					(  grep {$_->{'type'} eq $type    } @{$stateStorables->{'stateStorables'}})
 					&&
-			                (! grep {$_           eq "pointer"} @{$declaration   ->{'attributes'     }})				       
-					){
-					# This is a non-pointer object which is explicitly stateStorable.
+					(
+					 (! grep {$_           eq "pointer"} @{$declaration   ->{'attributes'     }})
+					 ||
+					 $pointerStore
+					)
+					) {
+					# This is a non-pointer (or explicitly allowed pointer) object which is explicitly stateStorable.
 					my $dimensionDeclarator = join(",",map {/^dimension\s*\(([:,]+)\)/} @{$declaration->{'attributes'}});
 					my $rank                = ($dimensionDeclarator =~ tr/://);
 					$rankMaximum            = $rank
 					    if ( $rank > $rankMaximum );
-					my $allocatable         =  grep {$_ eq "allocatable"} @{$declaration->{'attributes'}};
+					my $allocatable         =  grep {$_ eq "allocatable" || $_ eq "pointer"} @{$declaration->{'attributes'}};
+					my $pointer             =  grep {                       $_ eq "pointer"} @{$declaration->{'attributes'}};
 					foreach ( @{$declaration->{'variables'}} ) {
 					    (my $variableName = $_) =~ s/\s*=.*$//;
 					    next
 						if ( grep {lc($_) eq lc($variableName)} @excludes );
+					    next
+						if ( $pointer && ! ( $pointerStore && grep {lc($_) eq lc($variableName)} @pointerStoreNames ) );
 					    $labelRequired   = 1;
 					    if ( $allocatable ) {
-						$outputCode .= "  if (allocated(self%".$variableName.")) then\n";
+						$outputCode .= "  if (".($pointer ? "associated" : "allocated")."(self%".$variableName.")) then\n";
 						$outputCode .= "   write (stateFile) .true.\n"
 							    .  "   write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n";
 					    }
@@ -255,7 +265,7 @@ CODE
 					    if ( $allocatable ) {
 						$wasAllocatedRequired =1;
 						$inputCode  .= " read (stateFile) wasAllocated\n";
-						$inputCode  .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
+						$inputCode  .= " if (".($pointer ? "associated" : "allocated")."(self%".$variableName.")) deallocate(self%".$variableName.")\n";
 						$inputCode  .= " if (wasAllocated) then\n";
 					    }
 					    $inputCode  .= "  call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";

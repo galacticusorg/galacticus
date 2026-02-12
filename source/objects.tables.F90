@@ -46,18 +46,22 @@ module Tables
   !![
   <stateStorable class="table">
    <table1DGeneric>
-    <methodCall method="interpolatorReinitialize"/>
+     <methodCall method="interpolatorReinitialize"/>
+     <pointerStore variables="interpolators"/>
    </table1DGeneric>
    <table2DLinLinLin>
     <methodCall method="interpolatorReinitialize"/>
    </table2DLinLinLin>
+  </stateStorable>
+  <stateStorable class="table1dGenericObjects">
+    <table1dGenericObjects/>
   </stateStorable>
   !!]
 
   !![
   <deepCopyActions class="table">
    <table1DGeneric>
-    <methodCall method="interpolatorReinitialize"/>
+    <methodCall method="interpolatorDeepCopy"/>
    </table1DGeneric>
    <table2DLinLinLin>
     <methodCall method="interpolatorReinitialize"/>
@@ -162,11 +166,9 @@ module Tables
 	 Once fixed, the interpolators component could be allocatable and not a pointer, we could replace it with simple
 	 allocatable arrays of interpolator and logical objects and remove the table1dGenericObjects type altogether.
        </note>
-     !!]
-     type   (table1dGenericObjects), pointer, dimension(:) :: interpolators     => null()
-     !![
      </workaround>
      !!]
+     type   (table1dGenericObjects), pointer, dimension(:) :: interpolators     => null()
      integer                                               :: interpolationType
    contains
      !![
@@ -174,6 +176,7 @@ module Tables
        <method description="Create the object with the specified {\normalfont \ttfamily x} values, and with {\normalfont \ttfamily tableCount} tables." method="create" />
        <method description="Populate the {\normalfont \ttfamily table}$^\mathrm{th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified." method="populate" />
        <method description="Reinitialize the interpolator." method="interpolatorReinitialize" />
+       <method description="Deep copy the interpolators." method="interpolatorDeepCopy" />
        <method description="Initialize the interpolator." method="interpolatorInitialize" />
      </methods>
      !!]
@@ -188,6 +191,7 @@ module Tables
      procedure :: interpolateGradient      => Table_Generic_1D_Interpolate_Gradient
      procedure :: interpolatorInitialize   => Table_Generic_1D_Interpolator_Initialize
      procedure :: interpolatorReinitialize => Table_Generic_1D_Interpolator_Reinitialize
+     procedure :: interpolatorDeepCopy     => Table_Generic_1D_Interpolator_Deep_Copy
   end type table1DGeneric
 
   type, extends(table1D) :: table1DLinearLinear
@@ -1004,6 +1008,26 @@ contains
     end do
     return
   end subroutine Table_Generic_1D_Interpolator_Reinitialize
+
+  subroutine Table_Generic_1D_Interpolator_Deep_Copy(self)
+    !!{
+    Deep copy the interpolator.
+    !!}
+    implicit none
+    class  (table1DGeneric       ), intent(inout)               :: self
+    type   (table1dGenericObjects), pointer      , dimension(:) :: interpolators
+    integer                                                     :: i
+    
+    if (.not.associated(self%interpolators)) return
+    interpolators => self%interpolators
+    nullify(self%interpolators)
+    allocate(self%interpolators(size(interpolators)))
+    do i=1,size(interpolators)
+       self%interpolators(i)=interpolators(i)
+    end do
+    call self%interpolatorReinitialize()
+    return
+  end subroutine Table_Generic_1D_Interpolator_Deep_Copy
 
   subroutine Table_Linear_1D_Create(self,xMinimum,xMaximum,xCount,tableCount,extrapolationType)
     !!{
