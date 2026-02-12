@@ -26,6 +26,7 @@
   !$ use :: OMP_Lib            , only : OMP_Destroy_Lock       , OMP_Init_Lock, OMP_Set_Lock, OMP_Unset_Lock, &
   !$      &                             omp_lock_kind
   use    :: Tables             , only : table2DLogLogLin
+  use    :: Resource_Manager   , only : resourceManager
 
   !![
   <virialDensityContrast name="virialDensityContrastPercolation" recursive="yes">
@@ -57,6 +58,7 @@
      logical                                                     :: isRecursive                               , parentDeferred
      class           (virialDensityContrastPercolation), pointer :: recursiveSelf                   => null()
      class           (*                               ), pointer :: percolationObjects_             => null()
+     type            (resourceManager                 )          :: percolationObjectsManager
      ! Tabulation of density contrast vs. time and mass.
      double precision                                            :: densityContrastTableTimeMinimum           , densityContrastTableTimeMaximum
      double precision                                            :: densityContrastTableMassMinimum           , densityContrastTableMassMaximum
@@ -135,7 +137,6 @@ contains
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"/>
     !!]
-    nullify(percolationObjects_)
     return
   end function percolationConstructorParameters
 
@@ -156,6 +157,8 @@ contains
     <constructorAssign variables="linkingLength, *cosmologyFunctions_, *percolationObjects_"/>
     !!]
 
+    ! Add management to the shared percolationObjects resource.
+    self%percolationObjectsManager=resourceManager(percolationObjects_)
     ! File name for tabulation.
     self%fileName=inputPath(pathTypeDataDynamic)                                                       // &
          &        'darkMatterHalos/'                                                                   // &
@@ -191,7 +194,6 @@ contains
     !![
     <objectDestructor name="self%cosmologyFunctions_" />
     !!]
-    if (associated(self%percolationObjects_)) deallocate(self%percolationObjects_)
     return
   end subroutine percolationDestructor
 
