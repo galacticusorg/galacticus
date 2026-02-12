@@ -69,6 +69,9 @@
    <deepCopy>
      <ignore variables="nodeOperator_"/>
    </deepCopy>
+   <assignment>
+     <functionClass variables="nodeOperator_"/>
+   </assignment>
   </geometryLightcone>
   !!]
   type, extends(geometryLightconeClass) :: geometryLightconeSquare

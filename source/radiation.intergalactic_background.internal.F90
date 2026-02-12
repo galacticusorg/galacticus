@@ -41,6 +41,9 @@
    <deepCopy>
      <ignore variables="accretionDiskSpectra_"/>
    </deepCopy>
+   <assignment>
+     <functionClass variables="accretionDiskSpectra_"/>
+   </assignment>
   </radiationField>
   !!]
   type, extends(radiationFieldIntergalacticBackground) :: radiationFieldIntergalacticBackgroundInternal

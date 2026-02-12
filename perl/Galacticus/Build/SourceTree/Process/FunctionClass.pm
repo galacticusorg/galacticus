@@ -1254,8 +1254,20 @@ CODE
 					# Linked list - will be handled later.
 				    } else {
 					$assignment->{'code'} .= "    self%".$name.$assigner."from%".$name."\n";
-					$assignment->{'code'} .= "    ".($isPointer ? "if (associated(self%".$name.")) " : "")."call self%".$name."%referenceCountIncrement()\n"
-					    if ( $referenceCount );
+
+					my $forceReferenceCount =      exists(    $class->{'assignment'}                                  )
+					    &&
+					                               exists(    $class->{'assignment'}->{'functionClass'}               )
+					    &&
+					    grep {lc($_) eq lc($name)} split (" ",$class->{'assignment'}->{'functionClass'}->{'variables'});
+					if ( $forceReferenceCount ) {
+					    $assignment->{'code'} .= "    select type (object_ => self%".$name.")\n";
+					    $assignment->{'code'} .= "    class is (functionClass)\n";
+					    $assignment->{'code'} .= "    ".($isPointer ? "if (associated(object_)) " : "")."call object_%referenceCountIncrement()\n";
+					    $assignment->{'code'} .= "    end select\n";
+					} elsif ( $referenceCount ) {
+					    $assignment->{'code'} .= "    ".($isPointer ? "if (associated(self%".$name.")) " : "")."call self%".$name."%referenceCountIncrement()\n";
+					}
 				    }
 				}
 			    }
