@@ -332,7 +332,7 @@ contains
    return
   end function inputParametersConstructorNull
 
-  function inputParametersConstructorVarStr(xmlString,allowedParameterNames,outputParametersGroup,noOutput,changeFiles) result(self)
+  function inputParametersConstructorVarStr(xmlString,allowedParameterNames,outputParametersGroup,noOutput,changeFiles,threadSafe) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
     specified as a variable length string.
@@ -347,7 +347,7 @@ contains
     type     (varying_string    )              , intent(in   )           :: xmlString
     type     (varying_string    ), dimension(:), intent(in   ), optional :: allowedParameterNames, changeFiles
     type     (hdf5Object        ), target      , intent(in   ), optional :: outputParametersGroup
-    logical                                    , intent(in   ), optional :: noOutput
+    logical                                    , intent(in   ), optional :: noOutput             , threadSafe
     type     (node              ), pointer                               :: doc                  , parameterNode
     character(len=1             )                                        :: xmlStringStart
 
@@ -362,25 +362,27 @@ contains
             &                                             'parameters'  &
             &                                            ) 
        !$omp end critical (FoX_DOM_Access)
-       self=inputParameters(                       &
-            &               parameterNode        , &
-            &               allowedParameterNames, &
-            &               outputParametersGroup, &
-            &               noOutput               &
+       self=inputParameters(                                  &
+            &                          parameterNode        , &
+            &                          allowedParameterNames, &
+            &                          outputParametersGroup, &
+            &                          noOutput             , &
+            &               threadSafe=threadSafe             &
             &              )
     else
-       self=inputParameters(                       &
-            &               char(xmlString)      , &
-            &               allowedParameterNames, &
-            &               outputParametersGroup, &
-            &               noOutput             , &
-            &               changeFiles            &
+       self=inputParameters(                                  &
+            &                          char(xmlString)      , &
+            &                          allowedParameterNames, &
+            &                          outputParametersGroup, &
+            &                          noOutput             , &
+            &                          changeFiles          , &
+            &               threadSafe=threadSafe             &
             &              )
     end if
     return
   end function inputParametersConstructorVarStr
 
-  function inputParametersConstructorFileChar(fileName,allowedParameterNames,outputParametersGroup,noOutput,changeFiles) result(self)
+  function inputParametersConstructorFileChar(fileName,allowedParameterNames,outputParametersGroup,noOutput,changeFiles,threadSafe) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
     specified as a character variable.
@@ -402,7 +404,7 @@ contains
     character(len=*          )              , intent(in   )           :: fileName
     type     (varying_string ), dimension(:), intent(in   ), optional :: allowedParameterNames, changeFiles
     type     (hdf5Object     ), target      , intent(in   ), optional :: outputParametersGroup
-    logical                                 , intent(in   ), optional :: noOutput
+    logical                                 , intent(in   ), optional :: noOutput             , threadSafe
     type     (xmlNodeList    ), dimension(:), allocatable             :: childNodes           , newNodes
     type     (node           ), pointer                               :: doc                  , parameterNode    , &
          &                                                               changesDoc           , childNode        , &
@@ -580,12 +582,13 @@ contains
        end do
     end if
     ! Construct the parameter tree from the XML document.
-    self=inputParameters(                                &
-         &                        parameterNode        , &
-         &                        allowedParameterNames, &
-         &                        outputParametersGroup, &
-         &                        noOutput             , &
-         &               fileName=fileName               &
+    self=inputParameters(                                  &
+         &                          parameterNode        , &
+         &                          allowedParameterNames, &
+         &                          outputParametersGroup, &
+         &                          noOutput             , &
+         &               fileName  =fileName             , &
+         &               threadSafe=threadSafe             &
          &              )
     return
   end function inputParametersConstructorFileChar
@@ -625,7 +628,7 @@ contains
     return
   end function inputParametersConstructorCopy
 
-  function inputParametersConstructorNode(parametersNode,allowedParameterNames,outputParametersGroup,noOutput,noBuild,fileName,documentManager,document) result(self)
+  function inputParametersConstructorNode(parametersNode,allowedParameterNames,outputParametersGroup,noOutput,noBuild,fileName,documentManager,document,threadSafe) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily inputParameters} class from a FoX node.
     !!}
@@ -655,7 +658,8 @@ contains
     type     (varying_string ), dimension(:), intent(in   ), optional :: allowedParameterNames
     character(len=*          )              , intent(in   ), optional :: fileName
     type     (hdf5Object     ), target      , intent(in   ), optional :: outputParametersGroup
-    logical                                 , intent(in   ), optional :: noOutput                   , noBuild
+    logical                                 , intent(in   ), optional :: noOutput                   , noBuild            , &
+         &                                                               threadSafe
     type     (resourceManager)              , intent(in   ), optional :: documentManager
     type     (documentWrapper), pointer     , intent(in   ), optional :: document
     type     (varying_string )                                        :: message                    , inputPathC
@@ -710,7 +714,7 @@ contains
 	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
        !!]
        dummyPointer_ => self%document
-       self%documentManager=resourceManager(dummyPointer_)
+       self%documentManager=resourceManager(dummyPointer_,threadSafe=threadSafe)
        !![
        </workaround>
        !!]

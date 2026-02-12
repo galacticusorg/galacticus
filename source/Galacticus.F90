@@ -117,7 +117,7 @@ program Galacticus
   ! Report on datasets location.
   call displayMessage(displayGreen()//"NOTE: "//displayReset()//"datasets are being read from "//inputPath(pathTypeDataStatic))
   ! Open the parameter file.
-  parameters=inputParameters(parameterFile,changeFiles=changeFiles)
+  parameters=inputParameters(parameterFile,changeFiles=changeFiles,threadSafe=.true.)
   ! Output the processed parameter file.
   if (outputParameters) call parameters%serializeToXML(var_str(trim(parameterFileCharacter)))
   ! Tell OpenMP that nested parallelism is allowed.

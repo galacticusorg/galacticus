@@ -146,6 +146,7 @@ contains
             &                                    char(outputScratchFileName), &
             &                overWrite          =.true.                     , &
             &                objectsOverwritable=.true.                     , &
+            &                threadSafe         =.true.                     , &
             &                sieveBufferSize    =hdf5SieveBufferSize        , &
             &                useLatestFormat    =hdf5UseLatestFormat        , &
             &                cacheElementsCount =hdf5CacheElementsCount     , &

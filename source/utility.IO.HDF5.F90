@@ -1090,7 +1090,7 @@ contains
     return
   end function hdf5FileOpenVarStr
 
-  function hdf5FileOpenChar(fileName,overWrite,readOnly,objectsOverwritable,chunkSize,compressionLevel,sieveBufferSize,useLatestFormat,cacheElementsCount,cacheSizeBytes,isTemporary) result(self)
+  function hdf5FileOpenChar(fileName,overWrite,readOnly,objectsOverwritable,chunkSize,compressionLevel,sieveBufferSize,useLatestFormat,cacheElementsCount,cacheSizeBytes,isTemporary,threadSafe) result(self)
     !!{
     Constructor for HDF5 object. Will open a file and return an appropriate HDF5 object.
     !!}
@@ -1110,7 +1110,7 @@ contains
     integer  (kind=hsize_t  ), intent(in   ), optional :: chunkSize
     integer  (kind=size_t   ), intent(in   ), optional :: sieveBufferSize    , cacheElementsCount, cacheSizeBytes
     integer                  , intent(in   ), optional :: compressionLevel
-    logical                  , intent(in   ), optional :: useLatestFormat
+    logical                  , intent(in   ), optional :: useLatestFormat    , threadSafe
     class    (*             ), pointer                 :: dummyPointer_
     integer                                            :: errorCode          , fileAccess
     logical                                            :: overWriteActual
@@ -1192,9 +1192,9 @@ contains
       <description>ICE when passing a derived type component to a class(*) function argument.</description>
     !!]
     dummyPointer_      => self%objectID
-    self%objectManager =  resourceManager(dummyPointer_)
+    self%objectManager =  resourceManager(dummyPointer_                      )
     dummyPointer_      => self%fileID
-    self%fileManager   =  resourceManager(dummyPointer_)
+    self%fileManager   =  resourceManager(dummyPointer_,threadSafe=threadSafe)
     !![
     </workaround>
     !!]

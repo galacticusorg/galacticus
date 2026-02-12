@@ -27,6 +27,7 @@ module Resource_Manager
   reference counting approach and destructs them when no more references exist. Similar in approach to a
   \href{https://en.cppreference.com/w/cpp/memory/shared_ptr}{\normalfont \ttfamily shared\_ptr} in C++.
   !!}
+  !$ use :: OMP_Lib, only : omp_lock_kind
   private
   public :: resourceManager, resourceManagerForceReportOn, resourceManagerForceReportOff
 
@@ -36,9 +37,10 @@ module Resource_Manager
      counting approach and destructs them when no more references exist. Similar in approach to a
      \href{https://en.cppreference.com/w/cpp/memory/shared_ptr}{\normalfont \ttfamily shared\_ptr} in C++.  
      !!}
-     class  (*), pointer :: resource  => null()
-     integer   , pointer :: counter   => null()
-     logical             :: reportOn_ =  .false.
+     class     (*            ), pointer :: resource  => null()
+     integer                  , pointer :: counter   => null()
+     !$ integer(omp_lock_kind), pointer :: lock      => null()
+     logical                            :: reportOn_ =  .false.
    contains
      !![
      <methods>
@@ -89,7 +91,7 @@ contains
     return
   end subroutine resourceManagerForceReportOff
 
-  function resourceManagerConstructor(resource,reportOn) result(self)
+  function resourceManagerConstructor(resource,reportOn,threadSafe) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily resourceManager} class. This should be called with a pointer to the resource to
     manage after it is first created.
@@ -100,9 +102,10 @@ contains
     implicit none
     type   (resourceManager)                          :: self
     class  (*              ), intent(in   ), pointer  :: resource
-    logical                 , intent(in   ), optional :: reportOn
+    logical                 , intent(in   ), optional :: reportOn, threadSafe
     !![
-    <optionalArgument name="reportOn" defaultsTo=".false." />
+    <optionalArgument name="reportOn"   defaultsTo=".false." />
+    <optionalArgument name="threadSafe" defaultsTo=".false." />
     !!]
     
     ! Retain a pointer to the shared resource.
@@ -110,6 +113,11 @@ contains
     ! Create a shared counter for the resource and initialize the reference count to 1.
     allocate(self%counter)
     self%counter=1
+    ! If thread safety is requested, create an OpenMP lock.
+    if (threadSafe_) then
+       !$ allocate(self%lock)
+       !$ call OMP_Init_Lock(self%lock)
+    end if
     ! Set reporting state.
     self%reportOn_=reportOn_ .or. forceReportOn
     if (self%reportOn_) then
@@ -134,17 +142,20 @@ contains
     !!{
     Assign a {\normalfont \ttfamily resourceManager} object.
     !!}
-    use :: Display           , only : displayMessage
-    use :: String_Handling   , only : operator(//)
-    use :: ISO_Varying_String, only : operator(//)  , var_str
+    !$ use :: OMP_Lib           , only : OMP_Set_Lock  , OMP_Unset_Lock
+    use    :: Display           , only : displayMessage
+    use    :: String_Handling   , only : operator(//)
+    use    :: ISO_Varying_String, only : operator(//)  , var_str
     implicit none
     class(resourceManager), intent(  out) :: to
     class(resourceManager), intent(in   ) :: from
 
     if (associated(from%counter)) then
+       !$ if (associated(from%lock)) call OMP_Set_Lock(from%lock)
        ! Copy pointers to the shared resource and shared counter.
-       to%resource  => from%resource
-       to%counter   => from%counter
+       to   %resource  => from%resource
+       to   %counter   => from%counter
+       !$ to%lock      => from%lock
        ! Increment the reference count to our shared object.
        to%counter   =  to  %counter  +1
        to%reportOn_ =  from%reportOn_
@@ -152,10 +163,12 @@ contains
           call displayMessage(var_str('increment managed resource [loc:')//loc(to%resource)//' ] references - count = '//to%counter)
           call backtrace()
        end if
+       !$ if (associated(from%lock)) call OMP_Unset_Lock(from%lock)
     else
        ! No resource to manage - set null pointers.
-       to%resource => null()
-       to%counter  => null()
+       to   %resource => null()
+       to   %counter  => null()
+       !$ to%lock     => null()
     end if
     return
   end subroutine resourceManagerAssign
@@ -164,14 +177,17 @@ contains
     !!{
     Release the managed resource.
     !!}
-    use :: Display           , only : displayMessage
-    use :: String_Handling   , only : operator(//)
-    use :: ISO_Varying_String, only : operator(//)  , var_str
+    !$ use :: OMP_Lib           , only : OMP_Set_Lock  , OMP_Unset_Lock
+    use    :: Display           , only : displayMessage
+    use    :: String_Handling   , only : operator(//)
+    use    :: ISO_Varying_String, only : operator(//)  , var_str
     implicit none
     class(resourceManager), intent(inout) :: self
     
     ! If no counter has been created, then we have no resource that we are managing. We can simply return.
     if (.not.associated(self%counter)) return
+    ! Lock if required.
+    !$ if (associated(self%lock)) call OMP_Set_Lock(self%lock)
     ! Decrement the reference count to our shared resource.
     self%counter=self%counter-1
     if (self%reportOn_) then
@@ -182,10 +198,18 @@ contains
     if (self%counter == 0) then
        deallocate(self%resource)
        deallocate(self%counter )
+       !$ if (associated(self%lock)) then
+       !$    call OMP_Unset_Lock(self%lock)
+       !$    deallocate(self%lock)
+       !$    nullify   (self%lock)
+       !$ end if
     end if
+    ! Unlock if needed.
+    !$ if (associated(self%lock)) call OMP_Unset_Lock(self%lock)
     ! Nullify pointers to avoid any dangling pointer issues.
-    nullify(self%counter )
-    nullify(self%resource)
+    nullify   (self%counter )
+    nullify   (self%resource)
+    !$ nullify(self%lock    )
     return
   end subroutine resourceManagerRelease
 
@@ -193,11 +217,14 @@ contains
     !!{
     Return the current reference count to the managed object.
     !!}
+    !$ use :: OMP_Lib, only : OMP_Set_Lock, OMP_Unset_Lock
     implicit none
     class(resourceManager), intent(in   ) :: self
 
     if (associated(self%counter)) then
+       !$ if (associated(self%lock)) call OMP_Set_Lock  (self%lock)
        resourceManagerCount=self%counter
+       !$ if (associated(self%lock)) call OMP_Unset_Lock(self%lock)
     else
        resourceManagerCount=0
     end if
