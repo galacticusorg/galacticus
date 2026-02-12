@@ -36,6 +36,14 @@
      logical             :: doubleAttributesWritten, integerAttributesWritten, &
           &                 opened
      type   (hdf5Object) :: hdf5Group              , nodeDataGroup
+   contains
+     !![
+     <methods>
+       <method method="assignment(=)" description="Assign outputGroup objects."/>
+     </methods>
+     !!]
+     procedure :: outputGroupAssign
+     generic   :: assignment(=)     =>  outputGroupAssign
   end type outputGroup
 
   ! Parameters controlling the size of output data.
@@ -1289,3 +1297,16 @@ contains
     end if
     return
   end subroutine standardOutputGroupCreate
+
+  subroutine outputGroupAssign(to,from)
+    implicit none
+    class(outputGroup), intent(  out) :: to
+    class(outputGroup), intent(in   ) :: from
+
+    to%doubleAttributesWritten =from%doubleAttributesWritten
+    to%integerAttributesWritten=from%integerAttributesWritten
+    to%opened                  =from%opened
+    to%hdf5Group               =from%hdf5Group
+    to%nodeDataGroup           =from%nodeDataGroup
+    return
+  end subroutine outputGroupAssign
