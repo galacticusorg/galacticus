@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1770698090971,
+  "lastUpdate": 1771024658259,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 6keV resolutionX8)": [
@@ -1011,6 +1011,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (COZMIC WDM:6keV resolution X8 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 72.52244057500397,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a366adc5a89e34f4faa06751d26c0f7fa6535bec",
+          "message": "Merge pull request #999 from galacticusorg/fixCloudyTableExtrapolation\n\nAllow extrapolation to smaller ages when integrating over Cloudy emission line tables",
+          "timestamp": "2026-02-13T16:27:41Z",
+          "tree_id": "96ac99849fc179140b63ec5bcaab6294a8b79eca",
+          "url": "https://github.com/galacticusorg/galacticus/commit/a366adc5a89e34f4faa06751d26c0f7fa6535bec"
+        },
+        "date": 1771024657802,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:6keV resolution X8 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": 11.259885681109816,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:6keV resolution X8 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 37.38307249989936,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:6keV resolution X8 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 65.22011324520516,
             "unit": "-logℒ"
           }
         ]
