@@ -21,16 +21,23 @@
   Contains a module which implements advanced locks.
   !!}
 
+! Specify an explicit dependence on the C interface file.
+!: $(BUILDPATH)/mutex.o
+
+! Note that we can not use the "Error" module for error reporting here, as it depends on this module. Therefore, error conditions
+! just trigger a `stop`.
+  
 module Locks
   !!{
   Provides advanced locks.
   !!}
-  use   , intrinsic :: ISO_C_Binding   , only : c_size_t
+  use   , intrinsic :: ISO_C_Binding   , only : c_size_t       , c_int, c_ptr, c_null_ptr
   !$ use            :: Resource_Manager, only : resourceManager
   !$ use            :: OMP_Lib         , only : omp_lock_kind
   implicit none
   private
-  public :: ompLockClass, ompLock, ompReadWriteLock, ompIncrementalLock
+  public :: ompLockClass, ompLock, ompReadWriteLock, ompIncrementalLock, &
+       &    mutex
 
   type :: ompLockClass
      !!{
@@ -145,6 +152,82 @@ module Locks
      module procedure :: ompIncrementalLockConstructor
   end interface ompIncrementalLock
 
+  interface
+     function mutex_init(mutex,recursive) bind(c,name='mutex_init')
+       !!{
+       Inteface to the {\normalfont \ttfamily mutex\_init} function.
+       !!}
+       import c_int, c_ptr
+       integer(c_int)        :: mutex_init
+       type   (c_ptr)        :: mutex
+       integer(c_int), value :: recursive
+     end function mutex_init
+     
+     function mutex_destroy(mutex) bind(c,name='mutex_destroy')
+       !!{
+       Inteface to the {\normalfont \ttfamily mutex\_destroy} function.
+       !!}
+       import c_int, c_ptr
+       integer(c_int)        :: mutex_destroy
+       type   (c_ptr), value :: mutex
+     end function mutex_destroy
+    
+     function mutex_loc(mutex) bind(c,name='mutex_loc')
+       !!{
+       Inteface to the {\normalfont \ttfamily mutex\_loc} function.
+       !!}
+       import c_int, c_ptr
+       integer(c_int)        :: mutex_loc
+       type   (c_ptr), value :: mutex
+     end function mutex_loc
+    
+     function pthread_mutex_lock(mutex) bind(c,name='pthread_mutex_lock')
+       !!{
+       Inteface to the {\normalfont \ttfamily pthread\_mutex\_lock} function.
+       !!}
+       import c_int, c_ptr
+       integer(c_int)        :: pthread_mutex_lock
+       type   (c_ptr), value :: mutex
+     end function pthread_mutex_lock
+
+     function pthread_mutex_unlock(mutex) bind(c,name='pthread_mutex_unlock')
+       !!{
+       Inteface to the {\normalfont \ttfamily pthread\_mutex\_unlock} function.
+       !!}
+       import c_int, c_ptr
+       integer(c_int)        :: pthread_mutex_unlock
+       type   (c_ptr), value :: mutex
+     end function pthread_mutex_unlock
+  end interface
+
+  type :: mutex
+     !!{
+     Type implementing {\normalfont \ttfamily pthread} mutexes.
+     !!}
+     type   (c_ptr), pointer :: mutex          => null()
+     integer       , pointer :: referenceCount => null()
+   contains
+     !![
+     <methods>
+       <method method="set"           description="Set the lock."  />
+       <method method="unset"         description="Unset the lock."/>
+       <method method="assignment(=)" description="Assign a mutex."/>
+     </methods>
+     !!]
+     final     ::                  mutexDestructor
+     procedure ::                  mutexAssign
+     generic   :: assignment(=) => mutexAssign
+     procedure :: set           => mutexSet
+     procedure :: unset         => mutexUnset
+  end type mutex
+
+  interface mutex
+     !!{
+     Constructors for the \refClass{mutex} class.
+     !!}
+     module procedure mutexConstructor
+  end interface mutex
+  
 contains
 
   subroutine ompLockClassInitialize(self)
@@ -518,4 +601,85 @@ contains
     return
   end subroutine ompIncrementalLockUnset
 
+  function mutexConstructor(recursiveLock) result(self)
+    !!{
+    Construct a \refClass{mutex} object.
+    !!}
+    implicit none
+    type   (mutex)                          :: self
+    logical       , intent(in   ), optional :: recursiveLock
+    integer(c_int)                          :: status       , recursiveLock_
+
+    recursiveLock_=0
+    if (present(recursiveLock) .and. recursiveLock) recursiveLock_=1
+    allocate(self%mutex)
+    status=mutex_init(self%mutex,recursiveLock_)
+    if (status /= 0) stop 'failed to initialize mutex'
+    allocate(self%referenceCount)
+    self%referenceCount=1
+    return
+  end function mutexConstructor
+
+  subroutine mutexDestructor(self)
+    !!{
+    Destroy a \refClass{mutex} object.
+    !!}
+    implicit none
+    type   (mutex), intent(inout) :: self
+    integer(c_int)                :: status
+
+    if (.not.associated(self%referenceCount)) return
+    self%referenceCount=self%referenceCount-1
+    if (self%referenceCount == 0) then
+       status=mutex_destroy(self%mutex)
+       if (status /= 0) stop 'failed to destroy mutex'
+       deallocate(self%referenceCount)
+       deallocate(self%mutex)
+    end if
+    self%referenceCount => null()
+    self%mutex          => null()
+    return
+  end subroutine mutexDestructor
+
+  subroutine mutexAssign(self,from)
+    !!{
+    Assign a \refClass{mutex} object.
+    !!}
+    implicit none
+    class(mutex), intent(  out) :: self
+    class(mutex), intent(in   ) :: from
+
+    if (.not.associated(from%referenceCount)) return
+    self%referenceCount => from%referenceCount
+    self%mutex          => from%mutex
+    self%referenceCount =  self%referenceCount+1
+    return
+  end subroutine mutexAssign
+
+  subroutine mutexSet(self)
+    !!{
+    Set a mutex lock.
+    !!}
+    implicit none
+    class  (mutex), intent(inout) :: self
+    integer(c_int)                :: status
+    
+    status=pthread_mutex_lock(self%mutex)
+    if (status /= 0) stop 'failed to lock mutex'
+    return
+  end subroutine mutexSet
+  
+  subroutine mutexUnset(self)
+    !!{
+    Unset a mutex lock.
+    !!}
+    implicit none
+    class  (mutex), intent(inout) :: self
+    integer(c_int)                :: status
+    
+    status=pthread_mutex_unlock(self%mutex)
+    if (status /= 0) stop 'failed to unlock mutex'
+    return
+  end subroutine mutexUnset
+  
 end module Locks
