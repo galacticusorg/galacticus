@@ -501,7 +501,6 @@ contains
          &                                                                        loopCountTotal    , i
     double precision                                                           :: maximumMass       , minimumMass     , &
          &                                                                        metallicity
-    type            (hdf5Object                       )                        :: file
     character       (len=20                           )                        :: progressMessage
     type            (varying_string                   )                        :: fileName          , descriptorString
     logical                                                                    :: makeFile
@@ -515,133 +514,136 @@ contains
        call Directory_Make(File_Path(fileName))
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(fileName,lock,lockIsShared=.false.)
-       if (File_Exists(fileName)) then
-          ! Open the file containing cumulative property data.
-          call displayIndent('Reading file: '//fileName,verbosityLevelWorking)
-          !$ call hdf5Access%set          (                         )
-          file=hdf5Object(fileName)
-          call file%readAttribute('fileFormat',fileFormat)
-          if (fileFormat /= fileFormatCurrent) then
-             makeFile=.true.
-             call displayUnindent('done',verbosityLevelWorking)
-          end if
-          !$ call hdf5Access%unset()
-       else
-          makeFile=.true.
-       end if
-       if (.not.makeFile) then
-          ! Read the cumulative property data from file.
-          !$ call hdf5Access%set        (                                         )
-          call    file      %readDataset("age"               ,property%age        )
-          call    file      %readDataset("metallicity"       ,property%metallicity)
-          call    file      %readDataset(char(property%label),property%property   )
-          !$ call hdf5Access%unset      (                                         )
-          call displayUnindent('done',verbosityLevelWorking)
-       else
-          allocate(property%age        (tableAgeCount                      ))
-          allocate(property%metallicity(              tableMetallicityCount))
-          allocate(property%property   (tableAgeCount,tableMetallicityCount))
-          property%metallicity(1                              )=0.0d0
-          property%metallicity(2:tableMetallicityCount)=Make_Range(tableMetallicityMinimum,tableMetallicityMaximum,tableMetallicityCount-1,rangeType=rangeTypeLogarithmic)
-          property%age                                 =Make_Range(tableAgeMinimum        ,tableAgeMaximum        ,tableAgeCount          ,rangeType=rangeTypeLogarithmic)
-          ! Open file to output the data to.
-          descriptor=inputParameters()
-          call self%descriptor(descriptor,includeClass=.true.)
-          descriptorString=descriptor%serializeToString()
-          call descriptor%destroy()
-          !$ call hdf5Access%set()
-          block
-            type(hdf5Object) :: dataset
-            file=hdf5Object(char(fileName))
-            call file   %writeAttribute(fileFormatCurrent                                                        ,'fileFormat'                         )
-            call file   %writeAttribute(char(property%label           )                                          ,'description'                        )
-            call file   %writeAttribute('Computed by Galacticus'                                                 ,'source'                             )
-            call file   %writeAttribute(char(Formatted_Date_and_Time())                                          ,'date'                               )
-            call file   %writeAttribute(char(descriptorString         )                                          ,'parameters'                         )
-            call file   %writeDataset  (property%age                                                             ,'age'        ,datasetReturned=dataset)
-            call dataset%writeAttribute('Age of the stellar population in Gyr'                                   ,'description'                        )
-            call file   %writeDataset  (property%metallicity                                                     ,'metallicity',datasetReturned=dataset)
-            call dataset%writeAttribute('Metallicity (fractional mass of total metals) of the stellar population','description'                        )
-          end block
-          !$ call hdf5Access%unset()
-          ! Loop over ages and metallicities and compute the property.
-          call displayIndent('Tabulating property: '//char(property%label),verbosityLevelWorking)
-          call displayCounter(0,.true.,verbosityLevelWorking)
-          loopCountTotal             =  +tableMetallicityCount &
-               &                        *tableAgeCount
-          loopCount                  =   0
-          self_                      =>  self
-          instantaneousApproximation =   property%instantaneousApproximation
-          !$omp parallel private (iAge,iMetallicity,progressMessage,minimumMass,maximumMass,integrator_) copyin(self_,indexElement_)
-          allocate(stellarAstrophysics_,mold=self%stellarAstrophysics_)
-          allocate(initialMassFunction_,mold=self%initialMassFunction_)
-          allocate(stellarFeedback_    ,mold=self%stellarFeedback_    )
-          allocate(supernovaeTypeIa_   ,mold=self%supernovaeTypeIa_   )
-          !$omp critical(stellarPopulationsStandardDeepCopy)
-          !![
-          <deepCopyReset variables="self%stellarAstrophysics_ self%initialMassFunction_ self%stellarFeedback_ self%supernovaeTypeIa_"/>
-          <deepCopy source="self%stellarAstrophysics_" destination="stellarAstrophysics_"/>
-          <deepCopy source="self%initialMassFunction_" destination="initialMassFunction_"/>
-          <deepCopy source="self%stellarFeedback_"     destination="stellarFeedback_"    />
-          <deepCopy source="self%supernovaeTypeIa_"    destination="supernovaeTypeIa_"   />
-          <deepCopyFinalize variables="stellarAstrophysics_ initialMassFunction_ stellarFeedback_ supernovaeTypeIa_"/>
-          !!]
-          !$omp end critical(stellarPopulationsStandardDeepCopy)
-          call integrator_%initialize  (24                        ,61                        )
-          call integrator_%toleranceSet(property%toleranceAbsolute,property%toleranceRelative)
-          call integrator_%integrandSet(property%integrand                                   )
-          !$omp do schedule(dynamic)
-          do i=0,loopCountTotal-1
-             iMetallicity=mod( i                  ,tableMetallicityCount)+1
-             iAge        =    (i-(iMetallicity-1))/tableMetallicityCount +1
-             lifetime_   =property%age(iAge)
-             ! Set the metallicity. If using the instantaneous recycling approximation, assume Solar metallicity always.
-             if (instantaneousApproximation) then
-                metallicity_=metallicitySolar
-             else
-                metallicity_=property%metallicity(iMetallicity)
-             end if
-             ! Find the minimum and maximum masses to integrate over for this IMF.
-             minimumMass=self%initialMassFunction_%massMinimum()
-             maximumMass=self%initialMassFunction_%massMaximum()
-             ! Integrate ejected mass over the IMF between these limits.
-             property%property(iAge,iMetallicity)=integrator_%evaluate(minimumMass,maximumMass)
-             ! Update the counter.
-             !$omp atomic
-             loopCount=loopCount+1
-             call displayCounter(                                                   &
-                  &              int(100.0d0*dble(loopCount)/dble(loopCountTotal)), &
-                  &              .false.                                          , &
-                  &              verbosityLevelWorking                              &
-                  &             )
-          end do
-          !$omp end do
-          !![
-          <objectDestructor name="stellarAstrophysics_"/>
-          <objectDestructor name="initialMassFunction_"/>
-          <objectDestructor name="stellarFeedback_"    />
-          <objectDestructor name="supernovaeTypeIa_"   />
-          !!]
-          !$omp end parallel
-          do iAge=1,tableAgeCount
-             do iMetallicity=1,tableMetallicityCount
-                ! Enforce monotonicity in the cumulative property. Non-monotonicity can arise due to the vagaries of interpolating
-                ! stellar lifetimes in an irregular grid of stellar models.
-                if (iAge > 1 )                                        &
-                     & property%property       (iAge  ,iMetallicity)  &
-                     &   =max(                                        &
-                     &        property%property(iAge  ,iMetallicity), &
-                     &        property%property(iAge-1,iMetallicity)  &
-                     &       )
-             end do
-          end do
-          call displayCounterClear(           verbosityLevelWorking)
-          call displayUnindent     ('finished',verbosityLevelWorking)
-          !$ call hdf5Access%set         (                                      )
-          call    file      %writeDataset(property%property,char(property%label))
-          !$ call hdf5Access%unset       (                                      )
-          call displayIndent('Storing to file: '//fileName,verbosityLevelWorking)
-       end if
+       block
+         type(hdf5Object) :: file
+         if (File_Exists(fileName)) then
+            ! Open the file containing cumulative property data.
+            call displayIndent('Reading file: '//fileName,verbosityLevelWorking)
+            !$ call hdf5Access%set          (                         )
+            file=hdf5Object(fileName)
+            call file%readAttribute('fileFormat',fileFormat)
+            if (fileFormat /= fileFormatCurrent) then
+               makeFile=.true.
+               call displayUnindent('done',verbosityLevelWorking)
+            end if
+            !$ call hdf5Access%unset()
+         else
+            makeFile=.true.
+         end if
+         if (.not.makeFile) then
+            ! Read the cumulative property data from file.
+            !$ call hdf5Access%set        (                                         )
+            call    file      %readDataset("age"               ,property%age        )
+            call    file      %readDataset("metallicity"       ,property%metallicity)
+            call    file      %readDataset(char(property%label),property%property   )
+            !$ call hdf5Access%unset      (                                         )
+            call displayUnindent('done',verbosityLevelWorking)
+         else
+            allocate(property%age        (tableAgeCount                      ))
+            allocate(property%metallicity(              tableMetallicityCount))
+            allocate(property%property   (tableAgeCount,tableMetallicityCount))
+            property%metallicity(1                              )=0.0d0
+            property%metallicity(2:tableMetallicityCount)=Make_Range(tableMetallicityMinimum,tableMetallicityMaximum,tableMetallicityCount-1,rangeType=rangeTypeLogarithmic)
+            property%age                                 =Make_Range(tableAgeMinimum        ,tableAgeMaximum        ,tableAgeCount          ,rangeType=rangeTypeLogarithmic)
+            ! Open file to output the data to.
+            descriptor=inputParameters()
+            call self%descriptor(descriptor,includeClass=.true.)
+            descriptorString=descriptor%serializeToString()
+            call descriptor%destroy()
+            !$ call hdf5Access%set()
+            hdfFileScope: block
+              type(hdf5Object) :: dataset
+              file=hdf5Object(char(fileName))
+              call file   %writeAttribute(fileFormatCurrent                                                        ,'fileFormat'                         )
+              call file   %writeAttribute(char(property%label           )                                          ,'description'                        )
+              call file   %writeAttribute('Computed by Galacticus'                                                 ,'source'                             )
+              call file   %writeAttribute(char(Formatted_Date_and_Time())                                          ,'date'                               )
+              call file   %writeAttribute(char(descriptorString         )                                          ,'parameters'                         )
+              call file   %writeDataset  (property%age                                                             ,'age'        ,datasetReturned=dataset)
+              call dataset%writeAttribute('Age of the stellar population in Gyr'                                   ,'description'                        )
+              call file   %writeDataset  (property%metallicity                                                     ,'metallicity',datasetReturned=dataset)
+              call dataset%writeAttribute('Metallicity (fractional mass of total metals) of the stellar population','description'                        )
+            end block hdfFileScope
+            !$ call hdf5Access%unset()
+            ! Loop over ages and metallicities and compute the property.
+            call displayIndent('Tabulating property: '//char(property%label),verbosityLevelWorking)
+            call displayCounter(0,.true.,verbosityLevelWorking)
+            loopCountTotal             =  +tableMetallicityCount &
+                 &                        *tableAgeCount
+            loopCount                  =   0
+            self_                      =>  self
+            instantaneousApproximation =   property%instantaneousApproximation
+            !$omp parallel private (iAge,iMetallicity,progressMessage,minimumMass,maximumMass,integrator_) copyin(self_,indexElement_)
+            allocate(stellarAstrophysics_,mold=self%stellarAstrophysics_)
+            allocate(initialMassFunction_,mold=self%initialMassFunction_)
+            allocate(stellarFeedback_    ,mold=self%stellarFeedback_    )
+            allocate(supernovaeTypeIa_   ,mold=self%supernovaeTypeIa_   )
+            !$omp critical(stellarPopulationsStandardDeepCopy)
+            !![
+            <deepCopyReset variables="self%stellarAstrophysics_ self%initialMassFunction_ self%stellarFeedback_ self%supernovaeTypeIa_"/>
+            <deepCopy source="self%stellarAstrophysics_" destination="stellarAstrophysics_"/>
+            <deepCopy source="self%initialMassFunction_" destination="initialMassFunction_"/>
+            <deepCopy source="self%stellarFeedback_"     destination="stellarFeedback_"    />
+            <deepCopy source="self%supernovaeTypeIa_"    destination="supernovaeTypeIa_"   />
+            <deepCopyFinalize variables="stellarAstrophysics_ initialMassFunction_ stellarFeedback_ supernovaeTypeIa_"/>
+            !!]
+            !$omp end critical(stellarPopulationsStandardDeepCopy)
+            call integrator_%initialize  (24                        ,61                        )
+            call integrator_%toleranceSet(property%toleranceAbsolute,property%toleranceRelative)
+            call integrator_%integrandSet(property%integrand                                   )
+            !$omp do schedule(dynamic)
+            do i=0,loopCountTotal-1
+               iMetallicity=mod( i                  ,tableMetallicityCount)+1
+               iAge        =    (i-(iMetallicity-1))/tableMetallicityCount +1
+               lifetime_   =property%age(iAge)
+               ! Set the metallicity. If using the instantaneous recycling approximation, assume Solar metallicity always.
+               if (instantaneousApproximation) then
+                  metallicity_=metallicitySolar
+               else
+                  metallicity_=property%metallicity(iMetallicity)
+               end if
+               ! Find the minimum and maximum masses to integrate over for this IMF.
+               minimumMass=self%initialMassFunction_%massMinimum()
+               maximumMass=self%initialMassFunction_%massMaximum()
+               ! Integrate ejected mass over the IMF between these limits.
+               property%property(iAge,iMetallicity)=integrator_%evaluate(minimumMass,maximumMass)
+               ! Update the counter.
+               !$omp atomic
+               loopCount=loopCount+1
+               call displayCounter(                                                   &
+                    &              int(100.0d0*dble(loopCount)/dble(loopCountTotal)), &
+                    &              .false.                                          , &
+                    &              verbosityLevelWorking                              &
+                    &             )
+            end do
+            !$omp end do
+            !![
+            <objectDestructor name="stellarAstrophysics_"/>
+            <objectDestructor name="initialMassFunction_"/>
+            <objectDestructor name="stellarFeedback_"    />
+            <objectDestructor name="supernovaeTypeIa_"   />
+            !!]
+            !$omp end parallel
+            do iAge=1,tableAgeCount
+               do iMetallicity=1,tableMetallicityCount
+                  ! Enforce monotonicity in the cumulative property. Non-monotonicity can arise due to the vagaries of
+                  ! interpolating stellar lifetimes in an irregular grid of stellar models.
+                  if (iAge > 1 )                                        &
+                       & property%property       (iAge  ,iMetallicity)  &
+                       &   =max(                                        &
+                       &        property%property(iAge  ,iMetallicity), &
+                       &        property%property(iAge-1,iMetallicity)  &
+                       &       )
+               end do
+            end do
+            call displayCounterClear(           verbosityLevelWorking)
+            call displayUnindent     ('finished',verbosityLevelWorking)
+            !$ call hdf5Access%set         (                                      )
+            call    file      %writeDataset(property%property,char(property%label))
+            !$ call hdf5Access%unset       (                                      )
+            call displayIndent('Storing to file: '//fileName,verbosityLevelWorking)
+         end if
+       end block
        call File_Unlock(lock)
        ! Build interpolators.
        property%interpolatorMetallicity=interpolator(property%metallicity                                               )
