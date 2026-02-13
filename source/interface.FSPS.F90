@@ -78,7 +78,7 @@ contains
     fspsPath=inputPath(pathTypeDataDynamic)//"fsps-"//fspsVersion
     lockPath=inputPath(pathTypeDataDynamic)//"fsps" //fspsVersion
     call File_Lock(char(lockPath),fspsLock)
-    !  Build the code if the executable does not exist.
+    ! Build the code if the executable does not exist.
     if (.not.File_Exists(fspsPath//"/src/autosps.exe")) then
        ! Download the code if not already done.
        if (.not.File_Exists(fspsPath)) then
