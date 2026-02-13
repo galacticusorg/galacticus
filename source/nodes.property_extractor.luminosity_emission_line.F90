@@ -780,7 +780,7 @@ contains
     allocate(interpolatorTime       )
     allocate(interpolatorMetallicity)
     ! Allow extrapolation to smaller ages. Some stellar population models (and, therefore, the resulting Cloudy tables) do not
-    ! have entries for zero age populations. In such cases we allow for extrpolation below the smallest age present in the table.
+    ! have entries for zero age populations. In such cases we allow for extrapolation below the smallest age present in the table.
     extrapolationTime      (1)=extrapolationTypeExtrapolate
     extrapolationTime      (2)=extrapolationTypeAbort
     interpolatorTime       =interpolator(self%ages         ,extrapolationType=extrapolationTime)
