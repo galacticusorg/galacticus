@@ -287,6 +287,7 @@ contains
     use :: Error                           , only : Error_Report                     , errorStatusSuccess
     use :: Output_HDF5                     , only : outputFile
     use :: IO_HDF5                         , only : hdf5Object
+    use :: HDF5_Access                     , only : hdf5Access
     use :: IO_IRATE                        , only : irate
     use :: ISO_Varying_String              , only : varying_string
     use :: Node_Components                 , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
@@ -439,6 +440,7 @@ contains
          &                             halfIntegral                            =self%halfIntegral             &
          &                            )
     ! Write correlations to file.
+    !$ call hdf5Access%set()
     correlationFunctionGroup=outputFile%openGroup('projectedCorrelationFunction')
     call correlationFunctionGroup%writeDataset(separation       ,'separation'                ,comment='Galaxy separation.'                                ,datasetReturned=dataset)
     call dataset%writeAttribute(megaParsec,'unitsInSI')
@@ -446,6 +448,7 @@ contains
     call dataset%writeAttribute(megaParsec,'unitsInSI')
     call correlationFunctionGroup%writeDataset(correlationSurvey,'projectedCorrelationSurvey',comment='Projected correlation function from survey region.',datasetReturned=dataset)
     call dataset%writeAttribute(megaParsec,'unitsInSI')
+    !$ call hdf5Access%unset()
     ! Clean up.
     deallocate(galaxyPosition)
     deallocate(galaxyVelocity)

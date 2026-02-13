@@ -28,20 +28,20 @@ module IO_HDF5
   !!{
   Implements simple and convenient interfaces to a variety of HDF5 functionality.
   !!}
-  use            :: HDF5              , only : hid_t         , hsize_t, size_t
-  use, intrinsic :: ISO_C_Binding     , only : c_char        , c_int  , c_ptr , c_size_t
+  use            :: HDF5              , only : hid_t          , hsize_t, size_t
+  use, intrinsic :: ISO_C_Binding     , only : c_char         , c_int  , c_ptr , c_size_t
   use            :: ISO_Varying_String, only : varying_string
   use            :: Kind_Numbers      , only : kind_int8
   use            :: Resource_Manager  , only : resourceManager
   implicit none
   private
-  public :: hdf5Object          , hdf5VarDouble  , hdf5VarInteger8, ioHDF5AccessInitialize, &
-       &    IO_HDF5_Set_Defaults, IO_HDF5_Is_HDF5, hdf5VarDouble2D
+  public :: hdf5Object          , hdf5VarDouble     , hdf5VarInteger8, ioHDF5AccessInitialize, &
+       &    IO_HDF5_Set_Defaults, IO_HDF5_Is_HDF5   , hdf5VarDouble2D
 #ifdef DEBUGHDF5
-  public :: IO_HDF5_Start_Critical, IO_HDF5_End_Critical
+  public :: IO_HDF5_Start_Locked, IO_HDF5_End_Locked
 
-  logical                                                :: inCritical=.false.
-  !$omp threadprivate(inCritical)
+  integer                                                :: inLocked                  =0
+  !$omp threadprivate(inLocked)
 #endif
 
   ! Record of initialization of this module.
@@ -456,11 +456,11 @@ contains
     Initialize the HDF5 access lock.
     !!}
     use :: HDF5_Access, only : hdf5Access, hdf5AccessInitialized
-    use :: Locks      , only : ompLock
+    use :: Locks      , only : mutex
     implicit none
 
     if (hdf5AccessInitialized) return
-    hdf5Access           =ompLock()
+    hdf5Access           =mutex(recursiveLock=.true.)
     hdf5AccessInitialized=.true.
     return
   end subroutine ioHDF5AccessInitialize
@@ -480,7 +480,7 @@ contains
     logical :: isLittleEndian, isBigEndian
 
 #ifdef DEBUGHDF5
-    call IO_HDF5_Assert_In_Critical()
+    call IO_HDF5_Assert_In_Locked()
 #endif
 
     if (.not.hdf5IsInitialized) then
@@ -538,7 +538,7 @@ contains
     integer :: errorCode
 
 #ifdef DEBUGHDF5
-    call IO_HDF5_Assert_In_Critical()
+    call IO_HDF5_Assert_In_Locked()
 #endif
 
     if (hdf5IsInitialized) then
@@ -566,7 +566,7 @@ contains
     implicit none
 
 #ifdef DEBUGHDF5
-    call IO_HDF5_Assert_In_Critical()
+    call IO_HDF5_Assert_In_Locked()
 #endif
 
     if (.not.hdf5IsInitialized) call Error_Report('HDF5 IO module has not been initialized'//{introspection:location})
@@ -574,50 +574,57 @@ contains
   end subroutine IO_HDF_Assert_Is_Initialized
 
 #ifdef DEBUGHDF5
-  subroutine IO_HDF5_Assert_In_Critical()
+  subroutine IO_HDF5_Assert_In_Locked()
     !!{
-    Assert that we are in an {\normalfont \ttfamily HDF5\_Access} OpenMP critical block.
+    Assert that we are holding the hdf5Access lock.
     !!}
     use :: Error, only : Error_Report
     implicit none
 
-    if (.not.inCritical) call Error_Report('HDF5 functions accessed outside of critical block'//{introspection:location})
+    if (inLocked == 0) call Error_Report('HDF5 functions accessed without lock acquisition'//{introspection:location})
     return
-  end subroutine IO_HDF5_Assert_In_Critical
-
-  subroutine IO_HDF5_Start_Critical()
-    !!{
-    Record that we have entered an {\normalfont \ttfamily HDF5\_Access} OpenMP critical block.
-    !!}
-    implicit none
-
-    inCritical=.true.
-    return
-  end subroutine IO_HDF5_Start_Critical
-
-  subroutine IO_HDF5_End_Critical()
-    !!{
-    Record that we have left an {\normalfont \ttfamily HDF5\_Access} OpenMP critical block.
-    !!}
-    implicit none
-
-    inCritical=.false.
-    return
-  end subroutine IO_HDF5_End_Critical
+  end subroutine IO_HDF5_Assert_In_Locked
 #endif
+  
+  subroutine IO_HDF5_Start_Locked()
+    !!{
+    Record that we have acquired the hdf5Access lock.
+    !!}
+    use :: HDF5_Access, only : hdf5Access
+    implicit none
+
+    !$ call hdf5Access%set()
+#ifdef DEBUGHDF5
+    inLocked=inLocked+1
+#endif
+    return
+  end subroutine IO_HDF5_Start_Locked
+
+  subroutine IO_HDF5_End_Locked()
+    !!{
+    Record that we have released the hdf5Access lock.
+    !!}
+    use :: HDF5_Access, only : hdf5Access
+    implicit none
+
+#ifdef DEBUGHDF5
+    inLocked=inLocked-1
+#endif
+    !$ call hdf5Access%unset()
+    return
+  end subroutine IO_HDF5_End_Locked
 
   subroutine IO_HDF5_Set_Defaults(chunkSize,compressionLevel)
     !!{
     Sets the compression level and chunk size for dataset output.
     !!}
-    use :: Error      , only : Error_Report
-    use :: HDF5       , only : HSIZE_T
-    use :: HDF5_Access, only : hdf5Access
+    use :: Error, only : Error_Report
+    use :: HDF5 , only : HSIZE_T
     implicit none
     integer(kind=HSIZE_T), intent(in   ), optional :: chunkSize
     integer              , intent(in   ), optional :: compressionLevel
 
-    !$ call hdf5Access%set()
+    call IO_HDF5_Start_Locked()
     if (present(chunkSize)) then
        if (chunkSize        ==  0_hsize_t) call Error_Report('zero chunksize is invalid'        //{introspection:location})
        if (chunkSize        <  -1_hsize_t) call Error_Report('chunksize less than -1 is invalid'//{introspection:location})
@@ -627,7 +634,7 @@ contains
        if (compressionLevel <  -1 .or. compressionLevel > 9) call Error_Report('compression level must be in range -1 to 9'//{introspection:location})
        hdf5CompressionLevel=compressionLevel
     end if
-    !$ call hdf5Access%unset()
+    call IO_HDF5_End_Locked()
     return
   end subroutine IO_HDF5_Set_Defaults
 
@@ -647,19 +654,20 @@ contains
     use :: ISO_Varying_String, only : assignment(=)     , operator(//)    , char
     use :: String_Handling   , only : operator(//)
     implicit none
-    type      (hdf5Object               ), intent(inout)               :: self
-    integer   (hid_t                    ), allocatable  , dimension(:) :: openObjectIDs
-    integer   (size_t                   ), parameter                   :: objectNameSizeMaximum=1024
-    integer                                                            :: errorCode
-    integer   (size_t                   )                              :: i                         , objectNameSize        , &
-         &                                                                openObjectCount           , nonRootOpenObjectCount
-    type      (varying_string           )                              :: message
-    character (len=objectNameSizeMaximum)                              :: objectName
-    !$ logical                                                         :: haveLock
-    
+    type     (hdf5Object               ), intent(inout)               :: self
+    integer  (hid_t                    ), allocatable  , dimension(:) :: openObjectIDs
+    integer  (size_t                   ), parameter                   :: objectNameSizeMaximum=1024
+    integer                                                           :: errorCode
+    integer  (size_t                   )                              :: i                         , objectNameSize        , &
+         &                                                               openObjectCount           , nonRootOpenObjectCount
+    type     (varying_string           )                              :: message
+    character(len=objectNameSizeMaximum)                              :: objectName
+
+    ! Ensure that finalization occurs within an HDF5 locked region to avoid thread conflicts. (The HDF5 library is not
+    ! thread-safe, and we must also ensure that resource manager counts are updated in a thread-safe manner to ensure correct
+    ! counting.)    
+    !$ call IO_HDF5_Start_Locked()
     if (self%objectManager%count() == 1) then
-       !$ haveLock=hdf5Access%ownedByThread()
-       !$ if (.not.haveLock) call hdf5Access%set  ()
        ! Close the object.
        select case (self%hdf5ObjectType)
        case (hdf5ObjectTypeFile     )
@@ -683,23 +691,22 @@ contains
              call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end select
-       !$ if (.not.haveLock) call hdf5Access%unset()
        nullify(self%parentObject)
     end if
+    ! Release the object.
+    call self%objectManager%release()
     ! If this is the last reference to the file, close it now.
     if (self%fileManager%count() == 1) then
-       !$ haveLock=hdf5Access%ownedByThread()
-       !$ if (.not.haveLock) call hdf5Access%set  ()
        ! Check for still-open objects.
        call h5fget_obj_count_f(self%fileID,h5f_obj_all_f,openObjectCount,errorCode)
        if (errorCode /= 0) then
-          message="unable to count open objects in file object '"//self%objectName//"'"
+          message="unable to count open objects in file object '"//self%objectFile//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        allocate(openObjectIDs(openObjectCount))
        call h5fget_obj_ids_f(self%fileID,h5f_obj_all_f,openObjectCount,openObjectIDs,errorCode)
        if (errorCode /= 0) then
-          message="unable to get IDs of open objects in file object '"//self%objectName//"'"
+          message="unable to get IDs of open objects in file object '"//self%objectFile//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        nonRootOpenObjectCount=0
@@ -707,16 +714,15 @@ contains
           do i=1,openObjectCount
              call h5iget_name_f(openObjectIDs(i),objectName,objectNameSizeMaximum,objectNameSize,errorCode)
              if (errorCode /= 0) then
-                message="unable to get name of open object in file object '"//self%objectName//"'"
+                message="unable to get name of open object in file object '"//self%objectFile//"'"
                 call Error_Report(message//self%locationReport()//{introspection:location})
              end if
-             
              if (trim(objectName) /= "/") nonRootOpenObjectCount=nonRootOpenObjectCount+1
           end do
        end if
        if (nonRootOpenObjectCount > 0 .and. openObjectCount-nonRootOpenObjectCount == 1) then
           message=""
-          message=message//nonRootOpenObjectCount//" open object(s) remain in file object '"//self%objectName//"'"
+          message=message//nonRootOpenObjectCount//" open object(s) remain in file object '"//self%objectFile//"'"
           call displayIndent('Problem closing HDF5 file',verbosityLevelSilent)
           call displayMessage(message,verbosityLevelSilent)
           do i=1,openObjectCount
@@ -733,14 +739,16 @@ contains
        end if
        call h5fclose_f(self%fileID,errorCode)
        if (errorCode /= 0) then
-          message="unable to close file object '"//self%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
+          message="unable to close file object '"//self%objectFile//"'"
+          call Error_Report(message//{introspection:location})
        end if
        if (self%isTemporary) call File_Remove(char(self%objectName))
        ! Uninitialize the HDF5 library (will only uninitialize if this is the last file to be closed).
        call IO_HDF5_Uninitialize()
-       !$ if (.not.haveLock) call hdf5Access%unset()
     end if
+    ! Release the file.
+    call self%fileManager%release()
+    !$ call IO_HDF5_End_Locked()
     return
   end subroutine IO_HDF5_Finalize
   

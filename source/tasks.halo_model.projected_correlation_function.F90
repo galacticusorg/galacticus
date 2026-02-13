@@ -265,6 +265,7 @@ contains
     use :: Output_HDF5                      , only : outputFile
     use :: Halo_Model_Projected_Correlations, only : Halo_Model_Projected_Correlation
     use :: IO_HDF5                          , only : hdf5Object
+    use :: HDF5_Access                      , only : hdf5Access
     use :: Node_Components                  , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
     implicit none
     class  (taskHaloModelProjectedCorrelationFunction), intent(inout), target   :: self
@@ -293,9 +294,11 @@ contains
          &                                self%halfIntegral                 , &
          &                                self%correlationProjectedBinned     &
          &                               )
+    !$ call hdf5Access%set()
     outputGroup=outputFile%openGroup(char(self%outputGroup),'Group containing halo mass function data.')
     call outputGroup%writeDataset(self%separationProjectedBinned ,"separation"          ,comment="Projected separation [Mpc]." )
     call outputGroup%writeDataset(self%correlationProjectedBinned,"projectedCorrelation",comment="Projected correlation [Mpc].")
+    !$ call hdf5Access%unset()
     call Node_Components_Thread_Uninitialize()
     if (present(status)) status=errorStatusSuccess
     call displayUnindent('Done task: halo model projected correlation function' )

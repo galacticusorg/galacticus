@@ -32,12 +32,12 @@ sub Process_DebugHDF5 {
 	    my $newContent;
 	    open(my $content,"<",\$node->{'content'});
 	    while ( my $line = <$content> ) {
-		if ( $line =~ m /^\s*\!\$\s+call\s+hdf5Access\s*\%\s*set\s*\(\s*\)\s*$/   ) {
-		    $line .= "call IO_HDF5_Start_Critical()\n"
-			if ( &addUse($node,$useAdded) );
+		if ( $line =~ m /call\s+hdf5Access\s*\%\s*set\s*\(\s*\)/ ) {
+		    $line =~ s/call\s+hdf5Access\s*\%\s*set\s*\(\s*\)/call IO_HDF5_Start_Locked\(\)/
+		        if ( &addUse($node,$useAdded) );
 		}
-		if ( $line =~ m /^\s*\!\$\s+call\s+hdf5Access\s*\%\s*unset\s*\(\s*\)\s*$/ ) {
-		    $line  = "call IO_HDF5_End_Critical()\n".$line
+		if ( $line =~ m /call\s+hdf5Access\s*\%\s*unset\s*\(\s*\)/ ) {
+		    $line  =~ s/call\s+hdf5Access\s*\%\s*unset\s*\(\s*\)/call IO_HDF5_End_Locked\(\)/
 			if ( &addUse($node,$useAdded) );
 		}
 		$newContent .= $line;
@@ -68,7 +68,7 @@ sub addUse {
 	}
 	$moduleNode = $moduleNode->{'parent'};
     }
-    my $addCall = $moduleName ne "Error";
+    my $addCall = $moduleName ne "Error" && $moduleName ne "IO_HDF5";
     # No need to add a module use statement if this is the IO_HDF5 or Error module.
     unless ( $skipUse ) {
 	&Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses(
@@ -81,8 +81,8 @@ sub addUse {
 			 openMP => 0,
 			 only =>
 			 {
-			     IO_HDF5_Start_Critical => 1,
-			     IO_HDF5_End_Critical   => 1
+			     IO_HDF5_Start_Locked => 1,
+			     IO_HDF5_End_Locked   => 1
 			 }
 		     }
 		 }

@@ -312,6 +312,7 @@ contains
     use :: Error                , only : Error_Report , errorStatusSuccess
     use :: Output_HDF5          , only : outputFile
     use :: IO_HDF5              , only : hdf5Object
+    use :: HDF5_Access          , only : hdf5Access
     use :: ISO_Varying_String   , only : char         , var_str           , varying_string
     use :: Numerical_Integration, only : integrator
     use :: String_Handling      , only : operator(//)
@@ -416,6 +417,7 @@ contains
             &                                   *self%massFunctionIncompleteness_%completeness(self%massBinCenters(iMass))
     end do
     ! Write the data to file.
+    !$ call hdf5Access%set()
     outputGroup=outputFile%openGroup(char(self%outputGroupName))
     call outputGroup%writeDataset(self%massBinCenters,"mass" ,comment="mass in units of M☉")
     if (self%integrateOverHaloMassFunction) then
@@ -425,6 +427,7 @@ contains
        call outputGroup%writeDataset(conditionalMassFunction          ,"massFunction"          ,comment="Conditional mass function in units of per log(mass)."           )
        call outputGroup%writeDataset(conditionalMassFunctionIncomplete,"massFunctionIncomplete",comment="Incomplete conditional mass function in units of per log(mass).")
     end if
+    !$ call hdf5Access%unset()
     call displayUnindent('Done task: conditional mass function' )
     return
 

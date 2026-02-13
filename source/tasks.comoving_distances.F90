@@ -108,6 +108,7 @@ contains
     use            :: Error           , only : errorStatusSuccess
     use            :: Output_HDF5     , only : outputFile
     use            :: IO_HDF5         , only : hdf5Object
+    use            :: HDF5_Access     , only : hdf5Access
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     use            :: String_Handling , only : operator(//)
     implicit none
@@ -119,7 +120,9 @@ contains
 
     call displayIndent('Begin task: comoving distances')
     ! Open the group for output time information.
+    !$ call hdf5Access%set()
     outputsGroup  =outputFile%openGroup('Outputs','Group containing datasets relating to output times.')
+    !$ call hdf5Access%unset()
     ! Iterate over output times and output data.
     do output=1,self%outputTimes_%count()
        groupName  ='Output'
@@ -127,7 +130,9 @@ contains
        groupName  =groupName  //output
        description=description//output
        outputGroup=outputsGroup%openGroup(char(groupName),char(description))
+       !$ call hdf5Access%set()
        call outputGroup%writeAttribute(self%cosmologyFunctions_%distanceComoving(self%outputTimes_%time(output)),'distanceComoving')
+       !$ call hdf5Access%unset()
     end do
     if (present(status)) status=errorStatusSuccess
     call displayUnindent('Done task: comoving distances')

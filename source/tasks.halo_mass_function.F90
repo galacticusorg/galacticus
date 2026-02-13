@@ -470,6 +470,7 @@ contains
     use            :: Calculations_Resets                 , only : Calculations_Reset
     use            :: Error                               , only : errorStatusSuccess
     use            :: Output_HDF5                         , only : outputFile
+    use            :: HDF5_Access                         , only : hdf5Access
     use            :: Galacticus_Nodes                    , only : mergerTree                         , nodeComponentBasic                 , nodeComponentDarkMatterProfile, treeNode
     use            :: Galactic_Structure_Options          , only : componentTypeDarkMatterOnly        , massTypeDark
     use            :: IO_HDF5                             , only : hdf5Object
@@ -846,6 +847,7 @@ contains
     call Node_Components_Thread_Uninitialize()
     !$omp end parallel
     ! Open the group for output time information.
+    !$ call hdf5Access%set()
     if (self%outputGroup == ".") then
        outputsGroup  =outputFile    %openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
     else
@@ -966,6 +968,7 @@ contains
           end do
        end if
     end do
+    !$ call hdf5Access%unset()
     if (present(status)) status=errorStatusSuccess
     call Node_Components_Thread_Uninitialize()
     call displayUnindent('Done task: halo mass function' )

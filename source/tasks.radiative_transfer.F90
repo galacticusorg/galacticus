@@ -242,6 +242,7 @@ contains
     use :: Error                   , only : Error_Report                             , errorStatusSuccess
     use :: Output_HDF5             , only : outputFile
     use :: IO_HDF5                 , only : hdf5Object
+    use :: HDF5_Access             , only : hdf5Access
     use :: MPI_Utilities           , only : mpiBarrier                               , mpiSelf
     use :: Statistics_Distributions, only : distributionFunction1DNegativeExponential
     use :: Timers                  , only : timer
@@ -271,12 +272,18 @@ contains
     timerTotal_    =timer()
     timerIteration_=timer()
     ! Open group for output of our model data.
-    if (mpiSelf%isMaster()) outputGroup=outputFile%openGroup(char(self%outputGroupName),'Radiative transfer model.')
+    if (mpiSelf%isMaster()) then
+       !$ call hdf5Access%set()
+       outputGroup=outputFile%openGroup(char(self%outputGroupName),'Radiative transfer model.')
+       !$ call hdf5Access%unset()
+    end if
     call timerTotal_%start()
     ! Initialize the computational domain.
     call self%computationalDomain_       %initialize      (                                         )
     ! Compute and output properties of the sources.
+    !$ call hdf5Access%set()
     call self%radiativeTransferOutputter_%sourceProperties(self%radiativeTransferSource_,outputGroup)
+    !$ call hdf5Access%unset()
     ! Construct a negative exponential distribution from which to sample optical depths.
     opticalDepthDistribution=distributionFunction1DNegativeExponential(1.0d0)
     ! Iterate until convergence.
@@ -407,15 +414,23 @@ contains
        ! Output the computational domain.
        if (mpiSelf%isMaster().and.self%outputIterations) then
           write (label,'(i6)') countIterations
+          !$ call hdf5Access%set()
           iterationOutputGroup=outputGroup%openGroup('iteration'//trim(adjustl(label)),'Data for iteration '//trim(adjustl(label)))
+          !$ call hdf5Access%unset()
           call self                %computationalDomain_%output        (iterationOutputGroup            )
+          !$ call hdf5Access%set()
           call iterationOutputGroup                     %writeAttribute(converged           ,'converged')
+          !$ call hdf5Access%unset()
        end if
        ! If converged and we need to use a different number of photons in the final iteration, do that now.       
        finalIteration=.not.finalIteration .and. countIterations >= self%countIterationsMinimum .and. converged .and. self%countPhotonsPerWavelengthFinalIteration /= self%countPhotonsPerWavelength
     end do iterations
     ! Output convergence status.
-    if (mpiSelf%isMaster()) call outputGroup%writeAttribute(converged,'converged')
+    if (mpiSelf%isMaster()) then
+       !$ call hdf5Access%set()
+       call outputGroup%writeAttribute(converged,'converged')
+       !$ call hdf5Access%unset()
+    end if
     ! Output the computational domain.
     if (mpiSelf%isMaster()) call self%computationalDomain_       %output(outputGroup)
     ! Output outputter results.

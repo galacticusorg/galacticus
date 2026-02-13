@@ -158,6 +158,7 @@ contains
     use            :: Output_HDF5                     , only : outputFile
     use            :: Galacticus_Nodes                , only : nodeComponentBasic   , treeNode
     use            :: IO_HDF5                         , only : hdf5Object
+    use            :: HDF5_Access                     , only : hdf5Access
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Numerical_Constants_Astronomical, only : massSolar
     use            :: Numerical_Constants_Prefixes    , only : kilo
@@ -240,6 +241,7 @@ contains
     call node%destroy()
     deallocate(node)
     ! Open the group for output time information.
+    !$ call hdf5Access%set()
     if (self%outputGroup == ".") then
        outputsGroup  =outputFile    %openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
     else
@@ -262,6 +264,7 @@ contains
        call outputGroup   %writeDataset  (velocityDispersion1DMergingHalos(:,:,iOutput),'velocityDispersion1DMergingHalos','The 1-D velocity dispersion of pairs of merging halos.',datasetReturned=dataset)
        call dataset       %writeAttribute(kilo                                         ,'unitsInSI'                                                                                                        )
     end do
+    !$ call hdf5Access%unset()
     if (present(status)) status=errorStatusSuccess
     call displayUnindent('Done task: velocity field' )
     return

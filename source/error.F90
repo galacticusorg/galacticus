@@ -745,12 +745,10 @@ contains
     integer :: error
     
     !$ if (hdf5AccessInitialized) then
-    !$    if (.not.hdf5Access%ownedByThread()) &
-    !$      & call hdf5Access%set  (     )
-    call           H5Close_F       (error)
-    call           H5Close_C       (     )
-    !$    if (hdf5AccessInitialized      ) &
-    !$      & call hdf5Access%unset(     )
+    !$    call hdf5Access%set  (     )
+    call       H5Close_F       (error)
+    call       H5Close_C       (     )
+    !$    call hdf5Access%unset(     )
     !$ end if
     return
   end subroutine closeHDF5

@@ -235,6 +235,7 @@ contains
     use            :: Error                           , only : errorStatusSuccess
     use            :: Output_HDF5                     , only : outputFile
     use            :: IO_HDF5                         , only : hdf5Object
+    use            :: HDF5_Access                     , only : hdf5Access
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Numerical_Constants_Astronomical, only : massSolar         , megaParsec
     use            :: Numerical_Constants_Math        , only : Pi
@@ -331,6 +332,7 @@ contains
        end do
     end do
     ! Open the group for output time information.
+    !$ call hdf5Access%set()
     if (self%outputGroup == ".") then
        outputsGroup  =outputFile    %openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
     else
@@ -363,6 +365,7 @@ contains
           call outputGroup%writeDataset  (sigmaNonLinear           (:,iOutput),'sigmaNonlinear'           ,'The non-linear mass fluctuation on this scale.'                                                                )
        end if
     end do
+    !$ call hdf5Access%unset()
     if (present(status)) status=errorStatusSuccess
     call displayUnindent('Done task: power spectrum' )
     return
