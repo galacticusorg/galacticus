@@ -1090,10 +1090,9 @@ contains
 
     ! Return if acceleration is initialized.
     if (self%accelerationInitialized) return
-    block
+    accelerationTabulate: block
       type     (varying_string) :: fileName
       character(len=8         ) :: label
-      type     (hdf5Object    ) :: file
       type     (lockDescriptor) :: fileLock
       
       ! Construct a file name for the table.
@@ -1109,14 +1108,17 @@ contains
       call File_Lock(fileName,fileLock,lockIsShared=.true.)
       if (File_Exists(fileName)) then
          !$ call hdf5Access%set()
-         file=hdf5Object      (char(fileName                     ),readOnly=.true.                 )
-         call file%readDataset(     'radii'                       ,self%accelerationRadii          )
-         call file%readDataset(     'heights'                     ,self%accelerationHeights        )
-         call file%readDataset(     'accelerationRadial'          ,self%accelerationRadial         )
-         call file%readDataset(     'accelerationVertical'        ,self%accelerationVertical       )
-         call file%readDataset(     'tidalTensorRadialRadial'     ,self%tidalTensorRadialRadial    )
-         call file%readDataset(     'tidalTensorVerticalVertical' ,self%tidalTensorVerticalVertical)
-         call file%readDataset(     'tidalTensorCross'            ,self%tidalTensorCross           )
+         hdf5ReadScope: block
+           type(hdf5Object) :: file
+           file=hdf5Object      (fileName                     ,readOnly=.true.                 )
+           call file%readDataset('radii'                      ,self%accelerationRadii          )
+           call file%readDataset('heights'                    ,self%accelerationHeights        )
+           call file%readDataset('accelerationRadial'         ,self%accelerationRadial         )
+           call file%readDataset('accelerationVertical'       ,self%accelerationVertical       )
+           call file%readDataset('tidalTensorRadialRadial'    ,self%tidalTensorRadialRadial    )
+           call file%readDataset('tidalTensorVerticalVertical',self%tidalTensorVerticalVertical)
+           call file%readDataset('tidalTensorCross'           ,self%tidalTensorCross           )
+         end block hdf5ReadScope
          !$ call hdf5Access%unset()
       else
          ! Generate grid in radius and height.
@@ -1274,14 +1276,17 @@ contains
          call displayCounterClear(       verbosityLevelWorking)
          call displayUnindent     ("done",verbosityLevelWorking)
          !$ call hdf5Access%set()
-         file=hdf5Object       (char   (fileName                        )                              ,overWrite=.true.,readOnly=.false.)
-         call file%writeDataset(        self%accelerationRadii           ,'radii'                                                        )
-         call file%writeDataset(        self%accelerationHeights         ,'heights'                                                      )
-         call file%writeDataset(        self%accelerationRadial          ,'accelerationRadial'                                           )
-         call file%writeDataset(        self%accelerationVertical        ,'accelerationVertical'                                         )
-         call file%writeDataset(        self%tidalTensorRadialRadial     ,'tidalTensorRadialRadial'                                      )
-         call file%writeDataset(        self%tidalTensorVerticalVertical ,'tidalTensorVerticalVertical'                                  )
-         call file%writeDataset(        self%tidalTensorCross            ,'tidalTensorCross'                                             )
+         hdf5WriteScope: block
+           type(hdf5Object) :: file
+           file=hdf5Object       (fileName                                                      ,overWrite=.true.,readOnly=.false.)
+           call file%writeDataset(self%accelerationRadii          ,'radii'                                                        )
+           call file%writeDataset(self%accelerationHeights        ,'heights'                                                      )
+           call file%writeDataset(self%accelerationRadial         ,'accelerationRadial'                                           )
+           call file%writeDataset(self%accelerationVertical       ,'accelerationVertical'                                         )
+           call file%writeDataset(self%tidalTensorRadialRadial    ,'tidalTensorRadialRadial'                                      )
+           call file%writeDataset(self%tidalTensorVerticalVertical,'tidalTensorVerticalVertical'                                  )
+           call file%writeDataset(self%tidalTensorCross           ,'tidalTensorCross'                                             )
+         end block hdf5WriteScope
          !$ call hdf5Access%unset()
       end if
       call File_Unlock(fileLock)
@@ -1294,7 +1299,7 @@ contains
       self%accelerationHeightInverseInterval=1.0d0/log(self%accelerationHeights(2)/self%accelerationHeights(1))
       ! Record that the acceleration table is initialized.
       self%accelerationInitialized=.true.
-    end block
+    end block accelerationTabulate
     return
 
   contains
