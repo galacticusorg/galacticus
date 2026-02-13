@@ -414,7 +414,7 @@ contains
 
     ! Open the HDF5 file for output.
     !$ call hdf5Access%set  ()
-    outputFile=hdf5Object(char(self%outputFileName),overWrite=.true.,readOnly=.false.)
+    outputFile=hdf5Object(self%outputFileName,overWrite=.true.,readOnly=.false.)
     ! Create the header.
     header=outputFile%openGroup('Header','Group containing Gadget metadata.')
     ! Particle properties.
