@@ -2762,7 +2762,7 @@
       <massResolution value="1.0e10"/>
     </mergerTreeMassResolution>
     <mergerTreeOperator value="particulate">
-      <outputFileName value="testSuite/outputs/particulate.hdf5"/>
+      <outputFileName value="testSuite/outputs/particulated.hdf5"/>
       <massParticle value="1.0e10"/>
       <timeSnapshot value="10.0"/>
       <radiusTruncateOverRadiusVirial value="2.0"/>
