@@ -142,7 +142,7 @@ contains
     !!]
 #else
     !$GLC attributes unused :: points
-    self%qhull=c_null_ptr
+    self%qhull_ => null()
 #endif
     return
   end function convexHullConstructor
