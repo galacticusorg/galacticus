@@ -51,7 +51,8 @@
           &                                                                            massRangeMinimum                            , massRangeMaximum
      logical                                                                        :: likelihoodPoisson                           , includeDiscrepancyChecked, &
           &                                                                            report                                      , binAverage               , &
-          &                                                                            includeCorrelations
+          &                                                                            includeCorrelations                         , allowEmptyMassFunction   , &
+          &                                                                            isEmptyMassFunction
      integer                                                                        :: binCountMinimum                             , indexDiscrepancy
      type            (matrix                       ), dimension(:    ), allocatable :: covariance
      type            (varying_string               ), dimension(:    ), allocatable :: fileNames
@@ -94,7 +95,8 @@ contains
          &                                                                                      varianceFractionalModelDiscrepancy
     integer                                                                                  :: binCountMinimum
     logical                                                                                  :: likelihoodPoisson                 , report             , &
-         &                                                                                      binAverage                        , includeCorrelations
+         &                                                                                      binAverage                        , includeCorrelations, &
+         &                                                                                      allowEmptyMassFunction
 
     if (.not.parameters%isPresent('fileNames')) call Error_Report('`fileNames` parameter is not present'//{introspection:location})
     if (.not.parameters%isPresent('redshifts')) call Error_Report('`redshifts` parameter is not present'//{introspection:location})
@@ -145,6 +147,12 @@ contains
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
+      <name>allowEmptyMassFunction</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, empty mass functions (i.e. those with no useable bins) are allowed, and return $\log \mathcal{L}=0$.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
       <name>report</name>
       <defaultValue>.false.</defaultValue>
       <description>If true, give detailed reporting on likelihood calculations.</description>
@@ -182,7 +190,7 @@ contains
     <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parametersModel"/>
     <objectBuilder class="randomNumberGenerator"    name="randomNumberGenerator_"    source="parameters"     />
     !!]
-    self=posteriorSampleLikelihoodHaloMassFunction(fileNames,redshifts,massRangeMinimum,massRangeMaximum,binCountMinimum,likelihoodPoisson,varianceFractionalModelDiscrepancy,binAverage,includeCorrelations,report,parametersModel,changeParametersFileNames,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_,randomNumberGenerator_)
+    self=posteriorSampleLikelihoodHaloMassFunction(fileNames,redshifts,massRangeMinimum,massRangeMaximum,binCountMinimum,likelihoodPoisson,varianceFractionalModelDiscrepancy,binAverage,includeCorrelations,allowEmptyMassFunction,report,parametersModel,changeParametersFileNames,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_,randomNumberGenerator_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"      />
@@ -196,7 +204,7 @@ contains
     return
   end function haloMassFunctionConstructorParameters
 
-  function haloMassFunctionConstructorInternal(fileNames,redshifts,massRangeMinimum,massRangeMaximum,binCountMinimum,likelihoodPoisson,varianceFractionalModelDiscrepancy,binAverage,includeCorrelations,report,parametersModel,changeParametersFileNames,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_,randomNumberGenerator_) result(self)
+  function haloMassFunctionConstructorInternal(fileNames,redshifts,massRangeMinimum,massRangeMaximum,binCountMinimum,likelihoodPoisson,varianceFractionalModelDiscrepancy,binAverage,includeCorrelations,allowEmptyMassFunction,report,parametersModel,changeParametersFileNames,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_,randomNumberGenerator_) result(self)
     !!{
     Constructor for the \refClass{posteriorSampleLikelihoodHaloMassFunction} posterior sampling likelihood class.
     !!}
@@ -215,7 +223,8 @@ contains
          &                                                                                        varianceFractionalModelDiscrepancy
     integer                                                    , intent(in   )                 :: binCountMinimum
     logical                                                    , intent(in   )                 :: likelihoodPoisson                 , report             , &
-         &                                                                                        binAverage                        , includeCorrelations
+         &                                                                                        binAverage                        , includeCorrelations, &
+         &                                                                                        allowEmptyMassFunction
     type            (inputParameters                          ), intent(inout), target         :: parametersModel
     class           (cosmologyFunctionsClass                  ), intent(inout), target         :: cosmologyFunctions_
     class           (criticalOverdensityClass                 ), intent(inout), target         :: criticalOverdensity_
@@ -236,7 +245,7 @@ contains
     type            (matrix                                   )                                :: eigenVectors
     type            (vector                                   )                                :: eigenValues
     !![
-    <constructorAssign variables="fileNames, redshifts, binCountMinimum, massRangeMinimum, massRangeMaximum, likelihoodPoisson, varianceFractionalModelDiscrepancy, binAverage, includeCorrelations, report, changeParametersFileNames, *parametersModel, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, *linearGrowth_, *randomNumberGenerator_"/>
+    <constructorAssign variables="fileNames, redshifts, binCountMinimum, massRangeMinimum, massRangeMaximum, likelihoodPoisson, varianceFractionalModelDiscrepancy, binAverage, includeCorrelations, allowEmptyMassFunction, report, changeParametersFileNames, *parametersModel, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, *linearGrowth_, *randomNumberGenerator_"/>
     !!]
 
     ! Convert redshifts to times.
@@ -254,6 +263,7 @@ contains
     ! Validate.
     if (size(redshifts) /= size(fileNames)) call Error_Report('number of file names and number of redshifts do not match'//{introspection:location})
     ! Read the halo mass function files.
+    self%isEmptyMassFunction=.false.
     do iRedshift=1,size(redshifts)
        write (redshiftLabel,'(f6.3)') redshifts(iRedshift)
        !$ call hdf5Access%set()
@@ -277,7 +287,14 @@ contains
                   & ) cycle
              massCountReduced=massCountReduced+1
           end do
-          if (massCountReduced == 0) call Error_Report("no usable bins in mass function from file '"//trim(fileNames(iRedshift))//"'"//{introspection:location})
+          if (massCountReduced == 0) then
+             if (self%allowEmptyMassFunction) then
+                self%isEmptyMassFunction=.true.
+                exit
+             else                
+                call Error_Report("no usable bins in mass function from file '"//trim(fileNames(iRedshift))//"'"//{introspection:location})
+             end if
+          end if
           ! Construct the reduced mass function.
           if (iRedshift == 1) then
              allocate(self%mass        (massCountReduced                ))
@@ -469,6 +486,8 @@ contains
     logLikelihood=0.0d0
     ! Do not evaluate if the proposed prior is impossible.
     if (logPriorProposed <= logImpossible) return
+    ! Do not evaluate if the mass function is empty.
+    if (self%isEmptyMassFunction) return
     ! Ensure pointers into the base parameters are initialized.
     call self%initialize(modelParametersActive_,modelParametersInactive_)
     ! Record start time.
