@@ -164,8 +164,9 @@ sub iterate {
 			    my $dataTarget       = new PDL::IO::HDF5($entry->{'fileTargetData'});
 			    my $simulationTarget = $dataTarget->group('simulation0001');
 			    # Extract properties of the primary halo from the target data file.
+			    my @limitsMassMaximum = split(/:/,$entry->{'suite'}->{'limitMassMaximum'}->{'value'});
 			    ($entry->{'massPrimary'}) = $simulationTarget->attrGet('massPrimary')
-				if ( $entry->{'suite'}->{'limitMassMaximum'}->{'value'} eq "primaryFraction" );
+				if (  grep {$_ eq "primaryFraction"} @limitsMassMaximum );
 			    # Extract properties of the environment, if needed.
 			    if ( $entry->{'suite'}->{'includeEnvironment'}->{'value'} eq "true" ) {
 				foreach my $attributeName ( 'massEnvironment', 'overdensityEnvironment' ) {

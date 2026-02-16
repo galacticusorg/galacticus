@@ -11,7 +11,7 @@
     <includeIsolationBias value="false"/>
     <includePerturbation  value="true" />
     <includeEnvironment   value="false"/>
-    <limitMassMaximum     value="false"/>
+    <limitMassMaximum     value=""     />
     <group name="HugeMDPL" detectionEfficiencyClass="Rockstar1">
       <resolution name="resolutionX1">
 	<simulation name="CDM">
@@ -259,10 +259,13 @@
   
   <!-- COZMIC suite -->
   <suite name="COZMIC">
-    <includeIsolationBias value="true"           />
-    <includePerturbation  value="false"          />
-    <includeEnvironment   value="true"           />
-    <limitMassMaximum     value="primaryFraction"/>
+    <includeIsolationBias value="true"                           />
+    <includePerturbation  value="false"                          />
+    <includeEnvironment   value="true"                           />
+    <limitMassMaximum     value="primaryFraction:matchedPhaseICs"/>
+    <matchedICs       suite="Symphony" simulation="CDM"/>
+    <matchedIsolation suite="Symphony"                 />
+    <matchedDetection suite="Symphony"                 />
     <group name="MilkyWay">
       <resolution name="resolutionX1">
 	<simulation name="WDM:3keV">

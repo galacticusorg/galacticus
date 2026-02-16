@@ -6,6 +6,7 @@ use lib $ENV{'GALACTICUS_ANALYSIS_PERL_PATH'}."/perl";
 use Text::Template qw(fill_in_string);
 use XML::Simple;
 use PDL;
+use PDL::NiceSlice;
 use PDL::IO::HDF5;
 use Galacticus::Options;
 use Galacticus::Constraints::Simulations qw(iterate);
@@ -77,7 +78,12 @@ foreach my $entry ( &iterate($simulations,\%options, stopAfter => "group") ) {
 	$entry->{'group'}->{'name'}."\n";
     # Generate isolation bias parameters.
     if ( $entry->{'suite'}->{'includeIsolationBias'}->{'value'} eq "true" && $options{'removeMultiplier'} eq "false" ) {
-	($entry->{'group'}->{'labelIsolationBias'} = $entry->{'suite'}->{'name'}.$entry->{'group'}->{'name'}) =~ s/:/_/g;
+	if ( exists($entry->{'suite'}->{'matchedIsolation'}) ) {
+	    $entry->{'group'}->{'labelIsolationBias'} = $entry->{'suite'}->{'matchedIsolation'}->{'suite'}.$entry->{'group'}->{'name'};
+	} else {
+	    $entry->{'group'}->{'labelIsolationBias'} = $entry->{'suite'}                      ->{'name' }.$entry->{'group'}->{'name'};
+	}
+	$entry->{'group'}->{'labelIsolationBias'} =~ s/:/_/g;
 	$entry->{'group'}->{'isolationBias'     } =
 	    "haloMassFunctionParameters/isolationBias"          .$entry->{'group'}->{'labelIsolationBias'}.
 	    "  haloMassFunctionParameters/isolationBiasExponent".$entry->{'group'}->{'labelIsolationBias'};
@@ -171,13 +177,79 @@ foreach my $identifier ( sort(keys(%entryGroups)) ) {
 	"z=".join(", ",@content::redshifts                           )."\n";
     # Determine the minimum and maximum halo masses.
     $content::massHaloMinimum = sprintf("%11.5e",$content::countParticlesMinimum*$content::entry->{'resolution'}->{'massParticle'});
-    $content::massHaloMaximum = sprintf("%11.5e",$content::fractionMassPrimary  *$content::entry                ->{'massPrimary' })
-	if ( $content::entry->{'suite'}->{'limitMassMaximum'}->{'value'} eq "primaryFraction" );
+    ## There are multiple factors that affect the maximum mass. Accumulate a list of them and, after, find the most limiting.
+    my @limitsMassMaximum = split(/:/,$content::entry->{'suite'}->{'limitMassMaximum'}->{'value'});
+    my @massMaxima;
+    if ( grep {$_ eq "primaryFraction"} @limitsMassMaximum ) {
+	push(
+	    @massMaxima,
+	    {
+		mass   => $content::fractionMassPrimary*$content::entry->{'massPrimary'},
+		reason => $content::fractionMassPrimary." of the target halo mass"
+	    }
+	    );
+    }
+    #  $content::massHaloMaximum = sprintf("%11.5e",$content::fractionMassPrimary  *$content::entry                ->{'massPrimary' })    
+    # Determine maximum match to include limited by use of matched phase initial conditions.
+    if ( $content::entry->{'simulation'}->{'name'} ne "CDM" && grep {$_ eq "matchedPhaseICs"} @limitsMassMaximum ) {
+	# Iterate over redshifts.
+	my @redshiftsSorted = sort {float($a) <=> float($b)} @content::redshifts;
+	my $redshift = $redshiftsSorted[0];
+	# Read the mass functions for this model and the corresponding CDM model.
+	my $dataSelf      = new PDL::IO::HDF5($ENV{'GALACTICUS_DATA_PATH'}."/static/darkMatter/haloMassFunction_".$content::entry->{'suite'}                ->{'name' }."_".$content::entry->{'group'}->{'name'}."_".$content::entry->{'resolution'}->{'name'}."_".$content::entry->{'simulation'}                ->{'name'      }."_".$content::entry->{'realization'}."_z".$redshift.".hdf5");
+	my $dataReference = new PDL::IO::HDF5($ENV{'GALACTICUS_DATA_PATH'}."/static/darkMatter/haloMassFunction_".$content::entry->{'suite'}->{'matchedICs'}->{'suite'}."_".$content::entry->{'group'}->{'name'}."_".$content::entry->{'resolution'}->{'name'}."_".$content::entry->{'suite'     }->{'matchedICs'}->{'simulation'}."_".$content::entry->{'realization'}."_z".$redshift.".hdf5");
+	my $countSelf      = $dataSelf     ->group('simulation0001')->dataset('count')->get();
+	my $countReference = $dataReference->group('simulation0001')->dataset('count')->get();
+	my $mass           = $dataReference->group('simulation0001')->dataset('mass' )->get();
+	# Where the reference simulation has zero counts in a bin, use the value from the current simulation. This at least gives
+	# us some estimate of the counts.
+	my $zeroReference = which($countReference == 0);
+	my $countCombined = $countReference->copy();
+	$countCombined->($zeroReference) .= $countSelf->($zeroReference);
+	# For bins with a non-zero count, find the offset between the current and reference simulation, normalized to the
+	# uncertainty in the count (assuming Poisson statistics).
+	my $nonZero = which($countCombined > 0);
+	my $delta   = abs($countSelf->($nonZero)->float()-$countReference->($nonZero)->float())/sqrt($countCombined->($nonZero)->float());
+	# Find the lowest mass bin for which this offset exceeds 1.
+	my $iMaximum = nelem($delta)-1;
+	for(my $i=0;$i<nelem($delta);++$i) {
+	    if ( $delta->(($i)) <= 1.0 ) {
+		$iMaximum = $i;
+		last;
+	    }
+	}
+	# Construct a maximum mass which includes only bins below this threshold (by half a bin-width).
+	my $massMaximum = $mass->($nonZero)->(($iMaximum))/sqrt($mass->((1))/$mass->((0)));
+	push(
+	    @massMaxima,
+	    {
+		mass   => $massMaximum,
+		reason => "Matched phases with ".$content::entry->{'suite'}->{'matchedICs'}->{'suite'}." ".$content::entry->{'suite'}->{'matchedICs'}->{'simulation'}
+	    }
+	    );
+    }
+    # Find the most constraining maximum mass.
+    if ( @massMaxima ) {
+	my $massMaximumMinimum = 1.0e30;
+	foreach my $massMaximum ( @massMaxima ) {
+	    if ( $massMaximum->{'mass'} < $massMaximumMinimum ) {
+		$massMaximumMinimum             = $massMaximum->{'mass'  };
+		$content::massHaloMaximum       = $massMaximum->{'mass'  };
+		$content::massHaloMaximumReason = $massMaximum->{'reason'};
+	    }
+	}
+    }
     # Generate file names.
     @content::fileNamesBase   = map {$options{'outputDirectory'}  ."haloMassFunctionBase_".$content::entry->{'suite'}->{'name'}."_".$content::entry->{'group'}->{'name'}."_".$content::entry->{'resolution'}->{'name'}."_".$content::entry->{'simulation'}->{'name'}."_".$content::entry->{'realization'}."_z".$_.".xml" } @content::redshifts;
     @content::fileNamesTarget = map {"\%DATASTATICPATH\%/darkMatter/haloMassFunction_"    .$content::entry->{'suite'}->{'name'}."_".$content::entry->{'group'}->{'name'}."_".$content::entry->{'resolution'}->{'name'}."_".$content::entry->{'simulation'}->{'name'}."_".$content::entry->{'realization'}."_z".$_.".hdf5"} @content::redshifts;
     # Determine detection efficiency class.
-    (my $suiteName = $content::entry->{'suite'}->{'name'}) =~ s/://g;
+    my $suiteName;
+    if ( exists($content::entry->{'suite'}->{'matchedDetection'}) ) {
+	$suiteName = $content::entry->{'suite'}->{'matchedDetection'}->{'suite'};
+    } else {
+	$suiteName = $content::entry->{'suite'}                      ->{'name' };
+    }
+    $suiteName =~ s/://g;
     $content::class = $suiteName.(exists($content::entry->{'group'}->{'detectionEfficiencyClass'}) ? $content::entry->{'group'}->{'detectionEfficiencyClass'} : "");
     if ( $options{'removeDetectionEfficiency'} eq "false" ) {
 	++$detectionEfficiencyClasses{$content::class};
@@ -237,11 +309,12 @@ CODE
       <baseParametersFileName value="{         $fileNamesBase  [0] }"/>
       <fileNames              value="{join(" ",@fileNamesTarget   )}"/>
       <redshifts              value="{join(" ",@redshifts         )}"/>
+      <allowEmptyMassFunction value="true"                           />
       <massRangeMinimum       value="{$massHaloMinimum}"             /> <!-- {$countParticlesMinimum} times zoom-in {$entry->{'suite'}->{'name'}} {$entry->{'group'}->{'name'}} particle mass -->
 CODE
-    if ( $content::entry->{'suite'}->{'limitMassMaximum'}->{'value'} eq "primaryFraction" ) {
+    if ( $content::entry->{'suite'}->{'limitMassMaximum'}->{'value'} ne "" ) {
 	$configLikelihood .= fill_in_string(<<'CODE', PACKAGE => 'content');
-      <massRangeMaximum       value="{$massHaloMaximum}"/> <!-- {$fractionMassPrimary} of the target halo mass                                                                   -->
+      <massRangeMaximum       value="{$massHaloMaximum}"/> <!-- {$massHaloMaximumReason} -->
 CODE
     }
     $configLikelihood .= fill_in_string(<<'CODE', PACKAGE => 'content');
