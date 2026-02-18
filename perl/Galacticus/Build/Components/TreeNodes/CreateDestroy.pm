@@ -404,8 +404,6 @@ sub Tree_Node_Class_Destruction {
     # Generate a function to destroy component classes.
     my $build    = shift();
     $code::class = shift();
-    return
-	unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
     my $function =
     {
 	type        => "void",
@@ -425,7 +423,8 @@ sub Tree_Node_Class_Destruction {
 	     }
 	    ]
     };
-    $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
+    if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	$function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(self%component{ucfirst($class->{'name'})})) then
   do i=1,size(self%component{ucfirst($class->{'name'})})
     call self%component{ucfirst($class->{'name'})}(i)%destroy()
@@ -433,7 +432,13 @@ if (allocated(self%component{ucfirst($class->{'name'})})) then
   deallocate (self%component{ucfirst($class->{'name'})})
 end if
 CODE
-     # Insert a type-binding for this function.
+    } else {
+	$function->{'modules'} = [ "Error" ];
+	$function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
+call Error_Report("component '{$class->{'name'}}' is not active"//\{introspection:location\})
+CODE
+    }
+    # Insert a type-binding for this function.
     push(
 	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{
