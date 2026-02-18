@@ -94,8 +94,8 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           ./Galacticus.exe ./testSuite/parameters/benchmark_${{ inputs.name }}.xml
           if [[ ${{ inputs.profiler }} == 'perf' ]]; then
-           perf record -g -e cycles --call-graph dwarf -F ${{ inputs.frequency }} -o ./testSuite/outputs/${{ inputs.name }}.perf.data ./Galacticus.exe ./testSuite/parameters/benchmark_${{ inputs.name }}.xml
-           perf script -i ./testSuite/outputs/${{ inputs.name }}.perf.data > ./testSuite/outputs/${{ inputs.name }}.perf
+           /usr/lib/linux-tools/$(uname -r)/perf record -g -e cycles --call-graph dwarf -F ${{ inputs.frequency }} -o ./testSuite/outputs/${{ inputs.name }}.perf.data ./Galacticus.exe ./testSuite/parameters/benchmark_${{ inputs.name }}.xml
+           /usr/lib/linux-tools/$(uname -r)/perf script -i ./testSuite/outputs/${{ inputs.name }}.perf.data > ./testSuite/outputs/${{ inputs.name }}.perf
            du -sh ./testSuite/outputs/${{ inputs.name }}.perf
            bzip2 ./testSuite/outputs/${{ inputs.name }}.perf
           elif [[ ${{ inputs.profiler }} == 'gprof' ]]; then
