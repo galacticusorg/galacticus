@@ -82,7 +82,7 @@ jobs:
   # Validate Perl scripts
   Validate-Perl-Scripts:
     runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:gfortranFinalization
     steps:
       - uses: actions/checkout@v6
       - name: Check out repository analysis-perl
@@ -128,7 +128,7 @@ jobs:
   # Validate Perl modules
   Validate-Perl-Modules:
     runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:gfortranFinalization
     steps:
       - uses: actions/checkout@v6
       - name: "Set environmental variables"
@@ -162,7 +162,7 @@ jobs:
   # Fortran static analysis
   Fortran-Static-Analysis:
     runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:gfortranFinalization
     steps:
       - uses: actions/checkout@v6
       - name: "Set environmental variables"
@@ -192,7 +192,7 @@ jobs:
   # Embedded XML and LaTeX checks
   Embedded-XML-LaTeX:
     runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:gfortranFinalization
     steps:
       - name: Check out repository code
         uses: actions/checkout@v6
@@ -248,7 +248,7 @@ jobs:
   # Spell check LaTeX files
   Spell-Check-LaTeX:
     runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:gfortranFinalization
     steps:
       - name: Check out repository code
         uses: actions/checkout@v6
