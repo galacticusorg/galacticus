@@ -79,7 +79,7 @@ jobs:
         if: ${{ steps.detector.outputs.detected == 'true' }}
         run: |
           apt -y update && apt -y upgrade
-          apt -y install ${{ format('{0}',inputs.profiler) == 'perf' && 'linux-tools-$(uname -r) linux-tools-generic' || '' }} bzip2
+          apt -y install ${{ format('{0}',inputs.profiler) == 'perf' && 'linux-tools-$(uname -r) linux-cloud-tools-$(uname -r) linux-tools-generic' || '' }} bzip2
       - name: Mark time for cache accesses
         if: ${{ format('{0}',inputs.cacheData) == '1' }}
         run: |
