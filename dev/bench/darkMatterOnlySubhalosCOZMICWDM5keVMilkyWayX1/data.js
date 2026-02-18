@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1771024630568,
+  "lastUpdate": 1771385604718,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 5keV resolutionX1)": [
@@ -1050,6 +1050,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (COZMIC WDM:5keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 24.7436558042117,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "62bdb858689c23aece580508e1399efc7b67a23a",
+          "message": "Merge pull request #1000 from galacticusorg/fixHopins2007LockLocation\n\nUse the `dynamic` datasets path for a lock file",
+          "timestamp": "2026-02-17T15:15:20Z",
+          "tree_id": "704d7ea1e4022aa578979412e960d11685d80f9c",
+          "url": "https://github.com/galacticusorg/galacticus/commit/62bdb858689c23aece580508e1399efc7b67a23a"
+        },
+        "date": 1771385604044,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:5keV resolution X1 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": 1.6312538405160524,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:5keV resolution X1 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 1.967132013469835,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:5keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 26.665218455851484,
             "unit": "-logℒ"
           }
         ]
