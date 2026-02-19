@@ -87,22 +87,26 @@ jobs:
         id: tester
         if: ${{ steps.detector.outputs.detected == 'true' }}
         run: |
-          echo Testing perf...
-          echo "int main() { return 0; }" > test.c
-          gcc -g test.c
-          if perf record -g -e cycles --call-graph dwarf -F 500 -o ./a.perf.data ./a.out; then
-             echo ...perf test passed
-             echo "tested=true" >> "$GITHUB_OUTPUT"
+          if [[ ${{ format('{0}',inputs.profiler) }} == "perf" ]]; then
+             echo Testing perf...
+             echo "int main() { return 0; }" > test.c
+             gcc -g test.c
+             if perf record -g -e cycles --call-graph dwarf -F 500 -o ./a.perf.data ./a.out; then
+                echo ...perf test passed
+                echo "tested=true" >> "$GITHUB_OUTPUT"
+             else
+                echo ...perf test failed
+                echo "tested=false" >> "$GITHUB_OUTPUT"
+                echo '## :warning: `linux-tools` was installed, but perf does not work - remainder of job will be skipped :warning:' >> $GITHUB_STEP_SUMMARY
+                echo 'Kernel version is: '`uname -r` >> $GITHUB_STEP_SUMMARY
+                echo 'Available `linux-tools` versions are:' >> $GITHUB_STEP_SUMMARY
+                apt list | grep -P linux\-tools\-[0-9\.\-]+\-azure >> $GITHUB_STEP_SUMMARY
+                # Create a dummy file here so that we have something to upload.
+                mkdir -p ./testSuite/outputs
+                echo "perf tests disabled due to missing linux-tools" > ./testSuite/outputs/${{ inputs.name }}.${{ format('{0}',inputs.profiler) == 'perf' && 'perf.bz2' || 'gprof.bz2' }}
+             fi
           else
-             echo ...perf test failed
-             echo "tested=false" >> "$GITHUB_OUTPUT"
-             echo '## :warning: `linux-tools` was installed, but perf does not work - remainder of job will be skipped :warning:' >> $GITHUB_STEP_SUMMARY
-             echo 'Kernel version is: '`uname -r` >> $GITHUB_STEP_SUMMARY
-             echo 'Available `linux-tools` versions are:' >> $GITHUB_STEP_SUMMARY
-             apt list | grep -P linux\-tools\-[0-9\.\-]+\-azure >> $GITHUB_STEP_SUMMARY
-             # Create a dummy file here so that we have something to upload.
-             mkdir -p ./testSuite/outputs
-             echo "perf tests disabled due to missing linux-tools" > ./testSuite/outputs/${{ inputs.name }}.${{ format('{0}',inputs.profiler) == 'perf' && 'perf.bz2' || 'gprof.bz2' }}
+             echo "tested=true" >> "$GITHUB_OUTPUT"
           fi
       - name: Mark time for cache accesses
         if: ${{ format('{0}',inputs.cacheData) == '1' }}
