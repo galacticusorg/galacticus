@@ -95,7 +95,7 @@ jobs:
              echo "tested=true" >> "$GITHUB_OUTPUT"
           else
              echo ...perf test failed
-             echo "tested=false >> "$GITHUB_OUTPUT"
+             echo "tested=false" >> "$GITHUB_OUTPUT"
              echo '## :warning: `linux-tools` was installed, but perf does not work - remainder of job will be skipped :warning:' >> $GITHUB_STEP_SUMMARY
              echo 'Kernel version is: '`uname -r` >> $GITHUB_STEP_SUMMARY
              echo 'Available `linux-tools` versions are:' >> $GITHUB_STEP_SUMMARY
