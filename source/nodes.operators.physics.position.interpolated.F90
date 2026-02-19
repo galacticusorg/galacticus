@@ -416,8 +416,8 @@ contains
     if (reporting) then
        write (label,'(i12)') node%index()
        call displayIndent('Tracing node: '//trim(adjustl(label)))
-       call displayMessage('time         timeHost     isSatellite iHistory countHistory')
-       call displayMessage('-----------------------------------------------------------')
+       call displayMessage('nodeIndex    hostIndex    time         timeHost     isSatellite iHistory countHistory')
+       call displayMessage('_____________________________________________________________________________________')
     end if
     do while (associated(nodeDescendant))
        ! Determine if any position history is available for the current descendant.
@@ -517,7 +517,7 @@ contains
           traceTail => traceHead
        end if
        if (reporting) then
-          write (label,'(e12.6,1x,e12.6,1x,l1,1x,i4,1x,i4)') time,basicHost%time(),isSatellite,iHistory,countHistory
+          write (label,'(i12,1x,i12,1x,e12.6,1x,e12.6,1x,l1,1x,i4,1x,i4)') nodeDescendant%index(),nodeHost%index(),time,basicHost%time(),isSatellite,iHistory,countHistory
           call displayMessage(trim(adjustl(label)))
        end if
        traceTail%time        =  time
@@ -544,11 +544,16 @@ contains
           end if
           if (haveSubhaloPromotion) then
              ! We have a subhalo promotion - move our pointer to that node.
-             nodeDescendant => event         %node
-             nodeHost       => nodeDescendant        ! This is always an isolated halo by construction, so must be self-hosting.
+             nodeDescendant    => event         %node
+             nodeHost          => nodeDescendant               ! This is always an isolated halo by construction, so must be self-hosting.
           else
-             nodeDescendant => nodeHost      %parent ! Always move to the host's parent - this allows us to correctly handle satellites that have been orphanized.
-             nodeHost       => nodeDescendant        ! This is always an isolated halo by construction, so must be self-hosting.
+             ! Always move to the host's parent - this allows us to correctly handle satellites that have been orphanized.
+             if (.not.associated(nodeDescendant,nodeHost) .and. associated(nodeHost%parent) .and. nodeHost%parent%index() == nodeHost%index()) then
+                nodeDescendant => nodeHost      %parent%parent ! Parent is a clone (and descendant is a satellite), so skip over it.
+             else
+                nodeDescendant => nodeHost      %parent        ! Parent is not a clone, use directly.
+             end if
+             nodeHost          => nodeDescendant               ! This is always an isolated halo by construction, so must be self-hosting.
           end if
           ! Update the time if the descendant exists.
           if (associated(nodeDescendant)) then
@@ -739,6 +744,10 @@ contains
        if (associated(traceTail%next)) then ! Skip the final step as we can't interpolate into the future.
           ! Catch any duplicated times.
           if (traceTail%time == traceTail%next%time) then
+             if (reporting) then
+                write (message,'(i12,1x,i12,1x,f8.5,1x,l1,10x,i4)') traceTail%next%node%index(),traceTail%next%nodeHost%index(),traceTail%next%time,traceTail%next%isSatellite,traceTail%next%iHistory
+                call displayMessage(message)
+             end if
              write (label,'(e12.6)') traceTail%time
              call Error_Report(var_str('duplicated time (')//trim(adjustl(label))//' Gyr) in position trace for node '//node%index()//{introspection:location})
           end if
@@ -758,7 +767,7 @@ contains
              offset                                                                   =offset+countCoefficientsCubicPolynomial
              coefficients(offset+1_c_size_t:offset+countCoefficientsLogarithmicSpiral)=reshape(coefficientsSpiral,[countCoefficientsLogarithmicSpiral])
              if (reporting) then
-                call displayIndent("logarithmic spiral")
+                call displayIndent("satellite")
                 write (message,'(20(e12.6,1x))') reshape(coefficientsSpiral,[countCoefficientsLogarithmicSpiral])
                 call displayMessage("satellite: "//trim(message))
                 write (message,'(12(e12.6,1x))') reshape(coefficientsCubic ,[countCoefficientsCubicPolynomial  ])
@@ -773,6 +782,12 @@ contains
              !! Store the coefficients.
              offset                                                                 =2_c_size_t*(countTrace-1_c_size_t)+(countCoefficientsCubicPolynomial+countCoefficientsLogarithmicSpiral)*iTrace
              coefficients(offset+1_c_size_t:offset+countCoefficientsCubicPolynomial)=reshape(coefficientsCubic,[countCoefficientsCubicPolynomial])
+             if (reporting) then
+                call displayIndent("non-satellite")
+                write (message,'(12(e12.6,1x))') reshape(coefficientsCubic ,[countCoefficientsCubicPolynomial  ])
+                call displayMessage("     self: "//trim(message))
+                call displayUnindent("")
+             end if
           end if
        end if
        ! Move to the next step, cleaning up our list as we go.
@@ -850,14 +865,15 @@ contains
       class           (nodeComponentPosition)                  , pointer :: position                            , positionHost      
       class           (nodeComponentBasic   )                  , pointer :: basicHost
       double precision                       , dimension(  2  )          :: time
-      double precision                       , dimension(  2,3)          :: positionRelative
+      double precision                       , dimension(  2,3)          :: positionRelative                    , positionSatelliteComoving, &
+           &                                                                positionHostComoving
       double precision                       , dimension(  2,2)          :: coefficientsAngle                   , coefficientsLogRadius
-      double precision                       , dimension(    3)          :: positionSatellite_                  , positionHost_        , &
+      double precision                       , dimension(    3)          :: positionSatellite_                  , positionHost_            , &
            &                                                                vectorNormal
       double precision                       , dimension(2,2,3)          :: vectorInPlaneNormal
       double precision                       , parameter                 :: separationTiny               =1.0d-6
       type            (history              )                            :: positionHistory
-      integer                                                            :: i                                   , j                    , &
+      integer                                                            :: i                                   , j                        , &
            &                                                                k
       double precision                                                   :: expansionFactor                     , expansionFactorHost
 
@@ -886,10 +902,11 @@ contains
                ! Position.
                positionSatellite_=positionHistory%data    (trace_%iHistory,1:3)
                positionHost_     =positionHost   %position(                   )
+               ! Get expansion factors.
+               expansionFactor    =self%cosmologyFunctions_%expansionFactor(trace_   %time  )
+               expansionFactorHost=self%cosmologyFunctions_%expansionFactor(basicHost%time())
                ! Handle periodic positions.
                if (self%isPeriodic) then
-                  expansionFactor    =self%cosmologyFunctions_%expansionFactor(trace_   %time  )
-                  expansionFactorHost=self%cosmologyFunctions_%expansionFactor(basicHost%time())
                   do j=1,3
                      if (positionSatellite_(j)/expansionFactor     > positionReference(j)+0.5d0*self%lengthBox) positionSatellite_(j)=positionSatellite_(j)-self%lengthBox*expansionFactor
                      if (positionSatellite_(j)/expansionFactor     < positionReference(j)-0.5d0*self%lengthBox) positionSatellite_(j)=positionSatellite_(j)+self%lengthBox*expansionFactor
@@ -897,7 +914,15 @@ contains
                      if (positionHost_     (j)/expansionFactorHost < positionReference(j)-0.5d0*self%lengthBox) positionHost_     (j)=positionHost_     (j)+self%lengthBox*expansionFactorHost
                   end do
                end if
-               positionRelative(i,:)=positionSatellite_                          -positionHost_
+               ! Record comoving positions for reporting.
+               if (reporting) then
+                  positionSatelliteComoving(i,:)=positionSatellite_/expansionFactor
+                  positionHostComoving     (i,:)=positionHost_     /expansionFactorHost
+               end if
+               ! If the host is not at the same expansion factor as the satellite we must translate its physical position to what it would be at the expansion factor of the satellite.
+               positionHost_=positionHost_*expansionFactor/expansionFactorHost
+               ! Compute the relative physical position.
+               positionRelative         (i,:)=positionSatellite_                          -positionHost_
             case (2)
                ! Velocity
                positionRelative(i,:)=positionHistory   %data(trace_%iHistory,4:6)-positionHost %velocity()
@@ -970,6 +995,23 @@ contains
               &                     *coefficientsLogRadius(k,2)                     &
               &                     +log(Vector_Magnitude(positionRelative(1,:)))     
       end do
+      ! Report.
+      if (reporting) then
+         call displayIndent("logarithmic polynomial")
+         call displayIndent("satellite")
+         write (message,'(3(e12.6,1x))') positionSatelliteComoving(1,:)
+         call displayMessage("start: "//trim(message))
+         write (message,'(3(e12.6,1x))') positionSatelliteComoving(2,:)
+         call displayMessage("  end: "//trim(message))
+         call displayUnindent("")
+         call displayIndent("     host")
+         write (message,'(3(e12.6,1x))') positionHostComoving     (1,:)
+         call displayMessage("start: "//trim(message))
+         write (message,'(3(e12.6,1x))') positionHostComoving     (2,:)
+         call displayMessage("  end: "//trim(message))
+         call displayUnindent("")
+         call displayUnindent("")
+      end if
       ! Store the computed interpolation coefficients.
       coefficientsLogarithmicSpiral( 1:12)=reshape(vectorInPlaneNormal  ,[12])
       coefficientsLogarithmicSpiral(13:16)=reshape(coefficientsAngle    ,[ 4])
@@ -1002,7 +1044,8 @@ contains
       type            (history                         )                              :: positionHistory
       logical                                                                         :: isClone
       double precision                                                                :: expansionFactor
-      
+      character       (len=512                         )                              :: message
+
       do i=1,2
          select case (i)
          case (1)
@@ -1039,6 +1082,15 @@ contains
                if (positionComoving(i,j) < positionReference(j)-0.5d0*self%lengthBox) positionComoving(i,j)=positionComoving(i,j)+self%lengthBox
             end do
          end do
+      end if
+      ! Report.
+      if (reporting) then
+         call displayIndent("cubic polynomial")
+         write (message,'(3(e12.6,1x))') positionComoving(1,:)
+         call displayMessage("start: "//trim(message))
+         write (message,'(3(e12.6,1x))') positionComoving(2,:)
+         call displayMessage("  end: "//trim(message))
+         call displayUnindent("")
       end if
       ! Solve for the interpolation coefficients in each Cartesian axis.
       isClone=Values_Agree(times(1),times(2),relTol=2.0d-9)

@@ -724,15 +724,15 @@ contains
     !!{
     Compute the mean luminosity of the stellar population in each bin of the star formation history.
     !!}
-    use :: Display                , only : displayIndent        , displayUnindent, displayCounter, displayCounterClear, &
+    use :: Display                , only : displayIndent                   , displayUnindent             , displayCounter        , displayCounterClear, &
          &                                 verbosityLevelWorking
     use :: Error                  , only : Error_Report
     use :: Histories              , only : history
     use :: Numerical_Integration  , only : integrator
     use :: Multi_Counters         , only : multiCounter
     use :: Locks                  , only : ompLock
+    use :: Table_Labels           , only : enumerationExtrapolationTypeType, extrapolationTypeExtrapolate, extrapolationTypeAbort
     use :: Numerical_Interpolation, only : interpolator
-    !$ use :: OMP_Lib, only : OMP_Get_Thread_Num
     implicit none
     double precision                                             , dimension(:,:,:)                            , allocatable :: luminosityMean
     class           (nodePropertyExtractorLuminosityEmissionLine), intent(inout)                                             :: self
@@ -746,6 +746,7 @@ contains
     double precision                                             , dimension(  :,:)                            , allocatable :: masses
     type            (integrator                                 ), save                                        , allocatable :: integratorTime            , integratorMetallicity
     type            (interpolator                               ), save                                        , allocatable :: interpolatorTime          , interpolatorMetallicity
+    type            (enumerationExtrapolationTypeType           ), dimension(2    )                                          :: extrapolationTime
     integer         (c_size_t                                   )                                                            :: iTime                     , iMetallicity           , &
          &                                                                                                                      counter                   , counterMaximum         , &
          &                                                                                                                      iterator
@@ -778,8 +779,12 @@ contains
     integratorMetallicity=integrator(emissionLineLuminosityIntegrandMetallicity,toleranceRelative=self%toleranceRelative)
     allocate(interpolatorTime       )
     allocate(interpolatorMetallicity)
-    interpolatorTime       =interpolator(self%ages         )
-    interpolatorMetallicity=interpolator(self%metallicities)
+    ! Allow extrapolation to smaller ages. Some stellar population models (and, therefore, the resulting Cloudy tables) do not
+    ! have entries for zero age populations. In such cases we allow for extrapolation below the smallest age present in the table.
+    extrapolationTime      (1)=extrapolationTypeExtrapolate
+    extrapolationTime      (2)=extrapolationTypeAbort
+    interpolatorTime       =interpolator(self%ages         ,extrapolationType=extrapolationTime)
+    interpolatorMetallicity=interpolator(self%metallicities                                    )
     !$omp master
     if (parallelize_) then
        !$omp critical(gfortranInternalIO)
