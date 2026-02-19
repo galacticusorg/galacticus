@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a depth-first merger tree walker over all nodes including formation nodes.
+Implements a depth-first merger tree walker over all nodes including formation nodes.
 !!}
 
   !![
@@ -39,7 +39,7 @@ Contains a module which implements a depth-first merger tree walker over all nod
 
   interface mergerTreeWalkerAllAndFormationNodes
      !!{
-     Constructors for the {\normalfont \ttfamily allAndFormationNodes} merger tree walker class.
+     Constructors for the \refClass{mergerTreeWalkerAllAndFormationNodes} merger tree walker class.
      !!}
      module procedure allAndFormationNodesParameters
      module procedure allAndFormationNodesInternal
@@ -49,7 +49,7 @@ contains
 
   function allAndFormationNodesParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily allAndFormationNodes} merger tree walker class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeWalkerAllAndFormationNodes} merger tree walker class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameters
@@ -64,7 +64,7 @@ contains
 
   function allAndFormationNodesInternal(tree,spanForest) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily allAndFormationNodes} merger tree walker class.
+    Internal constructor for the \refClass{mergerTreeWalkerAllAndFormationNodes} merger tree walker class.
     !!}
     implicit none
     type   (mergerTreeWalkerAllAndFormationNodes)                          :: self

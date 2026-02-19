@@ -52,7 +52,7 @@
 
   interface mergerTreeBuilderConstrained
      !!{
-     Constructors for the {\normalfont \ttfamily constrained} merger tree builder class.
+     Constructors for the \refClass{mergerTreeBuilderConstrained} merger tree builder class.
      !!}
      module procedure constrainedConstructorParameters
      module procedure constrainedConstructorInternal
@@ -136,7 +136,7 @@ contains
 
   subroutine constrainedDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily constrained} merger tree builder class.
+    Destructor for the \refClass{mergerTreeBuilderConstrained} merger tree builder class.
     !!}
     implicit none
     type(mergerTreeBuilderConstrained), intent(inout) :: self

@@ -46,7 +46,7 @@
 
   interface posteriorSampleStateInitializeGaussianSphere
      !!{
-     Constructors for the {\normalfont \ttfamily gaussianSphere} posterior sampling state initialization class.
+     Constructors for the \refClass{posteriorSampleStateInitializeGaussianSphere} posterior sampling state initialization class.
      !!}
      module procedure gaussianSphereConstructorParameters
      module procedure gaussianSphereConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function gaussianSphereConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily gaussianSphere} posterior sampling state initialization class.
+    Constructor for the \refClass{posteriorSampleStateInitializeGaussianSphere} posterior sampling state initialization class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -89,7 +89,7 @@ contains
 
   function gaussianSphereConstructorInternal(radiusSphere,radiusIsRelative,randomNumberGenerator_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily gaussianSphere} posterior sampling state initialization class.
+    Internal constructor for the \refClass{posteriorSampleStateInitializeGaussianSphere} posterior sampling state initialization class.
     !!}
     implicit none
     type            (posteriorSampleStateInitializeGaussianSphere)                        :: self
@@ -105,7 +105,7 @@ contains
 
   subroutine gaussianSphereDestructor(self)
     !!{
-    Destructor for the  {\normalfont \ttfamily gaussianSphere} posterior sampling state initialization class.
+    Destructor for the \refClass{posteriorSampleStateInitializeGaussianSphere} posterior sampling state initialization class.
     !!}
     implicit none
     type(posteriorSampleStateInitializeGaussianSphere), intent(inout) :: self

@@ -40,7 +40,7 @@
 
   interface satelliteMergingTimescalesRandom
      !!{
-     Constructors for the {\normalfont \ttfamily random} satellite merging timescale class.
+     Constructors for the \refClass{satelliteMergingTimescalesRandom} satellite merging timescale class.
      !!}
      module procedure randomConstructorParameters
   end interface satelliteMergingTimescalesRandom

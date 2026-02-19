@@ -48,7 +48,7 @@
 
   interface mergerTreeEvolveTimestepHostTidalMassLoss
      !!{
-     Constructors for the {\normalfont \ttfamily hostTidalMassLoss} merger tree evolution timestep class.
+     Constructors for the \refClass{mergerTreeEvolveTimestepHostTidalMassLoss} merger tree evolution timestep class.
      !!}
      module procedure hostTidalMassLossConstructorParameters
      module procedure hostTidalMassLossConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function hostTidalMassLossConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily hostTidalMassLoss} merger tree evolution timestep class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeEvolveTimestepHostTidalMassLoss} merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -92,7 +92,7 @@ contains
 
   function hostTidalMassLossConstructorInternal(timeStepRelative,fractionTimestepMinimum,satelliteTidalStripping_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily hostTidalMassLoss} merger tree evolution timestep class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeEvolveTimestepHostTidalMassLoss} merger tree evolution timestep class which takes a parameter set as input.
     !!}
     implicit none
     type            (mergerTreeEvolveTimestepHostTidalMassLoss)                        :: self
@@ -107,7 +107,7 @@ contains
 
   subroutine hostTidalMassLossDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily hostTidalMassLoss} merger tree evolution timestep class.
+    Destructor for the \refClass{mergerTreeEvolveTimestepHostTidalMassLoss} merger tree evolution timestep class.
     !!}
     implicit none
     type(mergerTreeEvolveTimestepHostTidalMassLoss), intent(inout) :: self

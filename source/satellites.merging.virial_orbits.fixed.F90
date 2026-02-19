@@ -60,7 +60,7 @@
 
   interface virialOrbitFixed
      !!{
-     Constructors for the {\normalfont \ttfamily fixed} virial orbit class.
+     Constructors for the \refClass{virialOrbitFixed} virial orbit class.
      !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
@@ -70,7 +70,7 @@ contains
 
   function fixedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily fixed} satellite virial orbit class which takes a parameter set as input.
+    Constructor for the \refClass{virialOrbitFixed} satellite virial orbit class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -118,7 +118,7 @@ contains
 
   function fixedConstructorInternal(velocityRadial,velocityTangential,virialDensityContrastDefinition_,darkMatterHaloScale_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily fixed} virial orbits class.
+    Internal constructor for the \refClass{virialOrbitFixed} virial orbits class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -139,7 +139,7 @@ contains
 
   subroutine fixedDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily fixed} virial orbits class.
+    Destructor for the \refClass{virialOrbitFixed} virial orbits class.
     !!}
     implicit none
     type(virialOrbitFixed), intent(inout) :: self
@@ -381,7 +381,7 @@ contains
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
-    use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical    , only : gravitationalConstant_internal
     implicit none
     class           (virialOrbitFixed  ), intent(inout) :: self
     type            (treeNode          ), intent(inout) :: node        , host
@@ -408,7 +408,7 @@ contains
          &               +basic    %mass()                              &
          &               /basicHost%mass()                              &
          &              )                                               &
-         &             -gravitationalConstantGalacticus                 &
+         &             -gravitationalConstant_internal                  &
          &             *massHost                                        &
          &             /radiusHost
     return

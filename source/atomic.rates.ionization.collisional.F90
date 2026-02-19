@@ -34,11 +34,11 @@ module Atomic_Rates_Ionization_Collisional
    <description>Class providing atomic collisional ionization rates.</description>
    <default>verner1996</default>
    <method name="rate" >
-    <description>Returns the radiative recombination rate.</description>
+    <description>Returns the radiative recombination rate in units of cm$^3$ s$^{-1}$.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>integer         , intent(in   ) :: atomicNumber, ionizationState</argument>
-    <argument>double precision, intent(in   ) :: temperature</argument>
+    <argument>double precision, intent(in   ) :: temperature                  </argument>
    </method>
   </functionClass>
   !!]

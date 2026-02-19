@@ -112,6 +112,21 @@ module Star_Formation_Histories
       if (present(timeStart)) timeStart=0.0d0
     </code>
    </method>
+   <method name="timeNext">
+     <description></description>
+     <type>double precision</type>
+     <pass>yes</pass>
+     <argument>type(treeNode), intent(inout) :: node                </argument>
+     <argument>type(history ), intent(in   ) :: starFormationHistory</argument>
+     <modules>Galacticus_Nodes Arrays_Search</modules>
+     <code>
+       class  (nodeComponentBasic), pointer :: basic
+       integer(c_size_t          )          :: i
+       basic                        => node%basic()
+       i                            =  searchArray(starFormationHistory%time,basic%time())
+       starFormationHistoryTimeNext =  starFormationHistory%time(i+1)
+     </code>
+   </method>
    <method name="masses" >
     <description>Return an array of masses of stars formed for this history.</description>
     <type>double precision, allocatable, dimension(:,:)</type>

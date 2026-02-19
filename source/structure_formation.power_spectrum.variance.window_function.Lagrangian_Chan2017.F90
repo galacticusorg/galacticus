@@ -18,8 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which provides a power spectrum window function class that implements the Lagrangian filter of
-  \cite{chan_effective_2017}.
+  Provides a power spectrum window function class that implements the Lagrangian filter of \cite{chan_effective_2017}.
   !!}
 
   use :: Cosmology_Parameters, only : cosmologyParametersClass
@@ -44,7 +43,7 @@
 
   interface powerSpectrumWindowFunctionLagrangianChan2017
      !!{
-     Constructors for the {\normalfont \ttfamily lagrangianChan2017} power spectrum window function class.
+     Constructors for the \refClass{powerSpectrumWindowFunctionLagrangianChan2017} power spectrum window function class.
      !!}
      module procedure lagrangianChan2017ConstructorParameters
      module procedure lagrangianChan2017ConstructorInternal
@@ -54,7 +53,7 @@ contains
 
   function lagrangianChan2017ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily lagrangianChan2017} power spectrum window function class which takes a parameter set as input.
+    Constructor for the \refClass{powerSpectrumWindowFunctionLagrangianChan2017} power spectrum window function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -82,7 +81,7 @@ contains
 
   function lagrangianChan2017ConstructorInternal(cosmologyParameters_,f) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily lagrangianChan2017} power spectrum window function class.
+    Internal constructor for the \refClass{powerSpectrumWindowFunctionLagrangianChan2017} power spectrum window function class.
     !!}
     implicit none
     type            (powerSpectrumWindowFunctionLagrangianChan2017)                        :: self
@@ -98,7 +97,7 @@ contains
 
   subroutine lagrangianChan2017Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily lagrangianChan2017} power spectrum window function class.
+    Destructor for the \refClass{powerSpectrumWindowFunctionLagrangianChan2017} power spectrum window function class.
     !!}
     implicit none
     type(powerSpectrumWindowFunctionLagrangianChan2017), intent(inout) :: self

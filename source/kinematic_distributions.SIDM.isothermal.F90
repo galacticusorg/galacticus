@@ -42,7 +42,7 @@
 
   interface kinematicsDistributionSIDMIsothermal
      !!{
-     Constructors for the {\normalfont \ttfamily sidmIsothermal} kinematic distribution class.
+     Constructors for the \refClass{kinematicsDistributionSIDMIsothermal} kinematic distribution class.
      !!}
      module procedure sidmIsothermalConstructorParameters
      module procedure sidmIsothermalConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function sidmIsothermalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sidmIsothermal} kinematic distribution class which builds the object from a parameter
+    Constructor for the \refClass{kinematicsDistributionSIDMIsothermal} kinematic distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -69,7 +69,7 @@ contains
 
   function sidmIsothermalConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily sidmIsothermal} kinematic distribution class.
+    Internal constructor for the \refClass{kinematicsDistributionSIDMIsothermal} kinematic distribution class.
     !!}
     implicit none
     type(kinematicsDistributionSIDMIsothermal) :: self
@@ -88,28 +88,30 @@ contains
     return
   end function sidmIsothermalIsCollisional
 
-  double precision function sidmIsothermalVelocityDispersion1D(self,coordinates,massDistributionEmbedding) result(velocityDispersion)
+  double precision function sidmIsothermalVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
     !!{
     Return the 1D velocity dispersion at the specified {\normalfont \ttfamily coordinates} in an SIDMIsothermal kinematic distribution.
     !!}
     use :: ISO_Varying_String, only : char
     implicit none
-    class(kinematicsDistributionSIDMIsothermal), intent(inout), target :: self
-    class(coordinate                          ), intent(in   )         :: coordinates
-    class(massDistributionClass               ), intent(inout)         :: massDistributionEmbedding
-
-    if (associated(massDistributionEmbedding%kinematicsDistribution_,self)) then
+    class(kinematicsDistributionSIDMIsothermal), intent(inout)          :: self
+    class(coordinate                          ), intent(in   )          :: coordinates
+    class(massDistributionClass               ), intent(inout), target  :: massDistribution_ , massDistributionEmbedding
+    class(massDistributionClass               )               , pointer :: massDistribution__
+  
+    massDistribution__ => massDistribution_
+    if (associated(massDistribution__,massDistributionEmbedding)) then
        ! For the case of a self-gravitating SIDM isothermal distribution we have a constant velocity dispersion in the core region.
        select type (massDistributionEmbedding)
        class is (massDistributionSphericalSIDMIsothermal       )
           if (coordinates%rSpherical() > massDistributionEmbedding%radiusInteraction()) then
-             velocityDispersion=self                     %velocityDispersion1DNumerical(coordinates,massDistributionEmbedding)
+             velocityDispersion=self                     %velocityDispersion1DNumerical(coordinates,massDistribution_,massDistributionEmbedding)
           else
              velocityDispersion=massDistributionEmbedding%velocityDispersionCentral
           end if
        class is (massDistributionSphericalSIDMIsothermalBaryons)
           if (coordinates%rSpherical() > massDistributionEmbedding%radiusInteraction()) then
-             velocityDispersion=self                     %velocityDispersion1DNumerical(coordinates,massDistributionEmbedding)
+             velocityDispersion=self                     %velocityDispersion1DNumerical(coordinates,massDistribution_,massDistributionEmbedding)
           else
              velocityDispersion=massDistributionEmbedding%velocityDispersionCentral
           end if
@@ -119,7 +121,7 @@ contains
        end select
     else
        ! Our SIDM isothermal distribution is embedded in another distribution. We must compute the velocity dispersion numerically.
-       velocityDispersion=self%velocityDispersion1DNumerical(coordinates,massDistributionEmbedding)
+       velocityDispersion=self%velocityDispersion1DNumerical(coordinates,massDistribution_,massDistributionEmbedding)
     end if
     return
   end function sidmIsothermalVelocityDispersion1D

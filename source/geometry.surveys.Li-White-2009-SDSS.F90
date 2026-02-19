@@ -166,7 +166,7 @@ contains
 
   subroutine liWhite2009SDSSDestructor(self)
     !!{
-    Destructor for the ``liWhite2009SDSS'' survey geometry class.
+    Destructor for the \refClass{surveyGeometryLiWhite2009SDSS} survey geometry class.
     !!}
     implicit none
     type(surveyGeometryLiWhite2009SDSS), intent(inout) :: self

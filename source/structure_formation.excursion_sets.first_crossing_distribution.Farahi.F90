@@ -20,7 +20,7 @@
 !+    Contributions to this file made by: Arya Farahi, Andrew Benson, Christoph Behrens, Xiaolong Du.
 
 !!{
-Contains a module which implements a excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}.
+Implements a excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}.
 !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
@@ -813,7 +813,7 @@ contains
     integer                                                           :: jTime                          , jVariance
 
     ! If the minimum mass used in computing non-crossing rates changes, retabulate non-crossing rates. This should only happen if
-    ! the growth rate of <CF><83>(M) is mass dependent. We must also retabulate if non-crossing rates have no yet been tabulated.
+    ! the growth rate of σ(M) is mass dependent. We must also retabulate if non-crossing rates have no yet been tabulated.
     if (Values_Differ(self%massMinimumRateNonCrossing,massMinimum,relTol=toleranceRelativeMass)) then
        self%retabulateRateNonCrossing =.true.
        self%massMinimumRateNonCrossing=massMinimum

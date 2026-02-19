@@ -65,7 +65,7 @@
 
   interface mergerMassMovementsBaugh2005
      !!{
-     Constructors for the {\normalfont \ttfamily baugh2005} merger mass movements class.
+     Constructors for the \refClass{mergerMassMovementsBaugh2005} merger mass movements class.
      !!}
      module procedure baugh2005ConstructorParameters
      module procedure baugh2005ConstructorInternal
@@ -75,7 +75,7 @@ contains
 
   function baugh2005ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily baugh2005} merger mass movements class which takes a parameter list as input.
+    Constructor for the \refClass{mergerMassMovementsBaugh2005} merger mass movements class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -120,7 +120,7 @@ contains
 
   function baugh2005ConstructorInternal(massRatioMajorMerger,destinationGasMinorMerger,ratioMassBurst,fractionGasCriticalBurst) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily baugh2005} merger mass movements.
+    Internal constructor for the \refClass{mergerMassMovementsBaugh2005} merger mass movements.
     !!}
     implicit none
     type            (mergerMassMovementsBaugh2005    )                :: self
@@ -156,7 +156,7 @@ contains
 
   subroutine baugh2005Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily baugh2005} dark matter halo profile class.
+    Destructor for the \refClass{mergerMassMovementsBaugh2005} dark matter halo profile class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent
     implicit none

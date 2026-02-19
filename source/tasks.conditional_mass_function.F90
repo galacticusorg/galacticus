@@ -54,7 +54,7 @@
 
   interface taskConditionalMassFunction
      !!{
-     Constructors for the {\normalfont \ttfamily conditionalMassFunction} task.
+     Constructors for the \refClass{taskConditionalMassFunction} task.
      !!}
      module procedure conditionalMassFunctionConstructorParameters
      module procedure conditionalMassFunctionConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function conditionalMassFunctionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily conditionalMassFunction} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskConditionalMassFunction} task class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -237,7 +237,7 @@ contains
 
   function conditionalMassFunctionConstructorInternal(outputGroupName,timeMinimum,timeMaximum,useSurveyLimits,cosmologyFunctions_,conditionalMassFunction_,surveyGeometry_,massFunctionIncompleteness_,haloMassFunction_,countMass,massMinimum,massMaximum,massBinCenters,massLogarithmDelta,massHalo,massHaloMinimum,massHaloMaximum) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily conditionalMassFunction} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskConditionalMassFunction} task class which takes a parameter set as input.
     !!}
     use :: Error            , only : Error_Report
     use :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
@@ -289,7 +289,7 @@ contains
 
   subroutine conditionalMassFunctionDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily conditionalMassFunction} task class.
+    Destructor for the \refClass{taskConditionalMassFunction} task class.
     !!}
     implicit none
     type(taskConditionalMassFunction), intent(inout) :: self

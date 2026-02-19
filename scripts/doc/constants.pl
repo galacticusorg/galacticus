@@ -33,6 +33,7 @@ my %knownGroups =
      "units"         => "Units",
      "prefixes"      => "SI Prefixes",
      "GSL"           => "Gnu Scientific Library constants",
+     "Kernel"        => "Kernel constants",
      "misc"          => "Miscellaneous constants"
     );
 

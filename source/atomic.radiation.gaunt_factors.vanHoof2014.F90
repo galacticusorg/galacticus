@@ -41,7 +41,7 @@
 
   interface gauntFactorVanHoof2014
      !!{
-     Constructors for the {\normalfont \ttfamily vanHoof2014} gaunt factor class.
+     Constructors for the \refClass{gauntFactorVanHoof2014} gaunt factor class.
      !!}
      module procedure vanHoof2014ConstructorParameters
      module procedure vanHoof2014ConstructorInternal
@@ -83,7 +83,7 @@ contains
 
   function vanHoof2014ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily vanHoof2014} gaunt factor class which takes a parameter set as input.
+    Constructor for the \refClass{gauntFactorVanHoof2014} gaunt factor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -104,7 +104,7 @@ contains
 
   function vanHoof2014ConstructorInternal(atomicIonizationPotential_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily vanHoof2014} gaunt factor class.
+    Internal constructor for the \refClass{gauntFactorVanHoof2014} gaunt factor class.
     !!}
     implicit none
     type (gauntFactorVanHoof2014        )                        :: self
@@ -118,7 +118,7 @@ contains
 
   subroutine vanHoof2014Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily vanHoof2014} gaunt factor class.
+    Destructor for the \refClass{gauntFactorVanHoof2014} gaunt factor class.
     !!}
     implicit none
     type(gauntFactorVanHoof2014), intent(inout) :: self

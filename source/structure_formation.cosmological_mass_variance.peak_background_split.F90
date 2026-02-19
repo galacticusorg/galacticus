@@ -63,7 +63,7 @@
 
   interface cosmologicalMassVariancePeakBackgroundSplit
      !!{
-     Constructors for the {\normalfont \ttfamily peakBackgroundSplit} cosmological mass variance class.
+     Constructors for the \refClass{cosmologicalMassVariancePeakBackgroundSplit} cosmological mass variance class.
      !!}
      module procedure variancePeakBackgroundSplitConstructorParameters
      module procedure variancePeakBackgroundSplitConstructorInternal
@@ -73,7 +73,7 @@ contains
 
   function variancePeakBackgroundSplitConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily peakBackgroundSplit} cosmological mass variance class which takes a parameter set as input.
+    Constructor for the \refClass{cosmologicalMassVariancePeakBackgroundSplit} cosmological mass variance class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -103,7 +103,7 @@ contains
 
   function variancePeakBackgroundSplitConstructorInternal(haloEnvironment_,cosmologicalMassVariance_,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily peakBackgroundSplit} linear growth class.
+    Internal constructor for the \refClass{cosmologicalMassVariancePeakBackgroundSplit} linear growth class.
     !!}
     implicit none
     type (cosmologicalMassVariancePeakBackgroundSplit)                        :: self
@@ -122,7 +122,7 @@ contains
 
   subroutine variancePeakBackgroundSplitDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily peakBackgroundSplit} linear growth class.
+    Destructor for the \refClass{cosmologicalMassVariancePeakBackgroundSplit} linear growth class.
     !!}
     implicit none
     type(cosmologicalMassVariancePeakBackgroundSplit), intent(inout) :: self

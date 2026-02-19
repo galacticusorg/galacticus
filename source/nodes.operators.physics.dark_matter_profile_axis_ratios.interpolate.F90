@@ -46,7 +46,7 @@
   
   interface nodeOperatorHaloAxisRatiosInterpolate
      !!{
-     Constructors for the {\normalfont \ttfamily haloAxisRatiosInterpolate} node operator class.
+     Constructors for the \refClass{nodeOperatorHaloAxisRatiosInterpolate} node operator class.
      !!}
      module procedure haloAxisRatiosInterpolateConstructorParameters
      module procedure haloAxisRatiosInterpolateConstructorInternal
@@ -56,7 +56,7 @@ contains
   
   function haloAxisRatiosInterpolateConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily haloAxisRatiosInterpolate} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorHaloAxisRatiosInterpolate} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -72,7 +72,7 @@ contains
 
   function haloAxisRatiosInterpolateConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily haloAxisRatiosInterpolate} node operator class.
+    Internal constructor for the \refClass{nodeOperatorHaloAxisRatiosInterpolate} node operator class.
     !!}
     implicit none
     type(nodeOperatorHaloAxisRatiosInterpolate) :: self

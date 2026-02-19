@@ -56,7 +56,7 @@ contains
 
   function fixedMassConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily fixedMass} merger tree masses class which takes a parameter set as
+    Constructor for the \refClass{mergerTreeBuildMassesFixedMass} merger tree masses class which takes a parameter set as
     input.
     !!}
     use :: Error            , only : Error_Report
@@ -157,7 +157,7 @@ contains
 
   function fixedMassConstructorInternal(massTree,radiusTree,treeCount,massIntervalFractional,cosmologyParameters_,darkMatterHaloScale_,nodeOperator_,randomNumberGenerator_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily fixedMass} merger tree masses class.
+    Internal constructor for the \refClass{mergerTreeBuildMassesFixedMass} merger tree masses class.
     !!}
     implicit none
     type            (mergerTreeBuildMassesFixedMass)                              :: self
@@ -177,7 +177,7 @@ contains
 
   subroutine fixedMassDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily fixedMass} merger tree masses class.
+    Destructor for the \refClass{mergerTreeBuildMassesFixedMass} merger tree masses class.
     !!}
     implicit none
     type(mergerTreeBuildMassesFixedMass), intent(inout) :: self

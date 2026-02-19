@@ -101,7 +101,7 @@
 
   interface stellarPopulationStandard
      !!{
-     Constructors for the {\normalfont \ttfamily standard} stellar population class.
+     Constructors for the \refClass{stellarPopulationStandard} stellar population class.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -133,7 +133,7 @@ contains
 
   function populationTableConstructor(label,integrand,toleranceAbsolute,toleranceRelative,instantaneousApproximation) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily standard} stellar population class which takes a parameter list as input.
+    Constructor for the \refClass{stellarPopulationStandard} stellar population class which takes a parameter list as input.
     !!}
     implicit none
     type            (populationTable)                :: self
@@ -151,7 +151,7 @@ contains
 
   function standardConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily standard} stellar population class which takes a parameter list as input.
+    Constructor for the \refClass{stellarPopulationStandard} stellar population class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -247,7 +247,7 @@ contains
 
   function standardConstructorInternal(instantaneousRecyclingApproximation,instantaneousYieldApproximation,instantaneousEnergyInputApproximation,massLongLived,ageEffective,recycledFraction,metalYield,initialMassFunction_,stellarAstrophysics_,stellarFeedback_,supernovaeTypeIa_,stellarPopulationSpectra_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily standard} stellar population.
+    Internal constructor for the \refClass{stellarPopulationStandard} stellar population.
     !!}
     use :: Abundances_Structure, only : Abundances_Names, Abundances_Property_Count
     implicit none
@@ -294,7 +294,7 @@ contains
 
   subroutine standardDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily standard} stellar population class.
+    Destructor for the \refClass{stellarPopulationStandard} stellar population class.
     !!}
     implicit none
     type(stellarPopulationStandard), intent(inout) :: self

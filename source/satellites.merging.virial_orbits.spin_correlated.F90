@@ -54,7 +54,7 @@
 
   interface virialOrbitSpinCorrelated
      !!{
-     Constructors for the {\normalfont \ttfamily spinCorrelated} virial orbit class.
+     Constructors for the \refClass{virialOrbitSpinCorrelated} virial orbit class.
      !!}
      module procedure spinCorrelatedConstructorParameters
      module procedure spinCorrelatedConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function spinCorrelatedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily spinCorrelated} satellite virial orbit class which takes a parameter set as input.
+    Constructor for the \refClass{virialOrbitSpinCorrelated} satellite virial orbit class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -98,7 +98,7 @@ contains
 
   function spinCorrelatedConstructorInternal(alpha,virialOrbit_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily spinCorrelated} virial orbits class.
+    Internal constructor for the \refClass{virialOrbitSpinCorrelated} virial orbits class.
     !!}
     use            :: Error               , only : Component_List      , Error_Report
     use            :: Galacticus_Nodes    , only : defaultSpinComponent
@@ -127,7 +127,7 @@ contains
 
   subroutine spinCorrelatedDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily spinCorrelated} virial orbits class.
+    Destructor for the \refClass{virialOrbitSpinCorrelated} virial orbits class.
     !!}
     implicit none
     type(virialOrbitSpinCorrelated), intent(inout) :: self

@@ -42,7 +42,7 @@
   
   interface nodeOperatorMassProgenitorMaximum
      !!{
-     Constructors for the {\normalfont \ttfamily massProgenitorMaximum} node operator class.
+     Constructors for the \refClass{nodeOperatorMassProgenitorMaximum} node operator class.
      !!}
      module procedure massProgenitorMaximumConstructorParameters
      module procedure massProgenitorMaximumConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function massProgenitorMaximumConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily massProgenitorMaximum} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorMassProgenitorMaximum} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -68,7 +68,7 @@ contains
 
   function massProgenitorMaximumConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily massProgenitorMaximum} node operator class.
+    Internal constructor for the \refClass{nodeOperatorMassProgenitorMaximum} node operator class.
     !!}
     implicit none
     type(nodeOperatorMassProgenitorMaximum) :: self

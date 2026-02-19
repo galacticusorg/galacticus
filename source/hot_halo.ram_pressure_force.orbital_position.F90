@@ -45,7 +45,7 @@
 
   interface hotHaloRamPressureForceOrbitalPosition
      !!{
-     Constructors for the {\normalfont \ttfamily orbitalPosition} hot halo ram pressure force class.
+     Constructors for the \refClass{hotHaloRamPressureForceOrbitalPosition} hot halo ram pressure force class.
      !!}
      module procedure orbitalPositionConstructorParameters
      module procedure orbitalPositionConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function orbitalPositionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily orbitalPosition} hot halo ram pressure force class which builds the object from a parameter set.
+    Constructor for the \refClass{hotHaloRamPressureForceOrbitalPosition} hot halo ram pressure force class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -71,7 +71,7 @@ contains
 
   function orbitalPositionConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily orbitalPosition} hot halo ram pressure force class.
+    Internal constructor for the \refClass{hotHaloRamPressureForceOrbitalPosition} hot halo ram pressure force class.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Error           , only : Error_Report             , Component_List

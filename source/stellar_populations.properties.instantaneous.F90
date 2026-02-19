@@ -65,7 +65,7 @@
 
   interface stellarPopulationPropertiesInstantaneous
      !!{
-     Constructors for the {\normalfont \ttfamily instantaneous} stellar population class.
+     Constructors for the \refClass{stellarPopulationPropertiesInstantaneous} stellar population class.
      !!}
      module procedure instantaneousConstructorParameters
      module procedure instantaneousConstructorInternal
@@ -75,7 +75,7 @@ contains
 
   function instantaneousConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily instantaneous} stellar population properties class which takes a parameter list
+    Constructor for the \refClass{stellarPopulationPropertiesInstantaneous} stellar population properties class which takes a parameter list
     as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -100,7 +100,7 @@ contains
 
   function instantaneousConstructorInternal(stellarPopulationSelector_,stellarPopulationBroadBandLuminosities_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily instantaneous} stellar population properties class.
+    Internal constructor for the \refClass{stellarPopulationPropertiesInstantaneous} stellar population properties class.
     !!}
     use :: Atomic_Data, only : Abundance_Pattern_Lookup
     implicit none
@@ -123,7 +123,7 @@ contains
 
   subroutine instantaneousDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily instantaneous} stellar population properties class.
+    Destructor for the \refClass{stellarPopulationPropertiesInstantaneous} stellar population properties class.
     !!}
     implicit none
     type(stellarPopulationPropertiesInstantaneous), intent(inout) :: self

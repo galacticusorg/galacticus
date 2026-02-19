@@ -74,7 +74,7 @@ contains
 
   function chandrasekhar1943ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily chandrasekhar1943} satellite dynamical friction class which builds the object from a parameter set.
+    Constructor for the \refClass{satelliteDynamicalFrictionChandrasekhar1943} satellite dynamical friction class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -105,7 +105,7 @@ contains
 
   function chandrasekhar1943ConstructorInternal(logarithmCoulomb,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily chandrasekhar1943} satellite dynamical friction class.
+    Internal constructor for the \refClass{satelliteDynamicalFrictionChandrasekhar1943} satellite dynamical friction class.
     !!}
     implicit none
     type            (satelliteDynamicalFrictionChandrasekhar1943)                        :: self
@@ -139,10 +139,10 @@ contains
     !!}
     use :: Coordinates                     , only : coordinateCartesian      , assignment(=)
     use :: Error_Functions                 , only : Error_Function
-    use :: Galactic_Structure_Options      , only : coordinateSystemCartesian, componentTypeDarkHalo          , massTypeDark
-    use :: Galacticus_Nodes                , only : nodeComponentSatellite   , nodeComponentBasic             , treeNode
+    use :: Galactic_Structure_Options      , only : coordinateSystemCartesian, componentTypeDarkHalo         , massTypeDark
+    use :: Galacticus_Nodes                , only : nodeComponentSatellite   , nodeComponentBasic            , treeNode
     use :: Mass_Distributions              , only : massDistributionClass
-    use :: Numerical_Constants_Astronomical, only : gigaYear                 , gravitationalConstantGalacticus, megaParsec
+    use :: Numerical_Constants_Astronomical, only : gigaYear                 , gravitationalConstant_internal, megaParsec
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Vectors                         , only : Vector_Magnitude
@@ -169,7 +169,7 @@ contains
             &                        *Pi                                                                                                                   &
             &                        *massDistributionHost_%chandrasekharIntegral(massDistributionHost_,massDistribution_,massSatellite,position,velocity) &
             &                        *self                 %coulombLogarithm     (node                                                                   ) &
-            &                        *gravitationalConstantGalacticus**2                                                                                   &
+            &                        *gravitationalConstant_internal**2                                                                                    &
             &                        *massSatellite                                                                                                        &
             &                        *kilo                                                                                                                 &
             &                        *gigaYear                                                                                                             &

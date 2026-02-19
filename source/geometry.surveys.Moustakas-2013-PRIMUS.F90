@@ -124,7 +124,7 @@ contains
 
   function moustakas2013PRIMUSConstructorInternal(redshiftBin,cosmologyFunctions_) result(self)
     !!{
-    Generic constructor for the \cite{moustakas_primus:_2013} mass function class.
+    Internal constructor for the \cite{moustakas_primus:_2013} mass function class.
     !!}
     use :: Cosmology_Functions        , only : cosmologyFunctionsClass
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
@@ -179,7 +179,7 @@ contains
 
   subroutine moustakas2013PRIMUSDestructor(self)
     !!{
-    Destructor for the ``moustakas2013PRIMUS'' survey geometry class.
+    Destructor for the \refClass{surveyGeometryMoustakas2013PRIMUS} survey geometry class.
     !!}
     implicit none
     type(surveyGeometryMoustakas2013PRIMUS), intent(inout) :: self

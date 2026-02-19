@@ -45,7 +45,7 @@
 
   interface mergerTreeOperatorConsolidateBranches
      !!{
-     Constructors for the {\normalfont \ttfamily consolidateBranches} merger tree operator class.
+     Constructors for the \refClass{mergerTreeOperatorConsolidateBranches} merger tree operator class.
      !!}
      module procedure consolidateBranchesConstructorParameters
      module procedure consolidateBranchesConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function consolidateBranchesConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily consolidateBranches} merger tree operator class which takes a
+    Constructor for the \refClass{mergerTreeOperatorConsolidateBranches} merger tree operator class which takes a
     parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -85,7 +85,7 @@ contains
 
   function consolidateBranchesConstructorInternal(fractionGrowthMass,fractionGrowthTime) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily consolidateBranches} merger tree operator class.
+    Internal constructor for the \refClass{mergerTreeOperatorConsolidateBranches} merger tree operator class.
     !!}
     implicit none
     type            (mergerTreeOperatorConsolidateBranches)                :: self
@@ -123,7 +123,7 @@ contains
        do while (treeWalker%next(node))
           ! Ignore nodes that have children.
           if (associated(node%firstChild)) cycle
-          ! Walk up the branch until sufficient growth in mass or time has occured.
+          ! Walk up the branch until sufficient growth in mass or time has occurred.
           nodeBase       => node
           nodeDescendant => node
           basic          => nodeBase%basic()

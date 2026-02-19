@@ -59,7 +59,7 @@
 
   interface linearGrowthNonClusteringBaryonsDarkMatter
      !!{
-     Constructors for the {\normalfont \ttfamily nonClusteringBaryonsDarkMatter} linear growth class.
+     Constructors for the \refClass{linearGrowthNonClusteringBaryonsDarkMatter} linear growth class.
      !!}
      module procedure nonClusteringBaryonsDarkMatterConstructorParameters
      module procedure nonClusteringBaryonsDarkMatterConstructorInternal
@@ -72,7 +72,7 @@ contains
 
   function nonClusteringBaryonsDarkMatterConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily nonClusteringBaryonsDarkMatter} linear growth class which takes a parameter set as input.
+    Constructor for the \refClass{linearGrowthNonClusteringBaryonsDarkMatter} linear growth class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -96,7 +96,7 @@ contains
 
   function nonClusteringBaryonsDarkMatterConstructorInternal(cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily nonClusteringBaryonsDarkMatter} linear growth class.
+    Internal constructor for the \refClass{linearGrowthNonClusteringBaryonsDarkMatter} linear growth class.
     !!}
     implicit none
     type            (linearGrowthNonClusteringBaryonsDarkMatter)                           :: self
@@ -121,7 +121,7 @@ contains
 
   subroutine nonClusteringBaryonsDarkMatterDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily nonClusteringBaryonsDarkMatter} linear growth class.
+    Destructor for the \refClass{linearGrowthNonClusteringBaryonsDarkMatter} linear growth class.
     !!}
     implicit none
     type (linearGrowthNonClusteringBaryonsDarkMatter), intent(inout) :: self

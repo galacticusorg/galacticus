@@ -58,7 +58,7 @@
   
   interface nodeOperatorDarkMatterProfileScaleSet
      !!{
-     Constructors for the {\normalfont \ttfamily darkMatterProfileScaleSet} node operator class.
+     Constructors for the \refClass{nodeOperatorDarkMatterProfileScaleSet} node operator class.
      !!}
      module procedure darkMatterProfileScaleSetConstructorParameters
      module procedure darkMatterProfileScaleSetConstructorInternal
@@ -68,7 +68,7 @@ contains
   
   function darkMatterProfileScaleSetConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily darkMatterProfileScaleSet} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorDarkMatterProfileScaleSet} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -103,7 +103,7 @@ contains
 
   function darkMatterProfileScaleSetConstructorInternal(factorReset,forward,darkMatterProfileScaleRadius_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily darkMatterProfileScaleSet} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorDarkMatterProfileScaleSet} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -120,7 +120,7 @@ contains
 
   subroutine darkMatterProfileScaleSetConstructorDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily darkMatterProfileScaleSet} dark matter halo profile scale radius class.
+    Destructor for the \refClass{nodeOperatorDarkMatterProfileScaleSet} dark matter halo profile scale radius class.
     !!}
     implicit none
     type(nodeOperatorDarkMatterProfileScaleSet), intent(inout) :: self

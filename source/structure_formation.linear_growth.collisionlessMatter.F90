@@ -64,7 +64,7 @@
 
   interface linearGrowthCollisionlessMatter
      !!{
-     Constructors for the {\normalfont \ttfamily collisionlessMatter} linear growth class.
+     Constructors for the \refClass{linearGrowthCollisionlessMatter} linear growth class.
      !!}
      module procedure collisionlessMatterConstructorParameters
      module procedure collisionlessMatterConstructorInternal
@@ -77,7 +77,7 @@ contains
 
   function collisionlessMatterConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily collisionlessMatter} linear growth class which takes a parameter set as input.
+    Constructor for the \refClass{linearGrowthCollisionlessMatter} linear growth class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -101,7 +101,7 @@ contains
 
   function collisionlessMatterConstructorInternal(cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily collisionlessMatter} linear growth class.
+    Internal constructor for the \refClass{linearGrowthCollisionlessMatter} linear growth class.
     !!}
     implicit none
     type            (linearGrowthCollisionlessMatter)                           :: self
@@ -128,7 +128,7 @@ contains
 
   subroutine collisionlessMatterDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily collisionlessMatter} linear growth class.
+    Destructor for the \refClass{linearGrowthCollisionlessMatter} linear growth class.
     !!}
     implicit none
     type (linearGrowthCollisionlessMatter), intent(inout) :: self

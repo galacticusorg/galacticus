@@ -36,7 +36,7 @@
 
   interface criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy
      !!{
-     Constructors for the {\normalfont \ttfamily sphericalCollapseClsnlssMttrDrkEnrgy} critical overdensity for collapse class.
+     Constructors for the \refClass{criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy} critical overdensity for collapse class.
      !!}
      module procedure sphericalCollapseClsnlssMttrDrkEnrgyConstructorParameters
      module procedure sphericalCollapseClsnlssMttrDrkEnrgyConstructorInternal
@@ -46,7 +46,7 @@ contains
 
   function sphericalCollapseClsnlssMttrDrkEnrgyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sphericalCollapseClsnlssMttrDrkEnrgy} critical overdensity class
+    Constructor for the \refClass{criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy} critical overdensity class
     which takes a parameter set as input.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticle, darkMatterParticleClass
@@ -93,7 +93,7 @@ contains
 
   function sphericalCollapseClsnlssMttrDrkEnrgyConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,tableStore,normalization) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily sphericalCollapseClsnlssMttrDrkEnrgy} critical overdensity class.
+    Internal constructor for the \refClass{criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy} critical overdensity class.
     !!}
     use :: Dark_Matter_Particles     , only : darkMatterParticleCDM                 , darkMatterParticleClass
     use :: Error                     , only : Error_Report

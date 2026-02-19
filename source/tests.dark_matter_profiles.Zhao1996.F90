@@ -205,10 +205,10 @@ program Test_Dark_Matter_Profiles_Zhao1996
      class is (massDistributionSpherical)
         do j=1,countRadii
            coordinates                   =[radii(j),0.0d0,0.0d0]
-           mass                       (j)=+massDistribution_      %massEnclosedBySphere         (radius     =      radii(j)                                            )
-           massNumerical              (j)=+massDistribution_      %massEnclosedBySphereNumerical(radius     =      radii(j)                                            )
-           velocityDispersion         (j)=+kinematicsDistribution_%velocityDispersion1D         (coordinates=coordinates   ,massDistributionEmbedding=massDistribution_)
-           velocityDispersionNumerical(j)=+kinematicsDistribution_%velocityDispersion1DNumerical(coordinates=coordinates   ,massDistributionEmbedding=massDistribution_)
+           mass                       (j)=+massDistribution_      %massEnclosedBySphere         (radius     =      radii(j)                                                                                )
+           massNumerical              (j)=+massDistribution_      %massEnclosedBySphereNumerical(radius     =      radii(j)                                                                                )
+           velocityDispersion         (j)=+kinematicsDistribution_%velocityDispersion1D         (coordinates=coordinates   ,massDistribution_=massDistribution_,massDistributionEmbedding=massDistribution_)
+           velocityDispersionNumerical(j)=+kinematicsDistribution_%velocityDispersion1DNumerical(coordinates=coordinates   ,massDistribution_=massDistribution_,massDistributionEmbedding=massDistribution_)
         end do
         call Assert(                                    &
              &             "Enclosed mass"            , &

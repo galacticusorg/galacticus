@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a merger tree operator which prunes all but a specified branch.
+  Implements a merger tree operator which prunes all but a specified branch.
   !!}
 
   use :: Kind_Numbers, only : kind_int8

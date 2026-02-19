@@ -47,7 +47,7 @@
 
   interface satelliteMergingTimescalesBoylanKolchin2008
      !!{
-     Constructors for the {\normalfont \ttfamily boylanKolchin2008} satellite merging timescale class.
+     Constructors for the \refClass{satelliteMergingTimescalesBoylanKolchin2008} satellite merging timescale class.
      !!}
      module procedure boylanKolchin2008ConstructorParameters
      module procedure boylanKolchin2008ConstructorInternal
@@ -105,7 +105,7 @@ contains
 
   subroutine boylanKolchin2008Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily boylanKolchin2008} satellite merging timescale class.
+    Destructor for the \refClass{satelliteMergingTimescalesBoylanKolchin2008} satellite merging timescale class.
     !!}
     implicit none
     type(satelliteMergingTimescalesBoylanKolchin2008), intent(inout) :: self

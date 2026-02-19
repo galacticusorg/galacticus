@@ -38,7 +38,7 @@
 
   interface atomicIonizationRateCollisionalVerner1996
      !!{
-     Constructors for the {\normalfont \ttfamily verner1996} atomic collisional ionization class.
+     Constructors for the \refClass{atomicIonizationRateCollisionalVerner1996} atomic collisional ionization class.
      !!}
      module procedure verner1996ConstructorParameters
   end interface atomicIonizationRateCollisionalVerner1996
@@ -459,7 +459,7 @@ contains
 
   function verner1996ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily verner1996} atomic collisional ionization class which takes a parameter set as
+    Constructor for the \refClass{atomicIonizationRateCollisionalVerner1996} atomic collisional ionization class which takes a parameter set as
     input.
     !!}
     use :: Input_Parameters, only : inputParameters

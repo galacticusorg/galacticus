@@ -59,7 +59,7 @@
 
   interface starFormationRateSurfaceDensityDisksExtendedSchmidt
      !!{
-     Constructors for the {\normalfont \ttfamily extendedSchmidt} star formation surface density rate in disks class.
+     Constructors for the \refClass{starFormationRateSurfaceDensityDisksExtendedSchmidt} star formation surface density rate in disks class.
      !!}
      module procedure extendedSchmidtConstructorParameters
      module procedure extendedSchmidtConstructorInternal
@@ -69,7 +69,7 @@ contains
 
   function extendedSchmidtConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily extendedSchmidt} star formation surface density rate in disks class which takes a parameter set as input.
+    Constructor for the \refClass{starFormationRateSurfaceDensityDisksExtendedSchmidt} star formation surface density rate in disks class which takes a parameter set as input.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -110,7 +110,7 @@ contains
 
   function extendedSchmidtConstructorInternal(normalization,exponentGas,exponentStars) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily extendedSchmidt} star formation surface density rate from disks class.
+    Internal constructor for the \refClass{starFormationRateSurfaceDensityDisksExtendedSchmidt} star formation surface density rate from disks class.
     !!}
     use :: Numerical_Constants_Prefixes, only : giga, mega
     implicit none

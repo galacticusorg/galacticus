@@ -29,7 +29,7 @@ module Output_HDF5_Open
   use :: Error             , only : errorStatusSuccess
   implicit none
   private
-  public :: Output_HDF5_Open_File, Output_HDF5_Close_File, Output_HDF5_Completion_Status
+  public :: Output_HDF5_Open_File, Output_HDF5_Close_File, Output_HDF5_Completion_Status, Output_HDF5_Set_Group
 
   ! Output file name.
   type   (varying_string) :: outputFileName                     , outputScratchFileName
@@ -43,13 +43,14 @@ contains
     !!{
     Open the file for \glc\ output.
     !!}
-    use :: Output_HDF5       , only : hdf5SieveBufferSize , hdf5UseLatestFormat , hdf5CompressionLevel, hdf5CacheElementsCount, &
-         &                            outputFileIsOpen    , outputFile, hdf5CacheSizeBytes  , hdf5ChunkSize
+    use :: Output_HDF5       , only : hdf5SieveBufferSize , hdf5UseLatestFormat, hdf5CompressionLevel, hdf5CacheElementsCount, &
+         &                            outputFileIsOpen    , outputFile         , hdf5CacheSizeBytes  , hdf5ChunkSize         , &
+         &                            outputGroup
     use :: HDF5              , only : hsize_t             , size_t
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : IO_HDF5_Set_Defaults
-    use :: ISO_Varying_String, only : var_str             , char                , operator(//)        , extract               , &
-         &                            len                 , operator(==)        , adjustl             , trim
+    use :: ISO_Varying_String, only : var_str             , char               , operator(//)        , extract               , &
+         &                            len                 , operator(==)       , adjustl             , trim
     use :: Input_Parameters  , only : inputParameters     , inputParameter
 #ifdef USEMPI
     use :: MPI_Utilities     , only : mpiSelf
@@ -116,7 +117,7 @@ contains
        </inputParameter>
        !!]
        hdf5CacheSizeBytes=cacheSizeBytes
-       ! Remove leadimg and trailing spaces.
+       ! Remove leading and trailing spaces.
        outputFileName       =trim(adjustl(outputFileName_       ))
        outputScratchFileName=trim(adjustl(outputScratchFileName_))
        ! Modify the file name on a per-process basis if running under MPI.
@@ -147,6 +148,7 @@ contains
             &                   cacheElementsCount =hdf5CacheElementsCount     , &
             &                   cacheSizeBytes     =hdf5CacheSizeBytes           &
             &                  )
+       call outputFile%deepCopy(outputGroup)
        !$ call hdf5Access%unset()
        ! Now that the parameter file is open, we can open an output group in it for parameters.
        call parameters%parametersGroupOpen(outputFile)
@@ -188,7 +190,7 @@ contains
     !!{
     Close the \glc\ output file.
     !!}
-    use :: Output_HDF5       , only : outputFileIsOpen, outputFile
+    use :: Output_HDF5       , only : outputFileIsOpen, outputFile, outputGroup
     use :: File_Utilities    , only : File_Rename
     use :: HDF5_Access       , only : hdf5Access
     use :: ISO_Varying_String, only : operator(/=)
@@ -204,8 +206,9 @@ contains
           !!]
           ! Close the file.
           !$ call hdf5Access%set()
-          call outputFile%writeAttribute(statusCompletion,"statusCompletion")
-          call outputFile%close()
+          call outputFile %writeAttribute(statusCompletion,"statusCompletion")
+          call outputGroup%close()
+          call outputFile %close()
           !$ call hdf5Access%unset()
           ! Move the scratch file to the final file if necessary.
           if (outputFileName /= outputScratchFileName) call File_Rename(outputScratchFileName,outputFileName,overwrite=.true.)
@@ -227,5 +230,24 @@ contains
     statusCompletion=status
     return
   end subroutine Output_HDF5_Completion_Status
+  
+  subroutine Output_HDF5_Set_Group(nameGroup)
+    !!{
+    Set the name of the current output group.
+    !!}
+    use :: Error             , only : Error_Report
+    use :: HDF5_Access       , only : hdf5Access
+    use :: ISO_Varying_String, only : varying_string  , char
+    use :: Output_HDF5       , only : outputFileIsOpen, outputFile, outputGroup
+    implicit none
+    type(varying_string), intent(in   ) :: nameGroup
+
+    if (.not.outputFileIsOpen) call Error_Report('can not set the output group - file is not open'//{introspection:location})
+    !$ call hdf5Access%set()
+    call outputGroup%close()
+    outputGroup=outputFile%openGroup(char(nameGroup))
+    !$ call hdf5Access%unset()
+    return
+  end subroutine Output_HDF5_Set_Group
   
 end module Output_HDF5_Open

@@ -55,7 +55,7 @@
 
   interface massDistributionSphericalSIDMCoreNFW
      !!{
-     Constructors for the {\normalfont \ttfamily sphericalSIDMCoreNFW} mass distribution class.
+     Constructors for the \refClass{massDistributionSphericalSIDMCoreNFW} mass distribution class.
      !!}
      module procedure sphericalSIDMCoreNFWConstructorParameters
      module procedure sphericalSIDMCoreNFWConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function sphericalSIDMCoreNFWConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sidmCoreNFW} mass distribution class which takes a parameter set as input.
+    Constructor for the \refClass{massDistributionSphericalSIDMCoreNFW} mass distribution class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -133,7 +133,7 @@ contains
 
   function sphericalSIDMCoreNFWConstructorInternal(factorRadiusCore,timeAge,velocityRelativeMean, nonAnalyticSolver,massDistribution_,darkMatterParticle_,componentType,massType) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily sidmCoreNFW} mass distribution class.
+    Internal constructor for the \refClass{massDistributionSphericalSIDMCoreNFW} mass distribution class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
     implicit none
@@ -162,7 +162,7 @@ contains
 
   subroutine sphericalSIDMCoreNFWDestructor(self)
     !!{
-    Destructor for the abstract {\normalfont \ttfamily massDistributionSphericalSIDMCoreNFW} class.
+    Destructor for the abstract \refClass{massDistributionSphericalSIDMCoreNFW} class.
     !!}
     implicit none
     type(massDistributionSphericalSIDMCoreNFW), intent(inout) :: self

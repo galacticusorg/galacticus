@@ -49,7 +49,7 @@
 
   interface radiationFieldSwitchOn
      !!{
-     Constructors for the {\normalfont \ttfamily switchOn} radiation field class.
+     Constructors for the \refClass{radiationFieldSwitchOn} radiation field class.
      !!}
      module procedure switchOnConstructorParameters
      module procedure switchOnConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function switchOnConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily switchOn} radiation field class which takes a parameter list as input.
+    Constructor for the \refClass{radiationFieldSwitchOn} radiation field class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -89,7 +89,7 @@ contains
 
   function switchOnConstructorInternal(timeSwitchOn,radiationField_,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily switchOn} radiation field class.
+    Internal constructor for the \refClass{radiationFieldSwitchOn} radiation field class.
     !!}
     implicit none
     type            (radiationFieldSwitchOn )                        :: self
@@ -106,7 +106,7 @@ contains
 
   subroutine switchOnDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily switchOn} radiation field class.
+    Destructor for the \refClass{radiationFieldSwitchOn} radiation field class.
     !!}
     implicit none
     type(radiationFieldSwitchOn), intent(inout) :: self

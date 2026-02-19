@@ -46,7 +46,7 @@
 
   interface darkMatterProfileHeatingImpulsiveOutflow
      !!{
-     Constructors for the {\normalfont \ttfamily impulsiveOutflow} dark matter profile heating class.
+     Constructors for the \refClass{darkMatterProfileHeatingImpulsiveOutflow} dark matter profile heating class.
      !!}
      module procedure impulsiveOutflowConstructorParameters
      module procedure impulsiveOutflowConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function impulsiveOutflowConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily impulsiveOutflow} dark matter profile heating scales class which takes a parameter set as input.
+    Constructor for the \refClass{darkMatterProfileHeatingImpulsiveOutflow} dark matter profile heating scales class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -81,7 +81,7 @@ contains
 
   function impulsiveOutflowConstructorInternal(impulsiveEnergyFactor) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily impulsiveOutflow} dark matter profile heating scales class.
+    Internal constructor for the \refClass{darkMatterProfileHeatingImpulsiveOutflow} dark matter profile heating scales class.
     !!}
     implicit none
     type            (darkMatterProfileHeatingImpulsiveOutflow)                :: self

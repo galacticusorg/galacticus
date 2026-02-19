@@ -89,7 +89,7 @@ contains
     !!}
     implicit none
     type            (stellarFeedbackOutflowsFixed)                :: self
-    double precision                             , intent(in   ) :: fraction
+    double precision                              , intent(in   ) :: fraction
 
     !![
     <constructorAssign variables="fraction"/>

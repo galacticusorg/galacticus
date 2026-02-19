@@ -43,7 +43,7 @@
   
   interface nodeOperatorEvolutionOutput
      !!{
-     Constructors for the {\normalfont \ttfamily evolutionOutput} node operator class.
+     Constructors for the \refClass{nodeOperatorEvolutionOutput} node operator class.
      !!}
      module procedure evolutionOutputConstructorParameters
      module procedure evolutionOutputConstructorInternal
@@ -53,7 +53,7 @@ contains
   
   function evolutionOutputConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily evolutionOutput} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorEvolutionOutput} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -85,7 +85,7 @@ contains
 
   function evolutionOutputConstructorInternal(outputFileName,galacticFilter_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily evolutionOutput} node operator class.
+    Internal constructor for the \refClass{nodeOperatorEvolutionOutput} node operator class.
     !!}
     implicit none
     type (nodeOperatorEvolutionOutput)                        :: self
@@ -102,7 +102,7 @@ contains
   
   subroutine evolutionOutputDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily evolutionOutput} node operator class.
+    Destructor for the \refClass{nodeOperatorEvolutionOutput} node operator class.
     !!}
     implicit none
     type(nodeOperatorEvolutionOutput), intent(inout) :: self

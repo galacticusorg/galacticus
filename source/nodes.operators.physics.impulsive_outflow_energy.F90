@@ -76,7 +76,7 @@
   
   interface nodeOperatorImpulsiveOutflowEnergy
      !!{
-     Constructors for the {\normalfont \ttfamily impulsiveOutflowEnergy} node operator class.
+     Constructors for the \refClass{nodeOperatorImpulsiveOutflowEnergy} node operator class.
      !!}
      module procedure impulsiveOutflowEnergyConstructorParameters
      module procedure impulsiveOutflowEnergyConstructorInternal
@@ -86,7 +86,7 @@ contains
 
   function impulsiveOutflowEnergyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily impulsiveOutflowEnergy} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorImpulsiveOutflowEnergy} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -140,7 +140,7 @@ contains
 
   function impulsiveOutflowEnergyConstructorInternal(impulsiveCorrectionScale,impulsiveCorrectionExponent,darkMatterProfileDMO_,stellarFeedbackOutflowsDisks_,stellarFeedbackOutflowsSpheroids_,starFormationRateDisks_,starFormationRateSpheroids_,stellarPopulationProperties_,mergerMassMovements_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily impulsiveOutflowEnergy} node operator class.
+    Internal constructor for the \refClass{nodeOperatorImpulsiveOutflowEnergy} node operator class.
     !!}
     implicit none
     type            (nodeOperatorImpulsiveOutflowEnergy)                        :: self
@@ -164,7 +164,7 @@ contains
 
   subroutine impulsiveOutflowEnergyDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily impulsiveOutflowEnergy} node operator class.
+    Destructor for the \refClass{nodeOperatorImpulsiveOutflowEnergy} node operator class.
     !!}
     implicit none
     type(nodeOperatorImpulsiveOutflowEnergy), intent(inout) :: self
@@ -208,7 +208,7 @@ contains
     use :: Galacticus_Nodes                , only : nodeComponentDarkMatterProfile, nodeComponentDisk, nodeComponentSpheroid
     use :: Histories                       , only : history
     use :: Stellar_Luminosities_Structure  , only : stellarLuminosities
-    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
+    use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr
     implicit none
     class           (nodeOperatorImpulsiveOutflowEnergy), intent(inout), target  :: self
     type            (treeNode                          ), intent(inout), target  :: node
@@ -309,12 +309,12 @@ contains
        timescaleOutflowSpheroid  =+0.0d0
     end if
     if (disk    %velocity() > 0.0d0) then
-       timescaleDynamicalDisk    =+disk    %radius()/disk    %velocity()*Mpc_per_km_per_s_To_Gyr
+       timescaleDynamicalDisk    =+disk    %radius()/disk    %velocity()*MpcPerKmPerSToGyr
     else
        timescaleDynamicalDisk    =+0.0d0
     end if 
     if (spheroid%velocity() > 0.0d0) then
-       timescaleDynamicalSpheroid=+spheroid%radius()/spheroid%velocity()*Mpc_per_km_per_s_To_Gyr
+       timescaleDynamicalSpheroid=+spheroid%radius()/spheroid%velocity()*MpcPerKmPerSToGyr
     else
        timescaleDynamicalSpheroid=+0.0d0
     end if 

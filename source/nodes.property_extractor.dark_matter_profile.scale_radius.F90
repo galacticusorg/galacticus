@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a dark matter profile scale radius output analysis property extractor class.
+Implements a dark matter profile scale radius output analysis property extractor class.
 !!}
 
   !![
@@ -40,7 +40,7 @@ Contains a module which implements a dark matter profile scale radius output ana
 
   interface nodePropertyExtractorDarkMatterProfileScaleRadius
      !!{
-     Constructors for the ``darkMatterProfileScaleRadius'' output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorDarkMatterProfileScaleRadius} output analysis class.
      !!}
      module procedure darkMatterProfileScaleRadiusConstructorParameters
   end interface nodePropertyExtractorDarkMatterProfileScaleRadius
@@ -49,7 +49,7 @@ contains
 
   function darkMatterProfileScaleRadiusConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily darkMatterProfileScaleRadius} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorDarkMatterProfileScaleRadius} output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

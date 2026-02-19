@@ -52,7 +52,7 @@ Implements an output analysis property extractor class that extracts the Einstei
 
   interface nodePropertyExtractorRadiusEinstein
      !!{
-     Constructors for the ``radiusEinstein'' output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusEinstein} output analysis class.
      !!}
      module procedure radiusEinsteinConstructorParameters
      module procedure radiusEinsteinConstructorInternal
@@ -69,7 +69,7 @@ contains
 
   function radiusEinsteinConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``radiusEinstein'' node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorRadiusEinstein} node property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -103,7 +103,7 @@ contains
 
   function radiusEinsteinConstructorInternal(timeSource,cosmologyFunctions_,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the ``radiusEinstein'' node property extractor.
+    Internal constructor for the \refClass{nodePropertyExtractorRadiusEinstein} node property extractor.
     !!}
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
@@ -140,7 +140,7 @@ contains
 
   subroutine radiusEinsteinDestructor(self)
     !!{
-    Destructor for the ``radiusEinstein'' node property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorRadiusEinstein} node property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRadiusEinstein), intent(inout) :: self
@@ -159,8 +159,8 @@ contains
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Prefixes    , only : kilo 
     use :: Numerical_Constants_Physical    , only : speedLight
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus, arcsecondsToDegrees   , degreesToRadians
-    use :: Galacticus_Nodes                , only : nodeComponentBasic             , nodeComponentSatellite
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal, arcsecondsToDegrees   , degreesToRadians
+    use :: Galacticus_Nodes                , only : nodeComponentBasic            , nodeComponentSatellite
     implicit none
     class           (nodePropertyExtractorRadiusEinstein), intent(inout), target   :: self
     type            (treeNode                           ), intent(inout), target   :: node
@@ -183,15 +183,15 @@ contains
     distanceAngularLensSource=self%cosmologyFunctions_%distanceAngular(self%timeSource,basic%time())
     if (distanceAngularLens <= 0.0d0 .or. distanceAngularLensSource <= 0.0d0) return
     ! Compute the critical surface density.
-    densitySurfaceCritical=+(                               &
-         &                   +speedLight                    &
-         &                   /kilo                          &
-         &                  )**2                            &
-         &                 /4.0d0                           &
-         &                 /Pi                              &
-         &                 /gravitationalConstantGalacticus &
-         &                 *distanceAngularSource           &
-         &                 /distanceAngularLens             &
+    densitySurfaceCritical=+(                              &
+         &                   +speedLight                   &
+         &                   /kilo                         &
+         &                  )**2                           &
+         &                 /4.0d0                          &
+         &                 /Pi                             &
+         &                 /gravitationalConstant_internal &
+         &                 *distanceAngularSource          &
+         &                 /distanceAngularLens            &
          &                 /distanceAngularLensSource
     ! Find the outer radius of the halo.
     massDistribution_ => node%massDistribution()

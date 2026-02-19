@@ -626,7 +626,7 @@ Enumerations are used to communicate options to many functions in \glc. All avai
 
 \input{autoEnumerationDefinitions}
 
-\section{Defined Constants}\label{sec:definedConstants}
+\section{Defined Constants}
 
 \glc\ defines numerous constants, including mathematical constants (e.g. $\pi$), physical constants (e.g. the speed of light), unit conversions (e.g. Angstroms to meters), and prefixes (e.g. ``kilo'', ``mega'', etc.). These should be used whenever a constant is needed in the code---it is bad practice to use the numerical value of a constant directly in the code\footnote{Both because it is prone to mistakes (the more times a numerical value is used directly, the more chances there are for typos and other errors), and because using a named constant makes it much easier to understand \emph{what} the code is doing and \emph{why}.}.
 
@@ -638,6 +638,20 @@ after which you can use this constant, e.g.:
 \begin{verbatim}
    volumeSphere=4.0d0*Pi/3.0d0*radiusSphere**3
 \end{verbatim}
+
+\subsection{Indicating Units of Defined Constants}
+
+The unit system in which a constant is defined should be indicated by a suffix starting with an underscore. The default, which requires no suffix, is the SI system. So, for example, the defined constant {\normalfont \ttfamily massSolar} (which has no suffix) will be in SI units of kilograms. The defined constant {\normalfont \ttfamily lymanSeriesLimitWavelengthHydrogen\_atomic} is in the ``atomic'' unit system, so will be in units of Angstroms.
+
+Currently defined unit systems are:
+\begin{description}
+\item[no suffix:] With no suffix, the defined constant is in the \href{https://en.wikipedia.org/wiki/International_System_of_Units}{SI} unit system.
+\item[{\normalfont \ttfamily \_internal}:] The ``internal'' suffix indicates a defined constant is in \glc's internal unit system of $\mathrm{M}_\odot$, Mpc, Gyr, and km/s.
+\item[{\normalfont \ttfamily \_atomic}:] The ``atomic'' suffix indicates atomic units (\AA).
+\item[{\normalfont \ttfamily \_cgs}:] The ``cgs'' suffix indicates a defined constant is in the \href{https://en.wikipedia.org/wiki/Centimetre%E2%80%93gram%E2%80%93second_system_of_units}{CGS} unit system.
+\end{description}
+
+\subsection{Available Defined Constants}\label{sec:definedConstants}
 
 \input{constants}
 

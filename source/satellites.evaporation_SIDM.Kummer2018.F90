@@ -61,7 +61,7 @@
 
   interface satelliteEvaporationSIDMKummer2018
      !!{
-     Constructors for the {\normalfont \ttfamily kummer2018} satellite evaporation due to dark matter self-interactions class.
+     Constructors for the \refClass{satelliteEvaporationSIDMKummer2018} satellite evaporation due to dark matter self-interactions class.
      !!}
      module procedure kummer2018ConstructorParameters
      module procedure kummer2018ConstructorInternal
@@ -71,7 +71,7 @@ contains
 
   function kummer2018ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily kummer2018} satellite evaporation due to dark matter self-interactions class
+    Constructor for the \refClass{satelliteEvaporationSIDMKummer2018} satellite evaporation due to dark matter self-interactions class
     which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -102,7 +102,7 @@ contains
 
   function kummer2018ConstructorInternal(cosmologyParameters_,darkMatterParticle_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily kummer2018} satellite evaporation due to dark matter self-interactions
+    Internal constructor for the \refClass{satelliteEvaporationSIDMKummer2018} satellite evaporation due to dark matter self-interactions
     class.
     !!}
     implicit none
@@ -131,7 +131,7 @@ contains
 
   subroutine kummer2018Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily kummer2018} satellite evaporation due to dark matter self-interactions class.
+    Destructor for the \refClass{satelliteEvaporationSIDMKummer2018} satellite evaporation due to dark matter self-interactions class.
     !!}
     implicit none
     type(satelliteEvaporationSIDMKummer2018), intent(inout) :: self
@@ -149,11 +149,11 @@ contains
     !!{
     Return a evaporation for satellites due to dark matter self-interactions using the formulation of \cite{kummer_effective_2018}.
     !!}
-    use :: Coordinates                     , only : coordinateSpherical                        , coordinateCartesian        , assignment(=)
-    use :: Galactic_Structure_Options      , only : coordinateSystemCartesian                  , radiusLarge                , massTypeDark
-    use :: Galacticus_Nodes                , only : nodeComponentSatellite                     , nodeComponentBasic
-    use :: Mass_Distributions              , only : massDistributionClass                      , kinematicsDistributionClass
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+   use :: Coordinates                     , only : coordinateSpherical                        , coordinateCartesian        , assignment(=)
+   use :: Galactic_Structure_Options      , only : coordinateSystemCartesian                  , radiusLarge                , massTypeDark
+   use :: Galacticus_Nodes                , only : nodeComponentSatellite                     , nodeComponentBasic
+   use :: Mass_Distributions              , only : massDistributionClass                      , kinematicsDistributionClass
+   use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal 
     use :: Vectors                         , only : Vector_Magnitude
     use :: Dark_Matter_Particles           , only : darkMatterParticleSelfInteractingDarkMatter
     use :: Numerical_Constants_Prefixes    , only : centi                                      , milli                      , kilo
@@ -241,7 +241,7 @@ contains
           coordinatesBoundary=[radiusBoundary,0.0d0,0.0d0]
           coordinatesHalfMass=[radiusHalfMass,0.0d0,0.0d0]
           potentialEscape    =+massDistribution_%potentialDifference(coordinatesBoundary,coordinatesHalfMass) &
-               &              +gravitationalConstantGalacticus                                                &
+               &              +gravitationalConstant_internal                                                 &
                &              *massBoundary                                                                   &
                &              /radiusBoundary
           if (potentialEscape > 0.0d0) then
@@ -257,14 +257,14 @@ contains
        <objectDestructor name="massDistributionDark"/>
        !!]
        ! Find the combined velocity dispersion of satellite and host.
-       massDistribution_           =>  self                 %darkMatterProfileDMO_%get                   (node           )
-       massDistributionHost_       =>  self                 %darkMatterProfileDMO_%get                   (nodeHost       )       
-       kinematics_                 =>  massDistribution_                          %kinematicsDistribution(               )
-       kinematicsHost_             =>  massDistributionHost_                      %kinematicsDistribution(               )
+       massDistribution_           =>  self                 %darkMatterProfileDMO_%get                   (node                                                       )
+       massDistributionHost_       =>  self                 %darkMatterProfileDMO_%get                   (nodeHost                                                   ) 
+       kinematics_                 =>  massDistribution_                          %kinematicsDistribution(                                                           )
+       kinematicsHost_             =>  massDistributionHost_                      %kinematicsDistribution(                                                           )
        coordinates                 =  [radiusHalfMass,0.0d0,0.0d0]
        coordinatesHost             =  [radiusOrbital ,0.0d0,0.0d0]
-       velocityDispersionHost      =  +kinematicsHost_                            %velocityDispersion1D  (coordinatesHost,massDistributionHost_)
-       velocityDispersionSatellite =  +kinematics_                                %velocityDispersion1D  (coordinates    ,massDistribution_    )
+       velocityDispersionHost      =  +kinematicsHost_                            %velocityDispersion1D  (coordinatesHost,massDistributionHost_,massDistributionHost_)
+       velocityDispersionSatellite =  +kinematics_                                %velocityDispersion1D  (coordinates    ,massDistribution_    ,massDistribution_    )
        velocityDispersion          =  +sqrt(                                &
             &                               +velocityDispersionHost     **2 &
             &                               +velocityDispersionSatellite**2 &

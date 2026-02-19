@@ -52,6 +52,12 @@ sub Implementation_Serialize_ASCII {
 		 type       => $implementationTypeName,
 		 attributes => [ "intent(in   )" ],
 		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "type",
+		 type       => "enumerationVerbosityLevelType",
+		 variables  => [ "verbosityLevel" ],
+		 attributes => [ "intent(in   )" ]
 	     }
 	    ],
 	content     => ""
@@ -93,12 +99,12 @@ sub Implementation_Serialize_ASCII {
 	# Serialize the parent type if necessary.
 	if ( exists($code::member->{'extends'}) ) {
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-call self%nodeComponent{ucfirst($member->{'extends'}->{'class'}).ucfirst($member->{'extends'}->{'name'})}%serializeASCII()
+call self%nodeComponent{ucfirst($member->{'extends'}->{'class'}).ucfirst($member->{'extends'}->{'name'})}%serializeASCII(verbosityLevel)
 CODE
 	}
 	$code::padding = " " x ($fullyQualifiedNameLengthMax-length($code::class->{'name'}));
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-call displayIndent('{$class->{'name'}}: {$padding.$member->{'name'}}')
+call displayIndent('{$class->{'name'}}: {$padding.$member->{'name'}}',verbosityLevel)
 CODE
 	foreach $code::property ( map {! $_->{'attributes'}->{'isVirtual'} ? $_ : ()} &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) ) {
 	    $code::nameLength = length($code::property->{'name'});
@@ -107,14 +113,14 @@ CODE
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 write (label,{$formatLabel{$property->{'data'}->{'type'}}}) self%{$property->{'name'}}Data
 message='{$property->{'name'}}: '//repeat(' ',propertyNameLengthMax-{$nameLength})//label
-call displayMessage(message)
+call displayMessage(message,verbosityLevel)
 CODE
 		} else {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 message='{$property->{'name'}}:'
-call displayIndent(message)
-call self%{$property->{'name'}}Data%dump()
-call displayUnindent('end')
+call displayIndent(message,verbosityLevel)
+call self%{$property->{'name'}}Data%dump(verbosityLevel)
+call displayUnindent('end',verbosityLevel)
 CODE
 		}
 	    } elsif ( $code::property->{'data'}->{'rank'} == 1 ) {
@@ -125,7 +131,7 @@ do i=1,size(self%{$property->{'name'}}Data)
    message='{$property->{'name'}}: '//repeat(' ',propertyNameLengthMax-{$nameLength})//trim(label)
    write (label,{$formatLabel{$property->{'data'}->{'type'}}}) self%{$property->{'name'}}Data(i)
    message=message//': '//label
-   call displayMessage(message)
+   call displayMessage(message,verbosityLevel)
 end do
 CODE
 		} else {
@@ -133,9 +139,9 @@ CODE
 do i=1,size(self%{$property->{'name'}}Data)
    write (label,'(i3)') i
    message='{$property->{'name'}}: '//repeat(' ',propertyNameLengthMax-{$nameLength})//trim(label)
-   call displayIndent(message)
-   call self%{$property->{'name'}}Data(i)%dump()
-   call displayUnindent('end')
+   call displayIndent(message,verbosityLevel)
+   call self%{$property->{'name'}}Data(i)%dump(verbosityLevel)
+   call displayUnindent('end',verbosityLevel)
 end do
 CODE
 		}
@@ -163,7 +169,7 @@ if (allocated({$class->{'name'}.$prefix}MetaPropertyNames)) then
  do i=1,size({$class->{'name'}.$prefix}MetaPropertyNames)
   write (label,{$format}) self%{$prefix}MetaProperties(i)
   message=trim({$class->{'name'}.$prefix}MetaPropertyNames(i))//': '//repeat(' ',propertyNameLengthMax-len_trim({$class->{'name'}.$prefix}MetaPropertyNames(i)))//label
-  call displayMessage(message)
+  call displayMessage(message,verbosityLevel)
  end do
 end if
 CODE
@@ -176,7 +182,7 @@ if (allocated({$class->{'name'}.$prefix}MetaPropertyNames)) then
    message=trim({$class->{'name'}.$prefix}MetaPropertyNames(i))//': '//repeat(' ',propertyNameLengthMax-len_trim({$class->{'name'}.$prefix}MetaPropertyNames(i)))//trim(label)
    write (label,{$format}) self%{$prefix}MetaProperties(i)%values(j)
    message=message//': '//label
-   call displayMessage(message)
+   call displayMessage(message,verbosityLevel)
   end do
  end do
 end if
@@ -187,7 +193,7 @@ CODE
 	}
     }
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-call displayUnindent('done')
+call displayUnindent('done',verbosityLevel)
 CODE
     # Insert a type-binding for this function.
     push(

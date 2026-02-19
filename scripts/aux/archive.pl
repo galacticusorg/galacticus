@@ -35,7 +35,7 @@ close($dependenciesFile);
 my @directories = ($galacticusPath."/source",$galacticusPath."/scripts");
 my @links;
 find(\&linkFinder,@directories);
-$_ = "Makefile"; &linkFinder();
+$_ = $galacticusPath."/Makefile"; &linkFinder();
 
 # Retrieve links.
 my $report;
@@ -66,7 +66,7 @@ sub linkFinder {
     # Find links that may be downloaded at run-time.
     my $fileName = $_;
     return
-        unless ( $fileName =~ m/\.(F90|Inc|py)$/ || $fileName =~ m/^Makefile/ );
+        unless ( $fileName =~ m/\.(F90|Inc|py)$/ || $fileName =~ m/\/Makefile$/ );
     open(my $file,$fileName);
     while ( my $line = <$file> ) {
 	# Fortran source.

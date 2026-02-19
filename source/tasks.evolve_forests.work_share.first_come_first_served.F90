@@ -38,7 +38,7 @@
 
   interface evolveForestsWorkShareFCFS
      !!{
-     Constructors for the {\normalfont \ttfamily fcfs} forest evolution work sharing class.
+     Constructors for the \refClass{evolveForestsWorkShareFCFS} forest evolution work sharing class.
      !!}
      module procedure fcfsConstructorParameters
      module procedure fcfsConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function fcfsConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily fcfs} forest evolution work sharing class which takes a parameter set as
+    Constructor for the \refClass{evolveForestsWorkShareFCFS} forest evolution work sharing class which takes a parameter set as
     input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -103,7 +103,7 @@ contains
 
   function fcfsConstructorInternal(doPing,reportWaitTime,activeProcessRanks) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily fcfs} forest evolution work sharing class.
+    Internal constructor for the \refClass{evolveForestsWorkShareFCFS} forest evolution work sharing class.
     !!}
 #ifdef USEMPI
     use :: MPI_Utilities, only : mpiSelf

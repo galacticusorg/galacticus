@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a dark matter profile SIDM interaction radius property extractor class.
+Implements a dark matter profile SIDM interaction radius property extractor class.
 !!}
 
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
@@ -44,7 +44,7 @@ Contains a module which implements a dark matter profile SIDM interaction radius
 
   interface nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM
      !!{
-     Constructors for the ``darkMatterProfileRadiusInteractionSIDM'' output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM} output analysis class.
      !!}
      module procedure darkMatterProfileRadiusInteractionSIDMConstructorParameters
      module procedure darkMatterProfileRadiusInteractionSIDMConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function darkMatterProfileRadiusInteractionSIDMConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily darkMatterProfileRadiusInteractionSIDM} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM} output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -74,7 +74,7 @@ contains
 
   function darkMatterProfileRadiusInteractionSIDMConstructorInternal(darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily darkMatterProfileRadiusInteractionSIDM} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM)                        :: self
@@ -88,7 +88,7 @@ contains
 
   subroutine darkMatterProfileRadiusInteractionSIDMDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily darkMatterProfileRadiusInteractionSIDM} property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM), intent(inout) :: self

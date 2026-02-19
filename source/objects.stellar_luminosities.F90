@@ -503,17 +503,18 @@ contains
     return
   end subroutine Stellar_Luminosities_Builder
 
-  subroutine Stellar_Luminosities_Dump(self)
+  subroutine Stellar_Luminosities_Dump(self,verbosityLevel)
     !!{
     Dump a stellar luminosities object.
     !!}
-    use :: Display           , only : displayMessage
+    use :: Display           , only : displayMessage, enumerationVerbosityLevelType
     use :: ISO_Varying_String, only : operator(//)
     implicit none
-    class    (stellarLuminosities), intent(in   ) :: self
-    integer                                       :: i
-    character(len=22             )                :: label
-    type     (varying_string     )                :: message
+    class    (stellarLuminosities          ), intent(in   ) :: self
+    type     (enumerationVerbosityLevelType), intent(in   ) :: verbosityLevel
+    integer                                                 :: i
+    character(len=22                       )                :: label
+    type     (varying_string               )                :: message
 
     ! Dump the contents.
     if (luminosityCount > 0) then
@@ -524,7 +525,7 @@ contains
              label="pruned"
           end if
           message=luminosityName(i)//':          '//label
-          call displayMessage(message)
+          call displayMessage(message,verbosityLevel)
        end do
     end if
     return
@@ -1161,7 +1162,7 @@ contains
        end if
     end do
     if (luminosityCount > 0) then
-       lengthNameMaximum =max(4,maxval(len(luminosityFilter)))
+       lengthNameMaximum =max(4,max(len(filterName),maxval(len(luminosityFilter))))
        countDigitsMaximum=int(log10(dble(luminosityCount)))+1
     else
        lengthNameMaximum =4

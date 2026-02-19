@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an N-body data operator which constructs the convex hull of the particles.
+Implements an N-body data operator which constructs the convex hull of the particles.
 !!}
   
   !![
@@ -37,7 +37,7 @@ Contains a module which implements an N-body data operator which constructs the 
 
   interface nbodyOperatorConvexHull
      !!{
-     Constructors for the {\normalfont \ttfamily convexHull} N-body operator class.
+     Constructors for the \refClass{nbodyOperatorConvexHull} N-body operator class.
      !!}
      module procedure convexHullConstructorParameters
   end interface nbodyOperatorConvexHull
@@ -46,7 +46,7 @@ contains
 
   function convexHullConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily convexHull} N-body operator class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyOperatorConvexHull} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

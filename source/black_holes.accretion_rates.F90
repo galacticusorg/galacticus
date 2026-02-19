@@ -41,8 +41,8 @@ module Black_Hole_Accretion_Rates
     <description>Computes the mass accretion rate onto a black hole.</description>
     <type>void</type>
     <pass>yes</pass>
-    <argument>class           (nodeComponentBlackHole), intent(inout) :: blackHole                                          </argument>
-    <argument>double precision                        , intent(  out) :: rateMassAccretionSpheroid, rateMassAccretionHotHalo</argument>
+    <argument>class           (nodeComponentBlackHole), intent(inout) :: blackHole                                                                               </argument>
+    <argument>double precision                        , intent(  out) :: rateMassAccretionSpheroid, rateMassAccretionHotHalo, rateMassAccretionNuclearStarCluster</argument>
    </method>
   </functionClass>
   !!]

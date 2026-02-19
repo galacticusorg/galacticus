@@ -52,7 +52,7 @@ contains
 
   function unionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily union} merger tree masses class which takes a parameter set
+    Constructor for the \refClass{mergerTreeBuildMassesUnion} merger tree masses class which takes a parameter set
     as input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -82,7 +82,7 @@ contains
 
   function unionConstructorInternal(mergerTreeBuildMasses_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily union} merger tree masses class.
+    Internal constructor for the \refClass{mergerTreeBuildMassesUnion} merger tree masses class.
     !!}
     implicit none
     type(mergerTreeBuildMassesUnion)                        :: self

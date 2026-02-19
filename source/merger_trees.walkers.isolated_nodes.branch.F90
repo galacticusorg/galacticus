@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a depth-first merger tree walker over all isolated nodes in a given branch.
+Implements a depth-first merger tree walker over all isolated nodes in a given branch.
 !!}
 
   !![
@@ -41,7 +41,7 @@ Contains a module which implements a depth-first merger tree walker over all iso
 
   interface mergerTreeWalkerIsolatedNodesBranch
      !!{
-     Constructors for the {\normalfont \ttfamily isolatedNodesBranch} merger tree walker class.
+     Constructors for the \refClass{mergerTreeWalkerIsolatedNodesBranch} merger tree walker class.
      !!}
      module procedure isolatedNodesBranchParameters
      module procedure isolatedNodesBranchInternal
@@ -51,7 +51,7 @@ contains
 
   function isolatedNodesBranchParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily isolatedNodesBranch} merger tree walker class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeWalkerIsolatedNodesBranch} merger tree walker class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameters
@@ -66,7 +66,7 @@ contains
 
   function isolatedNodesBranchInternal(branchHead,timeEarliest) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily isolatedNodesBranch} merger tree walker class.
+    Internal constructor for the \refClass{mergerTreeWalkerIsolatedNodesBranch} merger tree walker class.
     !!}
     implicit none
     type            (mergerTreeWalkerIsolatedNodesBranch)                          :: self

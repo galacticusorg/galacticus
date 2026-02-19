@@ -38,7 +38,7 @@
 
   interface computationalDomainVolumeIntegratorCartesian3D
      !!{
-     Constructors for the {\normalfont \ttfamily cartesian3D} computational domain.
+     Constructors for the \refClass{computationalDomainVolumeIntegratorCartesian3D} computational domain.
      !!}
      module procedure cartesian3DConstructorParameters
      module procedure cartesian3DConstructorInternal
@@ -48,7 +48,7 @@ contains
 
   function cartesian3DConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily cartesian3D} computational domain volume integrator class which takes a
+    Constructor for the \refClass{computationalDomainVolumeIntegratorCartesian3D} computational domain volume integrator class which takes a
     parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -91,7 +91,7 @@ contains
 
   function cartesian3DConstructorInternal(boundaries) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily cartesian3D} computational domain volume integrator class.
+    Internal constructor for the \refClass{computationalDomainVolumeIntegratorCartesian3D} computational domain volume integrator class.
     !!}
     implicit none
     type            (computationalDomainVolumeIntegratorCartesian3D)                                :: self

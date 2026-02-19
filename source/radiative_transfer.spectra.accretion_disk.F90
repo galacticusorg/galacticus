@@ -40,7 +40,7 @@
   
   interface radiativeTransferSpectrumAccretionDisk
      !!{
-     Constructors for the {\normalfont \ttfamily accretionDisk} radiative transfer spectrum class.
+     Constructors for the \refClass{radiativeTransferSpectrumAccretionDisk} radiative transfer spectrum class.
      !!}
      module procedure accretionDiskConstructorParameters
      module procedure accretionDiskConstructorInternal
@@ -50,7 +50,7 @@ contains
       
   function accretionDiskConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily accretionDisk} radiative transfer spectrum class which takes a parameter set as
+    Constructor for the \refClass{radiativeTransferSpectrumAccretionDisk} radiative transfer spectrum class which takes a parameter set as
     input.
     !!}
     use :: Input_Parameters, only : inputParameters, inputParameter
@@ -85,7 +85,7 @@ contains
 
   function accretionDiskConstructorInternal(massBlackHole,accretionRateEddington,accretionDiskSpectra_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily accretionDisk} radiative transfer spectrum class.
+    Internal constructor for the \refClass{radiativeTransferSpectrumAccretionDisk} radiative transfer spectrum class.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear
     use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
@@ -113,7 +113,7 @@ contains
 
   subroutine accretionDiskDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily accretionDisk} radiative transfer spectrum class.
+    Destructor for the \refClass{radiativeTransferSpectrumAccretionDisk} radiative transfer spectrum class.
     !!}
     implicit none
     type(radiativeTransferSpectrumAccretionDisk), intent(inout) :: self
@@ -158,14 +158,14 @@ contains
     Return the spectrum of the accretion disk.
     !!}
     use :: Numerical_Constants_Physical, only : speedLight
-    use :: Numerical_Constants_Units   , only : angstromsPerMeter
+    use :: Numerical_Constants_Units   , only : metersToAngstroms
     implicit none
     class           (radiativeTransferSpectrumAccretionDisk), intent(inout) :: self
     double precision                                        , intent(in   ) :: wavelength
 
     accretionDiskSpectrum=+self%accretionDiskSpectra_%spectrum(self%accretionRate,1.0d0,wavelength) &
          &                *speedLight                                                               &
-         &                *angstromsPerMeter                                                        &
+         &                *metersToAngstroms                                                        &
          &                /wavelength**2
     return
   end function accretionDiskSpectrum

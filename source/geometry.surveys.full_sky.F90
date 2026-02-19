@@ -143,7 +143,7 @@ contains
 
   subroutine fullSkyDestructor(self)
     !!{
-    Destructor for the ``fullSky'' survey geometry class.
+    Destructor for the \refClass{surveyGeometryFullSky} survey geometry class.
     !!}
     implicit none
     type(surveyGeometryFullSky), intent(inout) :: self

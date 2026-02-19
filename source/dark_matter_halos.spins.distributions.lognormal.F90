@@ -27,8 +27,11 @@
   !![
   <haloSpinDistribution name="haloSpinDistributionLogNormal">
    <description>
-    A halo spin distribution class in which the spin is drawn from a lognormal distribution with median {\normalfont \ttfamily
-    [median]} and width {\normalfont \ttfamily [sigma]}.
+    A halo spin distribution class in which the spin is drawn from a lognormal distribution with median $\bar{\lambda}=${\normalfont \ttfamily
+    [median]} and width $\sigma=${\normalfont \ttfamily [sigma]}. Specifically, the distribution function for spin, $\lambda$, is
+    \begin{equation}
+    p(\lambda) = \frac{1}{\sqrt{2 \pi} \sigma \lambda} \exp\left[ - \frac{1}{2} \left(\frac{\log\lambda-\log\bar{\lambda}}{\sigma}\right)^2\right].
+    \end{equation}
    </description>
   </haloSpinDistribution>
   !!]
@@ -48,7 +51,7 @@
 
   interface haloSpinDistributionLogNormal
      !!{
-     Constructors for the {\normalfont \ttfamily logNormal} dark matter halo spin
+     Constructors for the \refClass{haloSpinDistributionLogNormal} dark matter halo spin
      distribution class.
      !!}
      module procedure logNormalConstructorParameters
@@ -59,7 +62,7 @@ contains
 
   function logNormalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily logNormal} dark matter halo spin
+    Constructor for the \refClass{haloSpinDistributionLogNormal} dark matter halo spin
     distribution class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -99,7 +102,7 @@ contains
 
   function logNormalConstructorInternal(median,sigma,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily logNormal} dark matter halo spin
+    Internal constructor for the \refClass{haloSpinDistributionLogNormal} dark matter halo spin
     distribution class.
     !!}
     implicit none
@@ -115,7 +118,7 @@ contains
 
   subroutine lognormalDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily lognormal} dark matter halo spin
+    Destructor for the \refClass{haloSpinDistributionLogNormal} dark matter halo spin
     distribution class.
     !!}
     implicit none
@@ -135,11 +138,10 @@ contains
     implicit none
     class(haloSpinDistributionLogNormal), intent(inout) :: self
     type (treeNode                     ), intent(inout) :: node
-    !$GLC attributes unused :: node
 
     logNormalSample=exp(                                                             &
-         &              +self%median                                                 &
-         &              +self%sigma                                                  &
+         &              +log(self%median)                                            &
+         &              +    self%sigma                                              &
          &              *node%hostTree%randomNumberGenerator_%standardNormalSample() &
          &             )
     return
@@ -151,7 +153,7 @@ contains
     assuming a log-normal distribution.
     !!}
     use :: Dark_Matter_Halo_Spins  , only : Dark_Matter_Halo_Angular_Momentum_Scale
-    use :: Galacticus_Nodes        , only : nodeComponentSpin                       , treeNode
+    use :: Galacticus_Nodes        , only : nodeComponentSpin                      , treeNode
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (haloSpinDistributionLogNormal), intent(inout) :: self
@@ -162,19 +164,19 @@ contains
     spin                  =>  node%spin           ()
     spin_                 =  +spin%angularMomentum()                                                 &
          &                  /Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterHaloScale_)
-    logNormalDistribution =  +exp(               &
-         &                        -(             &
-         &                          +log(spin_)  &
-         &                          -self%median &
-         &                         )**2          &
-         &                        /2.0d0         &
-         &                        /self%sigma**2 &
-         &                       )               &
-         &                   /sqrt(              &
-         &                         +2.0d0        &
-         &                         *Pi           &
-         &                        )              &
-         &                   /self%sigma         &
+    logNormalDistribution =  +exp(                    &
+         &                        -(                  &
+         &                          +log(     spin_ ) &
+         &                          -log(self%median) &
+         &                         )**2               &
+         &                        /2.0d0              &
+         &                        /self%sigma**2      &
+         &                       )                    &
+         &                   /sqrt(                   &
+         &                         +2.0d0             &
+         &                         *Pi                &
+         &                        )                   &
+         &                   /self%sigma              &
          &                   /spin_
     return
   end function logNormalDistribution

@@ -60,7 +60,7 @@
   
   interface nodeOperatorHaloAxisRatiosMenkerBenson2022
      !!{
-     Constructors for the {\normalfont \ttfamily haloAxisRatiosMenkerBenson2022} node operator class.
+     Constructors for the \refClass{nodeOperatorHaloAxisRatiosMenkerBenson2022} node operator class.
      !!}
      module procedure haloAxisRatiosMenkerBenson2022ConstructorParameters
      module procedure haloAxisRatiosMenkerBenson2022ConstructorInternal
@@ -70,7 +70,7 @@ contains
   
   function haloAxisRatiosMenkerBenson2022ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily haloAxisRatiosMenkerBenson2022} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorHaloAxisRatiosMenkerBenson2022} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -118,7 +118,7 @@ contains
 
   function haloAxisRatiosMenkerBenson2022ConstructorInternal(timescaleSphericalizationFractional,energyBoost,exponentMass,darkMatterProfileDMO_,darkMatterHaloScale_,virialOrbit_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily haloAxisRatiosMenkerBenson2022} node operator class.
+    Internal constructor for the \refClass{nodeOperatorHaloAxisRatiosMenkerBenson2022} node operator class.
     !!}
     use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMONFW
     use :: Error                   , only : Error_Report
@@ -148,7 +148,7 @@ contains
 
   subroutine haloAxisRatiosMenkerBenson2022Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily haloAxisRatiosMenkerBenson2022} node operator class.
+    Destructor for the \refClass{nodeOperatorHaloAxisRatiosMenkerBenson2022} node operator class.
     !!}
     implicit none
     type(nodeOperatorHaloAxisRatiosMenkerBenson2022), intent(inout) :: self
@@ -366,8 +366,8 @@ contains
     Compute the energy tensor eigenvalues of the given node.
     !!}
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-    use :: Galacticus_Nodes                , only : nodeComponentBasic             , nodeComponentDarkMatterProfile
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
+    use :: Galacticus_Nodes                , only : nodeComponentBasic            , nodeComponentDarkMatterProfile
     implicit none
     double precision                                            , dimension(3)  :: eigenvalues
     class           (nodeOperatorHaloAxisRatiosMenkerBenson2022), intent(inout) :: self
@@ -419,7 +419,7 @@ contains
          &        *densityScale                                              &
          &        *radiusScale**3
     eigenvalues  =-gamma                                                     &
-         &        *gravitationalConstantGalacticus                           &
+         &        *gravitationalConstant_internal                            &
          &        *massScale**2                                              &
          &        /radiusScale                                               &
          &        *eigenvalues                                               &
@@ -458,11 +458,11 @@ contains
     Compute the orbital energy tensor of the given node.
     !!}
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-    use :: Linear_Algebra                  , only : matrix                         , assignment(=)
-    use :: Galacticus_Nodes                , only : nodeComponentBasic             , nodeComponentSatellite
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
+    use :: Linear_Algebra                  , only : matrix                        , assignment(=)
+    use :: Galacticus_Nodes                , only : nodeComponentBasic            , nodeComponentSatellite
     use :: Kepler_Orbits                   , only : keplerOrbit
-    use :: Vectors                         , only : Vector_Product                 , Vector_Magnitude
+    use :: Vectors                         , only : Vector_Product                , Vector_Magnitude
     implicit none
     type            (matrix                                    )                 :: energyTensorOrbital
     class           (nodeOperatorHaloAxisRatiosMenkerBenson2022), intent(inout)  :: self
@@ -516,7 +516,7 @@ contains
          &                       /(+basicSecondary%mass()+basicPrimary%mass())
     energyTensorOrbital_        =+0.0d0
     energyTensorOrbital_(1,1)   =+energyTensorOrbital_(1,1)                                     &
-         &                       -gravitationalConstantGalacticus                               &
+         &                       -gravitationalConstant_internal                                &
          &                       *basicPrimary                       %mass        (           ) &
          &                       *basicSecondary                     %mass        (           ) &
          &                       /self          %darkMatterHaloScale_%radiusVirial(nodePrimary)

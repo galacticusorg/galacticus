@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an N-body data operator which deletes named properties from the simulation.
+Implements an N-body data operator which deletes named properties from the simulation.
 !!}
 
   !![
@@ -38,7 +38,7 @@ Contains a module which implements an N-body data operator which deletes named p
 
   interface nbodyOperatorDeleteProperties
      !!{
-     Constructors for the {\normalfont \ttfamily deleteProperties} N-body operator class.
+     Constructors for the \refClass{nbodyOperatorDeleteProperties} N-body operator class.
      !!}
      module procedure deletePropertiesConstructorParameters
      module procedure deletePropertiesConstructorInternal
@@ -48,7 +48,7 @@ contains
 
   function deletePropertiesConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily deleteProperties} N-body operator class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyOperatorDeleteProperties} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -73,7 +73,7 @@ contains
 
   function deletePropertiesConstructorInternal(propertyNames) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily deleteProperties} N-body operator class.
+    Internal constructor for the \refClass{nbodyOperatorDeleteProperties} N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorDeleteProperties)                              :: self

@@ -34,7 +34,7 @@
 
   interface taskBuildToolMangle
      !!{
-     Constructors for the {\normalfont \ttfamily buildToolMangle} task.
+     Constructors for the \refClass{taskBuildToolMangle} task.
      !!}
      module procedure buildToolMangleParameters
   end interface taskBuildToolMangle
@@ -43,7 +43,7 @@ contains
 
   function buildToolMangleParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily buildToolMangle} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskBuildToolMangle} task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

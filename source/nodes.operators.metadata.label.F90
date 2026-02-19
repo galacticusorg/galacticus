@@ -45,7 +45,7 @@ Implements a node operator class that applies labels to nodes during tree initia
 
   interface nodeOperatorLabel
      !!{
-     Constructors for the {\normalfont \ttfamily label} node operator class.
+     Constructors for the \refClass{nodeOperatorLabel} node operator class.
      !!}
      module procedure labelConstructorParameters
      module procedure labelConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function labelConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily label} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorLabel} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -95,7 +95,7 @@ contains
 
   function labelConstructorInternal(label,onInitialize,onPostEvolution,galacticFilter_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily label} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorLabel} node operator class which takes a parameter set as input.
     !!}
     use :: Nodes_Labels, only : nodeLabelRegister
     implicit none
@@ -113,7 +113,7 @@ contains
   
   subroutine labelDestructor(self)
     !!{
-    Destructor for  the ``label'' galactic filter class.
+    Destructor for  the \refClass{nodeOperatorLabel} galactic filter class.
     !!}
     implicit none
     type(nodeOperatorLabel), intent(inout) :: self

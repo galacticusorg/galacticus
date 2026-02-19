@@ -38,7 +38,7 @@
 
   interface taskPosteriorSample
      !!{
-     Constructors for the {\normalfont \ttfamily posteriorSample} task.
+     Constructors for the \refClass{taskPosteriorSample} task.
      !!}
      module procedure posteriorSampleConstructorParameters
      module procedure posteriorSampleConstructorInternal
@@ -48,7 +48,7 @@ contains
 
   function posteriorSampleConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily posteriorSample} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskPosteriorSample} task class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     use :: Input_Parameters, only : inputParameter              , inputParameters
@@ -96,7 +96,7 @@ contains
 
   function posteriorSampleConstructorInternal(posteriorSampleSimulation_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily posteriorSample} task class.
+    Internal constructor for the \refClass{taskPosteriorSample} task class.
     !!}
     implicit none
     type (taskPosteriorSample           )                        :: self
@@ -111,7 +111,7 @@ contains
 
   subroutine posteriorSampleDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily posteriorSample} task class.
+    Destructor for the \refClass{taskPosteriorSample} task class.
     !!}
     use :: Node_Components, only : Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
     implicit none

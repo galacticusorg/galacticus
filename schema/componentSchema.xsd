@@ -81,6 +81,7 @@
 		      <xs:attribute name="makeGeneric"    type="xs:boolean"               />
 		      <xs:attribute name="isVirtual"      type="xs:boolean"               />
 		      <xs:attribute name="isDeferred"     type="xs:string"                />
+		      <xs:attribute name="isNonNegative"  type="xs:string"                />
 		      <xs:attribute name="bindsTo"        type="level"                    />
 		    </xs:complexType>
 		  </xs:element>

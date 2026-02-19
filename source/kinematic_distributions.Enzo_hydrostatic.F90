@@ -48,7 +48,7 @@
 
   interface kinematicsDistributionEnzoHydrostatic
      !!{
-     Constructors for the {\normalfont \ttfamily enzoHydrostatic} kinematic distribution class.
+     Constructors for the \refClass{kinematicsDistributionEnzoHydrostatic} kinematic distribution class.
      !!}
      module procedure enzoHydrostaticKinematicsConstructorParameters
      module procedure enzoHydrostaticKinematicsConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function enzoHydrostaticKinematicsConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily isothermal} kinematic distribution class which builds the object from a parameter
+    Constructor for the \refClass{kinematicsDistributionEnzoHydrostatic} kinematic distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -83,7 +83,7 @@ contains
   
   function enzoHydrostaticKinematicsConstructorInternal(massDistribution_) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily enzoHydrostatic} kinematics distribution class.
+    Constructor for the \refClass{kinematicsDistributionEnzoHydrostatic} kinematics distribution class.
     !!}
     implicit none
     type (kinematicsDistributionEnzoHydrostatic)                        :: self
@@ -97,7 +97,7 @@ contains
 
   subroutine enzoHydrostaticDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily enzoHydrostatic} kinematic distribution class.
+    Destructor for the \refClass{kinematicsDistributionEnzoHydrostatic} kinematic distribution class.
     !!}
     type(kinematicsDistributionEnzoHydrostatic), intent(inout) :: self
     implicit none
@@ -123,7 +123,7 @@ contains
     !!{
     Return the temperature at the specified {\normalfont \ttfamily coordinates} in an Enzo hydrostatic kinematic distribution.
     !!}
-    use :: Numerical_Constants_Astronomical, only : meanAtomicMassPrimordial, gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : meanAtomicMassPrimordial, gravitationalConstant_internal
     use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
     use :: Numerical_Constants_Physical    , only : boltzmannsConstant
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -136,16 +136,16 @@ contains
        temperature =temperatureMinimum
     else
        massEnclosed=self%massDistribution_%massEnclosedBySphere(coordinates%rSpherical())
-       temperature =max(                                     &
-            &           +kilo                           **2  &
-            &           *gravitationalConstantGalacticus     &
-            &           *massEnclosed                        &
-            &           *meanAtomicMassPrimordial            &
-            &           *massHydrogenAtom                    &
-            &           /3.0d0                               &
-            &           /boltzmannsConstant                  &
-            &           /coordinates%rSpherical()          , &
-            &           temperatureMinimum                   &
+       temperature =max(                                    &
+            &           +kilo                          **2  &
+            &           *gravitationalConstant_internal     &
+            &           *massEnclosed                       &
+            &           *meanAtomicMassPrimordial           &
+            &           *massHydrogenAtom                   &
+            &           /3.0d0                              &
+            &           /boltzmannsConstant                 &
+            &           /coordinates%rSpherical()         , &
+            &           temperatureMinimum                  &
             &          )
     end if
     return

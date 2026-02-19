@@ -46,7 +46,7 @@
   
   interface nodeOperatorEmpiricalCentralDisk
      !!{
-     Constructors for the {\normalfont \ttfamily empiricalCentralDisk} node operator class.
+     Constructors for the \refClass{nodeOperatorEmpiricalCentralDisk} node operator class.
      !!}
      module procedure empiricalCentralDiskConstructorParameters
      module procedure empiricalCentralDiskConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function empiricalCentralDiskConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily starFormation} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorEmpiricalCentralDisk} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -79,12 +79,12 @@ contains
     <inputParameter>
       <name>angularMomentumSpecificFinal</name>
       <source>parameters</source>
-      <description>The final specific pseudo-angular momentum of the disk galaxy.</description>
+      <description>The final specific angular momentum of the disk galaxy.</description>
     </inputParameter>
     <inputParameter>
       <name>rateAngularMomentumSpecificSpecific</name>
       <source>parameters</source>
-      <description>The specific growth rate of the specific pseudo-angular momentum of the disk galaxy.</description>
+      <description>The specific growth rate of the specific angular momentum of the disk galaxy.</description>
     </inputParameter>
     !!]
     self=nodeOperatorEmpiricalCentralDisk(massStellarFinal,rateStarFormationSpecific,angularMomentumSpecificFinal,rateAngularMomentumSpecificSpecific)
@@ -96,7 +96,7 @@ contains
 
   function empiricalCentralDiskConstructorInternal(massStellarFinal,rateStarFormationSpecific,angularMomentumSpecificFinal,rateAngularMomentumSpecificSpecific) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily empiricalCentralDisk} node operator class.
+    Internal constructor for the \refClass{nodeOperatorEmpiricalCentralDisk} node operator class.
     !!}
     implicit none
     type            (nodeOperatorEmpiricalCentralDisk)                :: self

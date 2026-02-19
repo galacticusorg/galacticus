@@ -114,7 +114,7 @@ contains
     return
   end function eddingtonLimitedEfficiencyRadiative
 
-  double precision function eddingtonLimitedPowerJet(self,blackHole,accretionRateMass)
+  double precision function eddingtonLimitedPowerJet(self,blackHole,accretionRateMass) result(powerJet)
     !!{
     Return the jet power of an Eddington-limited accretion disk.
     !!}
@@ -130,6 +130,10 @@ contains
          &                                                             accretionRateEddingtonLimitedReduced       , &
          &                                                             rateFractional
 
+    if (accretionRateMass <= 0.0d0) then
+       powerJet=0.0d0
+       return
+    end if
     accretionRateEddingtonLimited=+self%efficiencyJet                             &
          &                        *Black_Hole_Eddington_Accretion_Rate(blackHole)
     if (accretionRateMass > rateFractionalCutOff*accretionRateEddingtonLimited) then
@@ -144,11 +148,11 @@ contains
             &                                 -2.0d0*rateFractional**3     &
             &                                )
     end if
-    eddingtonLimitedPowerJet=+accretionRateEddingtonLimitedReduced &
-         &                   *(                                    &
-         &                     +speedLight                         &
-         &                     /kilo                               &
-         &                    )**2
+    powerJet=+accretionRateEddingtonLimitedReduced &
+         &   *(                                    &
+         &     +speedLight                         &
+         &     /kilo                               &
+         &     )**2
     return
   end function eddingtonLimitedPowerJet
 

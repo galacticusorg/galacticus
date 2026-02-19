@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a transfer function class using the CAMB code.
+Implements a transfer function class using the CAMB code.
 !!}
 
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
@@ -113,7 +113,7 @@ contains
 
   function cambConstructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,redshift,cambCountPerDecade) result(self)
     !!{
-    Internal constructor for the \href{http://camb.info}{\normalfont \scshape CAMB} transfer function class.
+    Internal constructor for the \refClass{transferFunctionCAMB} transfer function class.
     !!}
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleCDM

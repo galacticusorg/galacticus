@@ -21,7 +21,6 @@
   Implements a class for intergalactic background light which computes the background internally.
   !!}
 
-  use :: Accretion_Disk_Spectra                , only : accretionDiskSpectraClass
   use :: Atomic_Cross_Sections_Ionization_Photo, only : atomicCrossSectionIonizationPhotoClass
   use :: Cosmology_Functions                   , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters                  , only : cosmologyParametersClass
@@ -36,6 +35,12 @@
   !![
   <radiationField name="radiationFieldIntergalacticBackgroundInternal">
    <description>A radiation field class for intergalactic background light with properties computed internally.</description>
+   <stateStore>
+     <stateStore variables="accretionDiskSpectra_" store="accretionDiskSpectraStateStore_" restore="accretionDiskSpectraStateRestore_" module="Functions_Global"/>
+   </stateStore>
+   <deepCopy>
+     <ignore variables="accretionDiskSpectra_"/>
+   </deepCopy>
   </radiationField>
   !!]
   type, extends(radiationFieldIntergalacticBackground) :: radiationFieldIntergalacticBackgroundInternal
@@ -47,7 +52,7 @@
      class           (cosmologyFunctionsClass               ), pointer                     :: cosmologyFunctions_                => null()
      class           (intergalacticMediumStateClass         ), pointer                     :: intergalacticMediumState_          => null()
      class           (atomicCrossSectionIonizationPhotoClass), pointer                     :: atomicCrossSectionIonizationPhoto_ => null()
-     class           (accretionDiskSpectraClass             ), pointer                     :: accretionDiskSpectra_              => null()
+     class           (*                                     ), pointer                     :: accretionDiskSpectra_              => null()
      class           (starFormationRateDisksClass           ), pointer                     :: starFormationRateDisks_            => null()
      class           (starFormationRateSpheroidsClass       ), pointer                     :: starFormationRateSpheroids_        => null()
      class           (stellarPopulationSelectorClass        ), pointer                     :: stellarPopulationSelector_         => null()
@@ -79,11 +84,14 @@
      procedure :: timeSet           => intergalacticBackgroundInternalTimeSet
      procedure :: timeDependentOnly => intergalacticBackgroundInternalTimeDependentOnly
      procedure :: autoHook          => intergalacticBackgroundInternalAutoHook
+     procedure :: deepCopy          => intergalacticBackgroundInternalDeepCopy
+     procedure :: deepCopyReset     => intergalacticBackgroundInternalDeepCopyReset
+     procedure :: deepCopyFinalize  => intergalacticBackgroundInternalDeepCopyFinalize
   end type radiationFieldIntergalacticBackgroundInternal
 
   interface radiationFieldIntergalacticBackgroundInternal
      !!{
-     Constructors for the {\normalfont \ttfamily intergalacticBackgroundInternal} radiation field class.
+     Constructors for the \refClass{radiationFieldIntergalacticBackgroundInternal} radiation field class.
      !!}
      module procedure intergalacticBackgroundInternalConstructorParameters
      module procedure intergalacticBackgroundInternalConstructorInternal
@@ -106,9 +114,10 @@ contains
 
   function intergalacticBackgroundInternalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily intergalacticBackgroundInternal} radiation field class which takes a parameter list as input.
+    Constructor for the \refClass{radiationFieldIntergalacticBackgroundInternal} radiation field class which takes a parameter list as input.
     !!}
-    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameter                , inputParameters
+    use :: Functions_Global, only : accretionDiskSpectraConstruct_, accretionDiskSpectraDestruct_
     implicit none
     type            (radiationFieldIntergalacticBackgroundInternal)                :: self
     type            (inputParameters                              ), intent(inout) :: parameters
@@ -116,7 +125,7 @@ contains
     class           (cosmologyFunctionsClass                      ), pointer       :: cosmologyFunctions_
     class           (intergalacticMediumStateClass                ), pointer       :: intergalacticMediumState_
     class           (atomicCrossSectionIonizationPhotoClass       ), pointer       :: atomicCrossSectionIonizationPhoto_
-    class           (accretionDiskSpectraClass                    ), pointer       :: accretionDiskSpectra_
+    class           (*                                            ), pointer       :: accretionDiskSpectra_
     class           (starFormationRateDisksClass                  ), pointer       :: starFormationRateDisks_
     class           (starFormationRateSpheroidsClass              ), pointer       :: starFormationRateSpheroids_
     class           (stellarPopulationSelectorClass               ), pointer       :: stellarPopulationSelector_
@@ -166,31 +175,31 @@ contains
     <objectBuilder class="cosmologyFunctions"                name="cosmologyFunctions_"                source="parameters"/>
     <objectBuilder class="intergalacticMediumState"          name="intergalacticMediumState_"          source="parameters"/>
     <objectBuilder class="atomicCrossSectionIonizationPhoto" name="atomicCrossSectionIonizationPhoto_" source="parameters"/>
-    <objectBuilder class="accretionDiskSpectra"              name="accretionDiskSpectra_"              source="parameters"/>
     <objectBuilder class="starFormationRateDisks"            name="starFormationRateDisks_"            source="parameters"/>
     <objectBuilder class="starFormationRateSpheroids"        name="starFormationRateSpheroids_"        source="parameters"/>
     <objectBuilder class="stellarPopulationSelector"         name="stellarPopulationSelector_"         source="parameters"/>
     <objectBuilder class="outputTimes"                       name="outputTimes_"                       source="parameters"/>
     !!]
+    call accretionDiskSpectraConstruct_(parameters,accretionDiskSpectra_)
     self=radiationFieldIntergalacticBackgroundInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,redshiftMinimum,redshiftMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumState_,atomicCrossSectionIonizationPhoto_,accretionDiskSpectra_,starFormationRateDisks_,starFormationRateSpheroids_,stellarPopulationSelector_,outputTimes_)
     !![
-    <inputParametersValidate source="parameters"/>
+    <inputParametersValidate source="parameters" extraAllowedNames="accretionDiskSpectra"/>
     <objectDestructor name="cosmologyParameters_"              />
     <objectDestructor name="cosmologyFunctions_"               />
     <objectDestructor name="intergalacticMediumState_"         />
     <objectDestructor name="atomicCrossSectionIonizationPhoto_"/>
-    <objectDestructor name="accretionDiskSpectra_"             />
     <objectDestructor name="starFormationRateDisks_"           />
     <objectDestructor name="starFormationRateSpheroids_"       />
     <objectDestructor name="stellarPopulationSelector_"        />
     <objectDestructor name="outputTimes_"                      />
     !!]
+    if (associated(accretionDiskSpectra_)) call accretionDiskSpectraDestruct_(accretionDiskSpectra_)
     return
   end function intergalacticBackgroundInternalConstructorParameters
 
   function intergalacticBackgroundInternalConstructorInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,redshiftMinimum,redshiftMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumState_,atomicCrossSectionIonizationPhoto_,accretionDiskSpectra_,starFormationRateDisks_,starFormationRateSpheroids_,stellarPopulationSelector_,outputTimes_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily intergalacticBackgroundInternal} radiation field class.
+    Internal constructor for the \refClass{radiationFieldIntergalacticBackgroundInternal} radiation field class.
     !!}
     use :: Numerical_Ranges, only : Make_Range          , rangeTypeLogarithmic
     use :: Table_Labels    , only : extrapolationTypeFix, extrapolationTypeZero
@@ -203,7 +212,7 @@ contains
     class           (cosmologyFunctionsClass                      ), intent(in   ), target :: cosmologyFunctions_
     class           (intergalacticMediumStateClass                ), intent(in   ), target :: intergalacticMediumState_
     class           (atomicCrossSectionIonizationPhotoClass       ), intent(in   ), target :: atomicCrossSectionIonizationPhoto_
-    class           (accretionDiskSpectraClass                    ), intent(in   ), target :: accretionDiskSpectra_
+    class           (*                                            ), intent(in   ), target :: accretionDiskSpectra_
     class           (starFormationRateDisksClass                  ), intent(in   ), target :: starFormationRateDisks_
     class           (starFormationRateSpheroidsClass              ), intent(in   ), target :: starFormationRateSpheroids_
     class           (stellarPopulationSelectorClass               ), intent(in   ), target :: stellarPopulationSelector_
@@ -304,9 +313,10 @@ contains
 
   subroutine intergalacticBackgroundInternalDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily intergalacticBackgroundInternal} radiation field class.
+    Destructor for the \refClass{radiationFieldIntergalacticBackgroundInternal} radiation field class.
     !!}
-    use :: Events_Hooks, only : universePreEvolveEventGlobal
+    use :: Events_Hooks    , only : universePreEvolveEventGlobal
+    use :: Functions_Global, only : accretionDiskSpectraDestruct_
     implicit none
     type(radiationFieldIntergalacticBackgroundInternal), intent(inout) :: self
 
@@ -315,12 +325,12 @@ contains
     <objectDestructor name="self%cosmologyFunctions_"               />
     <objectDestructor name="self%intergalacticMediumState_"         />
     <objectDestructor name="self%atomicCrossSectionIonizationPhoto_"/>
-    <objectDestructor name="self%accretionDiskSpectra_"             />
     <objectDestructor name="self%starFormationRateDisks_"           />
     <objectDestructor name="self%starFormationRateSpheroids_"       />
     <objectDestructor name="self%stellarPopulationSelector_"        />
     <objectDestructor name="self%outputTimes_"                      />
     !!]
+    if (associated(self%accretionDiskSpectra_)) call accretionDiskSpectraDestruct_(self%accretionDiskSpectra_)
     !$omp master
     if (universePreEvolveEventGlobal%isAttached(self,intergalacticBackgroundInternalUniversePreEvolve)) call universePreEvolveEventGlobal%detach(self,intergalacticBackgroundInternalUniversePreEvolve)
     !$omp end master
@@ -362,12 +372,13 @@ contains
     type            (treeNode                                     ), intent(inout)  :: node
     double precision                                               , dimension(0:1) :: hWavelength
     double precision                                               , parameter      :: timeTolerance=1.0d-3
+    logical                                                                         :: lockHeld
     character       (len=16                                       )                 :: timeCurrent         , timeNext
     integer         (c_size_t                                     )                 :: iWavelength         , jWavelength, &
          &                                                                             jTime
 
     if (node%hostTree%hostUniverse%uniqueID /= self%universeUniqueIDPrevious .or. self%timeCurrent /= self%timePrevious) then
-       !$omp critical (radiationFieldIntergalacticBackgroundInternalCritical)    
+       lockHeld=node%hostTree%hostUniverse%lock%setNonBlocking()
        ! Get the state of the radiation field.
        self%universeUniqueIDPrevious =  node%hostTree%hostUniverse%uniqueID
        self%timePrevious             =  self                      %timeCurrent
@@ -392,7 +403,7 @@ contains
        class default
           call Error_Report('state has unknown type'//{introspection:location})
        end select
-       !$omp end critical (radiationFieldIntergalacticBackgroundInternalCritical)
+       if (lockHeld) call node%hostTree%hostUniverse%lock%unset()
     end if
     ! Find interpolation in the array of wavelengths.
     call self%interpolatorWavelength%linearFactors(     wavelength ,iWavelength,hWavelength)
@@ -422,28 +433,30 @@ contains
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : universe    , universeEvent
     implicit none
-    class(*                                   ), intent(inout), target :: self
-    type (universe                            ), intent(inout)         :: universe_
-    type (universeEvent                       ), pointer               :: event
-    type (intergalacticBackgroundInternalState), pointer               :: state
-
+    class  (*                                   ), intent(inout), target :: self
+    type   (universe                            ), intent(inout)         :: universe_
+    type   (universeEvent                       ), pointer               :: event
+    type   (intergalacticBackgroundInternalState), pointer               :: state
+    logical                                                              :: lockHeld
+    
     select type (self)
     class is (radiationFieldIntergalacticBackgroundInternal)
-       ! If the universe object already has an "radiationFieldIntergalacticBackgroundInternal" attribute, then do not add a new event here - we want only one event per universe.
+       ! If the universe object already has an "radiationFieldIntergalacticBackgroundInternal" attribute, then do not add a new
+       ! event here - we want only one event per universe.
        if (.not.universe_%attributes%exists('radiationFieldIntergalacticBackgroundInternal')) then
           ! Create the first interrupt event in the universe object.
           event                       => universe_%createEvent( )
           event%time                  =  self     %time_      (1)
           event%creator               => self
           event%task                  => intergalacticBackgroundInternalUpdate
-          !$omp critical (radiationFieldIntergalacticBackgroundInternalCritical)
+          lockHeld=universe_%lock%setNonBlocking()
           allocate(state                                          )
           allocate(state%flux(self%wavelengthCount,self%timeCount))
           state%timeNext    =self%time_(1)
           state%timePrevious=0.0d0
           state%flux        =0.0d0
           call universe_%attributes%set('radiationFieldIntergalacticBackgroundInternal',state)
-          !$omp end critical (radiationFieldIntergalacticBackgroundInternalCritical)
+          if (lockHeld) call universe_%lock%unset()
           self%universeUniqueIDPrevious =  -1_kind_int8
           self%timePrevious             =  -1.0d0
           self%statePrevious            => null()
@@ -458,13 +471,14 @@ contains
     !!{
     Update the radiation background for a given universe.
     !!}
-    use            :: Abundances_Structure        , only : abundances                   , max
+    use            :: Abundances_Structure        , only : abundances                       , max
     use            :: Arrays_Search               , only : searchArrayClosest
-    use            :: Display                     , only : displayIndent                , displayMessage          , displayUnindent
+    use            :: Display                     , only : displayIndent                    , displayMessage          , displayUnindent
     use            :: Error                       , only : Error_Report
+    use            :: Functions_Global            , only : accretionDiskSpectraSpectrumNode_
     use            :: Output_HDF5                 , only : outputFile
-    use            :: Galacticus_Nodes            , only : defaultDiskComponent         , defaultSpheroidComponent, mergerTreeList , nodeComponentBasic, &
-          &                                                nodeComponentDisk            , nodeComponentSpheroid   , treeNode       , universe          , &
+    use            :: Galacticus_Nodes            , only : defaultDiskComponent             , defaultSpheroidComponent, mergerTreeList , nodeComponentBasic, &
+          &                                                nodeComponentDisk                , nodeComponentSpheroid   , treeNode       , universe          , &
           &                                                universeEvent
     use            :: HDF5_Access                 , only : hdf5Access
     use            :: IO_HDF5                     , only : hdf5Object
@@ -472,9 +486,9 @@ contains
     use            :: ISO_Varying_String          , only : varying_string
     use            :: Merger_Tree_Walkers         , only : mergerTreeWalkerAllNodes
     use            :: Numerical_Constants_Math    , only : Pi
-    use            :: Numerical_Constants_Physical, only : plancksConstant              , speedLight
+    use            :: Numerical_Constants_Physical, only : plancksConstant                  , speedLight
     use            :: Numerical_Constants_Prefixes, only : centi
-    use            :: Numerical_Constants_Units   , only : angstromsPerMeter            , ergs
+    use            :: Numerical_Constants_Units   , only : metersToAngstroms                , ergs
     use            :: Numerical_Integration       , only : integrator
     use            :: Numerical_ODE_Solvers       , only : odeSolver
     use            :: Stellar_Population_Spectra  , only : stellarPopulationSpectraClass
@@ -511,7 +525,7 @@ contains
     type            (hdf5Object                          )                :: outputGroup                          , outputDataset
     integer         (c_size_t                            )                :: iTime                                , iWavelength                             , &
          &                                                                   iNow
-    logical                                                               :: firstTime
+    logical                                                               :: firstTime                            , lockHeld
 
     ! Guard on event creator class.
     select type (self => event%creator)
@@ -582,10 +596,10 @@ contains
                               &   )                                  &
                               &  *node%hostTree%volumeWeight
                          ! Add AGN emission. This accumulates only to the the current time.
-                         if (firstTime)                                                                                               &
-                              & self%emissivity  (iWavelength,iTime)=+self%emissivity                        (iWavelength,iTime     ) &
-                              &                                      +self%accretionDiskSpectra_%spectrum    (node       ,wavelength) &
-                              &                                      *node%hostTree             %volumeWeight
+                         if (firstTime)                                                                                                                                  &
+                              & self%emissivity  (iWavelength,iTime)=+self         %emissivity                       (                                iWavelength,iTime) &
+                              &                                      +              accretionDiskSpectraSpectrumNode_(self%accretionDiskSpectra_,node, wavelength      ) &
+                              &                                      *node%hostTree%volumeWeight
                       end do
                       firstTime=.false.
                    end do
@@ -608,12 +622,12 @@ contains
              timeEnd   =  self%time_(iNow  )
              solver    =  odeSolver(self%wavelengthCount,intergalacticBackgroundInternalODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
              call solver%solve(timeStart,timeEnd,self%spectrum)
-             ! Convert
-             !$omp critical (radiationFieldIntergalacticBackgroundInternalCritical)
+             ! Convert.
+             lockHeld=universe_%lock%setNonBlocking()
              state%flux(:,iNow)=max(                                   &
                   &                 +plancksConstant                   &
                   &                 *speedLight                   **2  &
-                  &                 *angstromsPerMeter                 &
+                  &                 *metersToAngstroms                 &
                   &                 /4.0d0                             &
                   &                 /Pi                                &
                   &                 /self%wavelength                   &
@@ -622,10 +636,10 @@ contains
                   &                 /ergs                            , &
                   &                 +0.0d0                             &
                   &                )
-             !$omp end critical (radiationFieldIntergalacticBackgroundInternalCritical)
+             if (lockHeld) call universe_%lock%unset()
           end if
           ! Add the next event to the universe.
-          !$omp critical (radiationFieldIntergalacticBackgroundInternalCritical)
+          lockHeld=universe_%lock%setNonBlocking()
           state    %timePrevious=self%time_(iNow  )
           if (iNow < self%timeCount) then
              state%timeNext     =self%time_(iNow+1)
@@ -634,7 +648,7 @@ contains
              ! radiation field to slightly later times (which may occur due to numerical inaccuracies).
              state%timeNext     =self%time_(iNow  )*(1.0d0+timeTolerance)
           end if
-          !$omp end critical (radiationFieldIntergalacticBackgroundInternalCritical)
+          if (lockHeld) call universe_%lock%unset()
           self%universeUniqueIDPrevious =  -1_kind_int8
           self%timePrevious             =  -1.0d0
           self%statePrevious            => null()
@@ -654,7 +668,7 @@ contains
              !$ call hdf5Access%set()
              outputGroup=outputFile%openGroup('backgroundRadiation','Cosmic background radiation data.')
              call    outputGroup  %writeDataset  (self%wavelength        ,'wavelength','Wavelength at which the background radiation is tabulated [Å].'    ,datasetReturned=outputDataset)
-             call    outputDataset%writeAttribute(1.0d0/angstromsPerMeter,'unitsInSI'                                                                                                    )
+             call    outputDataset%writeAttribute(1.0d0/metersToAngstroms,'unitsInSI'                                                                                                    )
              call    outputDataset%close         (                                                                                                                                       )
              call    outputGroup  %writeDataset  (self%redshift          ,'redshift'  ,'Redshift at which the background radiation is tabulated [].'       ,datasetReturned=outputDataset)
              call    outputDataset%writeAttribute(0.0d0                  ,'unitsInSI'                                                                                                    )
@@ -717,7 +731,7 @@ contains
     use :: Numerical_Constants_Atomic      , only : atomicMassHelium , atomicMassHydrogen    , atomicMassUnit
     use :: Numerical_Constants_Physical    , only : plancksConstant  , speedLight
     use :: Numerical_Constants_Prefixes    , only : centi
-    use :: Numerical_Constants_Units       , only : angstromsPerMeter
+    use :: Numerical_Constants_Units       , only : metersToAngstroms
     implicit none
     double precision, intent(in   )               :: time
     double precision, intent(in   ), dimension(:) :: spectrum
@@ -739,7 +753,7 @@ contains
          &  *self_%wavelength                                      &
          &  *luminositySolar                                       &
          &  *gigaYear                                              &
-         &  /angstromsPerMeter                                     &
+         &  /metersToAngstroms                                     &
          &  /plancksConstant                                       &
          &  /speedLight                                            &
          &  /megaParsec**3
@@ -807,3 +821,71 @@ contains
     intergalacticBackgroundInternalTimeDependentOnly=.false.
     return
   end function intergalacticBackgroundInternalTimeDependentOnly
+
+  subroutine intergalacticBackgroundInternalDeepCopyReset(self)
+    !!{
+    Perform a deep copy reset of the object.
+    !!}
+    use :: Functions_Global, only : accretionDiskSpectraDeepCopyReset_
+    implicit none
+    class(radiationFieldIntergalacticBackgroundInternal), intent(inout) :: self
+    
+    self%copiedSelf => null()
+    if (associated(self%cosmologyParameters_              )) call self%cosmologyParameters_              %deepCopyReset()
+    if (associated(self%cosmologyFunctions_               )) call self%cosmologyFunctions_               %deepCopyReset()
+    if (associated(self%intergalacticMediumState_         )) call self%intergalacticMediumState_         %deepCopyReset()
+    if (associated(self%atomicCrossSectionIonizationPhoto_)) call self%atomicCrossSectionIonizationPhoto_%deepCopyReset()
+    if (associated(self%starFormationRateDisks_           )) call self%starFormationRateDisks_           %deepCopyReset()
+    if (associated(self%starFormationRateSpheroids_       )) call self%starFormationRateSpheroids_       %deepCopyReset()
+    if (associated(self%stellarPopulationSelector_        )) call self%stellarPopulationSelector_        %deepCopyReset()
+    if (associated(self%outputTimes_                      )) call self%outputTimes_                      %deepCopyReset()
+    if (associated(self%accretionDiskSpectra_             )) call accretionDiskSpectraDeepCopyReset_(self%accretionDiskSpectra_)
+    return
+  end subroutine intergalacticBackgroundInternalDeepCopyReset
+  
+  subroutine intergalacticBackgroundInternalDeepCopyFinalize(self)
+    !!{
+    Finalize a deep reset of the object.
+    !!}
+    use :: Functions_Global, only : accretionDiskSpectraDeepCopyFinalize_
+    implicit none
+    class(radiationFieldIntergalacticBackgroundInternal), intent(inout) :: self
+    
+    if (associated(self%cosmologyParameters_              )) call self%cosmologyParameters_              %deepCopyFinalize()
+    if (associated(self%cosmologyFunctions_               )) call self%cosmologyFunctions_               %deepCopyFinalize()
+    if (associated(self%intergalacticMediumState_         )) call self%intergalacticMediumState_         %deepCopyFinalize()
+    if (associated(self%atomicCrossSectionIonizationPhoto_)) call self%atomicCrossSectionIonizationPhoto_%deepCopyFinalize()
+    if (associated(self%starFormationRateDisks_           )) call self%starFormationRateDisks_           %deepCopyFinalize()
+    if (associated(self%starFormationRateSpheroids_       )) call self%starFormationRateSpheroids_       %deepCopyFinalize()
+    if (associated(self%stellarPopulationSelector_        )) call self%stellarPopulationSelector_        %deepCopyFinalize()
+    if (associated(self%outputTimes_                      )) call self%outputTimes_                      %deepCopyFinalize()
+    if (associated(self%accretionDiskSpectra_             )) call accretionDiskSpectraDeepCopyFinalize_(self%accretionDiskSpectra_)
+    return
+  end subroutine intergalacticBackgroundInternalDeepCopyFinalize
+  
+  subroutine intergalacticBackgroundInternalDeepCopy(self,destination)
+    !!{
+    Perform a deep copy of the object.
+    !!}
+    use :: Functions_Global, only : accretionDiskSpectraDeepCopy_
+    implicit none
+    class(radiationFieldIntergalacticBackgroundInternal), intent(inout), target :: self
+    class(radiationFieldClass                          ), intent(inout)         :: destination
+
+    call self%deepCopy_(destination)
+    select type (destination)
+    type is (radiationFieldIntergalacticBackgroundInternal)
+       nullify(destination%accretionDiskSpectra_)
+       if (associated(self%accretionDiskSpectra_)) then
+          allocate(destination%accretionDiskSpectra_,mold=self%accretionDiskSpectra_)
+          call accretionDiskSpectraDeepCopy_(self%accretionDiskSpectra_,destination%accretionDiskSpectra_)
+#ifdef OBJECTDEBUG
+          if (debugReporting.and.mpiSelf%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): galacticstructure : [destination] : ')//loc(destination)//' : '//loc(destination%accretionDiskSpectra_)//' : '//{introspection:location:compact},verbosityLevelSilent)
+#endif
+       end if
+    class default
+       call Error_Report('destination and source types do not match'//{introspection:location})
+    end select
+    return
+  end subroutine intergalacticBackgroundInternalDeepCopy
+

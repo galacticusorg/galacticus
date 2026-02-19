@@ -51,7 +51,7 @@
 
   interface mergerTreeBranchingProbabilityModifierPCHPlus
      !!{
-     Constructors for the {\normalfont \ttfamily pchPlus} merger tree branching probability rate class.
+     Constructors for the \refClass{mergerTreeBranchingProbabilityModifierPCHPlus} merger tree branching probability rate class.
      !!}
      module procedure pchPlusConstructorParameters
      module procedure pchPlusConstructorInternal

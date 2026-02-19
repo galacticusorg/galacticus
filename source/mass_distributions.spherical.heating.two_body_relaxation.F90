@@ -41,7 +41,7 @@
 
   interface massDistributionHeatingTwoBodyRelaxation
      !!{
-     Constructors for the {\normalfont \ttfamily twoBodyRelaxation} mass distribution class.
+     Constructors for the \refClass{massDistributionHeatingTwoBodyRelaxation} mass distribution class.
      !!}
      module procedure twoBodyRelaxationConstructorParameters
      module procedure twoBodyRelaxationConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function twoBodyRelaxationConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily twoBodyRelaxation} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionHeatingTwoBodyRelaxation} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -92,7 +92,7 @@ contains
   
   function twoBodyRelaxationConstructorInternal(massParticle,lengthSoftening,timeRelaxing,efficiency) result(self)
     !!{
-    Constructor for ``twoBodyRelaxation'' dark matter profile heating class.
+    Constructor for the \refClass{massDistributionHeatingTwoBodyRelaxation} dark matter profile heating class.
     !!}
     implicit none
     type             (massDistributionHeatingTwoBodyRelaxation)                :: self
@@ -114,7 +114,7 @@ contains
     the softening length, $b_{90}=2\mathrm{G}m_\mathrm{p}/V^2(r)$, and $m_\mathrm{p}$ is the particle mass. Finally, the
     specific energy is assumed to be $\sigma^2(r)/2\approx V^2(r)/4$.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gigaYear, megaParsec, gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gigaYear, megaParsec, gravitationalConstant_internal
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     class           (massDistributionHeatingTwoBodyRelaxation), intent(inout) :: self
@@ -126,7 +126,7 @@ contains
     if (self%timeRelaxing > 0.0d0) then
        velocity               =+massDistribution_                 %rotationCurve     (radius)
        impactParameterCritical=+2.0d0                                                                &
-            &                  *gravitationalConstantGalacticus                                      &
+            &                  *gravitationalConstant_internal                                       &
             &                  *self                              %massParticle                      &
             &                  /velocity                                                        **2
        logarithmCoulomb       =+0.5d0                                                                &
@@ -162,8 +162,8 @@ contains
     !!{
     Returns the gradient of the specific energy of heating.
     !!}
-    use :: Coordinates                     , only : coordinateSpherical            , assignment(=)
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (massDistributionHeatingTwoBodyRelaxation), intent(inout) :: self
     double precision                                          , intent(in   ) :: radius
@@ -177,7 +177,7 @@ contains
        coordinates             =[radius,0.0d0,0.0d0]
        velocity                =+massDistribution_                 %rotationCurve       (radius)
        impactParameterCritical =+2.0d0                                                               &
-            &                   *gravitationalConstantGalacticus                                     &
+            &                   *gravitationalConstant_internal                                      &
             &                   *self                              %massParticle                     &
             &                   /velocity                                                      **2
        logarithmCoulomb        =+0.5d0                                                               &
@@ -204,7 +204,7 @@ contains
                &            -1.0d0                                                           &
                &            +8.0d0                                                           &
                &            *Pi                                                              &
-               &            *gravitationalConstantGalacticus                                 &
+               &            *gravitationalConstant_internal                                  &
                &            *radius                                                      **2 &
                &            *massDistribution_              %density        (coordinates)    &
                &            /velocity                                                    **2 &
@@ -216,7 +216,7 @@ contains
             &                   -2.5d0                                                                            &
             &                   +6.0d0                                                                            &
             &                   *Pi                                                                               &
-            &                   *gravitationalConstantGalacticus                                                  &
+            &                   *gravitationalConstant_internal                                                   &
             &                   *massDistribution_              %density       (coordinates                  )    &
             &                   *radius                                                                       **2 &
             &                   /velocity                                                                     **2 &

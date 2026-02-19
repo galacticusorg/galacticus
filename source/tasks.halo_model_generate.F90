@@ -53,7 +53,7 @@
 
   interface taskHaloModelGenerate
      !!{
-     Constructors for the {\normalfont \ttfamily haloModelGenerate} task.
+     Constructors for the \refClass{taskHaloModelGenerate} task.
      !!}
      module procedure haloModelGenerateConstructorParameters
      module procedure haloModelGenerateConstructorInternal
@@ -63,7 +63,7 @@ contains
 
   function haloModelGenerateConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily haloModelGenerate} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskHaloModelGenerate} task class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     use :: Input_Parameters, only : inputParameter              , inputParameters
@@ -139,7 +139,7 @@ contains
 
   function haloModelGenerateConstructorInternal(galaxyCatalogFileName,haloCatalogFileName,massMinimum,massMaximum,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,conditionalMassFunction_,darkMatterProfileScaleRadius_,randomNumberGenerator_,parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily haloModelGenerate} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskHaloModelGenerate} task class which takes a parameter set as input.
     !!}
     implicit none
     type            (taskHaloModelGenerate            )                        :: self
@@ -163,7 +163,7 @@ contains
 
   subroutine haloModelGenerateDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily haloModelGenerate} task class.
+    Destructor for the \refClass{taskHaloModelGenerate} task class.
     !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none

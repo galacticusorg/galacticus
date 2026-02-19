@@ -61,7 +61,7 @@
   
   interface nodeOperatorNodeMajorMergerRecentCount
      !!{
-     Constructors for the {\normalfont \ttfamily nodeMajorMergerRecentCount} node operator class.
+     Constructors for the \refClass{nodeOperatorNodeMajorMergerRecentCount} node operator class.
      !!}
      module procedure nodeMajorMergerRecentCountConstructorParameters
      module procedure nodeMajorMergerRecentCountConstructorInternal
@@ -71,7 +71,7 @@ contains
 
   function nodeMajorMergerRecentCountConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily nodeMajorMergerRecentCount} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorNodeMajorMergerRecentCount} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -136,7 +136,7 @@ contains
 
   function nodeMajorMergerRecentCountConstructorInternal(massRatioMajor,intervalRecent,intervalType,intervalFromInfall,outputTimes_,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily nodeMajorMergerRecentCount} node operator class.
+    Internal constructor for the \refClass{nodeOperatorNodeMajorMergerRecentCount} node operator class.
     !!}
     use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
@@ -158,7 +158,7 @@ contains
 
   subroutine nodeMajorMergerRecentCountDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily nodeMajorMergerRecentCount} node operator class.
+    Destructor for the \refClass{nodeOperatorNodeMajorMergerRecentCount} node operator class.
     !!}
     implicit none
     type(nodeOperatorNodeMajorMergerRecentCount), intent(inout) :: self

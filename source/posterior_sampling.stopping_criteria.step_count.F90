@@ -45,7 +45,7 @@
 
   interface posteriorSampleStoppingCriterionStepCount
      !!{
-     Constructors for the {\normalfont \ttfamily stepCount} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleStoppingCriterionStepCount} posterior sampling convergence class.
      !!}
      module procedure stepCountConstructorParameters
      module procedure stepCountConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function stepCountConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily stepCount} posterior sampling stopping class which builds the object from a parameter set.
+    Constructor for the \refClass{posteriorSampleStoppingCriterionStepCount} posterior sampling stopping class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -82,7 +82,7 @@ contains
 
   function stepCountConstructorInternal(stopAfterCount,posteriorSampleConvergence_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily stepCount} posterior sampling stopping class.
+    Internal constructor for the \refClass{posteriorSampleStoppingCriterionStepCount} posterior sampling stopping class.
     !!}
     implicit none
     type   (posteriorSampleStoppingCriterionStepCount)                        :: self
@@ -97,7 +97,7 @@ contains
 
   subroutine stepCountDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily stepCount} posterior sampling stopping class.
+    Destructor for the \refClass{posteriorSampleStoppingCriterionStepCount} posterior sampling stopping class.
     !!}
     implicit none
     type(posteriorSampleStoppingCriterionStepCount), intent(inout) :: self

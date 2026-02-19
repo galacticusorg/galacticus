@@ -27,7 +27,7 @@
    <description>
     A cooling function class that computes the cooling function using the {\normalfont \scshape Cloudy} code and under the
     assumption of collisional ionization equilibrium with no molecular contribution. Abundances are Solar, except for zero
-    metallicity calculations which use {\normalfont \scshape Cloudy}'s ``primordial'' metallicity. The helium abundance for
+    metallicity calculations which use {\normalfont \scshape Cloudy}'s {\normalfont \ttfamily primordial} metallicity. The helium abundance for
     non-zero metallicity is scaled between primordial and Solar values linearly with metallicity. The {\normalfont \scshape
     Cloudy} code will be downloaded and run to compute the cooling function as needed, which will then be stored for future
     use. As this process is slow, a precomputed table is provided with \glc. If metallicities outside the range tabulated in
@@ -57,7 +57,7 @@
 
   interface coolingFunctionAtomicCIECloudy
      !!{
-     Constructors for the ``atomic CIE Cloudy'' cooling function class.
+     Constructors for the \refClass{coolingFunctionAtomicCIECloudy} cooling function class.
      !!}
      module procedure atomicCIECloudyConstructorParameters
      module procedure atomicCIECloudyConstructorInternal
@@ -80,7 +80,7 @@ contains
 
   function atomicCIECloudyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``atomic CIE Cloudy'' cooling function class which takes a parameter set as input.
+    Constructor for the \refClass{coolingFunctionAtomicCIECloudy} cooling function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -96,7 +96,7 @@ contains
 
   function atomicCIECloudyConstructorInternal() result(self)
     !!{
-    Internal constructor for the ``atomic CIE Cloudy'' cooling function class.
+    Internal constructor for the \refClass{coolingFunctionAtomicCIECloudy} cooling function class.
     !!}
     implicit none
     type(coolingFunctionAtomicCIECloudy) :: self

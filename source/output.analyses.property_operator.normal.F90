@@ -18,13 +18,16 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a property operator class in which the property value is replaced with an integral over a
-  normal distribution between given limits, using the property value at the mean of the distribution.
+  Implements a property operator class in which the property value is replaced with an integral over a
+  normal distribution between given limits, using the property value as the mean of the distribution.
   !!}
 
   !![
   <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorNormal">
-   <description>A property operator class in which the property value is replaced with an integral over a normal distribution between given limits, using the property value at the mean of the distribution.</description>
+    <description>
+      A property operator class in which the property value is replaced with an integral over a normal distribution between given
+      limits, using the property value as the mean of the distribution.
+    </description>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorNormal
@@ -41,7 +44,7 @@
 
   interface outputAnalysisPropertyOperatorNormal
      !!{
-     Constructors for the ``normal'' output analysis class.
+     Constructors for the \refClass{outputAnalysisPropertyOperatorNormal} output analysis class.
      !!}
      module procedure normalConstructorParameters
      module procedure normalConstructorInternal
@@ -51,7 +54,7 @@ contains
 
   function normalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``normal'' output analysis property operator class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisPropertyOperatorNormal} output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -100,7 +103,7 @@ contains
 
   function normalConstructorInternal(rangeLower,rangeUpper,extentLower,extentUpper,rootVariance) result (self)
     !!{
-    Internal constructor for the ``normal'' output analysis distribution operator class.
+    Internal constructor for the \refClass{outputAnalysisPropertyOperatorNormal} output analysis distribution operator class.
     !!}
     implicit none
     type            (outputAnalysisPropertyOperatorNormal)                :: self

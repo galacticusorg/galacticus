@@ -51,7 +51,7 @@
 
   interface darkMatterProfileDMODecaying
      !!{
-     Constructors for the {\normalfont \ttfamily decaying} dark matter halo profile class.
+     Constructors for the \refClass{darkMatterProfileDMODecaying} dark matter halo profile class.
      !!}
      module procedure decayingConstructorParameters
      module procedure decayingConstructorInternal
@@ -128,7 +128,7 @@ contains
 
   function decayingConstructorInternal(toleranceRelativePotential,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,tolerateEnclosedMassIntegrationFailure,darkMatterParticle_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{
-    Generic constructor for the {\normalfont \ttfamily decaying} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMODecaying} dark matter profile class.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversIsValid
     use :: Error             , only : Error_Report
@@ -150,7 +150,7 @@ contains
 
   subroutine decayingDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily decaying} dark matter halo profile class.
+    Destructor for the \refClass{darkMatterProfileDMODecaying} dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMODecaying), intent(inout) :: self

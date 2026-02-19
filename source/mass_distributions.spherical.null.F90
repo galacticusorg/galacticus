@@ -44,7 +44,7 @@
 
   interface massDistributionZero
      !!{
-     Constructors for the {\normalfont \ttfamily zero} mass distribution class.
+     Constructors for the \refClass{massDistributionZero} mass distribution class.
      !!}
      module procedure zeroConstructorParameters
      module procedure zeroConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily zero} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionZero} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -80,7 +80,7 @@ contains
   
   function zeroConstructorInternal(dimensionless) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily zero} mass distribution class.
+    Constructor for the \refClass{massDistributionZero} mass distribution class.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeUnknown, massTypeUnknown
     implicit none

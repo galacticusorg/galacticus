@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a excursion set first crossing statistics class for linear barriers with constrained branching
+Implements a excursion set first crossing statistics class for linear barriers with constrained branching
 described by a Brownian bridge solution.
 !!}
 

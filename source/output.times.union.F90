@@ -48,7 +48,7 @@
 
   interface outputTimesUnion
      !!{
-     Constructors for the {\normalfont \ttfamily union} output times class.
+     Constructors for the \refClass{outputTimesUnion} output times class.
      !!}
      module procedure unionConstructorParameters
      module procedure unionConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function unionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily union} output times class which takes a parameter set as input.
+    Constructor for the \refClass{outputTimesUnion} output times class which takes a parameter set as input.
     !!}
     use :: Input_Parameters , only : inputParameters
     implicit none
@@ -88,7 +88,7 @@ contains
 
   function unionConstructorInternal(outputTimesUnion_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily union} output times class which takes a parameter set as input.
+    Constructor for the \refClass{outputTimesUnion} output times class which takes a parameter set as input.
     !!}
     implicit none
     type(outputTimesUnion    )                        :: self
@@ -103,7 +103,7 @@ contains
 
   subroutine unionDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily union} output times class.
+    Destructor for the \refClass{outputTimesUnion} output times class.
     !!}
     implicit none
     type(outputTimesUnion    ), intent(inout) :: self

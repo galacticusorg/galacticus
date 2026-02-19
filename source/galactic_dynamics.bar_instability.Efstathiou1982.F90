@@ -67,7 +67,7 @@
 
   interface galacticDynamicsBarInstabilityEfstathiou1982
      !!{
-     Constructors for the {\normalfont \ttfamily efstathiou1982} model for galactic disk bar instability class.
+     Constructors for the \refClass{galacticDynamicsBarInstabilityEfstathiou1982} model for galactic disk bar instability class.
      !!}
      module procedure efstathiou1982ConstructorParameters
      module procedure efstathiou1982ConstructorInternal
@@ -79,7 +79,7 @@ contains
 
   function efstathiou1982ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily efstathiou1982} model for galactic disk bar instability class which takes a
+    Constructor for the \refClass{galacticDynamicsBarInstabilityEfstathiou1982} model for galactic disk bar instability class which takes a
     parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -131,7 +131,7 @@ contains
 
   function efstathiou1982ConstructorInternal(stabilityThresholdStellar,stabilityThresholdGaseous,timescaleMinimum,fractionAngularMomentumRetainedDisk,fractionAngularMomentumRetainedSpheroid) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily efstathiou1982} model for galactic disk bar instability class.
+    Internal constructor for the \refClass{galacticDynamicsBarInstabilityEfstathiou1982} model for galactic disk bar instability class.
     !!}
     implicit none
     type            (galacticDynamicsBarInstabilityEfstathiou1982)                :: self
@@ -211,8 +211,8 @@ contains
     !!{
     Compute the stability estimator for the \cite{efstathiou_stability_1982} model for galactic disk bar instability.
     !!}
-    use :: Galacticus_Nodes                , only : nodeComponentDisk              , treeNode
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Galacticus_Nodes                , only : nodeComponentDisk             , treeNode
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (galacticDynamicsBarInstabilityEfstathiou1982), intent(inout) :: self
     type            (treeNode                                    ), intent(inout) :: node
@@ -233,10 +233,10 @@ contains
     massDisk=disk%massGas()+disk%massStellar()
     if (massDisk < 0.0d0) return
     ! Compute the velocity due to the disk's self-gravity.
-    velocitySelf=+sqrt(                                 &
-         &             +gravitationalConstantGalacticus &
-         &             *massDisk                        &
-         &             /disk%radius  ()                 &
+    velocitySelf=+sqrt(                                &
+         &             +gravitationalConstant_internal &
+         &             *massDisk                       &
+         &             /disk%radius  ()                &
          &            )  
     if     (                                                                                           &
          &                                                          velocitySelf  <=            0.0d0  &

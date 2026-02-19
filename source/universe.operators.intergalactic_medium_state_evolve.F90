@@ -83,7 +83,7 @@
 
   interface universeOperatorIntergalacticMediumStateEvolve
      !!{
-     Constructors for the {\normalfont \ttfamily intergalacticMediumStateEvolve} universeOperator.
+     Constructors for the \refClass{universeOperatorIntergalacticMediumStateEvolve} universeOperator.
      !!}
      module procedure intergalacticMediumStateEvolveConstructorParameters
      module procedure intergalacticMediumStateEvolveConstructorInternal
@@ -97,7 +97,7 @@ contains
 
   function intergalacticMediumStateEvolveConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily intergalacticMediumStateEvolve} universeOperator class which takes a parameter set as input.
+    Constructor for the \refClass{universeOperatorIntergalacticMediumStateEvolve} universeOperator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -183,7 +183,7 @@ contains
 
   function intergalacticMediumStateEvolveConstructorInternal(timeMinimum,timeMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_,outputTimes_,gauntFactor_,atomicCrossSectionIonizationPhoto_,atomicIonizationPotential_,atomicRecombinationRateDielectronic_,atomicRecombinationRateRadiative_,atomicRecombinationRateRadiativeCooling_,atomicIonizationRateCollisional_,atomicExcitationRateCollisional_,intergalacticMediumState_,radiationField_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily intergalacticMediumStateEvolve} universeOperator class.
+    Internal constructor for the \refClass{universeOperatorIntergalacticMediumStateEvolve} universeOperator class.
     !!}
     use            :: Error                                , only : Error_Report
     use, intrinsic :: ISO_C_Binding                        , only : c_size_t
@@ -219,7 +219,7 @@ contains
           &                                                                                    ionicFraction                           , massFractionPrimordial, &
           &                                                                                    massFilteringVarianceInitial
     !![
-    <constructorAssign variables="timeMinimum, timeMaximum ,timeCountPerDecade, *cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *cosmologicalMassVariance_, *outputTimes_, *gauntFactor_, *atomicCrossSectionIonizationPhoto_, *atomicIonizationPotential_, *atomicRecombinationRateDielectronic_, *atomicRecombinationRateRadiative_, *atomicRecombinationRateRadiative_, *atomicRecombinationRateRadiativeCooling_, *atomicIonizationRateCollisional_, *atomicExcitationRateCollisional_, *intergalacticMediumState_, *radiationField_"/>
+    <constructorAssign variables="timeMinimum, timeMaximum ,timeCountPerDecade, *cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *cosmologicalMassVariance_, *outputTimes_, *gauntFactor_, *atomicCrossSectionIonizationPhoto_, *atomicIonizationPotential_, *atomicRecombinationRateDielectronic_, *atomicRecombinationRateRadiative_, *atomicRecombinationRateRadiativeCooling_, *atomicIonizationRateCollisional_, *atomicExcitationRateCollisional_, *intergalacticMediumState_, *radiationField_"/>
     !!]
 
     ! Get a RecFast intergalactic medium object for setting initial conditions.
@@ -338,7 +338,7 @@ contains
 
    subroutine intergalacticMediumStateEvolveDestructor(self)
      !!{
-     Destructor for the {\normalfont \ttfamily intergalacticMediumStateEvolve} universeOperator class.
+     Destructor for the \refClass{universeOperatorIntergalacticMediumStateEvolve} universeOperator class.
      !!}
      implicit none
      type(universeOperatorIntergalacticMediumStateEvolve), intent(inout) :: self
@@ -558,7 +558,7 @@ contains
      use :: Numerical_Constants_Physical         , only : boltzmannsConstant, electronMass     , electronRadius, fineStructure      , &
           &                                               plancksConstant   , radiationConstant, speedLight    , thomsonCrossSection
      use :: Numerical_Constants_Prefixes         , only : centi
-     use :: Numerical_Constants_Units            , only : angstromsPerMeter , electronVolt
+     use :: Numerical_Constants_Units            , only : metersToAngstroms , electronVolt
      use :: Numerical_Integration                , only : integrator
      implicit none
      double precision                                          , intent(in  )                :: time
@@ -744,7 +744,7 @@ contains
                    &            *speedLight                                                              &
                    &            /self_%atomicIonizationPotential_%potential(atomicNumber,electronNumber) &
                    &            /electronVolt                                                            &
-                   &            *angstromsPerMeter
+                   &            *metersToAngstroms
               ! Integrate photoionizations over wavelength.
               ionizationPhotoRateFrom=-integratorPhotoionization%integrate(wavelengthMinimum,wavelengthMaximum) &
                    &                  *densityThisIon
@@ -761,7 +761,7 @@ contains
                    &            *speedLight                                                                &
                    &            /self_%atomicIonizationPotential_%potential(atomicNumber,electronNumber+1) &
                    &            /electronVolt                                                              &
-                   &            *angstromsPerMeter
+                   &            *metersToAngstroms
               ! Integrate photoionizations over wavelength.
               ionizationPhotoRateTo            =+integratorPhotoionization%integrate(wavelengthMinimum,wavelengthMaximum) &
                    &                            *densityLowerIon
@@ -959,7 +959,7 @@ contains
                &                              *(                                                                                           &
                &                                +plancksConstant                                                                           &
                &                                *speedLight                                                                                &
-               &                                *angstromsPerMeter                                                                         &
+               &                                *metersToAngstroms                                                                         &
                &                                /wavelength                                                                                &
                &                                -self_%atomicIonizationPotential_      %potential   (                                      &
                &                                                                                     atomicNumber                        , &

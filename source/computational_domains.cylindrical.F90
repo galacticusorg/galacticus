@@ -68,7 +68,7 @@
 
   interface computationalDomainCylindrical
      !!{
-     Constructors for the {\normalfont \ttfamily cylindrical} computational domain.
+     Constructors for the \refClass{computationalDomainCylindrical} computational domain.
      !!}
      module procedure cylindricalConstructorParameters
      module procedure cylindricalConstructorInternal
@@ -93,7 +93,7 @@ contains
 
   function cylindricalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily cylindrical} computational domain class which takes a parameter set as input.
+    Constructor for the \refClass{computationalDomainCylindrical} computational domain class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -160,7 +160,7 @@ contains
 
   function cylindricalConstructorInternal(boundaries,countCells,convergencePercentile,convergenceThreshold,convergenceRatioThreshold,radiativeTransferMatter_,radiativeTransferConvergence_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily cylindrical} computational domain class which takes a parameter set as input.
+    Constructor for the \refClass{computationalDomainCylindrical} computational domain class which takes a parameter set as input.
     !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLinear
     implicit none
@@ -192,7 +192,7 @@ contains
 
   subroutine cylindricalDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily cylindrical} computational domain class.
+    Destructor for the \refClass{computationalDomainCylindrical} computational domain class.
     !!}
     implicit none
     type(computationalDomainCylindrical), intent(inout) :: self

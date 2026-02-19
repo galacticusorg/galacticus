@@ -49,6 +49,7 @@
        <method method="radiusFreefallNonAnalytic"                    description="Compute freefall radius for non-analytic cases."                                          />
        <method method="radiusFreefallIncreaseRateNonAnalytic"        description="Compute freefall radius growth rate for non-analytic cases."                              />
        <method method="potentialNonAnalytic"                         description="Compute gravitational potential for non-analytic cases."                                  />
+       <method method="energyNonAnalytic"                            description="Compute total energy for non-analytic cases."                                             />
        <method method="energyPotentialNonAnalytic"                   description="Compute gravitational potential energy for non-analytic cases."                           />
        <method method="energyKineticNonAnalytic"                     description="Compute kinetic energy for non-analytic cases."                                           />
        <method method="useUndecorated"                               description="Return true if the undecorated solution (instead of a numerical solution) should be used."/>
@@ -65,6 +66,7 @@
      procedure :: radiusFreefallIncreaseRate                   => sphericalDecoratorRadiusFreefallIncreaseRate 
      procedure :: potentialIsAnalytic                          => sphericalDecoratorPotentialIsAnalytic
      procedure :: potential                                    => sphericalDecoratorPotential
+     procedure :: energy                                       => sphericalDecoratorEnergy
      procedure :: energyPotential                              => sphericalDecoratorEnergyPotential
      procedure :: energyKinetic                                => sphericalDecoratorEnergyKinetic
      procedure :: massEnclosedBySphereNonAnalytic              => sphericalDecoratorMassEnclosedBySphereNonAnalytic
@@ -77,6 +79,7 @@
      procedure :: radiusFreefallNonAnalytic                    => sphericalDecoratorRadiusFreefallNonAnalytic
      procedure :: radiusFreefallIncreaseRateNonAnalytic        => sphericalDecoratorRadiusFreefallIncreaseRateNonAnalytic 
      procedure :: potentialNonAnalytic                         => sphericalDecoratorPotentialNonAnalytic
+     procedure :: energyNonAnalytic                            => sphericalDecoratorEnergyNonAnalytic
      procedure :: energyPotentialNonAnalytic                   => sphericalDecoratorEnergyPotentialNonAnalytic
      procedure :: energyKineticNonAnalytic                     => sphericalDecoratorEnergyKineticNonAnalytic
      procedure :: useUndecorated                               => sphericalDecoratorUseUndecorated
@@ -398,6 +401,36 @@ contains
     return
   end function sphericalDecoratorRadiusFreefallIncreaseRateNonAnalytic
 
+  double precision function sphericalDecoratorEnergy(self,radiusOuter,massDistributionEmbedding) result(energy)
+    !!{
+    Compute the total energy within a given {\normalfont \ttfamily radius}.
+    !!}
+    implicit none
+    class           (massDistributionSphericalDecorator), intent(inout), target :: self
+    double precision                                    , intent(in   )         :: radiusOuter
+    class           (massDistributionClass             ), intent(inout), target :: massDistributionEmbedding
+
+    energy=self%energyNonAnalytic(radiusOuter,massDistributionEmbedding)
+    return
+  end function sphericalDecoratorEnergy
+
+  double precision function sphericalDecoratorEnergyNonAnalytic(self,radiusOuter,massDistributionEmbedding) result(energy)
+    !!{
+    Compute the total energy within a given {\normalfont \ttfamily radius}.
+    !!}
+    implicit none
+    class           (massDistributionSphericalDecorator), intent(inout) :: self
+    double precision                                    , intent(in   ) :: radiusOuter
+    class           (massDistributionClass             ), intent(inout) :: massDistributionEmbedding
+
+    if (self%useUndecorated()) then
+       energy=self%massDistribution_%energy         (radiusOuter,self%massDistribution_        )
+    else
+       energy=self                  %energyNumerical(radiusOuter,     massDistributionEmbedding)
+    end if
+    return
+  end function sphericalDecoratorEnergyNonAnalytic
+  
   double precision function sphericalDecoratorEnergyPotential(self,radiusOuter) result(energy)
     !!{
     Compute the potential energy within a given {\normalfont \ttfamily radius}.

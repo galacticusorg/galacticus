@@ -46,7 +46,7 @@
 
   interface radiativeTransferOutputterContinuuaRates
      !!{
-     Constructors for the {\normalfont \ttfamily continuuaRates} radiative transfer outputter packet class.
+     Constructors for the \refClass{radiativeTransferOutputterContinuuaRates} radiative transfer outputter packet class.
      !!}
      module procedure continuuaRatesConstructorParameters
      module procedure continuuaRatesConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function continuuaRatesConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily continuuaRates} radiative transfer outputter class which takes a parameter set as
+    Constructor for the \refClass{radiativeTransferOutputterContinuuaRates} radiative transfer outputter class which takes a parameter set as
     input.
     !!}
     use :: Atomic_Data     , only : Atom_Lookup
@@ -95,11 +95,11 @@ contains
 
   function continuuaRatesConstructorInternal(elementIndices,atomicIonizationPotential_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily continuuaRates} radiative transfer outputter class.
+    Internal constructor for the \refClass{radiativeTransferOutputterContinuuaRates} radiative transfer outputter class.
     !!}
     use :: Atomic_Data                 , only : Atomic_Number, Atomic_Short_Label
     use :: Numerical_Constants_Physical, only : speedLight   , plancksConstant
-    use :: Numerical_Constants_Units   , only : electronVolt , angstromsPerMeter
+    use :: Numerical_Constants_Units   , only : electronVolt , metersToAngstroms
     implicit none
     type   (radiativeTransferOutputterContinuuaRates)                              :: self
     integer                                          , intent(in   ), dimension(:) :: elementIndices
@@ -128,7 +128,7 @@ contains
           self%continuumLimitWavelength(i,j)=+plancksConstant                                                                                &
                &                             *speedLight                                                                                     &
                &                             /electronVolt                                                                                   &
-               &                             *angstromsPerMeter                                                                              &
+               &                             *metersToAngstroms                                                                              &
                &                             /self%atomicIonizationPotential_%potential(                                                     &
                &                                                                        atomicNumber  =Atomic_Number(elementIndices(i))    , &
                &                                                                        electronNumber=Atomic_Number(elementIndices(i))+1-j  &
@@ -140,7 +140,7 @@ contains
 
   subroutine continuuaRatesDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily continuuaRates} radiative transfer outputter class.
+    Destructor for the \refClass{radiativeTransferOutputterContinuuaRates} radiative transfer outputter class.
     !!}
     implicit none
     type(radiativeTransferOutputterContinuuaRates), intent(inout) :: self
@@ -228,7 +228,7 @@ contains
       Integrand over the source spectrum.
       !!}
       use :: Numerical_Constants_Physical    , only : plancksConstant  , speedLight
-      use :: Numerical_Constants_Units       , only : angstromsPerMeter
+      use :: Numerical_Constants_Units       , only : metersToAngstroms
       use :: Numerical_Constants_Astronomical, only : luminositySolar
       implicit none
       double precision, intent(in   ) :: wavelength
@@ -236,7 +236,7 @@ contains
       
       energyPhoton=+plancksConstant                                           &
            &       *speedLight                                                &
-           &       *angstromsPerMeter                                         &
+           &       *metersToAngstroms                                         &
            &       /wavelength
       integrand   =+radiativeTransferSource_%spectrum(wavelength,sourceIndex) &
            &       *luminositySolar                                           &
@@ -252,7 +252,7 @@ contains
     !!}
     use :: Atomic_Data                     , only : Atomic_Number    , Atomic_Short_Label
     use :: Numerical_Constants_Physical    , only : plancksConstant  , speedLight
-    use :: Numerical_Constants_Units       , only : angstromsPerMeter
+    use :: Numerical_Constants_Units       , only : metersToAngstroms
     use :: Numerical_Constants_Astronomical, only : luminositySolar
     implicit none
     class           (radiativeTransferOutputterContinuuaRates), intent(inout) :: self
@@ -266,7 +266,7 @@ contains
           if (photonPacket%wavelength() < self%continuumLimitWavelength(i,j)) then
              energyPhoton                                      =+plancksConstant                                                 &
                   &                                             *speedLight                                                      &
-                  &                                             *angstromsPerMeter                                               &
+                  &                                             *metersToAngstroms                                               &
                   &                                             /photonPacket     %wavelength                  (               )
              rateEscape                                        =+photonPacket     %luminosity                  (               ) &
                   &                                             *luminositySolar                                                 &

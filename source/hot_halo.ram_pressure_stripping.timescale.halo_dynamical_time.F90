@@ -44,7 +44,7 @@
 
   interface hotHaloRamPressureTimescaleHaloDynamicalTime
      !!{
-     Constructors for the {\normalfont \ttfamily haloDynamicalTime} hot halo ram pressure timescale class.
+     Constructors for the \refClass{hotHaloRamPressureTimescaleHaloDynamicalTime} hot halo ram pressure timescale class.
      !!}
      module procedure haloDynamicalTimeConstructorParameters
      module procedure haloDynamicalTimeConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function haloDynamicalTimeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily haloDynamicalTime} hot halo ram pressure timescale class which builds the object from a parameter set.
+    Constructor for the \refClass{hotHaloRamPressureTimescaleHaloDynamicalTime} hot halo ram pressure timescale class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -76,7 +76,7 @@ contains
 
   function haloDynamicalTimeConstructorInternal(darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily haloDynamicalTime} hot halo ram pressure timescale class.
+    Internal constructor for the \refClass{hotHaloRamPressureTimescaleHaloDynamicalTime} hot halo ram pressure timescale class.
     !!}
     implicit none
     type (hotHaloRamPressureTimescaleHaloDynamicalTime)                        :: self
@@ -90,7 +90,7 @@ contains
 
   subroutine haloDynamicalTimeDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily haloDynamicalTime} hot halo ram pressure timescale class.
+    Destructor for the \refClass{hotHaloRamPressureTimescaleHaloDynamicalTime} hot halo ram pressure timescale class.
     !!}
     implicit none
     type(hotHaloRamPressureTimescaleHaloDynamicalTime), intent(inout) :: self

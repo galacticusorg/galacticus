@@ -57,7 +57,7 @@
 
   interface taskMergingHaloOrbitDistribution
      !!{
-     Constructors for the {\normalfont \ttfamily mergingHaloOrbitDistribution} task.
+     Constructors for the \refClass{taskMergingHaloOrbitDistribution} task.
      !!}
      module procedure mergingHaloOrbitDistributionConstructorParameters
      module procedure mergingHaloOrbitDistributionConstructorInternal
@@ -67,7 +67,7 @@ contains
   
   function mergingHaloOrbitDistributionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily mergingHaloOrbitDistribution} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskMergingHaloOrbitDistribution} task class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes   , only : nodeClassHierarchyInitialize
     use :: Input_Parameters   , only : inputParameter              , inputParameters
@@ -185,7 +185,7 @@ contains
 
   function mergingHaloOrbitDistributionConstructorInternal(time,velocityMinimum,velocityMaximum,countVelocitiesPerUnit,massMinimum,massMaximum,countMassesPerDecade,virialOrbit_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,mergerTreeBranchingProbability_,criticalOverdensity_,cosmologicalMassVariance_,haloMassFunction_,randomNumberGenerator_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily mergingHaloOrbitDistribution} task class.
+    Internal constructor for the \refClass{taskMergingHaloOrbitDistribution} task class.
     !!}
     implicit none
     type            (taskMergingHaloOrbitDistribution   )                        :: self
@@ -212,7 +212,7 @@ contains
 
   subroutine mergingHaloOrbitDistributionDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily mergingHaloOrbitDistribution} task class.
+    Destructor for the \refClass{taskMergingHaloOrbitDistribution} task class.
     !!}
     use :: Node_Components, only : Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
     implicit none

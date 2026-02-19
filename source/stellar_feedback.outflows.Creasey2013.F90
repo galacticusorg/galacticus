@@ -18,15 +18,15 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implementation of the \cite{creasey_how_2012} stellar feedback model.
+  Implementation of the \cite{creasey_how_2013} stellar feedback model.
   !!}
 
   use :: Star_Formation_Rate_Surface_Density_Disks, only : starFormationRateSurfaceDensityDisksClass
 
   !![
-  <stellarFeedbackOutflows name="stellarFeedbackOutflowsCreasey2012">
+  <stellarFeedbackOutflows name="stellarFeedbackOutflowsCreasey2013">
    <description>
-    A stellar feedback outflow class which implements the model of \cite{creasey_how_2012}. Specifically, the outflow rate is:
+    A stellar feedback outflow class which implements the model of \cite{creasey_how_2013}. Specifically, the outflow rate is:
     \begin{equation}
     \dot{M}_\mathrm{outflow} = {\dot{E}_\mathrm{SN} \over E_\mathrm{SN} \dot{M}_\star} \int_0^\infty \beta_0
     \Sigma_{g,1}^{-\mu}(r) f_\mathrm{g}^\nu(r) \dot{\Sigma}_\star(r) 2 \pi r \mathrm{d}r,
@@ -39,36 +39,36 @@
    </description>
   </stellarFeedbackOutflows>
   !!]
-  type, extends(stellarFeedbackOutflowsClass) :: stellarFeedbackOutflowsCreasey2012
+  type, extends(stellarFeedbackOutflowsClass) :: stellarFeedbackOutflowsCreasey2013
      !!{
-     Implementation of the \cite{creasey_how_2012} stellar feedback model.
+     Implementation of the \cite{creasey_how_2013} stellar feedback model.
      !!}
      private
      class           (starFormationRateSurfaceDensityDisksClass), pointer :: starFormationRateSurfaceDensityDisks_ => null()
      double precision                                                     :: nu                                             , mu, &
           &                                                                  beta0
    contains
-     final     ::                creasey2012Destructor
-     procedure :: outflowRate => creasey2012OutflowRate
-  end type stellarFeedbackOutflowsCreasey2012
+     final     ::                creasey2013Destructor
+     procedure :: outflowRate => creasey2013OutflowRate
+  end type stellarFeedbackOutflowsCreasey2013
 
-  interface stellarFeedbackOutflowsCreasey2012
+  interface stellarFeedbackOutflowsCreasey2013
      !!{
-     Constructors for the creasey2012 fraction stellar feedback class.
+     Constructors for the creasey2013 fraction stellar feedback class.
      !!}
-     module procedure creasey2012ConstructorParameters
-     module procedure creasey2012ConstructorInternal
-  end interface stellarFeedbackOutflowsCreasey2012
+     module procedure creasey2013ConstructorParameters
+     module procedure creasey2013ConstructorInternal
+  end interface stellarFeedbackOutflowsCreasey2013
 
 contains
 
-  function creasey2012ConstructorParameters(parameters) result(self)
+  function creasey2013ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \cite{creasey_how_2012} stellar feedback class which takes a parameter set as input.
+    Constructor for the \cite{creasey_how_2013} stellar feedback class which takes a parameter set as input.
     !!}
     use :: Error, only : Error_Report
     implicit none
-    type            (stellarFeedbackOutflowsCreasey2012       )                :: self
+    type            (stellarFeedbackOutflowsCreasey2013       )                :: self
     type            (inputParameters                          ), intent(inout) :: parameters
     class           (starFormationRateSurfaceDensityDisksClass), pointer       :: starFormationRateSurfaceDensityDisks_
     double precision                                                           :: mu                                   , nu, &
@@ -79,39 +79,39 @@ contains
       <name>mu</name>
       <source>parameters</source>
       <defaultValue>1.15d0</defaultValue>
-      <defaultSource>\citep{creasey_how_2012}</defaultSource>
-      <description>The parameter $\mu$ appearing in the \cite{creasey_how_2012} model for supernovae feedback.</description>
+      <defaultSource>\citep{creasey_how_2013}</defaultSource>
+      <description>The parameter $\mu$ appearing in the \cite{creasey_how_2013} model for supernovae feedback.</description>
     </inputParameter>
     <inputParameter>
       <name>nu</name>
       <source>parameters</source>
       <defaultValue>0.16d0</defaultValue>
-      <defaultSource>\citep{creasey_how_2012}</defaultSource>
-      <description>The parameter $\nu$ appearing in the \cite{creasey_how_2012} model for supernovae feedback.</description>
+      <defaultSource>\citep{creasey_how_2013}</defaultSource>
+      <description>The parameter $\nu$ appearing in the \cite{creasey_how_2013} model for supernovae feedback.</description>
     </inputParameter>
     <inputParameter>
       <name>beta0</name>
       <source>parameters</source>
       <defaultValue>13.0d0</defaultValue>
-      <defaultSource>\citep{creasey_how_2012}</defaultSource>
-      <description>The parameter $\beta_0$ appearing in the \cite{creasey_how_2012} model for supernovae feedback.</description>
+      <defaultSource>\citep{creasey_how_2013}</defaultSource>
+      <description>The parameter $\beta_0$ appearing in the \cite{creasey_how_2013} model for supernovae feedback.</description>
     </inputParameter>
     <objectBuilder class="starFormationRateSurfaceDensityDisks" name="starFormationRateSurfaceDensityDisks_" source="parameters"/>
     !!]
-    self=stellarFeedbackOutflowsCreasey2012(mu,nu,beta0,starFormationRateSurfaceDensityDisks_)
+    self=stellarFeedbackOutflowsCreasey2013(mu,nu,beta0,starFormationRateSurfaceDensityDisks_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="starFormationRateSurfaceDensityDisks_"/>
     !!]
     return
-  end function creasey2012ConstructorParameters
+  end function creasey2013ConstructorParameters
 
-  function creasey2012ConstructorInternal(mu,nu,beta0,starFormationRateSurfaceDensityDisks_) result(self)
+  function creasey2013ConstructorInternal(mu,nu,beta0,starFormationRateSurfaceDensityDisks_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily creasey2012} stellar feedback class.
+    Internal constructor for the \refClass{stellarFeedbackOutflowsCreasey2013} stellar feedback class.
     !!}
     implicit none
-    type            (stellarFeedbackOutflowsCreasey2012       )                        :: self
+    type            (stellarFeedbackOutflowsCreasey2013       )                        :: self
     class           (starFormationRateSurfaceDensityDisksClass), intent(in   ), target :: starFormationRateSurfaceDensityDisks_
     double precision                                           , intent(in   )         :: mu                                   , nu, &
          &                                                                                beta0
@@ -120,25 +120,25 @@ contains
     !!]
 
     return
-  end function creasey2012ConstructorInternal
+  end function creasey2013ConstructorInternal
 
-  subroutine creasey2012Destructor(self)
+  subroutine creasey2013Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily creasey2012} feedback in disks class.
+    Destructor for the \refClass{stellarFeedbackOutflowsCreasey2013} feedback in disks class.
     !!}
     implicit none
-    type(stellarFeedbackOutflowsCreasey2012), intent(inout) :: self
+    type(stellarFeedbackOutflowsCreasey2013), intent(inout) :: self
 
     !![
     <objectDestructor name="self%starFormationRateSurfaceDensityDisks_"/>
     !!]
     return
-  end subroutine creasey2012Destructor
+  end subroutine creasey2013Destructor
 
-  subroutine creasey2012OutflowRate(self,component,rateStarFormation,rateEnergyInput,rateOutflowEjective,rateOutflowExpulsive)
+  subroutine creasey2013OutflowRate(self,component,rateStarFormation,rateEnergyInput,rateOutflowEjective,rateOutflowExpulsive)
     !!{
     Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk {\normalfont \ttfamily component} using
-    the model of \cite{creasey_how_2012}. The outflow rate is given by
+    the model of \cite{creasey_how_2013}. The outflow rate is given by
     \begin{equation}
     \dot{M}_\mathrm{outflow} = \int_0^\infty \beta_0 \Sigma_{g,1}^{-\mu}(r) f_\mathrm{g}^\nu(r) \dot{\Sigma}_\star(r) 2 \pi r \mathrm{d}r,
     \end{equation}
@@ -153,7 +153,7 @@ contains
     use :: Numerical_Integration     , only : integrator
     use :: Stellar_Feedback          , only : feedbackEnergyInputAtInfinityCanonical
     implicit none
-    class           (stellarFeedbackOutflowsCreasey2012), intent(inout) :: self
+    class           (stellarFeedbackOutflowsCreasey2013), intent(inout) :: self
     class           (nodeComponent                     ), intent(inout) :: component
     double precision                                    , intent(in   ) :: rateEnergyInput               , rateStarFormation
     double precision                                    , intent(  out) :: rateOutflowEjective           , rateOutflowExpulsive
@@ -164,6 +164,12 @@ contains
          &                                                                 massStellar
     type            (integrator                        )                :: integrator_
 
+    ! Nothing to do if no energy input.
+    if (rateEnergyInput <= 0.0d0) then
+       rateOutflowEjective =0.0d0
+       rateOutflowExpulsive=0.0d0
+       return
+    end if
     ! Get the disk properties.
     select type (component)
     class is (nodeComponentDisk    )
@@ -241,5 +247,5 @@ contains
       return
     end function outflowRateIntegrand
 
-  end subroutine creasey2012OutflowRate
+  end subroutine creasey2013OutflowRate
 

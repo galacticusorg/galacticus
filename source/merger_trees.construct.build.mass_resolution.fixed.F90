@@ -41,7 +41,7 @@
 
   interface mergerTreeMassResolutionFixed
      !!{
-     Constructors for the {\normalfont \ttfamily fixed} merger tree resolution class.
+     Constructors for the \refClass{mergerTreeMassResolutionFixed} merger tree resolution class.
      !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function fixedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily fixed} merger tree building mass resolution class which reads parameters from a
+    Constructor for the \refClass{mergerTreeMassResolutionFixed} merger tree building mass resolution class which reads parameters from a
     provided parameter list.
     !!}
     implicit none
@@ -76,7 +76,7 @@ contains
 
   function fixedConstructorInternal(massResolution) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily fixed} merger tree building mass resolution class.
+    Internal constructor for the \refClass{mergerTreeMassResolutionFixed} merger tree building mass resolution class.
     !!}
     implicit none
     type            (mergerTreeMassResolutionFixed)                :: self

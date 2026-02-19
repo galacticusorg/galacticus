@@ -18,14 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a redshift property extractor class.
+Implements a redshift property extractor class.
 !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRedshift">
-   <description>A node property extractor class which extracts the current redshift at which a \gls{node} exists---named ``{\normalfont \ttfamily redshift}.</description>
+   <description>A node property extractor class which extracts the current redshift at which a \gls{node} exists---named ``{\normalfont \ttfamily redshift}''.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRedshift
@@ -44,7 +44,7 @@ Contains a module which implements a redshift property extractor class.
 
   interface nodePropertyExtractorRedshift
      !!{
-     Constructors for the ``redshift'' output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRedshift} output analysis class.
      !!}
      module procedure redshiftConstructorParameters
      module procedure redshiftConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function redshiftConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily redshift} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorRedshift} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,7 +75,7 @@ contains
 
   function redshiftConstructorInternal(cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily redshift} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorRedshift} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorRedshift)                        :: self
@@ -89,7 +89,7 @@ contains
 
   subroutine redshiftDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily redshift} property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorRedshift} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRedshift), intent(inout) :: self

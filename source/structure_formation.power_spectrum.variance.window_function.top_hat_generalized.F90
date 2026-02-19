@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a generalized top-hat power spectrum window function class \citep{brown_towards_2022}.
+  Implements a generalized top-hat power spectrum window function class \citep{brown_towards_2022}.
   !!}
 
   use :: Cosmology_Parameters, only : cosmologyParametersClass
@@ -51,7 +51,7 @@
 
   interface powerSpectrumWindowFunctionTopHatGeneralized
      !!{
-     Constructors for the {\normalfont \ttfamily topHatGeneralized} power spectrum window function class.
+     Constructors for the \refClass{powerSpectrumWindowFunctionTopHatGeneralized} power spectrum window function class.
      !!}
      module procedure topHatGeneralizedConstructorParameters
      module procedure topHatGeneralizedConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function topHatGeneralizedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily topHatGeneralized} power spectrum window function class which takes a parameter set as input.
+    Constructor for the \refClass{powerSpectrumWindowFunctionTopHatGeneralized} power spectrum window function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -88,7 +88,7 @@ contains
 
   function topHatGeneralizedConstructorInternal(mu,cosmologyParameters_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily topHatGeneralized} power spectrum window function class.
+    Internal constructor for the \refClass{powerSpectrumWindowFunctionTopHatGeneralized} power spectrum window function class.
     !!}
     implicit none
     type            (powerSpectrumWindowFunctionTopHatGeneralized)                        :: self
@@ -103,7 +103,7 @@ contains
 
   subroutine topHatGeneralizedDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily topHatGeneralized} power spectrum window function class.
+    Destructor for the \refClass{powerSpectrumWindowFunctionTopHatGeneralized} power spectrum window function class.
     !!}
     implicit none
     type(powerSpectrumWindowFunctionTopHatGeneralized), intent(inout) :: self

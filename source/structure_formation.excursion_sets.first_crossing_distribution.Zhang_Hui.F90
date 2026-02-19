@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a excursion set first crossing statistics class utilizing the algorithm of \cite{zhang_random_2006}.
+  Implements a excursion set first crossing statistics class utilizing the algorithm of \cite{zhang_random_2006}.
   !!}
 
   use :: Excursion_Sets_Barriers, only : excursionSetBarrierClass

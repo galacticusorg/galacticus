@@ -77,43 +77,41 @@ Component definition itself takes the form of an embedded XML document. The foll
   !#     <name>massStellar</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of stars in the exponential disk."/>
   !#   </property>
   !#   <property>
   !#     <name>abundancesStellar</name>
   !#     <type>abundances</type>
   !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of metals in the stellar phase of the exponential disk."/>
   !#   </property>
   !#   <property>
   !#     <name>massGas</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" isNonNegative="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of gas in the exponential disk."/>
   !#   </property>
   !#   <property>
   !#     <name>coolingMass</name>
-  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" />
+  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" isVirtual="true" bindsTo="top" />
   !#     <type>real</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>yes</isVirtual>
   !#   </property>
   !#   <property>
   !#     <name>halfMassRadius</name>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
   !#     <type>real</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>yes</isVirtual>
   !#     <getFunction>Node_Component_Disk_Exponential_Half_Mass_Radius</getFunction>
   !#   </property>
   !#   <property>
   !#     <name>luminositiesStellar</name>
   !#     <type>real</type>
   !#     <rank>1</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
   !#     <classDefault modules="Stellar_Population_Properties_Luminosities" count="Stellar_Population_Luminosities_Count()">0.0d0</classDefault>
   !#     <output labels="':'//Stellar_Population_Luminosities_Name({i})" count="Stellar_Population_Luminosities_Count()" condition="Stellar_Population_Luminosities_Output({i},time)" modules="Stellar_Population_Properties_Luminosities" unitsInSI="luminosityZeroPointAB" comment="Luminosity of disk stars."/>
   !#   </property>
@@ -172,7 +170,8 @@ Additional attributes are required for array properties:
 \item [{\normalfont \ttfamily labels}] This can be an array, declared as ``{\normalfont \ttfamily [$L_1$,\ldots,$L_N$]}'', specifying the suffix to be added to the property name for each component of the array in the output, or a function which returns the suffix. In the case of a function the construct ``{\normalfont \ttfamily \{i\}}'' can be used to pass the index of the element for which the suffix is required.
 \item [{\normalfont \ttfamily count}] A statement which evaluates the the number of elements to be output (i.e. the length of the array).
 \end{description}
-\item [{\normalfont \ttfamily isVirtual}] \emph{[Optional]} If present and set to ``{\normalfont \ttfamily yes}'', this property is a virtual property. A virtual property has no data associated with it and must supply its own functions for getting, setting and adjusting its rate of change (if allowed by the property's attributes). Virtual properties are used for quantities which are derived from actual properties of the component implementation (for example, a star formation rate could be a virtual property if it is derived from an actual gas mass property) or for adjusting the rates of several actual properties simultaneously.
+\item [{\normalfont \ttfamily isVirtual}] \emph{[Optional]} If present and set to ``{\normalfont \ttfamily true}'', this property is a virtual property. A virtual property has no data associated with it and must supply its own functions for getting, setting and adjusting its rate of change (if allowed by the property's attributes). Virtual properties are used for quantities which are derived from actual properties of the component implementation (for example, a star formation rate could be a virtual property if it is derived from an actual gas mass property) or for adjusting the rates of several actual properties simultaneously.
+\item [{\normalfont \ttfamily isNonNegative}] \emph{[Optional]} If present and set to ``{\normalfont \ttfamily true}'', this property should always be non-negative (i.e. zero or positive). This is typically the case for quantities such as masses for example. This attribute is informative only---it may or may not be taking into account by the class responsible for evolving the component properties. For example, the \refClass{mergerTreeNodeEvolverStandard} class will evolve properties marked as non-negative in such a way as to ensure they remain non-negative, but only if its parameter {\normalfont \ttfamily [enforceNonNegativity]=true}.
 \item [{\normalfont \ttfamily getFunction}] \emph{[Optional]} Specifies the function to be used for getting the value of the property, overriding the default get function. The function must be included in the \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Source.pdf#source.objects_nodes_F90:galacticus_nodes}{\normalfont \ttfamily Galacticus\_Nodes} module by use of the {\normalfont \ttfamily functions} element described below. Note that this function, by virtue of its privileged access to the internal structure of node components, can access the value of the data associated with the property using:
 \begin{verbatim}
 myComponent%<property>Data%value

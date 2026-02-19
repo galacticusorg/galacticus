@@ -41,7 +41,7 @@
   
   interface nodeOperatorSatelliteDynamicalFriction
      !!{
-     Constructors for the {\normalfont \ttfamily satelliteDynamicalFriction} node operator class.
+     Constructors for the \refClass{nodeOperatorSatelliteDynamicalFriction} node operator class.
      !!}
      module procedure satelliteDynamicalFrictionConstructorParameters
      module procedure satelliteDynamicalFrictionConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function satelliteDynamicalFrictionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily satelliteDynamicalFriction} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorSatelliteDynamicalFriction} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -72,7 +72,7 @@ contains
 
   function satelliteDynamicalFrictionConstructorInternal(satelliteDynamicalFriction_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily satelliteDynamicalFriction} node operator class.
+    Internal constructor for the \refClass{nodeOperatorSatelliteDynamicalFriction} node operator class.
     !!}
     implicit none
     type (nodeOperatorSatelliteDynamicalFriction)                        :: self
@@ -86,7 +86,7 @@ contains
 
   subroutine satelliteDynamicalFrictionDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily satelliteDynamicalFriction} node operator class.
+    Destructor for the \refClass{nodeOperatorSatelliteDynamicalFriction} node operator class.
     !!}
     implicit none
     type(nodeOperatorSatelliteDynamicalFriction), intent(inout) :: self

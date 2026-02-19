@@ -40,7 +40,7 @@
 
   interface stellarPopulationSpectraPostprocessorLycSuppress
      !!{
-     Constructors for the {\normalfont \ttfamily lycSuppress} stellar population spectra postprocessor class.
+     Constructors for the \refClass{stellarPopulationSpectraPostprocessorLycSuppress} stellar population spectra postprocessor class.
      !!}
      module procedure lycSuppressConstructorParameters
   end interface stellarPopulationSpectraPostprocessorLycSuppress
@@ -49,7 +49,7 @@ contains
 
   function lycSuppressConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily lycSuppress} stellar population spectra postprocessor class which takes a
+    Constructor for the \refClass{stellarPopulationSpectraPostprocessorLycSuppress} stellar population spectra postprocessor class which takes a
     parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -68,13 +68,13 @@ contains
     !!{
     Suppress the Lyman continuum in a spectrum.
     !!}
-    use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen
+    use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen_atomic
     implicit none
     class           (stellarPopulationSpectraPostprocessorLycSuppress), intent(inout) :: self
     double precision                                                  , intent(in   ) :: age , redshift, wavelength
     !$GLC attributes unused :: self, age, redshift
 
-    if (wavelength < lymanSeriesLimitWavelengthHydrogen) then
+    if (wavelength < lymanSeriesLimitWavelengthHydrogen_atomic) then
        lycSuppressMultiplier=0.0d0
     else
        lycSuppressMultiplier=1.0d0

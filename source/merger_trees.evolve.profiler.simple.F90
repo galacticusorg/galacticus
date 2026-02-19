@@ -69,7 +69,7 @@
 
   interface mergerTreeEvolveProfilerSimple
      !!{
-     Constructors for the {\normalfont \ttfamily simple} merger tree evolve profiler class.
+     Constructors for the \refClass{mergerTreeEvolveProfilerSimple} merger tree evolve profiler class.
      !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
@@ -79,7 +79,7 @@ contains
   
   function simpleConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily simple} merger tree evolve profiler class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeEvolveProfilerSimple} merger tree evolve profiler class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -184,7 +184,7 @@ contains
     if (           all(self%timestepCount == 0)) return
     ! If this object was deep-copied from some other object, reduce back onto that object.
     if (associated(self%deepCopiedFrom)) then
-       call self%reduceLock%set()
+       call self%deepCopiedFrom%reduceLock%set()
        self%deepCopiedFrom%timeStepCount             =+self%deepCopiedFrom%timeStepCount              &
             &                                         +self               %timeStepCount
        self%deepCopiedFrom%evaluationCount           =+self%deepCopiedFrom%evaluationCount            &
@@ -215,7 +215,7 @@ contains
              call self%deepCopiedFrom%propertyHits%set(self%propertyHits%key(i),self%propertyHits%value(i)                                          )
           end if
        end do       
-       call self%reduceLock%unset()
+       call self%deepCopiedFrom%reduceLock%unset()
     else
        ! Store meta-data to the output file.
        !$ call hdf5Access%set  ()

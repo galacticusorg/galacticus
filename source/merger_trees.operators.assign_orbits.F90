@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a merger tree operator which assigns orbits to non-primary progenitor nodes.
+Implements a merger tree operator which assigns orbits to non-primary progenitor nodes.
 !!}
 
   use :: Satellite_Merging_Timescales, only : satelliteMergingTimescales, satelliteMergingTimescalesClass

@@ -66,7 +66,7 @@
 
   interface massDistributionHeatingMonotonicWeak
      !!{
-     Constructors for the {\normalfont \ttfamily monotonicWeak} mass distribution class.
+     Constructors for the \refClass{massDistributionHeatingMonotonicWeak} mass distribution class.
      !!}
      module procedure monotonicWeakConstructorParameters
      module procedure monotonicWeakConstructorInternal
@@ -76,7 +76,7 @@ contains
 
   function monotonicWeakConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily monotonicWeak} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionHeatingMonotonicWeak} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -105,7 +105,7 @@ contains
   
   function monotonicWeakConstructorInternal(toleranceShellCrossing,massDistributionHeating_) result(self)
     !!{
-    Constructor for ``monotonicWeak'' mass distribution heating class.
+    Constructor for the \refClass{massDistributionHeatingMonotonicWeak} mass distribution heating class.
     !!}
     implicit none
     type            (massDistributionHeatingMonotonicWeak)                        :: self
@@ -121,9 +121,9 @@ contains
     !!{
     Determines if the no shell crossing assumption is valid.
     !!}
-    use :: Coordinates                     , only : coordinateSpherical            , assignment(=)
+    use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (massDistributionHeatingMonotonicWeak), intent(inout) :: self
     class           (massDistributionClass               ), intent(inout) :: massDistribution_
@@ -143,8 +143,8 @@ contains
             &                                                                        radius           , &
             &                                                                        massDistribution_  &     
             &                                                                       )
-       energySpecificScale   = +gravitationalConstantGalacticus &
-            &                  *massEnclosed                    &
+       energySpecificScale   = +gravitationalConstant_internal &
+            &                  *massEnclosed                   &
             &                  /radius
        isValid               = +energySpecificGradient                    &
             &                  *                          radius          &
@@ -169,9 +169,9 @@ contains
     !!{
     Root function used in finding the radius where shell crossing happens.
     !!}
-    use :: Coordinates                     , only : coordinateSpherical            , assignment(=)
+    use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (massDistributionHeatingMonotonicWeak), intent(inout) :: self
     double precision                                      , intent(in   ) :: radius
@@ -202,7 +202,7 @@ contains
             &        +0.5d0                                                                  &
             &        -self%toleranceShellCrossing                                            &
             &       )                                                                        &
-            &      *gravitationalConstantGalacticus                                          &
+            &      *gravitationalConstant_internal                                           &
             &      *massEnclosed                                                             &
             &      /radius
     else

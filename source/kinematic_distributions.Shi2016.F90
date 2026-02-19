@@ -36,7 +36,7 @@
 
   interface kinematicsDistributionShi2016
      !!{
-     Constructors for the {\normalfont \ttfamily shi2016} kinematic distribution class.
+     Constructors for the \refClass{kinematicsDistributionShi2016} kinematic distribution class.
      !!}
      module procedure shi2016KinematicsConstructorParameters
      module procedure shi2016KinematicsConstructorInternal
@@ -46,7 +46,7 @@ contains
 
   function shi2016KinematicsConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily shi2016} kinematic distribution class which builds the object from a parameter
+    Constructor for the \refClass{kinematicsDistributionShi2016} kinematic distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -63,7 +63,7 @@ contains
 
   function shi2016KinematicsConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily shi2016} kinematic distribution class.
+    Internal constructor for the \refClass{kinematicsDistributionShi2016} kinematic distribution class.
     !!}
     implicit none
     type(kinematicsDistributionShi2016) :: self

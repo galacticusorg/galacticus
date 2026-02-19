@@ -21,7 +21,7 @@ my $sourceDirectoryName = $galacticusDirectoryName."/source";
 $make::workDirectoryName = $ENV{'BUILDPATH'}."/";
 
 # Open an output file
-open(my $outputFile,">".$galacticusDirectoryName."/".$ENV{'BUILDPATH'}."/Makefile_All_Execs");
+open(my $outputFile,">".$ENV{'BUILDPATH'}."/Makefile_All_Execs");
 
 # Open the source directory and iterate over all files.
 my @executableNames;

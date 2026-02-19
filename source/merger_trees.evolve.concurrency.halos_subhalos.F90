@@ -42,7 +42,7 @@
 
   interface mergerTreeEvolveConcurrencyHalosSubhalos
      !!{
-     Constructors for the {\normalfont \ttfamily halosSubhalos} merger tree evolution concurrency model.
+     Constructors for the \refClass{mergerTreeEvolveConcurrencyHalosSubhalos} merger tree evolution concurrency model.
      !!}
      module procedure threadedConstructorParameters
      module procedure threadedConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function threadedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily halosSubhalos} merger tree evolution concurrency model class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeEvolveConcurrencyHalosSubhalos} merger tree evolution concurrency model class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -68,7 +68,7 @@ contains
 
   function threadedConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily halosSubhalos} merger tree evolution concurrency model class.
+    Internal constructor for the \refClass{mergerTreeEvolveConcurrencyHalosSubhalos} merger tree evolution concurrency model class.
     !!}
     implicit none
     type(mergerTreeEvolveConcurrencyHalosSubhalos) :: self

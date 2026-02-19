@@ -61,7 +61,7 @@ contains
 
   function internalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily internal} \gls{igm} state class which takes a parameter set as input.
+    Constructor for the \refClass{intergalacticMediumStateInternal} \gls{igm} state class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -85,7 +85,7 @@ contains
 
   function internalConstructorInternal(cosmologyFunctions_,cosmologyParameters_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily internal} \gls{igm} state class.
+    Internal constructor for the \refClass{intergalacticMediumStateInternal} \gls{igm} state class.
     !!}
     implicit none
     type (intergalacticMediumStateInternal)                        :: self

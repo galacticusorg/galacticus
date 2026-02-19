@@ -54,7 +54,7 @@
 
   interface transferFunctionHalfModeSlope
      !!{
-     Constructors for the {\normalfont \ttfamily halfModeSlope} transfer function class.
+     Constructors for the \refClass{transferFunctionHalfModeSlope} transfer function class.
      !!}
      module procedure halfModeSlopeConstructorParameters
      module procedure halfModeSlopeConstructorInternal
@@ -64,7 +64,7 @@ contains
   
   function halfModeSlopeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily halfModeSlope} transfer function class which takes a parameter set as input.
+    Constructor for the \refClass{transferFunctionHalfModeSlope} transfer function class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
@@ -114,7 +114,7 @@ contains
 
   function halfModeSlopeConstructorInternal(transferFunctionCDM,massHalfMode,slopeHalfMode,time,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily halfModeSlope} transfer function class.
+    Internal constructor for the \refClass{transferFunctionHalfModeSlope} transfer function class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

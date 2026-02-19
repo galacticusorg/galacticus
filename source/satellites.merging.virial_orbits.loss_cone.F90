@@ -104,7 +104,7 @@
 
   interface virialOrbitLossCone
      !!{
-     Constructors for the {\normalfont \ttfamily lossCone} virial orbit class.
+     Constructors for the \refClass{virialOrbitLossCone} virial orbit class.
      !!}
      module procedure lossConeConstructorParameters
      module procedure lossConeConstructorInternal
@@ -136,7 +136,7 @@ contains
 
   function lossConeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily lossCone} virial orbits class which takes a parameter set as input.
+    Constructor for the \refClass{virialOrbitLossCone} virial orbits class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -245,7 +245,7 @@ contains
 
   function lossConeConstructorInternal(velocityMinimum,velocityMaximum,countVelocitiesPerUnit,countMassesPerDecade,includeInFlightGrowth,haloMassFunctionA,haloMassFunctionP,haloMassFunctionNormalization,velocityDispersionMultiplier,cosmologyFunctions_,cosmologyParameters_,cosmologicalVelocityField_,linearGrowth_,darkMatterHaloBias_,darkMatterHaloScale_,virialDensityContrast_,correlationFunctionTwoPoint_,cosmologicalMassVariance_,criticalOverdensity_,mergerTreeBranchingProbability_,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily lossCone} virial orbits class.
+    Internal constructor for the \refClass{virialOrbitLossCone} virial orbits class.
     !!}
     use :: Input_Paths       , only : inputPath   , pathTypeDataDynamic
     use :: ISO_Varying_String, only : operator(//)
@@ -297,7 +297,7 @@ contains
 
   subroutine lossConeDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily lossCone} virial orbits class.
+    Destructor for the \refClass{virialOrbitLossCone} virial orbits class.
     !!}
     implicit none
     type(virialOrbitLossCone), intent(inout) :: self
@@ -651,7 +651,7 @@ contains
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
-    use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical    , only : gravitationalConstant_internal
     implicit none
     class           (virialOrbitLossCone), intent(inout) :: self
     type            (treeNode           ), intent(inout) :: node        , host
@@ -669,7 +669,7 @@ contains
          &                  +basic    %mass()                              &
          &                  /basicHost%mass()                              &
          &                 )                                               &
-         &                -gravitationalConstantGalacticus                 &
+         &                -gravitationalConstant_internal                  &
          &                *massHost                                        &
          &                /radiusHost
     return

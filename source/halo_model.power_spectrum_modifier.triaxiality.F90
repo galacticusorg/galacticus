@@ -49,7 +49,7 @@
 
   interface haloModelPowerSpectrumModifierTriaxiality
      !!{
-     Constructors for the {\normalfont \ttfamily triaxiality} halo model power spectrum modifier class.
+     Constructors for the \refClass{haloModelPowerSpectrumModifierTriaxiality} halo model power spectrum modifier class.
      !!}
      module procedure triaxialityConstructorParameters
      module procedure triaxialityConstructorInternal
@@ -143,7 +143,7 @@ contains
 
   subroutine triaxialityDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily triaxiality} halo model power spectrum modifier class.
+    Destructor for the \refClass{haloModelPowerSpectrumModifierTriaxiality} halo model power spectrum modifier class.
     !!}
     implicit none
     type(haloModelPowerSpectrumModifierTriaxiality), intent(inout) :: self

@@ -38,7 +38,7 @@
 
   interface operatorUnaryLogarithm
      !!{
-     Constructors for the {\normalfont \ttfamily logarithm} 1D distribution function class.
+     Constructors for the \refClass{operatorUnaryLogarithm} 1D distribution function class.
      !!}
      module procedure logarithmConstructorParameters
   end interface operatorUnaryLogarithm
@@ -50,7 +50,7 @@ contains
 
   function logarithmConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily logarithm} 1D distribution function class which builds the object from a
+    Constructor for the \refClass{operatorUnaryLogarithm} 1D distribution function class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters

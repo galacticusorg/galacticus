@@ -77,7 +77,7 @@ main branch galaxy.
 
   interface mergerTreeEvolveTimestepRecordEvolution
      !!{
-     Constructors for the {\normalfont \ttfamily recordEvolution} merger tree evolution timestep class.
+     Constructors for the \refClass{mergerTreeEvolveTimestepRecordEvolution} merger tree evolution timestep class.
      !!}
      module procedure recordEvolutionConstructorParameters
      module procedure recordEvolutionConstructorInternal
@@ -87,7 +87,7 @@ contains
 
   function recordEvolutionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily recordEvolution} merger tree evolution timestep class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeEvolveTimestepRecordEvolution} merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -135,7 +135,7 @@ contains
 
   function recordEvolutionConstructorInternal(timeBegin,timeEnd,countSteps,cosmologyFunctions_,outputTimes_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily recordEvolution} merger tree evolution timestep class.
+    Internal constructor for the \refClass{mergerTreeEvolveTimestepRecordEvolution} merger tree evolution timestep class.
     !!}
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
@@ -178,7 +178,7 @@ contains
 
   subroutine recordEvolutionDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily recordEvolution} merger tree evolution timestep class.
+    Destructor for the \refClass{mergerTreeEvolveTimestepRecordEvolution} merger tree evolution timestep class.
     !!}
     use :: Events_Hooks, only : mergerTreeExtraOutputEvent
     implicit none

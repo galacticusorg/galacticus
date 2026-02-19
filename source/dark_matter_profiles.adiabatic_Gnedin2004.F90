@@ -53,7 +53,7 @@
 
   interface darkMatterProfileAdiabaticGnedin2004
      !!{
-     Constructors for the {\normalfont \ttfamily adiabaticGnedin2004} dark matter halo profile class.
+     Constructors for the \refClass{darkMatterProfileAdiabaticGnedin2004} dark matter halo profile class.
      !!}
      module procedure adiabaticGnedin2004ConstructorParameters
      module procedure adiabaticGnedin2004ConstructorInternal
@@ -127,7 +127,7 @@ contains
 
   function adiabaticGnedin2004ConstructorInternal(A,omega,radiusFractionalPivot,toleranceRelative,nonAnalyticSolver,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{
-    Generic constructor for the {\normalfont \ttfamily adiabaticGnedin2004} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileAdiabaticGnedin2004} dark matter profile class.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversIsValid
     use :: Error             , only : Error_Report
@@ -154,7 +154,7 @@ contains
 
   subroutine adiabaticGnedin2004Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily adiabaticGnedin2004} dark matter halo profile class.
+    Destructor for the \refClass{darkMatterProfileAdiabaticGnedin2004} dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self

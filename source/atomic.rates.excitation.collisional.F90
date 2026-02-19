@@ -40,7 +40,7 @@ module Atomic_Rates_Excitation_Collisional
     <type>double precision</type>
     <pass>yes</pass>
     <argument>integer         , intent(in   ) :: atomicNumber, electronNumber</argument>
-    <argument>double precision, intent(in   ) :: temperature</argument>
+    <argument>double precision, intent(in   ) :: temperature                 </argument>
    </method>
   </functionClass>
   !!]

@@ -61,7 +61,7 @@
 
  interface darkMatterProfileDMOFiniteResolution
      !!{
-     Constructors for the {\normalfont \ttfamily finiteResolution} dark matter halo profile class.
+     Constructors for the \refClass{darkMatterProfileDMOFiniteResolution} dark matter halo profile class.
      !!}
      module procedure finiteResolutionConstructorParameters
      module procedure finiteResolutionConstructorInternal
@@ -122,7 +122,7 @@ contains
 
   function finiteResolutionConstructorInternal(lengthResolution,massResolution,resolutionIsComoving,nonAnalyticSolver,darkMatterProfileDMO_,cosmologyFunctions_) result(self)
     !!{
-    Generic constructor for the {\normalfont \ttfamily finiteResolution} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOFiniteResolution} dark matter profile class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -154,7 +154,7 @@ contains
   
   subroutine finiteResolutionDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily finiteResolution} dark matter halo profile class.
+    Destructor for the \refClass{darkMatterProfileDMOFiniteResolution} dark matter halo profile class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none

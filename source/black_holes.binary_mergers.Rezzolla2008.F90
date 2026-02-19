@@ -42,7 +42,7 @@
 
   interface blackHoleBinaryMergerRezzolla2008
      !!{
-     Constructors for the {\normalfont \ttfamily rezzolla2008} black hole binary merger class.
+     Constructors for the \refClass{blackHoleBinaryMergerRezzolla2008} black hole binary merger class.
      !!}
      module procedure rezzolla2008ConstructorParameters
   end interface blackHoleBinaryMergerRezzolla2008
@@ -51,7 +51,7 @@ contains
 
   function rezzolla2008ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily rezzolla2008} black hole binary merger class which takes a parameter list as
+    Constructor for the \refClass{blackHoleBinaryMergerRezzolla2008} black hole binary merger class which takes a parameter list as
     input.
     !!}
     use :: Input_Parameters, only : inputParameters

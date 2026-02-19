@@ -32,7 +32,7 @@
 
   interface radiativeTransferOutputterNull
      !!{
-     Constructors for the {\normalfont \ttfamily null} radiative transfer outputter packet class.
+     Constructors for the \refClass{radiativeTransferOutputterNull} radiative transfer outputter packet class.
      !!}
      module procedure nullConstructorParameters
   end interface radiativeTransferOutputterNull
@@ -41,7 +41,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily null} radiative transfer outputter class which takes a parameter set as
+    Constructor for the \refClass{radiativeTransferOutputterNull} radiative transfer outputter class which takes a parameter set as
     input.
     !!}
     use :: Input_Parameters, only : inputParameters

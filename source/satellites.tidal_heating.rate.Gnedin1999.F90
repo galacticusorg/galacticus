@@ -69,7 +69,7 @@ contains
 
   function gnedin1999ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily gnedin1999} satellite tidal heating rate class which builds the object from a parameter set.
+    Constructor for the \refClass{satelliteTidalHeatingRateGnedin1999} satellite tidal heating rate class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -106,7 +106,7 @@ contains
 
   function gnedin1999ConstructorInternal(epsilon,gamma,cosmologyParameters_,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily gnedin1999} satellite tidal heating rate class.
+    Internal constructor for the \refClass{satelliteTidalHeatingRateGnedin1999} satellite tidal heating rate class.
     !!}
     implicit none
     type            (satelliteTidalHeatingRateGnedin1999)                        :: self
@@ -138,16 +138,15 @@ contains
     !!{
     Return the tidal heating rate for satellite halos assuming the model of \cite{gnedin_tidal_1999}.
     !!}
-    use :: Galactic_Structure_Options      , only : componentTypeAll               , coordinateSystemCartesian, massTypeDark
-    use :: Galacticus_Nodes                , only : nodeComponentBasic             , nodeComponentSatellite   , treeNode
-    use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
+    use :: Galactic_Structure_Options      , only : componentTypeAll     , coordinateSystemCartesian, massTypeDark
+    use :: Galacticus_Nodes                , only : nodeComponentBasic   , nodeComponentSatellite   , treeNode
+    use :: Numerical_Constants_Astronomical, only : gigaYear             , megaParsec
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Mass_Distributions              , only : massDistributionClass
-    use :: Tensors                         , only : assignment(=)                  , max                      , operator(*) , tensorRank2Dimension3Symmetric
+    use :: Tensors                         , only : assignment(=)        , max                      , operator(*) , tensorRank2Dimension3Symmetric
     use :: Vectors                         , only : Vector_Magnitude
-    use :: Coordinates                     , only : coordinateCartesian            , assignment(=)
+    use :: Coordinates                     , only : coordinateCartesian  , assignment(=)
     implicit none
     class           (satelliteTidalHeatingRateGnedin1999), intent(inout) :: self
     type            (treeNode                           ), intent(inout) :: node

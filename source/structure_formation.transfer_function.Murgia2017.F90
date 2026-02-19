@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a transfer function class based on the non-cold dark matter fitting function of
+  Implements a transfer function class based on the non-cold dark matter fitting function of
   \cite{murgia_non-cold_2017}.
   !!}
 
@@ -51,7 +51,7 @@
 
   interface transferFunctionMurgia2017
      !!{
-     Constructors for the {\normalfont \ttfamily murgia2017} transfer function class.
+     Constructors for the \refClass{transferFunctionMurgia2017} transfer function class.
      !!}
      module procedure murgia2017ConstructorParameters
      module procedure murgia2017ConstructorInternal
@@ -61,7 +61,7 @@ contains
 
 function murgia2017ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily murgia2017} transfer function class which takes a parameter set as input.
+    Constructor for the \refClass{transferFunctionMurgia2017} transfer function class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
@@ -119,7 +119,7 @@ function murgia2017ConstructorParameters(parameters) result(self)
 
   function murgia2017ConstructorInternal(transferFunctionCDM,alpha,beta,gamma,time,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily murgia2017} transfer function class.
+    Internal constructor for the \refClass{transferFunctionMurgia2017} transfer function class.
     !!}
     implicit none
     type            (transferFunctionMurgia2017)                        :: self
@@ -138,7 +138,7 @@ function murgia2017ConstructorParameters(parameters) result(self)
 
   subroutine murgia2017Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily murgia2017} transfer function class.
+    Destructor for the \refClass{transferFunctionMurgia2017} transfer function class.
     !!}
     implicit none
     type(transferFunctionMurgia2017), intent(inout) :: self

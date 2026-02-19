@@ -80,7 +80,7 @@
 
   interface darkMatterProfileConcentrationNFW1996
      !!{
-     Constructors for the {\normalfont \ttfamily nfw1996} dark matter halo profile concentration class.
+     Constructors for the \refClass{darkMatterProfileConcentrationNFW1996} dark matter halo profile concentration class.
      !!}
      module procedure nfw1996ConstructorParameters
      module procedure nfw1996ConstructorInternal
@@ -146,7 +146,7 @@ contains
 
   function nfw1996ConstructorInternal(f,C,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,virialDensityContrast_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily nfw1996} dark matter halo profile
+    Constructor for the \refClass{darkMatterProfileConcentrationNFW1996} dark matter halo profile
     concentration class.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
@@ -213,7 +213,7 @@ contains
 
   subroutine nfw1996Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily nfw1996} dark matter halo profile concentration class.
+    Destructor for the \refClass{darkMatterProfileConcentrationNFW1996} dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationNFW1996), intent(inout) :: self

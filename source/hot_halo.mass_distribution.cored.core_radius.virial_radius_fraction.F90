@@ -45,7 +45,7 @@ Implements a hot halo mass distribution core radius class which sets the core ra
 
   interface hotHaloMassDistributionCoreRadiusVirialFraction
      !!{
-     Constructors for the {\normalfont \ttfamily virialFraction} hot halo mass distribution core radius class.
+     Constructors for the \refClass{hotHaloMassDistributionCoreRadiusVirialFraction} hot halo mass distribution core radius class.
      !!}
      module procedure virialFractionConstructorParameters
      module procedure virialFractionConstructorInternal
@@ -99,7 +99,7 @@ contains
 
   subroutine virialFractionDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily virialFraction} hot halo mass distribution core radius class.
+    Destructor for the \refClass{hotHaloMassDistributionCoreRadiusVirialFraction} hot halo mass distribution core radius class.
     !!}
     implicit none
     type(hotHaloMassDistributionCoreRadiusVirialFraction), intent(inout) :: self

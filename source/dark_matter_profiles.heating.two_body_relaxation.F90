@@ -43,7 +43,7 @@
 
   interface darkMatterProfileHeatingTwoBodyRelaxation
      !!{
-     Constructors for the {\normalfont \ttfamily twoBodyRelaxation} dark matter profile heating class.
+     Constructors for the \refClass{darkMatterProfileHeatingTwoBodyRelaxation} dark matter profile heating class.
      !!}
      module procedure twoBodyRelaxationConstructorParameters
      module procedure twoBodyRelaxationConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function twoBodyRelaxationConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily twoBodyRelaxation} dark matter profile heating scales class which takes a parameter set as input.
+    Constructor for the \refClass{darkMatterProfileHeatingTwoBodyRelaxation} dark matter profile heating scales class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -93,7 +93,7 @@ contains
 
   function twoBodyRelaxationConstructorInternal(massParticle,lengthSoftening,timeStart,efficiency) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily twoBodyRelaxation} dark matter profile heating scales class.
+    Internal constructor for the \refClass{darkMatterProfileHeatingTwoBodyRelaxation} dark matter profile heating scales class.
     !!}
     implicit none
     type            (darkMatterProfileHeatingTwoBodyRelaxation)                :: self

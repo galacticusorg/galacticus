@@ -44,7 +44,7 @@
 
   interface posteriorSampleStateInitializeResume
      !!{
-     Constructors for the {\normalfont \ttfamily resume} posterior sampling state initialization class.
+     Constructors for the \refClass{posteriorSampleStateInitializeResume} posterior sampling state initialization class.
      !!}
      module procedure resumeConstructorParameters
      module procedure resumeConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function resumeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily resume} posterior sampling state initialization class.
+    Constructor for the \refClass{posteriorSampleStateInitializeResume} posterior sampling state initialization class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -84,7 +84,7 @@ contains
 
   function resumeConstructorInternal(logFileRoot,restoreState) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily resume} posterior sampling state initialization class.
+    Constructor for the \refClass{posteriorSampleStateInitializeResume} posterior sampling state initialization class.
     !!}
     implicit none
     type   (posteriorSampleStateInitializeResume)                :: self

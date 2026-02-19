@@ -83,7 +83,7 @@
 
   interface darkMatterProfileConcentrationDiemerKravtsov2014
      !!{
-     Constructors for the {\normalfont \ttfamily diemerKravtsov2014} dark matter halo profile concentration class.
+     Constructors for the \refClass{darkMatterProfileConcentrationDiemerKravtsov2014} dark matter halo profile concentration class.
      !!}
      module procedure diemerKravtsov2014ConstructorParameters
      module procedure diemerKravtsov2014ConstructorInternal
@@ -187,7 +187,7 @@ contains
 
   function diemerKravtsov2014ConstructorInternal(kappa,phi0,phi1,eta0,eta1,alpha,beta,scatter,cosmologyFunctions_,cosmologyParameters_,criticalOverdensity_,cosmologicalMassVariance_,powerSpectrum_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily diemerKravtsov2014} dark matter halo profile
+    Constructor for the \refClass{darkMatterProfileConcentrationDiemerKravtsov2014} dark matter halo profile
     concentration class.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
@@ -250,7 +250,7 @@ contains
 
   subroutine diemerKravtsov2014Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily diemerKravtsov2014} dark matter halo profile concentration class.
+    Destructor for the \refClass{darkMatterProfileConcentrationDiemerKravtsov2014} dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationDiemerKravtsov2014), intent(inout) :: self

@@ -34,7 +34,7 @@
 
   interface taskBuildToolRecFast
      !!{
-     Constructors for the {\normalfont \ttfamily buildToolRecFast} task.
+     Constructors for the \refClass{taskBuildToolRecFast} task.
      !!}
      module procedure buildToolRecFastParameters
   end interface taskBuildToolRecFast
@@ -43,7 +43,7 @@ contains
 
   function buildToolRecFastParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily buildToolRecFast} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskBuildToolRecFast} task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

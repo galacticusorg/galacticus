@@ -42,7 +42,7 @@
 
   interface taskMulti
      !!{
-     Constructors for the {\normalfont \ttfamily multi} task.
+     Constructors for the \refClass{taskMulti} task.
      !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function multiConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily multi} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskMulti} task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -83,7 +83,7 @@ contains
 
   function multiConstructorInternal(tasks) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily multi} task class.
+    Internal constructor for the \refClass{taskMulti} task class.
     !!}
     implicit none
     type(taskMulti    )                        :: self
@@ -103,7 +103,7 @@ contains
 
   subroutine multiDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily multi} task class.
+    Destructor for the \refClass{taskMulti} task class.
     !!}
     implicit none
     type(taskMulti    ), intent(inout) :: self

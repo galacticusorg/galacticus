@@ -45,7 +45,7 @@
 
   interface nodePropertyExtractorRadiativeEfficiencyBlackHoles
      !!{
-     Constructors for the ``radiativeEfficiencyBlackHoles'' output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorRadiativeEfficiencyBlackHoles} output extractor class.
      !!}
      module procedure radiativeEfficiencyBlackHolesConstructorParameters
      module procedure radiativeEfficiencyBlackHolesConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function radiativeEfficiencyBlackHolesConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``radiativeEfficiencyBlackHoles'' property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorRadiativeEfficiencyBlackHoles} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,7 +79,7 @@ contains
 
   function radiativeEfficiencyBlackHolesConstructorInternal(blackHoleAccretionRate_,accretionDisks_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily radiativeEfficiencyBlackHoles} node operator class.
+    Internal constructor for the \refClass{nodePropertyExtractorRadiativeEfficiencyBlackHoles} node operator class.
     !!}
     implicit none
     type (nodePropertyExtractorRadiativeEfficiencyBlackHoles)                        :: self
@@ -128,16 +128,17 @@ contains
     type            (treeNode                                          ), intent(inout)               :: node
     type            (multiCounter                                      ), intent(inout) , optional    :: instance
     class           (nodeComponentBlackHole                            )                , pointer     :: blackHole
-    integer                                                                                           :: i                        , countBlackHoles
-    double precision                                                                                  :: rateMassAccretionSpheroid, rateMassAccretionHotHalo
+    integer                                                                                           :: i                                  , countBlackHoles
+    double precision                                                                                  :: rateMassAccretionSpheroid          , rateMassAccretionHotHalo, &
+        &                                                                                                rateMassAccretionNuclearStarCluster    
     !$GLC attributes unused :: instance
 
     countBlackHoles=node%blackHoleCount()
     allocate(radiativeEfficiency(countBlackHoles,1))
     do i=1,countBlackHoles
        blackHole                => node     %blackHole(instance=i)
-       call  self%blackHoleAccretionRate_%rateAccretion(blackHole,rateMassAccretionSpheroid,rateMassAccretionHotHalo)
-       radiativeEfficiency(i,1) =  self%accretionDisks_%efficiencyRadiative(blackHole,rateMassAccretionSpheroid+rateMassAccretionHotHalo)
+       call  self%blackHoleAccretionRate_%rateAccretion(blackHole,rateMassAccretionSpheroid,rateMassAccretionHotHalo,rateMassAccretionNuclearStarCluster)
+       radiativeEfficiency(i,1) =  self%accretionDisks_%efficiencyRadiative(blackHole,rateMassAccretionSpheroid+rateMassAccretionHotHalo+rateMassAccretionNuclearStarCluster)
     end do
     return
   end function radiativeEfficiencyBlackHolesExtract

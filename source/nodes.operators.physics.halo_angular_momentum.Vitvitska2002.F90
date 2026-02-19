@@ -76,7 +76,7 @@
   
   interface nodeOperatorHaloAngularMomentumVitvitska2002
      !!{
-     Constructors for the {\normalfont \ttfamily haloAngularMomentumVitvitska2002} node operator class.
+     Constructors for the \refClass{nodeOperatorHaloAngularMomentumVitvitska2002} node operator class.
      !!}
      module procedure haloAngularMomentumVitvitska2002ConstructorParameters
      module procedure haloAngularMomentumVitvitska2002ConstructorInternal
@@ -86,7 +86,7 @@ contains
   
   function haloAngularMomentumVitvitska2002ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily haloAngularMomentumVitvitska2002} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorHaloAngularMomentumVitvitska2002} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -135,7 +135,7 @@ contains
 
   function haloAngularMomentumVitvitska2002ConstructorInternal(exponentMass,angularMomentumVarianceSpecific,darkMatterProfileScaleRadius_,haloSpinDistribution_,darkMatterHaloScale_,darkMatterProfileDMO_,virialOrbit_,mergerTreeMassResolution_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily haloAngularMomentumVitvitska2002} node operator class.
+    Internal constructor for the \refClass{nodeOperatorHaloAngularMomentumVitvitska2002} node operator class.
     !!}
     use :: Error           , only : Component_List      , Error_Report
     use :: Galacticus_Nodes, only : defaultSpinComponent
@@ -175,7 +175,7 @@ contains
 
   subroutine haloAngularMomentumVitvitska2002Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily haloAngularMomentumVitvitska2002} node operator class.
+    Destructor for the \refClass{nodeOperatorHaloAngularMomentumVitvitska2002} node operator class.
     !!}
     implicit none
     type(nodeOperatorHaloAngularMomentumVitvitska2002), intent(inout) :: self

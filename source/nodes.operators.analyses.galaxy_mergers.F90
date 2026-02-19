@@ -55,7 +55,7 @@
   
   interface nodeOperatorGalaxyMergers
      !!{
-     Constructors for the {\normalfont \ttfamily galaxyMergers} node operator class.
+     Constructors for the \refClass{nodeOperatorGalaxyMergers} node operator class.
      !!}
      module procedure galaxyMergersConstructorParameters
      module procedure galaxyMergersConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function galaxyMergersConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily galaxyMergers} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorGalaxyMergers} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -101,7 +101,7 @@ contains
 
   function galaxyMergersConstructorInternal(countMergersMaximum,galacticFilterSatellite_,galacticFilterCentral_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily galaxyMergers} node operator class.
+    Internal constructor for the \refClass{nodeOperatorGalaxyMergers} node operator class.
     !!}
     use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
@@ -139,7 +139,7 @@ contains
   
   subroutine galaxyMergersDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily galaxyMergers} node operator class.
+    Destructor for the \refClass{nodeOperatorGalaxyMergers} node operator class.
     !!}
     use :: Events_Hooks, only : satelliteMergerEvent
     implicit none

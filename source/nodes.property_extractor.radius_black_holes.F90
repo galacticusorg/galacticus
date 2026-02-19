@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   use :: Black_Hole_Binary_Separations, only : blackHoleBinarySeparationGrowthRateClass
-  
+
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRadiusBlackHoles">
    <description>
@@ -42,7 +42,7 @@
 
   interface nodePropertyExtractorRadiusBlackHoles
      !!{
-     Constructors for the ``radiusBlackHoles'' output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusBlackHoles} output extractor class.
      !!}
     module procedure radiusBlackHolesConstructorParameters
   end interface nodePropertyExtractorRadiusBlackHoles
@@ -51,7 +51,7 @@ contains
 
   function radiusBlackHolesConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``radiusBlackHoles'' property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorRadiusBlackHoles} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -72,7 +72,7 @@ contains
 
   function radiusBlackHolesConstructorInternal(blackHoleBinarySeparationGrowthRate_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily radiusBlackHoles} node operator class.
+    Internal constructor for the \refClass{nodePropertyExtractorRadiusBlackHoles} node operator class.
     !!}
     implicit none
     type (nodePropertyExtractorRadiusBlackHoles   )                        :: self
@@ -80,17 +80,17 @@ contains
     !![
     <constructorAssign variables="*blackHoleBinarySeparationGrowthRate_"/>
     !!]
-    
+
     return
   end function radiusBlackHolesConstructorInternal
-  
+
   subroutine radiusBlackHolesDestructor(self)
     !!{
     Destructor for the critical overdensity radiusBlackHoles set barrier class.
     !!}
     implicit none
     type(nodePropertyExtractorRadiusBlackHoles), intent(inout) :: self
-    
+
     !![
     <objectDestructor name="self%blackHoleBinarySeparationGrowthRate_"/>
     !!]                                                                                                                                                                                                               
@@ -131,7 +131,7 @@ contains
     end do
     return
   end function radiusBlackHolesExtract
-  
+
   subroutine radiusBlackHolesNames(self,names)
     !!{
     Return the names of the {\normalfont \ttfamily radiusBlackHoles} properties.

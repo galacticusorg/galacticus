@@ -55,7 +55,7 @@
 
   interface massDistributionHeatingImpulsiveOutflow
      !!{
-     Constructors for the {\normalfont \ttfamily impulsiveOutflow} mass distribution class.
+     Constructors for the \refClass{massDistributionHeatingImpulsiveOutflow} mass distribution class.
      !!}
      module procedure impulsiveOutflowConstructorParameters
      module procedure impulsiveOutflowConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function impulsiveOutflowConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily impulsiveOutflow} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionHeatingImpulsiveOutflow} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -102,7 +102,7 @@ contains
   
   function impulsiveOutflowConstructorInternal(energyImpulsiveOutflowDisk,energyImpulsiveOutflowSpheroid,impulsiveEnergyFactor) result(self)
     !!{
-    Constructor for ``impulsiveOutflow'' dark matter profile heating class.
+    Constructor for the \refClass{massDistributionHeatingImpulsiveOutflow} dark matter profile heating class.
     !!}
     implicit none
     type             (massDistributionHeatingImpulsiveOutflow)                :: self
@@ -119,8 +119,8 @@ contains
     !!{
     Returns the specific energy of heating in the given {\normalfont \ttfamily node}.
     !!}
-    use :: Galactic_Structure_Options      , only : componentTypeDisk              , componentTypeSpheroid
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Galactic_Structure_Options      , only : componentTypeDisk             , componentTypeSpheroid
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (massDistributionHeatingImpulsiveOutflow), intent(inout) :: self
     double precision                                         , intent(in   ) :: radius
@@ -148,7 +148,7 @@ contains
        end if
     end if
     energySpecific=+  self%impulsiveEnergyFactor          &
-         &         *gravitationalConstantGalacticus       &
+         &         *gravitationalConstant_internal        &
          &         *(                                     &
          &           +self%energyImpulsiveOutflowDisk     &
          &           *fractionMassDisk                    &
@@ -167,9 +167,9 @@ contains
     !!{
     Returns the gradient of the specific energy of heating.
     !!}
-    use :: Coordinates                     , only : coordinateSpherical            , assignment(=)
-    use :: Galactic_Structure_Options      , only : componentTypeDisk              , componentTypeSpheroid
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
+    use :: Galactic_Structure_Options      , only : componentTypeDisk             , componentTypeSpheroid
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Numerical_Constants_Math        , only : Pi
     implicit none
     class           (massDistributionHeatingImpulsiveOutflow), intent(inout) :: self
@@ -207,7 +207,7 @@ contains
        end if
     end if
     energySpecificGradient=+self%impulsiveEnergyFactor              &
-         &                 *gravitationalConstantGalacticus         &
+         &                 *gravitationalConstant_internal          &
          &                 *(                                       &
          &                   +(                                     &
          &                     +self%energyImpulsiveOutflowDisk     &

@@ -108,6 +108,31 @@ sub Process_Constant {
 		    $node->{'directive'}->{'value'} = $gslConstant;
 		    $code = $type.", parameter, public :: ".$node->{'directive'}->{'variable'}."=".$gslConstant."\n";
 		}
+	    } elsif ( exists($node->{'directive'}->{'kernelSymbol'}) ) {
+		# Constant value is to be extracted from the kernel.
+		# Generate, compile, and execute a minimal C code which simply outputs the relevant kernel constant.
+		(undef, my $tmpSourceFileName) = tempfile('tempXXXXX', SUFFIX => '.c', OPEN => 0, DIR => $ENV{'BUILDPATH'});
+		(undef, my $tmpExecFileName  ) = tempfile('tempXXXXX', SUFFIX => '.x', OPEN => 0, DIR => $ENV{'BUILDPATH'});
+		open(my $tmpSource,">".$tmpSourceFileName);
+		print $tmpSource "\#include <stdio.h>\n";
+		print $tmpSource "\#include <".$node->{'directive'}->{'kernelHeader'}.".h>\n";
+		if ( $node->{'directive'}->{'type'} eq "integer" ) {
+		    print $tmpSource "int main () {\n";
+		    print $tmpSource " printf(\"%i\", ".$node->{'directive'}->{'kernelSymbol'}.");\n";
+		    print $tmpSource "}\n";
+		} else {
+		    die("Galacticus::Build::SourceTree::Process::GSLConstants: unknown type");
+		}
+		close($tmpSource);
+		system($ENV{'CCOMPILER'}." -o ".$tmpExecFileName." ".$tmpSourceFileName." ".$ENV{'CFLAGS'});
+		die("Galacticus::Build::SourceTree::Process::GSLConstants: failed to compile")
+		    unless ( $? == 0 );
+		open(my $kernelPipe,$tmpExecFileName."|");
+		my $kernelConstant = <$kernelPipe>;
+		close($kernelPipe);
+		unlink($tmpSourceFileName,$tmpExecFileName);
+		$node->{'directive'}->{'value'} = $kernelConstant;
+		$code = $type.", parameter, public :: ".$node->{'directive'}->{'variable'}."=".$kernelConstant."\n";
 	    } else {
 		# Constant value is defined internally.
 		$code = $type.", parameter, public :: ".$node->{'directive'}->{'variable'}."=".$node->{'directive'}->{'value'}."\n";

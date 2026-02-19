@@ -40,7 +40,7 @@
 
   interface posteriorSampleStateInitializeSwitched
      !!{
-     Constructors for the {\normalfont \ttfamily switched} posterior sampling state initialization class.
+     Constructors for the \refClass{posteriorSampleStateInitializeSwitched} posterior sampling state initialization class.
      !!}
      module procedure switchedConstructorParameters
      module procedure switchedConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function switchedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily switched} posterior sampling state initialization class.
+    Constructor for the \refClass{posteriorSampleStateInitializeSwitched} posterior sampling state initialization class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -86,7 +86,7 @@ contains
 
   function switchedConstructorInternal(modelParameterName1,modelParameterName2,stateInitializeMethod1,stateInitializeMethod2) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily switched} posterior sampling state initialization class.
+    Constructor for the \refClass{posteriorSampleStateInitializeSwitched} posterior sampling state initialization class.
     !!}
     implicit none
     type (posteriorSampleStateInitializeSwitched)                              :: self
@@ -101,7 +101,7 @@ contains
 
   subroutine switchedDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily switched} posterior sampling state initialization class.
+    Destructor for the \refClass{posteriorSampleStateInitializeSwitched} posterior sampling state initialization class.
     !!}
     implicit none
     type (posteriorSampleStateInitializeSwitched), intent(inout) :: self

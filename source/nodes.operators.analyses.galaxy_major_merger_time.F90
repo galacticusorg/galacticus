@@ -44,7 +44,7 @@
   
   interface nodeOperatorGalaxyMajorMergerTime
      !!{
-     Constructors for the {\normalfont \ttfamily galaxyMajorMergerTime} node operator class.
+     Constructors for the \refClass{nodeOperatorGalaxyMajorMergerTime} node operator class.
      !!}
      module procedure galaxyMajorMergerTimeConstructorParameters
      module procedure galaxyMajorMergerTimeConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function galaxyMajorMergerTimeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily galaxyMajorMergerTime} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorGalaxyMajorMergerTime} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -82,7 +82,7 @@ contains
 
   function galaxyMajorMergerTimeConstructorInternal(countTimesMaximum,mergerMassMovements_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily galaxyMajorMergerTime} node operator class.
+    Internal constructor for the \refClass{nodeOperatorGalaxyMajorMergerTime} node operator class.
     !!}
     use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
@@ -115,7 +115,7 @@ contains
   
   subroutine galaxyMajorMergerTimeDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily galaxyMajorMergerTime} node operator class.
+    Destructor for the \refClass{nodeOperatorGalaxyMajorMergerTime} node operator class.
     !!}
     use :: Events_Hooks, only : satelliteMergerEvent
     implicit none

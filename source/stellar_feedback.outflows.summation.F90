@@ -41,7 +41,7 @@
 
   interface stellarFeedbackOutflowsSummation
      !!{
-     Constructors for the {\normalfont \ttfamily summation} stellar feedback class.
+     Constructors for the \refClass{stellarFeedbackOutflowsSummation} stellar feedback class.
      !!}
      module procedure summationConstructorParameters
      module procedure summationConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function summationConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily summation} stellar feedback class which takes a parameter set as input.
+    Constructor for the \refClass{stellarFeedbackOutflowsSummation} stellar feedback class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -82,13 +82,13 @@ contains
 
   function summationConstructorInternal(stellarFeedbackOutflowss) result(self)
     !!{
-    Internal constructor for the ``summation'' stellar feedback class.
+    Internal constructor for the \refClass{stellarFeedbackOutflowsSummation} stellar feedback class.
     !!}
     use :: Error, only : Error_Report
     implicit none
-    type (stellarFeedbackOutflowsSummation)                         :: self
-    type (stellarFeedbackOutflowsList     ), target , intent(in   ) :: stellarFeedbackOutflowss
-    type (stellarFeedbackOutflowsList     ), pointer                :: stellarFeedbackOutflows_
+    type(stellarFeedbackOutflowsSummation)                         :: self
+    type(stellarFeedbackOutflowsList     ), target , intent(in   ) :: stellarFeedbackOutflowss
+    type(stellarFeedbackOutflowsList     ), pointer                :: stellarFeedbackOutflows_
 
     self            %stellarFeedbackOutflowss => stellarFeedbackOutflowss
     stellarFeedbackOutflows_                  => stellarFeedbackOutflowss
@@ -103,7 +103,7 @@ contains
 
   subroutine summationDestructor(self)
     !!{
-    Destructor for the ``summation'' stellar feedback class.
+    Destructor for the \refClass{stellarFeedbackOutflowsSummation} stellar feedback class.
     !!}
     implicit none
     type(stellarFeedbackOutflowsSummation), intent(inout) :: self

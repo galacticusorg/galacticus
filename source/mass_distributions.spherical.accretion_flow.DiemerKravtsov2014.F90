@@ -44,7 +44,7 @@
 
   interface massDistributionDiemerKravtsov2014
      !!{
-     Constructors for the {\normalfont \ttfamily diemerKravtsov2014} mass distribution class.
+     Constructors for the \refClass{massDistributionDiemerKravtsov2014} mass distribution class.
      !!}
      module procedure massDistributionDiemerKravtsov2014ConstructorParameters
      module procedure massDistributionDiemerKravtsov2014ConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function massDistributionDiemerKravtsov2014ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily diemerKravtsov2014} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionDiemerKravtsov2014} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters

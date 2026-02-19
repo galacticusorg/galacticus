@@ -134,7 +134,7 @@
 
   interface posteriorSampleLikelihoodGaussianRegression
      !!{
-     Constructors for the {\normalfont \ttfamily gaussianRegression} posterior sampling likelihood class.
+     Constructors for the \refClass{posteriorSampleLikelihoodGaussianRegression} posterior sampling likelihood class.
      !!}
      module procedure gaussianRegressionConstructorParameters
      module procedure gaussianRegressionConstructorInternal
@@ -177,7 +177,7 @@ contains
 
   function gaussianRegressionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily gaussianRegression} posterior sampling likelihood class which builds the object
+    Constructor for the \refClass{posteriorSampleLikelihoodGaussianRegression} posterior sampling likelihood class which builds the object
     from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -276,7 +276,7 @@ contains
 
   function gaussianRegressionConstructorInternal(emulatorRebuildCount,polynomialOrder,sigmaBuffer,logLikelihoodBuffer,logLikelihoodErrorTolerance,reportCount,emulateOutliers,assumeZeroVarianceAtZeroLag,dumpEmulatorFileRoot,dummyEmulator,posteriorSampleLikelihood_,variogram_) result(self)
     !!{
-    Constructor for ``gaussianRegression'' posterior sampling likelihood class.
+    Constructor for the \refClass{posteriorSampleLikelihoodGaussianRegression} posterior sampling likelihood class.
     !!}
     implicit none
     type            (posteriorSampleLikelihoodGaussianRegression)                        :: self
@@ -336,7 +336,7 @@ contains
     use :: Posterior_Sampling_State      , only : posteriorSampleStateClass      , posteriorSampleStateCorrelation
     use :: String_Handling               , only : operator(//)
     implicit none
-    class           (posteriorSampleLikelihoodGaussianRegression), intent(inout)                   :: self
+    class           (posteriorSampleLikelihoodGaussianRegression), intent(inout), target           :: self
     class           (posteriorSampleStateClass                  ), intent(inout)                   :: simulationState
     type            (modelParameterList                         ), intent(inout), dimension(:)     :: modelParametersActive_                    , modelParametersInactive_
     class           (posteriorSampleConvergenceClass            ), intent(inout)                   :: simulationConvergence

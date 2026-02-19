@@ -85,7 +85,7 @@
 
   interface virialOrbitJiang2014
      !!{
-     Constructors for the {\normalfont \ttfamily jiang2014} virial orbit class.
+     Constructors for the \refClass{virialOrbitJiang2014} virial orbit class.
      !!}
      module procedure jiang2014ConstructorParameters
      module procedure jiang2014ConstructorInternal
@@ -102,7 +102,7 @@ contains
 
   function jiang2014ConstructorParameters(parameters) result(self)
     !!{
-    Generic constructor for the {\normalfont \ttfamily jiang2014} virial orbits class.
+    Internal constructor for the \refClass{virialOrbitJiang2014} virial orbits class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -211,7 +211,7 @@ contains
 
   function jiang2014ConstructorInternal(bRatioLow,bRatioIntermediate,bRatioHigh,gammaRatioLow,gammaRatioIntermediate,gammaRatioHigh,sigmaRatioLow,sigmaRatioIntermediate,sigmaRatioHigh,muRatioLow,muRatioIntermediate,muRatioHigh,darkMatterHaloScale_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily jiang2014} virial orbits class.
+    Internal constructor for the \refClass{virialOrbitJiang2014} virial orbits class.
     !!}
     use :: Numerical_Integration   , only : GSL_Integ_Gauss61           , integrator
     use :: Root_Finder             , only : rangeExpandMultiplicative   , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
@@ -278,7 +278,7 @@ contains
        call File_Lock(char(fileName),fileLock,lockIsShared=attempt == 0)
        if (File_Exists(fileName)) then
           !$ call hdf5Access%set()
-          call file%openFile         (char(fileName)                                                   )
+          call file%openFile         (char(fileName)                ,readOnly=.true.                   )
           call file%readAttribute    ('limitLower'                  ,     limitLower                   ) 
           call file%readAttribute    ('limitUpper'                  ,     limitUpper                   ) 
           call file%readDatasetStatic('velocityTangentialMean'      ,self%velocityTangentialMean_      )
@@ -446,7 +446,7 @@ contains
 
   subroutine jiang2014Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily jiang2014} virial orbits class.
+    Destructor for the \refClass{virialOrbitJiang2014} virial orbits class.
     !!}
     implicit none
     type(virialOrbitJiang2014), intent(inout) :: self
@@ -785,7 +785,7 @@ contains
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
-    use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical    , only : gravitationalConstant_internal
     implicit none
     class           (virialOrbitJiang2014), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node        , host
@@ -812,7 +812,7 @@ contains
          &                   +basic    %mass()                              &
          &                   /basicHost%mass()                              &
          &                  )                                               &
-         &                 -gravitationalConstantGalacticus                 &
+         &                 -gravitationalConstant_internal                  &
          &                 *massHost                                        &
          &                 /radiusHost
     return

@@ -45,14 +45,20 @@ sub Class_Serialize_ASCII {
 		 type       => "nodeComponent".ucfirst($code::class->{'name'}),
 		 attributes => [ "intent(in   )" ],
 		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "type",
+		 type       => "enumerationVerbosityLevelType",
+		 variables  => [ "verbosityLevel" ],
+		 attributes => [ "intent(in   )" ]
 	     }
 	    ]
     };
     $code::padding = " " x ($fullyQualifiedNameLengthMax-length($code::class->{'name'}));
     $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
 !$GLC attributes unused :: self
-call displayIndent('{$class->{'name'}}: {$padding}generic')
-call displayUnindent('done')
+call displayIndent('{$class->{'name'}}: {$padding}generic',verbosityLevel)
+call displayUnindent('done',verbosityLevel)
 CODE
     # Insert a type-binding for this function.
     push(

@@ -50,7 +50,7 @@
 
   interface radiativeTransferPhotonPacketSimple
      !!{
-     Constructors for the {\normalfont \ttfamily simple} radiative transfer photon packet class.
+     Constructors for the \refClass{radiativeTransferPhotonPacketSimple} radiative transfer photon packet class.
      !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function simpleConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily simple} radiative transfer photon packet class which takes a parameter set as input.
+    Constructor for the \refClass{radiativeTransferPhotonPacketSimple} radiative transfer photon packet class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters, inputParameter
     implicit none
@@ -104,7 +104,7 @@ contains
 
   function simpleConstructorInternal(wavelength,wavelengthMinimum,wavelengthMaximum,luminosity) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily simple} radiative transfer photon packet class.
+    Internal constructor for the \refClass{radiativeTransferPhotonPacketSimple} radiative transfer photon packet class.
     !!}
     implicit none
     type            (radiativeTransferPhotonPacketSimple)                :: self

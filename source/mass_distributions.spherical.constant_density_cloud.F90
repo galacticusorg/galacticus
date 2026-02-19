@@ -43,7 +43,7 @@
 
   interface massDistributionConstantDensityCloud
      !!{
-     Constructors for the {\normalfont \ttfamily constantDensityCloud} mass distribution class.
+     Constructors for the \refClass{massDistributionConstantDensityCloud} mass distribution class.
      !!}
      module procedure constantDensityCloudConstructorParameters
      module procedure constantDensityCloudConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function constantDensityCloudConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily constantDensityCloud} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionConstantDensityCloud} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
@@ -98,7 +98,7 @@ contains
   
   function constantDensityCloudConstructorInternal(mass,radius,componentType,massType) result(self)
     !!{
-    Constructor for ``constantDensityCloud'' convergence class.
+    Constructor for the \refClass{massDistributionConstantDensityCloud} convergence class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -185,7 +185,7 @@ contains
     Return the potential at the specified {\normalfont \ttfamily coordinates} in a constant density cloud.
     !!}
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (massDistributionConstantDensityCloud), intent(inout), target   :: self
     class           (coordinate                          ), intent(in   )           :: coordinates
@@ -195,20 +195,20 @@ contains
     if (present(status)) status=structureErrorCodeSuccess
     radius=coordinates%rSpherical()
     if (radius > self%radius) then
-       constantDensityCloudPotential=-gravitationalConstantGalacticus &
-            &                        *self%mass                       &
+       constantDensityCloudPotential=-gravitationalConstant_internal &
+            &                        *self%mass                      &
             &                        /radius
     else
-       constantDensityCloudPotential=-gravitationalConstantGalacticus &
-            &                        *self%mass                       &
-            &                        /self%radius                     &
-            &                        /2.0d0                           &
-            &                        *(                               &
-            &                          +1.0d0                         &
-            &                          +(                             &
-            &                            +     radius                 &
-            &                            /self%radius                 &
-            &                           )**2                          &
+       constantDensityCloudPotential=-gravitationalConstant_internal &
+            &                        *self%mass                      &
+            &                        /self%radius                    &
+            &                        /2.0d0                          &
+            &                        *(                              &
+            &                          +1.0d0                        &
+            &                          +(                            &
+            &                            +     radius                &
+            &                            /self%radius                &
+            &                           )**2                         &
             &                         )
     end if
     return

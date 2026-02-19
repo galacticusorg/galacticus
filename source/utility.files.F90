@@ -465,12 +465,15 @@ contains
     !!{
     Make the given directory path. Will create intermediate directories in the path if necessary.
     !!}
-    use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : trim        , var_str
+    use :: Error             , only : Error_Report       , Kernel_EACCES, Kernel_ELOOP , Kernel_EMLINK , &
+         &                            Kernel_ENAMETOOLONG, Kernel_ENOENT, Kernel_ENOSPC, Kernel_ENOTDIR, &
+         &                            Kernel_EROFS
+    use :: ISO_Varying_String, only : trim               , var_str
     implicit none
-    character(len=*), intent(in   ) :: pathName
-    integer  (c_int)                :: status
-    integer                         :: i
+    character(len=* ), intent(in   ) :: pathName
+    integer  (c_int )                :: status
+    integer                          :: i
+    character(len=24)                :: reason
 
     ! Quick return if the path exists.
     if (File_Exists(var_str(pathName))) return
@@ -479,7 +482,29 @@ contains
           if (File_Exists(var_str(pathName(1:i-1)))) cycle
           !$omp critical(mkdir)
           status=mkdir_C(pathName(1:i-1)//char(0))
-          if (status /= 0) call Error_Report('failed to make intermediate directory "'//pathName(1:i-1)//'"'//{introspection:location})
+          if (status /= 0) then
+             select case (status)
+             case (Kernel_EACCES)
+                reason="permission denied"
+             case (Kernel_ELOOP       )
+                reason="loop in symbolic links"
+             case (Kernel_EMLINK      )
+                reason="too many links"
+             case (Kernel_ENAMETOOLONG)
+                reason="name too long"
+             case (Kernel_ENOENT      )
+                reason="non-existant directory"
+             case (Kernel_ENOSPC      )
+                reason="no space on file system"
+             case (Kernel_ENOTDIR     )
+                reason="not a directory"
+             case (Kernel_EROFS       )
+                reason="read-only file system"
+             case default
+                reason="unknown"
+             end select
+             call Error_Report('failed to make intermediate directory (reason: '//trim(reason)//') "'//pathName(1:i-1)//'"'//{introspection:location})
+          end if
           !$omp end critical(mkdir)
        end if
     end do

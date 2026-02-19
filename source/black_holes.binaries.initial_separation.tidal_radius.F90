@@ -53,7 +53,7 @@
 
   interface blackHoleBinaryInitialSeparationTidalRadius
      !!{
-     Constructors for the {\normalfont \ttfamily tidalRadius} black hole binary initial radius class.
+     Constructors for the \refClass{blackHoleBinaryInitialSeparationTidalRadius} black hole binary initial radius class.
      !!}
      module procedure tidalRadiusConstructorParameters
      module procedure tidalRadiusConstructorInternal
@@ -68,7 +68,7 @@ contains
 
   function tidalRadiusConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily tidalRadius} black hole binary recoil class which takes a parameter list as
+    Constructor for the \refClass{blackHoleBinaryInitialSeparationTidalRadius} black hole binary recoil class which takes a parameter list as
     input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -85,7 +85,7 @@ contains
 
   function tidalRadiusConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily tidalRadius} black hole binary recoil class.
+    Internal constructor for the \refClass{blackHoleBinaryInitialSeparationTidalRadius} black hole binary recoil class.
     !!}
     implicit none
     type (blackHoleBinaryInitialSeparationTidalRadius) :: self

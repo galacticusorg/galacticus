@@ -57,7 +57,7 @@
 
   interface massDistributionSphericalDecaying
      !!{
-     Constructors for the {\normalfont \ttfamily sphericalDecaying} mass distribution class.
+     Constructors for the \refClass{massDistributionSphericalDecaying} mass distribution class.
      !!}
      module procedure sphericalDecayingConstructorParameters
      module procedure sphericalDecayingConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function sphericalDecayingConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sphericalDecaying} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionSphericalDecaying} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameters
@@ -149,7 +149,7 @@ contains
   
   function sphericalDecayingConstructorInternal(toleranceRelativePotential,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,tolerateEnclosedMassIntegrationFailure,radiusEscape,time,darkMatterParticle_,massDistribution_,componentType,massType) result(self)
     !!{
-    Constructor for ``sphericalDecaying'' mass distribution class.
+    Constructor for the \refClass{massDistributionSphericalDecaying} mass distribution class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleDecayingDarkMatter
     implicit none
@@ -185,7 +185,7 @@ contains
 
   subroutine sphericalDecayingDestructor(self)
     !!{
-    Destructor for the ``sphericalDecaying'' mass distribution class.
+    Destructor for the \refClass{massDistributionSphericalDecaying} mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalDecaying), intent(inout) :: self
@@ -254,7 +254,7 @@ contains
     end if
     kinematicsDistribution_ => self%massDistribution_%kinematicsDistribution()
     coordinates             =  [radius,0.0d0,0.0d0]
-    velocityDispersion      =  kinematicsDistribution_%velocityDispersion1D(coordinates,self%massDistribution_)
+    velocityDispersion      =  kinematicsDistribution_%velocityDispersion1D(coordinates,self%massDistribution_,self%massDistribution_)
     !![
     <objectDestructor name="kinematicsDistribution_"/>
     !!]

@@ -33,7 +33,7 @@
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSpheroidRadiusPowerLaw
      !!{
-     Implements a power law prescription for the stellar mass--stellar radius relation of spheroids. Specificially:
+     Implements a power law prescription for the stellar mass--stellar radius relation of spheroids. Specifically:
      \begin{equation}
        r_\mathrm{s} = \beta \left( \frac{M_\star}{M_\odot} \right)^\alpha, 
      \end{equation}
@@ -56,7 +56,7 @@
   
   interface nodeOperatorSpheroidRadiusPowerLaw
      !!{
-     Constructors for the {\normalfont \ttfamily spheroidRadiusPowerLaw} node operator class.
+     Constructors for the \refClass{nodeOperatorSpheroidRadiusPowerLaw} node operator class.
      !!}
      module procedure spheroidRadiusPowerLawConstructorParameters
      module procedure spheroidRadiusPowerLawConstructorInternal
@@ -66,7 +66,7 @@ contains
 
   function spheroidRadiusPowerLawConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily spheroidRadiusPowerLaw} {\normalfont \ttfamily nodeOperator} which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorSpheroidRadiusPowerLaw} which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -98,7 +98,7 @@ contains
 
   function spheroidRadiusPowerLawConstructorInternal(alpha, beta) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily spheroidRadiusPowerLaw} node operator class.
+    Internal constructor for the \refClass{nodeOperatorSpheroidRadiusPowerLaw} node operator class.
     !!}
     implicit none
     type            (nodeOperatorSpheroidRadiusPowerLaw)             :: self

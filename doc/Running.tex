@@ -66,7 +66,7 @@ which will show something similar to:
 \begin{verbatim}
 -rw-r--r-- 1 abenson users 568601 Oct 15 20:58 galacticus.hdf5
 \end{verbatim}
-\glc\ outputs use the \href{http://www.hdfgroup.org/HDF5/}{HDF5} format---libraries for accessing HDF5 files exist in all major languages, including Python\footnote{\href{https://www.h5py.org/}{{\normalfont \scshape h5py}}}. We will explore the structure of the output file in more detail in \S\ref{sec:outputFile}, but for now we'll simply explore some of the key features using the command line.
+\glc\ outputs use the \href{https://www.hdfgroup.org/solutions/hdf5/}{HDF5} format---libraries for accessing HDF5 files exist in all major languages, including Python\footnote{\href{https://www.h5py.org/}{{\normalfont \scshape h5py}}}. We will explore the structure of the output file in more detail in \S\ref{sec:outputFile}, but for now we'll simply explore some of the key features using the command line.
 
 The content of the output file can be explored using the ``{\normalfont \ttfamily h5ls}'' tool, for example:
 \begin{verbatim}
@@ -86,6 +86,7 @@ In this case there is only a single output, corresponding to $z=0$, we can explo
 $ h5ls galacticus.hdf5/Outputs/Output1
 mergerTreeCount          Dataset {6/Inf}
 mergerTreeIndex          Dataset {6/Inf}
+mergerTreeSeed           Dataset {6/Inf}
 mergerTreeStartIndex     Dataset {6/Inf}
 mergerTreeWeight         Dataset {6/Inf}
 nodeData                 Group

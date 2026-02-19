@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a transfer function class for fuzzy dark matter using the fitting function of
+  Implements a transfer function class for fuzzy dark matter using the fitting function of
   \cite{murgia_non-cold_2017}.
   !!}
 
@@ -40,7 +40,7 @@
    
   interface transferFunctionFuzzyDMMurgia2017
      !!{
-     Constructors for the {\normalfont \ttfamily fuzzyDMMurgia2017} transfer function class.
+     Constructors for the \refClass{transferFunctionFuzzyDMMurgia2017} transfer function class.
      !!}
      module procedure fuzzyDMMurgia2017ConstructorParameters
      module procedure fuzzyDMMurgia2017ConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function fuzzyDMMurgia2017ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily fuzzyDMMurgia2017} transfer function class which takes a parameter set as input.
+    Constructor for the \refClass{transferFunctionFuzzyDMMurgia2017} transfer function class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
@@ -108,7 +108,7 @@ contains
 
   function fuzzyDMMurgia2017ConstructorInternal(transferFunctionCDM,beta,gamma,time,cosmologyParameters_,cosmologyFunctions_,darkMatterParticle_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily fuzzyDMMurgia2017} transfer function class.
+    Internal constructor for the \refClass{transferFunctionFuzzyDMMurgia2017} transfer function class.
     !!}
     use :: Dark_Matter_Particles       , only : darkMatterParticleFuzzyDarkMatter
     use :: Error                       , only : Error_Report

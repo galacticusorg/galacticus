@@ -38,7 +38,7 @@
   
   interface nodeOperatorPositionOrphans
      !!{
-     Constructors for the {\normalfont \ttfamily positionOrphans} node operator class.
+     Constructors for the \refClass{nodeOperatorPositionOrphans} node operator class.
      !!}
      module procedure positionOrphansConstructorParameters
      module procedure positionOrphansConstructorInternal
@@ -48,7 +48,7 @@ contains
   
   function positionOrphansConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily positionOrphans} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorPositionOrphans} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -69,7 +69,7 @@ contains
 
   function positionOrphansConstructorInternal(satelliteOrphanDistribution_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily positionOrphans} node operator class.
+    Internal constructor for the \refClass{nodeOperatorPositionOrphans} node operator class.
     !!}
     implicit none
     type (nodeOperatorPositionOrphans     )                        :: self
@@ -83,7 +83,7 @@ contains
 
   subroutine positionOrphansDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily positionOrphans} node operator class.
+    Destructor for the \refClass{nodeOperatorPositionOrphans} node operator class.
     !!}
     implicit none
     type(nodeOperatorPositionOrphans), intent(inout) :: self

@@ -68,7 +68,7 @@
 
   interface darkMatterProfileConcentrationBrown2021
      !!{
-     Constructors for the {\normalfont \ttfamily brown2021} dark matter halo profile concentration class.
+     Constructors for the \refClass{darkMatterProfileConcentrationBrown2021} dark matter halo profile concentration class.
      !!}
      module procedure brown2021ConstructorParameters
      module procedure brown2021ConstructorInternal
@@ -108,7 +108,7 @@ contains
 
   function brown2021ConstructorInternal(cosmologyFunctions_,cosmologyParameters_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily brown2021} dark matter halo profile
+    Constructor for the \refClass{darkMatterProfileConcentrationBrown2021} dark matter halo profile
     concentration class.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
@@ -162,7 +162,7 @@ contains
 
   subroutine brown2021Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily brown2021} dark matter halo profile concentration class.
+    Destructor for the \refClass{darkMatterProfileConcentrationBrown2021} dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationBrown2021), intent(inout) :: self

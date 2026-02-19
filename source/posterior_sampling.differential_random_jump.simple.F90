@@ -42,7 +42,7 @@
 
   interface posteriorSampleDffrntlEvltnRandomJumpSimple
      !!{
-     Constructors for the {\normalfont \ttfamily simple} posterior sampling differential evolution random jump class.
+     Constructors for the \refClass{posteriorSampleDffrntlEvltnRandomJumpSimple} posterior sampling differential evolution random jump class.
      !!}
      module procedure simpleConstructorParameters
   end interface posteriorSampleDffrntlEvltnRandomJumpSimple
@@ -51,7 +51,7 @@ contains
 
   function simpleConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily simple} posterior sampling differential evolution random jump class which builds
+    Constructor for the \refClass{posteriorSampleDffrntlEvltnRandomJumpSimple} posterior sampling differential evolution random jump class which builds
     the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters

@@ -33,7 +33,7 @@
 
   interface outputTimesUniformSpacingInRedshift
      !!{
-     Constructors for the {\normalfont \ttfamily uniformSpacingInRedshift} output times class.
+     Constructors for the \refClass{outputTimesUniformSpacingInRedshift} output times class.
      !!}
      module procedure uniformSpacingInRedshiftConstructorParameters
      module procedure uniformSpacingInRedshiftConstructorInternal
@@ -43,7 +43,7 @@ contains
 
   function uniformSpacingInRedshiftConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily uniformSpacingInRedshift} output times class which takes a parameter set as input.
+    Constructor for the \refClass{outputTimesUniformSpacingInRedshift} output times class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -81,7 +81,7 @@ contains
 
   function uniformSpacingInRedshiftConstructorInternal(redshiftMinimum,redshiftMaximum,countRedshifts,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily uniformSpacingInRedshift} output times class.
+    Internal constructor for the \refClass{outputTimesUniformSpacingInRedshift} output times class.
     !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLinear
     implicit none

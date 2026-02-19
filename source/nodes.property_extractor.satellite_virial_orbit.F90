@@ -33,7 +33,7 @@
 
   interface nodePropertyExtractorSatelliteVirialOrbit
      !!{
-     Constructors for the {\normalfont \ttfamily satelliteVirialOrbit} extractor class.
+     Constructors for the \refClass{nodePropertyExtractorSatelliteVirialOrbit} extractor class.
      !!}
      module procedure satelliteVirialOrbitConstructorParameters
      module procedure satelliteVirialOrbitConstructorInternal
@@ -43,7 +43,7 @@ contains
 
   function satelliteVirialOrbitConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily satelliteVirialOrbit} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorSatelliteVirialOrbit} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -68,7 +68,7 @@ contains
 
   function satelliteVirialOrbitConstructorInternal(properties) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily satelliteVirialOrbit} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorSatelliteVirialOrbit} output extractor property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSatelliteVirialOrbit)                              :: self

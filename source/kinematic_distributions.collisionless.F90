@@ -37,7 +37,7 @@
 
   interface kinematicsDistributionCollisionless
      !!{
-     Constructors for the {\normalfont \ttfamily collisionless} kinematic distribution class.
+     Constructors for the \refClass{kinematicsDistributionCollisionless} kinematic distribution class.
      !!}
      module procedure collisionlessConstructorParameters
      module procedure collisionlessConstructorInternal
@@ -48,7 +48,7 @@ contains
 
   function collisionlessConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily collisionless} kinematic distribution class which builds the object from a parameter
+    Constructor for the \refClass{kinematicsDistributionCollisionless} kinematic distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -80,7 +80,7 @@ contains
 
   function collisionlessConstructorInternal(toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily collisionless} kinematic distribution class.
+    Internal constructor for the \refClass{kinematicsDistributionCollisionless} kinematic distribution class.
     !!}
     implicit none
     type            (kinematicsDistributionCollisionless)                          :: self
@@ -94,7 +94,7 @@ contains
   
   function collisionlessConstructorDecorated(kinematicsDistribution_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily collisionless} kinematic distribution class.
+    Internal constructor for the \refClass{kinematicsDistributionCollisionless} kinematic distribution class.
     !!}
     implicit none
     type (kinematicsDistributionCollisionless)                :: self
@@ -116,15 +116,15 @@ contains
     return
   end function collisionlessIsCollisional
 
-  double precision function collisionlessVelocityDispersion1D(self,coordinates,massDistributionEmbedding) result(velocityDispersion)
+  double precision function collisionlessVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
     !!{
     Return the 1D velocity dispersion at the specified {\normalfont \ttfamily coordinates} in an collisionless kinematic distribution.
     !!}
     implicit none
-    class(kinematicsDistributionCollisionless), intent(inout), target :: self
-    class(coordinate                         ), intent(in   )         :: coordinates
-    class(massDistributionClass              ), intent(inout)         :: massDistributionEmbedding
+    class(kinematicsDistributionCollisionless), intent(inout)          :: self
+    class(coordinate                         ), intent(in   )          :: coordinates
+    class(massDistributionClass              ), intent(inout), target  :: massDistribution_, massDistributionEmbedding
 
-    velocityDispersion=self%velocityDispersion1DNumerical(coordinates,massDistributionEmbedding)
+    velocityDispersion=self%velocityDispersion1DNumerical(coordinates,massDistribution_,massDistributionEmbedding)
     return
   end function collisionlessVelocityDispersion1D

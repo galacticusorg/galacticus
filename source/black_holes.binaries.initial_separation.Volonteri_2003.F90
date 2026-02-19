@@ -53,7 +53,7 @@
 
   interface blackHoleBinaryInitialSeparationVolonteri2003
      !!{
-     Constructors for the {\normalfont \ttfamily volonteri2003} black hole binary initial radius class.
+     Constructors for the \refClass{blackHoleBinaryInitialSeparationVolonteri2003} black hole binary initial radius class.
      !!}
      module procedure volonteri2003ConstructorParameters
      module procedure volonteri2003ConstructorInternal
@@ -63,7 +63,7 @@ contains
 
   function volonteri2003ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily volonteri2003} black hole binary initial radius class which takes a parameter
+    Constructor for the \refClass{blackHoleBinaryInitialSeparationVolonteri2003} black hole binary initial radius class which takes a parameter
     list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -85,7 +85,7 @@ contains
 
   function volonteri2003ConstructorInternal(darkMatterHaloScale_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily volonteri2003} black hole binary initial radius class which takes a parameter
+    Constructor for the \refClass{blackHoleBinaryInitialSeparationVolonteri2003} black hole binary initial radius class which takes a parameter
     list as input.
     !!}
     implicit none
@@ -100,7 +100,7 @@ contains
 
   subroutine volonteri2003Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily volonteri2003} black hole binary initial separation class.
+    Destructor for the \refClass{blackHoleBinaryInitialSeparationVolonteri2003} black hole binary initial separation class.
     !!}
     implicit none
     type(blackHoleBinaryInitialSeparationVolonteri2003), intent(inout) :: self
@@ -116,8 +116,8 @@ contains
     Returns an initial separation for binary black holes using the method of \cite{volonteri_assembly_2003}, with the
     assumption that the local velocity dispersion is approximately the dark matter halo virial velocity.
     !!}
-    use :: Galacticus_Nodes            , only : nodeComponentBlackHole         , treeNode
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Galacticus_Nodes                , only : nodeComponentBlackHole        , treeNode
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class(blackHoleBinaryInitialSeparationVolonteri2003), intent(inout), target :: self
     type (treeNode                                     ), intent(inout), target :: nodeHost     , node
@@ -125,7 +125,7 @@ contains
 
     blackHole                      =>  node    %blackHole()
     blackHoleHost                  =>  nodeHost%blackHole()
-    volonteri2003SeparationInitial =  +gravitationalConstantGalacticus                       &
+    volonteri2003SeparationInitial =  +gravitationalConstant_internal                        &
          &                            *(                                                     &
          &                              +blackHole    %mass()                                &
          &                              +blackHoleHost%mass()                                &

@@ -20,8 +20,7 @@
   !+    Contributions to this file made by: Omid Sameie.
 
   !!{
-  Contains a module which provides a power spectrum window function class that implements the smooth-$k$ space filter of
-  \cite{leo_new_2018}.
+  Provides a power spectrum window function class that implements the smooth-$k$ space filter of \cite{leo_new_2018}.
   !!}
 
   use :: Cosmology_Parameters, only : cosmologyParametersClass
@@ -46,7 +45,7 @@
 
   interface powerSpectrumWindowFunctionSmoothKSpace
      !!{
-     Constructors for the {\normalfont \ttfamily smoothKSpace} power spectrum window function class.
+     Constructors for the \refClass{powerSpectrumWindowFunctionSmoothKSpace} power spectrum window function class.
      !!}
      module procedure smoothKSpaceConstructorParameters
      module procedure smoothKSpaceConstructorInternal
@@ -56,7 +55,7 @@ contains
 
   function smoothKSpaceConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily smoothKSpace} power spectrum window function class which takes a parameter set as input.
+    Constructor for the \refClass{powerSpectrumWindowFunctionSmoothKSpace} power spectrum window function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -94,7 +93,7 @@ contains
 
   function smoothKSpaceConstructorInternal(cosmologyParameters_,beta,normalization) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily smoothKSpace} power spectrum window function class.
+    Internal constructor for the \refClass{powerSpectrumWindowFunctionSmoothKSpace} power spectrum window function class.
     !!}
     implicit none
     type            (powerSpectrumWindowFunctionSmoothKSpace)                        :: self
@@ -109,7 +108,7 @@ contains
 
   subroutine smoothKSpaceDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily smoothKSpace} power spectrum window function class.
+    Destructor for the \refClass{powerSpectrumWindowFunctionSmoothKSpace} power spectrum window function class.
     !!}
     implicit none
     type(powerSpectrumWindowFunctionSmoothKSpace), intent(inout) :: self

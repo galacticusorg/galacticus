@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a node property extractor for the index of the last host node.
+Implements a node property extractor for the index of the last host node.
 !!}
 
   !![
@@ -40,7 +40,7 @@ Contains a module which implements a node property extractor for the index of th
 
   interface nodePropertyExtractorIndexLastHost
      !!{
-     Constructors for the ``indexLastHost'' output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorIndexLastHost} output analysis class.
      !!}
      module procedure indexLastHostConstructorParameters
      module procedure indexLastHostConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function indexLastHostConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily indexLastHost} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorIndexLastHost} node property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -66,7 +66,7 @@ contains
 
   function indexLastHostConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily indexLastHost} node property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorIndexLastHost} node property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorIndexLastHost) :: self

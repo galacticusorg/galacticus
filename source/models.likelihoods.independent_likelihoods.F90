@@ -76,7 +76,7 @@
 
   interface posteriorSampleLikelihoodIndependentLikelihoods
      !!{
-     Constructors for the {\normalfont \ttfamily independentLikelihoods} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleLikelihoodIndependentLikelihoods} posterior sampling convergence class.
      !!}
      module procedure independentLikelihoodsConstructorParameters
      module procedure independentLikelihoodsConstructorInternal
@@ -86,7 +86,7 @@ contains
 
   function independentLikelihoodsConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily independentLikelihoods} posterior sampling convergence class which builds the object from a
+    Constructor for the \refClass{posteriorSampleLikelihoodIndependentLikelihoods} posterior sampling convergence class which builds the object from a
     parameter set.
     !!}
     use :: Error           , only : Error_Report
@@ -173,7 +173,7 @@ contains
 
   function independentLikelihoodsConstructorInternal(modelLikelihoods,logLikelihoodAccept) result(self)
     !!{
-    Constructor for ``independentLikelihoods'' posterior sampling likelihood class.
+    Constructor for the \refClass{posteriorSampleLikelihoodIndependentLikelihoods} posterior sampling likelihood class.
     !!}
     implicit none
     type            (posteriorSampleLikelihoodIndependentLikelihoods)                        :: self
@@ -188,7 +188,7 @@ contains
 
   subroutine independentLikelihoodsDestructor(self)
     !!{
-    Destructor for ``independentLikelihoods'' posterior sampling likelihood class.
+    Destructor for the \refClass{posteriorSampleLikelihoodIndependentLikelihoods} posterior sampling likelihood class.
     !!}
     implicit none
     type   (posteriorSampleLikelihoodIndependentLikelihoods), intent(inout) :: self
@@ -226,7 +226,7 @@ contains
     use :: Error                       , only : Error_Report
     use :: Models_Likelihoods_Constants, only : logImpossible
     implicit none
-    class           (posteriorSampleLikelihoodIndependentLikelihoods), intent(inout)               :: self
+    class           (posteriorSampleLikelihoodIndependentLikelihoods), intent(inout), target       :: self
     class           (posteriorSampleStateClass                      ), intent(inout)               :: simulationState
     type            (modelParameterList                             ), intent(inout), dimension(:) :: modelParametersActive_, modelParametersInactive_
     class           (posteriorSampleConvergenceClass                ), intent(inout)               :: simulationConvergence

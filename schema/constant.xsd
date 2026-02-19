@@ -8,6 +8,8 @@
     <xs:attribute name="type"                use="optional"/>
     <xs:attribute name="gslSymbol"           use="optional"/>
     <xs:attribute name="gslHeader"           use="optional"/>
+    <xs:attribute name="kernelSymbol"        use="optional"/>
+    <xs:attribute name="kernelHeader"        use="optional"/>
     <xs:attribute name="value"               use="optional"/>
     <xs:attribute name="members"             use="optional"/>
     <xs:attribute name="symbol"              use="optional"/>

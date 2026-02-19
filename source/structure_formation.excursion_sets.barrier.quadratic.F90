@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a quadratic excursion set barrier class.
+Implements a quadratic excursion set barrier class.
 !!}
 
   !![

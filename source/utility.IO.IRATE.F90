@@ -41,14 +41,12 @@ module IO_IRATE
    contains
      !![
      <methods>
-       <method description="Read a snapshot from the \gls{irate} format file." method="readHalos" />
-       <method description="Read the requested properties of the simulation from an \gls{irate} format file." method="readSimulation" />
-       <method description="Write the requested properties of the simulation from an \gls{irate} format file." method="writeSimulation" />
-       <method description="Copy ``{\normalfont \ttfamily SimulationProperties}'' group from one \gls{irate} file to another." method="copySimulation" />
-       <method description="Copy ``{\normalfont \ttfamily Cosmology}'' group from one \gls{irate} file to another." method="copyCosmology" />
-       <method method="writeHalos">
-         <description></description>
-       </method>
+       <method method="readHalos"       description="Read a snapshot from the \gls{irate} format file."                                                />
+       <method method="writeHalos"      description="Write a snapshot to a \gls{irate} format file."                                                   />
+       <method method="readSimulation"  description="Read the requested properties of the simulation from an \gls{irate} format file."                 />
+       <method method="writeSimulation" description="Write the requested properties of the simulation from an \gls{irate} format file."                />
+       <method method="copySimulation"  description="Copy ``{\normalfont \ttfamily SimulationProperties}'' group from one \gls{irate} file to another."/>
+       <method method="copyCosmology"   description="Copy ``{\normalfont \ttfamily Cosmology}'' group from one \gls{irate} file to another."           />
      </methods>
      !!]
      procedure :: readHalos       => irateReadHalos
@@ -227,7 +225,7 @@ contains
 
   subroutine irateWriteHalos(self,snapshot,redshift,center,velocity,mass,IDs,overwrite,objectsOverwritable)
     !!{
-    Read requested properties of halos to an \gls{irate} file.
+    Write requested properties of halos to an \gls{irate} file.
     !!}
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: IO_HDF5                         , only : hdf5Object

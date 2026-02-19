@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a merger tree operator which profiles tree structure.
+  Implements a merger tree operator which profiles tree structure.
   !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass

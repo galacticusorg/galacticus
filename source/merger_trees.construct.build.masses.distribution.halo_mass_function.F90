@@ -58,7 +58,7 @@
 
   interface mergerTreeBuildMassDistributionHaloMassFunction
      !!{
-     Constructors for the {\normalfont \ttfamily haloMassFunction} merger tree halo mass function sampling class.
+     Constructors for the \refClass{mergerTreeBuildMassDistributionHaloMassFunction} merger tree halo mass function sampling class.
      !!}
      module procedure haloMassFunctionConstructorParameters
      module procedure haloMassFunctionConstructorInternal
@@ -135,7 +135,7 @@ contains
 
   subroutine haloMassFunctionDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily haloMassFunction} merger tree halo mass sampling class.
+    Destructor for the \refClass{mergerTreeBuildMassDistributionHaloMassFunction} merger tree halo mass sampling class.
     !!}
     implicit none
     type(mergerTreeBuildMassDistributionHaloMassFunction), intent(inout) :: self

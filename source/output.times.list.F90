@@ -56,7 +56,7 @@
 
   interface outputTimesList
      !!{
-     Constructors for the {\normalfont \ttfamily list} output times class.
+     Constructors for the \refClass{outputTimesList} output times class.
      !!}
      module procedure listConstructorParameters
      module procedure listConstructorInternal
@@ -66,7 +66,7 @@ contains
 
   function listConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily list} output times class which takes a parameter set as input.
+    Constructor for the \refClass{outputTimesList} output times class which takes a parameter set as input.
     !!}
     use :: Input_Parameters , only : inputParameter, inputParameters
     use :: Sorting          , only : sort
@@ -136,7 +136,7 @@ contains
 
   function listConstructorInternal(times,cosmologyFunctions_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily list} output times class which takes a parameter set as input.
+    Constructor for the \refClass{outputTimesList} output times class which takes a parameter set as input.
     !!}
     implicit none
     type            (outputTimesList        )                              :: self
@@ -155,7 +155,7 @@ contains
 
   subroutine listDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily list} output times class.
+    Destructor for the \refClass{outputTimesList} output times class.
     !!}
     implicit none
     type(outputTimesList), intent(inout) :: self
@@ -277,23 +277,29 @@ contains
     return
   end function listTimeNext
 
-  double precision function listTimePrevious(self,timeCurrent)
+  double precision function listTimePrevious(self,timeCurrent,indexOutput)
     !!{
     Returns the time of the previous output prior to {\normalfont \ttfamily timeCurrent}.
     !!}
     use :: Arrays_Search, only : searchArray
     implicit none
-    class           (outputTimesList), intent(inout) :: self
-    double precision                 , intent(in   ) :: timeCurrent
+    class           (outputTimesList), intent(inout)           :: self
+    double precision                 , intent(in   )           :: timeCurrent
+    integer         (c_size_t       ), intent(  out), optional :: indexOutput
+    integer         (c_size_t       )                          :: i
 
     if      (timeCurrent >  self%times(size(self%times))) then
        ! If the current time exceeds the last output, return the last output.
        listTimePrevious=self%times(size(self%times))
+       if (present(indexOutput)) indexOutput=size(self%times)
     else if (timeCurrent <= self%times(               1)) then
        ! If the current time preceeds the first output, return an unphysical value.
        listTimePrevious=-1.0d0
+       if (present(indexOutput)) indexOutput=-1
     else
-       listTimePrevious=self%times(searchArray(self%times,timeCurrent))
+       i               =searchArray(self%times,timeCurrent)
+       listTimePrevious=self%times(i)
+       if (present(indexOutput)) indexOutput=i
     end if
     return
   end function listTimePrevious

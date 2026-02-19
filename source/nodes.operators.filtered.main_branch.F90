@@ -44,7 +44,7 @@
 
   interface nodeOperatorFilteredMainBranch
      !!{
-     Constructors for the {\normalfont \ttfamily filteredMainBranch} node operator class.
+     Constructors for the \refClass{nodeOperatorFilteredMainBranch} node operator class.
      !!}
      module procedure filteredMainBranchConstructorParameters
      module procedure filteredMainBranchConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function filteredMainBranchConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily filteredMainBranch} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorFilteredMainBranch} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -79,7 +79,7 @@ contains
 
   function filteredMainBranchConstructorInternal(processes,invertFilter) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily filteredMainBranch} node operator class.
+    Internal constructor for the \refClass{nodeOperatorFilteredMainBranch} node operator class.
     !!}
     implicit none
     type   (nodeOperatorFilteredMainBranch)                        :: self

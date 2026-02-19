@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a merger tree operator which outputs a file of tree root masses (and weights).
+  Implements a merger tree operator which outputs a file of tree root masses (and weights).
   !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
@@ -141,7 +141,7 @@ contains
 
   subroutine outputRootMassesDestructor(self)
     !!{
-    Destructor for  the ``outputRootMasses'' merger tree operator class.
+    Destructor for  the \refClass{mergerTreeOperatorOutputRootMasses} merger tree operator class.
     !!}
     implicit none
     type(mergerTreeOperatorOutputRootMasses), intent(inout) :: self

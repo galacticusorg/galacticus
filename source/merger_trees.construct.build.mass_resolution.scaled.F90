@@ -43,7 +43,7 @@
 
   interface mergerTreeMassResolutionScaled
      !!{
-     Constructors for the {\normalfont \ttfamily scaled} merger tree resolution class.
+     Constructors for the \refClass{mergerTreeMassResolutionScaled} merger tree resolution class.
      !!}
      module procedure scaledConstructorParameters
      module procedure scaledConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function scaledConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily scaled} merger tree building mass resolution class which reads parameters from a
+    Constructor for the \refClass{mergerTreeMassResolutionScaled} merger tree building mass resolution class which reads parameters from a
     provided parameter list.
     !!}
     implicit none
@@ -92,7 +92,7 @@ contains
 
   function scaledConstructorInternal(massResolutionMinimum,massResolutionMaximum,massResolutionFractional) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily scaled} merger tree building mass resolution class.
+    Internal constructor for the \refClass{mergerTreeMassResolutionScaled} merger tree building mass resolution class.
     !!}
     implicit none
     type            (mergerTreeMassResolutionScaled)                :: self

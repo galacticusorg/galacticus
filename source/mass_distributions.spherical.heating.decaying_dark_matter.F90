@@ -66,7 +66,7 @@
 
   interface massDistributionHeatingDecayingDarkMatter
      !!{
-     Constructors for the {\normalfont \ttfamily decayingDarkMatter} mass distribution class.
+     Constructors for the \refClass{massDistributionHeatingDecayingDarkMatter} mass distribution class.
      !!}
      module procedure decayingDarkMatterConstructorParameters
      module procedure decayingDarkMatterConstructorInternal
@@ -76,7 +76,7 @@ contains
 
   function decayingDarkMatterConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily decayingDarkMatter} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionHeatingDecayingDarkMatter} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -123,7 +123,7 @@ contains
   
   function decayingDarkMatterConstructorInternal(radiusEscape,time,gamma,includeKickHeating,darkMatterParticle_) result(self)
     !!{
-    Constructor for ``decayingDarkMatter'' heating class.
+    Constructor for the \refClass{massDistributionHeatingDecayingDarkMatter} heating class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleDecayingDarkMatter
     use :: Error                , only : Error_Report
@@ -159,7 +159,7 @@ contains
 
   subroutine decayingDarkMatterDestructor(self)
     !!{
-    Destructor for the ``decayingDarkMatter'' dark matter profile heating class.
+    Destructor for the \refClass{massDistributionHeatingDecayingDarkMatter} dark matter profile heating class.
     !!}
     implicit none
     type(massDistributionHeatingDecayingDarkMatter), intent(inout) :: self
@@ -176,7 +176,7 @@ contains
     !!}
     use :: Coordinates                     , only : coordinateSpherical               , assignment(=)
     use :: Decaying_Dark_Matter            , only : decayingDarkMatterFractionRetained, decayingDarkMatterEnergyRetained, decayingDarkMatterFractionRetainedDerivatives, decayingDarkMatterEnergyRetainedDerivatives
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (massDistributionHeatingDecayingDarkMatter), intent(inout) :: self
     double precision                                           , intent(in   ) :: radius
@@ -226,9 +226,9 @@ contains
           if (radius <= 0.0d0) then
              self%massLossEnergy=+0.0d0
           else
-             self%massLossEnergy=+self%gamma                           &
-                  &              *     gravitationalConstantGalacticus &
-                  &              *self%massEnclosed                    &
+             self%massLossEnergy=+self%gamma                          &
+                  &              *     gravitationalConstant_internal &
+                  &              *self%massEnclosed                   &
                   &              /     radius
           end if
        else
@@ -237,7 +237,7 @@ contains
        ! Compute the velocity dispersion.
        kinematicsDistribution_ => massDistribution_%kinematicsDistribution()
        coordinates             =  [radius,0.0d0,0.0d0]
-       self%velocityDispersion =kinematicsDistribution_%velocityDispersion1D(coordinates,massDistribution_)
+       self%velocityDispersion =kinematicsDistribution_%velocityDispersion1D(coordinates,massDistribution_,massDistribution_)
        !![
        <objectDestructor name="kinematicsDistribution_"/>
        !!]
@@ -297,7 +297,7 @@ contains
        ! Compute the change in energy due to mass loss (assuming all decayed particles are lost).
        if (self%gamma > 0.0d0) then
           massLossGradient=+self%gamma                             &
-               &           *gravitationalConstantGalacticus        &
+               &           *gravitationalConstant_internal         &
                &           *(                                      &
                &             -         self%massEnclosed/radius    &
                &             +4.0d0*Pi*density          *radius**2 &
@@ -319,21 +319,21 @@ contains
        energyDerivativeVelocityDispersion       =-      (       energyDerivativeVelocityEscapeScaleFree*self%velocityEscape+  energyDerivativeVelocityKick*self%velocityKick)/self%velocityDispersion &
             &                                    +2.0d0*   self%energyRetained                                                                                               /self%velocityDispersion
        ! Compute the gradient in velocity dispersion.
-       velocityDispersionGradient=+(                                         &
-            &                       -     gravitationalConstantGalacticus    &
-            &                       *self%massEnclosed                       &
-            &                       /     radius                         **2 &
-            &                       -self%velocityDispersion             **2 &
-            &                       *     densityLogGradient                 &
-            &                       /     radius                             &
-            &                      )                                         &
-            &                     /2.0d0                                     &
+       velocityDispersionGradient=+(                                        &
+            &                       -     gravitationalConstant_internal    &
+            &                       *self%massEnclosed                      &
+            &                       /     radius                        **2 &
+            &                       -self%velocityDispersion            **2 &
+            &                       *     densityLogGradient                &
+            &                       /     radius                            &
+            &                      )                                        &
+            &                     /2.0d0                                    &
             &                     /self%velocityDispersion
        ! Compute the gradient in escape velocity.
        if (self%velocityEscape > 0.0d0) then
-          velocityEscapeGradient=-     gravitationalConstantGalacticus &
-               &                 *self%massEnclosed                    &
-               &                 /self%velocityEscape                  &
+          velocityEscapeGradient=-     gravitationalConstant_internal &
+               &                 *self%massEnclosed                   &
+               &                 /self%velocityEscape                 &
                &                 /     radius**2
        else
           velocityEscapeGradient=+0.0d0
@@ -373,8 +373,7 @@ contains
     !!{
     Returns the gradient of the specific energy of heating.
     !!}
-    use :: Coordinates                     , only : coordinateSpherical            , assignment(=)
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Coordinates, only : coordinateSpherical, assignment(=)
     implicit none
     class           (massDistributionHeatingDecayingDarkMatter), intent(inout) :: self
     double precision                                           , intent(in   ) :: radius

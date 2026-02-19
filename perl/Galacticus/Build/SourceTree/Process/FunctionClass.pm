@@ -1017,7 +1017,7 @@ CODE
 				    for(my $i=0;$i<$parameterCount;++$i) {
 					# <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336">
 					#   <description>
-					#     Array constructors are not correctly finalized. So, avoid using thme
+					#     Array constructors are not correctly finalized. So, avoid using them.
 					#   </description>
 					# $allowedParametersCode .= "       if (.not.any(trim(allowedParameters) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."')) countNew=countNew+1\n";
 					$allowedParametersCode .= "       isNew=.true.\n";
@@ -1038,7 +1038,7 @@ CODE
 				    for(my $i=0;$i<$parameterCount;++$i) {
 					# <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336">
 					#   <description>
-					#     Array constructors are not correctly finalized. So, avoid using thme
+					#     Array constructors are not correctly finalized. So, avoid using them.
 					#   </description>
 					# $allowedParametersCode .= "         if (.not.any(trim(allowedParameters(1:size(allowedParameters)-countNew)) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."')) then\n";
 					$allowedParametersCode .= "       isNew=.true.\n";
@@ -1075,7 +1075,7 @@ CODE
 				    for(my $i=0;$i<$parameterCount;++$i) {
 					# <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336">
 					#   <description>
-					#     Array constructors are not correctly finalized. So, avoid using thme
+					#     Array constructors are not correctly finalized. So, avoid using them.
 					#   </description>
 					# $allowedParametersCode .= "       if (.not.any(trim(allowedParameters) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."')) countNew=countNew+1\n";
 					$allowedParametersCode .= "       isNew=.true.\n";
@@ -1095,7 +1095,7 @@ CODE
 				    for(my $i=0;$i<$parameterCount;++$i) {
 					# <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336">
 					#   <description>
-					#     Array constructors are not correctly finalized. So, avoid using thme
+					#     Array constructors are not correctly finalized. So, avoid using them.
 					#   </description>
 					# $allowedParametersCode .= "         if (.not.any(trim(allowedParameters(1:size(allowedParameters)-countNew)) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."')) then\n";
 					$allowedParametersCode .= "       isNew=.true.\n";
@@ -2888,7 +2888,7 @@ sub deepCopyLinkedList {
 	$code::object          =                                            $objects    [$i]         ;
 	$code::objectType      =                                            $objectTypes[$i]         ;
 	$code::location        = &Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($class->{'node'},$class->{'node'}->{'line'});
-	$code::debugCode       = $debugging ? "if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".$code::objectType."] : ".$code::object." : ')//loc(".$code::object."itemNew)//' : '//loc(".$code::object."itemNew%".$code::object.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($class->{'node'},$class->{'node'}->{'line'},compact => 1).",verbosityLevelSilent)\n" : "";
+	$code::debugCode       = $debugging ? "if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".$code::objectType."] : ".$code::object." : ')//loc(".$code::type."itemNew)//' : '//loc(".$code::type."itemNew%".$code::object.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($class->{'node'},$class->{'node'}->{'line'},compact => 1).",verbosityLevelSilent)\n" : "";
 	if ( $i == 0 ) {
 	    $deepCopyCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
 destination%{$variable} => null            ()

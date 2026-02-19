@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a sequence of operators on merger trees.
+Implements a sequence of operators on merger trees.
 !!}
 
   !![

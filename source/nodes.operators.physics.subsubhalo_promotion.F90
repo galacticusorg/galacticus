@@ -37,7 +37,7 @@
   
   interface nodeOperatorSubsubhaloPromotion
      !!{
-     Constructors for the {\normalfont \ttfamily subsubhaloPromotion} node operator class.
+     Constructors for the \refClass{nodeOperatorSubsubhaloPromotion} node operator class.
      !!}
      module procedure subsubhaloPromotionConstructorParameters
      module procedure subsubhaloPromotionConstructorInternal
@@ -47,7 +47,7 @@ contains
   
   function subsubhaloPromotionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily subsubhaloPromotion} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorSubsubhaloPromotion} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -63,7 +63,7 @@ contains
 
   function subsubhaloPromotionConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily subsubhaloPromotion} node operator class.
+    Internal constructor for the \refClass{nodeOperatorSubsubhaloPromotion} node operator class.
     !!}
     use:: Error           , only : Component_List           , Error_Report
     use:: Galacticus_Nodes, only : defaultSatelliteComponent

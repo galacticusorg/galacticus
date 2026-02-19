@@ -43,7 +43,7 @@
 
   interface outputTimesLogarithmicSpacingInCriticalOverdensity
      !!{
-     Constructors for the {\normalfont \ttfamily logarithmicSpacingInCriticalOverdensity} output times class.
+     Constructors for the \refClass{outputTimesLogarithmicSpacingInCriticalOverdensity} output times class.
      !!}
      module procedure logarithmicSpacingInCriticalOverdensityConstructorParameters
      module procedure logarithmicSpacingInCriticalOverdensityConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function logarithmicSpacingInCriticalOverdensityConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily logarithmicSpacingInCriticalOverdensity} output times class which takes a parameter set as input.
+    Constructor for the \refClass{outputTimesLogarithmicSpacingInCriticalOverdensity} output times class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -97,7 +97,7 @@ contains
 
   function logarithmicSpacingInCriticalOverdensityConstructorInternal(redshiftMinimum,redshiftMaximum,countTimes,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily logarithmicSpacingInCriticalOverdensity} output times class which takes a parameter set as input.
+    Constructor for the \refClass{outputTimesLogarithmicSpacingInCriticalOverdensity} output times class which takes a parameter set as input.
     !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLogarithmic
     implicit none
@@ -141,7 +141,7 @@ contains
 
   subroutine logarithmicSpacingInCriticalOverdensityDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily list} output times class.
+    Destructor for the \refClass{outputTimesLogarithmicSpacingInCriticalOverdensity} output times class.
     !!}
     implicit none
     type(outputTimesLogarithmicSpacingInCriticalOverdensity), intent(inout) :: self

@@ -58,7 +58,7 @@
 
   interface darkMatterProfileDMOAccretionFlowCorrelationFunction
      !!{
-     Constructors for the {\normalfont \ttfamily accretionFlowCorrelationFunction} dark matter halo profile class.
+     Constructors for the \refClass{darkMatterProfileDMOAccretionFlowCorrelationFunction} dark matter halo profile class.
      !!}
      module procedure accretionFlowCorrelationFunctionConstructorParameters
      module procedure accretionFlowCorrelationFunctionConstructorInternal
@@ -68,7 +68,7 @@ contains
 
   function accretionFlowCorrelationFunctionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily accretionFlowCorrelationFunction} dark matter halo profile class which takes a parameter set as input.
+    Constructor for the \refClass{darkMatterProfileDMOAccretionFlowCorrelationFunction} dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -117,7 +117,7 @@ contains
 
   function accretionFlowCorrelationFunctionConstructorInternal(scaleFactorVelocity,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,darkMatterHaloBias_,correlationFunctionTwoPoint_,darkMatterProfileDMO_,darkMatterHaloScale_,linearGrowth_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily accretionFlowCorrelationFunction} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOAccretionFlowCorrelationFunction} dark matter profile class.
     !!}
     implicit none
     type            (darkMatterProfileDMOAccretionFlowCorrelationFunction)                        :: self
@@ -139,7 +139,7 @@ contains
 
   subroutine accretionFlowCorrelationFunctionDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily accretionFlowCorrelationFunction} dark matter profile class.
+    Destructor for the \refClass{darkMatterProfileDMOAccretionFlowCorrelationFunction} dark matter profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOAccretionFlowCorrelationFunction), intent(inout) :: self

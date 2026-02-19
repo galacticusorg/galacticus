@@ -82,7 +82,7 @@
 
   interface massDistributionSphericalSIDMIsothermalBaryons
      !!{
-     Constructors for the {\normalfont \ttfamily sphericalSIDMIsothermalBaryons} mass distribution class.
+     Constructors for the \refClass{massDistributionSphericalSIDMIsothermalBaryons} mass distribution class.
      !!}
      module procedure sphericalSIDMIsothermalBaryonsConstructorParameters
      module procedure sphericalSIDMIsothermalBaryonsConstructorInternal
@@ -103,7 +103,7 @@ contains
 
   function sphericalSIDMIsothermalBaryonsConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sidmIsothermal} mass distribution class which takes a parameter set as input.
+    Constructor for the \refClass{massDistributionSphericalSIDMIsothermalBaryons} mass distribution class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -170,7 +170,7 @@ contains
 
   function sphericalSIDMIsothermalBaryonsConstructorInternal(timeAge,velocityRelativeMean,nonAnalyticSolver,massDistribution_,massDistributionBaryonic,darkMatterParticle_,initializationFunction,initializationSelf,initializationArgument,componentType,massType) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily sidmIsothermal} mass distribution class.
+    Internal constructor for the \refClass{massDistributionSphericalSIDMIsothermalBaryons} mass distribution class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
     implicit none
@@ -203,7 +203,7 @@ contains
 
   subroutine sphericalSIDMIsothermalBaryonsDestructor(self)
     !!{
-    Destructor for the abstract {\normalfont \ttfamily massDistributionSphericalSIDMIsothermalBaryons} class.
+    Destructor for the abstract \refClass{massDistributionSphericalSIDMIsothermalBaryons} class.
     !!}
     implicit none
     type(massDistributionSphericalSIDMIsothermalBaryons), intent(inout) :: self
@@ -237,11 +237,11 @@ contains
     !!{
     Compute a solution for the isothermal core of an SIDM halo.
     !!}
-    use :: Coordinates                     , only : coordinateSpherical            , assignment(=)
+    use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
     use :: Numerical_ODE_Solvers           , only : odeSolver
-    use :: Numerical_Ranges                , only : Make_Range                     , rangeTypeLinear
+    use :: Numerical_Ranges                , only : Make_Range                    , rangeTypeLinear
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Multidimensional_Minimizer      , only : multiDMinimizer
     implicit none
     class           (massDistributionSphericalSIDMIsothermalBaryons), intent(inout)              :: self
@@ -271,7 +271,7 @@ contains
     densityInteraction           =self%massDistribution_%density             (coordinatesInteraction)
     massInteraction              =self%massDistribution_%massEnclosedBySphere(radiusInteraction     )
     ! Find the velocity dispersion scale.
-    velocityDispersionInteraction=sqrt(gravitationalConstantGalacticus*massInteraction/radiusInteraction)
+    velocityDispersionInteraction=sqrt(gravitationalConstant_internal*massInteraction/radiusInteraction)
     ! Set ODE solver  scales.
     propertyScales               =[velocityDispersionInteraction**2,velocityDispersionInteraction**2/radiusInteraction,massInteraction]
     ! Construct an ODE solver.
@@ -349,7 +349,7 @@ contains
       !!}
       use :: Interface_GSL                   , only : GSL_Success
       use :: Numerical_Constants_Math        , only : Pi
-      use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+      use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
       implicit none
       double precision                     , intent(in   )               :: radius
       double precision                     , intent(in   ), dimension(:) :: properties
@@ -365,21 +365,21 @@ contains
            &                               )
       densityBaryons                  =+self%massDistributionBaryonic%density(coordinates)
       propertiesRateOfChange       (1)=+properties(2)
-      propertiesRateOfChange       (2)=+4.0d0                             &
-           &                           *Pi                                &
-           &                           *gravitationalConstantGalacticus   &
-           &                           *(                                 &
-           &                             +densityDarkMatter               &
-           &                             +densityBaryons                  &
+      propertiesRateOfChange       (2)=+4.0d0                            &
+           &                           *Pi                               &
+           &                           *gravitationalConstant_internal   &
+           &                           *(                                &
+           &                             +densityDarkMatter              &
+           &                             +densityBaryons                 &
            &                            )
-      if (radius > 0.0d0)                                                 &
-           & propertiesRateOfChange(2)=+propertiesRateOfChange(2)         &
-           &                           -2.0d0                             &
-           &                           *properties            (2)         &
+      if (radius > 0.0d0)                                                &
+           & propertiesRateOfChange(2)=+propertiesRateOfChange(2)        &
+           &                           -2.0d0                            &
+           &                           *properties            (2)        &
            &                           /radius
-      propertiesRateOfChange       (3)=+4.0d0                             &
-           &                           *Pi                                &
-           &                           *radius**2                         &
+      propertiesRateOfChange       (3)=+4.0d0                            &
+           &                           *Pi                               &
+           &                           *radius**2                        &
            &                           *densityDarkMatter
       sidmIsothermalODEs              = GSL_Success
       return

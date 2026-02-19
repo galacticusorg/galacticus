@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a merger tree operator which exports merger trees to
+  Implements a merger tree operator which exports merger trees to
   file.
   !!}
 

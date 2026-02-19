@@ -43,7 +43,7 @@
   !!]
   type, extends(darkMatterHaloMassAccretionHistoryClass) :: darkMatterHaloMassAccretionHistoryZhao2009
      !!{
-     A dark matter halo mass accretion historiy class using the \cite{zhao_accurate_2009} algorithm.
+     A dark matter halo mass accretion history class using the \cite{zhao_accurate_2009} algorithm.
      !!}
      private
      class(criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
@@ -58,7 +58,7 @@
 
   interface darkMatterHaloMassAccretionHistoryZhao2009
      !!{
-     Constructors for the {\normalfont \ttfamily zhao2009} dark matter halo mass accretion history class.
+     Constructors for the \refClass{darkMatterHaloMassAccretionHistoryZhao2009} dark matter halo mass accretion history class.
      !!}
      module procedure zhao2009ConstructorParameters
      module procedure zhao2009ConstructorInternal
@@ -68,7 +68,7 @@ contains
 
   function zhao2009ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily zhao2009} dark matter halo mass accretion history class which takes a parameter
+    Constructor for the \refClass{darkMatterHaloMassAccretionHistoryZhao2009} dark matter halo mass accretion history class which takes a parameter
     set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -99,7 +99,7 @@ contains
 
   function zhao2009ConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_,cosmologyFunctions_) result(self)
     !!{
-    Generic constructor for the {\normalfont \ttfamily zhao2009} dark matter halo mass accretion history class.
+    Internal constructor for the \refClass{darkMatterHaloMassAccretionHistoryZhao2009} dark matter halo mass accretion history class.
     !!}
     implicit none
     type (darkMatterHaloMassAccretionHistoryZhao2009)                        :: self
@@ -116,7 +116,7 @@ contains
 
   subroutine zhao2009Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily zhao2009} dark matter halo mass accretion history class.
+    Destructor for the \refClass{darkMatterHaloMassAccretionHistoryZhao2009} dark matter halo mass accretion history class.
     !!}
     implicit none
     type(darkMatterHaloMassAccretionHistoryZhao2009), intent(inout) :: self

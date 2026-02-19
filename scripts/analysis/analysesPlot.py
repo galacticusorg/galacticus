@@ -226,8 +226,12 @@ for analysisName in analysisNames.keys():
                         xAxisLabel  = re.sub("\\\\\\\\","\\\\",groupAnalysis.attrs['xAxisLabel' ].decode('utf-8'))
                         yAxisLabel  = re.sub("\\\\\\\\","\\\\",groupAnalysis.attrs['yAxisLabel' ].decode('utf-8'))
                         description = re.sub("\\\\\\\\","\\\\",groupAnalysis.attrs['description'].decode('utf-8'))
-                        description = re.sub("\\\\le","≤",description)
+                        # matplotlib seems to not know "\hbox", so replace it with #\mathrm here.
+                        xAxisLabel  = re.sub("\\\\hbox","\\\\mathrm",xAxisLabel )
+                        yAxisLabel  = re.sub("\\\\hbox","\\\\mathrm",yAxisLabel )
+                        description = re.sub("\\\\hbox","\\\\mathrm",description)
                         # matplotlib seems to not know "\le", so replace it with the corresponding Unicode symbol here.
+                        description = re.sub("\\\\le","≤",description)
                         axes.set_xlabel(xAxisLabel )
                         axes.set_ylabel(yAxisLabel )
                         axes.set_title (description)

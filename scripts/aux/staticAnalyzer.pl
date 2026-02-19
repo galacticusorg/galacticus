@@ -19,10 +19,10 @@ my $node   = $tree;
 my $depth  = 0;
 my $status = 0;
 while ( $node ) {
+    # Class/type pointers in derived types should be null initialized.
     if ( $node->{'type'} eq "declaration" ) {
 	foreach my $declaration ( @{$node->{'declarations'}} ) {
 	    if ( $node->{'parent'}->{'type'} eq "type" && ( $declaration->{'intrinsic'} eq "type" || $declaration->{'intrinsic'} eq "class" ) && grep {$_ eq "pointer"} @{$declaration->{'attributes'}} ) {
-		# Class/type pointers in derived types should be null initialized.
 		for(my $i=0;$i<scalar(@{$declaration->{'variables'}});++$i) {
 		    next
 			if ( $declaration->{'variables'}->[$i] =~ m/=>null\(\)$/ );
@@ -31,6 +31,20 @@ while ( $node ) {
 		    print "Pointer variable '".$declaration->{'variableNames'}->[$i]."' in type '".$typeName."' in file '".$fileName."' is not null initialized\n";
 		    $status = 1;
 		}
+	    }
+	}
+    }
+    # Look for duplicated assignments in `constructorAssign` directives.
+    if ( $node->{'type'} eq "constructorAssign" ) {
+	my @variables = split(/\s*,\s*/,$node->{'directive'}->{'variables'});
+	my %countAssignments;
+	foreach my $variable ( @variables ) {
+	    ++$countAssignments{$variable};
+	}
+	foreach my $variable ( keys(%countAssignments) ) {
+	    if ( $countAssignments{$variable} > 1 ) {
+		print "Duplicated assignment of '".$variable."' in `constructorAssign` directive in file '".$fileName."'\n";
+		$status = 1;
 	    }
 	}
     }

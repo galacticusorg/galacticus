@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an ISM mass output analysis property extractor class.
+Implements an ISM mass output analysis property extractor class.
 !!}
 
   use :: Dark_Matter_Halo_Biases, only : darkMatterHaloBias, darkMatterHaloBiasClass
@@ -47,7 +47,7 @@ Contains a module which implements an ISM mass output analysis property extracto
 
   interface nodePropertyExtractorHaloBias
      !!{
-     Constructors for the ``haloBias'' output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorHaloBias} output analysis class.
      !!}
      module procedure haloBiasConstructorParameters
      module procedure haloBiasConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function haloBiasConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily haloBias} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorHaloBias} node property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function haloBiasConstructorInternal(darkMatterHaloBias_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily haloBias} node property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorHaloBias} node property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorHaloBias)                        :: self
@@ -92,7 +92,7 @@ contains
 
   subroutine haloBiasDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily haloBias} property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorHaloBias} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorHaloBias), intent(inout) :: self

@@ -44,7 +44,7 @@
   
   interface nodeOperatorHaloAngularMomentumRandom
      !!{
-     Constructors for the {\normalfont \ttfamily haloAngularMomentumRandom} node operator class.
+     Constructors for the \refClass{nodeOperatorHaloAngularMomentumRandom} node operator class.
      !!}
      module procedure haloAngularMomentumRandomConstructorParameters
      module procedure haloAngularMomentumRandomConstructorInternal
@@ -54,7 +54,7 @@ contains
   
   function haloAngularMomentumRandomConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily haloAngularMomentumRandom} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorHaloAngularMomentumRandom} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -85,7 +85,7 @@ contains
 
   function haloAngularMomentumRandomConstructorInternal(factorReset,haloSpinDistribution_,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily haloAngularMomentumRandom} node operator class.
+    Internal constructor for the \refClass{nodeOperatorHaloAngularMomentumRandom} node operator class.
     !!}
     implicit none
     type            (nodeOperatorHaloAngularMomentumRandom)                        :: self
@@ -101,7 +101,7 @@ contains
 
   subroutine haloAngularMomentumRandomDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily haloAngularMomentumRandom} node operator class.
+    Destructor for the \refClass{nodeOperatorHaloAngularMomentumRandom} node operator class.
     !!}
     implicit none
     type(nodeOperatorHaloAngularMomentumRandom), intent(inout) :: self

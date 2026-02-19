@@ -88,7 +88,7 @@
 
   interface posteriorSampleLikelihoodSEDFit
      !!{
-     Constructors for the {\normalfont \ttfamily sedFit} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleLikelihoodSEDFit} posterior sampling convergence class.
      !!}
      module procedure sedFitConstructorParameters
      module procedure sedFitConstructorInternal
@@ -98,7 +98,7 @@ contains
 
   function sedFitConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sedFit} posterior sampling convergence class which builds the object from a
+    Constructor for the \refClass{posteriorSampleLikelihoodSEDFit} posterior sampling convergence class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -180,7 +180,7 @@ contains
 
   function sedFitConstructorInternal(magnitude,error,filter,system,burstCount,dustType,startTimeType,cosmologyFunctions_,stellarPopulationSelector_,stellarPopulationSpectraPostprocessorBuilder_,stellarPopulationBroadBandLuminosities_) result(self)
     !!{
-    Constructor for ``sedFit'' posterior sampling likelihood class.
+    Constructor for the \refClass{posteriorSampleLikelihoodSEDFit} posterior sampling likelihood class.
     !!}
     use :: ISO_Varying_String , only : var_str         , varying_string
     use :: Instruments_Filters, only : Filter_Get_Index, Filter_Vega_Offset, Filter_Wavelength_Effective
@@ -234,7 +234,7 @@ contains
 
   subroutine sedFitDestructor(self)
     !!{
-    Destructor for ``sedFit'' posterior sampling likelihood class.
+    Destructor for the \refClass{posteriorSampleLikelihoodSEDFit} posterior sampling likelihood class.
     !!}
     implicit none
     type(posteriorSampleLikelihoodSEDFit), intent(inout) :: self
@@ -265,7 +265,7 @@ contains
           &                                                     stellarSpectraDustAttenuationClass  , stellarSpectraDustAttenuationGordon2003  , stellarSpectraDustAttenuationWittGordon2000, stellarSpectraDustAttenuationZero           , &
           &                                                     wittGordon2000ModelMilkyWayShellTau3
     implicit none
-    class           (posteriorSampleLikelihoodSEDFit   ), intent(inout)                 :: self
+    class           (posteriorSampleLikelihoodSEDFit   ), intent(inout), target         :: self
     class           (posteriorSampleStateClass         ), intent(inout)                 :: simulationState
     type            (modelParameterList                ), intent(inout), dimension(:  ) :: modelParametersActive_                          , modelParametersInactive_
     class           (posteriorSampleConvergenceClass   ), intent(inout)                 :: simulationConvergence

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements an N-body dark matter halo mass error class using a fit appropriate for friends-of-friends
+  Implements an N-body dark matter halo mass error class using a fit appropriate for friends-of-friends
   group finders.
   !!}
 
@@ -38,7 +38,7 @@
 
   interface nbodyHaloMassErrorFriendsOfFriends
      !!{
-     Constructors for the {\normalfont \ttfamily friendsOfFriends} N-body halo mass error class.
+     Constructors for the \refClass{nbodyHaloMassErrorFriendsOfFriends} N-body halo mass error class.
      !!}
      module procedure nbodyHaloMassErrorFriendsOfFriendsParameters
      module procedure nbodyHaloMassErrorFriendsOfFriendsInternal
@@ -48,7 +48,7 @@ contains
 
   function nbodyHaloMassErrorFriendsOfFriendsParameters(parameters)
     !!{
-    Constructor for the {\normalfont \ttfamily friendsOfFriends} N-body halo mass error class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyHaloMassErrorFriendsOfFriends} N-body halo mass error class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -74,7 +74,7 @@ contains
 
   function nbodyHaloMassErrorFriendsOfFriendsInternal(massParticle)
     !!{
-    Internal constructor for the {\normalfont \ttfamily friendsOfFriends} N-body halo mass error class.
+    Internal constructor for the \refClass{nbodyHaloMassErrorFriendsOfFriends} N-body halo mass error class.
     !!}
     implicit none
     type            (nbodyHaloMassErrorFriendsOfFriends)                :: nbodyHaloMassErrorFriendsOfFriendsInternal

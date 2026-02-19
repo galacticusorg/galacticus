@@ -64,7 +64,7 @@
 
   interface starFormationTimescaleHaloScaling
      !!{
-     Constructors for the {\normalfont \ttfamily haloScaling} timescale for star formation class.
+     Constructors for the \refClass{starFormationTimescaleHaloScaling} timescale for star formation class.
      !!}
      module procedure haloScalingConstructorParameters
      module procedure haloScalingConstructorInternal
@@ -76,7 +76,7 @@ contains
 
   function haloScalingConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily haloScaling} timescale for star formation feedback class which takes a
+    Constructor for the \refClass{starFormationTimescaleHaloScaling} timescale for star formation feedback class which takes a
     parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -121,7 +121,7 @@ contains
 
   function haloScalingConstructorInternal(timescale,exponentVelocityVirial,exponentRedshift,cosmologyFunctions_,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily haloScaling} timescale for star formation class.
+    Internal constructor for the \refClass{starFormationTimescaleHaloScaling} timescale for star formation class.
     !!}
     implicit none
     type            (starFormationTimescaleHaloScaling)                        :: self
@@ -160,7 +160,7 @@ contains
 
   subroutine haloScalingDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily haloScaling} timescale for star formation class.
+    Destructor for the \refClass{starFormationTimescaleHaloScaling} timescale for star formation class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none

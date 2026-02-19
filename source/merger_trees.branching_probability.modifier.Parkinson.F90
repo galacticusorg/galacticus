@@ -56,7 +56,7 @@ Implements a merger tree branching probability rate modifier which uses the mode
 
   interface mergerTreeBranchingProbabilityModifierParkinson2008
      !!{
-     Constructors for the {\normalfont \ttfamily parkinson2008} merger tree branching probability rate class.
+     Constructors for the \refClass{mergerTreeBranchingProbabilityModifierParkinson2008} merger tree branching probability rate class.
      !!}
      module procedure parkinson2008ConstructorParameters
      module procedure parkinson2008ConstructorInternal
@@ -127,7 +127,7 @@ contains
 
   subroutine parkinson2008Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily parkinson2008} merger tree branching probability rate class.
+    Destructor for the \refClass{mergerTreeBranchingProbabilityModifierParkinson2008} merger tree branching probability rate class.
     !!}
     implicit none
     type(mergerTreeBranchingProbabilityModifierParkinson2008), intent(inout) :: self

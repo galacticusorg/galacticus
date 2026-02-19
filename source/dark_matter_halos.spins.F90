@@ -70,11 +70,11 @@ contains
     !!}
     use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleClass
     use :: Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMOClass
-    use :: Galacticus_Nodes                , only : nodeComponentBasic             , treeNode
+    use :: Galacticus_Nodes                , only : nodeComponentBasic            , treeNode
     use :: Error                           , only : Error_Report
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Mass_Distributions              , only : massDistributionClass
-    use :: Galactic_Structure_Options      , only : componentTypeDarkMatterOnly    , massTypeDark
+    use :: Galactic_Structure_Options      , only : componentTypeDarkMatterOnly   , massTypeDark
     implicit none
     type   (treeNode                 ), intent(inout)           :: node
     class  (darkMatterHaloScaleClass ), intent(inout)           :: darkMatterHaloScale_
@@ -103,7 +103,7 @@ contains
        else
           massDistribution_    =>  node                 %massDistribution(componentTypeDarkMatterOnly,massTypeDark)
        end if
-       angularMomentumScale =  +gravitationalConstantGalacticus                                                                       &
+       angularMomentumScale =  +gravitationalConstant_internal                                                                        &
             &                  *         basic            %mass  (                                                         )  **2.5d0 &
             &                  /sqrt(abs(massDistribution_%energy(darkMatterHaloScale_%radiusVirial(node),massDistribution_)))
        !![

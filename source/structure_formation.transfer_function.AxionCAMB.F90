@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a transfer function class using the AxionCAMB code.
+  Implements a transfer function class using the AxionCAMB code.
   !!}
 
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
@@ -113,7 +113,7 @@ contains
 
   function axionCambConstructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,redshift,countPerDecade) result(self)
     !!{
-    Internal constructor for the \href{https://github.com/dgrin1/axionCAMB.git}{\normalfont \scshape AxionCAMB} transfer function class.
+    Internal constructor for the \refClass{transferFunctionAxionCAMB} transfer function class.
     !!}
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleFuzzyDarkMatter

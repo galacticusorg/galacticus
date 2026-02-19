@@ -34,7 +34,7 @@
 
   interface taskAGNSpectraHopkins2008BuildFile
      !!{
-     Constructors for the {\normalfont \ttfamily agnSpectraHopkins2008BuildFile} task.
+     Constructors for the \refClass{taskAGNSpectraHopkins2008BuildFile} task.
      !!}
      module procedure agnSpectraHopkins2008BuildFileParameters
   end interface taskAGNSpectraHopkins2008BuildFile
@@ -43,7 +43,7 @@ contains
 
   function agnSpectraHopkins2008BuildFileParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily agnSpectraHopkins2008BuildFile} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskAGNSpectraHopkins2008BuildFile} task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

@@ -1,4 +1,5 @@
 <?xml version="1.0"?>
+<!-- Simple XML file used to test XML I/O functions in Galacticus -->
 <test>
   <array1>
     <datum>0.0</datum>
@@ -121,6 +122,19 @@
       </level3>
     </level2>
   </level1>
+  <some>
+    <path>
+      <to value="shaggy"/>
+      <to value="scoobydoo">
+	<find>
+	  9275932
+	</find>
+      </to>
+      <to>
+	653728
+      </to>
+    </path>
+  </some>
   <included>
     <a b="c"/>
   </included>

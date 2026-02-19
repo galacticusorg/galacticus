@@ -40,7 +40,7 @@
 
   interface stellarPopulationSpectraPostprocessorMadau1995
      !!{
-     Constructors for the {\normalfont \ttfamily madau1995} stellar population spectra postprocessor class.
+     Constructors for the \refClass{stellarPopulationSpectraPostprocessorMadau1995} stellar population spectra postprocessor class.
      !!}
      module procedure madau1995ConstructorParameters
   end interface stellarPopulationSpectraPostprocessorMadau1995
@@ -49,7 +49,7 @@ contains
 
   function madau1995ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily madau1995} stellar population spectra postprocessor class which takes a
+    Constructor for the \refClass{stellarPopulationSpectraPostprocessorMadau1995} stellar population spectra postprocessor class which takes a
     parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -68,7 +68,7 @@ contains
     !!{
     Suppress the Lyman continuum in a spectrum.
     !!}
-    use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen
+    use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen_atomic
     implicit none
     class           (stellarPopulationSpectraPostprocessorMadau1995), intent(inout)           :: self
     double precision                                                , intent(in   )           :: age                                                                                                                           , redshift                        , &
@@ -87,7 +87,7 @@ contains
        return
     else
        ! Compute the observed wavelength in units of the Lyman-continuum wavelength.
-       wavelengthObservedLymanContinuum=wavelength*(1.0d0+redshift)/lymanSeriesLimitWavelengthHydrogen
+       wavelengthObservedLymanContinuum=wavelength*(1.0d0+redshift)/lymanSeriesLimitWavelengthHydrogen_atomic
        ! Compute contribution to optical depth from Lyman-series lines.
        forall(iLine=1:9)
           opticalDepthLymanLines(iLine)=opticalDepthLymanLinesCoefficients(iLine)*(wavelengthObservedLymanContinuum*(1.0d0-1.0d0&

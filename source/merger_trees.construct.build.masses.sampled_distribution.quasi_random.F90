@@ -45,7 +45,7 @@ contains
 
   function sampledDistributionQuasiRandomConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sampledDistributionQuasiRandom} merger tree masses class which takes a parameter set
+    Constructor for the \refClass{mergerTreeBuildMassesSampledDistributionQuasiRandom} merger tree masses class which takes a parameter set
     as input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -62,7 +62,7 @@ contains
 
   function sampledDistributionQuasiRandomConstructorInternal(massTreeMinimum,massTreeMaximum,treesPerDecade,mergerTreeBuildMassDistribution_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily sampledDistributionQuasiRandom} merger tree masses class.
+    Internal constructor for the \refClass{mergerTreeBuildMassesSampledDistributionQuasiRandom} merger tree masses class.
     !!}
     implicit none
     type            (mergerTreeBuildMassesSampledDistributionQuasiRandom)                        :: self
@@ -78,7 +78,7 @@ contains
 
   subroutine sampledDistributionQuasiRandomDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily sampledDistributionQuasiRandom} merger tree masses class.
+    Destructor for the \refClass{mergerTreeBuildMassesSampledDistributionQuasiRandom} merger tree masses class.
     !!}
     implicit none
     type(mergerTreeBuildMassesSampledDistributionQuasiRandom), intent(inout) :: self

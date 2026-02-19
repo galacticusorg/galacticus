@@ -72,7 +72,7 @@
 
   interface stellarPopulationPropertiesNoninstantaneous
      !!{
-     Constructors for the {\normalfont \ttfamily noninstantaneous} stellar population class.
+     Constructors for the \refClass{stellarPopulationPropertiesNoninstantaneous} stellar population class.
      !!}
      module procedure noninstantaneousConstructorParameters
      module procedure noninstantaneousConstructorInternal
@@ -82,7 +82,7 @@ contains
 
   function noninstantaneousConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily noninstantaneous} stellar population properties class which takes a parameter list
+    Constructor for the \refClass{stellarPopulationPropertiesNoninstantaneous} stellar population properties class which takes a parameter list
     as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -117,7 +117,7 @@ contains
 
   function noninstantaneousConstructorInternal(countHistoryTimes,stellarPopulationSelector_,stellarPopulationBroadBandLuminosities_,outputTimes_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily noninstantaneous} stellar population properties class.
+    Internal constructor for the \refClass{stellarPopulationPropertiesNoninstantaneous} stellar population properties class.
     !!}
     use :: Abundances_Structure, only : Abundances_Property_Count
     implicit none
@@ -147,7 +147,7 @@ contains
 
   subroutine noninstantaneousDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily noninstantaneous} stellar population properties class.
+    Destructor for the \refClass{stellarPopulationPropertiesNoninstantaneous} stellar population properties class.
     !!}
     implicit none
     type(stellarPopulationPropertiesNoninstantaneous), intent(inout) :: self

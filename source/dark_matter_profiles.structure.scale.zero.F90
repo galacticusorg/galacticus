@@ -38,7 +38,7 @@
 
   interface darkMatterProfileScaleRadiusZero
      !!{
-     Constructors for the {\normalfont \ttfamily zero} dark matter halo profile scale radius class.
+     Constructors for the \refClass{darkMatterProfileScaleRadiusZero} dark matter halo profile scale radius class.
      !!}
      module procedure zeroConstructorParameters
   end interface darkMatterProfileScaleRadiusZero
@@ -47,7 +47,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily zero} dark matter halo profile scale radius class which takes a
+    Constructor for the \refClass{darkMatterProfileScaleRadiusZero} dark matter halo profile scale radius class which takes a
     parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters

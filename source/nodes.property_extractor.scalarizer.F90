@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an output analysis property extractor class that scalarizes one element from an array node property extractor.
+Implements an output analysis property extractor class that scalarizes one element from an array node property extractor.
 !!}
 
   !![
@@ -43,7 +43,7 @@ Contains a module which implements an output analysis property extractor class t
 
   interface nodePropertyExtractorScalarizer
      !!{
-     Constructors for the ``scalarizer'' output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorScalarizer} output analysis class.
      !!}
      module procedure scalarizerConstructorParameters
      module procedure scalarizerConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function scalarizerConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``scalarizer'' output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorScalarizer} output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -92,7 +92,7 @@ contains
 
   function scalarizerConstructorInternal(item,element,nodePropertyExtractor_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily scalarizer} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorScalarizer} property extractor class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -116,7 +116,7 @@ contains
 
   subroutine scalarizerDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily scalarizer} property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorScalarizer} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorScalarizer), intent(inout) :: self

@@ -39,7 +39,7 @@
 
   interface galacticDynamicsBarInstabilityFixedTimescale
      !!{
-     Constructors for the {\normalfont \ttfamily fixedTimescale} model for galactic disk bar instability class.
+     Constructors for the \refClass{galacticDynamicsBarInstabilityFixedTimescale} model for galactic disk bar instability class.
      !!}
      module procedure fixedTimescaleConstructorParameters
      module procedure fixedTimescaleConstructorInternal
@@ -49,7 +49,7 @@ contains
 
   function fixedTimescaleConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily fixedTimescale} model for galactic disk bar instability class which takes a
+    Constructor for the \refClass{galacticDynamicsBarInstabilityFixedTimescale} model for galactic disk bar instability class which takes a
     parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -88,7 +88,7 @@ contains
 
   function fixedTimescaleConstructorInternal(timescale_,fractionAngularMomentumRetainedDisk,fractionAngularMomentumRetainedSpheroid) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily fixedTimescale} model for galactic disk bar instability class.
+    Internal constructor for the \refClass{galacticDynamicsBarInstabilityFixedTimescale} model for galactic disk bar instability class.
     !!}
     implicit none
     type            (galacticDynamicsBarInstabilityFixedTimescale)                :: self

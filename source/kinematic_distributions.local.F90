@@ -45,7 +45,7 @@
 
   interface kinematicsDistributionLocal
      !!{
-     Constructors for the {\normalfont \ttfamily local} kinematic distribution class.
+     Constructors for the \refClass{kinematicsDistributionLocal} kinematic distribution class.
      !!}
      module procedure localConstructorParameters
      module procedure localConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function localConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily isothermal} kinematic distribution class which builds the object from a parameter
+    Constructor for the \refClass{kinematicsDistributionLocal} kinematic distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -81,7 +81,7 @@ contains
   
   function localConstructorInternal(alpha) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily local} kinematics distribution class.
+    Constructor for the \refClass{kinematicsDistributionLocal} kinematics distribution class.
     !!}
     implicit none
     type            (kinematicsDistributionLocal)                :: self
@@ -104,14 +104,15 @@ contains
     return
   end function localIsCollisional
 
-  double precision function localVelocityDispersion1D(self,coordinates,massDistributionEmbedding)
+  double precision function localVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding)
     !!{
     Return the 1D velocity dispersion at the specified {\normalfont \ttfamily coordinates} in an local kinematic distribution.
     !!}
     implicit none
-    class(kinematicsDistributionLocal), intent(inout), target :: self
+    class(kinematicsDistributionLocal), intent(inout)         :: self
     class(coordinate                 ), intent(in   )         :: coordinates
-    class(massDistributionClass      ), intent(inout)         :: massDistributionEmbedding
+    class(massDistributionClass      ), intent(inout), target :: massDistribution_, massDistributionEmbedding
+    !$GLC attributes unused :: massDistribution_
     
     localVelocityDispersion1D=+self                     %alpha                                   &
          &                    *massDistributionEmbedding%rotationCurve(coordinates%rSpherical())

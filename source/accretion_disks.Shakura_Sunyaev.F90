@@ -151,7 +151,7 @@ contains
     return
   end function shakuraSunyaevPowerJet
 
-  double precision function shakuraSunyaevRateSpinUp(self,blackHole,accretionRateMass)
+  double precision function shakuraSunyaevRateSpinUp(self,blackHole,accretionRateMass) result(rateSpinUp)
     !!{
     Compute the rate of spin up of a black hole by a \cite{shakura_black_1973} accretion disk.
     !!}
@@ -163,12 +163,16 @@ contains
     double precision                                              :: spinToMassRateOfChangeRatio
     !$GLC attributes unused :: self
 
-    spinToMassRateOfChangeRatio=+Black_Hole_ISCO_Specific_Angular_Momentum(blackHole       ,units=unitsGravitational,orbit=orbitPrograde) &
-         &                      -2.0d0                                                                                                    &
-         &                      *                                          blackHole%spin()                                               &
-         &                      *Black_Hole_ISCO_Specific_Energy          (blackHole       ,units=unitsGravitational,orbit=orbitPrograde)
-    shakuraSunyaevRateSpinUp   =+spinToMassRateOfChangeRatio &
-         &                      *accretionRateMass           &
-         &                      /blackHole%mass()
+    if (accretionRateMass /= 0.0d0) then
+       spinToMassRateOfChangeRatio=+Black_Hole_ISCO_Specific_Angular_Momentum(blackHole       ,units=unitsGravitational,orbit=orbitPrograde) &
+            &                      -2.0d0                                                                                                    &
+            &                      *                                          blackHole%spin()                                               &
+            &                      *Black_Hole_ISCO_Specific_Energy          (blackHole       ,units=unitsGravitational,orbit=orbitPrograde)
+       rateSpinUp                 =+spinToMassRateOfChangeRatio &
+            &                      *accretionRateMass           &
+            &                      /blackHole%mass()
+    else
+       rateSpinUp                 =+0.0d0
+    end if
     return
   end function shakuraSunyaevRateSpinUp

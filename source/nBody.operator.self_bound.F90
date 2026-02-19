@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an N-body data operator which determines the subset of particles that are self-bound.
+Implements an N-body data operator which determines the subset of particles that are self-bound.
 !!}
 
   use, intrinsic :: ISO_C_Binding           , only : c_size_t
@@ -46,7 +46,7 @@ Contains a module which implements an N-body data operator which determines the 
 
   interface nbodyOperatorSelfBound
      !!{
-     Constructors for the ``selfBound'' N-body operator class.
+     Constructors for the \refClass{nbodyOperatorSelfBound} N-body operator class.
      !!}
      module procedure selfBoundConstructorParameters
      module procedure selfBoundConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function selfBoundConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``selfBound'' N-body operator class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyOperatorSelfBound} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -123,7 +123,7 @@ contains
 
   function selfBoundConstructorInternal(tolerance,bootstrapSampleCount,bootstrapSampleRate,representativeMinimumCount,representativeFraction,analyzeAllParticles,useVelocityMostBound,randomNumberGenerator_) result (self)
     !!{
-    Internal constructor for the ``selfBound'' N-body operator class
+    Internal constructor for the \refClass{nbodyOperatorSelfBound} N-body operator class
     !!}
     implicit none
     type            (nbodyOperatorSelfBound    )                        :: self
@@ -144,7 +144,7 @@ contains
 
   subroutine selfBoundDestructor(self)
     !!{
-    Destructor for the ``selfBound'' N-body operator class.
+    Destructor for the \refClass{nbodyOperatorSelfBound} N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorSelfBound), intent(inout) :: self
@@ -159,12 +159,12 @@ contains
     !!{
     Determine the subset of N-body particles which are self-bound.
     !!}
-    use :: Display                         , only : displayIndent                  , displayUnindent  , displayMessage
+    use :: Display                         , only : displayIndent                 , displayUnindent  , displayMessage
     use :: Error                           , only : Error_Report
     use :: ISO_Varying_String              , only : var_str
     use :: String_Handling                 , only : operator(//)
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-    use :: Sorting                         , only : sortIndex                      , sortSmallestIndex
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
+    use :: Sorting                         , only : sortIndex                     , sortSmallestIndex
     implicit none
     class           (nbodyOperatorSelfBound), intent(inout)                          :: self
     type            (nBodyData             ), intent(inout), dimension(:  )          :: simulations
@@ -225,7 +225,7 @@ contains
     ! Get simulation attributes.
     lengthSoftening  =simulations(current)%attributesReal%value('lengthSoftening')
     massParticle     =simulations(current)%attributesReal%value('massParticle'   )
-    velocitySoftening=sqrt(gravitationalConstantGalacticus*massParticle/lengthSoftening)
+    velocitySoftening=sqrt(gravitationalConstant_internal*massParticle/lengthSoftening)
     ! Get particle data.
     position    => simulations(current)%propertiesRealRank1%value('position'  )
     velocity    => simulations(current)%propertiesRealRank1%value('velocity'  )
@@ -444,7 +444,7 @@ contains
        ! Apply constant multipliers to potential energy.
        where(isBoundCompute)
           energyPotentialChange=+energyPotentialChange                                     &
-               &                *gravitationalConstantGalacticus                           &
+               &                *gravitationalConstant_internal                            &
                &                *massParticle                                              &
                &                /self%bootstrapSampleRate                                  &
                &                /lengthSoftening                                           &

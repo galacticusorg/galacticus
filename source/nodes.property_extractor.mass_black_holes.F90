@@ -39,7 +39,7 @@
 
   interface nodePropertyExtractorMassBlackHoles
      !!{
-     Constructors for the ``massBlackHoles'' output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorMassBlackHoles} output extractor class.
      !!}
      module procedure massBlackHolesConstructorParameters
   end interface nodePropertyExtractorMassBlackHoles
@@ -48,7 +48,7 @@ contains
 
   function massBlackHolesConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``massBlackHoles'' property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorMassBlackHoles} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -95,7 +95,7 @@ contains
     end do
     return
   end function massBlackHolesExtract
-  
+
   subroutine massBlackHolesNames(self,names)
     !!{
     Return the names of the {\normalfont \ttfamily massBlackHoles} properties.

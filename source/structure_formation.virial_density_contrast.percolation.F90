@@ -88,7 +88,7 @@
 
   interface virialDensityContrastPercolation
      !!{
-     Constructors for the {\normalfont \ttfamily percolation} dark matter halo virial density contrast class.
+     Constructors for the \refClass{virialDensityContrastPercolation} dark matter halo virial density contrast class.
      !!}
      module procedure percolationConstructorParameters
      module procedure percolationConstructorInternal
@@ -107,7 +107,7 @@ contains
 
   recursive function percolationConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily percolation} dark matter halo virial density contrast class that takes a parameter set as input.
+    Constructor for the \refClass{virialDensityContrastPercolation} dark matter halo virial density contrast class that takes a parameter set as input.
     !!}
     use :: Cosmology_Functions, only : cosmologyFunctions                                      , cosmologyFunctionsClass
     use :: Functions_Global   , only : Virial_Density_Contrast_Percolation_Objects_Constructor_
@@ -141,7 +141,7 @@ contains
 
   recursive function percolationConstructorInternal(linkingLength,cosmologyFunctions_,percolationObjects_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily percolation} dark matter halo virial density contrast class.
+    Internal constructor for the \refClass{virialDensityContrastPercolation} dark matter halo virial density contrast class.
     !!}
     use :: Error             , only : Error_Report
     use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
@@ -180,7 +180,7 @@ contains
 
   subroutine percolationDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily percolation} virial density contrast class.
+    Destructor for the \refClass{virialDensityContrastPercolation} virial density contrast class.
     !!}
     use :: Error, only : Error_Report
     implicit none

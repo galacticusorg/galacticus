@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Matías Liempi
+
 !!{
 Contains a module which implements a class for black hole seeds.
 !!}
@@ -29,6 +31,18 @@ module Black_Hole_Seeds
   implicit none
   private
 
+  !![
+  <enumeration>
+    <name>blackHoleFormationChannel</name>
+    <description>Enumeration of black hole formation channels.</description>
+    <visibility>public</visibility>
+    <validator>yes</validator>
+    <decodeFunction>yes</decodeFunction>
+    <entry label="undetermined"       />
+    <entry label="starClusterCollapse"/>
+  </enumeration>
+  !!]
+  
   !![
   <functionClass>
    <name>blackHoleSeeds</name>
@@ -49,7 +63,17 @@ module Black_Hole_Seeds
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
+   <method name="formationChannel">
+    <description>Returns the formation channel of the seed in the given {\normalfont \ttfamily node}.</description>
+    <type>type(enumerationBlackHoleFormationChannelType)</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+    <code>
+      !$GLC attributes unused :: self, node
+      blackHoleSeedsFormationChannel=blackHoleFormationChannelUndetermined
+    </code>
+   </method>
   </functionClass>
   !!]
-
+  
 end module Black_Hole_Seeds

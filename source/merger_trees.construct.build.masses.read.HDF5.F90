@@ -63,7 +63,7 @@ contains
 
   function readHDF5ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily readHDF5} merger tree masses class which takes a parameter set
+    Constructor for the \refClass{mergerTreeBuildMassesReadHDF5} merger tree masses class which takes a parameter set
     as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -95,7 +95,7 @@ contains
 
   function readHDF5ConstructorInternal(fileName,massIntervalFractional) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily readHDF5} merger tree masses class.
+    Internal constructor for the \refClass{mergerTreeBuildMassesReadHDF5} merger tree masses class.
     !!}
     implicit none
     type            (mergerTreeBuildMassesReadHDF5)                :: self

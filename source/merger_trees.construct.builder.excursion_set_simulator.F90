@@ -58,7 +58,7 @@
 
   interface mergerTreeBuilderExcursionSetSimulator
      !!{
-     Constructors for the {\normalfont \ttfamily excursionSetSimulator} merger tree constructor class.
+     Constructors for the \refClass{mergerTreeBuilderExcursionSetSimulator} merger tree constructor class.
      !!}
      module procedure excursionSetSimulatorConstructorParameters
        module procedure excursionSetSimulatorConstructorInternal
@@ -68,7 +68,7 @@
 
       function excursionSetSimulatorConstructorParameters(parameters) result(self)
         !!{
-        Constructor for the {\normalfont \ttfamily excursionSetSimulator} merger tree builder class which takes a parameter set as input.
+        Constructor for the \refClass{mergerTreeBuilderExcursionSetSimulator} merger tree builder class which takes a parameter set as input.
         !!}
         use :: Input_Parameters, only : inputParameter, inputParameters
         implicit none
@@ -149,7 +149,7 @@
 
       function excursionSetSimulatorConstructorInternal(timeEarliest,varianceStepMinimum,varianceStepSigmaMaximum,excursionStep,factorMassConsolidate,factorTimeConsolidate,cosmologyFunctions_,mergerTreeMassResolution_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
         !!{
-        Internal constructor for the {\normalfont \ttfamily excursionSetSimulator} merger tree builder class.
+        Internal constructor for the \refClass{mergerTreeBuilderExcursionSetSimulator} merger tree builder class.
         !!}
         implicit none
         type            (mergerTreeBuilderExcursionSetSimulator)                        :: self
@@ -173,7 +173,7 @@
 
       subroutine excursionSetSimulatorDestructor(self)
         !!{
-        Destructor for the {\normalfont \ttfamily excursionSetSimulator} merger tree constructor class.
+        Destructor for the \refClass{mergerTreeBuilderExcursionSetSimulator} merger tree constructor class.
         !!}
         implicit none
         type(mergerTreeBuilderExcursionSetSimulator), intent(inout) :: self

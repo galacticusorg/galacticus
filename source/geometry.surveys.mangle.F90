@@ -80,7 +80,7 @@ contains
 
   subroutine mangleInitialize(self)
     !!{
-    Internal constructor for the {\normalfont \scshape mangle} conditional mass function class.
+    Internal constructor for the \refClass{surveyGeometryMangle} survey geometry class.
     !!}
     implicit none
     class(surveyGeometryMangle), intent(inout) :: self

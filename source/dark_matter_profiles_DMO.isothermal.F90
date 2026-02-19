@@ -44,7 +44,7 @@
 
   interface darkMatterProfileDMOIsothermal
      !!{
-     Constructors for the {\normalfont \ttfamily isothermal} dark matter halo profile class.
+     Constructors for the \refClass{darkMatterProfileDMOIsothermal} dark matter halo profile class.
      !!}
      module procedure isothermalConstructorParameters
      module procedure isothermalConstructorInternal
@@ -75,7 +75,7 @@ contains
 
   function isothermalConstructorInternal(darkMatterHaloScale_) result(self)
     !!{
-    Generic constructor for the {\normalfont \ttfamily isothermal} dark matter halo profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOIsothermal} dark matter halo profile class.
     !!}
     implicit none
     type (darkMatterProfileDMOIsothermal)                        :: self
@@ -89,7 +89,7 @@ contains
 
   subroutine isothermalDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily isothermal} dark matter halo profile class.
+    Destructor for the \refClass{darkMatterProfileDMOIsothermal} dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOIsothermal), intent(inout) :: self

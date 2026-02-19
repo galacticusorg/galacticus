@@ -45,7 +45,7 @@
 
   interface darkMatterHaloBiasTinker2005
      !!{
-     Constructors for the {\normalfont \ttfamily tinker2005} dark matter halo bias class.
+     Constructors for the \refClass{darkMatterHaloBiasTinker2005} dark matter halo bias class.
      !!}
      module procedure tinker2005ConstructorParameters
      module procedure tinker2005ConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function tinker2005ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily tinker2005} dark matter halo mass bias which builds the object from a parameter set.
+    Constructor for the \refClass{darkMatterHaloBiasTinker2005} dark matter halo mass bias which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function tinker2005ConstructorInternal(darkMatterHaloBias_,correlationFunctionTwoPointNonLinear_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily tinker2005} dark matter halo bias class.
+    Internal constructor for the \refClass{darkMatterHaloBiasTinker2005} dark matter halo bias class.
     !!}
     implicit none
     type (darkMatterHaloBiasTinker2005    )                        :: self
@@ -93,7 +93,7 @@ contains
 
   subroutine tinker2005Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily tinker2005} dark matter halo bias class.
+    Destructor for the \refClass{darkMatterHaloBiasTinker2005} dark matter halo bias class.
     !!}
     implicit none
     type(darkMatterHaloBiasTinker2005), intent(inout) :: self

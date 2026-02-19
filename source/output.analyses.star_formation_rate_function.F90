@@ -23,10 +23,12 @@
   Implements a stellar mass function output analysis class.
   !!}
 
-  use :: Cosmology_Functions           , only : cosmologyFunctionsClass
-  use :: Geometry_Surveys              , only : surveyGeometryClass
-  use :: Star_Formation_Rates_Disks    , only:starFormationRateDisksClass
-  use :: Star_Formation_Rates_Spheroids, only:starFormationRateSpheroidsClass
+  use :: Cosmology_Functions                       , only : cosmologyFunctionsClass
+  use :: Geometry_Surveys                          , only : surveyGeometryClass
+  use :: Star_Formation_Rates_Disks                , only : starFormationRateDisksClass
+  use :: Star_Formation_Rates_Spheroids            , only : starFormationRateSpheroidsClass
+  use :: Star_Formation_Rates_Nuclear_Star_Clusters, only : starFormationRateNuclearStarClustersClass
+
   !![
   <outputAnalysis name="outputAnalysisStarFormationRateFunction">
    <description>A stellar mass function output analysis class.</description>
@@ -37,18 +39,19 @@
      A starFormationRateFunction output analysis class.
      !!}
      private
-     class           (surveyGeometryClass            ), pointer                   :: surveyGeometry_              => null()
-     class           (cosmologyFunctionsClass        ), pointer                   :: cosmologyFunctions_          => null(), cosmologyFunctionsData => null()
-     class           (starFormationRateDisksClass    ), pointer                   :: starFormationRateDisks_      => null()
-     class           (starFormationRateSpheroidsClass), pointer                   :: starFormationRateSpheroids_  => null()
-     double precision                                 , allocatable, dimension(:) :: starFormationRates
+     class           (surveyGeometryClass                      ), pointer                   :: surveyGeometry_                       => null()
+     class           (cosmologyFunctionsClass                  ), pointer                   :: cosmologyFunctions_                   => null(), cosmologyFunctionsData => null()
+     class           (starFormationRateDisksClass              ), pointer                   :: starFormationRateDisks_               => null()
+     class           (starFormationRateSpheroidsClass          ), pointer                   :: starFormationRateSpheroids_           => null()
+     class           (starFormationRateNuclearStarClustersClass), pointer                   :: starFormationRateNuclearStarClusters_ => null()
+     double precision                                           , allocatable, dimension(:) :: starFormationRates
    contains
      final :: starFormationRateFunctionDestructor
   end type outputAnalysisStarFormationRateFunction
 
   interface outputAnalysisStarFormationRateFunction
      !!{
-     Constructors for the ``starFormationRateFunction'' output analysis class.
+     Constructors for the \refClass{outputAnalysisStarFormationRateFunction} output analysis class.
      !!}
      module procedure starFormationRateFunctionConstructorParameters
      module procedure starFormationRateFunctionConstructorInternal
@@ -59,29 +62,30 @@ contains
 
   function starFormationRateFunctionConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``starFormationRateFunction'' output analysis class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisStarFormationRateFunction} output analysis class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (outputAnalysisStarFormationRateFunction)                              :: self
-    type            (inputParameters                        ), intent(inout)               :: parameters
-    class           (galacticFilterClass                    ), pointer                     :: galacticFilter_
-    class           (surveyGeometryClass                    ), pointer                     :: surveyGeometry_
-    class           (cosmologyFunctionsClass                ), pointer                     :: cosmologyFunctions_                , cosmologyFunctionsData
-    class           (outputAnalysisDistributionOperatorClass), pointer                     :: outputAnalysisDistributionOperator_
-    class           (outputAnalysisPropertyOperatorClass    ), pointer                     :: outputAnalysisPropertyOperator_
-    class           (outputTimesClass                       ), pointer                     :: outputTimes_
-    class           (starFormationRateDisksClass            ), pointer                     :: starFormationRateDisks_
-    class           (starFormationRateSpheroidsClass        ), pointer                     :: starFormationRateSpheroids_
-    double precision                                         , dimension(:  ), allocatable :: starFormationRates                 , functionValueTarget              , &
-         &                                                                                    functionCovarianceTarget1D
-    double precision                                         , dimension(:,:), allocatable :: functionCovarianceTarget
-    integer                                                                                :: covarianceBinomialBinsPerDecade
-    double precision                                                                       :: covarianceBinomialMassHaloMinimum  , covarianceBinomialMassHaloMaximum
-    type            (inputParameters                        )                              :: dataAnalysisParameters
-    type            (varying_string                         )                              :: label                              , comment                          , &
-         &                                                                                    targetLabel
+    type            (outputAnalysisStarFormationRateFunction  )                              :: self
+    type            (inputParameters                          ), intent(inout)               :: parameters
+    class           (galacticFilterClass                      ), pointer                     :: galacticFilter_
+    class           (surveyGeometryClass                      ), pointer                     :: surveyGeometry_
+    class           (cosmologyFunctionsClass                  ), pointer                     :: cosmologyFunctions_                  , cosmologyFunctionsData
+    class           (outputAnalysisDistributionOperatorClass  ), pointer                     :: outputAnalysisDistributionOperator_
+    class           (outputAnalysisPropertyOperatorClass      ), pointer                     :: outputAnalysisPropertyOperator_
+    class           (outputTimesClass                         ), pointer                     :: outputTimes_
+    class           (starFormationRateDisksClass              ), pointer                     :: starFormationRateDisks_
+    class           (starFormationRateSpheroidsClass          ), pointer                     :: starFormationRateSpheroids_
+    class           (starFormationRateNuclearStarClustersClass), pointer                     :: starFormationRateNuclearStarClusters_
+    double precision                                           , dimension(:  ), allocatable :: starFormationRates                   , functionValueTarget              , &
+         &                                                                                      functionCovarianceTarget1D
+    double precision                                           , dimension(:,:), allocatable :: functionCovarianceTarget
+    integer                                                                                  :: covarianceBinomialBinsPerDecade
+    double precision                                                                         :: covarianceBinomialMassHaloMinimum    , covarianceBinomialMassHaloMaximum
+    type            (inputParameters                          )                              :: dataAnalysisParameters
+    type            (varying_string                           )                              :: label                                , comment                          , &
+         &                                                                                      targetLabel
 
     ! Check and read parameters.
     dataAnalysisParameters=parameters%subParameters('dataAnalysis',requirePresent=.false.,requireValue=.false.)
@@ -161,76 +165,96 @@ contains
        if (parameters%isPresent('functionCovariance')) call Error_Report('functionTarget must be specified if functionCovariance is present'//{introspection:location})
     end if
     !![
-    <objectBuilder class="galacticFilter"                     name="galacticFilter_"                     source="parameters"            />
-    <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                 source="parameters"            />
-    <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctionsData"              source="dataAnalysisParameters"/>
-    <objectBuilder class="outputAnalysisPropertyOperator"     name="outputAnalysisPropertyOperator_"     source="parameters"            />
-    <objectBuilder class="outputAnalysisDistributionOperator" name="outputAnalysisDistributionOperator_" source="parameters"            />
-    <objectBuilder class="surveyGeometry"                     name="surveyGeometry_"                     source="parameters"            />
-    <objectBuilder class="outputTimes"                        name="outputTimes_"                        source="parameters"            />
-    <objectBuilder class="starFormationRateDisks"             name="starFormationRateDisks_"             source="parameters"            />
-    <objectBuilder class="starFormationRateSpheroids"         name="starFormationRateSpheroids_"         source="parameters"            />
+    <objectBuilder class="galacticFilter"                       name="galacticFilter_"                       source="parameters"            />
+    <objectBuilder class="cosmologyFunctions"                   name="cosmologyFunctions_"                   source="parameters"            />
+    <objectBuilder class="cosmologyFunctions"                   name="cosmologyFunctionsData"                source="dataAnalysisParameters"/>
+    <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisPropertyOperator_"       source="parameters"            />
+    <objectBuilder class="outputAnalysisDistributionOperator"   name="outputAnalysisDistributionOperator_"   source="parameters"            />
+    <objectBuilder class="surveyGeometry"                       name="surveyGeometry_"                       source="parameters"            />
+    <objectBuilder class="outputTimes"                          name="outputTimes_"                          source="parameters"            />
+    <objectBuilder class="starFormationRateDisks"               name="starFormationRateDisks_"               source="parameters"            />
+    <objectBuilder class="starFormationRateSpheroids"           name="starFormationRateSpheroids_"           source="parameters"            />
+    <objectBuilder class="starFormationRateNuclearStarClusters" name="starFormationRateNuclearStarClusters_" source="parameters"            />
     <conditionalCall>
-     <call>self=outputAnalysisStarFormationRateFunction(label,comment,starFormationRates,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum{conditions})</call>
+     <call>self=outputAnalysisStarFormationRateFunction(label,comment,starFormationRates,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum{conditions})</call>
      <argument name="targetLabel"              value="targetLabel"              parameterPresent="parameters"/>
      <argument name="functionValueTarget"      value="functionValueTarget"      parameterPresent="parameters"/>
      <argument name="functionCovarianceTarget" value="functionCovarianceTarget" parameterPresent="parameters"/>
     </conditionalCall>
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="galacticFilter_"                    />
-    <objectDestructor name="cosmologyFunctions_"                />
-    <objectDestructor name="cosmologyFunctionsData"             />
-    <objectDestructor name="outputAnalysisPropertyOperator_"    />
-    <objectDestructor name="outputAnalysisDistributionOperator_"/>
-    <objectDestructor name="surveyGeometry_"                    />
-    <objectDestructor name="outputTimes_"                       />
-    <objectDestructor name="starFormationRateDisks_"            />
-    <objectDestructor name="starFormationRateSpheroids_"        />
+    <objectDestructor name="galacticFilter_"                      />
+    <objectDestructor name="cosmologyFunctions_"                  />
+    <objectDestructor name="cosmologyFunctionsData"               />
+    <objectDestructor name="outputAnalysisPropertyOperator_"      />
+    <objectDestructor name="outputAnalysisDistributionOperator_"  />
+    <objectDestructor name="surveyGeometry_"                      />
+    <objectDestructor name="outputTimes_"                         />
+    <objectDestructor name="starFormationRateDisks_"              />
+    <objectDestructor name="starFormationRateSpheroids_"          />
+    <objectDestructor name="starFormationRateNuclearStarClusters_"/>
     !!]
     return
   end function starFormationRateFunctionConstructorParameters
 
-  function starFormationRateFunctionConstructorFile(label,comment,fileName,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
+  function starFormationRateFunctionConstructorFile(label,comment,fileName,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
     !!{
-    Constructor for the ``starFormationRateFunction'' output analysis class which reads bin information from a standard format file.
+    Constructor for the \refClass{outputAnalysisStarFormationRateFunction} output analysis class which reads bin information from a standard format file.
     !!}
     use :: HDF5_Access, only : hdf5Access
     use :: IO_HDF5    , only : hdf5Object
     implicit none
-    type            (outputAnalysisStarFormationRateFunction)                              :: self
-    type            (varying_string                         ), intent(in   )               :: label                              , comment
-    character       (len=*                                  ), intent(in   )               :: fileName
-    class           (galacticFilterClass                    ), intent(in   ) , target      :: galacticFilter_
-    class           (surveyGeometryClass                    ), intent(in   ) , target      :: surveyGeometry_
-    class           (cosmologyFunctionsClass                ), intent(in   ) , target      :: cosmologyFunctions_                , cosmologyFunctionsData
-    class           (outputAnalysisPropertyOperatorClass    ), intent(inout) , target      :: outputAnalysisPropertyOperator_
-    class           (outputAnalysisDistributionOperatorClass), intent(in   ) , target      :: outputAnalysisDistributionOperator_
-    class           (outputTimesClass                       ), intent(inout) , target      :: outputTimes_
-    class           (starFormationRateDisksClass            ), intent(in   ) , target      :: starFormationRateDisks_
-    class           (starFormationRateSpheroidsClass        ), intent(in   ) , target      :: starFormationRateSpheroids_
-    double precision                                         , dimension(:  ), allocatable :: starFormationRates                 , functionValueTarget
-    double precision                                         , dimension(:,:), allocatable :: functionCovarianceTarget
-    integer                                                  , intent(in   )               :: covarianceBinomialBinsPerDecade
-    double precision                                         , intent(in   )               :: covarianceBinomialMassHaloMinimum  , covarianceBinomialMassHaloMaximum
-    type            (hdf5Object                             )                              :: dataFile
-    type            (varying_string                         )                              :: targetLabel
-    logical                                                                                :: haveTarget
+    type            (outputAnalysisStarFormationRateFunction  )                              :: self
+    type            (varying_string                           ), intent(in   )               :: label                                , comment
+    character       (len=*                                    ), intent(in   )               :: fileName
+    class           (galacticFilterClass                      ), intent(in   ) , target      :: galacticFilter_
+    class           (surveyGeometryClass                      ), intent(in   ) , target      :: surveyGeometry_
+    class           (cosmologyFunctionsClass                  ), intent(in   ) , target      :: cosmologyFunctions_                  , cosmologyFunctionsData
+    class           (outputAnalysisPropertyOperatorClass      ), intent(inout) , target      :: outputAnalysisPropertyOperator_
+    class           (outputAnalysisDistributionOperatorClass  ), intent(in   ) , target      :: outputAnalysisDistributionOperator_
+    class           (outputTimesClass                         ), intent(inout) , target      :: outputTimes_
+    class           (starFormationRateDisksClass              ), intent(in   ) , target      :: starFormationRateDisks_
+    class           (starFormationRateSpheroidsClass          ), intent(in   ) , target      :: starFormationRateSpheroids_
+    class           (starFormationRateNuclearStarClustersClass), intent(in   ) , target      :: starFormationRateNuclearStarClusters_
+    integer                                                    , intent(in   )               :: covarianceBinomialBinsPerDecade
+    double precision                                           , intent(in   )               :: covarianceBinomialMassHaloMinimum    , covarianceBinomialMassHaloMaximum
+    double precision                                           , dimension(:  ), allocatable :: starFormationRates                   , functionValueTarget              , &
+         &                                                                                      functionErrorTarget
+    double precision                                           , dimension(:,:), allocatable :: functionCovarianceTarget
+    type            (hdf5Object                               )                              :: dataFile
+    type            (varying_string                           )                              :: targetLabel
+    logical                                                                                  :: haveTarget
+    integer                                                                                  :: i
 
     !$ call hdf5Access%set()
     call    dataFile%openFile     (fileName              ,readOnly=.true.         )
     call    dataFile%readDataset  ('starFormationRate'   ,starFormationRates      )
-    haveTarget=dataFile%hasDataset('starFormationRateFunctionObserved').and.dataFile%hasDataset('covariance')
+    haveTarget=   dataFile%hasDataset('starFormationRateFunctionObserved'          ) &
+         &     .and.                                                                 &
+         &      (                                                                    &
+         &        dataFile%hasDataset('starFormationRateFunctionObservedCovariance') &
+         &       .or.                                                                &
+         &        dataFile%hasDataset('starFormationRateFunctionObservedError'     ) &
+         &      )
     if (haveTarget) then
-       call dataFile%readAttribute('label'               ,targetLabel             )
-       call dataFile%readDataset  ('massFunctionObserved',functionValueTarget     )
-       call dataFile%readDataset  ('covariance'          ,functionCovarianceTarget)
+       call dataFile%readAttribute('label'                            ,targetLabel        )
+       call dataFile%readDataset  ('starFormationRateFunctionObserved',functionValueTarget)
+       if (dataFile%hasDataset('starFormationRateFunctionObservedCovariance')) then
+          call dataFile%readDataset('starFormationRateFunctionObservedCovariance',functionCovarianceTarget)
+       else
+          call dataFile%readDataset('starFormationRateFunctionObservedError'     ,functionErrorTarget     )
+          allocate(functionCovarianceTarget(size(functionErrorTarget),size(functionErrorTarget)))
+          functionCovarianceTarget=0.0d0
+          do i=1,size(functionErrorTarget)
+             functionCovarianceTarget(i,i)=functionErrorTarget(i)**2
+          end do
+       end if
     end if
-    call dataFile%close           (                                               )
+    call dataFile%close()
     !$ call hdf5Access%unset()
     ! Construct the object.
     !![
     <conditionalCall>
-     <call>self=outputAnalysisStarFormationRateFunction(label,comment,starFormationRates,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum{conditions})</call>
+     <call>self=outputAnalysisStarFormationRateFunction(label,comment,starFormationRates,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum{conditions})</call>
      <argument name="targetLabel"              value="targetLabel"              condition="haveTarget"/>
      <argument name="functionValueTarget"      value="functionValueTarget"      condition="haveTarget"/>
      <argument name="functionCovarianceTarget" value="functionCovarianceTarget" condition="haveTarget"/>
@@ -239,9 +263,9 @@ contains
     return
   end function starFormationRateFunctionConstructorFile
 
-  function starFormationRateFunctionConstructorInternal(label,comment,starFormationRates,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
+  function starFormationRateFunctionConstructorInternal(label,comment,starFormationRates,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
     !!{
-    Constructor for the ``starFormationRateFunction'' output analysis class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisStarFormationRateFunction} output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions                     , only : cosmologyFunctionsClass
     use :: Galactic_Filters                        , only : galacticFilterClass
@@ -266,6 +290,7 @@ contains
     class           (outputTimesClass                               ), intent(inout), target                   :: outputTimes_
     class           (starFormationRateDisksClass                    ), intent(in   ), target                   :: starFormationRateDisks_
     class           (starFormationRateSpheroidsClass                ), intent(in   ), target                   :: starFormationRateSpheroids_
+    class           (starFormationRateNuclearStarClustersClass      ), intent(in   ), target                   :: starFormationRateNuclearStarClusters_
     integer                                                          , intent(in   )                           :: covarianceBinomialBinsPerDecade
     double precision                                                 , intent(in   )                           :: covarianceBinomialMassHaloMinimum                    , covarianceBinomialMassHaloMaximum
     type            (varying_string                                 ), intent(in   ), optional                 :: targetLabel
@@ -287,7 +312,7 @@ contains
     integer         (c_size_t                                       ), parameter                               :: bufferCountMinimum                              =5
     integer         (c_size_t                                       )                                          :: iBin                                                  , bufferCount
     !![
-    <constructorAssign variables="starFormationRates, *surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData, *starFormationRateDisks_, *starFormationRateSpheroids_"/>
+    <constructorAssign variables="starFormationRates, *surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData, *starFormationRateDisks_, *starFormationRateSpheroids_, *starFormationRateNuclearStarClusters_"/>
     !!]
 
     ! Compute weights that apply to each output redshift.
@@ -299,20 +324,20 @@ contains
     ! Create a star formation rate property extractor.
     allocate(nodePropertyExtractor_)
     !![
-    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorStarFormationRate        (starFormationRateDisks_, starFormationRateSpheroids_    )"/>
+    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorStarFormationRate        (starFormationRateDisks_, starFormationRateSpheroids_, starFormationRateNuclearStarClusters_)"/>
     !!]
     ! Prepend log10 and cosmological luminosity distance property operators.
     allocate(outputAnalysisPropertyOperatorLog10_            )
     !![
-    <referenceConstruct object="outputAnalysisPropertyOperatorLog10_"             constructor="outputAnalysisPropertyOperatorLog10            (                                                       )"/>
+    <referenceConstruct object="outputAnalysisPropertyOperatorLog10_"             constructor="outputAnalysisPropertyOperatorLog10            (                                                                                          )"/>
     !!]
     allocate(outputAnalysisPropertyOperatorAntiLog10_        )
     !![
-    <referenceConstruct object="outputAnalysisPropertyOperatorAntiLog10_"         constructor="outputAnalysisPropertyOperatorAntiLog10        (                                                       )"/>
+    <referenceConstruct object="outputAnalysisPropertyOperatorAntiLog10_"         constructor="outputAnalysisPropertyOperatorAntiLog10        (                                                                                          )"/>
     !!]
     allocate(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_)
     !![
-    <referenceConstruct object="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_" constructor="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc(cosmologyFunctions_,cosmologyFunctionsData,outputTimes_)"/>
+    <referenceConstruct object="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_" constructor="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc(cosmologyFunctions_,cosmologyFunctionsData,outputTimes_                                   )"/>
     !!]
     select type (outputAnalysisPropertyOperator_)
     type is (outputAnalysisPropertyOperatorSequence)
@@ -414,16 +439,17 @@ contains
 
   subroutine starFormationRateFunctionDestructor(self)
     !!{
-    Destructor for  the ``starFormationRateFunction'' output analysis class.
+    Destructor for the \refClass{outputAnalysisStarFormationRateFunction} output analysis class.
     !!}
     type(outputAnalysisStarFormationRateFunction), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%surveyGeometry_"            />
-    <objectDestructor name="self%cosmologyFunctions_"        />
-    <objectDestructor name="self%cosmologyFunctionsData"     />
-    <objectDestructor name="self%starFormationRateDisks_"    />
-    <objectDestructor name="self%starFormationRateSpheroids_"/>
+    <objectDestructor name="self%surveyGeometry_"                      />
+    <objectDestructor name="self%cosmologyFunctions_"                  />
+    <objectDestructor name="self%cosmologyFunctionsData"               />
+    <objectDestructor name="self%starFormationRateDisks_"              />
+    <objectDestructor name="self%starFormationRateSpheroids_"          />
+    <objectDestructor name="self%starFormationRateNuclearStarClusters_"/>
     !!]
     return
   end subroutine starFormationRateFunctionDestructor

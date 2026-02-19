@@ -40,7 +40,7 @@
 
   interface starFormationRateDisksCentralsOnly
      !!{
-     Constructors for the {\normalfont \ttfamily centralsOnly} star formation rate in disks class.
+     Constructors for the \refClass{starFormationRateDisksCentralsOnly} star formation rate in disks class.
      !!}
      module procedure centralsOnlyConstructorParameters
      module procedure centralsOnlyConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function centralsOnlyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily centralsOnly} star formation rate in disks class which takes a
+    Constructor for the \refClass{starFormationRateDisksCentralsOnly} star formation rate in disks class which takes a
     parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -72,7 +72,7 @@ contains
 
   function centralsOnlyConstructorInternal(starFormationRateDisks_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily centralsOnly} star formation rate in disks class.
+    Internal constructor for the \refClass{starFormationRateDisksCentralsOnly} star formation rate in disks class.
     !!}
     implicit none
     type (starFormationRateDisksCentralsOnly)                        :: self
@@ -86,7 +86,7 @@ contains
 
   subroutine centralsOnlyDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily centralsOnly} star formation rate in disks class.
+    Destructor for the \refClass{starFormationRateDisksCentralsOnly} star formation rate in disks class.
     !!}
     implicit none
     type(starFormationRateDisksCentralsOnly), intent(inout) :: self

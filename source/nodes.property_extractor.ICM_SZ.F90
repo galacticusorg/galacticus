@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an intracluster medium Sunyaev-Zeldovich Compton-y parameter property extractor class.
+Implements an intracluster medium Sunyaev-Zeldovich Compton-y parameter property extractor class.
 !!}
   use :: Chemical_States        , only : chemicalState      , chemicalStateClass
   use :: Cosmology_Functions    , only : cosmologyFunctions , cosmologyFunctionsClass , enumerationDensityCosmologicalType
@@ -73,7 +73,7 @@ Contains a module which implements an intracluster medium Sunyaev-Zeldovich Comp
 
   interface nodePropertyExtractorICMSZ
      !!{
-     Constructors for the ``icmSZ'' output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorICMSZ} output analysis class.
      !!}
      module procedure icmSZConstructorParameters
      module procedure icmSZConstructorInternal
@@ -83,7 +83,7 @@ contains
 
   function icmSZConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily icmSZ} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorICMSZ} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters   , only : inputParameter                      , inputParameters
     use :: Cosmology_Functions, only : enumerationDensityCosmologicalEncode
@@ -145,7 +145,7 @@ contains
 
   function icmSZConstructorInternal(cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,chemicalState_,densityContrast,densityContrastRelativeTo,distanceAngular) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily icmSZ} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorICMSZ} property extractor class.
     !!}
     use :: Cosmology_Functions, only : densityCosmologicalMean, enumerationDensityCosmologicalDecode, enumerationDensityCosmologicalType
     use :: ISO_Varying_String , only : char
@@ -192,7 +192,7 @@ contains
 
   subroutine icmSZDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily icmSZ} property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorICMSZ} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorICMSZ), intent(inout) :: self

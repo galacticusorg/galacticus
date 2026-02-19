@@ -41,7 +41,7 @@
 
   interface blackHoleBinarySeparationGrowthRateZero
      !!{
-     Constructors for the {\normalfont \ttfamily zero} black hole binary separation growth rate class.
+     Constructors for the \refClass{blackHoleBinarySeparationGrowthRateZero} black hole binary separation growth rate class.
      !!}
      module procedure zeroConstructorParameters
   end interface blackHoleBinarySeparationGrowthRateZero
@@ -50,7 +50,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily zero} black hole binary separation growth rate class which takes a parameter
+    Constructor for the \refClass{blackHoleBinarySeparationGrowthRateZero} black hole binary separation growth rate class which takes a parameter
     set as input.
     !!}
     use :: Input_Parameters, only : inputParameters

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements satellite orbital extrema property extractor class.
+Implements satellite orbital extrema property extractor class.
 !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
@@ -51,7 +51,7 @@ Contains a module which implements satellite orbital extrema property extractor 
 
   interface nodePropertyExtractorSatelliteOrbitalExtrema
      !!{
-     Constructors for the ``satelliteOrbitalExtrema'' output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorSatelliteOrbitalExtrema} output analysis class.
      !!}
      module procedure satelliteOrbitalExtremaConstructorParameters
      module procedure satelliteOrbitalExtremaConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function satelliteOrbitalExtremaConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily satelliteOrbitalExtrema} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorSatelliteOrbitalExtrema} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -95,7 +95,7 @@ contains
 
   function satelliteOrbitalExtremaConstructorInternal(extractPericenter,extractApocenter,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily satelliteOrbitalExtrema} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorSatelliteOrbitalExtrema} property extractor class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -121,7 +121,7 @@ contains
 
   subroutine satelliteOrbitalExtremaDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily satelliteOrbitalExtrema} node property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorSatelliteOrbitalExtrema} node property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout) :: self

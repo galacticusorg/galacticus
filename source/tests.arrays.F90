@@ -27,7 +27,7 @@ program Test_Array_Monotonicity
   !!}
   use, intrinsic :: ISO_C_Binding     , only : c_size_t
   use            :: Array_Utilities   , only : Array_Cumulate     , Array_Is_Monotonic      , Array_Reverse       , directionDecreasing, &
-          &                                    directionIncreasing, operator(.intersection.), slice
+          &                                    directionIncreasing, operator(.intersection.), slice5Dto3D
   use            :: Display           , only : displayVerbositySet, verbosityLevelStandard
   use            :: ISO_Varying_String, only : assignment(=)      , char                    , varying_string
   use            :: Kind_Numbers      , only : kind_int8
@@ -231,7 +231,7 @@ program Test_Array_Monotonicity
   end do
   sliceDimension=[4,2]
   sliceIndex    =[2,1]
-  array3D       =slice(array5D,sliceDimension,sliceIndex)
+  array3D       =slice5Dto3D(array5D,sliceDimension,sliceIndex)
   call Assert("Array slicing",array3D,array3DTarget,absTol=1.0d-30)
   
   ! End unit tests.

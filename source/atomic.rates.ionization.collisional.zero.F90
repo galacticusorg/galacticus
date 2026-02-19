@@ -37,7 +37,7 @@
 
   interface atomicIonizationRateCollisionalZero
      !!{
-     Constructors for the {\normalfont \ttfamily zero} atomic collisional ionization class.
+     Constructors for the \refClass{atomicIonizationRateCollisionalZero} atomic collisional ionization class.
      !!}
      module procedure zeroConstructorParameters
   end interface atomicIonizationRateCollisionalZero
@@ -46,7 +46,7 @@ contains
   
   function zeroConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily zero} atomic collisional ionization class which takes a parameter set as
+    Constructor for the \refClass{atomicIonizationRateCollisionalZero} atomic collisional ionization class which takes a parameter set as
     input.
     !!}
     use :: Input_Parameters, only : inputParameters

@@ -42,7 +42,7 @@
 
   interface mergerTreeEvolveProfilerTinySteps
      !!{
-     Constructors for the {\normalfont \ttfamily tinySteps} merger tree evolve profiler class.
+     Constructors for the \refClass{mergerTreeEvolveProfilerTinySteps} merger tree evolve profiler class.
      !!}
      module procedure tinyStepsConstructorParameters
      module procedure tinyStepsConstructorInternal
@@ -52,7 +52,7 @@ contains
   
   function tinyStepsConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily tinySteps} merger tree evolve profiler class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeEvolveProfilerTinySteps} merger tree evolve profiler class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

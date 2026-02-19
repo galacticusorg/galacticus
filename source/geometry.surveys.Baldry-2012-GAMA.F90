@@ -135,7 +135,7 @@ contains
 
   subroutine baldry2012GAMADestructor(self)
     !!{
-    Destructor for the ``baldry2012GAMA'' survey geometry class.
+    Destructor for the \refClass{surveyGeometryBaldry2012GAMA} geometry class.
     !!}
     implicit none
     type(surveyGeometryBaldry2012GAMA), intent(inout) :: self

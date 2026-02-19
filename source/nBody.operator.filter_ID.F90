@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an N-body data operator which filters particles by ID.
+Implements an N-body data operator which filters particles by ID.
 !!}
   
   !![
@@ -39,7 +39,7 @@ Contains a module which implements an N-body data operator which filters particl
 
   interface nbodyOperatorFilterID
      !!{
-     Constructors for the {\normalfont \ttfamily filterID} N-body operator class.
+     Constructors for the \refClass{nbodyOperatorFilterID} N-body operator class.
      !!}
      module procedure filterIDConstructorParameters
      module procedure filterIDConstructorInternal
@@ -49,7 +49,7 @@ contains
 
   function filterIDConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily filterID} N-body operator class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyOperatorFilterID} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     use :: IO_HDF5         , only : hdf5Object
@@ -96,7 +96,7 @@ contains
 
   function filterIDConstructorInternal(idSelection) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily filterID} N-body operator class.
+    Internal constructor for the \refClass{nbodyOperatorFilterID} N-body operator class.
     !!}
     use :: Sorting, only : sort
     implicit none

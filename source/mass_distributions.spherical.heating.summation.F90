@@ -47,7 +47,7 @@
 
   interface massDistributionHeatingSummation
      !!{
-     Constructors for the {\normalfont \ttfamily summation} mass distribution class.
+     Constructors for the \refClass{massDistributionHeatingSummation} mass distribution class.
      !!}
      module procedure summationConstructorParameters
      module procedure summationConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function summationConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily summation} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionHeatingSummation} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -88,7 +88,7 @@ contains
   
   function summationConstructorInternal(massDistributionHeatings) result(self)
     !!{
-    Constructor for ``summation'' dark matter profile heating class.
+    Constructor for the \refClass{massDistributionHeatingSummation} dark matter profile heating class.
     !!}
     implicit none
     type(massDistributionHeatingSummation)                         :: self
@@ -132,7 +132,6 @@ contains
     !!{
     Returns the specific energy of heating in the given {\normalfont \ttfamily node}.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (massDistributionHeatingSummation), intent(inout) :: self
     double precision                                  , intent(in   ) :: radius

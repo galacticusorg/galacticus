@@ -41,7 +41,7 @@
 
   interface supernovaeTypeIaZero
      !!{
-     Constructors for the {\normalfont \ttfamily zero} supernovae type Ia class.
+     Constructors for the \refClass{supernovaeTypeIaZero} supernovae type Ia class.
      !!}
      module procedure zeroConstructorParameters
   end interface supernovaeTypeIaZero
@@ -50,7 +50,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily zero} supernovae type Ia class which takes a parameter list as input.
+    Constructor for the \refClass{supernovaeTypeIaZero} supernovae type Ia class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

@@ -50,7 +50,7 @@
   
   interface nodeOperatorMassBoundMaximum
      !!{
-     Constructors for the {\normalfont \ttfamily massBoundMaximum} node operator class.
+     Constructors for the \refClass{nodeOperatorMassBoundMaximum} node operator class.
      !!}
      module procedure massBoundMaximumConstructorParameters
      module procedure massBoundMaximumConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function massBoundMaximumConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily massBoundMaximum} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorMassBoundMaximum} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -76,7 +76,7 @@ contains
 
   function massBoundMaximumConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily massBoundMaximum} node operator class.
+    Internal constructor for the \refClass{nodeOperatorMassBoundMaximum} node operator class.
     !!}
     implicit none
     type(nodeOperatorMassBoundMaximum) :: self

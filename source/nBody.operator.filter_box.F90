@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an N-body data operator which filters particles outside a cuboid region.
+Implements an N-body data operator which filters particles outside a cuboid region.
 !!}
   
   !![
@@ -38,7 +38,7 @@ Contains a module which implements an N-body data operator which filters particl
 
   interface nbodyOperatorFilterBox
      !!{
-     Constructors for the {\normalfont \ttfamily filterBox} N-body operator class.
+     Constructors for the \refClass{nbodyOperatorFilterBox} N-body operator class.
      !!}
      module procedure filterBoxConstructorParameters
      module procedure filterBoxConstructorInternal
@@ -48,7 +48,7 @@ contains
 
   function filterBoxConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily filterBox} N-body operator class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyOperatorFilterBox} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function filterBoxConstructorInternal(boundLow,boundHigh) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily filterBox} N-body operator class.
+    Internal constructor for the \refClass{nbodyOperatorFilterBox} N-body operator class.
     !!}
     use :: Error, only : Error_Report
     implicit none

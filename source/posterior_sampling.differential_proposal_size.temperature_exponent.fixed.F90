@@ -41,7 +41,7 @@
 
   interface posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed
      !!{
-     Constructors for the {\normalfont \ttfamily fixed} posterior sampling differential evolution random jump class.
+     Constructors for the \refClass{posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed} posterior sampling differential evolution random jump class.
      !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function fixedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily fixed} posterior sampling differential evolution random jump class which builds
+    Constructor for the \refClass{posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed} posterior sampling differential evolution random jump class which builds
     the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -76,7 +76,7 @@ contains
 
   function fixedConstructorInternal(exponentValue) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily fixed} posterior sampling differential evolution proposal size
+    Internal constructor for the \refClass{posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed} posterior sampling differential evolution proposal size
     temperature exponent class.
     !!}
     implicit none

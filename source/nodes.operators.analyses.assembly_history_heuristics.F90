@@ -62,7 +62,7 @@
   
   interface nodeOperatorAssemblyHistoryHeuristics
      !!{
-     Constructors for the {\normalfont \ttfamily assemblyHistoryHeuristics} node operator class.
+     Constructors for the \refClass{nodeOperatorAssemblyHistoryHeuristics} node operator class.
      !!}
      module procedure assemblyHistoryHeuristicsConstructorParameters
      module procedure assemblyHistoryHeuristicsConstructorInternal
@@ -72,7 +72,7 @@ contains
 
   function assemblyHistoryHeuristicsConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily assemblyHistoryHeuristics} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorAssemblyHistoryHeuristics} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -106,7 +106,7 @@ contains
 
   function assemblyHistoryHeuristicsConstructorInternal(exponentGrowth,sigmaThreshold,nbodyHaloMassError_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily assemblyHistoryHeuristics} node operator class.
+    Internal constructor for the \refClass{nodeOperatorAssemblyHistoryHeuristics} node operator class.
     !!}
     use :: Nodes_Labels, only : nodeLabelRegister
     implicit none
@@ -123,7 +123,7 @@ contains
 
   subroutine assemblyHistoryHeuristicsDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily assemblyHistoryHeuristics} node operator class.
+    Destructor for the \refClass{nodeOperatorAssemblyHistoryHeuristics} node operator class.
     !!}
     implicit none
     type(nodeOperatorAssemblyHistoryHeuristics), intent(inout) :: self

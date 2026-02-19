@@ -39,7 +39,7 @@
   
   interface radiativeTransferSpectrumBandPassFilter
      !!{
-     Constructors for the {\normalfont \ttfamily bandPassFilter} radiative transfer spectrum class.
+     Constructors for the \refClass{radiativeTransferSpectrumBandPassFilter} radiative transfer spectrum class.
      !!}
      module procedure bandPassFilterConstructorParameters
      module procedure bandPassFilterConstructorInternal
@@ -49,7 +49,7 @@ contains
 
   function bandPassFilterConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily bandPassFilter} radiative transfer spectrum class which takes a parameter set as
+    Constructor for the \refClass{radiativeTransferSpectrumBandPassFilter} radiative transfer spectrum class which takes a parameter set as
     input.
     !!}
     use :: Input_Parameters, only : inputParameters, inputParameter
@@ -84,7 +84,7 @@ contains
 
   function bandPassFilterConstructorInternal(wavelengthMinimum,wavelengthMaximum,radiativeTransferSpectrum_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily bandPassFilter} radiative transfer photon packet class.
+    Internal constructor for the \refClass{radiativeTransferSpectrumBandPassFilter} radiative transfer photon packet class.
     !!}
     implicit none
     type            (radiativeTransferSpectrumBandPassFilter)                        :: self
@@ -99,7 +99,7 @@ contains
 
   subroutine bandPassFilterDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily bandPassFilter} radiative transfer photon packet class.
+    Destructor for the \refClass{radiativeTransferSpectrumBandPassFilter} radiative transfer photon packet class.
     !!}
     implicit none
     type(radiativeTransferSpectrumBandPassFilter), intent(inout) :: self

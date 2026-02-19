@@ -76,7 +76,7 @@
 
   interface mergerProgenitorPropertiesCole2000
      !!{
-     Constructors for the {\normalfont \ttfamily cole2000} merger progenitor properties class.
+     Constructors for the \refClass{mergerProgenitorPropertiesCole2000} merger progenitor properties class.
      !!}
      module procedure cole2000ConstructorParameters
      module procedure cole2000ConstructorInternal
@@ -95,7 +95,7 @@ contains
 
   function cole2000ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily cole2000} merger progenitor properties class which takes a parameter list as input.
+    Constructor for the \refClass{mergerProgenitorPropertiesCole2000} merger progenitor properties class which takes a parameter list as input.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Error           , only : Error_Report            , Component_List
@@ -160,7 +160,7 @@ contains
 
  function cole2000ConstructorInternal(mergerMassMovements_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily cole2000} merger progenitor properties class.
+    Internal constructor for the \refClass{mergerProgenitorPropertiesCole2000} merger progenitor properties class.
     !!}
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
@@ -185,7 +185,7 @@ contains
 
   subroutine cole2000Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily cole2000} merger progenitor properties class.
+    Destructor for the \refClass{mergerProgenitorPropertiesCole2000} merger progenitor properties class.
     !!}
     implicit none
     type(mergerProgenitorPropertiesCole2000), intent(inout) :: self
@@ -200,12 +200,12 @@ contains
     !!{
     Computes various properties of the progenitor galaxies useful for calculations of merger remnant sizes.
     !!}
-    use :: Galactic_Structure_Options      , only : componentTypeDisk              , componentTypeSpheroid    , massTypeGaseous         , massTypeStellar, &
-         &                                          massTypeGalactic               , radiusLarge
+    use :: Galactic_Structure_Options      , only : componentTypeDisk             , componentTypeSpheroid    , massTypeGaseous         , massTypeStellar, &
+         &                                          massTypeGalactic              , radiusLarge
     use :: Error                           , only : Error_Report
-    use :: Galacticus_Nodes                , only : nodeComponentDisk              , nodeComponentSpheroid    , treeNode
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk          , destinationMergerSpheroid, destinationMergerUnmoved
+    use :: Galacticus_Nodes                , only : nodeComponentDisk             , nodeComponentSpheroid    , treeNode
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
+    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk         , destinationMergerSpheroid, destinationMergerUnmoved
     implicit none
     class           (mergerProgenitorPropertiesCole2000), intent(inout), target :: self
     type            (treeNode                          ), intent(inout), target :: nodeSatellite                  , nodeHost
@@ -245,9 +245,9 @@ contains
          &                          +         spheroidHost%massGas       ()
     radiusHalfMassSpheroidHost     =          spheroidHost%halfMassRadius()
     if (radiusHalfMassSpheroidHost > 0.0d0 .and. massComponent > 0.0d0) then
-       factorDarkMatterSpheroidHost=           spheroidHost%angularMomentum()                                    &
-            &                       /(massComponent**1.5d0)                                                      &
-            &                       /sqrt(gravitationalConstantGalacticus*          radiusHalfMassSpheroidHost)
+       factorDarkMatterSpheroidHost=           spheroidHost%angularMomentum()                                  &
+            &                       /(massComponent**1.5d0)                                                    &
+            &                       /sqrt(gravitationalConstant_internal*          radiusHalfMassSpheroidHost)
     else
        factorDarkMatterSpheroidHost=0.0d0
     end if
@@ -255,9 +255,9 @@ contains
          &                          +         diskHost%massGas       ()
     radiusHalfMassDiskHost         =          diskHost%halfMassRadius()
     if (radiusHalfMassDiskHost > 0.0d0 .and. massComponent > 0.0d0) then
-       factorDarkMatterDiskHost         =          diskHost%angularMomentum()                                    &
-            &                            /(massComponent**1.5d0)                                                 &
-            &                            /sqrt(gravitationalConstantGalacticus*         radiusHalfMassDiskHost)
+       factorDarkMatterDiskHost         =          diskHost%angularMomentum()                                  &
+            &                            /(massComponent**1.5d0)                                               &
+            &                            /sqrt(gravitationalConstant_internal*         radiusHalfMassDiskHost)
     else
        factorDarkMatterDiskHost=0.0d0
     end if
@@ -265,9 +265,9 @@ contains
          &                          +spheroidSatellite%massGas       ()
     radiusHalfMassSpheroidSatellite= spheroidSatellite%halfMassRadius()
     if (radiusHalfMassSpheroidSatellite > 0.0d0 .and. massComponent > 0.0d0) then
-       factorDarkMatterSpheroidSatellite= spheroidSatellite%angularMomentum()                                    &
-            &                            /(massComponent**1.5d0)                                                 &
-            &                            /sqrt(gravitationalConstantGalacticus*radiusHalfMassSpheroidSatellite)
+       factorDarkMatterSpheroidSatellite= spheroidSatellite%angularMomentum()                                  &
+            &                            /(massComponent**1.5d0)                                               &
+            &                            /sqrt(gravitationalConstant_internal*radiusHalfMassSpheroidSatellite)
     else
        factorDarkMatterSpheroidSatellite=0.0d0
     end if
@@ -275,9 +275,9 @@ contains
         &                           +    diskSatelite%massGas       ()
     radiusHalfMassDiskSatellite    =     diskSatelite%halfMassRadius()
     if (radiusHalfMassDiskSatellite > 0.0d0 .and. massComponent > 0.0d0) then
-       factorDarkMatterDiskSatellite    =     diskSatelite%angularMomentum()                                     &
-            &                            /(massComponent**1.5d0)                                                 &
-            &                            /sqrt(gravitationalConstantGalacticus*    radiusHalfMassDiskSatellite)
+       factorDarkMatterDiskSatellite    =     diskSatelite%angularMomentum()                                   &
+            &                            /(massComponent**1.5d0)                                               &
+            &                            /sqrt(gravitationalConstant_internal*    radiusHalfMassDiskSatellite)
     else
        factorDarkMatterDiskSatellite=0.0d0
     end if

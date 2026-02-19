@@ -41,7 +41,7 @@
 
   interface radiationFieldNull
      !!{
-     Constructors for the {\normalfont \ttfamily null} radiation field class.
+     Constructors for the \refClass{radiationFieldNull} radiation field class.
      !!}
      module procedure nullConstructorParameters
      module procedure nullConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily null} radiation field class which takes a parameter list as input.
+    Constructor for the \refClass{radiationFieldNull} radiation field class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -67,7 +67,7 @@ contains
 
   function nullConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily null} radiation field class.
+    Internal constructor for the \refClass{radiationFieldNull} radiation field class.
     !!}
     implicit none
     type(radiationFieldNull) :: self

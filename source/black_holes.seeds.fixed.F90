@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implements the fixed mass and spin black hole seeds.
+  Implements fixed mass and spin black hole seeds.
   !!}
 
   !![
@@ -35,13 +35,14 @@
      private
      double precision :: mass_, spin_   
    contains
-     procedure :: mass => fixedMass
-     procedure :: spin => fixedSpin
+     procedure :: mass             => fixedMass
+     procedure :: spin             => fixedSpin
+     procedure :: formationChannel => fixedFormationChannel
   end type blackHoleSeedsFixed
   
   interface blackHoleSeedsFixed
      !!{
-     Constructors for the {\normalfont \ttfamily fixed} black hole seeds class.
+     Constructors for the \refClass{blackHoleSeedsFixed} black hole seeds class.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -51,7 +52,7 @@ contains
 
   function standardConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily fixed} black hole seeds class which takes a parameter list as input.
+    Constructor for the \refClass{blackHoleSeedsFixed} black hole seeds class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -82,7 +83,7 @@ contains
 
   function standardConstructorInternal(mass_,spin_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily fixed} black hole seed class.
+    Internal constructor for the \refClass{blackHoleSeedsFixed} black hole seed class.
     !!}
     implicit none
     type            (blackHoleSeedsFixed)                :: self
@@ -119,3 +120,17 @@ contains
     spin=self%spin_
     return
   end function fixedSpin
+
+  function fixedFormationChannel(self,node) result(channel)
+    !!{
+    Compute the spin of the seed black hole.
+    !!}
+    implicit none
+    type (enumerationBlackHoleFormationChannelType)                :: channel
+    class(blackHoleSeedsFixed                     ), intent(inout) :: self
+    type (treeNode                                ), intent(inout) :: node
+    !$GLC attributes unused :: self, node
+
+    channel=blackHoleFormationChannelUndetermined
+    return
+  end function fixedFormationChannel

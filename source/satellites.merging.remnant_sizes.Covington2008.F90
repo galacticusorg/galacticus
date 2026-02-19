@@ -74,7 +74,7 @@
 
   interface mergerRemnantSizeCovington2008
      !!{
-     Constructors for the {\normalfont \ttfamily covington2008} merger remnant size class.
+     Constructors for the \refClass{mergerRemnantSizeCovington2008} merger remnant size class.
      !!}
      module procedure covington2008ConstructorParameters
      module procedure covington2008ConstructorInternal
@@ -84,7 +84,7 @@ contains
 
   function covington2008ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily covington2008} merger remnant size class which takes a parameter list as input.
+    Constructor for the \refClass{mergerRemnantSizeCovington2008} merger remnant size class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -122,7 +122,7 @@ contains
 
   function covington2008ConstructorInternal(energyOrbital, efficiencyRadiative,darkMatterHaloScale_,mergerProgenitorProperties_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily covington2008} merger remnant size class.
+    Internal constructor for the \refClass{mergerRemnantSizeCovington2008} merger remnant size class.
     !!}
     implicit none
     type            (mergerRemnantSizeCovington2008 )                        :: self
@@ -152,7 +152,7 @@ contains
 
   subroutine covington2008Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily covington2008} merger remnant size class.
+    Destructor for the \refClass{mergerRemnantSizeCovington2008} merger remnant size class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent
     implicit none
@@ -213,11 +213,11 @@ contains
     !!{
     Compute the size of the merger remnant for {\normalfont \ttfamily node} using the \cite{covington_predicting_2008} algorithm.
     !!}
-    use :: Display                         , only : displayMagenta                 , displayMessage, displayReset, displayVerbosity, &
+    use :: Display                         , only : displayMagenta                , displayMessage, displayReset, displayVerbosity, &
           &                                         verbosityLevelWarn
-    use :: Error                           , only : Error_Report                   , Warn
+    use :: Error                           , only : Error_Report                  , Warn
     use :: Numerical_Comparison            , only : Values_Agree
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: String_Handling                 , only : operator(//)
     implicit none
     class           (mergerRemnantSizeCovington2008), intent(inout) :: self
@@ -361,7 +361,7 @@ contains
              ! Compute the remnant radius.
              self%radius=(massSpheroidSatellite+massSpheroidHost)**2/(energyProgenitors+energyRadiated)
              ! Also compute the specific angular momentum at the half-mass radius.
-             self%velocityCircular=sqrt(gravitationalConstantGalacticus*(massSpheroidSatellite+massSpheroidHost)/self%radius)
+             self%velocityCircular=sqrt(gravitationalConstant_internal*(massSpheroidSatellite+massSpheroidHost)/self%radius)
              self%angularMomentumSpecific=self%radius*self%velocityCircular*factorAngularMomentum
              ! Check that the specific angular momentum is reasonable.
              if (.not.self%warningIssued.and.displayVerbosity() >= verbosityLevelWarn) then

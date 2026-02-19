@@ -61,7 +61,7 @@
 
   interface massDistributionMiyamotoNagai
      !!{
-     Constructors for the {\normalfont \ttfamily miyamotoNagai} mass distribution class.
+     Constructors for the \refClass{massDistributionMiyamotoNagai} mass distribution class.
      !!}
      module procedure miyamotoNagaiConstructorParameters
      module procedure miyamotoNagaiConstructorInternal
@@ -71,7 +71,7 @@ contains
 
   function miyamotoNagaiConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily miyamotoNagai} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionMiyamotoNagai} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
@@ -543,7 +543,7 @@ contains
     !!{
     Return the mid-plane rotation curve for a Miyamoto-Nagai mass distribution.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (massDistributionMiyamotoNagai), intent(inout) :: self
     double precision                               , intent(in   ) :: radius
@@ -565,8 +565,8 @@ contains
          &                        )**2          &
          &                      )**0.75d0
     ! Make dimensionfull if necessary.
-    if (.not.self%dimensionless)                                       &
-         & miyamotoNagaiRotationCurve=+gravitationalConstantGalacticus &
+    if (.not.self%dimensionless)                                      &
+         & miyamotoNagaiRotationCurve=+gravitationalConstant_internal &
          &                            *miyamotoNagaiRotationCurve
     return
   end function miyamotoNagaiRotationCurve
@@ -575,7 +575,7 @@ contains
     !!{
     Return the mid-plane rotation curve gradient for an \citep{miyamoto_three-dimensional_1975} disk.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (massDistributionMiyamotoNagai), intent(inout) :: self
     double precision                               , intent(in   ) :: radius
@@ -607,8 +607,8 @@ contains
          &                                )**2           &
          &                              )**1.5d0
     ! Make dimensionfull if necessary.
-    if (.not.self%dimensionless)                                                  &
-         & miyamotoNagaiRotationCurveGradient=+gravitationalConstantGalacticus    &
+    if (.not.self%dimensionless)                                                 &
+         & miyamotoNagaiRotationCurveGradient=+gravitationalConstant_internal    &
          &                                    *miyamotoNagaiRotationCurveGradient
     return
   end function miyamotoNagaiRotationCurveGradient
@@ -628,9 +628,9 @@ contains
     !!{
     Return the gravitational potential for an \citep{miyamoto_three-dimensional_1975} disk.
     !!}
-    use :: Coordinates                     , only : assignment(=)                  , coordinateCylindrical
+    use :: Coordinates                     , only : assignment(=)                 , coordinateCylindrical
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (massDistributionMiyamotoNagai    ), intent(inout), target   :: self
     class           (coordinate                       ), intent(in   )           :: coordinates
@@ -659,8 +659,8 @@ contains
          &                        )**2                      &
          &                      )
     ! Make dimensionfull if necessary.
-    if (.not.self%dimensionless)                                   &
-         & miyamotoNagaiPotential=+gravitationalConstantGalacticus &
+    if (.not.self%dimensionless)                                  &
+         & miyamotoNagaiPotential=+gravitationalConstant_internal &
          &                        *miyamotoNagaiPotential
     return
   end function miyamotoNagaiPotential

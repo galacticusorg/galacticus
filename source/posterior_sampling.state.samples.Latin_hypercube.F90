@@ -44,7 +44,7 @@
 
   interface posteriorSamplesLatinHypercube
      !!{
-     Constructors for the {\normalfont \ttfamily latinHypercube} posterior sampling state initialization class.
+     Constructors for the \refClass{posteriorSamplesLatinHypercube} posterior sampling state initialization class.
      !!}
      module procedure latinHypercubeConstructorParameters
      module procedure latinHypercubeConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function latinHypercubeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily latinHypercube} posterior sampling state initialization class.
+    Constructor for the \refClass{posteriorSamplesLatinHypercube} posterior sampling state initialization class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -87,7 +87,7 @@ contains
 
   function latinHypercubeConstructorInternal(countSamples,maximinTrialCount,randomNumberGenerator_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily latinHypercube} posterior sampling state initialization class.
+    Constructor for the \refClass{posteriorSamplesLatinHypercube} posterior sampling state initialization class.
     !!}
     implicit none
     type   (posteriorSamplesLatinHypercube)                        :: self
@@ -102,7 +102,7 @@ contains
 
   subroutine latinHypercubeDestructor(self)
     !!{
-    Destructor for the  {\normalfont \ttfamily latinHypercube} posterior sampling state initialization class.
+    Destructor for the \refClass{posteriorSamplesLatinHypercube} posterior sampling state initialization class.
     !!}
     implicit none
     type(posteriorSamplesLatinHypercube), intent(inout) :: self

@@ -48,7 +48,7 @@
   
   interface nodeOperatorNodeFormationTimeCole2000
      !!{
-     Constructors for the {\normalfont \ttfamily nodeFormationTimeCole2000} node operator class.
+     Constructors for the \refClass{nodeOperatorNodeFormationTimeCole2000} node operator class.
      !!}
      module procedure nodeFormationTimeCole2000ConstructorParameters
      module procedure nodeFormationTimeCole2000ConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function nodeFormationTimeCole2000ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily nodeFormationTimeCole2000} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorNodeFormationTimeCole2000} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -97,7 +97,7 @@ contains
 
   function nodeFormationTimeCole2000ConstructorInternal(massFactorReformation,reformationOnPromotionOnly) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily nodeFormationTimeCole2000} node operator class.
+    Internal constructor for the \refClass{nodeOperatorNodeFormationTimeCole2000} node operator class.
     !!}
     implicit none
     type            (nodeOperatorNodeFormationTimeCole2000)               :: self

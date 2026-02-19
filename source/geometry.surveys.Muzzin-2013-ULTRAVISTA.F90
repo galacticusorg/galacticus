@@ -29,7 +29,7 @@ Implements the geometry of the ULTRAVISTA survey used by \cite{muzzin_evolution_
     A survey geometry class that describes the survey geometry of \cite{muzzin_evolution_2013}. 
     
     For the angular mask, we generate a \gls{mangle} polygon file, by first defining a rectangle encompassing the bounds of the
-    ULTAVISTA field ($149.373^\circ &lt; \alpha &lt; 150.779^\circ$ and $1.604^\circ &lt; \delta &lt; 2.81^\circ$). From this rectangle, we
+    ULTRAVISTA field ($149.373^\circ &lt; \alpha &lt; 150.779^\circ$ and $1.604^\circ &lt; \delta &lt; 2.81^\circ$). From this rectangle, we
     then remove circles of radii $75^{\prime\prime}$ around bright stars (i.e. those bright than 10$^\mathrm{th}$ and
     $8^\mathrm{th}$ magnitudes in the USNO and 2MASS star lists respectively) and radii $30^{\prime\prime}$ around medium stars
     (i.e. those bright than $13^\mathrm{th}$ and $10.5^\mathrm{th}$ magnitudes in the USNO and 2MASS star lists
@@ -178,7 +178,7 @@ contains
 
   subroutine muzzin2013ULTRAVISTADestructor(self)
     !!{
-    Destructor for the ``muzzin2013ULTRAVISTA'' survey geometry class.
+    Destructor for the \refClass{surveyGeometryMuzzin2013ULTRAVISTA} survey geometry class.
     !!}
     implicit none
     type(surveyGeometryMuzzin2013ULTRAVISTA), intent(inout) :: self

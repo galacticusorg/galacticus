@@ -46,7 +46,7 @@
 
   interface taskVelocityField
      !!{
-     Constructors for the {\normalfont \ttfamily velocityField} task.
+     Constructors for the \refClass{taskVelocityField} task.
      !!}
      module procedure velocityFieldConstructorParameters
      module procedure velocityFieldConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function velocityFieldConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily velocityField} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskVelocityField} task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -113,7 +113,7 @@ contains
 
   function velocityFieldConstructorInternal(massMinimum,massMaximum,pointsPerDecade,outputGroup,cosmologyFunctions_,cosmologicalVelocityField_,darkMatterHaloScale_,outputTimes_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily velocityField} task class.
+    Internal constructor for the \refClass{taskVelocityField} task class.
     !!}
     implicit none
     type            (taskVelocityField             )                        :: self
@@ -133,7 +133,7 @@ contains
 
   subroutine velocityFieldDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily velocityField} task class.
+    Destructor for the \refClass{taskVelocityField} task class.
     !!}
     implicit none
     type(taskVelocityField), intent(inout) :: self

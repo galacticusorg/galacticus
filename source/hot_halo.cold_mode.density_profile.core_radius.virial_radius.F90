@@ -43,7 +43,7 @@ radius.
 
   interface hotHaloColdModeCoreRadiiVirialFraction
      !!{
-     Constructors for the {\normalfont \ttfamily virialRadiusFraction} hot halo mass distribution core radius class.
+     Constructors for the \refClass{hotHaloColdModeCoreRadiiVirialFraction} hot halo mass distribution core radius class.
      !!}
      module procedure virialRadiusFractionConstructorParameters
      module procedure virialRadiusFractionConstructorInternal
@@ -97,7 +97,7 @@ contains
 
   subroutine virialRadiusFractionDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily virialRadiusFraction} cold mode hot halo mass distribution core radius class.
+    Destructor for the \refClass{hotHaloColdModeCoreRadiiVirialFraction} cold mode hot halo mass distribution core radius class.
     !!}
     implicit none
     type(hotHaloColdModeCoreRadiiVirialFraction), intent(inout) :: self

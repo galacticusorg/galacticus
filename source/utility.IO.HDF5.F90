@@ -87,6 +87,7 @@ module IO_HDF5
      logical                          :: isOverwritable
      logical                          :: readOnly
      integer(kind=HID_T    )          :: objectID
+     type   (varying_string)          :: objectFile
      type   (varying_string)          :: objectLocation
      type   (varying_string)          :: objectName
      integer                          :: hdf5ObjectType
@@ -130,6 +131,7 @@ module IO_HDF5
        <method description="Return a report on the location of an object suitable for inclusion in an error message." method="locationReport" />
        <method description="Open an HDF5 file and return an appropriate HDF5 object." method="openFile" />
        <method description="Open an HDF5 group and return an appropriate HDF5 object." method="openGroup" />
+       <method description="Open all HDF5 groups along a path and return the appropriate HDF5 objects." method="openGroupPath" />
        <method description="Open an HDF5 dataset." method="openDataset" />
        <method description="Open an HDF5 attribute." method="openAttribute" />
        <method description="Copy an HDF5 object." method="copy" />
@@ -144,6 +146,7 @@ module IO_HDF5
      procedure :: locationReport                          =>IO_HDF5_Location_Report
      procedure :: openFile                                =>IO_HDF5_Open_File
      procedure :: openGroup                               =>IO_HDF5_Open_Group
+     procedure :: openGroupPath                           =>IO_HDF5_Open_Group_Path
      procedure :: openDataset                             =>IO_HDF5_Open_Dataset
      procedure :: openAttribute                           =>IO_HDF5_Open_Attribute
      procedure :: close                                   =>IO_HDF5_Close
@@ -327,34 +330,44 @@ module IO_HDF5
   end type hdf5Object
 
   type :: hdf5VarDouble
-     !% Type used for internal storage of variable-length double datasets.
+     !!{
+     Type used for internal storage of variable-length double datasets.
+     !!}
      double precision, dimension(:), pointer :: row => null()
    contains
      final :: hdf5VarDoubleDestructor
   end type hdf5VarDouble
 
   type :: hdf5VarDouble2D
-     !% Type used for internal storage of variable-length 2D double datasets.
+     !!{
+     Type used for internal storage of variable-length 2D double datasets.
+     !!}
      double precision, dimension(:,:), pointer :: row => null()
    contains
      final :: hdf5VarDouble2DDestructor
   end type hdf5VarDouble2D
 
   type :: hdf5VarInteger8
-     !% Type used for internal storage of variable-length integer-8 datasets.
+     !!{
+     Type used for internal storage of variable-length integer-8 datasets.
+     !!}
      integer(kind_int8), dimension(:), pointer :: row => null()
    contains
      final :: hdf5VarInteger8Destructor
   end type hdf5VarInteger8
   
   type, bind(C) :: hdf5VlenC
-     !% Type used for C-compatible internal storage of variable-length datasets.
+     !!{
+     Type used for C-compatible internal storage of variable-length datasets.
+     !!}
      integer(c_size_t) :: length
      type   (c_ptr   ) :: p
   end type hdf5VlenC
   
   type :: hdf5VlenVlenC
-     !% Type used for C-compatible internal storage of fractal variable-length datasets.
+     !!{
+     Type used for C-compatible internal storage of fractal variable-length datasets.
+     !!}
      type(hdf5VlenC), allocatable, dimension(:) :: row
   end type hdf5VlenVlenC
   
@@ -621,6 +634,7 @@ contains
     implicit none
     class(hdf5Object), intent(inout) :: self
 
+    call self%objectFile    %destroy()
     call self%objectLocation%destroy()
     call self%objectName    %destroy()
     return
@@ -660,16 +674,26 @@ contains
     return
   end function IO_HDF5_Name
 
-  function IO_HDF5_Path_To(self) result (pathToObject)
+  function IO_HDF5_Path_To(self,includeFileName) result (pathToObject)
     !!{
     Returns the path to {\normalfont \ttfamily self}.
     !!}
-    use :: ISO_Varying_String, only : operator(//)
+    use :: ISO_Varying_String, only : operator(//), assignment(=), operator(/=)
     implicit none
-    class(hdf5Object    ), intent(in   ) :: self
-    type (varying_string)                :: pathToObject
+    class  (hdf5Object    ), intent(in   )           :: self
+    logical                , intent(in   ), optional :: includeFileName
+    type   (varying_string)                          :: pathToObject
+    !![
+    <optionalArgument name="includeFileName" defaultsTo=".true." />
+    !!]
 
-    pathToObject=self%objectLocation//"/"//self%objectName
+    if (includeFileName_) then
+       pathToObject=self%objectFile//"/"
+    else
+       pathToObject=""
+    end if
+    if (self%objectLocation /= "/") pathToObject=pathToObject//self%objectLocation//"/"
+    pathToObject=pathToObject//self%objectName
     return
   end function IO_HDF5_Path_To
 
@@ -1027,12 +1051,12 @@ contains
     !!}
     use :: File_Utilities    , only : File_Exists
     use :: Error             , only : Error_Report
-    use :: HDF5              , only : H5F_ACC_RDONLY_F     , H5F_ACC_RDWR_F        , H5F_ACC_TRUNC_F       , H5F_CLOSE_SEMI_F       , &
-          &                           H5F_LIBVER_EARLIEST_F, H5F_LIBVER_LATEST_F   , H5P_FILE_ACCESS_F     , h5fcreate_f            , &
-          &                           h5fopen_f            , h5pclose_f            , h5pcreate_f           , h5pset_cache_f         , &
-          &                           h5pset_fapl_stdio_f  , h5pset_fclose_degree_f, h5pset_libver_bounds_f, h5pset_sieve_buf_size_f, &
-          &                           hid_t                , hsize_t               , size_t
-    use :: ISO_Varying_String, only : assignment(=)        , len                   , operator(//)
+    use :: HDF5              , only : H5F_ACC_RDONLY_F   , H5F_ACC_RDWR_F        , H5F_ACC_TRUNC_F       , H5F_CLOSE_SEMI_F       , &
+          &                           H5F_LIBVER_V18_F   , H5F_LIBVER_LATEST_F   , H5P_FILE_ACCESS_F     , h5fcreate_f            , &
+          &                           h5fopen_f          , h5pclose_f            , h5pcreate_f           , h5pset_cache_f         , &
+          &                           h5pset_fapl_stdio_f, h5pset_fclose_degree_f, h5pset_libver_bounds_f, h5pset_sieve_buf_size_f, &
+          &                           hid_t              , hsize_t               , size_t
+    use :: ISO_Varying_String, only : assignment(=)      , len                   , operator(//)
     implicit none
     class    (hdf5Object    ), intent(inout)           :: fileObject
     character(len=*         ), intent(in   ), optional :: fileName
@@ -1050,10 +1074,10 @@ contains
     call IO_HDF5_Initialize
 
     ! Store the location and name of this object.
-    fileObject%objectLocation=""
     if (present(fileName)) then
-       fileObject%objectLocation="."
-       fileObject%objectName    =trim(fileName)
+       fileObject%objectFile    =trim(fileName)
+       fileObject%objectLocation=""
+       fileObject%objectName    =""
     else
        if (len(fileObject%objectName) == 0) call Error_Report('object has no predefined file name'//{introspection:location})
     end if
@@ -1093,14 +1117,16 @@ contains
     ! Set file format.
     if (present(useLatestFormat)) then
        if (useLatestFormat) then
-          call h5pset_libver_bounds_f(accessList,H5F_LIBVER_LATEST_F  ,H5F_LIBVER_LATEST_F,errorCode)
+          call h5pset_libver_bounds_f(accessList,H5F_LIBVER_LATEST_F,H5F_LIBVER_LATEST_F,errorCode)
        else
-          call h5pset_libver_bounds_f(accessList,H5F_LIBVER_EARLIEST_F,H5F_LIBVER_LATEST_F,errorCode)
+          call h5pset_libver_bounds_f(accessList,H5F_LIBVER_V18_F   ,H5F_LIBVER_LATEST_F,errorCode)
        end if
-       if (errorCode /= 0) then
-          message="failed to set file format for HDF5 file '"//fileObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
-       end if
+    else
+       call    h5pset_libver_bounds_f(accessList,H5F_LIBVER_V18_F   ,H5F_LIBVER_LATEST_F,errorCode)
+    end if
+    if (errorCode /= 0) then
+       message="failed to set file format for HDF5 file '"//fileObject%objectName//"'"
+       call Error_Report(message//{introspection:location})
     end if
     if (present(cacheElementsCount).or.present(cacheSizeBytes)) then
        if (.not.(present(cacheElementsCount).and.present(cacheSizeBytes))) call Error_Report('both or neither of "cacheElementsCount" and "cacheSizeBytes" must be specified'//{introspection:location})
@@ -1138,7 +1164,7 @@ contains
        ! Attempt to create the file.
        call h5fcreate_f(fileName,H5F_ACC_TRUNC_F,fileObject%objectID,errorCode,access_prp=accessList)
        if (errorCode /= 0) then
-          message="failed to create HDF5 file '"//fileObject%objectName//"'"
+          message="failed to create HDF5 file '"//fileObject%objectFile//"'"
           call Error_Report(message//{introspection:location})
        end if
     end if
@@ -1186,14 +1212,42 @@ contains
 
   !! Group routines.
 
-  function IO_HDF5_Open_Group(inObject,groupName,comment,objectsOverwritable,overwriteOverride,chunkSize,compressionLevel) result (groupObject)
+  function IO_HDF5_Open_Group_Path(inObject,groupPath) result (groupObjects)
+    !!{
+    Open all HDF5 groups in the given path and return objects for all of them.
+    !!}
+    use :: String_Handling   , only : String_Split_Words, String_Count_Words
+    use :: ISO_Varying_String, only : char
+    implicit none
+    type     (hdf5Object    ), allocatable  , dimension(:) :: groupObjects
+    class    (hdf5Object    ), intent(in   ), target       :: inObject
+    character(len=*         ), intent(in   )               :: groupPath
+    type     (varying_string), allocatable  , dimension(:) :: groupNames
+    integer                                                :: i           , countGroups
+
+    countGroups=String_Count_Words(groupPath,"/")
+    allocate(groupNames  (countGroups))
+    allocate(groupObjects(countGroups))
+    call String_Split_Words(groupNames,groupPath,"/")
+    do i=1,size(groupNames)
+       if (i == 1) then
+          groupObjects(i)=inObject         %openGroup(char(groupNames(i)))
+       else
+          groupObjects(i)=groupObjects(i-1)%openGroup(char(groupNames(i)))
+       end if
+    end do
+    return
+  end function IO_HDF5_Open_Group_Path
+
+  function IO_HDF5_Open_Group(inObject,groupName,comment,objectsOverwritable,overwriteOverride,chunkSize,compressionLevel,attributesCompactMaxiumum) result (groupObject)
     !!{
     Open an HDF5 group and return an appropriate HDF5 object. The group name can be provided as an input parameter or, if
     not provided, will be taken from the stored object name in {\normalfont \ttfamily groupObject}. The location at which to open the group is
     taken from either {\normalfont \ttfamily inObject} or {\normalfont \ttfamily inPath}.
     !!}
     use :: Error             , only : Error_Report
-    use :: HDF5              , only : HID_T        , h5gcreate_f , h5gopen_f, hsize_t
+    use :: HDF5              , only : HID_T        , h5gcreate_f               , h5gopen_f , hsize_t            , &
+         &                            h5pcreate_f  , h5pset_attr_phase_change_f, h5pclose_f, H5P_GROUP_CREATE_F
     use :: ISO_Varying_String, only : assignment(=), operator(//)
     implicit none
     type     (hdf5Object    )                          :: groupObject
@@ -1201,7 +1255,7 @@ contains
     character(len=*         ), intent(in   ), optional :: comment
     logical                  , intent(in   ), optional :: objectsOverwritable, overwriteOverride
     integer  (hsize_t       ), intent(in   ), optional :: chunkSize
-    integer                  , intent(in   ), optional :: compressionLevel
+    integer                  , intent(in   ), optional :: compressionLevel   , attributesCompactMaxiumum
     class    (hdf5Object    ), intent(in   ), target   :: inObject
     ! <HDF5> Why are "message" and "locationPath" saved? Because if they are not then they get dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
@@ -1209,7 +1263,7 @@ contains
     ! deallocated. This is not an elegant solution, but it works.
     type     (varying_string), save                    :: locationPath       , message
     integer                                            :: errorCode
-    integer  (kind=HID_T    )                          :: locationID
+    integer  (kind=HID_T    )                          :: locationID         , propertyList
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -1238,10 +1292,31 @@ contains
        end if
     else
        ! Create a group.
-       call h5gcreate_f(locationID,trim(groupName),groupObject%objectID,errorCode)
+       call h5pcreate_f(H5P_GROUP_CREATE_F,propertyList,errorCode)
+       if (errorCode < 0) then
+          message="unable to create property list for group '"//trim(groupName)//"'"
+          call Error_Report(message//groupObject%locationReport()//{introspection:location})
+       end if
+       ! Set the number of attributes allowed in compact
+       ! storage. (Setting this to zero will force dense storage for
+       ! all attributes, which enable storing of attributes with
+       ! length exceeding 64KB.)
+       if (present(attributesCompactMaxiumum)) then
+          call h5pset_attr_phase_change_f(propertyList,attributesCompactMaxiumum,attributesCompactMaxiumum,errorCode)
+          if (errorCode /= 0) then
+             message="failed to set attribute phase change for group '"//trim(groupName)
+             call Error_Report(message//groupObject%locationReport()//{introspection:location})
+          end if
+       end if
+       call h5gcreate_f(locationID,trim(groupName),groupObject%objectID,errorCode,gcpl_id=propertyList)
        if (errorCode < 0) then
           message="failed to make group '"//trim(groupName)//"' at "//locationPath
           call Error_Report(message//inObject%locationReport()//{introspection:location})
+       end if
+       call h5pclose_f(propertyList,errorCode)
+       if (errorCode /= 0) then
+          message="failed to close property list for group '"//trim(groupName)//"'"
+          call Error_Report(message//groupObject%locationReport()//{introspection:location})
        end if
     end if
 
@@ -1252,8 +1327,9 @@ contains
     groupObject%hdf5ObjectType=hdf5ObjectTypeGroup
 
     ! Store the name and location of the object.
-    groupObject%objectName=trim(groupName)
-    groupObject%objectLocation=groupObject%parentObject%pathTo()
+    groupObject%objectFile    =groupObject%parentObject%objectFile
+    groupObject%objectLocation=groupObject%parentObject%pathTo    (includeFileName=.false.)
+    groupObject%objectName    =trim(groupName)
 
     ! Set the chunk size if provided.
     if (present(chunkSize)) then
@@ -1373,11 +1449,11 @@ contains
     ! Ensure that the object is already open.
     if (inObject%isOpenValue) then
        locationID  =inObject%objectID
-       locationPath=inObject%objectLocation//"/"//inObject%objectName
+       locationPath=inObject%objectFile//"/"//inObject%objectLocation//"/"//inObject%objectName
        select type (inObject)
        type is (hdf5Object)
-       attributeObject%parentObject => inObject
-    end select
+          attributeObject%parentObject => inObject
+       end select
     else
        message="attempt to open attribute '"//trim(attributeName)//"' in unopen object '"//inObject%objectName//"'"
        call Error_Report(message//inObject%locationReport()//{introspection:location})
@@ -1459,8 +1535,9 @@ contains
     attributeObject%hdf5ObjectType=hdf5ObjectTypeAttribute
 
     ! Store the name and location of the object.
-    attributeObject%objectName=trim(attributeName)
-    attributeObject%objectLocation=attributeObject%parentObject%pathTo()
+    attributeObject%objectFile    =attributeObject%parentObject%objectFile
+    attributeObject%objectLocation=attributeObject%parentObject%pathTo    (includeFileName=.false.)
+    attributeObject%objectName    =trim(attributeName)
 
     ! Mark whether attribute is overwritable.
     if (present(isOverwritable)) then
@@ -4289,21 +4366,23 @@ attributeValue=trim(attributeValue)
     character(len=*         )              , intent(in   )           :: datasetName
     character(len=*         )              , intent(in   ), optional :: comment
     integer  (hsize_t       )              , intent(in   ), optional :: chunkSize
-    integer                                , intent(in   ), optional :: compressionLevel        , datasetDataType, &
+    integer                                , intent(in   ), optional :: compressionLevel                           , datasetDataType, &
          &                                                              appendDimension
     integer  (kind=HSIZE_T  ), dimension(:), intent(in   ), optional :: datasetDimensions
-    logical                                , intent(in   ), optional :: appendTo                , isOverwritable
+    logical                                , intent(in   ), optional :: appendTo                                   , isOverwritable
     integer  (kind=HID_T    )              , intent(in   ), optional :: useDataType
     class    (hdf5Object    )              , intent(in   ), target   :: inObject
-    integer  (kind=HSIZE_T  ), dimension(7)                          :: chunkDimensions         , datasetDimensionsActual, &
+    integer  (kind=HSIZE_T  ), parameter                             :: chunkSizeMaximum        =4294967296_hsize_t ! Maximum chunk size of 4GB (see https://support.hdfgroup.org/documentation/hdf5-docs/advanced_topics/chunking_in_hdf5.html).
+    integer  (kind=HSIZE_T  ), dimension(7)                          :: chunkDimensions                            , datasetDimensionsActual, &
          &                                                              datasetDimensionsMaximum
     integer  (kind=HSIZE_T  )                                        :: chunkSizeActual
-    integer                                                          :: compressionLevelActual  , datasetRank            , &
-         &                                                              errorCode               , appendDimensionActual
-    integer  (kind=HID_T    )                                        :: dataSpaceID             , dataTypeID             , &
-         &                                                              locationID              , propertyList
+    integer                                                          :: compressionLevelActual                     , datasetRank            , &
+         &                                                              errorCode                                  , appendDimensionActual  , &
+         &                                                              iDimension
+    integer  (kind=HID_T    )                                        :: dataSpaceID                                , dataTypeID             , &
+         &                                                              locationID                                 , propertyList
     logical                                                          :: appendToActual
-    type     (varying_string)                                        :: locationPath            , message
+    type     (varying_string)                                        :: locationPath                               , message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -4311,11 +4390,11 @@ attributeValue=trim(attributeValue)
     ! Ensure that the object is already open.
     if (inObject%isOpenValue) then
        locationID  =inObject%objectID
-       locationPath=inObject%objectLocation//"/"//inObject%objectName
+       locationPath=inObject%objectFile//"/"//inObject%objectLocation//"/"//inObject%objectName
        select type (inObject)
        type is (hdf5Object)
-       datasetObject%parentObject => inObject
-    end select
+          datasetObject%parentObject => inObject
+       end select
     else
        message="attempt to open dataset '"//trim(datasetName)//"' in unopen object '"//inObject%objectName//"'"
        call Error_Report(message//inObject%locationReport()//{introspection:location})
@@ -4348,8 +4427,9 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Store the name and location of the object.
+    datasetObject%objectFile    =datasetObject%parentObject%objectFile
+    datasetObject%objectLocation=datasetObject%parentObject%pathTo    (includeFileName=.false.)
     datasetObject%objectName    =trim(datasetName)
-    datasetObject%objectLocation=datasetObject%parentObject%pathTo()
 
     ! Check if the dataset exists.
     if (inObject%hasDataset(datasetName)) then
@@ -4451,6 +4531,13 @@ attributeValue=trim(attributeValue)
              ! Fixed dimension array, use smaller of chunk size and actual size.
              chunkDimensions(1:datasetRank)=min(datasetDimensionsActual(1:datasetRank),chunkSizeActual)
           end if
+          ! Reduce chunk size if needed to fit within HDF5's maximum chunk size.
+          iDimension=0
+          do while (product(chunkDimensions(1:datasetRank))*sizeof(0.0d0) > chunkSizeMaximum)
+             iDimension=iDimension+1
+             if (iDimension > datasetRank) iDimension=1
+             chunkDimensions(iDimension)=max(1_hsize_t,chunkDimensions(iDimension)/2_hsize_t)
+          end do
           call h5pset_chunk_f(propertyList,datasetRank,chunkDimensions,errorCode)
           if (errorCode < 0) then
              message="unable to set chunk size for dataset '"//trim(datasetName)//"'"
@@ -18236,7 +18323,7 @@ attributeValue=trim(attributeValue)
        case (hdf5ObjectTypeFile     )
           !![
           <conditionalCall>
-           <call>call destination                  %openFile     (char(self%objectName),overWrite=.false.,readOnly=self%readOnly,objectsOverwritable=self%isOverwritable{conditions})</call>
+           <call>call destination                  %openFile     (char(self%objectFile),overWrite=.false.,readOnly=self%readOnly,objectsOverwritable=self%isOverwritable{conditions})</call>
            <argument name="compressionLevel" value="self%compressionLevel" condition="self%compressionLevelSet"/>
            <argument name="chunkSize"        value="self%chunkSize"        condition="self%chunkSizeSet"/>
           </conditionalCall>

@@ -45,7 +45,7 @@
 
   interface posteriorSampleConvergenceLikelihoodThreshold
      !!{
-     Constructors for the {\normalfont \ttfamily likelihoodThreshold} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleConvergenceLikelihoodThreshold} posterior sampling convergence class.
      !!}
      module procedure likelihoodThresholdConstructorParameters
      module procedure likelihoodThresholdConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function likelihoodThresholdConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily likelihoodThreshold} posterior sampling convergence class which builds the object from a parameter set.
+    Constructor for the \refClass{posteriorSampleConvergenceLikelihoodThreshold} posterior sampling convergence class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -80,7 +80,7 @@ contains
 
   function likelihoodThresholdConstructorInternal(likelihoodThreshold) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily likelihoodThreshold} posterior sampling convergence class.
+    Internal constructor for the \refClass{posteriorSampleConvergenceLikelihoodThreshold} posterior sampling convergence class.
     !!}
     use :: MPI_Utilities    , only : mpiSelf
     implicit none

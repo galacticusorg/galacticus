@@ -38,7 +38,7 @@
 
   interface starFormationRateDisksFixed
      !!{
-     Constructors for the {\normalfont \ttfamily fixed} star formation rate in disks class.
+     Constructors for the \refClass{starFormationRateDisksFixed} star formation rate in disks class.
      !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
@@ -48,7 +48,7 @@ contains
 
   function fixedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily fixed} star formation rate in disks class which takes a
+    Constructor for the \refClass{starFormationRateDisksFixed} star formation rate in disks class which takes a
     parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -74,7 +74,7 @@ contains
 
   function fixedConstructorInternal(rateStarFormation) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily fixed} star formation rate in disks class.
+    Internal constructor for the \refClass{starFormationRateDisksFixed} star formation rate in disks class.
     !!}
     implicit none
     type            (starFormationRateDisksFixed)                :: self

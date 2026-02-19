@@ -34,7 +34,7 @@
 
   interface taskBuildToolAxionCAMB
      !!{
-     Constructors for the {\normalfont \ttfamily buildToolAxionCAMB} task.
+     Constructors for the \refClass{taskBuildToolAxionCAMB} task.
      !!}
      module procedure buildToolAxionCAMBParameters
   end interface taskBuildToolAxionCAMB
@@ -43,7 +43,7 @@ contains
 
   function buildToolAxionCAMBParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily buildToolAxionCAMB} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskBuildToolAxionCAMB} task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

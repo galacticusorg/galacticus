@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a model of the tidal field acting on a satellite assuming spherical symmetry in the host.
+  Implements a model of the tidal field acting on a satellite assuming spherical symmetry in the host.
   !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
@@ -62,7 +62,7 @@ contains
 
   function sphericalSymmetryConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sphericalSymmetry} satellite tidal field class which builds the object from a parameter set.
+    Constructor for the \refClass{satelliteTidalFieldSphericalSymmetry} satellite tidal field class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -90,7 +90,7 @@ contains
 
   function sphericalSymmetryConstructorInternal(factorBoost,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily sphericalSymmetry} satellite tidal field class.
+    Internal constructor for the \refClass{satelliteTidalFieldSphericalSymmetry} satellite tidal field class.
     !!}
     implicit none
     type            (satelliteTidalFieldSphericalSymmetry)                        :: self
@@ -105,7 +105,7 @@ contains
 
   subroutine sphericalSymmetryDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily sphericalSymmetry} satellite tidal field class.
+    Destructor for the \refClass{satelliteTidalFieldSphericalSymmetry} satellite tidal field class.
     !!}
     implicit none
     type(satelliteTidalFieldSphericalSymmetry), intent(inout) :: self
@@ -125,7 +125,7 @@ contains
     use :: Kepler_Orbits                   , only : keplerOrbit
     use :: Mass_Distributions              , only : massDistributionClass
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Satellite_Orbits                , only : Satellite_Orbit_Extremum_Phase_Space_Coordinates, extremumPericenter
     implicit none
     class           (satelliteTidalFieldSphericalSymmetry), intent(inout) :: self
@@ -157,9 +157,9 @@ contains
        <objectDestructor name="massDistribution_"/>
        !!]
        ! Compute the tidal field.
-       sphericalSymmetryTidalTensorRadial=+         gravitationalConstantGalacticus*enclosedMassHost/                 radiusOrbital **3 &
-            &                             -4.0d0*Pi*gravitationalConstantGalacticus*densityHost                                         &
-            &                             +                                                          (velocityOrbital/radiusOrbital)**2
+       sphericalSymmetryTidalTensorRadial=+         gravitationalConstant_internal*enclosedMassHost/                 radiusOrbital **3 &
+            &                             -4.0d0*Pi*gravitationalConstant_internal*densityHost                                         &
+            &                             +                                                         (velocityOrbital/radiusOrbital)**2
        ! Boost the tidal field.
        sphericalSymmetryTidalTensorRadial=+self%factorBoost                   &
             &                             *sphericalSymmetryTidalTensorRadial

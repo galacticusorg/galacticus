@@ -64,7 +64,7 @@
 
   interface mergerTreeOperatorTreeProcessingTimer
      !!{
-     Constructors for the {\normalfont \ttfamily treeProcessingTimer} merger tree operator class.
+     Constructors for the \refClass{mergerTreeOperatorTreeProcessingTimer} merger tree operator class.
      !!}
      module procedure treeProcessingTimerConstructorParameters
      module procedure treeProcessingTimerConstructorInternal
@@ -77,7 +77,7 @@ contains
 
   function treeProcessingTimerConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily treeProcessingTimer} merger tree operator class which takes a parameter set as
+    Constructor for the \refClass{mergerTreeOperatorTreeProcessingTimer} merger tree operator class which takes a parameter set as
     input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -103,7 +103,7 @@ contains
 
   function treeProcessingTimerConstructorInternal(collectMemoryUsageData) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily treeProcessingTimer} merger tree operator class.
+    Internal constructor for the \refClass{mergerTreeOperatorTreeProcessingTimer} merger tree operator class.
     !!}
     implicit none
     type (mergerTreeOperatorTreeProcessingTimer)                :: self
@@ -130,7 +130,7 @@ contains
 
   subroutine treeProcessingTimerDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily treeProcessingTimer} merger tree operator class.
+    Destructor for the \refClass{mergerTreeOperatorTreeProcessingTimer} merger tree operator class.
     !!}
     use :: Events_Hooks, only : postEvolveEvent
     implicit none

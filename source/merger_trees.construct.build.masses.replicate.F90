@@ -47,7 +47,7 @@ contains
 
   function replicateConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily replicate} merger tree masses class which takes a parameter set
+    Constructor for the \refClass{mergerTreeBuildMassesReplicate} merger tree masses class which takes a parameter set
     as input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -75,7 +75,7 @@ contains
 
   function replicateConstructorInternal(replicationCount,mergerTreeBuildMasses_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily replicate} merger tree masses class.
+    Internal constructor for the \refClass{mergerTreeBuildMassesReplicate} merger tree masses class.
     !!}
     implicit none
     type   (mergerTreeBuildMassesReplicate)                        :: self

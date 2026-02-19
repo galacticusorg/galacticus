@@ -41,7 +41,7 @@
 
   interface supernovaeTypeIaPowerLawDTD
      !!{
-     Constructors for the {\normalfont \ttfamily powerLawDTD} supernovae type Ia class.
+     Constructors for the \refClass{supernovaeTypeIaPowerLawDTD} supernovae type Ia class.
      !!}
      module procedure powerLawDTDConstructorParameters
      module procedure powerLawDTDConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function powerLawDTDConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily powerLawDTD} supernovae type Ia class which takes a parameter list as input.
+    Constructor for the \refClass{supernovaeTypeIaPowerLawDTD} supernovae type Ia class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -92,7 +92,7 @@ contains
 
   function powerLawDTDConstructorInternal(timeMinimum,exponent,normalization) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily powerLawDTD} supernovae type Ia class.
+    Internal constructor for the \refClass{supernovaeTypeIaPowerLawDTD} supernovae type Ia class.
     !!}
     implicit none
     type            (supernovaeTypeIaPowerLawDTD)                :: self

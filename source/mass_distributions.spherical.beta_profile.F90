@@ -47,7 +47,7 @@
 
   interface massDistributionBetaProfile
      !!{
-     Constructors for the {\normalfont \ttfamily betaProfile} mass distribution class.
+     Constructors for the \refClass{massDistributionBetaProfile} mass distribution class.
      !!}
      module procedure betaProfileConstructorParameters
      module procedure betaProfileConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function betaProfileConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily betaProfile} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionBetaProfile} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
@@ -143,7 +143,7 @@ contains
 
   function betaProfileConstructorInternal(beta,densityNormalization,mass,outerRadius,coreRadius,dimensionless,truncateAtOuterRadius,componentType,massType) result(self)
     !!{
-    Constructor for ``betaProfile'' convergence class.
+    Constructor for the \refClass{massDistributionBetaProfile} convergence class.
     !!}
     use :: Display                 , only : displayIndent      , displayMessage, displayUnindent, displayVerbosity, &
           &                                 verbosityLevelDebug
@@ -398,7 +398,7 @@ contains
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
     use :: Hypergeometric_Functions        , only : Hypergeometric_2F1
     use :: Numerical_Comparison            , only : Values_Agree
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Numerical_Constants_Math        , only : Pi
     implicit none
     class           (massDistributionBetaProfile      ), intent(inout), target   :: self
@@ -481,10 +481,10 @@ contains
                &  )
        end if
     end if
-    if (.not.self%isDimensionless())          &
-         & betaProfilePotential=              &
-         &   betaProfilePotential             &
-         &   *gravitationalConstantGalacticus
+    if (.not.self%isDimensionless())         &
+         & betaProfilePotential=             &
+         &   betaProfilePotential            &
+         &   *gravitationalConstant_internal
     return
   end function betaProfilePotential
 

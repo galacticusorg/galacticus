@@ -44,7 +44,7 @@
 
   interface darkMatterProfileDMOMultiple
      !!{
-     Constructors for the {\normalfont \ttfamily multiple} dark matter halo profile class.
+     Constructors for the \refClass{darkMatterProfileDMOMultiple} dark matter halo profile class.
      !!}
      module procedure multipleConstructorParameters
      module procedure multipleConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function multipleConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily multiple} dark matter halo profile class which takes a parameter set as input.
+    Constructor for the \refClass{darkMatterProfileDMOMultiple} dark matter halo profile class which takes a parameter set as input.
     !!}
     implicit none
     type   (darkMatterProfileDMOMultiple)                :: self
@@ -76,7 +76,7 @@ contains
 
   function multipleConstructorInternal(darkMatterProfileDMOHost_,darkMatterProfileDMOSatellite_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily multiple} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOMultiple} dark matter profile class.
     !!}
     implicit none
     type            (darkMatterProfileDMOMultiple)                        :: self
@@ -90,7 +90,7 @@ contains
 
   subroutine multipleDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily multiple} dark matter halo profile class.
+    Destructor for the \refClass{darkMatterProfileDMOMultiple} dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOMultiple), intent(inout) :: self

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a color distribution output analysis class for SDSS data.
+Implements a color distribution output analysis class for SDSS data.
 !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
@@ -41,7 +41,7 @@ Contains a module which implements a color distribution output analysis class fo
 
   interface outputAnalysisColorDistributionSDSS
      !!{
-     Constructors for the ``colorDistributionSDSS'' output analysis class.
+     Constructors for the \refClass{outputAnalysisColorDistributionSDSS} output analysis class.
      !!}
      module procedure colorDistributionSDSSConstructorParameters
      module procedure colorDistributionSDSSConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function colorDistributionSDSSConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``colorDistributionSDSS'' output analysis class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisColorDistributionSDSS} output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -81,7 +81,7 @@ contains
 
   function colorDistributionSDSSConstructorInternal(distributionNumber,cosmologyFunctions_,outputTimes_) result(self)
     !!{
-    Internal constructor for the ``colorDistributionSDSS'' output analysis class.
+    Internal constructor for the \refClass{outputAnalysisColorDistributionSDSS} output analysis class.
     !!}
     use :: Cosmology_Functions                     , only : cosmologyFunctionsClass                           , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                    , only : cosmologyParametersSimple
@@ -334,7 +334,7 @@ contains
 
   subroutine colorDistributionSDSSDestructor(self)
     !!{
-    Destructor for the ``colorDistributionSDSS'' output analysis class.
+    Destructor for the \refClass{outputAnalysisColorDistributionSDSS} output analysis class.
     !!}
     implicit none
     type(outputAnalysisColorDistributionSDSS), intent(inout) :: self

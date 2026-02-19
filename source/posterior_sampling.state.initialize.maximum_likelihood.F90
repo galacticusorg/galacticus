@@ -45,7 +45,7 @@
 
   interface posteriorSampleStateInitializeMaximumLikelihood
      !!{
-     Constructors for the {\normalfont \ttfamily maximumLikelihood} posterior sampling state initialization class.
+     Constructors for the \refClass{posteriorSampleStateInitializeMaximumLikelihood} posterior sampling state initialization class.
      !!}
      module procedure maximumLikelihoodConstructorParameters
      module procedure maximumLikelihoodConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function maximumLikelihoodConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily maximumLikelihood} posterior sampling state initialization class.
+    Constructor for the \refClass{posteriorSampleStateInitializeMaximumLikelihood} posterior sampling state initialization class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,7 +79,7 @@ contains
 
   function maximumLikelihoodConstructorInternal(logFileRoot) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily maximumLikelihood} posterior sampling state initialization class.
+    Constructor for the \refClass{posteriorSampleStateInitializeMaximumLikelihood} posterior sampling state initialization class.
     !!}
     implicit none
     type(posteriorSampleStateInitializeMaximumLikelihood)                :: self

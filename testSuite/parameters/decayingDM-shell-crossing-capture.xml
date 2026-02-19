@@ -2,7 +2,7 @@
 <!-- Test for shell-crossing capture in decaying dark matter models -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
+  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
 
   <verbosityLevel value="working"/>
 

@@ -31,6 +31,7 @@ typedef struct
   double a_y;
   double a_dydt;
   double *scale_abs;
+  int    *is_non_negative;
 }
 sc2_control_state_t;
 
@@ -101,12 +102,14 @@ sc2_control_hadjust (void *vstate, size_t dim, unsigned int ord,
   const double a_y = state->a_y;
   const double a_dydt = state->a_dydt;
   const double *scale_abs = state->scale_abs;
+  const int    *is_non_negative = state->is_non_negative;
 
   const double S = 0.9;
   const double h_old = *h;
 
   double rmax = DBL_MIN;
   size_t i;
+  int forbiddenNegatives = 0;
 
   for (i = 0; i < dim; i++)
     {
@@ -115,6 +118,10 @@ sc2_control_hadjust (void *vstate, size_t dim, unsigned int ord,
         + eps_abs * scale_abs[i];
       const double r = fabs (yerr[i]) / fabs (D0);
       rmax = GSL_MAX_DBL (r, rmax);
+      /* Record if we have negative values for any properties that must be non-negative. */
+      if (is_non_negative[i] && y[i] < 0.0) {
+	forbiddenNegatives = 1;
+      }
     }
 
   if (rmax > 1.1)
@@ -125,8 +132,15 @@ sc2_control_hadjust (void *vstate, size_t dim, unsigned int ord,
 
       if (r < 0.2)
         r = 0.2;
-
+      
       *h = r * h_old;
+
+      return GSL_ODEIV_HADJ_DEC;
+    }
+  else if (forbiddenNegatives == 1)
+    {
+      /* We have negative values for properties that must be non-negative - reduced the step size by a factor 2. */
+      *h = 0.5 * h_old;
 
       return GSL_ODEIV_HADJ_DEC;
     }
@@ -183,6 +197,7 @@ sc2_control_free (void *vstate)
 {
   sc2_control_state_t *state = (sc2_control_state_t *) vstate;
   free (state->scale_abs);
+  free (state->is_non_negative);
   free (state);
 }
 
@@ -201,7 +216,7 @@ const gsl_odeiv2_control_type *gsl_odeiv2_control_scaled2 = &sc2_control_type;
 gsl_odeiv2_control *
 gsl_odeiv2_control_scaled2_new (double eps_abs, double eps_rel,
                                double a_y, double a_dydt,
-                               const double scale_abs[], size_t dim)
+				const double scale_abs[], const int is_non_negative[], size_t dim)
 {
   gsl_odeiv2_control *c =
     gsl_odeiv2_control_alloc (gsl_odeiv2_control_scaled2);
@@ -226,7 +241,17 @@ gsl_odeiv2_control_scaled2_new (double eps_abs, double eps_rel,
       }
 
     memcpy (s->scale_abs, scale_abs, dim * sizeof (double));
-  }
+
+    s->is_non_negative = (int *) malloc (dim * sizeof (int));
+
+    if (s->is_non_negative == 0)
+      {
+        free (s);
+        GSL_ERROR_NULL ("failed to allocate space for is_non_negative", GSL_ENOMEM);
+      }
+
+    memcpy (s->is_non_negative, is_non_negative, dim * sizeof (int));
+}
 
   return c;
 }

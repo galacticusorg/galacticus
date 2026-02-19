@@ -18,17 +18,52 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which handles setting of error wait times.
+Contains a module which provides error handling utilities.
 !!}
 
-module Error_Wait
+module Error_Utilities
   !!{
-  Handle setting of error wait times.
+  Provides error handling utilities.
   !!}
   implicit none
   private
   public :: Error_Wait_Set_From_Parameters
 
+  ! Enumeration of signal numbers.
+  !![
+  <enumeration>
+    <name>signal</name>
+    <description>Enumeration of UNIX signal numbers.</description>
+    <decodeFunction>yes</decodeFunction>
+    <visibility>public</visibility>
+    <indexing>1</indexing>
+    <entry label="SIGHUP"   /> <!--  1 -->
+    <entry label="SIGINT"   /> <!--  2 -->
+    <entry label="SIGQUIT"  /> <!--  3 -->
+    <entry label="SIGILL"   /> <!--  4 -->
+    <entry label="SIGTRAP"  /> <!--  5 -->
+    <entry label="SIGABRT"  /> <!--  6 -->
+    <entry label="SIGBUS"   /> <!--  7 -->
+    <entry label="SIGFPE"   /> <!--  8 -->
+    <entry label="SIGKILL"  /> <!--  9 -->
+    <entry label="SIGUSR1"  /> <!-- 10 -->
+    <entry label="SIGSEGV"  /> <!-- 11 -->
+    <entry label="SIGUSR2"  /> <!-- 12 -->
+    <entry label="SIGPIPE"  /> <!-- 13 -->
+    <entry label="SIGALRM"  /> <!-- 14 -->
+    <entry label="SIGTERM"  /> <!-- 15 -->
+    <entry label="SIGSTKFLT"/> <!-- 16 -->
+    <entry label="SIGCHLD"  /> <!-- 17 -->
+    <entry label="SIGCONT"  /> <!-- 18 -->
+    <entry label="SIGSTOP"  /> <!-- 19 -->
+    <entry label="SIGTSTP"  /> <!-- 20 -->
+    <entry label="SIGTTIN"  /> <!-- 21 -->
+    <entry label="SIGTTOU"  /> <!-- 22 -->
+    <entry label="SIGURG"   /> <!-- 23 -->
+    <entry label="SIGXCPU"  /> <!-- 24 -->
+  </enumeration>
+  !!]
+  
 contains
 
   subroutine Error_Wait_Set_From_Parameters(parameters)
@@ -41,11 +76,10 @@ contains
     type   (inputParameters), intent(inout) :: parameters
     integer                                 :: errorWaitTime
 
-    ! Get the verbosity level parameter.
     !![
     <inputParameter>
       <name>errorWaitTime</name>
-      <defaultValue>86400</defaultValue>
+      <defaultValue>0</defaultValue>
       <description>The time, in seconds, for which \glc\ should sleep after a fatal error when running under MPI.</description>
       <source>parameters</source>
     </inputParameter>
@@ -54,4 +88,4 @@ contains
     return
   end subroutine Error_Wait_Set_From_Parameters
 
-end module Error_Wait
+end module Error_Utilities

@@ -51,7 +51,7 @@
 
   interface darkMatterProfileDMOHeated
      !!{
-     Constructors for the {\normalfont \ttfamily heated} dark matter halo profile class.
+     Constructors for the \refClass{darkMatterProfileDMOHeated} dark matter halo profile class.
      !!}
      module procedure heatedConstructorParameters
      module procedure heatedConstructorInternal
@@ -158,7 +158,7 @@ contains
 
   function heatedConstructorInternal(nonAnalyticSolver,velocityDispersionApproximate,tolerateEnclosedMassIntegrationFailure,tolerateVelocityDispersionFailure,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,fractionRadiusFinalSmall,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential,darkMatterProfileDMO_,darkMatterProfileHeating_) result(self)
     !!{
-    Generic constructor for the {\normalfont \ttfamily heated} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOHeated} dark matter profile class.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversIsValid
     use :: Error             , only : Error_Report
@@ -184,7 +184,7 @@ contains
 
   subroutine heatedDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily heated} dark matter halo profile class.
+    Destructor for the \refClass{darkMatterProfileDMOHeated} dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOHeated), intent(inout) :: self

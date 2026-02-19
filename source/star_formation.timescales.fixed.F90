@@ -40,7 +40,7 @@
 
   interface starFormationTimescaleFixed
      !!{
-     Constructors for the {\normalfont \ttfamily fixed} timescale for star formation.
+     Constructors for the \refClass{starFormationTimescaleFixed} timescale for star formation.
      !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function fixedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily fixed} timescale for star formation class which takes a parameter set as input.
+    Constructor for the \refClass{starFormationTimescaleFixed} timescale for star formation class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,7 +75,7 @@ contains
 
   function fixedConstructorInternal(timescale) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily fixed} timescale for star formation class.
+    Internal constructor for the \refClass{starFormationTimescaleFixed} timescale for star formation class.
     !!}
     implicit none
     type            (starFormationTimescaleFixed)                :: self

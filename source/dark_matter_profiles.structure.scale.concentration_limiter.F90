@@ -43,7 +43,7 @@
 
   interface darkMatterProfileScaleRadiusConcentrationLimiter
      !!{
-     Constructors for the {\normalfont \ttfamily concentrationLimiter} dark matter halo profile scale radius class.
+     Constructors for the \refClass{darkMatterProfileScaleRadiusConcentrationLimiter} dark matter halo profile scale radius class.
      !!}
      module procedure concentrationLimiterConstructorParameters
      module procedure concentrationLimiterConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function concentrationLimiterConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily concentrationLimiter} dark matter halo profile scale radius class which takes a
+    Constructor for the \refClass{darkMatterProfileScaleRadiusConcentrationLimiter} dark matter halo profile scale radius class which takes a
     parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -89,7 +89,7 @@ contains
 
   function concentrationLimiterConstructorInternal(concentrationMinimum,concentrationMaximum,darkMatterHaloScale_,darkMatterProfileScaleRadius_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily concentrationLimiter} dark matter halo profile scale radius class.
+    Internal constructor for the \refClass{darkMatterProfileScaleRadiusConcentrationLimiter} dark matter halo profile scale radius class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -107,7 +107,7 @@ contains
 
   subroutine concentrationLimiterDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily concentrationLimiter} dark matter halo profile scale radius class.
+    Destructor for the \refClass{darkMatterProfileScaleRadiusConcentrationLimiter} dark matter halo profile scale radius class.
     !!}
     implicit none
     type(darkMatterProfileScaleRadiusConcentrationLimiter), intent(inout) :: self

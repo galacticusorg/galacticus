@@ -133,7 +133,7 @@
 
   interface massDistributionSphericalAdiabaticGnedin2004
      !!{
-     Constructors for the {\normalfont \ttfamily sphericalAdiabaticGnedin2004} mass distribution class.
+     Constructors for the \refClass{massDistributionSphericalAdiabaticGnedin2004} mass distribution class.
      !!}
      module procedure sphericalAdiabaticGnedin2004ConstructorParameters
      module procedure sphericalAdiabaticGnedin2004ConstructorInternal
@@ -165,7 +165,7 @@ contains
 
   function sphericalAdiabaticGnedin2004ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sphericalAdiabaticGnedin2004} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionSphericalAdiabaticGnedin2004} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameters
@@ -271,7 +271,7 @@ contains
   
   function sphericalAdiabaticGnedin2004ConstructorInternal(A,omega,radiusVirial,radiusFractionalPivot,darkMatterFraction,darkMatterDistributedFraction,massFractionInitial,toleranceRelative,nonAnalyticSolver,massDistribution_,massDistributionBaryonic,initializationFunction,initializationSelf,initializationArgument,componentType,massType) result(self)
     !!{
-    Constructor for ``sphericalAdiabaticGnedin2004'' mass distribution class.
+    Constructor for the \refClass{massDistributionSphericalAdiabaticGnedin2004} mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalAdiabaticGnedin2004)                          :: self
@@ -311,7 +311,7 @@ contains
 
   subroutine sphericalAdiabaticGnedin2004Destructor(self)
     !!{
-    Destructor for the abstract {\normalfont \ttfamily massDistributionSphericalAdiabaticGnedin2004} class.
+    Destructor for the abstract \refClass{massDistributionSphericalAdiabaticGnedin2004} class.
     !!}
     implicit none
     type(massDistributionSphericalAdiabaticGnedin2004), intent(inout) :: self
@@ -603,7 +603,7 @@ contains
     Compute various factors needed when solving for the initial radius in the dark matter halo using the adiabatic contraction
     algorithm of \cite{gnedin_response_2004}.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (massDistributionSphericalAdiabaticGnedin2004), intent(inout), target  :: self
     double precision                                              , intent(in   )          :: radius
@@ -617,7 +617,7 @@ contains
     self%radiusFinalMean=self%radiusOrbitalMean(radius)
     ! Compute the baryonic contribution to the rotation curve.
     velocityCircularSquared=self%massDistributionBaryonic%rotationCurve(self%radiusFinalMean)**2
-    self%baryonicFinalTerm=velocityCircularSquared*self%radiusFinalMean*self%radiusFinal/gravitationalConstantGalacticus
+    self%baryonicFinalTerm=velocityCircularSquared*self%radiusFinalMean*self%radiusFinal/gravitationalConstant_internal
     ! Compute the baryonic contribution to the rotation curve.
     if (computeGradientFactors) then
        velocityCircularSquaredGradient =+self%massDistributionBaryonic%rotationCurveGradient(self%radiusFinalMean)
@@ -625,7 +625,7 @@ contains
             &                           *self%radiusOrbitalMeanDerivative(self%radiusFinal)                        &
             &                           *self%radiusFinalMean                                                      &
             &                           *self%radiusFinal                                                          &
-            &                           /     gravitationalConstantGalacticus
+            &                           /     gravitationalConstant_internal
     end if
     return
   end subroutine sphericalAdiabaticGnedin2004ComputeFactors

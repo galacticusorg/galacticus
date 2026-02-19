@@ -38,7 +38,7 @@
 
   interface operatorUnaryInverse
      !!{
-     Constructors for the {\normalfont \ttfamily inverse} 1D distribution function class.
+     Constructors for the \refClass{operatorUnaryInverse} 1D distribution function class.
      !!}
      module procedure inverseConstructorParameters
   end interface operatorUnaryInverse
@@ -47,7 +47,7 @@ contains
 
   function inverseConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily inverse} 1D distribution function class which builds the object from a parameter
+    Constructor for the \refClass{operatorUnaryInverse} 1D distribution function class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameters

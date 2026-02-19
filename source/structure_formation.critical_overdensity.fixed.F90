@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an fixed critical overdensity class.
+Implements an fixed critical overdensity class.
 !!}
 
   !![
@@ -42,6 +42,7 @@ Contains a module which implements an fixed critical overdensity class.
      procedure :: gradientMass    => fixedGradientMass
      procedure :: isMassDependent => fixedIsMassDependent
      procedure :: isNodeDependent => fixedIsNodeDependent
+     procedure :: isTreeDependent => fixedIsTreeDependent
   end type criticalOverdensityFixed
 
   interface criticalOverdensityFixed
@@ -194,3 +195,15 @@ contains
     fixedIsNodeDependent=.false.
     return
   end function fixedIsNodeDependent
+
+  logical function fixedIsTreeDependent(self)
+    !!{
+    Return whether the critical overdensity is tree dependent.
+    !!}
+    implicit none
+    class(criticalOverdensityFixed), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    fixedIsTreeDependent=.false.
+    return
+  end function fixedIsTreeDependent

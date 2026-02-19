@@ -147,7 +147,7 @@ contains
 
   function behroozi2010ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily behroozi2010} conditional mass function class which builds the object from a
+    Constructor for the \refClass{conditionalMassFunctionBehroozi2010} conditional mass function class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters

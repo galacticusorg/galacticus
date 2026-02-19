@@ -43,7 +43,7 @@ larger of the host and satellite spheroids.
 
   interface blackHoleBinaryInitialSeparationSpheroidRadiusFraction
      !!{
-     Constructors for the {\normalfont \ttfamily spheroidRadiusFraction} black hole binary initial radius class.
+     Constructors for the \refClass{blackHoleBinaryInitialSeparationSpheroidRadiusFraction} black hole binary initial radius class.
      !!}
      module procedure spheroidRadiusFractionConstructorParameters
      module procedure spheroidRadiusFractionConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function spheroidRadiusFractionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily spheroidRadiusFraction} black hole binary recoiled class which takes a parameter list as
+    Constructor for the \refClass{blackHoleBinaryInitialSeparationSpheroidRadiusFraction} black hole binary recoiled class which takes a parameter list as
     input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -79,7 +79,7 @@ contains
 
   function spheroidRadiusFractionConstructorInternal(spheroidRadiusFraction) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily spheroidRadiusFraction} black hole binary recoiled class which takes a parameter list as
+    Constructor for the \refClass{blackHoleBinaryInitialSeparationSpheroidRadiusFraction} black hole binary recoiled class which takes a parameter list as
     input.
     !!}
     implicit none

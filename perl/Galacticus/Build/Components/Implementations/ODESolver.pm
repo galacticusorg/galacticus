@@ -21,11 +21,12 @@ use Galacticus::Build::Components::Implementations::Utils;
      {
 	 implementationIteratedFunctions =>
 	     [
-	      \&Implementation_ODE_Serialize_Count   ,
-	      \&Implementation_ODE_Serialize_Values  ,
-	      \&Implementation_ODE_Deserialize_Values,
-	      \&Implementation_ODE_Name_From_Index   ,
-	      \&Implementation_ODE_Offsets           ,
+	      \&Implementation_ODE_Serialize_Count      ,
+	      \&Implementation_ODE_Serialize_Values     ,
+	      \&Implementation_ODE_Deserialize_Values   ,
+	      \&Implementation_ODE_Serialize_NonNegative,
+	      \&Implementation_ODE_Name_From_Index      ,
+	      \&Implementation_ODE_Offsets              ,
 	      \&Implementation_ODE_Offset_Variables
 	     ],
 	 functions =>
@@ -621,6 +622,141 @@ CODE
 	    type        => "procedure", 
 	    descriptor  => $function,
 	    name        => "deserializeValues"
+	}
+	);	    
+}
+
+sub Implementation_ODE_Serialize_NonNegative {
+    # Generate a function to serialize non-negative status of evolvable properties of each component implementation to array.
+    my $build     = shift();
+    $code::class  = shift();
+    $code::member = shift();
+    my $implementationTypeName = "nodeComponent".ucfirst($code::class->{'name'}).ucfirst($code::member->{'name'});
+    my $function =
+    {
+	type        => "void",
+	name        => $implementationTypeName."SerializeNonNegative",
+	description => "Serialize non-negative status of evolvable properties of a {\\normalfont \\ttfamily ".$code::member->{'name'}."} implementation of the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component to array.",
+	variables   =>
+	    [
+	     {
+		 intrinsic  => "class",
+		 type       => $implementationTypeName,
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "logical",
+		 attributes => [ "intent(  out)", "dimension(:)" ],
+		 variables  => [ "array" ]
+	     }
+	    ]
+    };
+    # Conditionally add "offset", "count" and indexing variables if they will be needed.
+    my @requiredVariables = ( "offset" );
+    push(@requiredVariables,"count")
+	if
+	(
+	 exists($code::member->{'extends'})
+	 ||
+	 &Galacticus::Build::Components::Implementations::Utils::hasRealNonTrivialEvolvers($code::member)
+	);
+    push(@requiredVariables,"i")
+	if ( ! exists($code::member->{'extends'}) );
+    push(@{$function->{'variables'}},
+	 {
+	     intrinsic  => "integer",
+	     variables  => \@requiredVariables
+	 }
+	)
+	if ( scalar(@requiredVariables) > 0 );
+    # Determine if the function arguments are unused.
+    @code::unused = 
+	(
+	 exists($code::member->{'extends'})
+	 ||
+	 &Galacticus::Build::Components::Implementations::Utils::hasRealEvolvers          ($code::member)
+	)
+	?
+	()
+	:
+	("array");
+    # Build the function.
+    $function->{'content'} = "";
+    if ( scalar(@code::unused) > 0 ) {
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+!$GLC attributes unused :: {join(",",@unused)}
+CODE
+    }
+    # Initialize offset if required.
+    if ( grep {$_ eq "offset"} @requiredVariables ) {
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
+offset=1
+CODE
+    }    
+    # If this component is an extension, call serialization on the extended type.
+    if ( exists($code::member->{'extends'}) ) {
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
+count=self%nodeComponent{ucfirst($code::member->{'extends'}->{'class'}).ucfirst($code::member->{'extends'}->{'name'})}%serializeCount(propertyTypeActive)
+if (count > 0) then
+ call self%nodeComponent{ucfirst($code::member->{'extends'}->{'class'}).ucfirst($code::member->{'extends'}->{'name'})}%serializeNonNegative(array)
+ offset=offset+count
+end if
+CODE
+    } elsif ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	# For non-extended types serialize meta-properties.
+	$code::offsetName = &offsetName('all',$code::class->{'name'},'floatRank0MetaProperties');
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
+if (allocated({$class->{'name'}}FloatRank0MetaPropertyNames)) then
+ do i=1,size({$class->{'name'}}FloatRank0MetaPropertyNames)
+  if ({$class->{'name'}}FloatRank0MetaPropertyEvolvable(i).and..not.nodeAnalytics({$offsetName}(i)) .and. .not.nodeInactives({$offsetName}(i))) then
+   array(offset)=.false. ! Currently no support for non-negative meta-properties.
+   offset=offset+1
+  end if
+ end do
+end if
+CODE
+    }
+    # Iterate over non-virtual, evolvable properties.
+    foreach $code::property ( &Galacticus::Build::Components::Implementations::Utils::listRealEvolvers($code::member) ) {
+	$code::offsetName    = &offsetName('all',$code::class,$code::member,$code::property);
+	$code::isNonNegative = $code::property->{'attributes'}->{'isNonNegative'} ? ".true." : ".false.";
+	if ( $code::property->{'data'}->{'rank'} == 0 ) {
+	    if ( $code::property->{'data'}->{'type'} eq "double" ) {
+		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
+if (.not.nodeAnalytics({$offsetName}) .and. .not.nodeInactives({$offsetName})) then
+ array(offset)={$isNonNegative}
+ offset=offset+1
+end if
+CODE
+	    } else {
+		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
+count=self%{$property->{'name'}}Data%serializeCount()
+if (all(.not.nodeAnalytics({$offsetName}:{$offsetName}+count-1)) .and. all(.not.nodeInactives({$offsetName}:{$offsetName}+count-1))) then
+ if (count > 0) array(offset:offset+count-1)={$isNonNegative}
+ offset=offset+count
+end if
+CODE
+	    }
+	} else {
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
+if (allocated(self%{$property->{'name'}}Data)) then
+   count=size(self%{$property->{'name'}}Data)
+   if (all(.not.nodeAnalytics({$offsetName}:{$offsetName}+count-1)) .and. all(.not.nodeInactives({$offsetName}:{$offsetName}+count-1))) then
+    array(offset:offset+count-1)={$isNonNegative}
+    offset=offset+count
+   end if
+end if
+CODE
+	}
+    }
+    # Insert a type-binding for this function into the implementation type.
+    push(
+	@{$build->{'types'}->{$implementationTypeName}->{'boundFunctions'}},
+	{
+	    type        => "procedure",
+	    descriptor  => $function,
+	    name        => "serializeNonNegative"
 	}
 	);	    
 }

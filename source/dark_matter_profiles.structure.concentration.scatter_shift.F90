@@ -45,7 +45,7 @@
 
   interface darkMatterProfileConcentrationScatterShift
      !!{
-     Constructors for the {\normalfont \ttfamily scatterShift} dark matter halo profile concentration class.
+     Constructors for the \refClass{darkMatterProfileConcentrationScatterShift} dark matter halo profile concentration class.
      !!}
      module procedure scatterShiftConstructorParameters
      module procedure scatterShiftConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function scatterShiftConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily scatterShift} dark matter halo profile concentration class which takes a parameter
+    Constructor for the \refClass{darkMatterProfileConcentrationScatterShift} dark matter halo profile concentration class which takes a parameter
     list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -88,7 +88,7 @@ contains
 
   function scatterShiftConstructorInternal(scatter,sigmaShift,darkMatterProfileConcentration_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily scatterShift} dark matter halo profile concentration class.
+    Internal constructor for the \refClass{darkMatterProfileConcentrationScatterShift} dark matter halo profile concentration class.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
@@ -105,7 +105,7 @@ contains
 
   subroutine scatterShiftDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily scatterShift} dark matter halo profile concentration class.
+    Destructor for the \refClass{darkMatterProfileConcentrationScatterShift} dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationScatterShift), intent(inout) :: self

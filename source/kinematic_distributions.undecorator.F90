@@ -39,7 +39,7 @@
 
   interface kinematicsDistributionUndecorator
      !!{
-     Constructors for the {\normalfont \ttfamily undecorator} kinematic distribution class.
+     Constructors for the \refClass{kinematicsDistributionUndecorator} kinematic distribution class.
      !!}
      module procedure undecoratorConstructorParameters
      module procedure undecoratorConstructorInternal
@@ -49,7 +49,7 @@ contains
 
   function undecoratorConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily undecorator} kinematic distribution class which builds the object from a parameter
+    Constructor for the \refClass{kinematicsDistributionUndecorator} kinematic distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -70,7 +70,7 @@ contains
 
   function undecoratorConstructorInternal(kinematicsDistribution_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily undecorator} kinematic distribution class.
+    Internal constructor for the \refClass{kinematicsDistributionUndecorator} kinematic distribution class.
     !!}
     implicit none
     type (kinematicsDistributionUndecorator)                        :: self
@@ -84,7 +84,7 @@ contains
   
   subroutine undecoratorDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily undecorator} kinematic distribution class.
+    Destructor for the \refClass{kinematicsDistributionUndecorator} kinematic distribution class.
     !!}
     implicit none
     type(kinematicsDistributionUndecorator), intent(inout) :: self
@@ -106,27 +106,29 @@ contains
     return
   end function undecoratorIsCollisional
 
-  double precision function undecoratorVelocityDispersion1D(self,coordinates,massDistributionEmbedding) result(velocityDispersion)
+  double precision function undecoratorVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
     !!{
     Return the 1D velocity dispersion at the specified {\normalfont \ttfamily coordinates} in an undecorator kinematic distribution.
     !!}
     implicit none
-    class(kinematicsDistributionUndecorator), intent(inout), target :: self
-    class(coordinate                       ), intent(in   )         :: coordinates
-    class(massDistributionClass            ), intent(inout)         :: massDistributionEmbedding
+    class(kinematicsDistributionUndecorator), intent(inout)          :: self
+    class(coordinate                       ), intent(in   )          :: coordinates
+    class(massDistributionClass            ), intent(inout), target  :: massDistribution_ , massDistributionEmbedding
+    class(massDistributionClass            )               , pointer :: massDistribution__
 
-    if (associated(massDistributionEmbedding%kinematicsDistribution_,self)) then
-       ! For the case of a self-gravitating distribution we can use the undecorated kinematic distribution in its own mass distribution.
+    massDistribution__ => massDistribution_
+    if (associated(massDistribution__,massDistributionEmbedding)) then
+        ! For the case of a self-gravitating distribution we can use the undecorated kinematic distribution in its own mass distribution.
        select type (massDistributionEmbedding)
        class is (massDistributionSphericalDecorator)
-          velocityDispersion=self%kinematicsDistribution_%velocityDispersion1D(coordinates,massDistributionEmbedding%massDistribution_)
+          velocityDispersion=self%kinematicsDistribution_%velocityDispersion1D(coordinates,massDistributionEmbedding%massDistribution_,massDistributionEmbedding%massDistribution_)
        class default
           velocityDispersion=+0.0d0
           call Error_Report('mass distribution must be of the `massDistributionSphericalDecorator` class but found `'//char(massDistributionEmbedding%objectType())//'`'//{introspection:location})
        end select
     else
        ! Our distribution is embedded in another distribution. We must compute the velocity dispersion numerically
-       velocityDispersion=self%velocityDispersion1DNumerical(coordinates,massDistributionEmbedding)
+       velocityDispersion=self%velocityDispersion1DNumerical(coordinates,massDistribution_,massDistributionEmbedding)
     end if
     return
   end function undecoratorVelocityDispersion1D

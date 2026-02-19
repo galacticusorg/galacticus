@@ -44,7 +44,7 @@
   
   interface nodeOperatorSatelliteOrbit
      !!{
-     Constructors for the {\normalfont \ttfamily satelliteOrbit} node operator class.
+     Constructors for the \refClass{nodeOperatorSatelliteOrbit} node operator class.
      !!}
      module procedure satelliteOrbitConstructorParameters
      module procedure satelliteOrbitConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function satelliteOrbitConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily satelliteOrbit} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorSatelliteOrbit} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -87,7 +87,7 @@ contains
   
   function satelliteOrbitConstructorInternal(trackPreInfallOrbit) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily satelliteOrbit} node operator class.
+    Internal constructor for the \refClass{nodeOperatorSatelliteOrbit} node operator class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -109,9 +109,9 @@ contains
     !!{
     Estimate the position of nodes relative to their hosts prior to infall.
     !!}
-    use :: Galacticus_Nodes                , only : nodeComponentBasic     , nodeComponentSatellite
+    use :: Galacticus_Nodes                , only : nodeComponentBasic, nodeComponentSatellite
     use :: Kepler_Orbits                   , only : keplerOrbit
-    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr  
+    use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr  
     use :: Numerical_ODE_Solvers           , only : odeSolver
     implicit none
     class           (nodeOperatorSatelliteOrbit), intent(inout), target  :: self
@@ -164,7 +164,7 @@ contains
        ! Compute the constant velocity required to reproduce the position evolution) for this progenitor.
        velocityEffective=+(+positionDescendent-positionProgenitor) &
             &            /(+    timeDescendent-    timeProgenitor) &
-            &            *Mpc_per_km_per_s_To_Gyr
+            &            *MpcPerKmPerSToGyr
        ! Compute the bound mass growth rate.
        massBound=satelliteProgenitor%boundMass()
        if (nodeProgenitor%isPrimaryProgenitor()) then
@@ -193,7 +193,7 @@ contains
     use :: Galacticus_Nodes                , only : nodeComponentBasic
     use :: Galactic_Structure_Options      , only : componentTypeDarkMatterOnly, massTypeDark
     use :: Interface_GSL                   , only : GSL_Success
-    use :: Numerical_Constants_Astronomical, only : gigaYear                   , megaParsec, gravitationalConstantGalacticus, Mpc_per_km_per_s_To_Gyr  
+    use :: Numerical_Constants_Astronomical, only : gigaYear                   , megaParsec, gravitationalConstant_internal, MpcPerKmPerSToGyr  
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Mass_Distributions              , only : massDistributionClass
     use :: Vectors                         , only : Vector_Magnitude
@@ -256,11 +256,11 @@ contains
             &                                /massHost          &
             &                               )                   &
             &                           )
-       acceleration               =  -gravitationalConstantGalacticus    &
-            &                        *massHost                           &
-            &                        *position                           &
-            &                        /radius                         **3 &
-            &                        /Mpc_per_km_per_s_To_Gyr
+       acceleration               =  -gravitationalConstant_internal    &
+            &                        *massHost                          &
+            &                        *position                          &
+            &                        /radius                        **3 &
+            &                        /MpcPerKmPerSToGyr
        !![
        <objectDestructor name="massDistributionHost"      />
        <objectDestructor name="massDistributionDescendent"/>
@@ -273,7 +273,7 @@ contains
     ! Find the mass ratio.
     ! Set evolution rates.
     phaseSpaceCoordinatesRateOfChange(1:3)=+velocity                &
-         &                                 /Mpc_per_km_per_s_To_Gyr
+         &                                 /MpcPerKmPerSToGyr
     phaseSpaceCoordinatesRateOfChange(4:6)=+acceleration            &
          &                                 *(                       &
          &                                   +1.0d0                 &

@@ -86,7 +86,7 @@ contains
 
   subroutine gunawardhana2013SDSSDestructor(self)
     !!{
-    Destructor for the ``gunawardhana2013SDSS'' survey geometry class.
+    Destructor for the \refClass{surveyGeometryGunawardhana2013SDSS} survey geometry class.
     !!}
     implicit none
     type(surveyGeometryGunawardhana2013SDSS), intent(inout) :: self

@@ -64,7 +64,7 @@
 
   interface mergerProgenitorPropertiesStandard
      !!{
-     Constructors for the {\normalfont \ttfamily standard} merger progenitor properties class.
+     Constructors for the \refClass{mergerProgenitorPropertiesStandard} merger progenitor properties class.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -74,7 +74,7 @@ contains
 
   function standardConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily standard} merger progenitor properties class which takes a parameter list as input.
+    Constructor for the \refClass{mergerProgenitorPropertiesStandard} merger progenitor properties class which takes a parameter list as input.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Error           , only : Error_Report            , Component_List
@@ -138,7 +138,7 @@ contains
 
  function standardConstructorInternal(mergerMassMovements_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily standard} merger progenitor properties class.
+    Internal constructor for the \refClass{mergerProgenitorPropertiesStandard} merger progenitor properties class.
     !!}
     implicit none
     type (mergerProgenitorPropertiesStandard)                        :: self
@@ -152,7 +152,7 @@ contains
 
   subroutine standardDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily standard} merger progenitor properties class.
+    Destructor for the \refClass{mergerProgenitorPropertiesStandard} merger progenitor properties class.
     !!}
     implicit none
     type(mergerProgenitorPropertiesStandard), intent(inout) :: self
@@ -169,9 +169,9 @@ contains
     !!}
     use :: Galactic_Structure_Options      , only : massTypeGalactic
     use :: Error                           , only : Error_Report
-    use :: Galacticus_Nodes                , only : nodeComponentDisk              , nodeComponentSpheroid    , treeNode
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk          , destinationMergerSpheroid, destinationMergerUnmoved, enumerationDestinationMergerType
+    use :: Galacticus_Nodes                , only : nodeComponentDisk             , nodeComponentSpheroid    , treeNode
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
+    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk         , destinationMergerSpheroid, destinationMergerUnmoved, enumerationDestinationMergerType
     use :: Mass_Distributions              , only : massDistributionClass
     implicit none
     class           (mergerProgenitorPropertiesStandard), intent(inout), target :: self
@@ -213,9 +213,9 @@ contains
          &                          +spheroidHost     %massGas       ()
     radiusHalfMassSpheroidHost     =+spheroidHost     %halfMassRadius()
     if (radiusHalfMassSpheroidHost > 0.0d0 .and. massComponent > massComponentMinimum) then
-       factorDarkMatterSpheroidHost     =+spheroidHost%angularMomentum()                                        &
-            &                            /massComponent**1.5d0                                                  &
-            &                            /sqrt(gravitationalConstantGalacticus*radiusHalfMassSpheroidHost     )
+       factorDarkMatterSpheroidHost     =+spheroidHost%angularMomentum()                                       &
+            &                            /massComponent**1.5d0                                                 &
+            &                            /sqrt(gravitationalConstant_internal*radiusHalfMassSpheroidHost     )
     else
        factorDarkMatterSpheroidHost     =+0.0d0
     end if
@@ -223,9 +223,9 @@ contains
         &                           +    diskHost     %massGas       ()
     radiusHalfMassDiskHost         =+    diskHost     %halfMassRadius()
     if (radiusHalfMassDiskHost > 0.0d0 .and. massComponent > massComponentMinimum) then
-       factorDarkMatterDiskHost         =+    diskHost%angularMomentum()                                        &
-            &                            /massComponent**1.5d0                                                  &
-            &                            /sqrt(gravitationalConstantGalacticus*radiusHalfMassDiskHost         )
+       factorDarkMatterDiskHost         =+    diskHost%angularMomentum()                                       &
+            &                            /massComponent**1.5d0                                                 &
+            &                            /sqrt(gravitationalConstant_internal*radiusHalfMassDiskHost         )
     else
        factorDarkMatterDiskHost         =+0.0d0
     end if
@@ -233,9 +233,9 @@ contains
          &                          +spheroidSatellite%massGas       ()
     radiusHalfMassSpheroidSatellite=+spheroidSatellite%halfMassRadius()
     if (radiusHalfMassSpheroidSatellite > 0.0d0 .and. massComponent > massComponentMinimum) then
-       factorDarkMatterSpheroidSatellite=+spheroidSatellite%angularMomentum()                                   &
-            &                            /massComponent**1.5d0                                                  &
-            &                            /sqrt(gravitationalConstantGalacticus*radiusHalfMassSpheroidSatellite)
+       factorDarkMatterSpheroidSatellite=+spheroidSatellite%angularMomentum()                                  &
+            &                            /massComponent**1.5d0                                                 &
+            &                            /sqrt(gravitationalConstant_internal*radiusHalfMassSpheroidSatellite)
     else
        factorDarkMatterSpheroidSatellite=+0.0d0
     end if
@@ -243,9 +243,9 @@ contains
          &                          +    diskSatellite%massGas       ()
     radiusHalfMassDiskSatellite    =+    diskSatellite%halfMassRadius()
     if (radiusHalfMassDiskSatellite > 0.0d0 .and. massComponent > massComponentMinimum) then
-       factorDarkMatterDiskSatellite    =+    diskSatellite%angularMomentum()                                   &
-            &                            /massComponent**1.5d0                                                  &
-            &                            /sqrt(gravitationalConstantGalacticus*radiusHalfMassDiskSatellite    )
+       factorDarkMatterDiskSatellite    =+    diskSatellite%angularMomentum()                                  &
+            &                            /massComponent**1.5d0                                                 &
+            &                            /sqrt(gravitationalConstant_internal*radiusHalfMassDiskSatellite    )
     else
        factorDarkMatterDiskSatellite    =+0.0d0
     end if

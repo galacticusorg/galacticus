@@ -47,12 +47,12 @@ module Atomic_Rates_Recombination_Radiative
    <description>Class providing atomic radiative recombination rates.</description>
    <default>verner1996</default>
    <method name="rate" >
-    <description>Returns the radiative recombination rate.</description>
+    <description>Returns the radiative recombination rate in units of cm$^3$ s$^{-1}$.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>integer                                           , intent(in   )           :: atomicNumber, ionizationState</argument>
-    <argument>double precision                                  , intent(in   )           :: temperature</argument>
-    <argument>type            (enumerationRecombinationCaseType), intent(in   ), optional :: level</argument>
+    <argument>double precision                                  , intent(in   )           :: temperature                  </argument>
+    <argument>type            (enumerationRecombinationCaseType), intent(in   ), optional :: level                        </argument>
    </method>
   </functionClass>
   !!]

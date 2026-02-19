@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Default parameters for Galacticus v0.9.4 -->
+<!-- 30-October-2011                          -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
+
+  <!-- Component selection -->
+  <componentBasic value="standard"/>
+  <componentBlackHole value="standard"/>
+  <componentDarkMatterProfile value="scale"/>
+  <componentDisk value="standard">
+    <toleranceAbsoluteMass value="1.0e-6"/>
+    <massDistributionDisk value="exponentialDisk">
+      <dimensionless value="true"/>
+    </massDistributionDisk>
+  </componentDisk>
+  <componentHotHalo value="standard">
+    <fractionLossAngularMomentum value="0.3"/>
+    <starveSatellites value="false"/>
+    <efficiencyStrippingOutflow value="0.1"/>
+    <trackStrippedGas value="true"/>
+  </componentHotHalo>
+  <componentSatellite value="standard"/>
+  <componentSpheroid value="standard">
+    <ratioAngularMomentumScaleRadius value="0.5"/>
+    <efficiencyEnergeticOutflow value="1.0e-2"/>
+    <toleranceAbsoluteMass value="1.0e-6"/>
+    <massDistributionSpheroid value="hernquist">
+      <dimensionless value="true"/>
+    </massDistributionSpheroid>
+  </componentSpheroid>
+  <componentSpin value="scalar"/>
+
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant value="67.36000"/>
+    <!-- Planck 2018; arXiv:1807.06211 -->
+    <OmegaMatter value=" 0.31530"/>
+    <!-- Planck 2018; arXiv:1807.06211 -->
+    <OmegaDarkEnergy value=" 0.68470"/>
+    <!-- Planck 2018; arXiv:1807.06211 -->
+    <OmegaBaryon value=" 0.04930"/>
+    <!-- Planck 2018; arXiv:1807.06211 -->
+    <temperatureCMB value=" 2.72548"/>
+  </cosmologyParameters>
+
+</parameters>

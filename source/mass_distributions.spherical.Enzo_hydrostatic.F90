@@ -59,7 +59,7 @@
 
   interface massDistributionEnzoHydrostatic
      !!{
-     Constructors for the {\normalfont \ttfamily enzoHydrostatic} mass distribution class.
+     Constructors for the \refClass{massDistributionEnzoHydrostatic} mass distribution class.
      !!}
      module procedure enzoHydrostaticConstructorParameters
      module procedure enzoHydrostaticConstructorInternal
@@ -69,7 +69,7 @@ contains
 
   function enzoHydrostaticConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily enzoHydrostatic} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionEnzoHydrostatic} mass distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters

@@ -39,7 +39,7 @@
 
   interface atomicExcitationRateCollisionalScholzWalters1991
      !!{
-     Constructors for the {\normalfont \ttfamily scholzWalters1991} atomic collisional excitation class.
+     Constructors for the \refClass{atomicExcitationRateCollisionalScholzWalters1991} atomic collisional excitation class.
      !!}
      module procedure scholzWalters1991ConstructorParameters
   end interface atomicExcitationRateCollisionalScholzWalters1991
@@ -48,7 +48,7 @@ contains
 
   function scholzWalters1991ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily scholzWalters1991} atomic collisional excitation class which takes a parameter set as
+    Constructor for the \refClass{atomicExcitationRateCollisionalScholzWalters1991} atomic collisional excitation class which takes a parameter set as
     input.
     !!}
     use :: Input_Parameters, only : inputParameters

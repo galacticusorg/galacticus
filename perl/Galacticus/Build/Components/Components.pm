@@ -78,6 +78,14 @@ sub Build_Node_Component_Class {
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
+	     name        => "serializeNonNegative"                                                                                 ,
+	     function    => "Node_Component_Serialize_NonNegative_Null"                                                            ,
+	     description => "Serialize the non-negative status of evolvable quantities to an array."                               ,
+	     returnType  => "\\void"                                                                                               ,
+	     arguments   => "\\logicalone\\ array\\argout"
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
 	     name        => "deserializeRaw"                                                                                       ,
 	     function    => "Node_Component_Read_Raw_Null"                                                                         ,
 	     description => "Read properties from raw file."                                                                       ,

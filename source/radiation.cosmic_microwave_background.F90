@@ -44,7 +44,7 @@
 
   interface radiationFieldCosmicMicrowaveBackground
      !!{
-     Constructors for the {\normalfont \ttfamily cosmicMicrowaveBackground} radiation field class.
+     Constructors for the \refClass{radiationFieldCosmicMicrowaveBackground} radiation field class.
      !!}
      module procedure cosmicMicrowaveBackgroundConstructorParameters
      module procedure cosmicMicrowaveBackgroundConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function cosmicMicrowaveBackgroundConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily cosmicMicrowaveBackground} radiation field class which takes a parameter list as input.
+    Constructor for the \refClass{radiationFieldCosmicMicrowaveBackground} radiation field class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,7 +75,7 @@ contains
 
   function cosmicMicrowaveBackgroundConstructorInternal(cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily cosmicMicrowaveBackground} radiation field class.
+    Internal constructor for the \refClass{radiationFieldCosmicMicrowaveBackground} radiation field class.
     !!}
     implicit none
     type (radiationFieldCosmicMicrowaveBackground)                        :: self
@@ -90,7 +90,7 @@ contains
 
   subroutine cosmicMicrowaveBackgroundDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily cosmicMicrowaveBackground} radiation field class.
+    Destructor for the \refClass{radiationFieldCosmicMicrowaveBackground} radiation field class.
     !!}
     implicit none
     type(radiationFieldCosmicMicrowaveBackground), intent(inout) :: self

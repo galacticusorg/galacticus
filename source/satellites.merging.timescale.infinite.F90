@@ -43,7 +43,7 @@
 
   interface satelliteMergingTimescalesInfinite
      !!{
-     Constructors for the {\normalfont \ttfamily infinite} satellite merging timescale class.
+     Constructors for the \refClass{satelliteMergingTimescalesInfinite} satellite merging timescale class.
      !!}
      module procedure infiniteConstructorParameters
   end interface satelliteMergingTimescalesInfinite

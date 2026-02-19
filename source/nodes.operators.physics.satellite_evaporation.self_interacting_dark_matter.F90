@@ -41,7 +41,7 @@
   
   interface nodeOperatorSatelliteEvaporationSIDM
      !!{
-     Constructors for the {\normalfont \ttfamily satelliteEvaporationSIDM} node operator class.
+     Constructors for the \refClass{nodeOperatorSatelliteEvaporationSIDM} node operator class.
      !!}
      module procedure satelliteEvaporationSIDMConstructorParameters
      module procedure satelliteEvaporationSIDMConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function satelliteEvaporationSIDMConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily satelliteEvaporationSIDM} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorSatelliteEvaporationSIDM} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -72,7 +72,7 @@ contains
 
   function satelliteEvaporationSIDMConstructorInternal(satelliteEvaporationSIDM_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily satelliteEvaporationSIDM} node operator class.
+    Internal constructor for the \refClass{nodeOperatorSatelliteEvaporationSIDM} node operator class.
     !!}
     implicit none
     type (nodeOperatorSatelliteEvaporationSIDM)                        :: self
@@ -86,7 +86,7 @@ contains
 
   subroutine satelliteEvaporationSIDMDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily satelliteEvaporationSIDM} node operator class.
+    Destructor for the \refClass{nodeOperatorSatelliteEvaporationSIDM} node operator class.
     !!}
     implicit none
     type(nodeOperatorSatelliteEvaporationSIDM), intent(inout) :: self

@@ -42,7 +42,7 @@
   
   interface nodeOperatorCosmicTime
      !!{
-     Constructors for the {\normalfont \ttfamily cosmicTime} node operator class.
+     Constructors for the \refClass{nodeOperatorCosmicTime} node operator class.
      !!}
      module procedure cosmicTimeConstructorParameters
   end interface nodeOperatorCosmicTime
@@ -51,7 +51,7 @@ contains
   
   function cosmicTimeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily cosmicTime} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorCosmicTime} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

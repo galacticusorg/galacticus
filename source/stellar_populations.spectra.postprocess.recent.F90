@@ -77,7 +77,7 @@ contains
 
   function recentConstructorInternal(timeLimit) result(self)
     !!{
-    Generic constructor for the recent spectrum postprocessor class.
+    Internal constructor for the recent spectrum postprocessor class.
     !!}
     implicit none
     type            (stellarPopulationSpectraPostprocessorRecent)                :: self

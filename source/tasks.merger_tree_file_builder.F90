@@ -231,7 +231,7 @@
 
   interface taskMergerTreeFileBuilder
      !!{
-     Constructors for the {\normalfont \ttfamily mergerTreeFileBuilder} task.
+     Constructors for the \refClass{taskMergerTreeFileBuilder} task.
      !!}
      module procedure mergerTreeFileBuilderConstructorParameters
      module procedure mergerTreeFileBuilderConstructorInternal
@@ -241,7 +241,7 @@ contains
 
   function mergerTreeFileBuilderConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily mergerTreeFileBuilder} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskMergerTreeFileBuilder} task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters                , only : inputParameter                   , inputParameters
     use :: Merger_Tree_Data_Structure      , only : enumerationMergerTreeFormatEncode, enumerationMetaDataTypeEncode, enumerationPropertyTypeEncode, unitsLength, &
@@ -584,7 +584,7 @@ contains
 
   function mergerTreeFileBuilderConstructorInternal(inputFileName,particlesFileName,outputFileName,outputFormat,columnHeaders,columnSeparator,properties,particleProperties,metaData,massParticle,dummyHostId,haloMassesIncludeSubhalos,includesHubbleFlow,positionsArePeriodic,unitsMassInSI,unitsMassHubbleExponent,unitsMassScaleFactorExponent,unitsMassName,unitsLengthInSI,unitsLengthHubbleExponent,unitsLengthScaleFactorExponent,unitsLengthName,unitsVelocityInSI,unitsVelocityHubbleExponent,unitsVelocityScaleFactorExponent,unitsVelocityName,cosmologyParameters_,cosmologicalMassVariance_,powerSpectrumPrimordial_,transferFunction_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily mergerTreeFileBuilder} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskMergerTreeFileBuilder} task class which takes a parameter set as input.
     !!}
     implicit none
     type            (taskMergerTreeFileBuilder      )                              :: self
@@ -620,7 +620,7 @@ contains
 
   subroutine mergerTreeFileBuilderDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily mergerTreeFileBuilder} task class.
+    Destructor for the \refClass{taskMergerTreeFileBuilder} task class.
     !!}
     implicit none
     type(taskMergerTreeFileBuilder), intent(inout) :: self

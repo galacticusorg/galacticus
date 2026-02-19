@@ -1,0 +1,87 @@
+name: 'HDF5-Diff'
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches:
+      - master
+concurrency:
+  group: hdf5Diff-${{ github.ref }}
+  cancel-in-progress: true  
+defaults:
+  run:
+    shell: bash
+jobs:
+  # Generate diffs of HDF5 files that are changed in a PR. Also provides links to an online HDF5 viewer.
+  HDF5-Diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 'Fetch master branch'
+        run: |
+          git fetch origin master --depth 1
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Mark directory safe        
+        run: |
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          git config --local --add include.path ../.gitconfig
+      - name: Install tools
+        run: |
+          sudo apt -y update
+          sudo apt install -y hdf5-tools
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v46
+        with:
+          files: |
+            **/*.hdf5
+      - name: Begin output if any files are changed
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          echo '# Changed HDF5 files' >> diffs.md
+      - name: Identify any new HDF5 files
+        run: |
+          for file in ${{ steps.changed-files.outputs.added_files }}; do
+            echo Added: ${file}
+            echo "* Added: [${file}](https://myhdf5.hdfgroup.org/view?url=${{ github.event.pull_request.head.repo.html_url }}/${{ github.head_ref }}/blob/${file})" >> diffs.md
+          done
+      - name: Identify any deleted HDF5 files
+        run: |
+          for file in ${{ steps.changed-files.outputs.deleted_files }}; do
+            echo Deleted: ${file}
+            echo "* Deleted: [${file}](https://myhdf5.hdfgroup.org/view?url=${{ github.event.pull_request.head.repo.html_url }}/${{ github.head_ref }}/blob/${file})" >> diffs.md
+            echo "  * Original: [${file}](https://myhdf5.hdfgroup.org/view?url=${{ github.event.pull_request.base.repo.html_url }}/${{ github.base_ref }}/blob/${file})" >> diffs.md
+          done
+      - name: Identify any modified HDF5 files
+        run: |
+          for file in ${{ steps.changed-files.outputs.modified_files }}; do
+            echo Modified: ${file}
+            echo "* Modified: [${file}](https://myhdf5.hdfgroup.org/view?url=${{ github.event.pull_request.head.repo.html_url }}/${{ github.head_ref }}/blob/${file})" >> diffs.md
+            echo "  * Original: [${file}](https://myhdf5.hdfgroup.org/view?url=${{ github.event.pull_request.base.repo.html_url }}/${{ github.base_ref }}/blob/${file})" >> diffs.md
+            echo '```'  >> diffs.md
+            FILE_SIZE=$(stat -c%s "${file}")
+            if (( FILE_SIZE < 102400 )); then
+              git difftool --no-prompt --tool="hdf5diff" ${{ github.head_ref }} origin/${{ github.base_ref }} -- ${file} >> diffs.md
+            else
+              echo "File is too large to display diff" >> diffs.md
+            fi
+            echo '```'  >> diffs.md
+          done
+      - name: Check file existence
+        id: check_files
+        uses: andstor/file-existence-action@v3
+        with:
+          files: diffs.md
+      - name: Comment on the PR if any warnings were found
+        if: steps.check_files.outputs.files_exists == 'true' && github.event.pull_request.head.repo.full_name == github.repository
+        continue-on-error: true
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          file-path: diffs.md
+      - name: Add a step summary
+        if: steps.check_files.outputs.files_exists == 'true'
+        run: |
+          cat diffs.md >> $GITHUB_STEP_SUMMARY
+          

@@ -57,7 +57,7 @@
 
   interface ramPressureStrippingSimpleCylindrical
      !!{
-     Constructors for the {\normalfont \ttfamily simpleCylindrical} model of ram pressure stripping of .
+     Constructors for the \refClass{ramPressureStrippingSimpleCylindrical} model of ram pressure stripping of .
      !!}
      module procedure simpleCylindricalConstructorParameters
      module procedure simpleCylindricalConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function simpleCylindricalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily simpleCylindrical} timescale for star formation feedback in disks class which takes a
+    Constructor for the \refClass{ramPressureStrippingSimpleCylindrical} timescale for star formation feedback in disks class which takes a
     parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -102,7 +102,7 @@ contains
 
   function simpleCylindricalConstructorInternal(rateFractionalMaximum,beta,hotHaloRamPressureForce_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily simpleCylindrical} model of ram pressure stripping class.
+    Internal constructor for the \refClass{ramPressureStrippingSimpleCylindrical} model of ram pressure stripping class.
     !!}
     implicit none
     type            (ramPressureStrippingSimpleCylindrical)                        :: self
@@ -117,7 +117,7 @@ contains
 
   subroutine simpleCylindricalDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily simpleCylindrical} model of ram pressure stripping class.
+    Destructor for the \refClass{ramPressureStrippingSimpleCylindrical} model of ram pressure stripping class.
     !!}
     implicit none
     type(ramPressureStrippingSimpleCylindrical), intent(inout) :: self
@@ -146,11 +146,11 @@ contains
     is the gravitational restoring force at the half-mass radius, $r_\mathrm{1/2}$.
     !!}
     use :: Coordinates                     , only : coordinateCylindrical, assignment(=)
-    use :: Display                         , only : displayGreen         , displayBlue                    , displayMagenta, displayReset
-    use :: Galactic_Structure_Options      , only : componentTypeDisk    , enumerationComponentTypeType   , massTypeAll   , massTypeGaseous
+    use :: Display                         , only : displayGreen         , displayBlue                   , displayMagenta, displayReset
+    use :: Galactic_Structure_Options      , only : componentTypeDisk    , enumerationComponentTypeType  , massTypeAll   , massTypeGaseous
     use :: Galacticus_Nodes                , only : nodeComponentDisk    , treeNode
     use :: Mass_Distributions              , only : massDistributionClass
-    use :: Numerical_Constants_Astronomical, only : gigaYear             , gravitationalConstantGalacticus, megaParsec
+    use :: Numerical_Constants_Astronomical, only : gigaYear             , gravitationalConstant_internal, megaParsec
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
@@ -204,10 +204,10 @@ contains
     <objectDestructor name="massDistributionTotal"  />
     !!]
     ! Compute the gravitational restoring force in the midplane.
-    forceGravitational  =  +2.0d0                           &
-         &                 *Pi                              &
-         &                 *gravitationalConstantGalacticus &
-         &                 *surfaceDensityGas               &
+    forceGravitational  =  +2.0d0                          &
+         &                 *Pi                             &
+         &                 *gravitationalConstant_internal &
+         &                 *surfaceDensityGas              &
          &                 *surfaceDensityTotal
     ! Return zero rate if the gravitational force is zero.
     if (forceGravitational <= 0.0d0) return

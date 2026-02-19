@@ -8,7 +8,6 @@ use Cwd;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Text::Template 'fill_in_string';
 use List::ExtraUtils;
-use Galacticus::Build::Components::Utils qw($workaround);
 use Galacticus::Build::Components::DataTypes;
 
 # Insert hooks for our functions.
@@ -74,39 +73,9 @@ if (present(skipEvent        )) skipEventActual        =skipEvent
 if (skipFormationNodeActual) targetNode%formationNode => null()
 if (skipEventActual        ) targetNode%event         => null()
 CODE
-    # Loop over all component classes
-    if ( $workaround == 1 ) { # Workaround "Assignment to an allocatable polymorphic variable is not yet supported"
-	foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
-	    next
-		unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
-	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if (allocated(targetNode%component{ucfirst($class->{'name'})})) deallocate(targetNode%component{ucfirst($class->{'name'})})
-allocate(targetNode%component{ucfirst($class->{'name'})}(size(self%component{ucfirst($class->{'name'})})),source=self%component{ucfirst($class->{'name'})}(1))
-do i=1,size(self%component{ucfirst($class->{'name'})})
-CODE
-	    foreach $code::member ( @{$code::class->{'members'}} ) {
-		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-   select type (from => self%component{ucfirst($class->{'name'})})
-   type is (nodeComponent{ucfirst($class->{'name'}).ucfirst($member->{'name'})})
-     select type (to => targetNode%component{ucfirst($class->{'name'})})
-     type is (nodeComponent{ucfirst($class->{'name'}).ucfirst($member->{'name'})})
-       to=from
-     end select
-   end select
-CODE
-	    }
-	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-end do
-CODE
-	}
-    } else {
-	foreach $code::component ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
-	    next
-		unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
-	    $function->{'content'} .=
-		join("",map {"targetNode%component".ucfirst($_->{'name'})." = self%component".ucfirst($_->{'name'})."\n"} &List::ExtraUtils::hashList($build->{'componentClasses'}));
-	}
-    }
+    # Iterate over all component classes
+    $function->{'content'} .=
+	join("",map {"targetNode%component".ucfirst($_)." = self%component".ucfirst($_)."\n"} @{$build->{'componentClassListActive'}});
     # Update target node pointers.
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 select type (targetNode)

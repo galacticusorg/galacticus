@@ -131,7 +131,7 @@ contains
 
   subroutine monteroDorta2009SDSSDestructor(self)
     !!{
-    Destructor for the ``monteroDorta2009SDSS'' survey geometry class.
+    Destructor for the \refClass{surveyGeometryMonteroDorta2009SDSS} survey geometry class.
     !!}
     implicit none
     type(surveyGeometryMonteroDorta2009SDSS), intent(inout) :: self

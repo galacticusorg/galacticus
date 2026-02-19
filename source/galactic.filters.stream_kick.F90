@@ -50,7 +50,7 @@ Implements a filter for subhalos that could impact a stream during the timestep.
 
   interface galacticFilterStreamKick
      !!{
-     Constructors for the ``streamKick'' galactic filter class.
+     Constructors for the \refClass{galacticFilterStreamKick} galactic filter class.
      !!}
      module procedure streamKickConstructorParameters
      module procedure streamKickConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function streamKickConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``streamKick'' galactic filter class which takes a parameter set as input.
+    Constructor for the \refClass{galacticFilterStreamKick} galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -98,7 +98,7 @@ contains
 
   function streamKickConstructorInternal(radiusOrbitalStream,speedOrbitalStream,cutoffVelocityKick,outputTimes_) result(self)
     !!{
-    Internal constructor for the ``streamImpact'' galactic filter class.
+    Internal constructor for the \refClass{galacticFilterStreamKick} galactic filter class.
     !!}
     implicit none
     type            (galacticFilterStreamKick)                        :: self
@@ -114,7 +114,7 @@ contains
 
   subroutine streamKickDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily streamImpact} galactic filter class.
+    Destructor for the \refClass{galacticFilterStreamKick} galactic filter class.
     !!}
     implicit none
     type(galacticFilterStreamKick), intent(inout) :: self
@@ -130,7 +130,7 @@ contains
     Filter based on whether a subhalo can impact a stream in the timestep.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentSatellite
-    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr, gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Vectors                         , only : Vector_Magnitude
     implicit none
     class           (galacticFilterStreamKick), intent(inout)          :: self
@@ -161,10 +161,10 @@ contains
        speed                 =    Vector_Magnitude(         velocity                                        )
        impactParameterMinimum=    Vector_Magnitude(position-velocity*Dot_Product(velocity,position)/speed**2)-self%radiusOrbitalStream
        speedRelativeMinimum  =abs(                          speed                                            -self%speedOrbitalStream )
-       velocityKick          =+2.0d0                                &
-            &                 *    gravitationalConstantGalacticus  &
-            &                 *    massBound                        &
-            &                 /abs(speedRelativeMinimum           ) &
+       velocityKick          =+2.0d0                               &
+            &                 *    gravitationalConstant_internal  &
+            &                 *    massBound                       &
+            &                 /abs(speedRelativeMinimum          ) &
             &                 /    impactParameterMinimum
        ! Determine if the node passes.
        passes= velocityKick           >  self%cutoffVelocityKick &

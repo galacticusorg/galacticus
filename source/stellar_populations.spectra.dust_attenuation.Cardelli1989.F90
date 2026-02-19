@@ -46,7 +46,7 @@
 
   interface stellarSpectraDustAttenuationCardelli1989
      !!{
-     Constructors for the ``cardelli1989'' stellar spectra dust attenuation class.
+     Constructors for the \refClass{stellarSpectraDustAttenuationCardelli1989} stellar spectra dust attenuation class.
      !!}
      module procedure cardelli1989ConstructorParameters
      module procedure cardelli1989ConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function cardelli1989ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily cardelli1989} stellar spectra dust attenuation class which takes a parameter set
+    Constructor for the \refClass{stellarSpectraDustAttenuationCardelli1989} stellar spectra dust attenuation class which takes a parameter set
     as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -82,7 +82,7 @@ contains
 
   function cardelli1989ConstructorInternal(Rv) result(self)
     !!{
-    Constructor for the ``cardelli1989'' stellar spectra dust attenuation class.
+    Constructor for the \refClass{stellarSpectraDustAttenuationCardelli1989} stellar spectra dust attenuation class.
     !!}
     implicit none
     type            (stellarSpectraDustAttenuationCardelli1989)                :: self
@@ -98,7 +98,7 @@ contains
     !!{
     Return attenuation of stellar spectra according to the model of \cite{cardelli_relationship_1989}.
     !!}
-    use :: Numerical_Constants_Units, only : angstromsPerMicron
+    use :: Numerical_Constants_Units, only : micronsToAngstroms
     implicit none
     class           (stellarSpectraDustAttenuationCardelli1989), intent(inout) :: self
     double precision                                           , intent(in   ) :: wavelength      , age, &
@@ -106,7 +106,7 @@ contains
     double precision                                                           :: x
     !$GLC attributes unused :: age
 
-    x                      =1.0d0/(wavelength/angstromsPerMicron)
+    x                      =1.0d0/(wavelength/micronsToAngstroms)
     cardelli1989Attenuation=vBandAttenuation*(self%a(x)+self%b(x)/self%Rv) ! Eqn. (1) of Cardelli et al.
     return
   end function cardelli1989Attenuation

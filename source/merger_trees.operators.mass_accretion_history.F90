@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a merger tree operator which outputs mass accretion
+  Implements a merger tree operator which outputs mass accretion
   histories.
   !!}
 

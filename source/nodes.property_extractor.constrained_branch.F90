@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a node property extractor which reports if a node is drawn from the constrained branching rate solution.
+  Implements a node property extractor which reports if a node is drawn from the constrained branching rate solution.
   !!}
 
   !![
@@ -46,7 +46,7 @@
 
   interface nodePropertyExtractorConstrainedStatus
      !!{
-     Constructors for the ``constrainedStatus'' output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorConstrainedStatus} output analysis class.
      !!}
      module procedure constrainedStatusConstructorParameters
      module procedure constrainedStatusConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function constrainedStatusConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily constrainedStatus} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorConstrainedStatus} node property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -72,7 +72,7 @@ contains
 
   function constrainedStatusConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily constrainedStatus} node property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorConstrainedStatus} node property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorConstrainedStatus) :: self

@@ -37,7 +37,7 @@
 
   interface starFormationActiveMassTotalISM
      !!{
-     Constructors for the {\normalfont \ttfamily totalISM} active mass for star formation class.
+     Constructors for the \refClass{starFormationActiveMassTotalISM} active mass for star formation class.
      !!}
      module procedure totalISMConstructorParameters
   end interface starFormationActiveMassTotalISM
@@ -46,7 +46,7 @@ contains
 
   function totalISMConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily totalISM} active mass for star formation class which takes a parameter set as
+    Constructor for the \refClass{starFormationActiveMassTotalISM} active mass for star formation class which takes a parameter set as
     input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -67,7 +67,7 @@ contains
     component}, assuming that the entire ISM is active.
     !!}
     use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid
+    use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, nodeComponentNSC
     implicit none
     class(starFormationActiveMassTotalISM), intent(inout) :: self
     class(nodeComponent                  ), intent(inout) :: component
@@ -76,6 +76,8 @@ contains
     class is (nodeComponentDisk    )
        totalISMMassActive=component%massGas()
     class is (nodeComponentSpheroid)
+       totalISMMassActive=component%massGas()
+    class is (nodeComponentNSC     )
        totalISMMassActive=component%massGas()
     class default
        totalISMMassActive=0.0d0

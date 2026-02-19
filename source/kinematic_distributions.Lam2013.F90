@@ -47,7 +47,7 @@
 
   interface kinematicsDistributionLam2013
      !!{
-     Constructors for the {\normalfont \ttfamily lam2013} kinematic distribution class.
+     Constructors for the \refClass{kinematicsDistributionLam2013} kinematic distribution class.
      !!}
      module procedure lam2013ConstructorParameters
      module procedure lam2013ConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function lam2013ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily lam2013} kinematic distribution class which builds the object from a parameter
+    Constructor for the \refClass{kinematicsDistributionLam2013} kinematic distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -124,7 +124,7 @@ contains
   
   function lam2013ConstructorInternal(massVirial,radiusVirial,time,overdensityCritical,rateLinearGrowth,scaleFactorVelocity,radius,correlationFunctionVolumeAveraged,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily lam2013} kinematic distribution class.
+    Internal constructor for the \refClass{kinematicsDistributionLam2013} kinematic distribution class.
     !!}
     implicit none
     type            (kinematicsDistributionLam2013)                              :: self
@@ -144,7 +144,7 @@ contains
   
   subroutine lam2013Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily correlationFunction} accretion flow mass distribution class.
+    Destructor for the \refClass{kinematicsDistributionLam2013} accretion flow mass distribution class.
     !!}
     implicit none
     type(kinematicsDistributionLam2013), intent(inout) :: self

@@ -29,6 +29,7 @@ module Tensors
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_size_t
   use            :: FoX_DOM      , only : node
+  use            :: Display      , only : enumerationVerbosityLevelType
   implicit none
   private
   public :: tensorRank2Dimension3Symmetric, assignment(=), operator(*), max
@@ -165,11 +166,12 @@ module Tensors
        class(tensorRank2Dimension3Symmetric), intent(inout)              :: self
        type (node                          ), intent(in   ), pointer     :: tensorDefinition
      end subroutine Tensor_R2_D3_Sym_Builder
-     module subroutine Tensor_R2_D3_Sym_Dump(self)
+     module subroutine Tensor_R2_D3_Sym_Dump(self,verbosityLevel)
        !!{
        Reset a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} symmetric object.
        !!}
        class(tensorRank2Dimension3Symmetric), intent(in   ) :: self
+       type (enumerationVerbosityLevelType ), intent(in   ) :: verbosityLevel
      end subroutine Tensor_R2_D3_Sym_Dump
      module subroutine Tensor_R2_D3_Sym_Dump_Raw(self,fileHandle)
        !!{

@@ -39,7 +39,7 @@
 
   interface mergerTreeOutputterNull
      !!{
-     Constructors for the {\normalfont \ttfamily null} merger tree outputter.
+     Constructors for the \refClass{mergerTreeOutputterNull} merger tree outputter.
      !!}
      module procedure nullConstructorParameters
   end interface mergerTreeOutputterNull
@@ -48,7 +48,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily null} merger tree outputter class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeOutputterNull} merger tree outputter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

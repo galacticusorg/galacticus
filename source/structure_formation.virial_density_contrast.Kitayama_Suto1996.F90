@@ -51,7 +51,7 @@
 
   interface virialDensityContrastKitayamaSuto1996
      !!{
-     Constructors for the {\normalfont \ttfamily kitayamaSuto1996} dark matter halo virial density contrast class.
+     Constructors for the \refClass{virialDensityContrastKitayamaSuto1996} dark matter halo virial density contrast class.
      !!}
      module procedure kitayamaSuto1996ConstructorParameters
      module procedure kitayamaSuto1996ConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function kitayamaSuto1996ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily kitayamaSuto1996} dark matter halo virial density contrast class which takes a parameter set as input.
+    Constructor for the \refClass{virialDensityContrastKitayamaSuto1996} dark matter halo virial density contrast class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -82,7 +82,7 @@ contains
 
   function kitayamaSuto1996ConstructorInternal(cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily kitayamaSuto1996} dark matter halo virial density contrast class.
+    Internal constructor for the \refClass{virialDensityContrastKitayamaSuto1996} dark matter halo virial density contrast class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -97,7 +97,7 @@ contains
 
   subroutine kitayamaSuto1996Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily bryanNorman1998} virial density contrast class.
+    Destructor for the \refClass{virialDensityContrastKitayamaSuto1996} virial density contrast class.
     !!}
     implicit none
     type(virialDensityContrastKitayamaSuto1996), intent(inout) :: self

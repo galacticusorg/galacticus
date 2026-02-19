@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a property extractor class for the star formation history of a component.
+  Implements a property extractor class for the star formation history of a component.
   !!}
   
   use :: Galactic_Structure_Options, only : enumerationComponentTypeType
@@ -50,7 +50,7 @@
   
   interface nodePropertyExtractorStarFormationHistoryMass
      !!{
-     Constructors for the ``starFormationHistoryMass'' output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorStarFormationHistoryMass} output analysis class.
      !!}
      module procedure starFormationHistoryMassConstructorParameters
      module procedure starFormationHistoryMassConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function starFormationHistoryMassConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily starFormationHistoryMass} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorStarFormationHistoryMass} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode
@@ -91,9 +91,9 @@ contains
 
   function starFormationHistoryMassConstructorInternal(component,starFormationHistory_,outputTimes_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily starFormationHistoryMass} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorStarFormationHistoryMass} property extractor class.
     !!}
-    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeAll
+    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNuclearStarCluster, componentTypeAll
     use :: Error                     , only : Error_Report
     implicit none
     type (nodePropertyExtractorStarFormationHistoryMass)                        :: self
@@ -104,19 +104,21 @@ contains
     <constructorAssign variables="component, *starFormationHistory_, *outputTimes_"/>
     !!]
     
-    if     (                                                                                                            &
-         &   component /= componentTypeDisk                                                                             &
-         &  .and.                                                                                                       &
-         &   component /= componentTypeSpheroid                                                                         &
-         &  .and.                                                                                                       &
-         &   component /= componentTypeAll                                                                              &
-         & ) call Error_Report("only 'disk', 'spheroid', and 'all' components are supported"//{introspection:location})    
+    if     (                                                                                                                                 &
+         &   component /= componentTypeDisk                                                                                                  &
+         &  .and.                                                                                                                            &
+         &   component /= componentTypeSpheroid                                                                                              &
+         &  .and.                                                                                                                            &
+         &   component /= componentTypeNuclearStarCluster                                                                                    &
+         &  .and.                                                                                                                            &
+         &   component /= componentTypeAll                                                                                                   &
+         & ) call Error_Report("only 'disk', 'spheroid', 'nuclearStarCluster' and 'all' components are supported"//{introspection:location})    
     return
   end function starFormationHistoryMassConstructorInternal
 
   subroutine starFormationHistoryMassDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily sed} property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorStarFormationHistoryMass} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorStarFormationHistoryMass), intent(inout) :: self
@@ -143,43 +145,64 @@ contains
     !!{
     Implement a {\normalfont \ttfamily starFormationHistoryMass} property extractor.
     !!}
-    use :: Galacticus_Nodes          , only : nodeComponentDisk, nodeComponentSpheroid
-    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeAll
+    use :: Galacticus_Nodes          , only : nodeComponentDisk, nodeComponentSpheroid, nodeComponentNSC
+    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNuclearStarCluster, componentTypeAll
     use :: Histories                 , only : history
     implicit none
-    double precision                                               , dimension(:,:,:), allocatable :: starFormationHistoryMassExtract
-    class           (nodePropertyExtractorStarFormationHistoryMass), intent(inout)                 :: self
-    type            (treeNode                                     ), intent(inout)                 :: node
-    type            (multiCounter                                 ), intent(inout)   , optional    :: instance
-    double precision                                               , dimension(:,:  ), allocatable :: masses
-    class           (nodeComponentDisk                            )                  , pointer     :: disk
-    class           (nodeComponentSpheroid                        )                  , pointer     :: spheroid
-    type            (history                                      )                                :: starFormationHistory           , starFormationHistoryDisk, &
-         &                                                                                            starFormationHistorySpheroid
+    double precision                                               , dimension(:,:,:  ), allocatable :: starFormationHistoryMassExtract
+    class           (nodePropertyExtractorStarFormationHistoryMass), intent(inout)                   :: self
+    type            (treeNode                                     ), intent(inout)                   :: node
+    type            (multiCounter                                 ), intent(inout)     , optional    :: instance
+    double precision                                               , dimension(:,:  )  , allocatable :: masses
+    class           (nodeComponentDisk                            )                    , pointer     :: disk
+    class           (nodeComponentSpheroid                        )                    , pointer     :: spheroid
+    class           (nodeComponentNSC                             )                    , pointer     :: nuclearStarCluster
+    type            (history                                      )                                  :: starFormationHistory           , starFormationHistoryDisk              , &
+         &                                                                                              starFormationHistorySpheroid   , starFormationHistoryNuclearStarCluster
     !$GLC attributes unused :: instance
 
     ! Get the relevant star formation history.
     select case (self%component%ID)
-    case (componentTypeDisk    %ID)
-       disk                 => node    %disk                ()
-       starFormationHistory =  disk    %starFormationHistory()
-    case (componentTypeSpheroid%ID)
-       spheroid             => node    %spheroid            ()
-       starFormationHistory =  spheroid%starFormationHistory()
+    case (componentTypeDisk              %ID)
+       disk                 => node              %disk                ()
+       starFormationHistory =  disk              %starFormationHistory()
+    case (componentTypeSpheroid          %ID)
+       spheroid             => node              %spheroid            ()
+       starFormationHistory =  spheroid          %starFormationHistory()
+    case (componentTypeNuclearStarCluster%ID)
+       nuclearStarCluster   => node              %NSC                 ()
+       starFormationHistory =  nuclearStarCluster%starFormationHistory()
     case (componentTypeAll     %ID)
-       spheroid                     => node    %spheroid            ()
-       disk                         => node    %disk                ()
-       starFormationHistoryDisk     =  disk    %starFormationHistory()
-       starFormationHistorySpheroid =  spheroid%starFormationHistory()
-       if (starFormationHistoryDisk%exists()) then
-          if (starFormationHistorySpheroid%exists()) then
-             starFormationHistory= starFormationHistoryDisk     &
+       spheroid                               => node              %spheroid            ()
+       disk                                   => node              %disk                ()
+       nuclearStarCluster                     => node              %NSC                 ()
+       starFormationHistoryDisk               =  disk              %starFormationHistory()
+       starFormationHistorySpheroid           =  spheroid          %starFormationHistory()
+       starFormationHistoryNuclearStarCluster =  nuclearStarCluster%starFormationHistory()
+       if      (     starFormationHistoryDisk%exists()) then
+          if      (     starFormationHistorySpheroid%exists() .and.      starFormationHistoryNuclearStarCluster%exists() ) then
+             starFormationHistory= starFormationHistoryDisk               &
+                  &               +starFormationHistorySpheroid           &
+                  &               +starFormationHistoryNuclearStarCluster
+
+          else if (.not.starFormationHistorySpheroid%exists() .and.      starFormationHistoryNuclearStarCluster%exists() ) then
+             starFormationHistory= starFormationHistoryDisk               &
+                  &               +starFormationHistoryNuclearStarCluster
+          else if (     starFormationHistorySpheroid%exists() .and. .not.starFormationHistoryNuclearStarCluster%exists() ) then
+             starFormationHistory= starFormationHistoryDisk               &
                   &               +starFormationHistorySpheroid
-          else
-             starFormationHistory=starFormationHistoryDisk
+          else 
+             starFormationHistory= starFormationHistoryDisk
           end if
-       else
-          starFormationHistory=starFormationHistorySpheroid
+       else if (.not.starFormationHistoryDisk%exists()) then
+          if      (     starFormationHistorySpheroid%exists() .and.      starFormationHistoryNuclearStarCluster%exists() ) then
+             starFormationHistory= starFormationHistorySpheroid           &
+                  &               +starFormationHistoryNuclearStarCluster
+          else if (.not.starFormationHistorySpheroid%exists() .and.      starFormationHistoryNuclearStarCluster%exists() ) then
+             starFormationHistory= starFormationHistoryNuclearStarCluster
+          else if (     starFormationHistorySpheroid%exists() .and. .not.starFormationHistoryNuclearStarCluster%exists() ) then
+             starFormationHistory= starFormationHistorySpheroid
+          end if
        end if
     end select
     if (starFormationHistory%exists()) then

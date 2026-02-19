@@ -136,7 +136,7 @@ contains
 
   subroutine takahashi2011Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily takahasi2011} gravitational lensing class.
+    Destructor for the \refClass{gravitationalLensingTakahashi2011} gravitational lensing class.
     !!}
     implicit none
     type(gravitationalLensingTakahashi2011), intent(inout) :: self

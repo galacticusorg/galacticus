@@ -58,7 +58,7 @@
 
   interface initialMassFunctionChabrier2001
      !!{
-     Constructors for the {\normalfont \ttfamily chabrier2001} initial mass function class.
+     Constructors for the \refClass{initialMassFunctionChabrier2001} initial mass function class.
      !!}
      module procedure chabrier2001ConstructorParameters
      module procedure chabrier2001ConstructorInternal
@@ -68,7 +68,7 @@ contains
 
   function chabrier2001ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily chabrier2001} initial mass function class which takes a parameter list as input.
+    Constructor for the \refClass{initialMassFunctionChabrier2001} initial mass function class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -125,7 +125,7 @@ contains
 
   function chabrier2001ConstructorInternal(massLower,massTransition,massUpper,exponent,massCharacteristic,sigma) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily chabrier2001} initial mass function.
+    Internal constructor for the \refClass{initialMassFunctionChabrier2001} initial mass function.
     !!}
     use :: Error_Functions         , only : Error_Function
     use :: Numerical_Constants_Math, only : Pi

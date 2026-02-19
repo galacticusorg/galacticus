@@ -99,13 +99,13 @@ if ( -e $sourceDirectoryNames[0] ) {
     push(@sourceDirectoryNames,map {chomp($_);my $path = $sourceDirectoryNames[0]."/".$_; (-d $path && $_ !~ m/^\.+$/) ? $path : ()} readdir($sourceDirectory) );	 
     closedir($sourceDirectory);
 }
-push(@sourceDirectoryNames,$rootSourceDirectoryName."/".$ENV{'BUILDPATH'}."/libgalacticus");
+push(@sourceDirectoryNames,$ENV{'BUILDPATH'}."/libgalacticus");
 
 # Iterate over source directories.
 my @sourceFilesToProcess;
 foreach my $sourceDirectoryName ( @sourceDirectoryNames ) {
     # Extract the subdirectory name.
-    (my $subDirectoryName = $sourceDirectoryName) =~ s/^$rootSourceDirectoryName\/(source|$ENV{'BUILDPATH'})\/?//;
+    (my $subDirectoryName = $sourceDirectoryName) =~ s/^($rootSourceDirectoryName\/source|$ENV{'BUILDPATH'})\/?//;
     # Find all source files to process.
     opendir(my $sourceDirectory,$sourceDirectoryName) 
 	or die "useDependencies.pl: can not open the source directory: #!";
@@ -419,7 +419,7 @@ foreach my $fileIdentifier ( keys(%{$usesPerFile}) ) {
     next
 	unless ( exists($usesPerFile->{$fileIdentifier}->{'submodules'}) && scalar(@{$usesPerFile->{$fileIdentifier}->{'submodules'}}) > 0 );
     my @modulesProvided = keys(%{$usesPerFile->{$fileIdentifier}->{'modulesProvided'}});
-    die("useDependencies.pl: submodules associated with multiple modules")
+    die("useDependencies.pl: submodules [".join(", ",@{$usesPerFile->{$fileIdentifier}->{'submodules'}})."] associated with multiple modules [".join(", ",@modulesProvided)."]")
 	unless ( scalar(@modulesProvided) == 1 );
     $submodules{$workDirectoryName.lc($modulesProvided[0])} = $usesPerFile->{$fileIdentifier}->{'submodules'};
 }

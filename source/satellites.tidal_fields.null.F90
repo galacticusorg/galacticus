@@ -48,7 +48,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily null} satellite tidal field class which builds the object from a parameter set.
+    Constructor for the \refClass{satelliteTidalFieldNull} satellite tidal field class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

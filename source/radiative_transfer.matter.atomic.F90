@@ -93,7 +93,7 @@
   
   interface radiativeTransferMatterAtomic
      !!{
-     Constructors for the {\normalfont \ttfamily atomic} radiative transfer matter class.
+     Constructors for the \refClass{radiativeTransferMatterAtomic} radiative transfer matter class.
      !!}
      module procedure atomicConstructorParameters
      module procedure atomicConstructorInternal
@@ -137,7 +137,7 @@ contains
 
   function atomicConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily atomic} radiative transfer matter class which takes a parameter set as input.
+    Constructor for the \refClass{radiativeTransferMatterAtomic} radiative transfer matter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters                , only : inputParameter  , inputParameters
     use :: ISO_Varying_String              , only : var_str
@@ -245,7 +245,7 @@ contains
 
   function atomicConstructorInternal(abundancePattern,metallicity,elements,iterationAverageCount,temperatureMinimum,outputRates,outputAbsorptionCoefficients,convergencePercentile,massDistribution_,atomicCrossSectionIonizationPhoto_,atomicRecombinationRateRadiative_,atomicRecombinationRateRadiativeCooling_,atomicIonizationRateCollisional_,atomicRecombinationRateDielectronic_,atomicIonizationPotential_,atomicExcitationRateCollisional_,gauntFactor_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily atomic} radiative transfer matter class.
+    Internal constructor for the \refClass{radiativeTransferMatterAtomic} radiative transfer matter class.
     !!}
     use :: Abundances_Structure            , only : Abundances_Index_From_Name, abundances                   , adjustElementsReset          , metallicityTypeLinearByMassSolar
     use :: Atomic_Data                     , only : Abundance_Pattern_Lookup  , Atomic_Abundance             , Atomic_Mass                  , Atomic_Number
@@ -354,7 +354,7 @@ contains
 
   subroutine atomicDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily atomic} radiative transfer matter class.
+    Destructor for the \refClass{radiativeTransferMatterAtomic} radiative transfer matter class.
     !!}
     implicit none
     type(radiativeTransferMatterAtomic), intent(inout) :: self
@@ -581,7 +581,7 @@ contains
     use :: Error                           , only : Error_Report
     use :: Numerical_Constants_Astronomical, only : megaParsec
     use :: Numerical_Constants_Prefixes    , only : centi
-    use :: Numerical_Constants_Units       , only : angstromsPerMeter
+    use :: Numerical_Constants_Units       , only : metersToAngstroms
     implicit none
     class           (radiativeTransferMatterAtomic    ), intent(inout) :: self
     integer                                            , intent(in   ) :: elementIndex               , ionizationState
@@ -614,7 +614,7 @@ contains
     use :: Numerical_Constants_Astronomical, only : luminositySolar  , megaParsec
     use :: Numerical_Constants_Physical    , only : plancksConstant  , speedLight
     use :: Numerical_Constants_Prefixes    , only : centi
-    use :: Numerical_Constants_Units       , only : angstromsPerMeter, electronVolt
+    use :: Numerical_Constants_Units       , only : metersToAngstroms, electronVolt
     implicit none
     class           (radiativeTransferMatterAtomic     ), intent(inout) :: self
     class           (radiativeTransferPropertiesMatter ), intent(inout) :: properties
@@ -631,7 +631,7 @@ contains
        ! (1999; A&A; 344; 282; https://ui.adsabs.harvard.edu/abs/1999A%26A...344..282L; see section 3.4) methodology.
        energyPhoton=+plancksConstant               &
             &       *speedLight                    &
-            &       *angstromsPerMeter             &
+            &       *metersToAngstroms             &
             &       /photonPacket     %wavelength()
        do i=1,self%countElements
           do j=0,self%elementAtomicNumbers(i)-1 ! j=0 is neutral atom; j=1 is first ionized state, etc.
@@ -1346,7 +1346,7 @@ contains
     Return a scalar property to be output.
     !!}
     use :: Error                     , only : Error_Report
-    use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen
+    use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen_atomic
     implicit none
     class  (radiativeTransferMatterAtomic    ), intent(inout) :: self
     class  (radiativeTransferPropertiesMatter), intent(inout) :: properties
@@ -1391,7 +1391,7 @@ contains
           else if (self%outputRates                  .and. output_-offsetPhotoheatingRates      <= self%elementAtomicNumbers(i)) then
              atomicOutputProperty=properties%elements(i)%photoHeatingRate       (output_-offsetPhotoheatingRates   )
           else if (self%outputAbsorptionCoefficients .and. output_-offsetAbsorptionCoefficients <= self%elementAtomicNumbers(i)) then
-             atomicOutputProperty=self%absorptionCoefficientSpecies(i,int(output_-offsetAbsorptionCoefficients-1_c_size_t),(1.0d0-1.0d-3)*lymanSeriesLimitWavelengthHydrogen,properties)
+             atomicOutputProperty=self%absorptionCoefficientSpecies(i,int(output_-offsetAbsorptionCoefficients-1_c_size_t),(1.0d0-1.0d-3)*lymanSeriesLimitWavelengthHydrogen_atomic,properties)
           else
              atomicOutputProperty=0.0d0
              call Error_Report('output is out of range (this should not happen)'//{introspection:location})

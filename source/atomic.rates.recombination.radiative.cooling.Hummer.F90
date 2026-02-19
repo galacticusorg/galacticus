@@ -44,7 +44,7 @@
 
   interface atomicRecombinationRateRadiativeCoolingHummer
      !!{
-     Constructors for the {\normalfont \ttfamily hummer} atomic radiative recombination class.
+     Constructors for the \refClass{atomicRecombinationRateRadiativeCoolingHummer} atomic radiative recombination class.
      !!}
      module procedure hummerConstructorParameters
      module procedure hummerConstructorInternal
@@ -75,7 +75,7 @@ contains
 
   function hummerConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily hummer} atomic radiative recombination class which takes a parameter set as input.
+    Constructor for the \refClass{atomicRecombinationRateRadiativeCoolingHummer} atomic radiative recombination class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -103,7 +103,7 @@ contains
   
   function hummerConstructorInternal(gamma,atomicRecombinationRateRadiative_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily hummer} atomic radiative recombination class.
+    Internal constructor for the \refClass{atomicRecombinationRateRadiativeCoolingHummer} atomic radiative recombination class.
     !!}
     use :: Input_Parameters, only : inputParameters
     use :: Table_Labels    , only : extrapolationTypeExtrapolate
@@ -127,7 +127,7 @@ contains
 
   subroutine hummerDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily hummer} recombination cooling class.
+    Destructor for the \refClass{atomicRecombinationRateRadiativeCoolingHummer} recombination cooling class.
     !!}
     implicit none
     type(atomicRecombinationRateRadiativeCoolingHummer), intent(inout) :: self

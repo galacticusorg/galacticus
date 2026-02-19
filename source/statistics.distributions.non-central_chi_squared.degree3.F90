@@ -44,7 +44,7 @@
 
   interface distributionFunction1DNonCentralChiDegree3
      !!{
-     Constructors for the {\normalfont \ttfamily distributionFunction1DNonCentralChiDegree3} 1D distribution function class.
+     Constructors for the \refClass{distributionFunction1DNonCentralChiDegree3} 1D distribution function class.
      !!}
      module procedure nonCentralChiSquaredDegree3ConstructorParameters
      module procedure nonCentralChiSquaredDegree3ConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function nonCentralChiSquaredDegree3ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily distributionFunction1DNonCentralChiDegree3} 1D distribution function class which builds the object from a parameter
+    Constructor for the \refClass{distributionFunction1DNonCentralChiDegree3} 1D distribution function class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -82,7 +82,7 @@ contains
 
   function nonCentralChiSquaredDegree3ConstructorInternal(lambda,randomNumberGenerator_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily distributionFunction1DNonCentralChiDegree3} 1D distribution function class.
+    Constructor for the \refClass{distributionFunction1DNonCentralChiDegree3} 1D distribution function class.
     !!}
     implicit none
     type            (distributionFunction1DNonCentralChiDegree3)                                  :: self

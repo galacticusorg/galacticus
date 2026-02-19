@@ -151,7 +151,7 @@
 
   interface mergerTreeEvolverStandard
      !!{
-     Constructors for the {\normalfont \ttfamily standard} merger tree evolver.
+     Constructors for the \refClass{mergerTreeEvolverStandard} merger tree evolver.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -161,7 +161,7 @@ contains
 
   function standardConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily standard} merger tree evolver class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeEvolverStandard} merger tree evolver class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -247,7 +247,7 @@ contains
 
   function standardConstructorInternal(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,backtrackToSatellites,profileSteps,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,galacticStructureSolver_,mergerTreeEvolveProfiler_,metaTreeProcessingTime_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily standard} merger tree evolver class.
+    Internal constructor for the \refClass{mergerTreeEvolverStandard} merger tree evolver class.
     !!}
     implicit none
     type            (mergerTreeEvolverStandard    )                        :: self
@@ -274,7 +274,7 @@ contains
 
   subroutine standardDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily standard} merger tree evolver class.
+    Destructor for the \refClass{mergerTreeEvolverStandard} merger tree evolver class.
     !!}
     implicit none
     type(mergerTreeEvolverStandard), intent(inout) :: self

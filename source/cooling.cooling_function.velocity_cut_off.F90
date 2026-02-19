@@ -69,7 +69,7 @@
 
   interface coolingFunctionVelocityCutOff
      !!{
-     Constructors for the {\normalfont \ttfamily velocityCutOff} cooling function class.
+     Constructors for the \refClass{coolingFunctionVelocityCutOff} cooling function class.
      !!}
      module procedure velocityCutOffConstructorParameters
      module procedure velocityCutOffConstructorInternal
@@ -79,7 +79,7 @@ contains
 
   function velocityCutOffConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily velocityCutOff} cooling function class which takes a parameter set as input.
+    Constructor for the \refClass{coolingFunctionVelocityCutOff} cooling function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -148,7 +148,7 @@ contains
 
   function velocityCutOffConstructorInternal(velocityCutOff,timeCutOff,whenCutOff,useFormationNode,cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily velocityCutOff} cooling function class.
+    Internal constructor for the \refClass{coolingFunctionVelocityCutOff} cooling function class.
     !!}
     implicit none
     type            (coolingFunctionVelocityCutOff)                        :: self
@@ -168,7 +168,7 @@ contains
 
   subroutine velocityCutOffDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily velocityCutOff} cooling function class.
+    Destructor for the \refClass{coolingFunctionVelocityCutOff} cooling function class.
     !!}
     implicit none
     type(coolingFunctionVelocityCutOff), intent(inout) :: self

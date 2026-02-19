@@ -45,6 +45,7 @@ gsl_odeiv2_control *gsl_odeiv2_control_scaled2_new (double eps_abs,
 						    double eps_rel, double a_y,
 						    double a_dydt,
 						    const double scale_abs[],
+						    const int is_non_negative[],
 						    size_t dim);
 
 int gsl_odeiv2_driver2_apply (gsl_odeiv2_driver * d, double *t,

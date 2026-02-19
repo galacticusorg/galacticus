@@ -25,7 +25,7 @@ module Hashes_Perfect
   !!{
   Implements a perfect hash algorithm for long integer keys based on methods described by \cite{czech_fundamental_1997}. The
   specific implementation follows the general structure of that given in a Dr. Dobbs
-  \href{https://www.drdobbs.com/architecture-and-design/generating-perfect-hash-functions/184404506}{article}.
+  \href{https://web.archive.org/web/20250613033605/https://www.drdobbs.com/architecture-and-design/generating-perfect-hash-functions/184404506}{article}.
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_size_t
   private

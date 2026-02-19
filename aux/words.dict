@@ -53,6 +53,7 @@ Alamos
 Aparna
 Arfken
 Astraeus
+Azabajian
 BAO
 BLAS
 BPASS
@@ -66,7 +67,6 @@ Binney
 Biometrika
 Birnboim
 Blanc
-Boylan
 Boylan
 Bruzual
 Buser
@@ -98,6 +98,7 @@ Dekel
 Diemer
 Dobbs
 Dodds
+Dopita
 Dorta
 Drlica
 Dutton
@@ -196,6 +197,7 @@ Palla
 Patashnik
 Patej
 Peebles
+Peñarrubia
 Peng
 Pfaff
 Plummer
@@ -213,18 +215,22 @@ SNe
 SSPs
 SZ
 Safranek
+Safronov
 Schechter
 Scholz
 Schreiber
 Schwarzchild
+Sesana
 Shanjie
 Shen
 Sheth
 Shi
 Shrader
 Shull
+Springer
 Sridhar
 Storey
+Strömgren
 Struve
 Takahashi
 Tegmark
@@ -240,6 +246,7 @@ USNO
 UltraVISTA
 Vega
 Venkatesan
+Vogel
 Volonteri
 Weiner
 Werner
@@ -307,6 +314,7 @@ brightnesses
 burkardt
 bzip2
 calorimeter
+canonicalize
 cardinality
 cartesian
 ccompiler
@@ -358,6 +366,7 @@ declinations
 decrement
 dereference
 dereferenced
+deregister
 descendantless
 deserialization
 deserialize
@@ -378,6 +387,7 @@ dimensionful
 dimensionfull
 discretization
 discretize
+discretized
 discretizing
 dispersions
 dissipational
@@ -428,6 +438,7 @@ gridded
 gsl
 gv
 gyr
+gzip
 h5ls
 h5py
 haider
@@ -491,6 +502,7 @@ kile
 kovacs
 lan
 len
+lensed
 lensing
 libmatheval
 lightcone
@@ -679,12 +691,14 @@ sendmail
 sersic
 sexagesimal
 shakura
+shortward
 sidm
 sightline
 sigmoid
 sinusoid
 situ
 smtp
+soliton
 sphericalization
 spheroid
 splashback
@@ -736,7 +750,9 @@ timestepping
 timesteps
 triaxial
 ttfamily
+tuple
 unaccreted
+unallocated
 unapply
 unary
 unbootstrapped
@@ -744,6 +760,7 @@ unbuffered
 unclustered
 uncommented
 uncontracted
+undecorated
 undersampling
 unevaluated
 unevolved

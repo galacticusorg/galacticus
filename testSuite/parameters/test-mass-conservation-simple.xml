@@ -15,7 +15,7 @@
 
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
+    <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
     <accretionHalo value="bertschinger">
       <redshiftReionization value="10.5"/>
       <velocitySuppressionReionization value="47.370163695687651"/>
@@ -246,12 +246,14 @@
 	  </stellarFeedbackOutflows>
 	</stellarFeedbackOutflows>
       </nodeOperator>
-      <nodeOperator value="blackHolesSeed" iterable="no">
-	<blackHoleSeeds value="fixed">
-	  <mass value="0"/>
-	  <spin value="0"/>
-	</blackHoleSeeds>
+      <!-- CGM physics -->
+      <nodeOperator value="CGMOuterRadiusVirialRadius" iterable="no"/>
+      <nodeOperator value="CGMCoolingInflow" iterable="no">
+	<component value="disk"/>
       </nodeOperator>
+      <nodeOperator value="CGMAccretion" iterable="no"/>
+      <nodeOperator value="CGMStarvation" iterable="no"/>
+      <nodeOperator value="CGMOutflowReincorporation" iterable="no"/>
     </nodeOperator>
 
     <nodePropertyExtractor value="multi">

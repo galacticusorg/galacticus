@@ -39,7 +39,7 @@
 
   interface nodePropertyExtractorNodeMajorMergerTime
      !!{
-     Constructors for the ``nodeMajorMergerTime'' output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorNodeMajorMergerTime} output extractor class.
      !!}
      module procedure nodeMajorMergerTimeConstructorParameters
      module procedure nodeMajorMergerTimeConstructorInternal
@@ -49,7 +49,7 @@ contains
 
   function nodeMajorMergerTimeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``nodeMajorMergerTime'' property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorNodeMajorMergerTime} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -65,7 +65,7 @@ contains
 
   function nodeMajorMergerTimeConstructorInternal() result(self)
     !!{
-    Internal constructor for the ``nodeMajorMergerTime'' output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorNodeMajorMergerTime} output extractor property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorNodeMajorMergerTime) :: self

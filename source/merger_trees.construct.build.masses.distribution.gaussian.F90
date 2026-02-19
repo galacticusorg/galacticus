@@ -38,7 +38,7 @@
 
   interface mergerTreeBuildMassDistributionGaussian
      !!{
-     Constructors for the {\normalfont \ttfamily gaussian} merger tree halo mass function sampling class.
+     Constructors for the \refClass{mergerTreeBuildMassDistributionGaussian} merger tree halo mass function sampling class.
      !!}
      module procedure gaussianConstructorParameters
      module procedure gaussianConstructorInternal
@@ -48,7 +48,7 @@ contains
 
   function gaussianConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily gaussian} merger tree halo mass function sampling class which builds the object from a parameter set.
+    Constructor for the \refClass{mergerTreeBuildMassDistributionGaussian} merger tree halo mass function sampling class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function gaussianConstructorInternal(mean,rootVariance) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily gaussian} merger tree halo mass function sampling class.
+    Internal constructor for the \refClass{mergerTreeBuildMassDistributionGaussian} merger tree halo mass function sampling class.
     !!}
     implicit none
     type            (mergerTreeBuildMassDistributionGaussian)                :: self

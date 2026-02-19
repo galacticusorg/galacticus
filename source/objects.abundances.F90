@@ -293,26 +293,27 @@ contains
     return
   end subroutine Abundances_Builder
 
-  subroutine Abundances_Dump(self)
+  subroutine Abundances_Dump(self,verbosityLevel)
     !!{
-    Reset an abundances object.
+    Dump properties of an abundances object.
     !!}
-    use :: Display           , only : displayMessage
-    use :: ISO_Varying_String, only : assignment(=) , operator(//), varying_string
+    use :: Display           , only : displayMessage, enumerationVerbosityLevelType
+    use :: ISO_Varying_String, only : assignment(=) , operator(//)                 , varying_string
     implicit none
-    class    (abundances    ), intent(in   ) :: self
-    integer                                  :: i
-    character(len=22        )                :: label
-    type     (varying_string)                :: message
+    class    (abundances                   ), intent(in   ) :: self
+    type     (enumerationVerbosityLevelType), intent(in   ) :: verbosityLevel
+    integer                                                 :: i
+    character(len=22                       )                :: label
+    type     (varying_string               )                :: message
 
     write (label,'(e22.16)') self%metallicityValue
     message='metallicity: '//label
-    call displayMessage(message)
+    call displayMessage(message,verbosityLevel)
     if (elementsCount > 0) then
        do i=1,elementsCount
           write (label,'(e22.16)') self%elementalValue(i)
           message=elementsToTrack(i)//':          '//label
-          call displayMessage(message)
+          call displayMessage(message,verbosityLevel)
        end do
     end if
     return
@@ -817,8 +818,16 @@ contains
     class           (abundances), intent(in   ) :: self
     double precision            , parameter     :: massFractionMinimum=0.7d0
 
-    Abundances_Hydrogen_Mass_Fraction=max((self%metallicityValue/metallicitySolar)*(hydrogenByMassSolar&
-         &-hydrogenByMassPrimordial)+hydrogenByMassPrimordial,massFractionMinimum)
+    Abundances_Hydrogen_Mass_Fraction=min(                                                      &
+         &                                max(                                                  &
+         &                                    +self%metallicityValue                            &
+         &                                    /     metallicitySolar                            &
+         &                                    *(+hydrogenByMassSolar-hydrogenByMassPrimordial)  &
+         &                                    +                      hydrogenByMassPrimordial , &
+         &                                    +                      massFractionMinimum        &
+         &                                   )                                                , &
+         &                                    +                      hydrogenByMassPrimordial   &
+         &                               )
     return
   end function Abundances_Hydrogen_Mass_Fraction
 
@@ -830,8 +839,13 @@ contains
     implicit none
     class(abundances), intent(in   ) :: self
 
-    Abundances_Helium_Mass_Fraction=(self%metallicityValue/metallicitySolar)*(heliumByMassSolar-heliumByMassPrimordial)&
-         &+heliumByMassPrimordial
+    Abundances_Helium_Mass_Fraction=min(                                              &
+         &                              +self%metallicityValue                        &
+         &                              /     metallicitySolar                        &
+         &                              *(+heliumByMassSolar-heliumByMassPrimordial)  &
+         &                              +                    heliumByMassPrimordial , &
+         &                              +                    heliumByMassPrimordial   &
+         &                             )
     return
   end function Abundances_Helium_Mass_Fraction
 

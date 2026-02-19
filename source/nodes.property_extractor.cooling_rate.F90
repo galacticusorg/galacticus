@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a cooling rate property extractor class.
+Implements a cooling rate property extractor class.
 !!}
 
   use :: Cooling_Rates, only : coolingRate, coolingRateClass
@@ -47,7 +47,7 @@ Contains a module which implements a cooling rate property extractor class.
 
   interface nodePropertyExtractorRateCooling
      !!{
-     Constructors for the ``rateCooling'' output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRateCooling} output analysis class.
      !!}
      module procedure rateCoolingConstructorParameters
      module procedure rateCoolingConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function rateCoolingConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily rateCooling} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorRateCooling} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function rateCoolingConstructorInternal(coolingRate_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily rateCooling} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorRateCooling} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorRateCooling)                        :: self
@@ -92,7 +92,7 @@ contains
 
   subroutine rateCoolingDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily rateCooling} property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorRateCooling} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRateCooling), intent(inout) :: self

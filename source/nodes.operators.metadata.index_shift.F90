@@ -37,7 +37,7 @@ Implements a node operator class that shifts node indices at node promotion.
 
   interface nodeOperatorIndexShift
      !!{
-     Constructors for the {\normalfont \ttfamily indexShift} node operator class.
+     Constructors for the \refClass{nodeOperatorIndexShift} node operator class.
      !!}
      module procedure indexShiftConstructorParameters
   end interface nodeOperatorIndexShift
@@ -46,7 +46,7 @@ contains
 
   function indexShiftConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily indexShift} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorIndexShift} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

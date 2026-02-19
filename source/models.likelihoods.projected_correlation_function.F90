@@ -92,7 +92,7 @@
 
   interface posteriorSampleLikelihoodPrjctdCorrelationFunction
      !!{
-     Constructors for the {\normalfont \ttfamily projectedCorrelationFunction} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleLikelihoodPrjctdCorrelationFunction} posterior sampling convergence class.
      !!}
      module procedure projectedCorrelationFunctionConstructorParameters
      module procedure projectedCorrelationFunctionConstructorInternal
@@ -102,7 +102,7 @@ contains
 
   function projectedCorrelationFunctionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily projectedCorrelationFunction} posterior sampling convergence class which builds the object from a
+    Constructor for the \refClass{posteriorSampleLikelihoodPrjctdCorrelationFunction} posterior sampling convergence class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -174,7 +174,7 @@ contains
 
   function projectedCorrelationFunctionConstructorInternal(haloMassMinimum,haloMassMaximum,lineOfSightDepth,halfIntegral,fileName,powerSpectrum_,cosmologyFunctions_,surveyGeometry_,darkMatterHaloScale_,haloMassFunction_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterProfileScaleRadius_) result(self)
     !!{
-    Constructor for ``projectedCorrelationFunction'' posterior sampling likelihood class.
+    Constructor for the \refClass{posteriorSampleLikelihoodPrjctdCorrelationFunction} posterior sampling likelihood class.
     !!}
     use :: Input_Paths      , only : inputPath    , pathTypeDataStatic
     use :: HDF5_Access      , only : hdf5Access
@@ -224,7 +224,7 @@ contains
 
   subroutine projectedCorrelationFunctionDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily projectedCorrelationFunction} class.
+    Destructor for the \refClass{posteriorSampleLikelihoodPrjctdCorrelationFunction} class.
     !!}
     implicit none
     type(posteriorSampleLikelihoodPrjctdCorrelationFunction), intent(inout) :: self
@@ -254,7 +254,7 @@ contains
     use :: Posterior_Sampling_Convergence   , only : posteriorSampleConvergenceClass
     use :: Posterior_Sampling_State         , only : posteriorSampleStateClass
     implicit none
-    class           (posteriorSampleLikelihoodPrjctdCorrelationFunction), intent(inout)               :: self
+    class           (posteriorSampleLikelihoodPrjctdCorrelationFunction), intent(inout), target       :: self
     class           (posteriorSampleStateClass                         ), intent(inout)               :: simulationState
     type            (modelParameterList                                ), intent(inout), dimension(:) :: modelParametersActive_  , modelParametersInactive_
     class           (posteriorSampleConvergenceClass                   ), intent(inout)               :: simulationConvergence

@@ -44,7 +44,7 @@
 
   interface stellarPopulationSelectorDiskSpheroid
      !!{
-     Constructors for the {\normalfont \ttfamily diskSpheroid} stellar population selector class.
+     Constructors for the \refClass{stellarPopulationSelectorDiskSpheroid} stellar population selector class.
      !!}
      module procedure diskSpheroidConstructorParameters
      module procedure diskSpheroidConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function diskSpheroidConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily diskSpheroid} stellar population class which takes a parameter list as input.
+    Constructor for the \refClass{stellarPopulationSelectorDiskSpheroid} stellar population class which takes a parameter list as input.
     !!}
     use :: Input_Parameters   , only : inputParameter   , inputParameters
     use :: Stellar_Populations, only : stellarPopulation, stellarPopulationClass
@@ -78,7 +78,7 @@ contains
 
   function diskSpheroidConstructorInternal(stellarPopulationDisk_,stellarPopulationSpheroid_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily diskSpheroid} stellar population selector class.
+    Internal constructor for the \refClass{stellarPopulationSelectorDiskSpheroid} stellar population selector class.
     !!}
     implicit none
     type (stellarPopulationSelectorDiskSpheroid)                        :: self
@@ -92,7 +92,7 @@ contains
 
   subroutine diskSpheroidDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily diskSpheroid} stellar population selector class.
+    Destructor for the \refClass{stellarPopulationSelectorDiskSpheroid} stellar population selector class.
     !!}
     implicit none
     type(stellarPopulationSelectorDiskSpheroid), intent(inout) :: self

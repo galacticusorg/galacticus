@@ -75,7 +75,7 @@ velocity.
 
   interface hotHaloOutflowReincorporationVelocityMaximumScaling
      !!{
-     Constructors for the {\normalfont \ttfamily velocityMaximumScaling} hot halo outflow reincorporation class.
+     Constructors for the \refClass{hotHaloOutflowReincorporationVelocityMaximumScaling} hot halo outflow reincorporation class.
      !!}
      module procedure velocityMaximumScalingConstructorParameters
      module procedure velocityMaximumScalingConstructorInternal

@@ -42,7 +42,7 @@ Implements a node operator class that records the index of the node in which a n
 
   interface nodeOperatorIndexLastHost
      !!{
-     Constructors for the {\normalfont \ttfamily indexLastHost} node operator class.
+     Constructors for the \refClass{nodeOperatorIndexLastHost} node operator class.
      !!}
      module procedure indexLastHostConstructorParameters
      module procedure indexLastHostConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function indexLastHostConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily indexLastHost} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorIndexLastHost} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -68,7 +68,7 @@ contains
 
   function indexLastHostConstructorInternal() result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily indexLastHost} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorIndexLastHost} node operator class which takes a parameter set as input.
     !!}
     implicit none
     type(nodeOperatorIndexLastHost) :: self
@@ -93,7 +93,7 @@ contains
 
   subroutine indexLastHostDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily indexLastHost} node operator class.
+    Destructor for the \refClass{nodeOperatorIndexLastHost} node operator class.
     !!}
     use :: Events_Hooks, only : satelliteHostChangeEvent
     implicit none

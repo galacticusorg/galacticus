@@ -46,7 +46,7 @@
 
   interface modelParameterInactive
      !!{
-     Constructors for the {\normalfont \ttfamily inactive} 1D distribution function class.
+     Constructors for the \refClass{modelParameterInactive} 1D distribution function class.
      !!}
      module procedure inactiveConstructorParameters
      module procedure inactiveConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function inactiveConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily inactive} model parameter class which builds the object from a parameter set.
+    Constructor for the \refClass{modelParameterInactive} model parameter class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -81,7 +81,7 @@ contains
 
   function inactiveConstructorInternal(name_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily inactive} model parameter class.
+    Internal constructor for the \refClass{modelParameterInactive} model parameter class.
     !!}
     implicit none
     type (modelParameterInactive)                :: self

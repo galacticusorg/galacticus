@@ -47,7 +47,7 @@
 
   interface accretionHaloZero
      !!{
-     Constructors for the {\normalfont \ttfamily zero} halo accretion class.
+     Constructors for the \refClass{accretionHaloZero} halo accretion class.
      !!}
      module procedure zeroConstructorParameters
   end interface accretionHaloZero
@@ -56,7 +56,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily zero} halo accretion class which takes a parameter set as input.
+    Constructor for the \refClass{accretionHaloZero} halo accretion class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

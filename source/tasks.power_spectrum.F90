@@ -57,7 +57,7 @@
 
   interface taskPowerSpectra
      !!{
-     Constructors for the {\normalfont \ttfamily powerSpectrum} task.
+     Constructors for the \refClass{taskPowerSpectra} task.
      !!}
      module procedure powerSpectraConstructorParameters
      module procedure powerSpectraConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function powerSpectraConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily powerSpectrum} task class which takes a parameter set as input.
+    Constructor for the \refClass{taskPowerSpectra} task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -182,7 +182,7 @@ contains
        &                                    outputTimes_                  &
        &                                   ) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily powerSpectrum} task class.
+    Internal constructor for the \refClass{taskPowerSpectra} task class.
     !!}
     implicit none
     type            (taskPowerSpectra                )                        :: self
@@ -208,7 +208,7 @@ contains
 
   subroutine powerSpectraDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily powerSpectrum} task class.
+    Destructor for the \refClass{taskPowerSpectra} task class.
     !!}
     implicit none
     type(taskPowerSpectra), intent(inout) :: self

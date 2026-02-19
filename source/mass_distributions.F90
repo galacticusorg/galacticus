@@ -89,6 +89,15 @@ module Mass_Distributions
         end if
       </code>
    </method>
+   <method name="describe" >
+    <description>Display a description of the mass distribution.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <modules>Display</modules>
+    <code>
+     call displayMessage('unknown')
+    </code>
+   </method>
    <method name="matches" >
     <description>Return true if this mass distribution matches the specified component and mass type.</description>
     <type>logical</type>
@@ -261,7 +270,7 @@ module Mass_Distributions
        massTarget=0.0d0
        call Error_Report('either "mass" or "massFractional" must be provided'//{introspection:location})
       end if
-      if (massTarget &lt;= 0.0d0) then
+      if (massTarget &lt;= 0.0d0 .or. self%massEnclosedBySphere(0.0d0) &gt;= massTarget) then
        massDistributionRadiusEnclosingMassNumerical=0.0d0
        return
       end if
@@ -639,21 +648,20 @@ module Mass_Distributions
     <description>Return the 1D velocity dispersion at the given coordinate.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <selfTarget>yes</selfTarget>
-    <argument>class(coordinate           ), intent(in   ) :: coordinates              </argument>
-    <argument>class(massDistributionClass), intent(inout) :: massDistributionEmbedding</argument>
+    <argument>class(coordinate           ), intent(in   )         :: coordinates                                 </argument>
+    <argument>class(massDistributionClass), intent(inout), target :: massDistribution_, massDistributionEmbedding</argument>
     <code>
-      kinematicsDistributionVelocityDispersion1D=self%velocityDispersion1DNumerical(coordinates,massDistributionEmbedding)
+      kinematicsDistributionVelocityDispersion1D=self%velocityDispersion1DNumerical(coordinates,massDistribution_,massDistributionEmbedding)
     </code>
    </method>
    <method name="velocityDispersion1DNumerical" >
     <description>Return the 1D velocity dispersion at the given coordinate by numerically solving the Jeans equation.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>class(coordinate           ), intent(in   ) :: coordinates              </argument>
-    <argument>class(massDistributionClass), intent(inout) :: massDistributionEmbedding</argument>
+    <argument>class(coordinate           ), intent(in   )         :: coordinates                                 </argument>
+    <argument>class(massDistributionClass), intent(inout), target :: massDistribution_, massDistributionEmbedding</argument>
     <code>
-      call jeansEquationSolver(self,coordinates%rSpherical(),massDistributionEmbedding)
+      call jeansEquationSolver(self,coordinates%rSpherical(),massDistribution_,massDistributionEmbedding)
       kinematicsDistributionVelocityDispersion1DNumerical=self%velocityDispersion1D__%interpolate(log(coordinates%rSpherical()))
     </code>
    </method>
@@ -672,16 +680,16 @@ module Mass_Distributions
     <description>Integrand for Jeans equation.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>double precision                       , intent(in   ) :: radius                   </argument>
-    <argument>class           (massDistributionClass), intent(inout) :: massDistributionEmbedding</argument>
+    <argument>double precision                       , intent(in   ) :: radius                                      </argument>
+    <argument>class           (massDistributionClass), intent(inout) :: massDistribution_, massDistributionEmbedding</argument>
     <modules>Numerical_Constants_Astronomical Coordinates</modules>
     <code>
       type(coordinateSpherical) :: coordinates
       if (radius > 0.0d0) then
         coordinates                                 = [radius,0.0d0,0.0d0]
-        kinematicsDistributionJeansEquationIntegrand=+gravitationalConstantGalacticus                                &amp;
+        kinematicsDistributionJeansEquationIntegrand=+gravitationalConstant_internal                                 &amp;
              &amp;                                   *massDistributionEmbedding%massEnclosedBySphere(radius     )    &amp;
-             &amp;                                   *massDistributionEmbedding%density             (coordinates)    &amp;
+             &amp;                                   *massDistribution_        %density             (coordinates)    &amp;
              &amp;                                   /                                               radius      **2
       else
         kinematicsDistributionJeansEquationIntegrand=+0.0d0
@@ -693,7 +701,7 @@ module Mass_Distributions
     <type>void</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
-    <argument>class           (massDistributionClass), intent(in   ), target :: massDistributionEmbedding</argument>
+    <argument>class           (massDistributionClass), intent(in   ), target :: massDistribution_, massDistributionEmbedding</argument>
     <code>
       integer                                              :: i
       type   (kinematicsSolver), allocatable, dimension(:) :: solvers_
@@ -704,6 +712,7 @@ module Mass_Distributions
             solvers(1:size(solvers_))=solvers_
             do i=1,size(solvers_)
                nullify(solvers_(i)%self                     )
+               nullify(solvers_(i)%massDistribution_        )
                nullify(solvers_(i)%massDistributionEmbedding)
             end do
             deallocate(solvers_)
@@ -713,6 +722,7 @@ module Mass_Distributions
       end if
       solversCount=solversCount+1
       solvers(solversCount)%self                      => self
+      solvers(solversCount)%massDistribution_         => massDistribution_
       solvers(solversCount)%massDistributionEmbedding => massDistributionEmbedding
     </code>
    </method>
@@ -723,16 +733,17 @@ module Mass_Distributions
     <code>
       !$GLC attributes unused :: self
       solvers(solversCount)%self                      => null()
+      solvers(solversCount)%massDistribution_         => null()
       solvers(solversCount)%massDistributionEmbedding => null()
       solversCount=solversCount-1
     </code>
    </method>
-   <data>type            (interpolator), allocatable               :: velocityDispersion1D__                                                                                               </data>
-   <data>double precision              , allocatable, dimension(:) :: velocityDispersionRadialVelocity__                             , velocityDispersionRadialRadius__                    </data>
-   <data>double precision                                          :: velocityDispersionRadialRadiusMinimum__           =+huge(0.0d0), velocityDispersionRadialRadiusMaximum__=-huge(0.0d0)</data>
-   <data>double precision                                          :: velocityDispersionRadialRadiusOuter__                                                                                </data>   
-   <data>double precision                                          :: toleranceRelativeVelocityDispersion       =1.0d-6                                                                    </data>
-   <data>double precision                                          :: toleranceRelativeVelocityDispersionMaximum=1.0d-3                                                                    </data>
+   <data>type            (interpolator), allocatable               :: velocityDispersion1D__                                                                                       </data>
+   <data>double precision              , allocatable, dimension(:) :: velocityDispersionRadialVelocity__                     , velocityDispersionRadialRadius__                    </data>
+   <data>double precision                                          :: velocityDispersionRadialRadiusMinimum__   =+huge(0.0d0), velocityDispersionRadialRadiusMaximum__=-huge(0.0d0)</data>
+   <data>double precision                                          :: velocityDispersionRadialRadiusOuter__                                                                        </data>
+   <data>double precision                                          :: toleranceRelativeVelocityDispersion       =1.0d-6                                                            </data>
+   <data>double precision                                          :: toleranceRelativeVelocityDispersionMaximum=1.0d-3                                                            </data>
   </functionClass>
   !!]
 
@@ -790,8 +801,8 @@ module Mass_Distributions
 
   ! Module-scope pointers used in integrand functions and root finding.
   type :: kinematicsSolver
-     class(kinematicsDistributionClass), pointer :: self                      => null()
-     class(massDistributionClass      ), pointer :: massDistributionEmbedding => null()
+     class(kinematicsDistributionClass), pointer :: self              => null()
+     class(massDistributionClass      ), pointer :: massDistribution_ => null(), massDistributionEmbedding => null()
   end type kinematicsSolver
   type   (kinematicsSolver), allocatable, dimension(:) :: solvers
   integer                  , parameter                 :: solversIncrement=10
@@ -1045,8 +1056,8 @@ contains
     !!{
     Integrand used in computing potential differences.
     !!}
-    use :: Coordinates                     , only : coordinateCartesian    , assignment(=)
-    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
+    use :: Coordinates                     , only : coordinateCartesian, assignment(=)
+    use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr
     implicit none
     double precision                     , intent(in   ) :: distance
     double precision                     , dimension(3)  :: position   , acceleration
@@ -1058,38 +1069,40 @@ contains
     coordinates                 =                                   position
     acceleration                =massSolvers(massSolversCount)%self%acceleration(coordinates)
     potentialDifferenceIntegrand=-Dot_Product(acceleration,massSolvers(massSolversCount)%vectorUnit) &
-         &                       *Mpc_per_km_per_s_To_Gyr
+         &                       *MpcPerKmPerSToGyr
     return
   end function potentialDifferenceIntegrand
   
-  subroutine jeansEquationSolver(self,radius,massDistributionEmbedding)
+  subroutine jeansEquationSolver(self,radius,massDistribution_,massDistributionEmbedding)
     !!{
     Solve the Jeans equation numerically to find the 1D velocity dispersion.
     !!}
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
-    use            :: Error                  , only : Error_Report        , errorStatusSuccess
+    use            :: Display                , only : displayIndent       , displayUnindent     , displayMessage
+    use            :: Error                  , only : Error_Report        , errorStatusSuccess  , GSL_Error_Details
     use            :: Numerical_Integration  , only : integrator
     use            :: Numerical_Ranges       , only : Make_Range          , rangeTypeLogarithmic
     use            :: Table_Labels           , only : extrapolationTypeFix
     use            :: Numerical_Interpolation, only : gsl_interp_linear
+    use            :: String_Handling        , only : operator(//)
     use            :: Coordinates            , only : coordinateSpherical , assignment(=)
     implicit none
     class           (kinematicsDistributionClass), intent(inout)              :: self
     double precision                             , intent(in   )              :: radius
-    class           (massDistributionClass      ), intent(inout)              :: massDistributionEmbedding
-    double precision                                            , parameter   :: radiusTinyFactor         =1.0d-9 , factorDensityLarge       =1.0d+5
-    double precision                                            , parameter   :: countPointsPerOctave     =2.0d0
-    double precision                                            , parameter   :: toleranceFactor          =2.0d0
-    double precision                             , dimension(:) , allocatable :: velocityDispersions              , radii
-    double precision                                                          :: radiusMinimum                    , radiusMaximum                   , &
-         &                                                                       toleranceRelative                , density                         , &
-         &                                                                       jeansIntegral                    , radiusOuter_                    , &
-         &                                                                       radiusLower                      , radiusUpper                     , &
-         &                                                                       radiusLowerJeansEquation         , radiusUpperJeansEquation        , &
-         &                                                                       densityMaximum                   , densityOuter_                   , &
-         &                                                                       jeansIntegralPrevious
-    integer         (c_size_t                   )                             :: countRadii                       , iMinimum                        , &
-         &                                                                       iMaximum                         , i
+    class           (massDistributionClass      ), intent(inout), target      :: massDistribution_               , massDistributionEmbedding
+    double precision                                            , parameter   :: radiusTinyFactor        =1.0d-9 , factorDensityLarge       =1.0d+5
+    double precision                                            , parameter   :: countPointsPerOctave    =2.0d0
+    double precision                                            , parameter   :: toleranceFactor         =2.0d0
+    double precision                             , dimension(:) , allocatable :: velocityDispersions             , radii
+    double precision                                                          :: radiusMinimum                   , radiusMaximum                   , &
+         &                                                                       toleranceRelative               , density                         , &
+         &                                                                       jeansIntegral                   , radiusOuter_                    , &
+         &                                                                       radiusLower                     , radiusUpper                     , &
+         &                                                                       radiusLowerJeansEquation        , radiusUpperJeansEquation        , &
+         &                                                                       densityMaximum                  , densityOuter_                   , &
+         &                                                                       jeansIntegralPrevious           , toleranceRelativePrevious
+    integer         (c_size_t                   )                             :: countRadii                      , iMinimum                        , &
+         &                                                                       iMaximum                        , i
     integer                                                                   :: status
     type            (coordinateSpherical        )                             :: coordinates
     type            (integrator                 )                             :: integrator_
@@ -1105,9 +1118,10 @@ contains
             &       radius > self%velocityDispersionRadialRadiusMaximum__
     end if
     if (remakeTable) then
-       integrator_=integrator(jeansEquationIntegrand_,toleranceRelative=self%toleranceRelativeVelocityDispersion)
+       integrator_=integrator(jeansEquationIntegrand_,toleranceRelative=self%toleranceRelativeVelocityDispersion,intervalsMaximum=10000_c_size_t)
+       toleranceRelativePrevious=self%toleranceRelativeVelocityDispersion
        ! Find the range of radii at which to compute the velocity dispersion, and construct the arrays.
-       call self%solverSet(massDistributionEmbedding)
+       call self%solverSet(massDistribution_,massDistributionEmbedding)
        !! Set an initial range of radii that brackets the requested radius.
        radiusMinimum=0.5d0*radius
        radiusMaximum=2.0d0*radius
@@ -1124,13 +1138,13 @@ contains
        !! negligible.
        !!! Start at the maximum radius and gradually increase the outer radius until the density is sufficiently small.
        coordinates    =[radiusMaximum,0.0d0,0.0d0]
-       densityMaximum=massDistributionEmbedding%density(coordinates)
+       densityMaximum=massDistribution_%density(coordinates)
        radiusOuter_  =radiusMaximum
        densityOuter_ =densityMaximum
        do while (densityOuter_ > densityMaximum/factorDensityLarge)
           radiusOuter_ =radiusOuter_*2.0d0
           coordinates  =[radiusOuter_,0.0d0,0.0d0]
-          densityOuter_=massDistributionEmbedding%density(coordinates)
+          densityOuter_=massDistribution_%density(coordinates)
        end do
        !! Construct arrays.
        countRadii=nint(log(radiusMaximum/radiusMinimum)/log(2.0d0)*countPointsPerOctave+1.0d0)
@@ -1166,8 +1180,8 @@ contains
           ! Reset the accumulated Jeans integral if necessary.
           if (i == iMinimum-1) then
              coordinates          = [radii(iMinimum),0.0d0,0.0d0]
-             jeansIntegralPrevious=+                          velocityDispersions(iMinimum   )**2 &
-                  &                *massDistributionEmbedding%density            (coordinates)
+             jeansIntegralPrevious=+                  velocityDispersions(iMinimum   )**2 &
+                  &                *massDistribution_%density            (coordinates)
           end if
           ! If the interval is wholly outside of the outer radius, the integral is zero.
           if (radiusLower > radiusOuter_) then
@@ -1176,42 +1190,65 @@ contains
           else
              ! Evaluate the integral.
              coordinates             =[radiusLower,0.0d0,0.0d0]
-             density                 =massDistributionEmbedding%density            (coordinates                                                                )
-             radiusLowerJeansEquation=self                     %jeansEquationRadius(radiusLower                                      ,massDistributionEmbedding)
-             radiusUpperJeansEquation=self                     %jeansEquationRadius(radiusUpper                                      ,massDistributionEmbedding)
-             jeansIntegral           =integrator_              %integrate          (radiusLowerJeansEquation,radiusUpperJeansEquation,status                   )
+             density                 =massDistribution_%density            (coordinates                                                                )
+             radiusLowerJeansEquation=self             %jeansEquationRadius(radiusLower                                      ,massDistributionEmbedding)
+             radiusUpperJeansEquation=self             %jeansEquationRadius(radiusUpper                                      ,massDistributionEmbedding)
+             jeansIntegral           =integrator_      %integrate          (radiusLowerJeansEquation,radiusUpperJeansEquation,status                   )
              if (status /= errorStatusSuccess) then
                 ! Integration failed.
                 toleranceRelative=+     toleranceFactor                     &
                      &            *self%toleranceRelativeVelocityDispersion
-                do while (toleranceRelative < self%toleranceRelativeVelocityDispersionMaximum)
+                do while (toleranceRelative <= self%toleranceRelativeVelocityDispersionMaximum)
                    call integrator_%toleranceSet(toleranceRelative=toleranceRelative)
+                   toleranceRelativePrevious=toleranceRelative
                    jeansIntegral=integrator_%integrate(radiusLowerJeansEquation,radiusUpperJeansEquation,status)
                    if (status == errorStatusSuccess) then
                       exit
                    else
-                      toleranceRelative=+toleranceFactor   &
-                           &            *toleranceRelative
+                      if (toleranceRelative >= self%toleranceRelativeVelocityDispersionMaximum) then
+                         exit
+                      else
+                         toleranceRelative=min(                                                  &
+                              &                +     toleranceFactor                             &
+                              &                *     toleranceRelative                         , &
+                              &                +self%toleranceRelativeVelocityDispersionMaximum  &
+                              &               )
+                      end if
                    end if
                 end do
                 if (status /= errorStatusSuccess) then
-                   ! Failed to integrate the Jeans equation even with the largest allowed tolerance.
                    block
-                     use :: File_Utilities, only : File_Name_Temporary
-                     type     (varying_string ) :: message   , fileName
-                     character(len=12         ) :: label
-                     type     (inputParameters) :: descriptor
-
-                     fileName  =File_Name_Temporary("massDistributionFailedJeanIntegration.xml")
-                     descriptor=inputParameters    (                                           )
-                     call massDistributionEmbedding%descriptor    (descriptor)
-                     call descriptor               %serializeToXML(fileName  )
-                     write (label,'(e12.6)') radius
-                     message="integration of Jeans equation failed at r = "//trim(adjustl(label)//" Mpc (massDistribution descriptor written to '"//fileName//"')")
-                     call Error_Report(message//{introspection:location})
+                     integer                   :: line
+                     type     (varying_string) :: reason, file
+                     character(len=24        ) :: label
+                     call GSL_Error_Details(reason,file,line,status)
+                     call integrator_%toleranceSet(toleranceRelative=toleranceRelativePrevious)
+                     call displayIndent('Jeans equation integration failure report')
+                     call displayMessage(var_str('radius ')//i//' of '//countRadii)
+                     write (label,'(e24.16)') radiusLowerJeansEquation
+                     call displayMessage('radiusLowerJeansEquation = '//trim(label)//' Mpc'             )
+                     write (label,'(e24.16)') radiusUpperJeansEquation
+                     call displayMessage('radiusUpperJeansEquation = '//trim(label)//' Mpc'             )
+                     write (label,'(e24.16)') radiusOuter_
+                     call displayMessage('radiusOuter              = '//trim(label)//' Mpc'             )
+                     write (label,'(e24.16)') toleranceRelative
+                     call displayMessage('toleranceRelative        = '//trim(label)                     )
+                     write (label,'(e24.16)') jeansIntegral
+                     call displayMessage('jeansIntegral            = '//trim(label)//' M☉ Mpc⁻³ km² s⁻²')
+                     call displayIndent('Mass distribution properties:')
+                     call displayMessage('Type: '//massDistribution_%objectType())
+                     call massDistribution_        %describe()
+                     call displayUnindent('done')
+                     call displayIndent('Mass distribution embedding properties:')
+                     call displayMessage('Type: '//massDistributionEmbedding%objectType())
+                     call massDistributionEmbedding%describe()
+                     call displayUnindent('done')
+                     call displayUnindent('done')
+                     call Error_Report(var_str('integration of Jeans equation failed - GSL Error ')//status//': "'//reason//'" at line '//line//' of file "'//file//'"'//{introspection:location})
                    end block
                 end if
                 call integrator_%toleranceSet(toleranceRelative=self%toleranceRelativeVelocityDispersion)
+                toleranceRelativePrevious=self%toleranceRelativeVelocityDispersion
              end if
              if (density <= 0.0d0) then
                 ! Density is zero - the velocity dispersion is undefined. If the Jeans integral is also zero this is acceptable - we've
@@ -1258,7 +1295,7 @@ contains
     implicit none
     double precision, intent(in   ) :: radius
 
-    jeansEquationIntegrand_=solvers(solversCount)%self%jeansEquationIntegrand(radius,solvers(solversCount)%massDistributionEmbedding)
+    jeansEquationIntegrand_=solvers(solversCount)%self%jeansEquationIntegrand(radius,solvers(solversCount)%massDistribution_,solvers(solversCount)%massDistributionEmbedding)
     return
   end function jeansEquationIntegrand_
   

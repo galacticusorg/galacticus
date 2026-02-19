@@ -40,7 +40,7 @@
 
   interface starFormationRateSpheroidsCentralsOnly
      !!{
-     Constructors for the {\normalfont \ttfamily centralsOnly} star formation rate in spheroids class.
+     Constructors for the \refClass{starFormationRateSpheroidsCentralsOnly} star formation rate in spheroids class.
      !!}
      module procedure centralsOnlyConstructorParameters
      module procedure centralsOnlyConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function centralsOnlyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily centralsOnly} star formation rate in spheroids class which takes a
+    Constructor for the \refClass{starFormationRateSpheroidsCentralsOnly} star formation rate in spheroids class which takes a
     parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -72,7 +72,7 @@ contains
 
   function centralsOnlyConstructorInternal(starFormationRateSpheroids_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily centralsOnly} star formation rate in spheroids class.
+    Internal constructor for the \refClass{starFormationRateSpheroidsCentralsOnly} star formation rate in spheroids class.
     !!}
     implicit none
     type (starFormationRateSpheroidsCentralsOnly)                        :: self
@@ -86,7 +86,7 @@ contains
 
   subroutine centralsOnlyDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily centralsOnly} star formation rate in spheroids class.
+    Destructor for the \refClass{starFormationRateSpheroidsCentralsOnly} star formation rate in spheroids class.
     !!}
     implicit none
     type(starFormationRateSpheroidsCentralsOnly), intent(inout) :: self

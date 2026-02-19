@@ -397,7 +397,8 @@ sub functionsSerialize {
 	$build->{'content'} .= &Fortran::Utils::Format_Variable_Definitions($function->{'variables'})
 	    if ( exists($function->{'variables'}) );
 	# Serialize content.
-	$build->{'content'} .= $function->{'content'};
+	$build->{'content'} .= $function->{'content'}
+	    if ( exists($function->{'content'  }) );
 	# Serialize function closer.
 	$build->{'content'} .= "   return\n";
 	$build->{'content'} .= "end ".$form." ".$function->{'name'}."\n\n";

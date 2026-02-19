@@ -47,7 +47,7 @@
   
   interface nodeOperatorSatelliteTidalHeating
      !!{
-     Constructors for the {\normalfont \ttfamily satelliteTidalHeatingRate} node operator class.
+     Constructors for the \refClass{nodeOperatorSatelliteTidalHeating} node operator class.
      !!}
      module procedure satelliteTidalHeatingRateConstructorParameters
      module procedure satelliteTidalHeatingRateConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function satelliteTidalHeatingRateConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily satelliteTidalHeatingRate} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorSatelliteTidalHeating} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     use :: Error           , only : Error_Report
@@ -96,7 +96,7 @@ contains
 
   function satelliteTidalHeatingRateConstructorInternal(efficiencyDecay,applyPreInfall,satelliteTidalHeatingRate_,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily satelliteTidalHeatingRate} node operator class.
+    Internal constructor for the \refClass{nodeOperatorSatelliteTidalHeating} node operator class.
     !!}
     implicit none
     type            (nodeOperatorSatelliteTidalHeating)                        :: self
@@ -113,7 +113,7 @@ contains
 
   subroutine satelliteTidalHeatingRateDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily satelliteTidalHeatingRate} node operator class.
+    Destructor for the \refClass{nodeOperatorSatelliteTidalHeating} node operator class.
     !!}
     implicit none
     type(nodeOperatorSatelliteTidalHeating), intent(inout) :: self

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a node property extractor class for the \cite{bullock_profiles_2001} definition of spin parameter.
+Implements a node property extractor class for the \cite{bullock_profiles_2001} definition of spin parameter.
 !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
@@ -47,7 +47,7 @@ Contains a module which implements a node property extractor class for the \cite
 
   interface nodePropertyExtractorSpinBullock
      !!{
-     Constructors for the ``spinBullock'' output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorSpinBullock} output analysis class.
      !!}
      module procedure spinBullockConstructorParameters
      module procedure spinBullockConstructorInternal
@@ -78,7 +78,7 @@ contains
 
   function spinBullockConstructorInternal(darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily spinBullock} output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorSpinBullock} output analysis property extractor class.
     !!}
     use :: Galacticus_Nodes, only : defaultSpinComponent
     implicit none
@@ -99,7 +99,7 @@ contains
 
   subroutine spinBullockDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily spinBullock} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorSpinBullock} output analysis property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSpinBullock), intent(inout) :: self

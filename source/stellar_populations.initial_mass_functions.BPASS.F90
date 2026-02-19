@@ -45,7 +45,7 @@
 
   interface initialMassFunctionBPASS
      !!{
-     Constructors for the {\normalfont \ttfamily bpass} initial mass function class.
+     Constructors for the \refClass{initialMassFunctionBPASS} initial mass function class.
      !!}
      module procedure bpassConstructorParameters
      module procedure bpassConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function bpassConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily bpass} initial mass function class which takes a parameter list as input.
+    Constructor for the \refClass{initialMassFunctionBPASS} initial mass function class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -71,7 +71,7 @@ contains
 
   function bpassConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily bpass} initial mass function.
+    Internal constructor for the \refClass{initialMassFunctionBPASS} initial mass function.
     !!}
     implicit none
     type(initialMassFunctionBPASS):: self

@@ -155,8 +155,8 @@ for(my $i=0;$i<nelem($eigenValues) && $i<$options{'eigenVectorsRetain'};++$i) {
     # Begin LaTeX table entry for this eigenvector.
     my $tableLine = "\$P_".$i."\$";
     # Generate an index into ranked contributions to eigenvector magnitude.
-    my $j                = $eigenValuesRank->(($i)  );
-    my $vector           = $eigenVectors   ->(($j),:);
+    my $j                = $eigenValuesRank->slice("($i)  ");
+    my $vector           = $eigenVectors   ->slice("($j),:");
     my $vectorSquared    = $vector**2;
     my $vectorMagnitude  = $vectorSquared->sum();
     $vectorSquared      /= $vectorMagnitude;

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a stellar feedback mass outflow rate property extractor class.
+  Implements a stellar feedback mass outflow rate property extractor class.
   !!}
 
   use :: Stellar_Feedback_Outflows     , only : stellarFeedbackOutflowsClass
@@ -57,7 +57,7 @@
 
   interface nodePropertyExtractorStellarFeedbackOutflowRate
      !!{
-     Constructors for the ``stellarFeedbackOutflowRate'' output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorStellarFeedbackOutflowRate} output analysis class.
      !!}
      module procedure stellarFeedbackOutflowRateConstructorParameters
      module procedure stellarFeedbackOutflowRateConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function stellarFeedbackOutflowRateConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``stellarFeedbackOutflowRate'' property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorStellarFeedbackOutflowRate} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -103,7 +103,7 @@ contains
 
   function stellarFeedbackOutflowRateConstructorInternal(component,starFormationRateDisks_,starFormationRateSpheroids_,stellarPopulationProperties_,stellarFeedbackOutflows_) result(self)
     !!{
-    Internal constructor for the ``stellarFeedbackOutflowRate'' property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorStellarFeedbackOutflowRate} property extractor class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -135,7 +135,7 @@ contains
 
   subroutine stellarFeedbackOutflowRateDestructor(self)
     !!{
-    Destructor for the ``stellarFeedbackOutflowRate'' property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorStellarFeedbackOutflowRate} property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorStellarFeedbackOutflowRate), intent(inout) :: self

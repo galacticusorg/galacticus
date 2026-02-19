@@ -54,14 +54,14 @@
      final     ::                                coolingEnergyRadiatedDestructor
      procedure :: differentialEvolutionScales => coolingEnergyRadiatedDifferentialEvolutionScales
      procedure :: differentialEvolution       => coolingEnergyRadiatedDifferentialEvolution
-     procedure :: nodesMerge                  => coolingEnergyRadiatedNodesMerge
+     procedure :: galaxiesMerge               => coolingEnergyRadiatedGalaxiesMerge
      procedure :: nodePromote                 => coolingEnergyRadiatedNodePromote
      procedure :: autoHook                    => coolingEnergyRadiatedAutoHook
   end type nodeOperatorCoolingEnergyRadiated
   
   interface nodeOperatorCoolingEnergyRadiated
      !!{
-     Constructors for the {\normalfont \ttfamily coolingEnergyRadiated} node operator class.
+     Constructors for the \refClass{nodeOperatorCoolingEnergyRadiated} node operator class.
      !!}
      module procedure coolingEnergyRadiatedConstructorParameters
      module procedure coolingEnergyRadiatedConstructorInternal
@@ -71,7 +71,7 @@ contains
 
   function coolingEnergyRadiatedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily coolingEnergyRadiated} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorCoolingEnergyRadiated} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -101,7 +101,7 @@ contains
 
   function coolingEnergyRadiatedConstructorInternal(cosmologyFunctions_,coolingFunction_,chemicalState_,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily coolingEnergyRadiated} node operator class.
+    Internal constructor for the \refClass{nodeOperatorCoolingEnergyRadiated} node operator class.
     !!}
     implicit none
     type (nodeOperatorCoolingEnergyRadiated)                        :: self
@@ -135,7 +135,7 @@ contains
 
   subroutine coolingEnergyRadiatedDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily coolingEnergyRadiated} node operator class.
+    Destructor for the \refClass{nodeOperatorCoolingEnergyRadiated} node operator class.
     !!}
     use :: Events_Hooks, only : hotHaloMassEjectionEvent
     implicit none
@@ -174,11 +174,16 @@ contains
     class           (nodeComponentBasic               ), pointer       :: basic
     double precision                                                   :: massVirial                      , velocityVirial
    
-    basic         => node                      %basic         (    )
-    hotHalo       => node                      %hotHalo       (    )
-    massVirial    =  basic                     %mass          (    )
-    velocityVirial=  self %darkMatterHaloScale_%velocityVirial(node)
-    call hotHalo%floatRank0MetaPropertyScale(self%energyRadiatedID,unitEnergyRadiated*massVirial*velocityVirial**2*scaleRelative)
+    hotHalo => node%hotHalo()
+    select type (hotHalo)
+    type is (nodeComponentHotHalo)
+       ! Hot halo does not exist - nothing to do here.
+    class default
+       basic         => node                      %basic         (    )
+       massVirial    =  basic                     %mass          (    )
+       velocityVirial=  self %darkMatterHaloScale_%velocityVirial(node)
+       call hotHalo%floatRank0MetaPropertyScale(self%energyRadiatedID,unitEnergyRadiated*massVirial*velocityVirial**2*scaleRelative)
+    end select
     return
   end subroutine coolingEnergyRadiatedDifferentialEvolutionScales
   
@@ -190,9 +195,9 @@ contains
     use :: Abundances_Structure             , only : abundances
     use :: Chemical_Abundances_Structure    , only : chemicalAbundances                  , Chemicals_Property_Count
     use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Density_Conversion
-    use :: Mass_Distributions               , only : massDistributionClass               , kinematicsDistributionClass
+    use :: Mass_Distributions               , only : massDistributionClass               , kinematicsDistributionClass, massDistributionZero
     use :: Coordinates                      , only : coordinateSpherical                 , assignment(=)
-    use :: Galactic_Structure_Options       , only : componentTypeHotHalo                , massTypeGaseous            , radiusLarge, massTypeGalactic
+    use :: Galactic_Structure_Options       , only : componentTypeHotHalo                , massTypeGaseous            , radiusLarge         , massTypeGalactic
     use :: Numerical_Constants_Astronomical , only : gigaYear                            , massSolar                  , megaParsec
     use :: Numerical_Constants_Atomic       , only : massHydrogenAtom
     use :: Numerical_Constants_Physical     , only : boltzmannsConstant
@@ -222,7 +227,7 @@ contains
     hotHalo      =>  node   %hotHalo      ()
     select type (hotHalo)
     type is (nodeComponentHotHalo)
-       ! Hot halo does not exists - nothing to do here.
+       ! Hot halo does not exist - nothing to do here.
     class default
        basic             =>  node             %basic           (                         )
        massDistribution_ =>  node             %massDistribution(massType=massTypeGalactic)
@@ -236,6 +241,15 @@ contains
        ! Compute the mean density and temperature of the hot halo.
        massDistribution_       => node             %massDistribution      (componentType=componentTypeHotHalo,massType=massTypeGaseous)
        kinematicsDistribution_ => massDistribution_%kinematicsDistribution(                                                           )
+       select type (massDistribution_)
+       type is (massDistributionZero)
+          ! No mass distribution exists for the hot halo (most likely it is in an unphysical state).
+          !![
+	  <objectDestructor name="massDistribution_"      />
+	  <objectDestructor name="kinematicsDistribution_"/>
+          !!]
+          return
+       end select
        density    =+massNotional             &
             &      *3.0d0                    &
             &      /4.0d0                    &
@@ -255,7 +269,7 @@ contains
           chemicalMasses_=hotHalo%chemicals()
           ! Scale all chemical masses by their mass in atomic mass units to get a number density.
           call chemicalMasses_%massToNumber(chemicalDensities_)
-          ! Compute factor converting mass of chemicals in (M_Solar/M_Atomic) to number density in cm⁻³.
+          ! Compute factor converting mass of chemicals in (M☉/mₐ) to number density in cm⁻³.
           if (hotHalo%outerRadius() > 0.0d0) then
              massToDensityConversion=Chemicals_Mass_To_Density_Conversion(hotHalo%outerRadius())
           else
@@ -328,9 +342,9 @@ contains
     return
   end subroutine coolingEnergyRadiatedNodePromote
   
-  subroutine coolingEnergyRadiatedNodesMerge(self,node)
+  subroutine coolingEnergyRadiatedGalaxiesMerge(self,node)
     !!{
-    Zero the radiated energy of the hot halo component of nodes about to merge.
+    Zero the radiated energy of the hot halo component of galaxies about to merge.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo
     implicit none
@@ -341,12 +355,17 @@ contains
     ! We do not add the energy radiated from this node to that of its parent, as we assume that, on merging, the hot halo gas of
     ! this node is shock heated to the virial temperature of the parent, effectively negating the energy radiated.
     hotHalo => node%hotHalo()
-    call hotHalo%floatRank0MetaPropertySet(                        &
-         &                                  self%energyRadiatedID, &
-         &                                 +0.0d0                  &
-         &                                )
+    select type (hotHalo)
+    type is (nodeComponentHotHalo)
+       ! Hot halo does not exist - nothing to do here.
+    class default
+       call hotHalo%floatRank0MetaPropertySet(                        &
+            &                                  self%energyRadiatedID, &
+            &                                 +0.0d0                  &
+            &                                )
+    end select
     return
-  end subroutine coolingEnergyRadiatedNodesMerge
+  end subroutine coolingEnergyRadiatedGalaxiesMerge
   
   subroutine coolingEnergyRadiatedHotHaloMassEjection(self,hotHalo,massRate)
     !!{
@@ -377,8 +396,8 @@ contains
        !![
        <objectDestructor name="massDistribution_"/>
        !!]
-    if (massNotional > 0.0d0) &
-         & call hotHalo%floatRank0MetaPropertyRate(self%energyRadiatedID,-hotHalo%floatRank0MetaPropertyGet(self%energyRadiatedID)*massRate/massNotional)
+       if (massNotional > 0.0d0) &
+            & call hotHalo%floatRank0MetaPropertyRate(self%energyRadiatedID,-hotHalo%floatRank0MetaPropertyGet(self%energyRadiatedID)*massRate/massNotional)
     class default
        call Error_Report('incorrect class'//{introspection:location})
     end select

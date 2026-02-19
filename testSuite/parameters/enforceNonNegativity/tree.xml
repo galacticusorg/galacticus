@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Test of bar instability spheroid creation -->
+<!-- 25-July-2018                              -->
+<tree>
+  <node>
+    <index>1</index>
+    <parent>2</parent>
+    <firstChild>-1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>12.47</time>
+      <mass>1.0e12</mass>
+    </basic>
+    <spin>
+      <angularMomentum>1.635e12</angularMomentum>
+    </spin>
+    <disk>
+      <massStellar>1.0e11</massStellar>
+      <massGas>1.0e10</massGas>
+      <abundancesStellar>
+	<metals>0.0</metals>
+      </abundancesStellar>
+      <abundancesGas>
+	<metals>0.0</metals>
+      </abundancesGas>
+      <angularMomentum>7.7e10</angularMomentum>
+    </disk>
+    <spheroid>
+      <massStellar>0.0</massStellar>
+      <massGas>1.0e9</massGas>
+      <abundancesStellar>
+	<metals>0.0</metals>
+      </abundancesStellar>
+      <abundancesGas>
+	<metals>0.0</metals>
+      </abundancesGas>
+      <angularMomentum>7.7e8</angularMomentum>
+    </spheroid>
+  </node>
+  <node>
+    <index>2</index>
+    <parent>-1</parent>
+    <firstChild>1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>13.47</time>
+      <mass>1.0e12</mass>
+    </basic>
+    <spin>
+      <angularMomentum>1.635e12</angularMomentum>
+    </spin>
+  </node>
+</tree>

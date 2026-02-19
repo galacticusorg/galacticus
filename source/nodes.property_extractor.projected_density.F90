@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a property extractor class for the projected density at a set of radii.
+  Implements a property extractor class for the projected density at a set of radii.
   !!}
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale   , darkMatterHaloScaleClass
   use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
@@ -46,7 +46,8 @@
      type   (radiusSpecifier         ), allocatable, dimension(:) :: radii
      logical                                                      :: darkMatterScaleRadiusIsNeeded          , diskIsNeeded        , &
           &                                                          spheroidIsNeeded                       , virialRadiusIsNeeded, &
-          &                                                          tolerateIntegrationFailures            , satelliteIsNeeded
+          &                                                          nuclearStarClusterIsNeeded             , satelliteIsNeeded   , &
+          &                                                          tolerateIntegrationFailures            , hotHaloIsNeeded            
    contains
      final     ::                       projectedDensityDestructor
      procedure :: columnDescriptions => projectedDensityColumnDescriptions
@@ -60,7 +61,7 @@
 
   interface nodePropertyExtractorProjectedDensity
      !!{
-     Constructors for the ``projectedDensity'' output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorProjectedDensity} output analysis class.
      !!}
      module procedure projectedDensityConstructorParameters
      module procedure projectedDensityConstructorInternal
@@ -74,7 +75,7 @@ contains
 
   function projectedDensityConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily projectedDensity} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorProjectedDensity} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -115,7 +116,7 @@ contains
 
   function projectedDensityConstructorInternal(radiusSpecifiers,includeRadii,tolerateIntegrationFailures,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily projectedDensity} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorProjectedDensity} property extractor class.
     !!}
     use :: Galactic_Structure_Radii_Definitions, only : Galactic_Structure_Radii_Definition_Decode
     implicit none
@@ -136,8 +137,10 @@ contains
     call Galactic_Structure_Radii_Definition_Decode(                                    &
          &                                          radiusSpecifiers                  , &
          &                                          self%radii                        , &
+         &                                          self%hotHaloIsNeeded              , &
          &                                          self%diskIsNeeded                 , &
          &                                          self%spheroidIsNeeded             , &
+         &                                          self%nuclearStarClusterIsNeeded   , &
          &                                          self%satelliteIsNeeded            , &
          &                                          self%virialRadiusIsNeeded         , &
          &                                          self%darkMatterScaleRadiusIsNeeded  &
@@ -147,7 +150,7 @@ contains
 
   subroutine projectedDensityDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily projectedDensity} property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorProjectedDensity} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorProjectedDensity), intent(inout) :: self
@@ -190,10 +193,12 @@ contains
     Implement a {\normalfont \ttfamily projectedDensity} property extractor.
     !!}
     use :: Galactic_Structure_Options          , only : componentTypeAll               , massTypeGalactic            , massTypeStellar
-    use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius, radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius            , radiusTypeGalacticLightFraction, &
-          &                                             radiusTypeGalacticMassFraction , radiusTypeRadius            , radiusTypeSpheroidHalfMassRadius, radiusTypeSpheroidRadius       , &
-          &                                             radiusTypeStellarMassFraction  , radiusTypeVirialRadius
-    use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile , nodeComponentDisk           , nodeComponentSpheroid           , treeNode
+    use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius, radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius                      , radiusTypeGalacticLightFraction   , &
+          &                                             radiusTypeGalacticMassFraction , radiusTypeRadius            , radiusTypeSpheroidHalfMassRadius          , radiusTypeSpheroidRadius          , &
+          &                                             radiusTypeStellarMassFraction  , radiusTypeVirialRadius      , radiusTypeNuclearStarClusterHalfMassRadius, radiusTypeNuclearStarClusterRadius, &
+          &                                             radiusTypeHotHaloOuterRadius   , radiusTypeHotHaloOuterRadius
+    use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile , nodeComponentDisk           , nodeComponentSpheroid                     , nodeComponentNSC                  , &
+          &                                             nodeComponentHotHalo           , treeNode
     use :: Numerical_Integration               , only : integrator                     , GSL_Integ_Gauss15
     use :: Numerical_Comparison                , only : Values_Agree
     use :: Mass_Distributions                  , only : massDistributionClass
@@ -205,8 +210,10 @@ contains
     type            (treeNode                             ), intent(inout) , target      :: node
     double precision                                       , intent(in   )               :: time
     type            (multiCounter                         ), intent(inout) , optional    :: instance
+    class           (nodeComponentHotHalo                 ), pointer                     :: hotHalo
     class           (nodeComponentDisk                    ), pointer                     :: disk
     class           (nodeComponentSpheroid                ), pointer                     :: spheroid
+    class           (nodeComponentNSC                     ), pointer                     :: nuclearStarCluster
     class           (nodeComponentDarkMatterProfile       ), pointer                     :: darkMatterProfile
     class           (massDistributionClass                ), pointer                     :: massDistribution_
     double precision                                       , parameter                   :: toleranceRelative      =1.0d-2, epsilonSingularity      =1.0d-3
@@ -220,30 +227,38 @@ contains
     !$GLC attributes unused :: time, instance
 
     allocate(densityProjected(self%radiiCount,self%elementCount_))
-    radiusVirial                                              =  self%darkMatterHaloScale_%radiusVirial(node                    )
-    if (self%                 diskIsNeeded) disk              =>                                        node%disk             ()
-    if (self%             spheroidIsNeeded) spheroid          =>                                        node%spheroid         ()
-    if (self%darkMatterScaleRadiusIsNeeded) darkMatterProfile =>                                        node%darkMatterProfile()
+    radiusVirial                                               =  self%darkMatterHaloScale_%radiusVirial(node                    )
+    if (self%              hotHaloIsNeeded) hotHalo            =>                                        node%hotHalo          ()
+    if (self%                 diskIsNeeded) disk               =>                                        node%disk             ()
+    if (self%             spheroidIsNeeded) spheroid           =>                                        node%spheroid         ()
+    if (self%   nuclearStarClusterIsNeeded) nuclearStarCluster =>                                        node%NSC              ()
+    if (self%darkMatterScaleRadiusIsNeeded) darkMatterProfile  =>                                        node%darkMatterProfile()
     integrator_=integrator(projectedDensityIntegrand,toleranceRelative=1.0d-3,hasSingularities=.true.,integrationRule=GSL_Integ_Gauss15)
     do i=1,self%radiiCount
        radius_=self%radii(i)%value
        select case (self%radii(i)%type%ID)
-       case   (radiusTypeRadius                %ID)
+       case   (radiusTypeRadius                          %ID)
           ! Nothing to do.
-       case   (radiusTypeVirialRadius          %ID)
+       case   (radiusTypeVirialRadius                    %ID)
           radius_=+radius_*radiusVirial
-       case   (radiusTypeDarkMatterScaleRadius %ID)
-          radius_=+radius_*darkMatterProfile%         scale()
-       case   (radiusTypeDiskRadius            %ID)
-          radius_=+radius_*disk             %        radius()
-       case   (radiusTypeSpheroidRadius        %ID)
-          radius_=+radius_*spheroid         %        radius()
-       case   (radiusTypeDiskHalfMassRadius    %ID)
-          radius_=+radius_*disk             %halfMassRadius()
-       case   (radiusTypeSpheroidHalfMassRadius%ID)
-          radius_=+radius_*spheroid         %halfMassRadius()
-       case   (radiusTypeGalacticMassFraction  %ID,  &
-            &  radiusTypeGalacticLightFraction %ID)
+       case   (radiusTypeDarkMatterScaleRadius           %ID)
+          radius_=+radius_*darkMatterProfile %         scale()
+       case   (radiusTypeHotHaloOuterRadius              %ID)
+          radius_=+radius_*hotHalo           %   outerRadius()
+       case   (radiusTypeDiskRadius                      %ID)
+          radius_=+radius_*disk              %        radius()
+       case   (radiusTypeSpheroidRadius                  %ID)
+          radius_=+radius_*spheroid          %        radius()
+       case   (radiusTypeNuclearStarClusterRadius        %ID)
+          radius_=+radius_*nuclearStarCluster%        radius() 
+       case   (radiusTypeDiskHalfMassRadius              %ID)
+          radius_=+radius_*disk              %halfMassRadius()
+       case   (radiusTypeSpheroidHalfMassRadius          %ID)
+          radius_=+radius_*spheroid          %halfMassRadius()
+       case   (radiusTypeNuclearStarClusterHalfMassRadius%ID)
+          radius_=+radius_*nuclearStarCluster%halfMassRadius()
+       case   (radiusTypeGalacticMassFraction            %ID,  &
+            &  radiusTypeGalacticLightFraction           %ID)
           massDistribution_ =>  node             %massDistribution   (                                                &
                &                                                      massType      =              massTypeStellar ,  &
                &                                                      componentType =              componentTypeAll,  &

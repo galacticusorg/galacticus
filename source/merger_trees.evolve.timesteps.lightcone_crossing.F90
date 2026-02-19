@@ -47,7 +47,7 @@
 
   interface mergerTreeEvolveTimestepLightconeCrossing
      !!{
-     Constructors for the {\normalfont \ttfamily lightconeCrossing} merger tree evolution timestep class.
+     Constructors for the \refClass{mergerTreeEvolveTimestepLightconeCrossing} merger tree evolution timestep class.
      !!}
      module procedure lightconeCrossingConstructorParameters
      module procedure lightconeCrossingConstructorInternal
@@ -57,7 +57,7 @@ contains
   
   function lightconeCrossingConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily lightconeCrossing} merger tree evolution timestep class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeEvolveTimestepLightconeCrossing} merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -81,7 +81,7 @@ contains
 
   function lightconeCrossingConstructorInternal(geometryLightcone_,mergerTreeOutputter_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily lightconeCrossing} merger tree evolution timestep class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeEvolveTimestepLightconeCrossing} merger tree evolution timestep class which takes a parameter set as input.
     !!}
     implicit none
     type            (mergerTreeEvolveTimestepLightconeCrossing)                        :: self
@@ -101,7 +101,7 @@ contains
 
   subroutine lightconeCrossingDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily lightconeCrossing} merger tree evolution timestep class.
+    Destructor for the \refClass{mergerTreeEvolveTimestepLightconeCrossing} merger tree evolution timestep class.
     !!}
     implicit none
     type(mergerTreeEvolveTimestepLightconeCrossing), intent(inout) :: self

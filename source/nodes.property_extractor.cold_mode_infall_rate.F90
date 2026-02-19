@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a cold mode infall rate property extractor class.
+Implements a cold mode infall rate property extractor class.
 !!}
 
   use :: Cooling_Cold_Mode_Infall_Rates, only : coldModeInfallRate, coldModeInfallRateClass
@@ -44,7 +44,7 @@ Contains a module which implements a cold mode infall rate property extractor cl
 
   interface nodePropertyExtractorRateInfallColdMode
      !!{
-     Constructors for the {\normalfont \ttfamily rateInfallColdMode} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRateInfallColdMode} output analysis class.
      !!}
      module procedure rateInfallColdModeConstructorParameters
      module procedure rateInfallColdModeConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function rateInfallColdModeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily rateInfallColdMode} property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorRateInfallColdMode} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,7 +75,7 @@ contains
 
   function rateInfallColdModeConstructorInternal(coldModeInfallRate_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily rateInfallColdMode} property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorRateInfallColdMode} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorRateInfallColdMode)                        :: self
@@ -89,7 +89,7 @@ contains
 
   subroutine rateInfallColdModeDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily rateInfallColdMode} property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorRateInfallColdMode} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRateInfallColdMode), intent(inout) :: self

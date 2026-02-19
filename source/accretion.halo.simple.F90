@@ -115,7 +115,7 @@
 
   interface accretionHaloSimple
      !!{
-     Constructors for the {\normalfont \ttfamily simple} halo accretion class.
+     Constructors for the \refClass{accretionHaloSimple} halo accretion class.
      !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
@@ -207,7 +207,7 @@ contains
 
   function simpleConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily simple} halo accretion class.
+    Internal constructor for the \refClass{accretionHaloSimple} halo accretion class.
     !!}
     use :: Atomic_Data                  , only : Abundance_Pattern_Lookup
     use :: Chemical_Abundances_Structure, only : Chemicals_Property_Count
@@ -243,7 +243,7 @@ contains
 
   subroutine simpleDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily simple} halo accretion class.
+    Destructor for the \refClass{accretionHaloSimple} halo accretion class.
     !!}
     implicit none
     type(accretionHaloSimple), intent(inout) :: self

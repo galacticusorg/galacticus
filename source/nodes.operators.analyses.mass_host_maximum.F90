@@ -52,7 +52,7 @@
   
   interface nodeOperatorMassHostMaximum
      !!{
-     Constructors for the {\normalfont \ttfamily massHostMaximum} node operator class.
+     Constructors for the \refClass{nodeOperatorMassHostMaximum} node operator class.
      !!}
      module procedure massHostMaximumConstructorParameters
      module procedure massHostMaximumConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function massHostMaximumConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily massHostMaximum} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorMassHostMaximum} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function massHostMaximumConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily massHostMaximum} node operator class.
+    Internal constructor for the \refClass{nodeOperatorMassHostMaximum} node operator class.
     !!}
     implicit none
     type(nodeOperatorMassHostMaximum) :: self
@@ -103,7 +103,7 @@ contains
 
   subroutine massHostMaximumDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily massHostMaximum} node operator class.
+    Destructor for the \refClass{nodeOperatorMassHostMaximum} node operator class.
     !!}
     use :: Events_Hooks, only : satelliteHostChangeEvent
     implicit none

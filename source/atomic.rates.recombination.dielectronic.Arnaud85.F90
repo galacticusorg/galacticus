@@ -43,7 +43,7 @@
 
   interface atomicRecombinationRateDielectronicArnaud1985
      !!{
-     Constructors for the {\normalfont \ttfamily arnaud1985} atomic dielectronic recombination rate class.
+     Constructors for the \refClass{atomicRecombinationRateDielectronicArnaud1985} atomic dielectronic recombination rate class.
      !!}
      module procedure arnaud1985ConstructorParameters
   end interface atomicRecombinationRateDielectronicArnaud1985
@@ -223,7 +223,7 @@ contains
 
   function arnaud1985ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily arnaud1985} atomic ionization potential class which builds the object from a
+    Constructor for the \refClass{atomicRecombinationRateDielectronicArnaud1985} atomic ionization potential class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters

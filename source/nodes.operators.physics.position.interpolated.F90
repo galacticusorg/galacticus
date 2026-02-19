@@ -56,7 +56,7 @@
   
   interface nodeOperatorPositionInterpolated
      !!{
-     Constructors for the {\normalfont \ttfamily positionInterpolated} node operator class.
+     Constructors for the \refClass{nodeOperatorPositionInterpolated} node operator class.
      !!}
      module procedure positionInterpolatedConstructorParameters
      module procedure positionInterpolatedConstructorInternal
@@ -81,7 +81,7 @@ contains
   
   function positionInterpolatedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily positionInterpolated} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorPositionInterpolated} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -116,7 +116,7 @@ contains
 
   function positionInterpolatedConstructorInternal(lengthBox,wrapPeriodic,cosmologyFunctions_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily positionInterpolated} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorPositionInterpolated} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -137,7 +137,7 @@ contains
 
   subroutine positionInterpolatedDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily positionInterpolated} node operator class.
+    Destructor for the \refClass{nodeOperatorPositionInterpolated} node operator class.
     !!}
     implicit none
     type(nodeOperatorPositionInterpolated), intent(inout) :: self
@@ -196,8 +196,8 @@ contains
     !!{
     Compute the interpolated position and velocity of the node.
     !!}
-    use :: Galacticus_Nodes                , only : nodeComponentPosition  , nodeComponentBasic
-    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
+    use :: Galacticus_Nodes                , only : nodeComponentPosition, nodeComponentBasic
+    use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr
     implicit none
     class           (nodeOperatorPositionInterpolated), intent(inout)                  :: self
     type            (treeNode                        ), intent(inout)                  :: node
@@ -246,7 +246,7 @@ contains
          &    *self%cosmologyFunctions_%expansionFactor(time)
     velocity_=+velocity_                                      &
          &    *self%cosmologyFunctions_%expansionFactor(time) &
-         &    *Mpc_per_km_per_s_To_Gyr 
+         &    *MpcPerKmPerSToGyr 
     if (isSpiral) then
       ! Add on logarithmic spiral interpolation in physical position for satellite nodes.
       offset               =offset+countCoefficientsCubicPolynomial
@@ -307,7 +307,7 @@ contains
          &                                                                              basicMergeTarget
     class           (nodeComponentPosition           )                 , pointer     :: position            , positionMergeTarget
     class           (nodeComponentSatellite          )                 , pointer     :: satellite
-    class           (nodeEvent                       )                 , pointer     :: event, eventPrior
+    class           (nodeEvent                       )                 , pointer     :: event               , eventPrior
     type            (nodeTrace                       )                 , pointer     :: traceTail           , traceHead 
     double precision                                  , dimension(   3)              :: positionReference
     double precision                                  , dimension(4 ,3)              :: coefficientsCubic
@@ -741,8 +741,7 @@ contains
       !!}
       use :: Galacticus_Nodes                , only : nodeComponentPosition
       use :: Histories                       , only : history
-      use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
-      use :: Vectors                         , only : Vector_Product         , Vector_Magnitude
+      use :: Vectors                         , only : Vector_Product       , Vector_Magnitude
       implicit none
       double precision                       , dimension(20)             :: coefficientsLogarithmicSpiral
       type            (nodeTrace            ), intent(in   )   , target  :: trace
@@ -880,8 +879,8 @@ contains
       !!}
       use :: Galacticus_Nodes                , only : nodeComponentPosition
       use :: Histories                       , only : history
-      use :: Linear_Algebra                  , only : vector                 , matrix, assignment(=)
-      use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
+      use :: Linear_Algebra                  , only : vector               , matrix, assignment(=)
+      use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr
       use :: Numerical_Comparison            , only : Values_Agree
       implicit none
       double precision                                  , dimension(4,3)              :: coefficientsCubicPolynomial
@@ -921,7 +920,7 @@ contains
          end if
          ! Convert from physical to comoving coordinates, and, for velocities, from km/s to Mpc/Gyr.
          positionComoving(i,:)=positionPhysical(i,:)/self%cosmologyFunctions_%expansionFactor(times(i))
-         velocityComoving(i,:)=velocityPhysical(i,:)/self%cosmologyFunctions_%expansionFactor(times(i))/Mpc_per_km_per_s_To_Gyr
+         velocityComoving(i,:)=velocityPhysical(i,:)/self%cosmologyFunctions_%expansionFactor(times(i))/MpcPerKmPerSToGyr
       end do
       ! Handle periodic positions.
       if (self%isPeriodic) then

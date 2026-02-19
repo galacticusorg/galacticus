@@ -74,7 +74,7 @@ contains
 
   function unescapedConstructorInternal(timescale) result(self)
     !!{
-    Generic constructor for the unescaped spectrum postprocessor class.
+    Internal constructor for the unescaped spectrum postprocessor class.
     !!}
     implicit none
     type            (stellarPopulationSpectraPostprocessorUnescaped)                :: self

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Enforce non-negativity -->
+<changes>
+
+  <!-- Enforce non-negativity -->
+  <change type="update" path="mergerTreeNodeEvolver/enforceNonNegativity" value="true">
+  </change>
+
+  <!-- Set ODE tolerances -->
+  <change type="update" path="mergerTreeNodeEvolver/odeToleranceAbsolute" value="0.001">
+  </change>
+  <change type="update" path="mergerTreeNodeEvolver/odeToleranceRelative" value="0.001">
+  </change>
+
+  <!-- Change the output file name -->
+  <change type="update" path="outputFileName" value="testSuite/outputs/enforceNonNegativity/rapidDepletionEnforceNonNegativityODETol0.001.hdf5">
+  </change>
+
+</changes>

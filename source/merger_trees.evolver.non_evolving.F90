@@ -44,7 +44,7 @@
 
   interface mergerTreeEvolverNonEvolving
      !!{
-     Constructors for the {\normalfont \ttfamily nonEvolving} merger tree evolver.
+     Constructors for the \refClass{mergerTreeEvolverNonEvolving} merger tree evolver.
      !!}
      module procedure nonEvolvingConstructorParameters
      module procedure nonEvolvingConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function nonEvolvingConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily nonEvolving} merger tree evolver class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeEvolverNonEvolving} merger tree evolver class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -85,7 +85,7 @@ contains
 
   function nonEvolvingConstructorInternal(pruneTree,cosmologyFunctions_,mergerTreeInitializor_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily nonEvolving} merger tree evolver class.
+    Internal constructor for the \refClass{mergerTreeEvolverNonEvolving} merger tree evolver class.
     !!}
     implicit none
     type   (mergerTreeEvolverNonEvolving)                        :: self
@@ -101,7 +101,7 @@ contains
 
   subroutine nonEvolvingDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily nonEvolving} merger tree evolver class.
+    Destructor for the \refClass{mergerTreeEvolverNonEvolving} merger tree evolver class.
     !!}
     implicit none
     type(mergerTreeEvolverNonEvolving), intent(inout) :: self

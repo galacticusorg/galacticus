@@ -57,7 +57,7 @@
 
   interface chemicalStateAtomicCIECloudy
      !!{
-     Constructors for the ``atomic CIE Cloudy'' chemical state class.
+     Constructors for the \refClass{chemicalStateAtomicCIECloudy} chemical state class.
      !!}
      module procedure atomicCIECloudyConstructorParameters
      module procedure atomicCIECloudyConstructorInternal
@@ -80,7 +80,7 @@ contains
 
   function atomicCIECloudyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``atomic CIE Cloudy'' chemical state class which takes a parameter set as input.
+    Constructor for the \refClass{chemicalStateAtomicCIECloudy} chemical state class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -96,7 +96,7 @@ contains
 
   function atomicCIECloudyConstructorInternal() result(self)
     !!{
-    Internal constructor for the ``atomic CIE Cloudy'' chemical state class.
+    Internal constructor for the \refClass{chemicalStateAtomicCIECloudy} chemical state class.
     !!}
     use :: Chemical_Abundances_Structure, only : unitChemicalAbundances
     implicit none

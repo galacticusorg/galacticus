@@ -45,7 +45,7 @@
 
   interface atomicRecombinationRateRadiativeCoolingComputed
      !!{
-     Constructors for the {\normalfont \ttfamily computed} atomic radiative recombination class.
+     Constructors for the \refClass{atomicRecombinationRateRadiativeCoolingComputed} atomic radiative recombination class.
      !!}
      module procedure computedConstructorParameters
      module procedure computedConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function computedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily computed} atomic radiative recombination class which takes a parameter set as input.
+    Constructor for the \refClass{atomicRecombinationRateRadiativeCoolingComputed} atomic radiative recombination class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -80,7 +80,7 @@ contains
 
   function computedConstructorInternal(atomicCrossSectionIonizationPhoto_,atomicIonizationPotential_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily computed} atomic radiative recombination class.
+    Internal constructor for the \refClass{atomicRecombinationRateRadiativeCoolingComputed} atomic radiative recombination class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -96,7 +96,7 @@ contains
 
   subroutine computedDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily computed} recombination cooling class.
+    Destructor for the \refClass{atomicRecombinationRateRadiativeCoolingComputed} recombination cooling class.
     !!}
     implicit none
     type(atomicRecombinationRateRadiativeCoolingComputed), intent(inout) :: self
@@ -151,7 +151,7 @@ contains
       Integrand for the cooling coefficient due to recombination, see equation (3.5) of \cite{osterbrock_astrophysics_2006}.
       !!}
       use :: Numerical_Constants_Math    , only : Pi
-      use :: Numerical_Constants_Units   , only : angstromsPerMeter, electronVolt
+      use :: Numerical_Constants_Units   , only : metersToAngstroms, electronVolt
       use :: Numerical_Constants_Physical, only : plancksConstant  , speedLight  , electronMass, fineStructure
       use :: Numerical_Constants_Prefixes, only : centi
       implicit none
@@ -161,7 +161,7 @@ contains
       
       energyIonization=self%atomicIonizationPotential_%potential(atomicNumber,ionizationState)*electronVolt
       energyPhoton=0.5d0*electronMass*velocity**2+energyIonization
-      wavelengthPhoton=angstromsPerMeter*speedLight*plancksConstant/energyPhoton
+      wavelengthPhoton=metersToAngstroms*speedLight*plancksConstant/energyPhoton
       if (velocity > 0.0d0) then
          ! Recombination cross section is computed from the corresponding photoionization cross section using the result from
          ! detailed balance (Arfken, 1961, Ionization of the Interplanetary Gas, Rept. LAMS-2596, Los Alamos Scientific Laboratory

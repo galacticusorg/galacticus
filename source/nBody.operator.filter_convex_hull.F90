@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an N-body data operator which filters particles outside of a convex hull.
+Implements an N-body data operator which filters particles outside of a convex hull.
 !!}
   
   !![
@@ -38,7 +38,7 @@ Contains a module which implements an N-body data operator which filters particl
 
   interface nbodyOperatorFilterConvexHull
      !!{
-     Constructors for the {\normalfont \ttfamily filterConvexHull} N-body operator class.
+     Constructors for the \refClass{nbodyOperatorFilterConvexHull} N-body operator class.
      !!}
      module procedure filterConvexHullConstructorParameters
      module procedure filterConvexHullConstructorInternal
@@ -48,7 +48,7 @@ contains
 
   function filterConvexHullConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the {\normalfont \ttfamily filterConvexHull} N-body operator class which takes a parameter set as input.
+    Constructor for the \refClass{nbodyOperatorFilterConvexHull} N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -72,7 +72,7 @@ contains
 
   function filterConvexHullConstructorInternal(hullFromSimulation) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily filterConvexHull} N-body operator class.
+    Internal constructor for the \refClass{nbodyOperatorFilterConvexHull} N-body operator class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

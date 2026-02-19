@@ -49,7 +49,7 @@
 
   interface hotHaloRamPressureForceFont2008
      !!{
-     Constructors for the {\normalfont \ttfamily font2008} hot halo ram pressure force class.
+     Constructors for the \refClass{hotHaloRamPressureForceFont2008} hot halo ram pressure force class.
      !!}
      module procedure font2008ConstructorParameters
      module procedure font2008ConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function font2008ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily font2008} hot halo ram pressure force class which builds the object from a parameter set.
+    Constructor for the \refClass{hotHaloRamPressureForceFont2008} hot halo ram pressure force class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -80,7 +80,7 @@ contains
 
   function font2008ConstructorInternal(darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily font2008} hot halo ram pressure force class.
+    Internal constructor for the \refClass{hotHaloRamPressureForceFont2008} hot halo ram pressure force class.
     !!}
     implicit none
     type (hotHaloRamPressureForceFont2008)                        :: self
@@ -94,7 +94,7 @@ contains
 
   subroutine font2008Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily font2008} hot halo ram pressure force class.
+    Destructor for the \refClass{hotHaloRamPressureForceFont2008} hot halo ram pressure force class.
     !!}
     implicit none
     type(hotHaloRamPressureForceFont2008), intent(inout) :: self
