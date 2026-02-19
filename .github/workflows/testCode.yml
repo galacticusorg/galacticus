@@ -77,9 +77,9 @@ jobs:
           set -o pipefail
           if [ ${{ inputs.mpi }} == 1 ]; then
            if [ ${{ inputs.expectCrash }} == 1 ]; then
-            ! mpirun -np 2 --allow-run-as-root ./${{ inputs.executable }} 2>&1 | tee test.log
+            ! mpirun --oversubscribe -np 2 --allow-run-as-root ./${{ inputs.executable }} 2>&1 | tee test.log
            else
-            mpirun -np 2 --allow-run-as-root ./${{ inputs.executable }} 2>&1 | tee test.log
+            mpirun --oversubscribe -np 2 --allow-run-as-root ./${{ inputs.executable }} 2>&1 | tee test.log
            fi
           else
            if [ ${{ inputs.expectCrash }} == 1 ]; then
