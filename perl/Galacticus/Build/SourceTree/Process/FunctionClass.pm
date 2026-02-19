@@ -3418,35 +3418,34 @@ sub assignerLinkedList {
 	unless ( grep {$_->{'type'} eq $linkedList->{'type'}} @{$linkedListVariables} );
     # Generate code for the walk through the linked list.
     my $iterator;
-    for(my $i=0;$i<scalar(@objects);++$i) {
-	$code::type     = $linkedList->{'type'    };
-	$code::variable = $linkedList->{'variable'};
-	$code::next     = $linkedList->{'next'    };
-	$code::object   = $objects[$i];
-	$iterator .= fill_in_string(<<'CODE', PACKAGE => 'code');
+    $code::type      = $linkedList->{'type'    };
+    $code::variable  = $linkedList->{'variable'};
+    $code::next      = $linkedList->{'next'    };
+    $iterator       .= fill_in_string(<<'CODE', PACKAGE => 'code');
 nullify(self%{$variable})
 {$type}itemFrom => from%{$variable}
 if (associated({$type}itemFrom)) then
    allocate(self%{$variable})
    {$type}itemSelf => self%{$variable}
    do while (associated({$type}itemFrom))
+CODE
+    for(my $i=0;$i<scalar(@objects);++$i) {
+	$code::object  = $objects[$i];
+	$iterator     .= fill_in_string(<<'CODE', PACKAGE => 'code');
       {$type}itemSelf%{$object} => {$type}itemFrom%{$object}
       call {$type}itemSelf%{$object}%referenceCountIncrement()
+CODE
+    }
+    $iterator .= fill_in_string(<<'CODE', PACKAGE => 'code');
       {$type}itemFrom => {$type}itemFrom%{$next}
       if (associated({$type}itemFrom)) allocate({$type}itemSelf%{$next})
       {$type}itemSelf => {$type}itemSelf%{$next}
    end do
 end if
 CODE
-    }
-    my $deepCopyModule = exists($linkedList->{'module'}) ? $linkedList->{'module'} : undef();
-    return ($iterator,$deepCopyModule);
+    my $assignerModule = exists($linkedList->{'module'}) ? $linkedList->{'module'} : undef();
+    return ($iterator,$assignerModule);
 }
-
-
-
-
-
 
 sub stateStoreExplicitFunction {
     # Create state store/restore instructions for objects with explicit functions.
