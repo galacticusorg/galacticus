@@ -140,7 +140,7 @@ contains
     call repoHeadHash(char(inputPathStatic)//c_null_char,gitHashDatasets)
     gitHashDatasets=char(String_C_to_Fortran(gitHashDatasets))
 #else
-    ! Git2 library is not available. If we have the command line `git` installed, use it insted.
+    ! Git2 library is not available. If we have the command line `git` installed, use it instead.
     gitHashDatasets="unknown"
     hashFileName   =File_Name_Temporary("repoHash.txt")
     call System_Command_Do("cd "//char(inputPath(pathTypeDataStatic))//"; if which git > /dev/null && git rev-parse --is-inside-work-tree > /dev/null 2>&1 ; then git rev-parse HEAD > "//char(hashFileName)//"; else echo unknown > "//char(hashFileName)//"; fi",iStatus=status)

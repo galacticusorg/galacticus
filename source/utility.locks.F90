@@ -155,7 +155,7 @@ module Locks
   interface
      function mutex_init(mutex,recursive) bind(c,name='mutex_init')
        !!{
-       Inteface to the {\normalfont \ttfamily mutex\_init} function.
+       Interface to the {\normalfont \ttfamily mutex\_init} function.
        !!}
        import c_int, c_ptr
        integer(c_int)        :: mutex_init
@@ -165,7 +165,7 @@ module Locks
      
      function mutex_destroy(mutex) bind(c,name='mutex_destroy')
        !!{
-       Inteface to the {\normalfont \ttfamily mutex\_destroy} function.
+       Interface to the {\normalfont \ttfamily mutex\_destroy} function.
        !!}
        import c_int, c_ptr
        integer(c_int)        :: mutex_destroy
@@ -174,7 +174,7 @@ module Locks
     
      function mutex_loc(mutex) bind(c,name='mutex_loc')
        !!{
-       Inteface to the {\normalfont \ttfamily mutex\_loc} function.
+       Interface to the {\normalfont \ttfamily mutex\_loc} function.
        !!}
        import c_int, c_ptr
        integer(c_int)        :: mutex_loc
@@ -183,7 +183,7 @@ module Locks
     
      function pthread_mutex_lock(mutex) bind(c,name='pthread_mutex_lock')
        !!{
-       Inteface to the {\normalfont \ttfamily pthread\_mutex\_lock} function.
+       Interface to the {\normalfont \ttfamily pthread\_mutex\_lock} function.
        !!}
        import c_int, c_ptr
        integer(c_int)        :: pthread_mutex_lock
@@ -192,7 +192,7 @@ module Locks
 
      function pthread_mutex_unlock(mutex) bind(c,name='pthread_mutex_unlock')
        !!{
-       Inteface to the {\normalfont \ttfamily pthread\_mutex\_unlock} function.
+       Interface to the {\normalfont \ttfamily pthread\_mutex\_unlock} function.
        !!}
        import c_int, c_ptr
        integer(c_int)        :: pthread_mutex_unlock
