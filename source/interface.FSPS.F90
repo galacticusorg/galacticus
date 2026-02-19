@@ -67,7 +67,9 @@ contains
     type     (varying_string), intent(  out)           :: fspsPath, fspsVersion
     logical                  , intent(in   ), optional :: static
     integer                                            :: status
-    type     (varying_string)                          :: lockPath
+    type     (varying_string)                          :: lockPath, execPath   , &
+         &                                                tarPath , patchPath  , &
+         &                                                url     , command
     !![
     <optionalArgument name="static" defaultsTo=".false." />
     !!]
@@ -77,66 +79,70 @@ contains
     call Interface_FSPS_Version(fspsVersion)
     fspsPath=inputPath(pathTypeDataDynamic)//"fsps-"//fspsVersion
     lockPath=inputPath(pathTypeDataDynamic)//"fsps" //fspsVersion
+    execPath=fspsPath//"/src/autosps.exe"
     call File_Lock(char(lockPath),fspsLock)
     ! Build the code if the executable does not exist.
-    if (.not.File_Exists(fspsPath//"/src/autosps.exe")) then
+    if (.not.File_Exists(execPath)) then
        ! Download the code if not already done.
        if (.not.File_Exists(fspsPath)) then
-          if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"FSPS_"//char(fspsVersion)//".tar.gz")) then
+          tarPath=inputPath(pathTypeDataDynamic)//"FSPS_"//char(fspsVersion)//".tar.gz"
+          if (.not.File_Exists(tarPath)) then
              call displayMessage("downloading FSPS source code....",verbosityLevelWorking)
-             call download("https://github.com/cconroy20/fsps/archive/refs/tags/v"//char(fspsVersion)//".tar.gz",char(inputPath(pathTypeDataDynamic))//"FSPS_"//char(fspsVersion)//".tar.gz",status=status,retries=5,retryWait=60)
-             if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"FSPS_"//char(fspsVersion)//".tar.gz") .or. status /= 0) call Error_Report("failed to download FSPS"//{introspection:location})
+             url="https://github.com/cconroy20/fsps/archive/refs/tags/v"//fspsVersion//".tar.gz"
+             call download(char(url),char(tarPath),status=status,retries=5,retryWait=60)
+             if (.not.File_Exists(tarPath) .or. status /= 0) call Error_Report("failed to download FSPS"//{introspection:location})
           end if
           call displayMessage("unpacking FSPS code....",verbosityLevelWorking)
-          call System_Command_Do("tar -x -v -z -C "//inputPath(pathTypeDataDynamic)//" -f "//inputPath(pathTypeDataDynamic)//"FSPS_"//char(fspsVersion)//".tar.gz",status)          
+          command="tar -x -v -z -C "//inputPath(pathTypeDataDynamic)//" -f "//inputPath(pathTypeDataDynamic)//"FSPS_"//char(fspsVersion)//".tar.gz"
+          call System_Command_Do(command,status)          
           if (status /= 0 .or. .not.File_Exists(fspsPath)) call Error_Report('failed to unpack FSPS code'//{introspection:location})
        end if
        ! Patch the code if not already patched.
-       if (.not.File_Exists(fspsPath//"/src/galacticus_IMF.f90")) then
-          call System_Command_Do("cp "//inputPath(pathTypeDataStatic)//"patches/FSPS/galacticus_IMF.f90 "//fspsPath//"/src/"                                                    ,status)
+       patchPath=fspsPath//"/src/galacticus_IMF.f90"
+       if (.not.File_Exists(patchPath)) then
+          command="cp "//inputPath(pathTypeDataStatic)//"patches/FSPS/galacticus_IMF.f90 "//fspsPath//"/src/"
+          call System_Command_Do(command,status)
           if (status /= 0) call Error_Report("failed to copy FSPS patch 'galacticus_IMF.f90'"//{introspection:location})
-          call System_Command_Do("cp "//inputPath(pathTypeDataStatic)//"patches/FSPS/imf.f90.patch "     //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < imf.f90.patch"     ,status)
+          command="cp "//inputPath(pathTypeDataStatic)//"patches/FSPS/imf.f90.patch "     //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < imf.f90.patch" 
+          call System_Command_Do(command,status)
           if (status /= 0) call Error_Report("failed to patch FSPS file 'imf.f90'"           //{introspection:location})
-          call System_Command_Do("cp "//inputPath(pathTypeDataStatic)//"patches/FSPS/ssp_gen.f90.patch " //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < ssp_gen.f90.patch" ,status)
+          command="cp "//inputPath(pathTypeDataStatic)//"patches/FSPS/ssp_gen.f90.patch " //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < ssp_gen.f90.patch"
+          call System_Command_Do(command,status)
           if (status /= 0) call Error_Report("failed to patch FSPS file 'ssp_gen.f90'"       //{introspection:location})
-          call System_Command_Do("cp "//inputPath(pathTypeDataStatic)//"patches/FSPS/sps_vars.f90.patch "//fspsPath//"/src/; cd "//fspsPath//"/src/; patch < sps_vars.f90.patch",status)
+          command="cp "//inputPath(pathTypeDataStatic)//"patches/FSPS/sps_vars.f90.patch "//fspsPath//"/src/; cd "//fspsPath//"/src/; patch < sps_vars.f90.patch"
+          call System_Command_Do(command,status)
           if (status /= 0) call Error_Report("failed to patch FSPS file 'sps_vars.f90'"      //{introspection:location})
-          call System_Command_Do("cp "//inputPath(pathTypeDataStatic)//"patches/FSPS/autosps.f90.patch " //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < autosps.f90.patch" ,status)
+          command="cp "//inputPath(pathTypeDataStatic)//"patches/FSPS/autosps.f90.patch " //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < autosps.f90.patch"
+          call System_Command_Do(command,status)
           if (status /= 0) call Error_Report("failed to patch FSPS file 'autosps.f90'"       //{introspection:location})
-          call System_Command_Do("cp "//inputPath(pathTypeDataStatic)//"patches/FSPS/Makefile.patch "    //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < Makefile.patch"    ,status)
+          command="cp "//inputPath(pathTypeDataStatic)//"patches/FSPS/Makefile.patch "    //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < Makefile.patch"
+          call System_Command_Do(command,status)
           if (status /= 0) call Error_Report("failed to patch FSPS file 'Makefile'"          //{introspection:location})
-          call File_Remove(fspsPath//"/src/autosps.exe")
+          call File_Remove(execPath)
        end if
        call displayMessage("compiling autosps.exe code",verbosityLevelWorking)
        if (static_) then
-          call System_Command_Do(                                                                                &
-               &                 "cd "//fspsPath//"/src; "                                                    // &
+          command="cd "//fspsPath//"/src; "                                                    // &
 #ifndef __APPLE__
-               &                 "grep -P '^F90FLAGS := ' Makefile && "                                       // &
+               &  "grep -P '^F90FLAGS := ' Makefile && "                                       // &
 #endif
-               &                 "sed -i~ -E s/'^(F90FLAGS := [^#]*)'/'\1 \-static'/g Makefile"               ,  &
-               &                 status                                                                          &
-               &                )
+               &  "sed -i~ -E s/'^(F90FLAGS := [^#]*)'/'\1 \-static'/g Makefile"  
        else
-          call System_Command_Do(                                                                                &
-               &                 "cd "//fspsPath//"/src; "                                                    // &
+          command="cd "//fspsPath//"/src; "                                                    // &
 #ifndef __APPLE__
-               &                 "grep -P '^F90FLAGS := ' Makefile && "                                       // &
+               &  "grep -P '^F90FLAGS := ' Makefile && "                                       // &
 #endif
-               &                 "sed -i~ -E s/'^(F90FLAGS := .*)[[:space:]]*\-static(.*)'/'\1 \2'/g Makefile",  &
-               &                 status                                                                          &
-               &                )
+               &  "sed -i~ -E s/'^(F90FLAGS := .*)[[:space:]]*\-static(.*)'/'\1 \2'/g Makefile"
        end if
+       call System_Command_Do(command,status)
        if (status /= 0) call Error_Report("failed to patch FSPS file 'Makefile' for static/dynamic build"//{introspection:location})
-       call System_Command_Do(                                                                                                                                                &
-            &                 "cd "//fspsPath//"/src; export SPS_HOME="//fspsPath//'; export F90FLAGS="'                                                                   // &
+       command="cd "//fspsPath//"/src; export SPS_HOME="//fspsPath//'; export F90FLAGS="'                                                                   // &
 #ifndef __aarch64__
-            &                 '-mcmodel=medium '                                                                                                                           // & ! Larger memory model required except on Arm64.
+            &  '-mcmodel=medium '                                                                                                                           // & ! Larger memory model required except on Arm64.
 #endif
-            &                 char(compilerOptions(languageFortran))//'"; sed -i~ -E s/"gfortran"/"'//char(compiler(languageFortran))//'"/ Makefile; make clean; make -j 1',  &
-            &                 status                                                                                                                                          &
-            &                )
-       if (.not.File_Exists(fspsPath//"/src/autosps.exe") .or. status /= 0) call Error_Report("failed to build autosps.exe code"//{introspection:location})
+            &  char(compilerOptions(languageFortran))//'"; sed -i~ -E s/"gfortran"/"'//char(compiler(languageFortran))//'"/ Makefile; make clean; make -j 1'
+       call System_Command_Do(command,status)
+       if (.not.File_Exists(execPath) .or. status /= 0) call Error_Report("failed to build autosps.exe code"//{introspection:location})
     end if
     call File_Unlock(fspsLock)
     return
