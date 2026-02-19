@@ -100,25 +100,28 @@ contains
     !!{
     Constructor for the \refClass{accretionDiskSpectraHopkins2007} accretion disk spectra class.
     !!}
-    use :: File_Utilities, only : File_Lock, File_Unlock
-    use :: Input_Paths   , only : inputPath, pathTypeDataStatic
+    use :: File_Utilities, only : File_Lock, File_Unlock       , Directory_Make
+    use :: Input_Paths   , only : inputPath, pathTypeDataStatic, pathTypeDataDynamic
     implicit none
     type (accretionDiskSpectraHopkins2007)                        :: self
     class(blackHoleAccretionRateClass    ), target, intent(in   ) :: blackHoleAccretionRate_
     class(accretionDisksClass            ), target, intent(in   ) :: accretionDisks_
+    type (varying_string                 )                        :: fileNameLock
     !![
     <constructorAssign variables="*blackHoleAccretionRate_, *accretionDisks_"/>
     !!]
     
     ! Set the file name.
-    self%fileName=inputPath(pathTypeDataStatic)//"blackHoles/AGN_SEDs_Hopkins2007.hdf5"
+    call Directory_Make(inputPath(pathTypeDataDynamic)//'aux')
+    self%fileName=inputPath(pathTypeDataStatic )//"blackHoles/AGN_SEDs_Hopkins2007.hdf5"
+    fileNameLock =inputPath(pathTypeDataDynamic)//"aux/AGN_SEDs_Hopkins2007"
     ! Build the file.
     call self%buildFile()
     ! Load the file.
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-    call File_Lock    (char(self%fileName),self%fileLock,lockIsShared=.true.)
-    call self%loadFile(char(self%fileName)                                  )
-    call File_Unlock  (                    self%fileLock                    )
+    call File_Lock    (     self%fileName ,self%fileLock,lockIsShared=.true.,fileNameLock=fileNameLock)
+    call self%loadFile(char(self%fileName)                                                            )
+    call File_Unlock  (                    self%fileLock                                              )
     return
   end function hopkins2007ConstructorInternal
 
@@ -158,10 +161,13 @@ contains
     character       (len= 16                        )                              :: label
     character       (len=256                        )                              :: line
     double precision                                                               :: frequencyLogarithmic              , spectrumLogarithmic
+    type            (varying_string                 )                              :: fileNameLock
 
     ! Determine if we need to make the file.
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-    call File_Lock(char(self%fileName),self%fileLock,lockIsShared=.true.)
+    call Directory_Make(inputPath(pathTypeDataDynamic)//'aux')
+    fileNameLock =inputPath(pathTypeDataDynamic)//"aux/AGN_SEDs_Hopkins2007"
+    call File_Lock(self%fileName,self%fileLock,lockIsShared=.true.,fileNameLock=fileNameLock)
     makeFile=.false.
     if (File_Exists(self%fileName)) then
        !$ call hdf5Access%set()
