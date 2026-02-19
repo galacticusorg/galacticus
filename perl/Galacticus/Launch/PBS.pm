@@ -33,19 +33,19 @@ sub Validate {
     # Set defaults.
     my %defaults = 
 	(
-	 mpiLaunch               => "yes"                                                                     ,
-	 mpiRun                  => "mpirun --map-by node --mca mpi_preconnect_mpi 1 -hostfile \$PBS_NODEFILE",
-	 mpiProcesses            => 1                                                                         ,
-	 maxJobsInQueue          => -1                                                                        ,
-	 postSubmitSleepDuration => 10                                                                        ,
-	 jobWaitSleepDuration    => 60                                                                        ,
+	 mpiLaunch               => "yes"                                                                                     ,
+	 mpiRun                  => "mpirun --oversubscribe --map-by node --mca mpi_preconnect_mpi 1 -hostfile \$PBS_NODEFILE",
+	 mpiProcesses            => 1                                                                                         ,
+	 maxJobsInQueue          => -1                                                                                        ,
+	 postSubmitSleepDuration => 10                                                                                        ,
+	 jobWaitSleepDuration    => 60                                                                                        ,
 	 analyze                 => "yes"
 	);
     # Attempt to detect MPI implementation.
     my $mpiIs = &mpiDetect();
     if ( $mpiIs eq "OpenMPI" ) {
-	$defaults{'mpiLaunch'} = "yes"                                                                     ;
-	$defaults{'mpiRun'   } = "mpirun --map-by node --mca mpi_preconnect_mpi 1 -hostfile \$PBS_NODEFILE";
+	$defaults{'mpiLaunch'} = "yes"                                                                                     ;
+	$defaults{'mpiRun'   } = "mpirun --oversubscribe --map-by node --mca mpi_preconnect_mpi 1 -hostfile \$PBS_NODEFILE";
     }    
     # Apply defaults.
     foreach ( keys(%defaults) ) {
@@ -438,7 +438,7 @@ sub SubmitJobs {
 		print $scriptFile "ulimit -c unlimited\n";
 		my $mpi = (exists($arguments{'mpi'}) && $arguments{'mpi'} eq "yes") || (exists($newJob->{'mpi'}) && $newJob->{'mpi'} eq "yes");
 		print $scriptFile "export OMP_NUM_THREADS=".($mpi ? 1 : $ppn)."\n";
-		print $scriptFile ($mpi ? "mpirun --map-by node -np ".$mpiProcs." " : "").$newJob->{'command'}."\n";
+		print $scriptFile ($mpi ? "mpirun --oversubscribe --map-by node -np ".$mpiProcs." " : "").$newJob->{'command'}."\n";
 		print $scriptFile "exit\n";
 		close($scriptFile);
 	    } else {

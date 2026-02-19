@@ -35,7 +35,7 @@ if ( $options{'processesPerNode'} < 2 ) {
 }
 
 # Run the calculation.
-system("cd ..; mpirun -np ".$options{'processesPerNode'}.($options{'allow-run-as-root'} eq "yes" ? " --allow-run-as-root" : "").($options{'oversubscribe'} eq "yes" ? " --oversubscribe" : "")." Galacticus.exe testSuite/parameters/test-radiativeTransfer-StromgrenSphere.xml");
+system("cd ..; mpirun --oversubscribe -np ".$options{'processesPerNode'}.($options{'allow-run-as-root'} eq "yes" ? " --allow-run-as-root" : "").($options{'oversubscribe'} eq "yes" ? " --oversubscribe" : "")." Galacticus.exe testSuite/parameters/test-radiativeTransfer-StromgrenSphere.xml");
 die("FAILED: failed to run calculation")
     unless ( $? == 0 );
 # Read model output and parameters.
