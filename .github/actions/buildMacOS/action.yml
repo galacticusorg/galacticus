@@ -24,8 +24,8 @@ runs:
         else
           echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/lib/gfortran/modules -L/usr/local/lib -L/opt/local/lib" >> $GITHUB_ENV
         fi
-        echo "GALACTICUS_CFLAGS=-I/usr/local/include -I/opt/local/include -I/opt/local/include/guile-1.8" >> $GITHUB_ENV
-        echo "GALACTICUS_CPPFLAGS=-I/usr/local/include -I/opt/local/include -I/usr/local/include/libqhullcpp -I/opt/local/include/guile-1.8" >> $GITHUB_ENV
+        echo "GALACTICUS_CFLAGS=-I/usr/local/include -I/opt/local/include" >> $GITHUB_ENV
+        echo "GALACTICUS_CPPFLAGS=-I/usr/local/include -I/opt/local/include -I/usr/local/include/libqhullcpp" >> $GITHUB_ENV
     - name: Fix broken Apple include file
       shell: bash
       run: |
@@ -66,25 +66,25 @@ runs:
     - name: Install guile
       shell: bash
       run: |
-        sudo port install guile-1.8
-        sudo port select --set guile guile-1.8
+        sudo port install guile-3.0
+        sudo port select --set guile guile-3.0
     - name: Install libgit2
       shell: bash
       run: sudo port install libgit2
     - name: Install libmatheval
       shell: bash
       run: |
-        curl -L https://github.com/galacticusorg/libmatheval/releases/download/latest/libmatheval-1.1.12.tar.gz --output libmatheval-1.1.12.tar.gz
-        tar xvfz libmatheval-1.1.12.tar.gz
-        cd libmatheval-1.1.12
+        curl -L https://github.com/galacticusorg/libmatheval/releases/download/latest/libmatheval-1.1.13.tar.gz --output libmatheval-1.1.13.tar.gz
+        tar xvfz libmatheval-1.1.13.tar.gz
+        cd libmatheval-1.1.13
         # Patch following the approach used in MacPorts (https://github.com/macports/macports-ports/tree/master/math/libmatheval).
         sed -E -i~ s/"#undef HAVE_SCM_T_BITS"/"#define HAVE_SCM_T_BITS 1"/ config.h.in
         # Set guile paths following the approach used in MacPorts (https://github.com/macports/macports-ports/tree/master/math/libmatheval).
-        CC=gcc-15 GUILE=/opt/local/bin/guile-1.8 GUILE_CONFIG=/opt/local/bin/guile-config-1.8 GUILE_TOOLS=/opt/local/bin/guile-tools-1.8 ./configure --prefix=/usr/local || (cat config.log && false)
+        CC=gcc-15 PKG_CONFIG=/opt/local/bin/pkg-config GUILE=/opt/local/bin/guile-3.0 GUILE_CONFIG=/opt/local/bin/guile-config-3.0 GUILE_TOOLS=/opt/local/bin/guile-tools-3.0 ./configure --prefix=/usr/local || (cat config.log && false)
         make -j3
         sudo make install
         cd ..
-        rm -rf libmatheval-1.1.12.tar.gz libmatheval-1.1.12
+        rm -rf libmatheval-1.1.13.tar.gz libmatheval-1.1.13
     - name: Install qhull
       shell: bash
       run: |

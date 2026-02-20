@@ -56,9 +56,11 @@ jobs:
       - name: Detect linux-tools
         id: detector
         run: |
+          echo Looking for linux-tools for kernel version `uname -r`
           if [[ ${{ format('{0}',inputs.profiler) }} == "perf" ]]; then
              if [[ `apt list | grep linux-tools-$(uname -r)` ]]; then
                 echo linux-tools was found
+                apt list | grep linux-tools-$(uname -r)
                 echo "detected=true" >> "$GITHUB_OUTPUT"
              else
                 echo linux-tools was not found
@@ -78,8 +80,34 @@ jobs:
       - name: Install packages
         if: ${{ steps.detector.outputs.detected == 'true' }}
         run: |
+          echo Installing linux-tools packages: ${{ format('{0}',inputs.profiler) == 'perf' && 'linux-tools-$(uname -r) linux-cloud-tools-$(uname -r) linux-tools-generic' || '' }}
           apt -y update && apt -y upgrade
-          apt -y install ${{ format('{0}',inputs.profiler) == 'perf' && 'linux-tools-$(uname -r) linux-tools-generic' || '' }} bzip2
+          apt -y install ${{ format('{0}',inputs.profiler) == 'perf' && 'linux-tools-$(uname -r) linux-cloud-tools-$(uname -r) linux-tools-generic' || '' }} bzip2
+      - name: Test linux-tools
+        id: tester
+        if: ${{ steps.detector.outputs.detected == 'true' }}
+        run: |
+          if [[ ${{ format('{0}',inputs.profiler) }} == "perf" ]]; then
+             echo Testing perf...
+             echo "int main() { return 0; }" > test.c
+             gcc -g test.c
+             if perf record -g -e cycles --call-graph dwarf -F 500 -o ./a.perf.data ./a.out; then
+                echo ...perf test passed
+                echo "tested=true" >> "$GITHUB_OUTPUT"
+             else
+                echo ...perf test failed
+                echo "tested=false" >> "$GITHUB_OUTPUT"
+                echo '## :warning: `linux-tools` was installed, but perf does not work - remainder of job will be skipped :warning:' >> $GITHUB_STEP_SUMMARY
+                echo 'Kernel version is: '`uname -r` >> $GITHUB_STEP_SUMMARY
+                echo 'Available `linux-tools` versions are:' >> $GITHUB_STEP_SUMMARY
+                apt list | grep -P linux\-tools\-[0-9\.\-]+\-azure >> $GITHUB_STEP_SUMMARY
+                # Create a dummy file here so that we have something to upload.
+                mkdir -p ./testSuite/outputs
+                echo "perf tests disabled due to missing linux-tools" > ./testSuite/outputs/${{ inputs.name }}.${{ format('{0}',inputs.profiler) == 'perf' && 'perf.bz2' || 'gprof.bz2' }}
+             fi
+          else
+             echo "tested=true" >> "$GITHUB_OUTPUT"
+          fi
       - name: Mark time for cache accesses
         if: ${{ format('{0}',inputs.cacheData) == '1' }}
         run: |
@@ -87,7 +115,7 @@ jobs:
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
       - name: Profile
-        if: ${{ steps.detector.outputs.detected == 'true' }}
+        if: ${{ steps.detector.outputs.detected == 'true' &&  steps.tester.outputs.tested == 'true' }}
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
