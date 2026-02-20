@@ -151,8 +151,17 @@ module Tables
      !!{
      Container type for interpolators used in 1D generic tables.
      !!}
-     type   (interpolator) :: interpolator_
-     logical               :: interpolatorInitialized
+     type   (interpolator), allocatable :: interpolator_
+     logical                            :: interpolatorInitialized
+   contains
+     !![
+     <methods>
+       <method method="assignment(=)" description="Assign \refClass{table1dGenericObjects}."/>
+     </methods>
+     !!]
+     final     ::                  table1dGenericObjectsDestructor
+     procedure ::                  table1dGenericObjectsAssignment
+     generic   :: assignment(=) => table1dGenericObjectsAssignment
   end type table1dGenericObjects
   
   type, extends(table1D) :: table1DGeneric
@@ -547,7 +556,8 @@ contains
        ! Set linear interpolation.
        reversedSelf%interpolationType=GSL_Interp_Linear
        ! Build the interpolator.
-       allocate(reversedSelf%interpolators(1))
+       allocate(reversedSelf%interpolators(1)              )
+       allocate(reversedSelf%interpolators(1)%interpolator_)
        reversedSelf%interpolators(1)%interpolator_          =interpolator(reversedSelf%xv,interpolationType=GSL_Interp_Linear,extrapolationType=self%extrapolationType(1))
        reversedSelf%interpolators(1)%interpolatorInitialized=.true.
     end select
@@ -643,6 +653,7 @@ contains
     class is (table1DGeneric)
        select type (to)
        class is (table1DGeneric)
+          if (associated(to%interpolators)) deallocate(to%interpolators)
           if (associated(from%interpolators)) then
              allocate(to%interpolators(size(from%interpolators)))
              !![
@@ -651,6 +662,7 @@ contains
 	       <description>Type-bound defined assignment not done because multiple part array references would occur in intermediate expressions.</description>
              !!]
              do i=1,size(from%interpolators)
+                allocate(to%interpolators(i)%interpolator_)
                 to%interpolators(i)%interpolator_          =from%interpolators(i)%interpolator_
                 to%interpolators(i)%interpolatorInitialized=from%interpolators(i)%interpolatorInitialized
              end do
@@ -819,14 +831,49 @@ contains
     return
   end subroutine Table1D_Assignment
 
+  elemental subroutine table1dGenericObjectsDestructor(self)
+    !!{
+    Destructor for \refClass{table1dGenericObjects} objects.
+    !!}
+    implicit none
+    type(table1dGenericObjects), intent(inout) :: self
+    
+    if (allocated(self%interpolator_)) deallocate(self%interpolator_)
+    return
+  end subroutine table1dGenericObjectsDestructor
+  
+  subroutine table1dGenericObjectsAssignment(to,from)
+    !!{
+    Assignment operator for \refClass{table1dGenericObjects} objects.
+    !!}
+    implicit none
+    class(table1dGenericObjects), intent(inout) :: to
+    class(table1dGenericObjects), intent(in   ) :: from
+
+    if (allocated(to%interpolator_)) deallocate(to%interpolator_)
+    if (allocated(from%interpolator_)) then
+       allocate(to%interpolator_)
+       to%interpolator_=from%interpolator_
+    end if
+    to%interpolatorInitialized=from%interpolatorInitialized
+    return
+  end subroutine table1dGenericObjectsAssignment
+
   subroutine Table_Generic_1D_Destructor(self)
     !!{
     Destructor for 1-D generic tables.
     !!}
     implicit none
-    type(table1DGeneric), intent(inout) :: self
+    type   (table1DGeneric), intent(inout) :: self
+    integer                                :: i
 
-    if (associated(self%interpolators)) deallocate(self%interpolators)
+    if (associated(self%interpolators)) then
+       do i=1,size(self%interpolators)
+          if (allocated(self%interpolators(i)%interpolator_)) deallocate(self%interpolators(i)%interpolator_)
+       end do
+       deallocate(self%interpolators)
+       nullify   (self%interpolators)
+    end if
     return
   end subroutine Table_Generic_1D_Destructor
   
@@ -860,7 +907,8 @@ contains
     if (any(extrapolationType_ == extrapolationTypeZero)) call Error_Report('zero extrapolation is not supported'//{introspection:location})
     ! Allocate interpolators, and build if possible.
     if (interpolationType_ == GSL_Interp_Linear) then
-       allocate(self%interpolators(1))
+       allocate(self%interpolators(1)              )
+       allocate(self%interpolators(1)%interpolator_)
        self%interpolators(1)%interpolator_          =interpolator(self%xv,extrapolationType=self%extrapolationType,interpolationType=self%interpolationType)
        self%interpolators(1)%interpolatorInitialized=.true.
     else
@@ -879,7 +927,10 @@ contains
     implicit none
     class(table1DGeneric), intent(inout) :: self
 
-    if (associated(self%interpolators)) deallocate(self%interpolators)
+    if (associated(self%interpolators)) then
+       deallocate(self%interpolators)
+       nullify   (self%interpolators)
+    end if
     call Table_1D_Destroy(self)
     return
   end subroutine Table_Generic_1D_Destroy
@@ -938,6 +989,7 @@ contains
 
     if (self%interpolationType == GSL_Interp_Linear) return
     if (.not.self%interpolators(table)%interpolatorInitialized) then
+       allocate(self%interpolators(table)%interpolator_)
        self%interpolators(table)%interpolator_          =interpolator(self%xv,self%yv(:,table),extrapolationType=self%extrapolationType,interpolationType=self%interpolationType)
        self%interpolators(table)%interpolatorInitialized=.true.
     end if
@@ -1023,9 +1075,14 @@ contains
     nullify(self%interpolators)
     allocate(self%interpolators(size(interpolators)))
     do i=1,size(interpolators)
+       allocate(self%interpolators(i)%interpolator_)
        self%interpolators(i)=interpolators(i)
     end do
     call self%interpolatorReinitialize()
+    do i=1,size(interpolators)
+       if (allocated(interpolators(i)%interpolator_)) deallocate(interpolators(i)%interpolator_)
+    end do
+    deallocate(interpolators)
     return
   end subroutine Table_Generic_1D_Interpolator_Deep_Copy
 
