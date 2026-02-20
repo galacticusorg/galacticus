@@ -30,8 +30,10 @@ module System_Download
   public :: download
 
   interface download
-     module procedure downloadChar
-     module procedure downloadVarStr
+     module procedure downloadCharChar
+     module procedure downloadVarStrVarStr
+     module procedure downloadVarStrChar
+     module procedure downloadCharVarStr
   end interface download
 
   ! Available downloaders.
@@ -63,7 +65,7 @@ contains
     return
   end subroutine downloadInitialize
   
-  subroutine downloadVarStr(url,outputFileName,retries,retryWait,status)
+  subroutine downloadVarStrVarStr(url,outputFileName,retries,retryWait,status)
     !!{
     Download content from the given {\normalfont url} to the given {\normalfont \ttfamily outputFileName}.
     !!}
@@ -72,12 +74,42 @@ contains
     type   (varying_string), intent(in   )           :: url    , outputFileName
     integer                , intent(in   ), optional :: retries, retryWait
     integer                , intent(  out), optional :: status
-    
+
     call download(char(url),char(outputFileName),retries,retryWait,status)
     return
-  end subroutine downloadVarStr
+  end subroutine downloadVarStrVarStr
 
-  subroutine downloadChar(url,outputFileName,retries,retryWait,status)
+  subroutine downloadVarStrChar(url,outputFileName,retries,retryWait,status)
+    !!{
+    Download content from the given {\normalfont url} to the given {\normalfont \ttfamily outputFileName}.
+    !!}
+    use :: ISO_Varying_String, only : char, varying_string
+    implicit none
+    type     (varying_string), intent(in   )           :: url
+    character(len=*         ), intent(in   )           :: outputFileName
+    integer                  , intent(in   ), optional :: retries       , retryWait
+    integer                  , intent(  out), optional :: status
+
+    call download(char(url),outputFileName,retries,retryWait,status)
+    return
+  end subroutine downloadVarStrChar
+
+  subroutine downloadCharVarStr(url,outputFileName,retries,retryWait,status)
+    !!{
+    Download content from the given {\normalfont url} to the given {\normalfont \ttfamily outputFileName}.
+    !!}
+    use :: ISO_Varying_String, only : char, varying_string
+    implicit none
+    character(len=*         ), intent(in   )           :: url
+    type     (varying_string), intent(in   )           :: outputFileName
+    integer                  , intent(in   ), optional :: retries       , retryWait
+    integer                  , intent(  out), optional :: status
+
+    call download(url,char(outputFileName),retries,retryWait,status)
+    return
+  end subroutine downloadCharVarStr
+
+  subroutine downloadCharChar(url,outputFileName,retries,retryWait,status)
     !!{
     Download content from the given {\normalfont url} to the given {\normalfont \ttfamily outputFileName}.
     !!}
@@ -93,7 +125,7 @@ contains
     <optionalArgument name="retries"   defaultsTo="0" />
     <optionalArgument name="retryWait" defaultsTo="60"/>
     !!]
-    
+
     call downloadInitialize()
     if (present(status)) status=0
     tries=0
@@ -117,6 +149,6 @@ contains
     if (     present(status)                   )  status=status_
     if (.not.present(status) .and. status_ /= 0) call Error_Report('failed to download "'//trim(url)//'"'//{introspection:location})
     return
-  end subroutine downloadChar
+  end subroutine downloadCharChar
 
 end module System_Download
