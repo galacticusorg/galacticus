@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -292,8 +292,9 @@ contains
        message=var_str('Storing state for tree #')//treeNumber
        call State_Store_(message)
        ! Initialize.
-       tree%event            => null()
-       tree%initializedUntil =  0.0d0
+       tree%event             => null()
+       tree%initializedUntil  =  0.0d0
+       tree%isTreeInitialized =  .false.
        call tree%properties%initialize()
        ! Create the base node.
        tree%firstTree => tree

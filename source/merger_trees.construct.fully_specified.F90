@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -199,9 +199,8 @@ contains
     !!{
     Internal constructor for the \refClass{mergerTreeConstructorFullySpecified} merger tree operator class.
     !!}
-    use :: FoX_DOM           , only : parseFile
     use :: Error             , only : Error_Report
-    use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name
+    use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, XML_Parse
     use :: File_Utilities    , only : File_Exists
     use :: Display           , only : displayGreen                , displayReset
     use :: ISO_Varying_String, only : varying_string              , var_str     , operator(//)
@@ -219,7 +218,7 @@ contains
     !$omp critical (FoX_DOM_Access)
     if (.not.associated(self%document)) allocate(self%document)
     ! Parse the merger tree file.
-    self%document%doc => parseFile(char(self%fileName),iostat=ioErr)
+    self%document%doc => XML_Parse(self%fileName,iostat=ioErr)
     if (ioErr /= 0) then
        message=var_str("unable to read or parse fully-specified merger tree file ")//"'"//self%fileName//"'"
        if (File_Exists(self%fileName)) then
@@ -312,12 +311,13 @@ contains
        end do
        !$omp end critical (FoX_DOM_Access)
        ! Initialize the tree root to null.
-       tree%index            =  int(treeNumber)
-       tree%volumeWeight     =  1.0d0
-       tree%initializedUntil =  0.0d0
-       tree%firstTree        => tree
-       tree%nodeBase         => null()
-       tree%event            => null()
+       tree%index             =  int(treeNumber)
+       tree%volumeWeight      =  1.0d0
+       tree%initializedUntil  =  0.0d0
+       tree%isTreeInitialized =  .false.
+       tree%firstTree         => tree
+       tree%nodeBase          => null()
+       tree%event             => null()
        call tree%properties%initialize()
        ! Restart the random number sequence.
        allocate(tree%randomNumberGenerator_,mold=self%randomNumberGenerator_)

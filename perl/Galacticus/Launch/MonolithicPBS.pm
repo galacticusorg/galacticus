@@ -6,7 +6,7 @@ use warnings;
 use Cwd;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Data::Dumper;
-use Sys::CPU;
+use System::CPU;
 use Galacticus::Launch::Hooks;
 use Galacticus::Launch::PostProcess;
 use Galacticus::Launch::PBS;
@@ -31,13 +31,13 @@ sub Validate {
     # Set defaults.
     my %defaults = 
 	(
-	 mpiRun               => "mpirun"             ,
-	 mpiOptions           => ""                   ,
-	 nodes                => 1                    ,
-	 threadsPerNode       => Sys::CPU::cpu_count(),
-	 ompThreads           => Sys::CPU::cpu_count(),
-	 shell                => "bash"               ,
-	 analyze              => "yes"                ,
+	 mpiRun               => "mpirun"               ,
+	 mpiOptions           => ""                     ,
+	 nodes                => 1                      ,
+	 threadsPerNode       => System::CPU::get_ncpu(),
+	 ompThreads           => System::CPU::get_ncpu(),
+	 shell                => "bash"                 ,
+	 analyze              => "yes"                  ,
 	 jobWaitSleepDuration => 60
 	);
     # Attempt to detect MPI implementation.

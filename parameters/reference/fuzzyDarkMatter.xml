@@ -28,11 +28,25 @@
   <change type="replaceWith" path="transferFunction/cosmologyParameters" target="axionCAMBTmp/cosmologyParameters"/>
   <change type="remove" path="axionCAMBTmp"/>
 
-  <!-- Use the soliton+NFW mass distribution for dark matter halo profiles. -->
+  <!-- Use the soliton+NFW mass distribution for dark matter halo profiles, except in places where we have models calibrated to
+       use the NFW profile. -->
   <change type="append" path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius">
     <darkMatterProfileDMO/>
   </change>
-  <change type="replaceWith" path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileDMO" target="darkMatterProfileDMO/darkMatterProfileDMO"/>
+  <change type="append" path="nodeOperator/nodeOperator[@value='haloAngularMomentumVitvitska2002']">
+    <darkMatterProfileDMO/>
+  </change>
+  <change type="append" path="virialOrbit">
+    <darkMatterProfileDMO/>
+  </change>
+  <change type="replaceWith" path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileDMO"            target="darkMatterProfileDMO/darkMatterProfileDMO"/>
+  <change type="replaceWith" path="nodeOperator/nodeOperator[@value='haloAngularMomentumVitvitska2002']/darkMatterProfileDMO" target="darkMatterProfileDMO/darkMatterProfileDMO"/>
+  <change type="replaceWith" path="virialOrbit/darkMatterProfileDMO"                                                          target="darkMatterProfileDMO/darkMatterProfileDMO"/>
   <change type="update" path="darkMatterProfileDMO/darkMatterProfileDMO" value="solitonNFW"/>
+
+  <!-- Add the soliton node operator for soliton+NFW dark matter halo profiles. -->
+  <change type="append" path="nodeOperator">
+    <nodeOperator value="darkMatterProfileSoliton"/>
+  </change>
 
 </changes>

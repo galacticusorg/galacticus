@@ -41,10 +41,8 @@ sub Properties_Deferred_Pointers {
     # Skip properties which are not deferred.
     return
 	if ( $property->{'attributes' }->{'isDeferred'} eq "" );
-    # Determine the type of object to which this function will be bound.
-    my $selfType = $property->{'attributes'}->{'bindsTo'} eq "top" ? "generic"        : $class->{'name'}                           ;
     # Determine where to attach.
-    my $attachTo = $property->{'attributes'}->{'bindsTo'} eq "top" ? $class->{'name'} : $class->{'name'}.ucfirst($member->{'name'});
+    my $attachTo = $class->{'name'}.ucfirst($member->{'name'});
     # Iterate over attributes.
     foreach my $attribute ( split(/:/,$property->{'attributes' }->{'isDeferred'}) ) {	
 	# Determine function name.
@@ -58,7 +56,7 @@ sub Properties_Deferred_Pointers {
 	    ?
 	    $class->{'name'}.ucfirst($member->{'name'}).ucfirst($property->{'name'}).ucfirst($attribute)
 	    :
-	    &createNullFunction($build,{selfType => $selfType, attribute => $attribute, property => $property, intent => "inout"});
+	    &createNullFunction($build,{selfType => $class->{'name'}, attribute => $attribute, property => $property, intent => "inout"});
 	# Generate the procedure pointer and a boolean to indicate if is has been attached.
 	push(
 	    @{$build->{'variables'}},
@@ -201,8 +199,8 @@ sub Properties_Deferred_Rate_Functions {
     push(@{$propertyTypeDescriptor->{'variables' }},"setValue"      );
     push(@{$propertyTypeDescriptor->{'attributes'}},"intent(in   )" );
     # Determine the class to which this method binds.
-    my $class       = $code::property->{'attributes' }->{'bindsTo'} eq "top" ? "nodeComponent"        : "nodeComponent".ucfirst($code::class->{'name'}).ucfirst($code::member->{'name'});
-    $code::attachTo = $code::property->{'attributes' }->{'bindsTo'} eq "top" ? $code::class->{'name'} :                         $code::class->{'name'} .ucfirst($code::member->{'name'});
+    my $class       = "nodeComponent".ucfirst($code::class->{'name'}).ucfirst($code::member->{'name'});
+    $code::attachTo =                         $code::class->{'name'} .ucfirst($code::member->{'name'});
     # Skip if this function has been created already.
     return
 	if ( grep {$_->{'name'} eq $code::property->{'name'}."Rate"} @{$build->{'types'}->{$class}->{'boundFunctions'}} );	    
@@ -262,22 +260,18 @@ sub Generate_Deferred_Function_Attacher {
     my $componentClassName = $component->{'class'             };
     my $componentName      = $component->{'fullyQualifiedName'};
     my $propertyName       = $property ->{'name'              };
-    # Determine where to attach.
-    my $attachTo = $property->{'attributes'}->{'bindsTo'} eq "top" ? $componentClassName : $componentName;
     # Construct the function name.
-    $code::functionLabel = lcfirst($attachTo).ucfirst($propertyName).ucfirst($method);
+    $code::functionLabel = lcfirst($componentName).ucfirst($propertyName).ucfirst($method);
     my $functionName  = $code::functionLabel."Function";    
     # Skip if this function was already created.
     return
-	if ( grep {$_->{'name'} eq $propertyName.$methodSuffix."Function"} @{$build->{'types'}->{"nodeComponent".ucfirst($attachTo)}->{'boundFunctions'}} );
-    # Determine the type of the self argument.
-    my $selfType = $property->{'attributes'}->{'bindsTo'} eq "top" ? "generic" : $component->{'class'};
+	if ( grep {$_->{'name'} eq $propertyName.$methodSuffix."Function"} @{$build->{'types'}->{"nodeComponent".ucfirst($componentName)}->{'boundFunctions'}} );
     # Construct the attacher function.
     my $attachFunction =
     {
 	type        => "void",
 	name        => $functionName,
-	description => "Set the function to be used for the {\\normalfont \\ttfamily ".$method."} method of the {\\normalfont \\ttfamily ".$property->{'name'}."} property of the {\\normalfont \\ttfamily ".$attachTo."} component.",
+	description => "Set the function to be used for the {\\normalfont \\ttfamily ".$method."} method of the {\\normalfont \\ttfamily ".$property->{'name'}."} property of the {\\normalfont \\ttfamily ".$componentName."} component.",
 	variables   =>
 	    [
 	     {
@@ -286,7 +280,7 @@ sub Generate_Deferred_Function_Attacher {
 		     $method eq "get"
 		     ? $componentName.ucfirst($propertyName).ucfirst($method) 
 		     : 
-		     &createNullFunction($build,{selfType => $selfType, attribute => $method, property => $property, intent => "inout"}),
+		     &createNullFunction($build,{selfType => $component->{'class'}, attribute => $method, property => $property, intent => "inout"}),
 		 variables  => [ "deferredFunction" ],
 		 isArgument => 1
 	     } 
@@ -301,14 +295,14 @@ CODE
     {
 	type        => "logical",
 	name        => $code::functionLabel."IsAttached",
-	description => "Return true if the deferred function used to ".$method." the {\\normalfont \\ttfamily ".$property->{'name'}."} property of the {\\normalfont \\ttfamily ".$attachTo."} component class has been attached.",
+	description => "Return true if the deferred function used to ".$method." the {\\normalfont \\ttfamily ".$property->{'name'}."} property of the {\\normalfont \\ttfamily ".$componentName."} component class has been attached.",
     };
     $attachStatusFunction->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
 {$functionLabel}IsAttached={$functionLabel}IsAttchdVl
 CODE
     # Bind this function to the relevant type.
     push(
-	@{$build->{'types'}->{"nodeComponent".ucfirst($attachTo)}->{'boundFunctions'}},
+	@{$build->{'types'}->{"nodeComponent".ucfirst($componentName)}->{'boundFunctions'}},
 	{
 	    type       => "procedure"                             , 
 	    pass       => "nopass"                                , 

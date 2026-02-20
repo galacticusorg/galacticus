@@ -88,7 +88,7 @@ sub FunctionGlobal_Pointers_Generate_Output {
 	$buildData->{'content'} .= "  use Error\n";
 	if ( exists($buildData->{'functionGlobals'}->{$_}->{'module'}) ) {
 	    foreach my $module ( &List::ExtraUtils::as_array($buildData->{'functionGlobals'}->{$_}->{'module'}) ) {
-		(my $moduleName = $module) =~ s/,.*//;
+		(my $moduleName = $module) =~ s/\s*,.*//;
 		$buildData->{'content'} .= "use".($moduleName eq "ISO_C_Binding" ? ", intrinsic" : "")." :: ".$module."\n";
 	    }
 	}

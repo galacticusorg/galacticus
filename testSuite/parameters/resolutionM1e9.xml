@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Change resolution to be 10^9 M_Solar -->
+<changes>
+
+  <change type="update" path="mergerTreeMassResolution/massResolution" value="1.0e9"/>
+
+</changes>

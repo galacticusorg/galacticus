@@ -20,6 +20,10 @@ on:
       file: # The name of the test file to be run and tested
         required: true
         type: string
+      expectUnrecognized: # Set to zero if unrecognized parameters are not expected, 1 if they are expected
+        required: false
+        default: 0
+        type: number
       options: # Options to pass to the script command line
         required: false
         default: ''
@@ -35,6 +39,10 @@ on:
         required: false
         type: string
       mpi: # Set to 0/1 to indicate if the executable should be run without/with MPI
+        required: false
+        default: 0
+        type: string
+      ompNumThreads: # Set to 0 to indicate maximum threads, or a number to set a specific number of threads
         required: false
         default: 0
         type: string
@@ -62,23 +70,28 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: ${{ inputs.fetchDepth }}
       - name: Check out repository analysis-perl
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: galacticusorg/analysis-perl
           path: analysis-perl
       - name: Check out repository datasets
-        uses: actions/checkout@v4      
+        uses: actions/checkout@v6      
         with:
           repository: galacticusorg/datasets
           path: datasets
+      - name: Check out repository cusp-halo-relation
+        uses: actions/checkout@v6      
+        with:
+          repository: galacticusorg/cusp-halo-relation
+          path: cusp-halo-relation
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: Cache dynamically-generated datasets
         if: ${{ format('{0}',inputs.cacheData) == '1' }}
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ github.workspace }}/datasets/dynamic
           key: ${{ hashFiles(format('{0}',inputs.file)) }}-${{ github.run_id }}
@@ -90,8 +103,12 @@ jobs:
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "GALACTICUS_ANALYSIS_PERL_PATH=$GITHUB_WORKSPACE/analysis-perl" >> $GITHUB_ENV
           echo "PYTHONPATH=$GITHUB_WORKSPACE/python" >> $GITHUB_ENV
+      - name: "Set number of OpenMP threads"
+        if: inputs.ompNumThreads != '0'
+        run: |
+          echo "OMP_NUM_THREADS=${{ inputs.ompNumThreads }}" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: ${{ inputs.artifact }}
       - name: Install packages
@@ -149,6 +166,10 @@ jobs:
            cd ${{ inputs.runPath }}
            chmod u=wrx ./${{ inputs.file }}
            ./${{ inputs.file }} ${{ inputs.options }} 2>&1 | tee test.log
+          elif [[ ${{ inputs.file }} =~ \.sh$ ]]; then
+           cd ${{ inputs.runPath }}
+           chmod u=wrx ./${{ inputs.file }}
+           ./${{ inputs.file }} ${{ inputs.options }} 2>&1 | tee test.log
           elif [[ ${{ inputs.file }} =~ \.py$ ]]; then
            if [[ ${{ inputs.runner }} =~ ^macos ]]; then
             echo Python tests not supported on MacOS
@@ -158,12 +179,28 @@ jobs:
            apt -y install python3-numpy python3-h5py python3-lxml python3-blessings python3-matplotlib
            cd ${{ inputs.runPath }}
            chmod u=wrx ./${{ inputs.file }}
-           ./${{ inputs.file }} ${{ inputs.options }} 2>&1 | tee test.log
+           # Preload libstdc++ from the system installation - needed by SciPy etc. This avoids attempts to use the older
+           # (incompatible) version used by our custom GCC install.
+           LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6 ./${{ inputs.file }} ${{ inputs.options }} 2>&1 | tee test.log
           else
            echo Unrecognized file extension
            false
           fi
           ! grep -q -e FAIL -e "ODE integration failed" test.log
+      - uses: qoomon/actions--context@v5
+      - name: "Check for unrecognized parameters"
+        if: ${{ format('{0}',inputs.expectUnrecognized) == '0' }}
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          find testSuite/outputs -name "*.log" | xargs grep "unrecognized parameter" > $GALACTICUS_EXEC_PATH/unrecognized.txt || true
+          cd ${{ inputs.runPath }}
+          grep "unrecognized parameter" test.log >> $GALACTICUS_EXEC_PATH/unrecognized.txt || true
+          cd $GALACTICUS_EXEC_PATH
+          if [ -s "unrecognized.txt" ]; then
+           echo "# :warning: Unrecognized parameters from ${GITHUB_JOB_NAME} :warning:" >> $GITHUB_STEP_SUMMARY
+           echo ":information_source: Job log can be found [here](${GITHUB_JOB_URL})" >> $GITHUB_STEP_SUMMARY
+           cat unrecognized.txt >> $GITHUB_STEP_SUMMARY
+          fi
       - name: "Clean datasets"
         if: ${{ format('{0}',inputs.cacheData) == '1' }}
         run: |
@@ -179,7 +216,7 @@ jobs:
           find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/mangle-${mangleVersion} \) -prune -o -type f -not -anewer mark.time -print0 | xargs --no-run-if-empty -0 rm
       - name: Upload result
         if: inputs.uploadName != '' && inputs.uploadFile != ''
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ inputs.uploadName }}
           path: ${{ inputs.uploadFile }}

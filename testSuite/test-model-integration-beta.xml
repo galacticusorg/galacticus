@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <parameters formatVersion="2" version="0.9.4">
-  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
+  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
+
   <lastModified/>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
@@ -283,12 +284,19 @@
     </nodeOperator>
     <!-- CGM physics -->
     <nodeOperator value="CGMOuterRadiusVirialRadius"/>
-    <nodeOperator value="CGMCoolingInflow">
+    <nodeOperator value="CGMCoolingHeating">
       <component value="disk"/>
     </nodeOperator>
-    <nodeOperator value="CGMAccretion"/>
-    <nodeOperator value="CGMStarvation"/>
-    <nodeOperator value="CGMOutflowReincorporation"/>
+    <nodeOperator value="CGMAccretion">
+      <allowNegativeCGMMass value="false"/>
+    </nodeOperator>
+    <nodeOperator value="CGMStarvation">
+      <starveOutflowsOnly value="false"/>
+      <fractionBaryonLimitInNodeMerger value="false"/>
+    </nodeOperator>
+    <nodeOperator value="CGMOutflowReincorporation">
+      <includeSatellites value="false"/>
+    </nodeOperator>
   </nodeOperator>
 
   <!-- Output -->

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -50,7 +50,6 @@ contains
     !!{
     Returns the path to various \glc\ resources.
     !!}
-    use :: Display           , only : displayMessage, displayGreen , displayReset
     use :: ISO_Varying_String, only : assignment(=)  , operator(//), trim, char
     implicit none
     type   (varying_string         )                :: inputPath
@@ -74,7 +73,6 @@ contains
           else
              paths(pathTypeDataStatic%ID)="./"
           end if
-          call displayMessage(displayGreen()//"NOTE: "//displayReset()//"datasets are being read from "//paths(pathTypeDataStatic%ID))
           paths(pathTypeDataDynamic%ID)=paths(pathTypeDataStatic%ID)//"dynamic/"
           paths(pathTypeDataStatic %ID)=paths(pathTypeDataStatic%ID)//"static/"
           call Get_Environment_Variable("GALACTICUS_DYNAMIC_DATA_PATH",length=pathLength,status=pathStatus)

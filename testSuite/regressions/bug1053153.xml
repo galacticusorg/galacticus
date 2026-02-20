@@ -5,7 +5,8 @@
 <!-- density ratio in standard black hole model.                                       -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
+  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
+
   <mergerTreeConstructor value="read">
     <missingHostsAreFatal value="false"/>
     <fileNames value="testSuite/data/mergerTrees/bug1053153.hdf5"/>
@@ -46,11 +47,14 @@
     </nodePropertyExtractor>
   </nodePropertyExtractor>
   <mergerTreeOperator value="massAccretionHistory"/>
-  <componentHotHalo value="standard">
-    <angularMomentumAlwaysGrows value="true"/>
-  </componentHotHalo>
+  <componentHotHalo value="standard"/>
+  <hotHaloOutflowStripping value="standard">
+     <efficiency value="0.1"/>
+  </hotHaloOutflowStripping>
+  <coolingInfallTorque value="fixed">
+     <fractionLossAngularMomentum value="0.3"/>
+  </coolingInfallTorque>
 
-  <nodePromotionIndexShift value="false"/>
   <outputTimes value="list">
     <redshifts value="0.000"/>
   </outputTimes>
@@ -102,6 +106,20 @@
     <nodeOperator value="positionDiscrete"/>
     <!-- Satellite physics -->
     <nodeOperator value="satelliteOrphanize"/>
+    <!-- CGM physics -->
+    <nodeOperator value="CGMAccretion">
+      <allowNegativeCGMMass value="true"/>
+      <angularMomentumAlwaysGrows value="true"/>
+    </nodeOperator>
+    <nodeOperator value="CGMOutflowReincorporation">
+      <includeSatellites value="true"/>
+    </nodeOperator>
+    <nodeOperator value="CGMCoolingHeating">
+      <component value="disk"/>
+      <coolingFrom value="currentNode"/>
+      <excessHeatDrivesOutflow value="true"/>
+      <rateMaximumExpulsion value="1.0"/>
+    </nodeOperator>
   </nodeOperator>
 
 </parameters>

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -65,7 +65,7 @@ module Node_Component_Disk_Very_Simple_Size
     </property>
    </properties>
    <bindings>
-    <binding method="massDistribution" function="Node_Component_Disk_Very_Simple_Size_Mass_Distribution" bindsTo="component"/>
+    <binding method="massDistribution" function="Node_Component_Disk_Very_Simple_Size_Mass_Distribution"/>
    </bindings>
    <functions>objects.nodes.components.disk.very_simple.size.bound_functions.inc</functions>
   </component>
@@ -214,16 +214,18 @@ contains
    <unitName>Node_Component_Disk_Very_Simple_Size_Radius_Solver</unitName>
   </radiusSolverTask>
   !!]
-  subroutine Node_Component_Disk_Very_Simple_Size_Radius_Solver(node,componentActive,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get&
+  subroutine Node_Component_Disk_Very_Simple_Size_Radius_Solver(node,componentActive,component,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get&
        &,Radius_Set,Velocity_Get,Velocity_Set)
     !!{
     Interface for the size solver algorithm.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDisk, nodeComponentDiskVerySimpleSize, treeNode, &
-         &                          nodeComponentSpin
+    use :: Galacticus_Nodes          , only : nodeComponentBasic          , nodeComponentDisk, nodeComponentDiskVerySimpleSize, treeNode, &
+         &                                    nodeComponentSpin
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeType, componentTypeDisk
     implicit none
     type            (treeNode                                       ), intent(inout)          :: node
     logical                                                          , intent(  out)          :: componentActive
+    type            (enumerationComponentTypeType                   ), intent(  out)          :: component
     logical                                                          , intent(in   )          :: specificAngularMomentumRequired
     double precision                                                 , intent(  out)          :: specificAngularMomentum
     procedure       (Node_Component_Disk_Very_Simple_Size_Radius    ), intent(  out), pointer :: Radius_Get                     , Velocity_Get
@@ -233,11 +235,13 @@ contains
     class           (nodeComponentSpin                              )               , pointer :: spin
 
     ! Determine if node has an active disk component supported by this module.
-    componentActive =  .false.
-    disk        => node%disk()
+    componentActive         =  .false.
+    component               =  componentTypeDisk
+    specificAngularMomentum =  0.0d0
+    disk                    => node%disk()
     select type (disk)
     class is (nodeComponentDiskVerySimpleSize)
-       componentActive        =  .true.
+       componentActive=  .true.
        if (specificAngularMomentumRequired) then
           basic                   =>  node               %basic()
           spin                    =>  node               %spin ()

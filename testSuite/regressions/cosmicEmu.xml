@@ -2,7 +2,8 @@
 <!-- Parameters for tutorial on computing the power spectrum - https://github.com/galacticusorg/galacticus/wiki/Tutorial%3A-Power-spectra -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
+  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
+
 
   <!-- Specify tasks to perform -->
   <task value="powerSpectra">
@@ -34,7 +35,7 @@
     <sigma_8 value="0.807"/>
     <tolerance value="1.0e-3"/>
   </cosmologicalMassVariance>
-  <powerSpectrumNonLinear value="cosmicEmmu"/>
+  <powerSpectrumNonlinear value="cosmicEmu"/>
 
   <!-- Structure formation options -->
   <linearGrowth value="collisionlessMatter"/>

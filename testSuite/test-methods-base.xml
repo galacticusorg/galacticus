@@ -1,7 +1,8 @@
 <?xml version="1.0"?>
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
+  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
+
   <mergerTreeBuildMasses value="sampledDistributionUniform">
     <treesPerDecade value="5"/>
     <massTreeMaximum value="1e+12"/>
@@ -14,6 +15,9 @@
     <concentrationMaximum value="100.0"/>
     <darkMatterProfileScaleRadius value="concentration"/>
   </darkMatterProfileScaleRadius>
+
+  <!-- CGM cooling/heating -->
+  <circumgalacticMediumHeating value="AGNFeedback"/>
 
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
@@ -60,8 +64,21 @@
       </blackHoleSeeds>
     </nodeOperator>
     <nodeOperator value="blackHolesAccretion" />
-    <nodeOperator value="blackHolesWinds"     />
-    <nodeOperator value="blackHolesCGMHeating"/>
+    <nodeOperator value="blackHolesWinds"     />    
+    <!-- CGM physics -->
+    <nodeOperator value="CGMAccretion">
+      <allowNegativeCGMMass value="true"/>
+      <angularMomentumAlwaysGrows value="false"/>
+    </nodeOperator>
+    <nodeOperator value="CGMOutflowReincorporation">
+      <includeSatellites value="true"/>
+    </nodeOperator>
+    <nodeOperator value="CGMCoolingHeating">
+      <component value="disk"/>
+      <coolingFrom value="currentNode"/>
+      <excessHeatDrivesOutflow value="true"/>
+      <rateMaximumExpulsion value="1.0"/>
+    </nodeOperator>
   </nodeOperator>
 
 </parameters>

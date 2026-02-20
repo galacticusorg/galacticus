@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -43,7 +43,8 @@
      integer         (c_size_t                  )          :: countMasses
      type            (varying_string            )          :: fileName
    contains
-     final :: subhaloVMaxVsMassDestructor
+     final     ::                  subhaloVMaxVsMassDestructor
+     procedure :: logLikelihood => subhaloVMaxVsMassLogLikelihood
   end type outputAnalysisSubhaloVMaxVsMass
 
   interface outputAnalysisSubhaloVMaxVsMass
@@ -153,7 +154,6 @@ contains
     use :: IO_HDF5                 , only : hdf5Object
     use :: Output_Times            , only : outputTimesClass
     use :: Cosmology_Functions     , only : cosmologyFunctionsClass
-    use :: File_Utilities          , only : File_Name_Expand
     use :: Virial_Density_Contrast , only : virialDensityContrastClass
     use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
     implicit none
@@ -179,15 +179,15 @@ contains
 
     ! Read properties from the file.
     !$ call hdf5Access%set()
-    call file                      %openFile     (char(File_Name_Expand(char(fileName))),readOnly=.true.             )
-    call file                      %readAttribute('label'                               ,         labelTarget        )
-    call file                      %readAttribute('redshift'                            ,         redshift_          )
+    call file                      %openFile     (fileName                  ,readOnly=.true.             )
+    call file                      %readAttribute('label'                   ,         labelTarget        )
+    call file                      %readAttribute('redshift'                ,         redshift_          )
     velocityMaximumVsMassGroup=file%openGroup('velocityMaximum')
-    call velocityMaximumVsMassGroup%readDataset  ('mass'                                ,         massesTarget       )
-    call velocityMaximumVsMassGroup%readDataset  ('velocityMaximumMean'                 ,         functionTarget     )
-    call velocityMaximumVsMassGroup%readDataset  ('velocityMaximumMeanError'            ,         functionErrorTarget)
-    call velocityMaximumVsMassGroup%close        (                                                                   )
-    call file                      %close        (                                                                   )
+    call velocityMaximumVsMassGroup%readDataset  ('mass'                    ,         massesTarget       )
+    call velocityMaximumVsMassGroup%readDataset  ('velocityMaximumMean'     ,         functionTarget     )
+    call velocityMaximumVsMassGroup%readDataset  ('velocityMaximumMeanError',         functionErrorTarget)
+    call velocityMaximumVsMassGroup%close        (                                                       )
+    call file                      %close        (                                                       )
     !$ call hdf5Access%unset()
     ! Override the redshift if one is provided.
     if (present(redshift)) redshift_=redshift
@@ -399,3 +399,54 @@ contains
     !!]
     return
   end subroutine subhaloVMaxVsMassDestructor
+
+  double precision function subhaloVMaxVsMassLogLikelihood(self) result(logLikelihood)
+    !!{
+    Return the log-likelihood of a {\normalfont \ttfamily outputAnalysisSubhaloVMaxVsMass} output analysis.
+    !!}
+    use :: Linear_Algebra              , only : assignment(=), matrix, operator(*), vector
+    use :: Interface_GSL               , only : GSL_Success
+    use :: Models_Likelihoods_Constants, only : logImprobable
+    implicit none
+    class           (outputAnalysisSubhaloVMaxVsMass), intent(inout)                 :: self
+    double precision                                 , allocatable  , dimension(:,:) :: velocityMeanCovariance
+    double precision                                 , allocatable  , dimension(:  ) :: velocityMeanDifference
+    type            (vector                         )                                :: residual
+    type            (matrix                         )                                :: covariance
+    integer                                                                          :: i                     , j     , &
+         &                                                                              countNonZero          , status
+
+    ! Count the number of non-zero bins.
+    countNonZero=0
+    do i=1,size(self%meanValueTarget)
+       if     (                                         &
+            &   self%meanValueTarget     (i  ) <= 0.0d0 &
+            &  .or.                                     &
+            &   self%meanCovarianceTarget(i,i) <= 0.0d0 &
+            & ) cycle
+       countNonZero=countNonZero+1
+    end do
+    allocate(velocityMeanDifference(countNonZero             ))
+    allocate(velocityMeanCovariance(countNonZero,countNonZero))
+    ! Populate reduced bins.
+    velocityMeanDifference=0.0d0
+    velocityMeanCovariance=0.0d0
+    j=0
+    do i=1,size(self%meanValueTarget)
+       if     (                                         &
+            &   self%meanValueTarget     (i  ) <= 0.0d0 &
+            &  .or.                                     &
+            &   self%meanCovarianceTarget(i,i) <= 0.0d0 &
+            & ) cycle
+       j=j+1
+       velocityMeanDifference(j  )=self%meanValue     (i  )-self%meanValueTarget     (i  )
+       velocityMeanCovariance(j,j)=self%meanCovariance(i,i)+self%meanCovarianceTarget(i,i)
+    end do
+    ! Construct residual vector and covariance matrix.
+    residual  =vector(velocityMeanDifference)
+    covariance=matrix(velocityMeanCovariance)
+    ! Compute the log-likelihood.
+    logLikelihood=-0.5d0*covariance%covarianceProduct(residual,status)
+    if (status /= GSL_Success) logLikelihood=logImprobable
+    return
+  end function subhaloVMaxVsMassLogLikelihood

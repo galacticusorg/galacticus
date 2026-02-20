@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -72,7 +72,9 @@
      procedure :: potentialDifference                     => compositePotentialDifference
      procedure :: energy                                  => compositeEnergy
      procedure :: massEnclosedBySphere                    => compositeMassEnclosedBySphere
+     procedure :: massEnclosedByCylinder                  => compositeMassEnclosedByCylinder
      procedure :: radiusEnclosingMass                     => compositeRadiusEnclosingMass
+     procedure :: radiusCylindricalEnclosingMass          => compositeRadiusCylindricalEnclosingMass
      procedure :: radiusEnclosingDensity                  => compositeRadiusEnclosingDensity
      procedure :: radiusEnclosingSurfaceDensity           => compositeRadiusEnclosingSurfaceDensity
      procedure :: rotationCurve                           => compositeRotationCurve
@@ -650,6 +652,27 @@ contains
     return
   end function compositeMassEnclosedBySphere
 
+  double precision function compositeMassEnclosedByCylinder(self,radius) result(mass)
+    !!{
+    Computes the mass enclosed within a cylinder in a composite mass distribution.
+    !!}
+    implicit none
+    class           (massDistributionComposite), intent(inout), target   :: self
+    double precision                           , intent(in   )           :: radius
+    type            (massDistributionList     )               , pointer  :: massDistribution_
+
+    mass=0.0d0
+    if (associated(self%massDistributions)) then
+       massDistribution_ => self%massDistributions
+       do while (associated(massDistribution_))
+          mass              =  +mass                                                               &
+               &               +massDistribution_%massDistribution_%massEnclosedByCylinder(radius)
+          massDistribution_ =>  massDistribution_%next
+       end do
+    end if
+    return
+  end function compositeMassEnclosedByCylinder
+
   double precision function compositeRadiusEnclosingMass(self,mass,massFractional) result(radius)
     !!{
     Computes the radius enclosing a given mass or mass fraction for composite mass distributions.
@@ -665,6 +688,22 @@ contains
     end if
     return
   end function compositeRadiusEnclosingMass
+
+  double precision function compositeRadiusCylindricalEnclosingMass(self,mass,massFractional) result(radius)
+    !!{
+    Computes the cylindrical radius enclosing a given mass or mass fraction for composite mass distributions.
+    !!}    
+    implicit none
+    class           (massDistributionComposite), intent(inout), target   :: self
+    double precision                           , intent(in   ), optional :: mass, massFractional
+
+    if (self%isSingleComponent) then
+       radius=self%massDistributions%massDistribution_%radiusCylindricalEnclosingMass         (mass,massFractional)
+    else
+       radius=self                                    %radiusCylindricalEnclosingMassNumerical(mass,massFractional)
+    end if
+    return
+  end function compositeRadiusCylindricalEnclosingMass
 
   double precision function compositeRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
     !!{

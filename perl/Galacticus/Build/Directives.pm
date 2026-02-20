@@ -31,7 +31,8 @@ sub Extract_Directive {
 	if ( $state->{'inXML'} || $depth > 0 ) {
 	    $line =~ s/^(\!\<)?\s*//
 		if ( $state->{'inXML'} );
-	    $xmlText .= $line;
+	    (my $processedLine = $line) =~ s/&nbsp;/ /g;
+	    $xmlText .= $processedLine;
 	    $depth += () = ( $line =~ /<([a-zA-Z0-9]+)[^\/>]*>/g ); # Increment depth by count of any opening elements.
 	    $depth -= () = ( $line =~ /<\/([a-zA-Z0-9]+)>/g      ); # Decrement depth by count of any closing elements.
 	    if ( defined($xmlText) && $xmlText !~ m/^\s*$/ && $depth == 0 ) {

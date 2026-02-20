@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -1470,9 +1470,9 @@ contains
     type (hdf5Object         )                :: file
     type (lockDescriptor     )                :: fileLock
 
-    call Directory_Make(char(File_Path(char(self%fileName))))
+    call Directory_Make(File_Path(self%fileName))
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-    call File_Lock     (char(self%fileName),fileLock,lockIsShared=.false.)
+    call File_Lock     (self%fileName,fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
     call file%openFile      (char(self%fileName                            )                                       ,overWrite=.true.,readOnly=.false.)
     call file%writeAttribute(     self%time                                 ,'time'                                                                  )

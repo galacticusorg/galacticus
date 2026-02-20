@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -356,8 +356,8 @@ contains
 
       ! Get a lock on the file.
       fileName=inputPath(pathTypeDataDynamic)//'darkMatter/decayingDarkMatterRetention.hdf5'
-      call Directory_Make(char(File_Path(char(fileName)))                              )
-      call File_Lock     (               char(fileName)  ,fileLock,lockIsShared=.false.)
+      call Directory_Make(File_Path(fileName)                              )
+      call File_Lock     (          fileName ,fileLock,lockIsShared=.false.)
       ! Attempt to read existing data from file.
       if (File_Exists(fileName)) then
          if (allocated(velocitiesEscapeScaleFree)) deallocate(velocitiesEscapeScaleFree)

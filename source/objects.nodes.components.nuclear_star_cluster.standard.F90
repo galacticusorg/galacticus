@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -84,21 +84,21 @@ module Node_Component_NSC_Standard
       <name>massGas</name>
       <type>double</type>
       <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="false" />
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
       <output unitsInSI="massSolar" comment="Mass of gas in the standard nuclear star cluster."/>
     </property>
     <property>
       <name>abundancesGas</name>
       <type>abundances</type>
       <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="false" />
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
       <output unitsInSI="massSolar" comment="Mass of metals in the gas phase of the standard nuclear star cluster."/>
     </property>
     <property>
       <name>angularMomentum</name>
       <type>double</type>
       <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="false" />
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
       <output unitsInSI="massSolar*megaParsec*kilo" comment="Angular momentum of the standard nuclear star cluster."/>
       <getFunction>Node_Component_NSC_Standard_Angular_Momentum</getFunction>
     </property>
@@ -153,8 +153,8 @@ module Node_Component_NSC_Standard
     </property>
    </properties>
    <bindings>
-    <binding method="massDistribution" function="Node_Component_NSC_Standard_Mass_Distribution" bindsTo="component"/>
-    <binding method="massBaryonic"     function="Node_Component_NSC_Standard_Mass_Baryonic"     bindsTo="component"/>
+    <binding method="massDistribution" function="Node_Component_NSC_Standard_Mass_Distribution"/>
+    <binding method="massBaryonic"     function="Node_Component_NSC_Standard_Mass_Baryonic"    />
    </bindings>
    <functions>objects.nodes.components.nuclear_star_cluster.standard.bound_functions.inc</functions>
   </component>

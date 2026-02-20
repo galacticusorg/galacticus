@@ -4,7 +4,8 @@
 <!--  (M1,z1) = (10^12,8.0)                         -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
+  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
+
 
   <verbosityLevel value="working"/>
 
@@ -100,8 +101,8 @@
     <redshiftMaximum  value="15.0"/>
     <toleranceTimeEarliest value="8.00000e-6"/>
     <mergerTreeBuildController value="constrained">
-      <massConstrained     value="1.0e12"/>
-      <redshiftConstrained value="8.0"   />
+      <massConstrained     value="1.0e12" ignoreWarnings="true"/>
+      <redshiftConstrained value="8.0"    ignoreWarnings="true"/>
       <constructionOption value="constrainedAndMainBranchOnly"/>
       <mergerTreeBranchingProbabilityConstrained value="gnrlzdPrssSchchtr">
         <distributionFunctionLowerHalfOnly value="false"/>

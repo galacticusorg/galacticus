@@ -2,7 +2,8 @@
 <!-- Regression test for non-monotonic behavior in decaying dark matter mass profiles -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
+  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
+
 
   <verbosityLevel value="2"/>
 
@@ -15,22 +16,14 @@
   <componentBasic value="standard"/>
   <componentBlackHole value="null"/>
   <componentDarkMatterProfile value="scale"/>
-  <componentDisk value="null"/>
-  <!--
-  <diskMassDistribution value="exponentialDisk">
-    <dimensionless value="true"/>
-  </diskMassDistribution>
-  -->
-  <diskMassDistribution value="null"/>
+  <componentDisk value="null">
+    <massDistributionDisk value="null"/>
+  </componentDisk>
   <componentHotHalo value="null"/>
   <componentSatellite value="orbiting"/>
-  <componentSpheroid value="null"/>
-  <!--
-  <spheroidMassDistribution value="hernquist">
-    <dimensionless value="true"/>
-  </spheroidMassDistribution>
-  -->
-  <spheroidMassDistribution value="null"/>
+  <componentSpheroid value="null">
+    <massDistributionSpheroid value="null"/>
+  </componentSpheroid>
   <componentSpin value="null"/>
   <componentMergingStatistics value="standard"/>
 
@@ -78,9 +71,6 @@
   <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt">
     <darkMatterParticle value="CDM"/>
   </criticalOverdensity>
-  <!--
-  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
-  -->
   <virialDensityContrast value="bryanNorman1998"/>
 
   <!-- Merger tree building options -->
@@ -167,7 +157,6 @@
     <alpha value="2.509"/>
     <lambda0 value="0.04326"/>
   </haloSpinDistribution>
-  <randomSpinResetMassFactor value="2.0"/>
 
   <!-- Orbiting model of satellites -->
   <!-- Values taken from Pullen et al. 2014 -->
@@ -290,7 +279,6 @@
   </stellarPopulation>
 
   <!-- AGN feedback options -->
-  <hotHaloExcessHeatDrivesOutflow value="true"/>
   <blackHoleHeatsHotHalo value="true"/>
 
   <!-- Supernovae feedback options -->

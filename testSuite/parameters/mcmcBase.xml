@@ -4,7 +4,7 @@
 <parameters>
   <!-- Parameters for tutorial on constraining Galacticus parameters - https://github.com/galacticusorg/galacticus/wiki/Tutorial%3A-Constraining-Galacticus-Parameters -->
   <formatVersion>2</formatVersion>
-  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
+  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
 
   <!-- Task and work control -->
   <task                   value="evolveForests"/>
@@ -99,6 +99,20 @@
     <nodeOperator value="cosmicTime"/>
     <!-- DMO evolution -->
     <nodeOperator value="DMOInterpolate"/>
+    <!-- CGM physics -->
+    <nodeOperator value="CGMAccretion">
+      <allowNegativeCGMMass value="true"/>
+      <angularMomentumAlwaysGrows value="false"/>
+    </nodeOperator>
+    <nodeOperator value="CGMOutflowReincorporation">
+      <includeSatellites value="true"/>
+    </nodeOperator>
+    <nodeOperator value="CGMCoolingHeating">
+      <component value="disk"/>
+      <coolingFrom value="currentNode"/>
+      <excessHeatDrivesOutflow value="true"/>
+      <rateMaximumExpulsion value="1.0"/>
+    </nodeOperator>
   </nodeOperator>
   
   <!-- Numerical tolerances -->
@@ -130,7 +144,7 @@
     <redshiftInterval                     value="1"      />
     <computeScatter                       value="false"  />
     <systematicErrorPolynomialCoefficient value="0.0 0.0"/>
-    <likelihoodBin                        value="11"     />
+    <likelihoodBins                       value="9"      />
   </outputAnalysis>
 
 </parameters>

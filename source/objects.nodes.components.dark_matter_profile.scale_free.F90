@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -40,7 +40,7 @@ module Node_Component_Dark_Matter_Profile_Scale_Free
    <name>scaleFree</name>
    <isDefault>false</isDefault>
    <bindings>
-     <binding method="massDistribution" bindsTo="component" isDeferred="true" >
+     <binding method="massDistribution" isDeferred="true" >
       <interface>
        <type>class(massDistributionClass), pointer</type>
        <rank>0</rank>
@@ -96,20 +96,19 @@ contains
    <unitName>Node_Component_Dark_Matter_Profile_Scale_Free_Thread_Init</unitName>
   </nodeComponentThreadInitializationTask>
   !!]
-  subroutine Node_Component_Dark_Matter_Profile_Scale_Free_Thread_Init(parameters_)
+  subroutine Node_Component_Dark_Matter_Profile_Scale_Free_Thread_Init(parameters)
     !!{
     Initializes the tree node scale dark matter profile module.
     !!}
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     use :: Input_Parameters, only : inputParameter                   , inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: parameters_
-    !$GLC attributes unused :: parameters_
+    type(inputParameters), intent(inout) :: parameters
 
     if (defaultDarkMatterProfileComponent%scaleFreeIsActive()) then
        !![
-       <objectBuilder class="darkMatterProfile"    name="darkMatterProfile_"    source="parameters_"/>
-       <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters_"/>
+       <objectBuilder class="darkMatterProfile"    name="darkMatterProfile_"    source="parameters"/>
+       <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
        !!]
      end if
      return

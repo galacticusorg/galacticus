@@ -21,10 +21,20 @@ my $warnings;
 
 # Iterate over files, extracting directives.
 foreach my $fileName ( @filesChanged ) {
+    # Iterate over all watches.
+    foreach my $watch ( &List::ExtraUtils::as_array($watches->{'watch'}) ) {
+	next
+	    unless ( exists($watch->{'file'}) );
+	if ( $watch->{'file'} eq $fileName ) {
+	    $warnings .= ":warning: File `".$fileName."` has changed. ".$watch->{'message'}."\n";
+	}
+    }
     # Iterate over all directives in this file.
     foreach my $directive ( &Galacticus::Build::Directives::Extract_Directives($fileName,"*",setRootElementType => 1) ) {
 	# Iterate over all watches.
 	foreach my $watch ( &List::ExtraUtils::as_array($watches->{'watch'}) ) {
+	    next
+		unless ( exists($watch->{'type'}) );
 	    if (
 		$directive->{'rootElementType'} eq $watch->{'type'}
 		&&

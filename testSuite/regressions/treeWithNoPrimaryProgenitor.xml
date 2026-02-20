@@ -55,7 +55,8 @@
 <!-- 08-November-2011                                                           -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="e9236b11f17f9c96b0cdac005d7945ac0febe7d5"/>
+  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
+
   <mergerTreeConstructor value="read">
     <fileNames value="testSuite/data/mergerTrees/treeWithNoPrimaryProgenitor.hdf5"/>
     <presetPositions value="false"/>
@@ -83,9 +84,8 @@
   </cosmologicalMassVariance>
 
   <hotHaloRamPressureStripping value="virialRadius"/>
-  <componentHotHalo value="standard">
-    <trackStrippedGas value="false"/>
-  </componentHotHalo>
+  <hotHaloOutflowStripping value="zero"/>
+  <componentHotHalo value="standard"/>
 
   <!-- Halo scale radii and concentrations -->
   <darkMatterProfileScaleRadius value="concentrationLimiter">
@@ -129,6 +129,21 @@
           <exponent value="3.5"/>
         </stellarFeedbackOutflows>
       </stellarFeedbackOutflows>
+    </nodeOperator>
+    <nodeOperator value="satelliteOrphanize"/>
+    <!-- CGM physics -->
+    <nodeOperator value="CGMAccretion">
+      <allowNegativeCGMMass value="true"/>
+      <angularMomentumAlwaysGrows value="false"/>
+    </nodeOperator>
+    <nodeOperator value="CGMOutflowReincorporation">
+      <includeSatellites value="true"/>
+    </nodeOperator>
+    <nodeOperator value="CGMCoolingHeating">
+      <component value="disk"/>
+      <coolingFrom value="currentNode"/>
+      <excessHeatDrivesOutflow value="true"/>
+      <rateMaximumExpulsion value="1.0"/>
     </nodeOperator>
   </nodeOperator>
 

@@ -23,9 +23,10 @@ my $inputFileName  = $ARGV[0];
 my $outputFileName = $ARGV[1];
 my %options =
     (
-     validate            => "yes",
-     prettyify           => "no" ,
-     outputFormatVersion => 2
+     validate                => "yes",
+     prettyify               => "no" ,
+     ignoreWhiteSpaceChanges => "yes",
+     outputFormatVersion     => 2
     );
 # Parse options.
 my %optionsDefined = &Galacticus::Options::Parse_Options(\@ARGV,\%options);
@@ -33,15 +34,37 @@ my %optionsDefined = &Galacticus::Options::Parse_Options(\@ARGV,\%options);
 # Write starting message.
 print "Translating file: ".$inputFileName."\n";
 
+# Pre-process the file to concatenate any attribute values that are split across multiple lines.
+open(my $fileInput ,"<",$inputFileName       );
+open(my $fileOutput,">",$inputFileName.".tmp");
+my $inMultiline = 0;
+my $inComment   = 0;
+while ( my $line = <$fileInput> ) {
+    my $countQuotes = $line =~ tr/"//;
+    $inComment = 1
+	if ( $line =~ m/<!\-\-/ );
+    $inMultiline = 1-$inMultiline
+	if ( $countQuotes % 2 == 1 && ! $inComment );
+    $line =~ s/\n/\%\%NEWLINE\%\%/
+	if ( $inMultiline          && ! $inComment );
+    $inComment = 0
+	if ( $line =~ m/\-\->/ );
+    print $fileOutput $line;
+}
+close($fileInput );
+close($fileOutput);
+
 # Parse the input file.
 my $parser     = XML::LibXML->new();
-my $input      = $parser->parse_file($inputFileName);
+my $input      = $parser->parse_file($inputFileName.".tmp");
+my $isGrid     = 0;
 my $root;
 my @parameterSets;
 if ( $input->findnodes('parameters') ) {
     @parameterSets = $input->findnodes('parameters');
     $root          = $parameterSets[0];
 } elsif ( $input->findnodes('parameterGrid') ) {
+    $isGrid           = 1;
     my $parameterGrid = $input->findnodes('parameterGrid')->[0];
     $root             = $parameterGrid;
     if ( $parameterGrid->findnodes('parameters') ) {
@@ -73,7 +96,7 @@ my $migrations = $xml->XMLin("scripts/aux/migrations.xml");
 
 # Iterate over parameter sets.
 foreach my $parameters ( @parameterSets ) {
-    &Migrate($parameters,1,$inputFileName);
+    &Migrate($parameters,1,$isGrid,$inputFileName);
 }
 
 # Output the resulting file.
@@ -83,15 +106,37 @@ $pp->pretty_print($input)
 my $serialized = $input->toString();
 $serialized =~ s/><!\-\-/>\n\n  <!\-\-/gm;
 $serialized =~ s/></>\n\n  </gm;
-open(my $outputFile,">",$outputFileName);
+open(my $outputFile,">",$outputFileName.".tmp");
 print $outputFile $serialized;
 close($outputFile);
+
+# If requested, ignore whitespace changes.
+if ( $options{'ignoreWhiteSpaceChanges'} eq "yes" ) {
+    # Make a patch from the old to the new file, but ignoring changes in whitespace.
+    system("diff -w -u ".$inputFileName.".tmp ".$outputFileName.".tmp > tmp__.patch");
+    # Apply the patch to the old file - we now have migrations applied, but no change in whitespace formatting.
+    system("patch ".$inputFileName.".tmp tmp__.patch --output=".$outputFileName.".tmp");
+}
+
+# Undo any split line reformatting that we previously applied.
+open(my $migratedFileInput ,"<",$outputFileName.".tmp");
+open(my $migratedFileOutput,">",$outputFileName       );
+while ( my $line = <$migratedFileInput> ) {
+    $line =~ s/\%\%NEWLINE\%\%/\n/g;
+    print $migratedFileOutput $line;
+}
+close($migratedFileInput );
+close($migratedFileOutput);
+
+# Clean up.
+unlink($inputFileName.".tmp",$outputFileName.".tmp","tmp__.patch");
 
 exit;
 
 sub Migrate {
     my $parameters    = shift();
     my $rootLevel     = shift();
+    my $isGrid        = shift();
     my $inputFileName = shift();
 
     # Determine output format version.
@@ -181,7 +226,7 @@ sub Migrate {
 	    
 	    # Handle special cases.
 	    if ( exists($translation->{'function'}) ) {
-		&{\&{$translation->{'function'}}}($input,$parameters);
+		&{\&{$translation->{'function'}}}($input,$parameters,$isGrid);
 	    }
 	    
 	    # Handle removals.
@@ -327,6 +372,7 @@ sub radiationFieldIntergalacticBackgroundCMB {
     # Special handling to add CMB radiation into the intergalactic background radiation.
     my $input      = shift();
     my $parameters = shift();
+    my $isGrid     = shift();
     # Look for "radiationFieldIntergalacticBackground" parameters.
     foreach my $node ( $parameters->findnodes("//radiationFieldIntergalacticBackground[\@value]")->get_nodelist() ) {
 	print "   translate special '//radiationFieldIntergalacticBackground[\@value]'\n";
@@ -358,6 +404,7 @@ sub blackHoleSeedMass {
     # Special handling to add black hole seed mass models.
     my $input      = shift();
     my $parameters = shift();
+    my $isGrid     = shift();
     # Look for "componentBlackHole" parameters.
     my $doTranslate = 0;
     my $massSeed = 100.0; # This was the default value, to be used if no value was explicitly set.
@@ -388,6 +435,10 @@ sub blackHoleSeedMass {
     $seedNode    ->setAttribute('value','fixed'         );
     $massNode    ->setAttribute('value',$massSeed       );
     $spinNode    ->setAttribute('value',0.0             );
+    if ( $isGrid ) {
+	$operatorNode->setAttribute('iterable','no');
+	$seedNode    ->setAttribute('iterable','no');
+    }
     # Assemble our new nodes.
     $seedNode    ->addChild($massNode);
     $seedNode    ->addChild($spinNode);
@@ -404,6 +455,7 @@ sub blackHolePhysics {
     # Special handling to move black hole physics from components to operators.
     my $input      = shift();
     my $parameters = shift();
+    my $isGrid     = shift();
     # Set defaults for parameters.
     my $defaults =
     {
@@ -469,6 +521,11 @@ sub blackHolePhysics {
     $operatorAccretionNode->setAttribute('value','blackHolesAccretion' );
     $operatorWindsNode    ->setAttribute('value','blackHolesWinds'     );
     $operatorCGMHeatNode  ->setAttribute('value','blackHolesCGMHeating');
+    if ( $isGrid ) {
+	$operatorAccretionNode->setAttribute('iterable','no');
+	$operatorWindsNode    ->setAttribute('iterable','no');
+	$operatorCGMHeatNode  ->setAttribute('iterable','no');
+    }
     $nodeOperators[0]->insertAfter($operatorAccretionNode,$nodeOperators[0]->lastChild);
     $nodeOperators[0]->insertAfter($operatorWindsNode    ,$nodeOperators[0]->lastChild);
     $nodeOperators[0]->insertAfter($operatorCGMHeatNode  ,$nodeOperators[0]->lastChild)
@@ -551,6 +608,7 @@ sub modelParameterXPath {
     # Special handling to switch `modelParameter` names to use XPath syntax.
     my $input      = shift();
     my $parameters = shift();
+    my $isGrid     = shift();
     # Look for "modelParameter" parameters.
     foreach my $modelParameter ( $parameters->findnodes("//modelParameter[\@value='active' or \@value='inactive']")->get_nodelist() ) {
 	print "   translate special '//modelParameter[\@value]'\n";
@@ -568,6 +626,7 @@ sub methodSuffixRemove {
     # Special handling to remove the `Method` suffic from parameter names.
     my $input      = shift();
     my $parameters = shift();
+    my $isGrid     = shift();
     # Iterate over all parameters.
     print "   translate special - remove Method suffixes\n";
     foreach my $parameter ( $parameters->findnodes("//*")->get_nodelist() ) {
@@ -602,6 +661,7 @@ sub satelliteOrphanize {
     # Special handling to add a nodeOperator to orphanize satellites.
     my $input      = shift();
     my $parameters = shift();
+    my $isGrid     = shift();
     # Look for "componentSatellite" parameters.
     my @nodes = $parameters->findnodes("//componentSatellite[\@value='preset']")->get_nodelist();
     return
@@ -616,6 +676,9 @@ sub satelliteOrphanize {
     # Build node operator.
     my $operatorOrphanize = $input->createElement("nodeOperator");
     $operatorOrphanize->setAttribute('value','satelliteOrphanize' );
+    if ( $isGrid ) {
+	$operatorOrphanize->setAttribute('iterable','no');
+    }
     $nodeOperators[0]->insertAfter($operatorOrphanize,$nodeOperators[0]->lastChild);
 }
 
@@ -623,6 +686,7 @@ sub blackHoleNonCentral {
     # Special handling to add nodeOperators for non-central black hole evolution.
     my $input      = shift();
     my $parameters = shift();
+    my $isGrid     = shift();
     # Look for "componentBlackHole" parameters.
     my @nodes = $parameters->findnodes("//componentBlackHole[\@value='nonCentral']")->get_nodelist();
     return
@@ -646,6 +710,10 @@ sub blackHoleNonCentral {
     # Build node operator.
     my $operatorMigration = $input->createElement("nodeOperator");
     my $operatorTriple    = $input->createElement("nodeOperator");
+    if ( $isGrid ) {
+	$operatorMigration->setAttribute('iterable','no');
+	$operatorTriple   ->setAttribute('iterable','no');
+    }
     $operatorMigration->setAttribute('value','blackHolesRadialMigration');
     $nodeOperators[0]->insertAfter($operatorMigration,$nodeOperators[0]->lastChild);
     if ( $tripleInteraction ) {
@@ -658,6 +726,7 @@ sub hotHaloVerySimple {
     # Special handling to add nodeOperators for "very simple" hot halo evolution.
     my $input      = shift();
     my $parameters = shift();
+    my $isGrid     = shift();
     # Look for "componentHotHalo" parameters.
     my @nodes = $parameters->findnodes("//componentHotHalo[\@value='verySimple' or \@value='verySimpleDelayed']")->get_nodelist();
     return
@@ -667,11 +736,11 @@ sub hotHaloVerySimple {
     print "   translate special '//componentHotHalo[\@value='verySimple' or \@value='verySimpleDelayed']'\n";
     # Find nodeOperators.
     my @nodeOperators = $parameters->findnodes("//nodeOperator[\@value='multi']")->get_nodelist();
-    die("can not find any `nodeOperator[\@value='multi']` into which to insert a CGM oeprators")
+    die("can not find any `nodeOperator[\@value='multi']` into which to insert a CGM operators")
      	if ( scalar(@nodeOperators) == 0 );
     die("found multiple `nodeOperator[\@value='multi']` nodes - unknown into which to insert CGM operators")
      	if ( scalar(@nodeOperators) > 1 );
-    # Build node operator.
+    # Build node operators.
     my $operatorOuterRadius            = $input->createElement("nodeOperator");
     my $operatorCooling                = $input->createElement("nodeOperator");
     my $operatorAccretion              = $input->createElement("nodeOperator");
@@ -684,6 +753,13 @@ sub hotHaloVerySimple {
     $operatorStarvation               ->setAttribute('value'                        ,'CGMStarvation'             );
     $operatorOutflowReincorporation   ->setAttribute('value'                        ,'CGMOutflowReincorporation' );
     $component                        ->setAttribute('value'                        ,'disk'                      );
+    if ( $isGrid ) {
+	$operatorOuterRadius           ->setAttribute('iterable','no');
+	$operatorCooling               ->setAttribute('iterable','no');
+	$operatorAccretion             ->setAttribute('iterable','no');
+	$operatorStarvation            ->setAttribute('iterable','no');
+	$operatorOutflowReincorporation->setAttribute('iterable','no');
+    }
     $operatorCooling                  ->appendChild ($component                                                  );
     $nodeOperators                 [0]->insertAfter ($operatorOuterRadius           ,$nodeOperators[0]->lastChild);
     $nodeOperators                 [0]->insertAfter ($operatorCooling               ,$nodeOperators[0]->lastChild);
@@ -691,4 +767,343 @@ sub hotHaloVerySimple {
     $nodeOperators                 [0]->insertAfter ($operatorStarvation            ,$nodeOperators[0]->lastChild);
     $nodeOperators                 [0]->insertAfter ($operatorOutflowReincorporation,$nodeOperators[0]->lastChild)
 	if ( $nodes[0]->getAttribute('value') eq "verySimpleDelayed" );
+}
+
+sub collaborativeMPI {
+    # Special handling to migrate the `collaborativeMPI` parameter.
+    my $input      = shift();
+    my $parameters = shift();
+    # Look for "collaborativeMPI" parameters.
+    my @nodes = $parameters->findnodes("//posteriorSampleLikelihood[\@value='galaxyPopulation']/collaborativeMPI")->get_nodelist();
+    return
+	if ( scalar(@nodes) <= 0 );
+    print "   translate special '//posteriorSampleLikelihood[\@value='galaxyPopulation']/collaborativeMPI'\n";
+    # Replace each node.
+    foreach my $node ( @nodes ) {
+	my $countGroups = $node->getAttribute('value') eq "true" ? 1 : -1;
+	my $countCollaborativeGroups = $input->createElement("countCollaborativeGroups");
+	my $firstComeFirstServed     = $input->createElement("firstComeFirstServed"    );
+	$countCollaborativeGroups->setAttribute('value',str($countGroups));
+	$firstComeFirstServed    ->setAttribute('value','false'          );
+	$node->parentNode->insertAfter($node,$countCollaborativeGroups);
+	$node->parentNode->insertAfter($node,$firstComeFirstServed    );
+	$node->parentNode->removeChild($node                          );
+    }
+}
+
+sub hotHaloStandardAccretion {
+    # Special handling to add and modify nodeOperators for CGM accretion in the standard hot halo component.
+    my $input      = shift();
+    my $parameters = shift();
+    my $isGrid     = shift();
+    # Look for "componentHotHalo" parameters.
+    my @nodes = $parameters->findnodes("//componentHotHalo[\@value='verySimple' or \@value='verySimpleDelayed' or \@value='standard' or \@value='coldMode' or \@value='outflowTracking']")->get_nodelist();
+    if ( scalar(@nodes) <= 0 ) {
+	# None found - check if we have any componentHotHalo.
+	my @nodesAny = $parameters->findnodes("//componentHotHalo[\@value]")->get_nodelist();
+	# We have one - nothing more to do.
+	return
+	    if ( scalar(@nodesAny) > 0 );
+	# Check if we have nodeOperators present.
+	my @nodeOperators = $parameters->findnodes("//nodeOperator[\@value='multi']")->get_nodelist();
+	# We do not - nothing more to do.
+	return
+	    if ( scalar(@nodeOperators) == 0 );
+	# No componentHotHalo - insert one with the default value.
+	my $componentHotHalo = $input->createElement("componentHotHalo");
+	$componentHotHalo->setAttribute('value','standard');
+	$parameters      ->appendChild ($componentHotHalo);
+	@nodes = $parameters->findnodes("//componentHotHalo[\@value='verySimple' or \@value='verySimpleDelayed' or \@value='standard' or \@value='coldMode' or \@value='outflowTracking']")->get_nodelist();
+    }
+    die("found multiple `//componentHotHalo[\@value='verySimple' or \@value='verySimpleDelayed' or \@value='standard' or \@value='coldMode' or \@value='outflowTracking']` nodes - unknown what should be done in this situation")
+	if ( scalar(@nodes) >  1 );
+    print "   translate special '//componentHotHalo[\@value='verySimple' or \@value='verySimpleDelayed' or \@value='standard' or \@value='coldMode' or \@value='outflowTracking']'\n";
+    # Determine the type of hot halo component.
+    my $type = $nodes[0]->getAttribute('value');
+    # Find nodeOperators.
+    my @nodeOperators = $parameters->findnodes("//nodeOperator[\@value='multi']")->get_nodelist();
+    die("can not find any `nodeOperator[\@value='multi']` into which to insert CGM operators")
+     	if ( scalar(@nodeOperators) == 0 );
+    die("found multiple `nodeOperator[\@value='multi']` nodes - unknown into which to insert CGM operators")
+     	if ( scalar(@nodeOperators) > 1 );
+    # Handle the verySimple or verySimpleDelayed cases - these need addition of the new starvation operator, and setting of new
+    # parameters in existing nodeOperators.
+    if ( $type eq "verySimple" || $type eq "verySimpleDelayed" ) {
+	# Find existing nodeOperatorCGMOutflowReincorporation.
+	my @nodeOperatorCGMOutflowReincorporation = $nodeOperators[0]->findnodes("//nodeOperator[\@value='CGMOutflowReincorporation']")->get_nodelist();
+	die("found multiple `nodeOperator[\@value='CGMOutflowReincorporation']` nodes - unknown which to use")
+	    if ( scalar(@nodeOperatorCGMOutflowReincorporation) > 1 );
+	# Specify not to perform reincorporation in satellites (as they will have been starved).
+	if ( scalar(@nodeOperatorCGMOutflowReincorporation) == 1 ) {
+	    my $includeSatellites = $input->createElement("includeSatellites");
+	    $includeSatellites                       ->setAttribute('value'           ,'false'                                             );
+	    $nodeOperatorCGMOutflowReincorporation[0]->insertAfter ($includeSatellites,$nodeOperatorCGMOutflowReincorporation[0]->lastChild);
+	}
+	# Find existing nodeOperatorCGMAccretion operator.
+	my @nodeOperatorCGMAccretion = $nodeOperators[0]->findnodes("//nodeOperator[\@value='CGMAccretion']")->get_nodelist();
+	die("can not find any `nodeOperator[\@value='CGMAccretion']` operators")
+	    if ( scalar(@nodeOperatorCGMAccretion) == 0 );
+	die("found multiple `nodeOperator[\@value='CGMAccretion']` nodes - unknown which to use")
+	    if ( scalar(@nodeOperatorCGMAccretion) > 1 );
+	# Specify not to allow negative CGM masses.
+	my $allowNegativeCGMMass = $input->createElement("allowNegativeCGMMass");
+	$allowNegativeCGMMass       ->setAttribute('value'              ,'false'                                );
+	$nodeOperatorCGMAccretion[0]->insertAfter ($allowNegativeCGMMass,$nodeOperatorCGMAccretion[0]->lastChild);
+	# Find existing nodeOperatorStarvation operator.
+	my @nodeOperatorStarvation = $nodeOperators[0]->findnodes("//nodeOperator[\@value='CGMStarvation']")->get_nodelist();
+	die("can not find any `nodeOperator[\@value='CGMStarvation']` operators")
+	    if ( scalar(@nodeOperatorStarvation) == 0 );
+	die("found multiple `nodeOperator[\@value='CGMStarvation']` nodes - unknown which to use")
+	    if ( scalar(@nodeOperatorStarvation) > 1 );
+	# Specify not to allow negative CGM masses and to starve all CGM gas.
+	my $starveOutflowsOnly              = $input->createElement("starveOutflowsOnly"             );
+	my $fractionBaryonLimitInNodeMerger = $input->createElement("fractionBaryonLimitInNodeMerger");
+	$starveOutflowsOnly                ->setAttribute('value'                         ,'false'                              );
+	$fractionBaryonLimitInNodeMerger   ->setAttribute('value'                         ,'false'                              );
+	$nodeOperatorStarvation         [0]->insertAfter ($starveOutflowsOnly             ,$nodeOperatorStarvation[0]->lastChild);
+	$nodeOperatorStarvation         [0]->insertAfter ($fractionBaryonLimitInNodeMerger,$nodeOperatorStarvation[0]->lastChild);
+    }
+    # Handle the standard, coldMode, and outflowTracking cases - these need addition of the new operators.
+    if ( $type eq "standard" || $type eq "coldMode" || $type eq "outflowTracking" ) {
+	# Find pre-existing options.
+	my @fractionBaryonLimitInNodeMergerPrior = $nodes[0]->findnodes("//fractionBaryonLimitInNodeMerger[\@value]")->get_nodelist();
+	my @starveSatellitesPrior                = $nodes[0]->findnodes("//starveSatellites[\@value]"               )->get_nodelist();
+	my @starveSatellitesOutflowedPrior       = $nodes[0]->findnodes("//starveSatellitesOutflowed[\@value]"      )->get_nodelist();
+	my @angularMomentumAlwaysGrowsPrior      = $nodes[0]->findnodes("//angularMomentumAlwaysGrows[\@value]"     )->get_nodelist();
+	my @outflowToColdModePrior               = $nodes[0]->findnodes("//outflowToColdMode[\@value]"              )->get_nodelist();
+	my $fractionBaryonLimitInNodeMergerValue = scalar(@fractionBaryonLimitInNodeMergerPrior) == 1 ? $fractionBaryonLimitInNodeMergerPrior[0]->getAttribute('value') : "false";
+	my $starveSatellitesValue                = scalar(@starveSatellitesPrior               ) == 1 ? $starveSatellitesPrior               [0]->getAttribute('value') : "false";
+	my $starveSatellitesOutflowedValue       = scalar(@starveSatellitesOutflowedPrior      ) == 1 ? $starveSatellitesOutflowedPrior      [0]->getAttribute('value') : "false";
+	my $angularMomentumAlwaysGrowsValue      = scalar(@angularMomentumAlwaysGrowsPrior     ) == 1 ? $angularMomentumAlwaysGrowsPrior     [0]->getAttribute('value') : "false";
+	my $outflowToColdModeValue               = scalar(@outflowToColdModePrior              ) == 1 ? $outflowToColdModePrior              [0]->getAttribute('value') : "false";
+	# Remove obsoleted parameters.
+	unless ( $type eq "coldMode" ) {
+	    $fractionBaryonLimitInNodeMergerPrior[0]->parentNode->removeChild($fractionBaryonLimitInNodeMergerPrior[0])
+		if ( scalar(@fractionBaryonLimitInNodeMergerPrior) == 1 );
+	    $angularMomentumAlwaysGrowsPrior     [0]->parentNode->removeChild($angularMomentumAlwaysGrowsPrior     [0])
+		if ( scalar(@angularMomentumAlwaysGrowsPrior     ) == 1 );
+	}
+	# Add the accretion operator.
+	my $operatorAccretion = $input->createElement("nodeOperator");
+	$operatorAccretion      ->setAttribute('value'           ,'CGMAccretion'              );
+	$operatorAccretion      ->setAttribute('iterable'        ,'no'                        )
+	    if ( $isGrid );
+	$nodeOperators       [0]->insertAfter ($operatorAccretion,$nodeOperators[0]->lastChild);
+	my $allowNegativeCGMMass = $input->createElement("allowNegativeCGMMass");
+	$allowNegativeCGMMass->setAttribute('value','true');
+	$operatorAccretion->appendChild ($allowNegativeCGMMass);
+	my $angularMomentumAlwaysGrows = $input->createElement("angularMomentumAlwaysGrows");
+	$angularMomentumAlwaysGrows->setAttribute('value',$angularMomentumAlwaysGrowsValue);
+	$operatorAccretion->appendChild ($angularMomentumAlwaysGrows);
+	# Add a starvation operator if needed.
+	if ( $starveSatellitesValue eq "true" || $starveSatellitesOutflowedValue eq "true" ) {
+	    my $operatorStarvation = $input->createElement("nodeOperator");
+	    $operatorStarvation   ->setAttribute('value'            ,'CGMStarvation'             );
+	    $operatorStarvation   ->setAttribute('iterable'         ,'no'                        )
+		if ( $isGrid );
+	    $nodeOperators     [0]->insertAfter ($operatorStarvation,$nodeOperators[0]->lastChild);
+	    # Specify if outflows are to be starved.
+	    my $starveOutflowsOnlyValue = $starveSatellitesOutflowedValue eq "true" && $starveSatellitesValue eq "false" ? "true" : "false";
+	    my $starveOutflowsOnly = $input->createElement("starveOutflowsOnly");
+	    $starveOutflowsOnly->setAttribute('value',$starveOutflowsOnlyValue);
+	    $operatorStarvation->appendChild ($starveOutflowsOnly);
+	    # Specify to allow negative CGM masses.
+	    my $fractionBaryonLimitInNodeMerger = $input->createElement("fractionBaryonLimitInNodeMerger");
+	    $fractionBaryonLimitInNodeMerger->setAttribute('value',$fractionBaryonLimitInNodeMergerValue);
+	    $operatorStarvation->appendChild ($fractionBaryonLimitInNodeMerger);
+	}
+	# Add a reincorporation operator if needed.
+	unless ( $type eq "coldMode" && $outflowToColdModeValue eq "true" ) {
+	    my $operatorOutflowReincorporation = $input->createElement("nodeOperator");
+	    $operatorOutflowReincorporation   ->setAttribute('value'                        ,'CGMOutflowReincorporation' );
+	    $operatorOutflowReincorporation   ->setAttribute('iterable'                     ,'no'                        )
+		if ( $isGrid );
+	    $nodeOperators                 [0]->insertAfter ($operatorOutflowReincorporation,$nodeOperators[0]->lastChild);
+	    # Specify if outflows are to be starved.
+	    my $includeSatellitesValue = $starveSatellitesOutflowedValue eq "true" || $starveSatellitesValue eq "true" ? "false" : "true";
+	    my $includeSatellites = $input->createElement("includeSatellites");
+	    $includeSatellites->setAttribute('value',$includeSatellitesValue);
+	    $operatorOutflowReincorporation->appendChild ($includeSatellites);
+	}
+    }
+}
+
+sub hotHaloStandardInflowOutflow {
+    # Special handling to add and modify nodeOperators for CGM inflow/outflow in the standard hot halo component.
+    my $input      = shift();
+    my $parameters = shift();
+    my $isGrid     = shift();
+    # Rename any `nodeOperatorCGMCoolingHeating`.
+    my @nodeOperatorCGMCGMCoolingInflows = $parameters->findnodes("//nodeOperator[\@value='multi']/nodeOperator[\@value='CGMCoolingInflow']")->get_nodelist();
+    foreach my $nodeOperatorCGMCoolingInflow ( @nodeOperatorCGMCGMCoolingInflows ) {
+	$nodeOperatorCGMCoolingInflow->setNodeName("CGMCoolingHeating");
+    }
+    # Look for "componentHotHalo" parameters.
+    my @nodes = $parameters->findnodes("//componentHotHalo[\@value='standard' or \@value='coldMode' or \@value='outflowTracking']")->get_nodelist();
+    if ( scalar(@nodes) <= 0 ) {
+	# None found - check if we have any componentHotHalo.
+	my @nodesAny = $parameters->findnodes("//componentHotHalo[\@value]")->get_nodelist();
+	# We have one - nothing more to do.
+	return
+	    if ( scalar(@nodesAny) > 0 );
+	# Check if we have nodeOperators present.
+	my @nodeOperators = $parameters->findnodes("//nodeOperator[\@value='multi']")->get_nodelist();
+	# We do not - nothing more to do.
+	return
+	    if ( scalar(@nodeOperators) == 0 );
+	# No componentHotHalo - insert one with the default value.
+	my $componentHotHalo = $input->createElement("componentHotHalo");
+	$componentHotHalo->setAttribute('value','standard');
+	$parameters      ->appendChild ($componentHotHalo);
+	@nodes = $parameters->findnodes("//componentHotHalo[\@value='standard' or \@value='coldMode' or \@value='outflowTracking']")->get_nodelist();
+    }
+    die("found multiple `//componentHotHalo[\@value='standard' or \@value='coldMode' or \@value='outflowTracking']` nodes - unknown what should be done in this situation")
+	if ( scalar(@nodes) >  1 );
+    print "   translate special '//componentHotHalo[\@value='standard' or \@value='coldMode' or \@value='outflowTracking']'\n";
+    # Determine the type of hot halo component.
+    my $type = $nodes[0]->getAttribute('value');
+    # Find the component to which cooling should be directed.
+    my @nodesDisk = $parameters->findnodes("//componentDisk[\@value]")->get_nodelist();
+    my $componentCooling;
+    if ( scalar(@nodesDisk) == 0 ) {
+	$componentCooling = "disk";
+    } else {
+	my $typeDisk = $nodesDisk[0]->getAttribute('value');
+	if ( $typeDisk eq "null" ) {
+	    $componentCooling = "none";
+	} else {
+	    $componentCooling = "disk";
+	}
+    }
+    # Find nodeOperators.
+    my @nodeOperators = $parameters->findnodes("//nodeOperator[\@value='multi']")->get_nodelist();
+    die("can not find any `nodeOperator[\@value='multi']` into which to insert CGM operators")
+     	if ( scalar(@nodeOperators) == 0 );
+    die("found multiple `nodeOperator[\@value='multi']` nodes - unknown into which to insert CGM operators")
+     	if ( scalar(@nodeOperators) > 1 );
+    # Find pre-existing options.
+    my @coolingFromNodePrior                = $nodes[0]->findnodes("//coolingFromNode[\@value]"               )->get_nodelist();
+    my @hotHaloExcessHeatDrivesOutflowPrior = $nodes[0]->findnodes("//hotHaloExcessHeatDrivesOutflow[\@value]")->get_nodelist();
+    my @rateMaximumExpulsionPrior           = $nodes[0]->findnodes("//rateMaximumExpulsion[\@value]"          )->get_nodelist();
+    my @fractionLossAngularMomentumPrior    = $nodes[0]->findnodes("//fractionLossAngularMomentum[\@value]"   )->get_nodelist();
+    my @efficiencyStrippingOutflowPrior     = $nodes[0]->findnodes("//efficiencyStrippingOutflow[\@value]"    )->get_nodelist();
+    my @trackStrippedGasPrior               = $nodes[0]->findnodes("//trackStrippedGas[\@value]"              )->get_nodelist();
+    my $coolingFromNodeValue                = scalar(@coolingFromNodePrior               ) == 1 ? $coolingFromNodePrior               [0]->getAttribute('value') : "currentNode";
+    my $hotHaloExcessHeatDrivesOutflowValue = scalar(@hotHaloExcessHeatDrivesOutflowPrior) == 1 ? $hotHaloExcessHeatDrivesOutflowPrior[0]->getAttribute('value') : "true"       ;
+    my $rateMaximumExpulsionValue           = scalar(@rateMaximumExpulsionPrior          ) == 1 ? $rateMaximumExpulsionPrior          [0]->getAttribute('value') : "1.0"        ;
+    my $fractionLossAngularMomentumValue    = scalar(@fractionLossAngularMomentumPrior   ) == 1 ? $fractionLossAngularMomentumPrior   [0]->getAttribute('value') : "0.3"        ;
+    my $efficiencyStrippingOutflowValue     = scalar(@efficiencyStrippingOutflowPrior    ) == 1 ? $efficiencyStrippingOutflowPrior    [0]->getAttribute('value') : "0.1"        ;
+    my $trackStrippedGasValue               = scalar(@trackStrippedGasPrior              ) == 1 ? $trackStrippedGasPrior              [0]->getAttribute('value') : "true"       ;
+    # Remove obsoleted parameters.
+    $coolingFromNodePrior               [0]->parentNode->removeChild($coolingFromNodePrior               [0])
+	if ( scalar(@coolingFromNodePrior               ) == 1 );
+    $hotHaloExcessHeatDrivesOutflowPrior[0]->parentNode->removeChild($hotHaloExcessHeatDrivesOutflowPrior[0])
+	if ( scalar(@hotHaloExcessHeatDrivesOutflowPrior) == 1 );
+    $rateMaximumExpulsionPrior          [0]->parentNode->removeChild($rateMaximumExpulsionPrior          [0])
+	if ( scalar(@rateMaximumExpulsionPrior          ) == 1 );
+    $fractionLossAngularMomentumPrior   [0]->parentNode->removeChild($fractionLossAngularMomentumPrior   [0])
+	if ( scalar(@fractionLossAngularMomentumPrior   ) == 1 );
+    $efficiencyStrippingOutflowPrior    [0]->parentNode->removeChild($efficiencyStrippingOutflowPrior    [0])
+	if ( scalar(@efficiencyStrippingOutflowPrior    ) == 1 );
+    $trackStrippedGasPrior              [0]->parentNode->removeChild($trackStrippedGasPrior              [0])
+	if ( scalar(@trackStrippedGasPrior              ) == 1 );
+    # Remove any blackHolesCGMHeating nodeOperator - functionality is moved into the CGMCoolingInflow nodeOperator.
+    my @nodeOperatorBlackHolesCGMHeatings = $parameters->findnodes("//nodeOperator[\@value='multi']/nodeOperator[\@value='blackHolesCGMHeating']")->get_nodelist();
+    if ( scalar(@nodeOperatorBlackHolesCGMHeatings) > 0 ) {
+	# Insert the corresponding circumgalacticMediumHeating class to retain AGN feedback.
+	my $circumgalacticMediumHeating = $input->createElement("circumgalacticMediumHeating");
+	$circumgalacticMediumHeating->setAttribute('value'   ,'AGNFeedback');
+	$circumgalacticMediumHeating->setAttribute('iterable','no'         )
+	    if ( $isGrid );
+	$parameters->insertAfter($circumgalacticMediumHeating,$nodes[0]);
+	# Remove the blackHolesCGMHeating nodeOperators
+	foreach my $nodeOperatorBlackHolesCGMHeating ( @nodeOperatorBlackHolesCGMHeatings ) {
+	    $nodeOperatorBlackHolesCGMHeating->parentNode->removeChild($nodeOperatorBlackHolesCGMHeating);
+	}
+    }
+    # Add a cooling/heating operator.
+    {
+	my $operatorCoolingHeating = $input->createElement("nodeOperator");
+	$operatorCoolingHeating   ->setAttribute('value'   ,'CGMCoolingHeating');
+	$operatorCoolingHeating   ->setAttribute('iterable','no'               )
+	    if ( $isGrid );
+	$nodeOperators[0]->insertAfter($operatorCoolingHeating,$nodeOperators[0]->lastChild);
+	# Specify options.
+	my $component               = $input->createElement("component"              );
+	my $coolingFrom             = $input->createElement("coolingFrom"            );
+	my $excessHeatDrivesOutflow = $input->createElement("excessHeatDrivesOutflow");
+	my $rateMaximumExpulsion    = $input->createElement("rateMaximumExpulsion"   );
+	$component              ->setAttribute('value',$componentCooling                   );
+	$coolingFrom            ->setAttribute('value',$coolingFromNodeValue               );
+	$excessHeatDrivesOutflow->setAttribute('value',$hotHaloExcessHeatDrivesOutflowValue);
+	$rateMaximumExpulsion   ->setAttribute('value',$rateMaximumExpulsionValue          );
+	$operatorCoolingHeating ->appendChild (        $component                          );
+	$operatorCoolingHeating ->appendChild (        $coolingFrom                        );
+	$operatorCoolingHeating ->appendChild (        $excessHeatDrivesOutflow            );
+	$operatorCoolingHeating ->appendChild (        $rateMaximumExpulsion               );
+    }
+    # Add a cold mode inflow operator.
+    if ( $type eq "coldMode" ) {
+	my $operatorColdModeInflow = $input->createElement("nodeOperator");
+	$operatorColdModeInflow   ->setAttribute('value'   ,'CGMColdModeInflow');
+	$operatorColdModeInflow   ->setAttribute('iterable','no'               )
+	    if ( $isGrid );
+	$nodeOperators[0]->insertAfter($operatorColdModeInflow,$nodeOperators[0]->lastChild);
+	# Specify options.
+	my $component   = $input->createElement("component"  );
+	my $coolingFrom = $input->createElement("coolingFrom");
+	$component             ->setAttribute('value',$componentCooling    );
+	$coolingFrom           ->setAttribute('value',$coolingFromNodeValue);
+	$operatorColdModeInflow->appendChild (        $component           );
+	$operatorColdModeInflow->appendChild (        $coolingFrom         );
+    }
+    # Add coolingInfallTorque object.
+    {
+	my $coolingInfallTorque = $input->createElement("coolingInfallTorque");
+	$coolingInfallTorque->setAttribute('value','fixed');
+	$parameters->insertAfter($coolingInfallTorque,$nodes[0]);
+	# Specify options.
+	my $fractionLossAngularMomentum = $input->createElement("fractionLossAngularMomentum");
+	$fractionLossAngularMomentum->setAttribute('value',$fractionLossAngularMomentumValue);
+	$coolingInfallTorque        ->appendChild (        $fractionLossAngularMomentum     );
+    }
+    # Add hotHaloOutflowStripping object.
+    if ( $trackStrippedGasValue eq "true" ) {
+	my $hotHaloOutflowStripping = $input->createElement("hotHaloOutflowStripping");
+	$hotHaloOutflowStripping->setAttribute('value','standard');
+	$parameters->insertAfter($hotHaloOutflowStripping,$nodes[0]);
+	# Specify options.
+	my $efficiency = $input->createElement("efficiency");
+	$efficiency             ->setAttribute('value',$efficiencyStrippingOutflowValue);
+	$hotHaloOutflowStripping->appendChild (        $efficiency                     );
+    } else {
+	my $hotHaloOutflowStripping = $input->createElement("hotHaloOutflowStripping");
+	$hotHaloOutflowStripping->setAttribute('value','zero');
+	$parameters->insertAfter($hotHaloOutflowStripping,$nodes[0]);
+    }
+    # Replace the "outflowTracking" component with a nodeOperator and nodePropertyExtractor.
+    if ( $type eq "outflowTracking" ) {
+	$nodes[0]->setAttribute('value','standard');
+	# Find nodePropertyExtractors, inserting one if none exists.
+	my @nodePropertyExtractors = $parameters->findnodes("//nodePropertyExtractor[\@value='multi']")->get_nodelist();
+	die("found multiple `nodePropertyExtractor[\@value='multi']` nodes - unknown into which to insert CGM operators")
+	    if ( scalar(@nodePropertyExtractors) > 1 );
+     	if ( scalar(@nodePropertyExtractors) == 0 ) {
+	    my $nodePropertyExtractorMulti   = $input->createElement("nodePropertyExtractor");
+	    my $nodePropertyExtractorIndices = $input->createElement("nodePropertyExtractor");
+	    $nodePropertyExtractorMulti  ->setAttribute('value','multi'                      );
+	    $nodePropertyExtractorIndices->setAttribute('value','nodeIndices'                );
+	    $parameters                  ->appendChild (        $nodePropertyExtractorMulti  );
+	    $nodePropertyExtractorMulti  ->appendChild (        $nodePropertyExtractorIndices);
+	    @nodePropertyExtractors = $parameters->findnodes("//nodePropertyExtractor[\@value='multi']")->get_nodelist();
+	}
+	# Insert nodeOperator.
+	my $nodeOperator = $input->createElement("nodeOperator");
+	$nodeOperator    ->setAttribute('value',"trackOutflowedMass");
+	$nodeOperators[0]->appendChild (        $nodeOperator       );
+	# Insert nodePropertyExtractor.
+	my $nodePropertyExtractor = $input->createElement("nodePropertyExtractor");
+	$nodePropertyExtractor    ->setAttribute('value',"trackOutflowedMass"  );
+	$nodePropertyExtractors[0]->appendChild (        $nodePropertyExtractor);	
+    }
 }

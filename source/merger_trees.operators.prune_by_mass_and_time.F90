@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -227,14 +227,15 @@ contains
              currentTree => tree
           else
              allocate(currentTree%nextTree)
-             currentTree                  => currentTree%nextTree
-             currentTree%firstTree        => tree
-             currentTree%hostUniverse     => tree%hostUniverse
-             currentTree%event            => null()
-             currentTree%nextTree         => null()
-             currentTree%index            =  tree%index
-             currentTree%volumeWeight     =  tree%volumeWeight
-             currentTree%initializedUntil =  tree%initializedUntil
+             currentTree                   => currentTree%nextTree
+             currentTree%firstTree         => tree
+             currentTree%hostUniverse      => tree%hostUniverse
+             currentTree%event             => null()
+             currentTree%nextTree          => null()
+             currentTree%index             =  tree%index
+             currentTree%volumeWeight      =  tree%volumeWeight
+             currentTree%initializedUntil  =  tree%initializedUntil
+             currentTree%isTreeInitialized =  .false.
              call currentTree%properties%initialize()
              allocate(currentTree%randomNumberGenerator_,mold=tree%randomNumberGenerator_)
              !$omp critical(mergerTreeOperatorMassAndTimeeepCopyReset)

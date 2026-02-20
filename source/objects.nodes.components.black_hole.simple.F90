@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -47,8 +47,8 @@ module Node_Component_Black_Hole_Simple
     </property>
    </properties>
    <bindings>
-     <binding method="massDistribution" function="Node_Component_Black_Hole_Simple_Mass_Distribution" bindsTo="component"/>
-     <binding method="massBaryonic"     function="Node_Component_Black_Hole_Simple_Mass_Baryonic"     bindsTo="component"/>
+     <binding method="massDistribution" function="Node_Component_Black_Hole_Simple_Mass_Distribution"/>
+     <binding method="massBaryonic"     function="Node_Component_Black_Hole_Simple_Mass_Baryonic"    />
    </bindings>
    <functions>objects.nodes.components.black_hole.simple.bound_functions.inc</functions>
   </component>

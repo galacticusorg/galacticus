@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -165,7 +165,7 @@ contains
     type            (varying_string          ), allocatable  , dimension(:    ) :: datasetNames
     integer         (hsize_t                 ), parameter                       :: chunkSize                   =100_hsize_t
     type            (lockDescriptor          )                                  :: fileLock
-    character       (len=255                 )                                  :: hostName                                , cambTransferLine
+    character       (len=255                 )                                  :: cambTransferLine
     type            (varying_string          )                                  :: cambPath                                , cambVersion             , &
          &                                                                         parameterFile                           , outputRoot
     double precision                                                            :: wavenumberCAMB
@@ -301,7 +301,6 @@ contains
        end if
        if (allocated(wavenumbers)) wavenumberCAMB=max(wavenumberCAMB,wavenumbers(size(wavenumbers)))
        ! Construct input file for CAMB.
-       call Get_Environment_Variable('HOSTNAME',hostName)
        workPath     =inputPath(pathTypeDataDynamic)//'largeScaleStructure/'
        parameterFile=File_Name_Temporary('transfer_function_parameters',char(workPath))//'.txt'
        outputRoot   =File_Name_Temporary('camb'                        ,char(workPath))

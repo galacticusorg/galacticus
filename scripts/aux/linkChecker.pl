@@ -7,14 +7,16 @@ use Regexp::Common;
 use WWW::Curl::Easy;
 use XML::Simple;
 use JSON::PP qw(encode_json decode_json);
+use List::Util qw(shuffle);
 
 # Check for broken links in Galacticus documentation.
 # Andrew Benson (21-September-2020)
 
 # Read arguments.
-die("Usage: linkChecker.pl <apiToken>")
-    unless ( scalar(@ARGV) == 1 );
-my $apiToken = $ARGV[0];
+die("Usage: linkChecker.pl <apiToken> <logFile")
+    unless ( scalar(@ARGV) == 2 );
+my $apiToken    = $ARGV[0];
+my $logFileName = $ARGV[1];
 
 # Extract PDF destinations.
 my $pdfDestinations;
@@ -70,12 +72,22 @@ while ( my $fileName = readdir($wikiFolder) ) {
 closedir($wikiFolder);
 
 # Check the URLs.
-my $status = &checkURLs($urls,$pdfDestinations,$apiToken,\$failures);
+(my $status, my @badURLs) = &checkURLs($urls,$pdfDestinations,$apiToken,\$failures);
 
 # Store records of consecutive failures.
 open(my $record,">","linkCheckFailures.xml");
 print $record $xml->XMLout($failures, RootName => "failures");
 close($record);
+
+# Output any bad URLs.
+if ( scalar(@badURLs) > 0 ) {
+    open(my $logFile,">",$logFileName);
+    print $logFile "# :warning: Broken links found :warning:\n";
+    foreach my $badURL ( @badURLs ) {
+	print $logFile "* [`".$badURL."`](".$badURL.")\n";
+    }
+    close($logFile);
+}
 
 # Finished.
 exit $status;
@@ -135,8 +147,9 @@ sub checkURLs {
     my $apiToken        =   shift() ;
     my $failures        = ${shift()};
     my $status          = 0;
+    my @badURLs         = ();
     my $bibCodes;
-    foreach my $urlKey ( keys(%{$urls}) ) {
+    foreach my $urlKey ( shuffle(keys(%{$urls})) ) {
 	(my $url = $urlKey) =~ s/\\#/#/g;
 	# Ignore mailto URLs.
 	next
@@ -151,6 +164,7 @@ sub checkURLs {
 	    my $anchor = $2;
 	    unless ( exists($pdfDestinations->{$suffix}) && exists($pdfDestinations->{$suffix}->{$anchor}) ) {
 		$status = 1;
+		push(@badURLs,$urls->{$urlKey}->[0]->{'ref'});
 		print "Broken ".$urls->{$urlKey}->[0]->{'type'}."{".$urls->{$urlKey}->[0]->{'ref'}."} link in:\n";
 		foreach my $source ( @{$urls->{$urlKey}} ) {
 		    print "\t ".$source->{'path'}."/".$source->{'file'}." line ".$source->{'lineNumber'}."\n";
@@ -202,12 +216,21 @@ sub checkURLs {
 			    last;
 			}
 		    }
+		    # gnu.org has rate limiting, so often we just time out.
+		    if ( $url =~ m/www\.gnu\.org/ ) {
+			if ( $line =~ m/curl: \(28\) Connection timed out after \d+ milliseconds/ ) {
+			    $error = 0;
+			    last;
+			}
+		    }
 		}
 		close($logFile);
 	    }
 	    if ( $error ) {		
-		$status = 1
-		    if ( &recordFailure($url,$failures) );
+		if ( &recordFailure($url,$failures) ) {
+		    $status = 1;
+		    push(@badURLs,$url);
+		}
 		print "Broken link: \"".$url."\" (for past ".$failures->{'url'}->{$url}->{'consecutiveFailures'}." attempts) in:\n";
 		foreach my $source ( @{$urls->{$urlKey}} ) {
 		    print "\t".$source->{'path'}."/".$source->{'file'}." line ".$source->{'lineNumber'}."\n";
@@ -283,16 +306,18 @@ sub checkURLs {
 	if ( exists($bibCodes->{$bibCode}->{'found'}) ) {
 	    &recordSuccess($bibCode,$failures);
 	} else {
-	    $status = 1
-		if ( &recordFailure($bibCode,$failures) );
+	    if ( &recordFailure($bibCode,$failures) ) {
+		$status = 1;
+		push(@badURLs,keys(%{$bibCodes->{$bibCode}->{'urls'}}));
+	    }
 	    print "Broken link (for past ".$failures->{'url'}->{$bibCode}->{'consecutiveFailures'}." attempts): {bibCode: ".$bibCode."} \"".join("; ",keys(%{$bibCodes->{$bibCode}->{'urls'}}))."\" in:\n";
 	    foreach my $source ( @{$bibCodes->{$bibCode}->{'sources'}} ) {
 		print "\t".$source->{'path'}."/".$source->{'file'}." line ".$source->{'lineNumber'}."\n";
 	    }
 	}
     }
-    # Return final status.
-    return $status;
+    # Return final status and bad URLs.
+    return ($status, @badURLs);
 }
 
 sub recordFailure {

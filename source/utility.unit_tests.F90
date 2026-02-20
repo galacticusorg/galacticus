@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -281,7 +281,7 @@ contains
        end do
     end if
     if (passCount+failCount > 0) then
-       percentage=int(100.0d0*dble(passCount)/dble(passCount+failCount))
+       percentage=int(100.0d0*dble(passCount)/dble(passCount+failCount)+0.5d0)
     else
        percentage=100
     end if
@@ -289,7 +289,7 @@ contains
     message=message//passCount//" ("//percentage//"%)"
     call displayMessage(message)
     if (passCount+failCount > 0) then
-       percentage=int(100.0d0*dble(failCount)/dble(passCount+failCount))
+       percentage=int(100.0d0*dble(failCount)/dble(passCount+failCount)+0.5d0)
     else
        percentage=  0
     end if

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -497,7 +497,7 @@ contains
        allocate(forestSnapshotHaloCounts(0,0))
     end if
     ! Open the merger tree file.
-    mergerTreeFileIsBinary=File_Exists(char(self%mergerTreeFile//".bin"))
+    mergerTreeFileIsBinary=File_Exists(self%mergerTreeFile//".bin")
     mergerTreeFileConvert =.false.
     if (mergerTreeFileIsBinary) then
        open   (newUnit=fileUnit   ,file=char(self%mergerTreeFile//".bin"),status='old'    ,form='unformatted',ioStat=ioStat)
@@ -929,7 +929,7 @@ contains
     call displayMessage('Building node index',verbosityLevelWorking)
     nodeIndexRanks=sortIndex(nodeSelfIndices)
     ! Re-open the merger tree file.
-    mergerTreeFileIsBinary=File_Exists(char(self%mergerTreeFile//".bin"))
+    mergerTreeFileIsBinary=File_Exists(self%mergerTreeFile//".bin")
     if (mergerTreeFileIsBinary) then
        open(newUnit=fileUnit,file=char(self%mergerTreeFile//".bin"),status='old',form='unformatted',ioStat=ioStat)
     else

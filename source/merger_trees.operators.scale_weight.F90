@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -89,10 +89,15 @@ contains
     Scale the weight of a merger tree by a fixed factor.
     !!}
     implicit none
-    class(mergerTreeOperatorScaleWeight), intent(inout), target :: self
-    type (mergerTree                   ), intent(inout), target :: tree
+    class(mergerTreeOperatorScaleWeight), intent(inout), target  :: self
+    type (mergerTree                   ), intent(inout), target  :: tree
+    type (mergerTree                   )               , pointer :: treeCurrent
 
-    tree%volumeWeight=+tree%volumeWeight &
-         &            *self%scaleFactor
+    treeCurrent => tree
+    do while (associated(treeCurrent))
+       treeCurrent%volumeWeight = +treeCurrent%volumeWeight &
+            &                     *self       %scaleFactor
+       treeCurrent             =>  treeCurrent%nextTree
+    end do
     return
   end subroutine scaleFactorOperatePreInitialization

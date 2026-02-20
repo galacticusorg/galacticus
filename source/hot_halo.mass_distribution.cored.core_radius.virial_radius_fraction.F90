@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -36,7 +36,7 @@ Implements a hot halo mass distribution core radius class which sets the core ra
      An implementation of the hot halo mass distribution core radius class which sets the core radius to a fraction of the virial radius.
      !!}
      private
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_       => null()
      double precision                                    :: coreRadiusOverVirialRadius
    contains
      final     ::           virialFractionDestructor

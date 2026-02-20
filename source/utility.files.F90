@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -54,6 +54,14 @@ module File_Utilities
      module procedure File_Exists_VarStr
   end interface File_Exists
 
+  interface File_Lock
+     !!{
+     Generic interface for functions that lock a file
+     !!}
+     module procedure File_Lock_Char
+     module procedure File_Lock_VarStr
+  end interface File_Lock
+
   interface File_Modification_Time
      !!{
      Generic interface for file modification functions.
@@ -69,6 +77,22 @@ module File_Utilities
      module procedure File_Path_Char
      module procedure File_Path_VarStr
   end interface File_Path
+
+  interface File_Name
+     !!{
+     Generic interface for functions that return the name of a file.
+     !!}
+     module procedure File_Name_Char
+     module procedure File_Name_VarStr
+  end interface File_Name
+
+  interface File_Name_Expand
+     !!{
+     Generic interface for functions that return the name of a file.
+     !!}
+     module procedure File_Name_Expand_Char
+     module procedure File_Name_Expand_VarStr
+  end interface File_Name_Expand
 
   interface File_Remove
      !!{
@@ -226,11 +250,11 @@ contains
     !!{
     Checks for existence of file {\normalfont \ttfamily fileName} (version for character argument).
     !!}
-    use :: ISO_Varying_String, only : char
+    use :: ISO_Varying_String, only : char, extract, operator(==), len
     implicit none
     character(len=*            ), intent(in   ) :: fileName
-    character(len=len(fileName))                :: parentName
     integer                                     :: lengthParent
+    type     (varying_string   )                :: fileName_   , parentName
     !$GLC attributes initialized ::  parentName
 
     ! Handle empty file names.
@@ -238,22 +262,24 @@ contains
        File_Exists_Char=.false.
        return
     end if
+    ! Expand the file name.
+    fileName_=File_Name_Expand(trim(fileName))
     ! Find the name of the parent directory.
-    parentName  =      fileName
+    parentName  =      fileName_
     lengthParent=len(parentName)
-    if (parentName(lengthParent:lengthParent) == "/") &
-         & parentName=parentName(1:lengthParent-1)
-    parentName       =char(File_Path(parentName))
+    if (extract(parentName,lengthParent,lengthParent) == "/") &
+         & parentName=extract(parentName,1,lengthParent-1)
+    parentName       =File_Path(parentName)
     ! Sync the parent directory to ensure that any file system caching is updated.
-    call syncdir_C(trim(parentName)//char(0))
+    call syncdir_C(char(parentName)//char(0))
     ! Test for file existence.
     !![
     <workaround type="gfortran" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;ml&#x2F;fortran&#x2F;2019-12&#x2F;msg00012.html">
      <description>Segfault triggered by inquire when running multiple OpenMP threads and a large number of MPI processes. Cause unknown. To workaround this we use the POSIX access() function to test for file existence.</description>
     </workaround>
     !!]
-    !! inquire(file=fileName,exist=File_Exists_Char)
-    File_Exists_Char=access_C(trim(fileName)//char(0)) == 0
+    !! inquire(char=fileName_,exist=File_Exists_Char)
+    File_Exists_Char=access_C(char(fileName_)//char(0)) == 0
     return
   end function File_Exists_Char
 
@@ -304,22 +330,40 @@ contains
     return
   end function Count_Lines_in_File_Char
 
-  subroutine File_Lock(fileName,lock,lockIsShared,timeSleep,countAttempts)
+  subroutine File_Lock_VarStr(fileName,lock,lockIsShared,timeSleep,countAttempts,fileNameLock)
+    !!{
+    Place a lock on a file.
+    !!}
+    use :: ISO_Varying_String, only : char
+    implicit none
+    type   (varying_string), intent(in   )           :: fileName
+    type   (lockDescriptor), intent(inout)           :: lock
+    logical                , intent(in   ), optional :: lockIsShared
+    integer(c_int         ), intent(in   ), optional :: timeSleep   , countAttempts
+    type   (varying_string), intent(in   ), optional :: fileNameLock
+
+    call File_Lock(char(fileName),lock,lockIsShared,timeSleep,countAttempts,fileNameLock)
+    return
+  end subroutine File_Lock_VarStr
+  
+  subroutine File_Lock_Char(fileName,lock,lockIsShared,timeSleep,countAttempts,fileNameLock)
     !!{
     Place a lock on a file.
     !!}
     use :: Display                     , only : displayMessage, displayReset, displayMagenta 
     use :: Error                       , only : Error_Report  , Warn
-    use :: ISO_Varying_String          , only : assignment(=) , trim
+    use :: ISO_Varying_String          , only : assignment(=) , trim        , operator(//)  , char
     use :: Numerical_Constants_Prefixes, only : siFormat
     implicit none
     character(len=*         ), intent(in   )           :: fileName
     type     (lockDescriptor), intent(inout)           :: lock
     logical                  , intent(in   ), optional :: lockIsShared
     integer  (c_int         ), intent(in   ), optional :: timeSleep                         , countAttempts
+    type     (varying_string), intent(in   ), optional :: fileNameLock
     logical                  , save                    :: fileLockNotAvailableWarned=.false.
     integer  (c_int         )                          :: lockIsShared_                     , status       , &
          &                                                timeWait
+    character(len=:         ), allocatable             :: fileNameLock_
     !![
     <optionalArgument name="timeSleep"     defaultsTo="1_c_int" />
     <optionalArgument name="countAttempts" defaultsTo="60_c_int"/>
@@ -343,8 +387,13 @@ contains
     ! Now obtain the lock on the file.
     timeWait     =      0_c_int
     status       =-huge(0_c_int)
+    if (present(fileNameLock)) then
+       fileNameLock_=char(fileNameLock)//".lock"//char(0)
+    else
+       fileNameLock_=trim(fileName    )//".lock"//char(0)
+    end if
     do while (status /= 0)
-       status=flock_C(trim(fileName)//".lock"//char(0),lock%lockDescriptorC,lockIsShared_,timeSleep_,countAttempts_)
+       status=flock_C(fileNameLock_,lock%lockDescriptorC,lockIsShared_,timeSleep_,countAttempts_)
        select case (status)
        case ( 0_c_int)
           ! Success.
@@ -369,7 +418,7 @@ contains
     end do
     lock%fileName=trim(fileName)
     return
-  end subroutine File_Lock
+  end subroutine File_Lock_Char
 
   subroutine File_Unlock(lock,sync)
     !!{
@@ -545,22 +594,35 @@ contains
     return
   end function File_Path_Char
 
-  function File_Name(fileName)
+  function File_Name_VarStr(fileName)
+    !!{
+    Returns the path to the file.
+    !!}
+    use :: ISO_Varying_String, only : char, varying_string
+    implicit none
+    type(varying_string)                :: File_Name_VarStr
+    type(varying_string), intent(in   ) :: fileName
+
+    File_Name_VarStr=File_Name(char(fileName))
+    return
+  end function File_Name_VarStr
+
+  function File_Name_Char(fileName)
     !!{
     Returns the path to the file.
     !!}
     use :: ISO_Varying_String, only : assignment(=), extract, index, varying_string
     implicit none
-    type     (varying_string)                :: File_Name
+    type     (varying_string)                :: File_Name_Char
     character(len=*         ), intent(in   ) :: fileName
 
     if (index(fileName,"/",back=.true.) > 0) then
-       File_Name=extract(fileName,index(fileName,"/",back=.true.)+1,len(fileName))
+       File_Name_Char=extract(fileName,index(fileName,"/",back=.true.)+1,len(fileName))
     else
-       File_Name=fileName
+       File_Name_Char=fileName
     end if
     return
-  end function File_Name
+  end function File_Name_Char
 
   function File_Name_Temporary(fileRootName,path) result(fileName)
     !!{
@@ -653,6 +715,19 @@ contains
     end if
     return
   end subroutine Directory_Remove_Char
+
+  function File_Name_Expand_VarStr(fileNameIn) result(fileNameOut)
+    !!{
+    Expands placeholders for Galacticus paths in file names.
+    !!}
+    use :: ISO_Varying_String, only : char
+    implicit none
+    type(varying_string)                :: fileNameOut
+    type(varying_string), intent(in   ) :: fileNameIn
+
+    fileNameOut=File_Name_Expand(char(fileNameIn))
+    return
+  end function File_Name_Expand_VarStr
   
   subroutine File_Rename(nameOld,nameNew,overwrite)
     !!{
@@ -674,22 +749,66 @@ contains
     return
   end subroutine File_Rename
 
-  function File_Name_Expand(fileNameIn) result(fileNameOut)
+  function File_Name_Expand_Char(fileNameIn) result(fileNameOut)
     !!{
     Expands placeholders for Galacticus paths in file names.
     !!}
     use :: Input_Paths       , only : inputPath    , pathTypeDataDynamic, pathTypeDataStatic, pathTypeExec
-    use :: ISO_Varying_String, only : assignment(=), replace
+    use :: ISO_Varying_String, only : assignment(=), replace            , index             , extract     , &
+         &                            char         , var_str            , operator(//)
+    use :: Error             , only : Error_Report
     implicit none
     type     (varying_string)                :: fileNameOut
     character(len=*         ), intent(in   ) :: fileNameIn
+    integer                  , parameter     :: iterationMaximum=10000
+    type     (varying_string)                :: variableName          , variableContent
+    integer                                  :: indexStart            , indexEnd       , &
+         &                                      variableLength        , status         , &
+         &                                      iteration
 
     fileNameOut=fileNameIn
+    ! Handle custom paths.
     fileNameOut=replace(fileNameOut,"%EXECPATH%"       ,inputPath(pathTypeExec       ),every=.true.)
     fileNameOut=replace(fileNameOut,"%DATASTATICPATH%" ,inputPath(pathTypeDataStatic ),every=.true.)
     fileNameOut=replace(fileNameOut,"%DATADYNAMICPATH%",inputPath(pathTypeDataDynamic),every=.true.)
+    ! Handle generic environment variables.
+    iteration=0
+    do while (index(fileNameOut,"%") /= 0)
+       iteration =iteration+1
+       if (iteration > iterationMaximum) call Error_Report("infinite loop expanding file name '"//fileNameIn//"':"//char(10)//"   currently: '"//char(fileNameOut)//"'"//{introspection:location})
+       indexStart=index(        fileNameOut              ,"%")
+       indexEnd  =index(extract(fileNameOut,indexStart+1),"%")
+       if (indexEnd == 0) exit
+       variableName=extract(fileNameOut,indexStart+1,indexStart+indexEnd-1)
+       call Get_Environment_Variable(char(variableName),length=variableLength,status=status)
+       if (status == 0) then
+          call variableRetrieve(variableContent,char(variableName),variableLength)
+       else
+          call Error_Report(var_str('environment variable `')//variableName//'` is not defined'//{introspection:location})
+       end if
+       fileNameOut=extract(fileNameOut,1,indexStart-1)//variableContent//extract(fileNameOut,indexStart+indexEnd+1)
+    end do
     return
-  end function File_Name_Expand
+
+  contains
+
+    subroutine variableRetrieve(variableContent,variableName,variableLength)
+      !!{
+      Retrieve an environment variable
+      !!}
+      use :: ISO_Varying_String, only : assignment(=)
+      implicit none
+      type     (varying_string    ), intent(  out) :: variableContent
+      integer                      , intent(in   ) :: variableLength
+      character(len=*             ), intent(in   ) :: variableName
+      character(len=variableLength)                :: variableContent_
+      
+      call Get_Environment_Variable(variableName,value=variableContent_)
+      variableContent=variableContent_
+      return
+    end subroutine variableRetrieve
+    
+  end function File_Name_Expand_Char
 
   function File_Modification_Time_VarStr(fileName,status) result(timeModification)
     !!{

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -525,9 +525,9 @@ contains
            &   'galacticStructure/'          // &
            &   self%objectType()             // &
            &   '.hdf5'
-      call Directory_Make(char(File_Path(char(fileName))))
+      call Directory_Make(File_Path(fileName))
       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-      call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
+      call File_Lock(fileName,fileLock,lockIsShared=.true.)
       if (File_Exists(fileName)) then
          !$ call hdf5Access%set()
          call file%openFile    (char(fileName      ),readOnly=.true.             )

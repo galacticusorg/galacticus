@@ -70,6 +70,11 @@ sub Find_Hash {
     my @fileNames = @{shift(@_)};
     my (%options) =         @_
 	if ( scalar(@_) > 0 );
+    # Determine if files should be locked.
+    my $useLocks = 1;
+    if ( exists($options{'useLocks'}) ) {
+	$useLocks = $options{'useLocks'} eq "yes";
+    }
     # Set default set of include files to exclude.
     @{$options{'includeFilesExcluded'}} = ()
 	unless ( exists($options{'includeFilesExcluded'}) );
@@ -99,7 +104,8 @@ sub Find_Hash {
 		print "  => Processing dependencies\n"
 		    if ( $options{'report'} );
 		open(my $md5Lock,">".$hashFileName.".lock");
-		flock($md5Lock,LOCK_EX) or die "Could not lock '".$hashFileName.".lock' - $!";
+		flock($md5Lock,LOCK_EX) or die "Could not lock '".$hashFileName.".lock' - $!"
+		    if ( $useLocks );
 		my $useStoredCompositeHash = -e $hashFileName;
 		if ( $useStoredCompositeHash ) {
 		    open(my $dependencyFile,$dependencyFileName);
@@ -171,7 +177,8 @@ sub Find_Hash {
 				    $md5FileName = $ENV{'BUILDPATH'}.$md5FileName.".md5";
 				    my $useStoredHash = 0;
 				    open(my $md5Lock,">".$md5FileName.".lock");
-				    flock($md5Lock,LOCK_EX) or die "Could not lock '".$md5FileName.".lock' - $!";
+				    flock($md5Lock,LOCK_EX) or die "Could not lock '".$md5FileName.".lock' - $!"
+					if ( $useLocks );
 				    if ( -e $md5FileName && &modificationTime($md5FileName) > &modificationTime($sourceFileName) ) {
 					$useStoredHash = 1;
 					if ( $suffix eq "F90" || $suffix eq "Inc" ) {

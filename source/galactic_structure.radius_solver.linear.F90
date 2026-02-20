@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -177,7 +177,8 @@ contains
     Solve for the structure of galactic components assuming no self-gravity of baryons, and that size simply scales in
     proportion to specific angular momentum.
     !!}
-    use :: Calculations_Resets, only : Calculations_Reset
+    use :: Calculations_Resets       , only : Calculations_Reset
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeType
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
@@ -189,6 +190,7 @@ contains
     procedure       (solverSet                    ), pointer                 :: radiusSet                             , velocitySet
     logical                                                                  :: componentActive
     double precision                                                         :: specificAngularMomentum
+    type            (enumerationComponentTypeType )                          :: component
     !![
     <optionalArgument name="plausibilityOnly" defaultsTo=".false."/>
     !!]
@@ -204,17 +206,18 @@ contains
 
   contains
 
-    subroutine radiusSolve(node,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet)
+    subroutine radiusSolve(node,component,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet)
       !!{
       Solve for the equilibrium radius of the given component.
       !!}
       implicit none
-      type            (treeNode ), intent(inout)          :: node
-      double precision           , intent(in   )          :: specificAngularMomentum
-      procedure       (solverGet), intent(in   ), pointer :: radiusGet              , velocityGet
-      procedure       (solverSet), intent(in   ), pointer :: radiusSet              , velocitySet
-      double precision                                    :: radius                 , velocity
-      !$GLC attributes unused :: radiusGet, velocityGet
+      type            (treeNode                    ), intent(inout)          :: node
+      type            (enumerationComponentTypeType), intent(in   )          :: component
+      double precision                              , intent(in   )          :: specificAngularMomentum
+      procedure       (solverGet                   ), intent(in   ), pointer :: radiusGet              , velocityGet
+      procedure       (solverSet                   ), intent(in   ), pointer :: radiusSet              , velocitySet
+      double precision                                                       :: radius                 , velocity
+      !$GLC attributes unused :: component, radiusGet, velocityGet
 
       ! Return immediately if the specific angular momentum is zero.
       if (specificAngularMomentum <= 0.0d0) return

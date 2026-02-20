@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -109,7 +109,6 @@ contains
     !!{
     Constructor for the \refClass{radiationFieldIntergalacticBackgroundFile} radiation field class which takes a parameter list as input.
     !!}
-    use :: File_Utilities  , only : File_Name_Expand
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (radiationFieldIntergalacticBackgroundFile)                :: self
@@ -125,7 +124,7 @@ contains
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !!]
-    self=radiationFieldIntergalacticBackgroundFile(File_Name_Expand(char(fileName)),cosmologyFunctions_)
+    self=radiationFieldIntergalacticBackgroundFile(fileName,cosmologyFunctions_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"/>

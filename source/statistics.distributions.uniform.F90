@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -97,6 +97,7 @@ contains
     !!{
     Constructor for the \refClass{distributionFunction1DUniform} 1D distribution function class.
     !!}
+    use :: Error, only : Error_Report
     type            (distributionFunction1DUniform)                                  :: self
     double precision                               , intent(in   )                   :: limitLower            , limitUpper
     class           (randomNumberGeneratorClass   ), intent(in   ), target, optional :: randomNumberGenerator_
@@ -104,6 +105,8 @@ contains
     <constructorAssign variables="limitLower, limitUpper, *randomNumberGenerator_"/>
     !!]
 
+    ! Validate.
+    if (limitLower >= limitUpper) call Error_Report('`limitLower` < `limitUpper` is required'//{introspection:location})
     return
   end function uniformConstructorInternal
 

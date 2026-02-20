@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
+  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
+
 
   <!-- Component selection -->
   <componentBasic value="standard"/>
@@ -108,9 +109,14 @@
 	    <!-- Scale radii are computed using the energy random walk model of Johnson, Benson, & Grin (2021; ApJ; 908; 33;
 		 http://adsabs.harvard.edu/abs/2021ApJ...908...33J). Best-fit values of the parameters are taken from that
 		 paper. -->
-	    <energyBoost      value="0.673"/>
-	    <massExponent     value="1.518"/>
-	    <unresolvedEnergy value="0.550"/>
+	    <energyBoost               value="0.673"/>
+	    <massExponent              value="1.518"/>
+	    <unresolvedEnergy          value="0.550"/>
+	    <factorMassResolution      value="1.000"/>
+	    <scatterExcess             value="0.000"/>
+	    <applySubsamplingWeights   value="true" />
+	    <acceptUnboundOrbits       value="false"/>
+	    <includeUnresolvedVariance value="false"/>
 	    <darkMatterProfileScaleRadius value="concentration"/>
 	  </darkMatterProfileScaleRadius>
 	</darkMatterProfileScaleRadius>

@@ -19,7 +19,7 @@
   </change>
 
   <!-- Insert a parameter after a specific parameter (the last parameter in this case) -->
-  <change type="insertAfter" path="nodeOperator/nodeOperator[@value='blackHolesCGMHeating']">
+  <change type="insertAfter" path="nodeOperator/nodeOperator[@value='CGMCoolingHeating']">
     <nodeOperator value="indexLastHost"/>
   </change>
 

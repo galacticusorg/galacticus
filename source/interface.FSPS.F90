@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -209,7 +209,7 @@ contains
              write (outputFile,'(a)' ) char(outputFileName) ! Specify filename.
              close(outputFile)
              call System_Command_Do("export SPS_HOME="//fspsPath//"; "//fspsPath//"/src/autosps.exe < "//fspsInputFileName)
-             call File_Remove(char(fspsInputFileName))
+             call File_Remove(fspsInputFileName)
           end if
           call File_Unlock(imfLock)
        end if
@@ -239,7 +239,7 @@ contains
     ! Convert ages from logarithmic form.
     age=10.0d0**(age-9.0d0)
     ! Write output file.
-    call Directory_Make(char(File_Path(char(spectraFileName))))
+    call Directory_Make(File_Path(spectraFileName))
     !$ call hdf5Access%set()
     call spectraFile%openFile(char(spectraFileName))
     ! Add metadata.

@@ -4,7 +4,8 @@
 <!-- 30-November-2020                                                                   -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
+  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
+
 
   <!-- Task and work control -->
   <task value="evolveForests">
@@ -30,10 +31,7 @@
     </massDistributionDisk>
   </componentDisk>
   <componentHotHalo value="standard">
-    <fractionLossAngularMomentum value="0.95"/>
     <starveSatellites value="true"/>
-    <efficiencyStrippingOutflow value="0.1"/>
-    <trackStrippedGas value="false"/>
   </componentHotHalo>
   <componentPosition value="cartesian"/>
   <componentSatellite value="standard"/>
@@ -143,6 +141,10 @@
   <hotHaloOutflowReincorporation value="haloDynamicalTime">
     <multiplier value="8.24493150309934"/>
   </hotHaloOutflowReincorporation>
+  <hotHaloOutflowStripping value="zero"/>
+  <coolingInfallTorque value="fixed">
+    <fractionLossAngularMomentum value="0.95"/>
+  </coolingInfallTorque>
   <coolingFunction value="atomicCIECloudy"/>
   <coolingRadius value="simple"/>
   <coolingRate value="multiplier">
@@ -191,7 +193,6 @@
   <recycledFraction value="0.111679665936988"/> <!-- Used to allow setting of recycled fraction and stellar mass systematics as derived parameters -->
 
   <!-- AGN feedback options -->
-  <hotHaloExcessHeatDrivesOutflow value="true"/>
   <blackHoleWind value="simple">
     <efficiencyWind value="0.00345361636349862"/>
   </blackHoleWind>
@@ -280,6 +281,24 @@
         <mass value="100"/>
         <spin value="0"/>
       </blackHoleSeeds>
+    </nodeOperator>
+    <!-- CGM physics -->
+    <nodeOperator value="CGMAccretion">
+      <allowNegativeCGMMass value="true"/>
+      <angularMomentumAlwaysGrows value="false"/>
+    </nodeOperator>
+    <nodeOperator value="CGMStarvation">
+      <starveOutflowsOnly value="false"/>
+      <fractionBaryonLimitInNodeMerger value="false"/>
+    </nodeOperator>
+    <nodeOperator value="CGMOutflowReincorporation">
+      <includeSatellites value="false"/>
+    </nodeOperator>
+    <nodeOperator value="CGMCoolingHeating">
+      <component value="disk"/>
+      <coolingFrom value="currentNode"/>
+      <excessHeatDrivesOutflow value="true"/>
+      <rateMaximumExpulsion value="1.0"/>
     </nodeOperator>
   </nodeOperator>
   

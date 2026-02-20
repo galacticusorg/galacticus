@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -227,7 +227,6 @@ contains
     !!{
     Read in the transfer function data from a file.
     !!}
-    use :: File_Utilities      , only : File_Name_Expand
     use :: Display             , only : displayMessage
     use :: Error               , only : Error_Report
     use :: HDF5_Access         , only : hdf5Access
@@ -241,7 +240,7 @@ contains
 
     ! Open and read the HDF5 data file.
     call hdf5Access%set()
-    call fileObject%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)
+    call fileObject%openFile(fileName,readOnly=.true.)
     ! Check that the fuzzy dark matter parameters match.
     parametersObject=fileObject%openGroup('parameters')
     call parametersObject%readAttribute('fuzzyDMMass'           ,fuzzyDMMass           )
@@ -298,6 +297,8 @@ contains
           wavenumberHalfMode             =+1.108d0              &
                &                          *4.5d0                &
                &                          *m22**(4.0d0/9.0d0)
+          ! Compute corresponding mass scale. As a default choice, the wavenumber is converted to a length scale assuming
+          ! R = λ/2 = π/k [see Eq.(9) of Schneider et al. (2012; http://adsabs.harvard.edu/abs/2012MNRAS.424..684S)].
           fileFuzzyDarkMatterHalfModeMass=+4.0d0                &
                &                          *Pi                   &
                &                          /3.0d0                &
@@ -343,6 +344,8 @@ contains
           wavenumberQuarterMode             =+1.230d0                 &
                &                             *4.5d0                   &
                &                             *m22**(4.0d0/9.0d0)
+          ! Compute corresponding mass scale. As a default choice, the wavenumber is converted to a length scale assuming
+          ! R = λ/2 = π/k [see Eq.(9) of Schneider et al. (2012; http://adsabs.harvard.edu/abs/2012MNRAS.424..684S)].
           fileFuzzyDarkMatterQuarterModeMass=+4.0d0                   &
                &                             *Pi                      &
                &                             /3.0d0                   &

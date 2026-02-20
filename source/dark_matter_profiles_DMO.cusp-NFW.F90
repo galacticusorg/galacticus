@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -39,7 +39,8 @@
      private
      class  (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_                 => null()
      logical                                    :: velocityDispersionUseSeriesExpansion
-     integer                                    :: promptCuspNFWYID
+     integer                                    :: promptCuspNFWYID                              , promptCuspNFWScaleID                      , &
+          &                                        promptCuspNFWDensityID
      double precision                           :: toleranceRelativeVelocityDispersion           , toleranceRelativeVelocityDispersionMaximum
    contains
      final     ::        cuspNFWDestructor
@@ -113,18 +114,20 @@ contains
     !!]
 
     !![
-    <addMetaProperty component="darkMatterProfile" name="promptCuspNFWY" id="self%promptCuspNFWYID" isEvolvable="no" isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="promptCuspNFWY"       id="self%promptCuspNFWYID"       isEvolvable="no" isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="promptCuspNFWScale"   id="self%promptCuspNFWScaleID"   isEvolvable="no" isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="promptCuspNFWDensity" id="self%promptCuspNFWDensityID" isEvolvable="no" isCreator="no"/>
     !!]
     ! Ensure that the dark matter profile component supports a "scale" property.
-    if (.not.defaultDarkMatterProfileComponent%scaleIsGettable())                                                            &
-         & call Error_Report                                                                                                 &
-         &      (                                                                                                            &
-         &       'cuspNFW dark matter profile requires a dark matter profile component with a gettable "scale" property.'//  &
-         &       Component_List(                                                                                             &
-         &                      'darkMatterProfile'                                                                       ,  &
-         &                      defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)                &
-         &                     )                                                                                          // &
-         &      {introspection:location}                                                                                     &
+    if (.not.defaultDarkMatterProfileComponent%scaleIsGettable())                                                           &
+         & call Error_Report                                                                                                &
+         &      (                                                                                                           &
+         &       'cuspNFW dark matter profile requires a dark matter profile component with a gettable "scale" property.'// &
+         &       Component_List(                                                                                            &
+         &                      'darkMatterProfile'                                                                       , &
+         &                      defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)               &
+         &                     )                                                                                         // &
+         &      {introspection:location}                                                                                    &
          &      )
     return
   end function cuspNFWConstructorInternal
@@ -159,7 +162,8 @@ contains
     integer                                         , intent(in   ), optional :: weightIndex
     class           (nodeComponentBasic            ), pointer                 :: basic
     class           (nodeComponentDarkMatterProfile), pointer                 :: darkMatterProfile
-    double precision                                                          :: amplitudeCuspScaleFree
+    double precision                                                          :: amplitudeCuspScaleFree, radiusScaleCuspNFW, &
+         &                                                                       densityScaleCuspNFW
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
     !!]
@@ -169,9 +173,11 @@ contains
     ! If weighting is not by mass, return a null profile.
     if (weightBy_ /= weightByMass) return
     ! Create the mass distribution.
-    basic                  => node             %basic                    (                     )
-    darkMatterProfile      => node             %darkMatterProfile        (                     )
-    amplitudeCuspScaleFree =  darkMatterProfile%floatRank0MetaPropertyGet(self%promptCuspNFWYID)
+    basic                  => node             %basic                    (                           )
+    darkMatterProfile      => node             %darkMatterProfile        (                           )
+    amplitudeCuspScaleFree =  darkMatterProfile%floatRank0MetaPropertyGet(self%promptCuspNFWYID      )
+    radiusScaleCuspNFW     =  darkMatterProfile%floatRank0MetaPropertyGet(self%promptCuspNFWScaleID  )
+    densityScaleCuspNFW    =  darkMatterProfile%floatRank0MetaPropertyGet(self%promptCuspNFWDensityID)
     if (amplitudeCuspScaleFree <= 0.0d0) then
        ! For halos with no cusp, use an NFW mass distribution.
        allocate(massDistributionNFW           :: massDistribution_      )
@@ -186,13 +192,12 @@ contains
        !![
        <referenceConstruct object="massDistribution_">
 	 <constructor>
-           massDistributionCuspNFW(                                                                                   &amp;
-           &amp;                   mass         =basic                                 %mass                  (    ), &amp;
-           &amp;                   radiusVirial =self             %darkMatterHaloScale_%radiusVirial          (node), &amp;
-           &amp;                   radiusScale  =darkMatterProfile                     %scale                 (    ), &amp;
-           &amp;                   y            =                                       amplitudeCuspScaleFree      , &amp;
-           &amp;                   componentType=                                       componentTypeDarkHalo       , &amp;
-           &amp;                   massType     =                                       massTypeDark                  &amp;
+           massDistributionCuspNFW(                                             &amp;
+           &amp;                   densityNormalization=densityScaleCuspNFW   , &amp;
+           &amp;                   radiusScale         =radiusScaleCuspNFW    , &amp;
+           &amp;                   y                   =amplitudeCuspScaleFree, &amp;
+           &amp;                   componentType       =componentTypeDarkHalo , &amp;
+           &amp;                   massType            =massTypeDark            &amp;
            &amp;                  )
 	 </constructor>
        </referenceConstruct>
@@ -215,12 +220,12 @@ contains
        <referenceConstruct object="massDistribution_">
 	 <constructor>
            massDistributionNFW(                                                                                  &amp;
-           &amp;               mass         =basic            %mass                                      (    ), &amp;
-           &amp;               virialRadius =self             %darkMatterHaloScale_%radiusVirial         (node), &amp;
-           &amp;               scaleLength  =darkMatterProfile%scale                                     (    ), &amp;
-           &amp;               componentType=                                       componentTypeDarkHalo      , &amp;
-           &amp;               massType     =                                       massTypeDark                 &amp;
-           &amp;              )
+            &amp;              mass         =basic            %mass                                      (    ), &amp;
+            &amp;              virialRadius =self             %darkMatterHaloScale_%radiusVirial         (node), &amp;
+            &amp;              scaleLength  =darkMatterProfile%scale                                     (    ), &amp;
+            &amp;              componentType=                                       componentTypeDarkHalo      , &amp;
+            &amp;              massType     =                                       massTypeDark                 &amp;
+            &amp;             )
 	 </constructor>
        </referenceConstruct>
        !!]
@@ -230,8 +235,8 @@ contains
 	  <referenceConstruct object="kinematicsDistribution_">
 	    <constructor>
               kinematicsDistributionNFW(                                                                 &amp;
-	      &amp;                     useSeriesApproximation=self%velocityDispersionUseSeriesExpansion &amp;
-	      &amp;                    )
+	       &amp;                    useSeriesApproximation=self%velocityDispersionUseSeriesExpansion &amp;
+	       &amp;                   )
 	    </constructor>
 	  </referenceConstruct>
           !!]

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,30 +20,6 @@
 !!{
 Contains custom functions for the very simple disk component.
 !!}
-
-subroutine Node_Component_Disk_Very_Simple_Attach_Pipe(self)
-  !!{
-  Attach cooling pipes to the very simple disk component.
-  !!}
-  use :: Error, only : Error_Report
-  implicit none
-  class(nodeComponentDiskVerySimple), intent(in   ) :: self
-  type (nodeComponentHotHalo       )                :: hotHalo
-  !$GLC attributes unused :: self
-
-  if     (                                                                                      &
-       &   hotHalo%      hotHaloCoolingMassRateIsAttached()                                     &
-       &  .or.                                                                                  &
-       &   hotHalo%hotHaloCoolingAbundancesRateIsAttached()                                     &
-       & )                                                                                      &
-       & call Error_Report(                                                                     &
-       &                   'expected to find unclaimed hot halo mass/abundances cooling pipe'// &
-       &                   {introspection:location}                                             &
-       &                  )
-  call hotHalo%      hotHaloCoolingMassRateFunction(      DiskVerySimpleMassGasRateGeneric)
-  call hotHalo%hotHaloCoolingAbundancesRateFunction(DiskVerySimpleAbundancesGasRateGeneric)
-  return
-end subroutine Node_Component_Disk_Very_Simple_Attach_Pipe
 
 double precision function Node_Component_Disk_Very_Simple_Mass_Baryonic(self) result(massBaryonic)
   !!{

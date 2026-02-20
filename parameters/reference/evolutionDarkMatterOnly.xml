@@ -2,7 +2,8 @@
 <!-- Reference subhalo orbits model -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
+  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
+
   
   <!-- Component selection -->
   <componentBasic             value="standard"/>
@@ -10,7 +11,9 @@
   <componentDarkMatterProfile value="scale"   />
   <componentDisk              value="null"    />
   <componentHotHalo           value="null"    />
-  <componentSatellite         value="orbiting"/>
+  <componentSatellite         value="orbiting">
+    <acceptUnboundOrbits value="false"/>
+  </componentSatellite>
   <componentSpheroid          value="null"    />
   <componentSpin              value="vector"  />
 
@@ -38,7 +41,10 @@
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Halo angular momentum -->
     <nodeOperator value="haloAngularMomentumVitvitska2002"  >
-      <exponentMass value="1.10475"/> <!-- Best fit value from Benson, Behrens, & Lu (2020) offset for fix to Keplerian orbit propagation -->
+      <!-- Best fit value from Benson, Behrens, & Lu (2020) offset for fix to Keplerian orbit propagation -->
+      <exponentMass                    value="1.10475"/>
+      <angularMomentumVarianceSpecific value="0.00100"/>
+      <useOriginalSubresolutionMethod  value="false"  />
     </nodeOperator>
     <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Subhalo hierarchy -->

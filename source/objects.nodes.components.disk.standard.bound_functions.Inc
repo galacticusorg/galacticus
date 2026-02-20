@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,28 +20,6 @@
 !!{
 Contains custom functions for the standard disk component.
 !!}
-
-subroutine Node_Component_Disk_Standard_Attach_Pipes(self)
-  !!{
-  Attach cooling pipes to the standard disk component.
-  !!}
-  use :: Error, only : Error_Report
-  implicit none
-  class(nodeComponentDiskStandard), intent(in   ) :: self
-  type (nodeComponentHotHalo     )                :: hotHalo
-  !$GLC attributes unused :: self
-
-  if (hotHalo%hotHaloCoolingMassRateIsAttached           ()) &
-       call Error_Report('expected to find unclaimed hot halo mass cooling pipe'            //{introspection:location})
-  if (hotHalo%hotHaloCoolingAngularMomentumRateIsAttached()) &
-       call Error_Report('expected to find unclaimed hot halo angular momentum cooling pipe'//{introspection:location})
-  if (hotHalo%hotHaloCoolingAbundancesRateIsAttached     ()) &
-       call Error_Report('expected to find unclaimed hot halo abundances cooling pipe'      //{introspection:location})
-  call hotHalo%hotHaloCoolingMassRateFunction           (DiskStandardMassGasRateGeneric        )
-  call hotHalo%hotHaloCoolingAngularMomentumRateFunction(DiskStandardAngularMomentumRateGeneric)
-  call hotHalo%hotHaloCoolingAbundancesRateFunction     (DiskStandardAbundancesGasRateGeneric  )
-  return
-end subroutine Node_Component_Disk_Standard_Attach_Pipes
 
 function Node_Component_Disk_Standard_Mass_Distribution(self,componentType,massType,weightBy,weightIndex) result(massDistribution_)
   !!{

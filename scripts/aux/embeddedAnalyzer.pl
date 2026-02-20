@@ -66,6 +66,7 @@ while ( my $line = <$code> ) {
     my $isDirective  = 0;
     my $endDirective = 0;
     (my $strippedLine = $line) =~ s/^\s*\!<\s*//;
+    $strippedLine =~ s/&nbsp;/ /g;
     if ( $inXML ) {
 	# Determine if line is a directive line.
 	$isDirective    = 1
@@ -160,6 +161,8 @@ sub testLaTeX {
     print $LaTeX "\\usepackage[backref,colorlinks]{hyperref}\n";
     print $LaTeX "\\usepackage{amssymb}\n";
     print $LaTeX "\\usepackage{amsmath}\n";
+    print $LaTeX "\\usepackage{color}\n";
+    print $LaTeX "\\usepackage{listings}\n";
     print $LaTeX "\\usepackage{tensor}\n";
     print $LaTeX "\\input{".$ENV{'GALACTICUS_EXEC_PATH'}."/doc/commands}\n";
     print $LaTeX "\\input{".$ENV{'GALACTICUS_EXEC_PATH'}."/doc/Glossary}\n";

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -607,10 +607,13 @@ contains
              ! evolution of the tree (e.g. growth rates of scale radii, baryonic component initialization) are typically handled
              ! by the mergerTreeInitializor class which is called later.
              call    mergerTreeOperator_%operatePreInitialization(tree)
-             treeWalkerAll=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
-             do while (treeWalkerAll%next(node))
-                call nodeOperator_      %nodeTreeInitialize (node)
-             end do
+             if (.not.tree%isTreeInitialized) then
+                treeWalkerAll=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
+                do while (treeWalkerAll%next(node))
+                   call nodeOperator_      %nodeTreeInitialize (node)
+                end do
+                tree%isTreeInitialized=.true.
+             end if
              call    mergerTreeOperator_%operatePreEvolution(tree)
              message="Evolving tree number "
           else

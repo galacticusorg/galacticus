@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,41 +25,50 @@ program Test_Dark_Matter_Profiles_Fuzzy_Dark_Matter
   !!{
   Test calculations for fuzzy dark matter halo density profiles.
   !!}
-  use :: Calculations_Resets       , only : Calculations_Reset
-  use :: Cosmology_Functions       , only : cosmologyFunctionsMatterLambda
-  use :: Cosmology_Parameters      , only : cosmologyParametersSimple
-  use :: Coordinates               , only : coordinateSpherical                                           , assignment(=)
-  use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleVirialDensityContrastDefinition
-  use :: Dark_Matter_Particles     , only : darkMatterParticleFuzzyDarkMatter
-  use :: Virial_Density_Contrast   , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
-  use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMOSolitonNFW
-  use :: Mass_Distributions        , only : kinematicsDistributionSolitonNFW                              , massDistributionSolitonNFW
-  use :: Display                   , only : displayMessage                                                , displayVerbositySet              , &
-       &                                    verbosityLevelStandard
-  use :: Events_Hooks              , only : eventsHooksInitialize
-  use :: Functions_Global_Utilities, only : Functions_Global_Set
-  use :: Galacticus_Nodes          , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize     , &
-       &                                    nodeComponentBasic                                            , nodeComponentDarkMatterProfile   , &
-       &                                    treeNode
-  use :: Input_Parameters          , only : inputParameters
-  use :: Node_Components           , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize, &
-       &                                    Node_Components_Thread_Uninitialize                           , Node_Components_Uninitialize
-  use :: Numerical_Ranges          , only : Make_Range                                                    , rangeTypeLogarithmic
-  use :: Unit_Tests                , only : Assert                                                        , Unit_Tests_Begin_Group           , &
-       &                                    Unit_Tests_End_Group                                          , Unit_Tests_Finish
-  use :: Error                     , only : Error_Report
-  use :: File_Utilities            , only : Count_Lines_in_File
-  use :: Input_Paths               , only : inputPath                                                     , pathTypeExec
-  use :: ISO_Varying_String        , only : varying_string                                                , char                             , &
-       &                                    operator(//)
+  use, intrinsic :: ISO_C_Binding             , only : c_long
+  use            :: Calculations_Resets       , only : Calculations_Reset
+  use            :: Cosmology_Functions       , only : cosmologyFunctionsMatterLambda
+  use            :: Cosmology_Parameters      , only : cosmologyParametersSimple
+  use            :: Coordinates               , only : coordinateSpherical                                           , assignment(=)
+  use            :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleVirialDensityContrastDefinition
+  use            :: Dark_Matter_Particles     , only : darkMatterParticleFuzzyDarkMatter
+  use            :: Virial_Density_Contrast   , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
+  use            :: Statistics_Distributions  , only : distributionFunction1DNormal
+  use            :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMOSolitonNFW
+  use            :: Mass_Distributions        , only : kinematicsDistributionSolitonNFW                              , massDistributionSolitonNFW
+  use            :: Display                   , only : displayMessage                                                , displayVerbositySet              , &
+    &                                                  verbosityLevelStandard
+  use            :: Events_Hooks              , only : eventsHooksInitialize, openMPThreadBindingAllLevels
+  use            :: Functions_Global_Utilities, only : Functions_Global_Set
+  use            :: Galacticus_Nodes          , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize     , &
+    &                                                  nodeComponentBasic                                            , nodeComponentDarkMatterProfile   , &
+    &                                                  treeNode                                                      , mergerTree
+  use            :: Input_Parameters          , only : inputParameters
+  use            :: Node_Components           , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize, &
+    &                                                  Node_Components_Thread_Uninitialize                           , Node_Components_Uninitialize
+  use            :: Nodes_Operators           , only : nodeOperatorDarkMatterProfileSoliton
+  use            :: Numerical_Constants_Math  , only : Pi
+  use            :: Numerical_Random_Numbers  , only : randomNumberGeneratorGSL
+  use            :: Unit_Tests                , only : Assert                                                        , Unit_Tests_Begin_Group           , &
+    &                                                  Unit_Tests_End_Group                                          , Unit_Tests_Finish
+  use            :: Error                     , only : Error_Report
+  use            :: File_Utilities            , only : Count_Lines_in_File
+  use            :: Input_Paths               , only : inputPath                                                     , pathTypeExec
+  use            :: ISO_Varying_String        , only : varying_string                                                , char                             , &
+    &                                                  operator(//)
   implicit none
   type            (treeNode                                                      ), pointer                   :: node_
+  type            (mergerTree                                                    ), target                    :: tree
   class           (nodeComponentBasic                                            ), pointer                   :: basic_
   class           (nodeComponentDarkMatterProfile                                ), pointer                   :: darkMatterProfile_
-  double precision                                                                , parameter                 :: radiusScale                   =1.0d-2    , massVirial           =6.6d+09, &
+  double precision                                                                , parameter                 :: radiusScale                   =1.0d-2    , massVirial                 =6.6d+09, &
        &                                                                                                         massParticle                  =0.8d+0
-  double precision                                                                , dimension(:), allocatable :: density                                  , densityTarget                , &
-       &                                                                                                         densitySlope                             , densitySlopeNumerical
+  double precision                                                                , dimension(:), allocatable :: density                                  , densityTarget                      , &
+       &                                                                                                         densitySlope                             , densitySlopeNumerical              , &
+       &                                                                                                         radiusRecovered                          , radiusTarget                       , &
+       &                                                                                                         massEnclosed                             , massEnclosedNumerical              , &
+       &                                                                                                         velocityDispersion                       , velocityDispersionNumerical
+  type            (nodeOperatorDarkMatterProfileSoliton                          )                            :: nodeOperator_
   type            (darkMatterHaloScaleVirialDensityContrastDefinition            )                            :: darkMatterHaloScale_
   type            (cosmologyParametersSimple                                     )                            :: cosmologyParameters_
   type            (cosmologyFunctionsMatterLambda                                )                            :: cosmologyFunctions_
@@ -69,19 +78,20 @@ program Test_Dark_Matter_Profiles_Fuzzy_Dark_Matter
   type            (kinematicsDistributionSolitonNFW                              )                            :: kinematicsDistribution_
   type            (darkMatterParticleFuzzyDarkMatter                             )                            :: darkMatterParticle_
   type            (inputParameters                                               )                            :: parameters
-  double precision                                                                                            :: radiusCoreChowdhury            =0.720d-03, radiusScaleChowdhury =1.0d-02, &
-       &                                                                                                         radiusSolitonChowdhury         =1.944d-03, densityNFWChowdhury  =5.5d+14, &
+  double precision                                                                                            :: radiusCoreChowdhury            =0.720d-03, radiusScaleChowdhury       =1.0d-02, &
+       &                                                                                                         radiusSolitonChowdhury         =1.944d-03, densityNFWChowdhury        =5.5d+14, &
        &                                                                                                         densityCoreChowdhury           =1.040d+17
-  integer                                                                                                     :: i                                        , fileUnit                     , &
+  integer                                                                                                     :: i                                        , fileUnit                           , &
        &                                                                                                         totalLinesInFile                         , dataLinesInFile
-  double precision                                                                                            :: potentialNumerical                       , potential                    , &
-       &                                                                                                         radiusVirial_                            , radiusScale_                 , &
-       &                                                                                                         radiusCore_                              , radiusSoliton_               , &
-       &                                                                                                         densityCore_                             , densityScale_                , &
-       &                                                                                                         massHaloMinimum0_                        , massCore_                    , &
-       &                                                                                                         radius
+  double precision                                                                                            :: potentialNumerical                       , potential                          , &
+       &                                                                                                         radiusVirial_                            , radiusScale_                       , &
+       &                                                                                                         radiusCore_                              , radiusSoliton_                     , &
+       &                                                                                                         densityCore_                             , densityScale_                      , &
+       &                                                                                                         massCore_                                , radius                             , &
+       &                                                                                                         densityEnclosed
   type            (coordinateSpherical                                           )                            :: coordinates                              , coordinatesReference
   type            (varying_string                                                )                            :: fileName
+
   call displayVerbositySet(verbosityLevelStandard)
   call Unit_Tests_Begin_Group("Chowdhury2021 dark matter profiles")
   parameters=inputParameters('testSuite/parameters/darkMatterProfilesChowdhury2021.xml')
@@ -162,7 +172,8 @@ program Test_Dark_Matter_Profiles_Fuzzy_Dark_Matter
       &amp;                                                          cosmologyFunctions_                        =cosmologyFunctions_   , &amp;
       &amp;                                                          cosmologyParameters_                       =cosmologyParameters_  , &amp;
       &amp;                                                          toleranceRelativeVelocityDispersion        =1.0d-6                , &amp;
-      &amp;                                                          toleranceRelativeVelocityDispersionMaximum =1.0d-3                  &amp;
+      &amp;                                                          toleranceRelativeVelocityDispersionMaximum =1.0d-3                , &amp;
+      &amp;                                                          scatterFractional                          =0.5d0                   &amp;
       &amp;                                                         )
     </constructor>
   </referenceConstruct>
@@ -170,6 +181,7 @@ program Test_Dark_Matter_Profiles_Fuzzy_Dark_Matter
   call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
   ! Construct a node with properties matched to that in Chowdhury et al. (2021; https://ui.adsabs.harvard.edu/abs/2021ApJ...916...27D).
   node_              => treeNode                  (                 )
+  node_%hostTree     => tree
   basic_             => node_   %basic            (autoCreate=.true.)
   darkMatterProfile_ => node_   %darkMatterProfile(autoCreate=.true.)
   call basic_    %timeSet            (cosmologyFunctions_%cosmicTime(1.0d0))
@@ -177,12 +189,24 @@ program Test_Dark_Matter_Profiles_Fuzzy_Dark_Matter
   call basic_    %massSet            (massVirial                           )
   call darkMatterProfile_%scaleSet(radiusScale)
   call Calculations_Reset(node_)
+  allocate(randomNumberGeneratorGSL :: tree%randomNumberGenerator_)
+  select type (randomNumberGenerator_ => tree%randomNumberGenerator_)
+  type is (randomNumberGeneratorGSL)
+     randomNumberGenerator_=randomNumberGeneratorGSL(seed_=8322_c_long)
+  end select
+  call tree%properties%initialize()
+  ! Build the node operator to compute the core mass.
+  nodeOperator_=nodeOperatorDarkMatterProfileSoliton(                                               &
+                                                     darkMatterHaloScale_  =darkMatterHaloScale_  , &
+                                                     darkMatterParticle_   =darkMatterParticle_   , &
+                                                     cosmologyFunctions_   =cosmologyFunctions_   , &
+                                                     cosmologyParameters_  =cosmologyParameters_  , &
+                                                     virialDensityContrast_=virialDensityContrast_  &
+                                                    )
+  call nodeOperator_%nodeTreeInitialize(node_)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Chowdhury2021 profile")
-  ! Check that the minimum halo mass agrees with the simplified formula given below equation (6) in Schive et al. (2014;
-  ! https://ui.adsabs.harvard.edu/abs/2014PhRvL.113z1302S).
-  call darkMatterProfileChowdhury2021_%computeProperties(node_,radiusVirial_,radiusScale_,radiusCore_,radiusSoliton_,densityCore_,densityScale_,massHaloMinimum0_,massCore_)
-  call Assert("Minimum halo mass",massHaloMinimum0_,4.4d7/massParticle**1.5d0,relTol=3.0d-3)
+  call darkMatterProfileChowdhury2021_%computeProperties(node_,radiusVirial_,radiusScale_,radiusCore_,radiusSoliton_,densityCore_,densityScale_,massCore_)
   ! Test that the potential agrees with a numerical evaluation.
   coordinates         =[2.0d+0*radiusScale,0.0d0,0.0d0]
   coordinatesReference=[1.0d+3*radiusScale,0.0d0,0.0d0]
@@ -195,27 +219,50 @@ program Test_Dark_Matter_Profiles_Fuzzy_Dark_Matter
   fileName=inputPath(pathTypeExec)//'testSuite/data/densityProfileFuzzyDarkMatterChowdhury2021.txt'
   totalLinesInFile=Count_Lines_in_File(fileName    )
   dataLinesInFile =Count_Lines_in_File(fileName,'#')-1
-  allocate(density              (dataLinesInFile))
-  allocate(densityTarget        (dataLinesInFile))
-  allocate(densitySlope         (dataLinesInFile))
-  allocate(densitySlopeNumerical(dataLinesInFile))
+  allocate(radiusTarget               (dataLinesInFile))
+  allocate(radiusRecovered            (dataLinesInFile))
+  allocate(density                    (dataLinesInFile))
+  allocate(densityTarget              (dataLinesInFile))
+  allocate(densitySlope               (dataLinesInFile))
+  allocate(densitySlopeNumerical      (dataLinesInFile))
+  allocate(massEnclosed               (dataLinesInFile))
+  allocate(massEnclosedNumerical      (dataLinesInFile))
+  allocate(velocityDispersion         (dataLinesInFile))
+  allocate(velocityDispersionNumerical(dataLinesInFile))
   open(newunit=fileUnit,file=char(fileName),status='old',form='formatted')
   do i=1,(totalLinesInFile-dataLinesInFile)
      read (fileUnit,*)
   end do
   do i=1,dataLinesInFile
      read (fileUnit,*) radius,densityTarget(i)
-     coordinates = [radius,0.0d0,0.0d0]
-     density              (i)=massDistribution_%density                       (coordinates                   )
-     densitySlope         (i)=massDistribution_%densityGradientRadial         (coordinates,logarithmic=.true.)
-     densitySlopeNumerical(i)=massDistribution_%densityGradientRadialNumerical(coordinates,logarithmic=.true.)
+     coordinates             = [radius,0.0d0,0.0d0]
+     densityEnclosed         =+massDistribution_%massEnclosedBySphere          (radius                            )    &
+          &                   *3.0d0                                                                                   &
+          &                   /4.0d0                                                                                   &
+          &                   /Pi                                                                                      &
+          &                   /                  radius                                                            **3
+     radiusTarget               (i)=+                                                       radius
+     density                    (i)=+massDistribution_      %density                       (coordinates                                        )
+     densitySlope               (i)=+massDistribution_      %densityGradientRadial         (coordinates    ,logarithmic=.true.                 )
+     densitySlopeNumerical      (i)=+massDistribution_      %densityGradientRadialNumerical(coordinates    ,logarithmic=.true.                 )
+     radiusRecovered            (i)=+massDistribution_      %radiusEnclosingDensity        (densityEnclosed                                    )
+     massEnclosed               (i)=+massDistribution_      %massEnclosedBySphere          (radius                                             )
+     massEnclosedNumerical      (i)=+massDistribution_      %massEnclosedBySphereNumerical (radius                                             )
+     velocityDispersion         (i)=+kinematicsDistribution_%velocityDispersion1D          (coordinates    ,massDistribution_,massDistribution_)
+     velocityDispersionNumerical(i)=+kinematicsDistribution_%velocityDispersion1DNumerical (coordinates    ,massDistribution_,massDistribution_)
      ! Very close to the soliton radius the numerical estimate of density slope is unreliable (due to the discontinuity at that
      ! radius). Patch over this by replacing the numerical esimate with the analytic result close to the soliton radius.
-     if (abs(log(radius/radiusSolitonChowdhury)) < 0.015d0) densitySlopeNumerical(i)=densitySlope(i)
+     if (abs(log(radius/radiusSolitonChowdhury)) < 0.015d0) densitySlopeNumerical      (i)=densitySlope      (i)
+     ! Very close to the soliton radius the numerical estimate of velocity dispersion is unreliable (due to the discontinuity at
+     ! that radius). Patch over this by replacing the numerical esimate with the analytic result close to the soliton radius.
+     if (abs(log(radius/radiusSolitonChowdhury)) < 0.015d0) velocityDispersionNumerical(i)=velocityDispersion(i)
   end do
   close(fileUnit)
-  call Assert("Density"         ,density     ,densityTarget        ,relTol=5.0d-1)
-  call Assert("Density gradient",densitySlope,densitySlopeNumerical,relTol=1.0d-3)
+  call Assert("Density"                 ,density           ,densityTarget              ,relTol=5.0d-1)
+  call Assert("Density gradient"        ,densitySlope      ,densitySlopeNumerical      ,relTol=1.0d-3)
+  call Assert("Radius enclosing density",radiusRecovered   ,radiusTarget               ,relTol=5.0d-2)
+  call Assert("Mass enclosed by sphere" ,massEnclosed      ,massEnclosedNumerical      ,relTol=5.0d-2)
+  call Assert("Velocity dispersion"     ,velocityDispersion,velocityDispersionNumerical,relTol=8.5d-2)
   call Unit_Tests_End_Group               ()
   call Unit_Tests_Finish                  ()
   call Node_Components_Thread_Uninitialize()

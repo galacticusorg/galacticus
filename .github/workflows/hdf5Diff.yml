@@ -16,7 +16,7 @@ jobs:
   HDF5-Diff:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: 'Fetch master branch'
         run: |
           git fetch origin master --depth 1
@@ -33,7 +33,7 @@ jobs:
           sudo apt install -y hdf5-tools
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v46
+        uses: tj-actions/changed-files@v47
         with:
           files: |
             **/*.hdf5

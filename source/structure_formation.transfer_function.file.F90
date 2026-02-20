@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -272,14 +272,14 @@ contains
     Internal constructor for the file transfer function class.
     !!}
     use :: Cosmology_Parameters   , only : cosmologyParametersSimple
-    use :: Display                , only : displayMessage                  , displayMagenta                    , displayReset, displayGreen, &
-         &                                 displayYellow                   , displayBlue
-    use :: File_Utilities         , only : File_Name_Expand
+    use :: Display                , only : displayReset                    , displayGreen                      , displayMagenta, &
+         &                                 displayMessage
     use :: Error                  , only : Error_Report
     use :: HDF5_Access            , only : hdf5Access
     use :: IO_HDF5                , only : hdf5Object
     use :: Numerical_Comparison   , only : Values_Differ
     use :: Numerical_Interpolation, only : GSL_Interp_cSpline
+    use :: String_Handling        , only : stringXMLFormat
     use :: Table_Labels           , only : enumerationExtrapolationTypeType, enumerationExtrapolationTypeEncode
     implicit none
     class           (transferFunctionFile            ), intent(inout)             :: self
@@ -302,7 +302,7 @@ contains
 
     ! Open and read the HDF5 data file.
     !$ call hdf5Access%set()
-    call fileObject%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)
+    call fileObject%openFile(fileName,readOnly=.true.)
     ! Check that the file has the correct format version number.
     call fileObject%readAttribute('fileFormat',versionNumber,allowPseudoScalar=.true.)
     if (versionNumber /= fileFormatVersionCurrent) call Error_Report('file has the incorrect version number'//{introspection:location})
@@ -354,13 +354,13 @@ contains
        if (self%acceptNegativeValues) then
           transfer=abs(transfer)
        else
-          call Error_Report(                                                                                                                                                                  &
-          &                 'tabulated transfer function contains points at which T(k) < 0 - all points must be positive'                                           //char(10)             // &
-          &                 displayGreen()//"HELP: "//displayReset()//'set '                                                                                                               // &
-          &                 '<'//displayBlue()//'acceptNegativeValues'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"true"'//displayReset()//'/> '// &
-          &                 'to interpolate in |T(k)| such that negative values are acceptable'                                                                                            // &
-          &                 {introspection:location}                                                                                                                                          &
-          &                 )
+          call Error_Report(                                                                                                                                                                                           &
+               &            'tabulated transfer function contains points at which T(k) < 0 - all points must be positive'                                                                       //char(10)//           &
+               &            displayGreen()//"HELP: "//displayReset()//'set the highlighted option in your input parameter file as shown below:'                                                 //char(10)//char(10)// &
+               &            stringXMLFormat('<transferFunction value="'//char(self%objectType(short=.true.))//'">**B<acceptNegativeValues value="true"/>**C</transferFunction>',indentInitial=6)//char(10)//char(10)// &
+               &            'to interpolate in |T(k)| such that negative values are acceptable'                                                                                                 //                     &
+               &            {introspection:location}                                                                                                                                                                   &
+               &           )
        end if
     end if
     ! Construct the tabulated transfer function.
@@ -583,7 +583,8 @@ contains
                      &          *(+self%transfer%x              (j)-self%transfer%x            (j-1)) &
                      &          +                                   self%transfer%x            (j-1)  &
                      &         )
-                ! Compute the mode mass.
+                ! Compute the mode mass. As a default choice, the wavenumber is converted to a length scale assuming
+                ! R = λ/2 = π/k [see Eq.(9) of Schneider et al. (2012; http://adsabs.harvard.edu/abs/2012MNRAS.424..684S)].
                 modeFound           =.true.
                 fileFractionModeMass=+4.0d0         &
                      &               *Pi            &

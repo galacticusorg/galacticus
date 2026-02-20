@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -193,8 +193,9 @@ contains
     !!{
     Solve for the structure of galactic components.
     !!}
-    use :: Calculations_Resets, only : Calculations_Reset
-    use :: Error              , only : Error_Report
+    use :: Calculations_Resets       , only : Calculations_Reset
+    use :: Error                     , only : Error_Report
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeType
     !![
     <include directive="radiusSolverTask" type="moduleUse">
     !!]
@@ -217,6 +218,7 @@ contains
     type            (treeNode                     ), pointer                 :: haloNode
     logical                                                                  :: componentActive
     double precision                                                         :: specificAngularMomentum
+    type            (enumerationComponentTypeType )                          :: component
     !![
     <optionalArgument name="plausibilityOnly" defaultsTo=".false."/>
     !!]
@@ -244,8 +246,8 @@ contains
        call Calculations_Reset(node)
        !![
        <include directive="radiusSolverTask" type="functionCall" functionType="void">
-        <functionArgs>node,componentActive,specificAngularMomentumRequired,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet</functionArgs>
-        <onReturn>if (componentActive) call radiusSolve(node,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet)</onReturn>
+        <functionArgs>node,componentActive,component,specificAngularMomentumRequired,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet</functionArgs>
+        <onReturn>if (componentActive) call radiusSolve(node,component,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet)</onReturn>
        !!]
        include 'galactic_structure.radius_solver.tasks.inc'
        !![
@@ -256,19 +258,20 @@ contains
 
   contains
 
-    subroutine radiusSolve(node,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet)
+    subroutine radiusSolve(node,component,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet)
       !!{
       Solve for the equilibrium radius of the given component.
       !!}
       use :: Mass_Distributions, only : massDistributionClass
       implicit none
-      type            (treeNode             ), intent(inout)          :: node
-      double precision                       , intent(in   )          :: specificAngularMomentum
-      procedure       (solverGet            ), intent(in   ), pointer :: radiusGet              , velocityGet
-      procedure       (solverSet            ), intent(in   ), pointer :: radiusSet              , velocitySet
-      class           (massDistributionClass)               , pointer :: massDistribution_
-      double precision                                                :: radius                 , velocity
-      !$GLC attributes unused :: radiusGet, velocityGet
+      type            (treeNode                    ), intent(inout)          :: node
+      type            (enumerationComponentTypeType), intent(in   )          :: component
+      double precision                              , intent(in   )          :: specificAngularMomentum
+      procedure       (solverGet                   ), intent(in   ), pointer :: radiusGet              , velocityGet
+      procedure       (solverSet                   ), intent(in   ), pointer :: radiusSet              , velocitySet
+      class           (massDistributionClass       )               , pointer :: massDistribution_
+      double precision                                                       :: radius                 , velocity
+      !$GLC attributes unused :: component, radiusGet, velocityGet
 
       ! Return immediately if the specific angular momentum is zero.
       if (specificAngularMomentum <= 0.0d0) return

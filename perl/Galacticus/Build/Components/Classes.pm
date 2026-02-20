@@ -110,14 +110,8 @@ sub Build_Component_Classes {
 			# Create a "set" function if one does not already exist.
 			$functionName = $property->{'name'}."Set";
 			unless ( exists($propertiesCreated{$functionName}) ) {
-			    my $boundTo =
-				$property->{'setFunction'}->{'bindsTo'} eq "componentClass" 
-				?
-				# A setFunction was specified that binds to the component class, so bind to it here.
-				$property->{'setFunction'}->{'content'}
-			        :
 				# Create a binding to a null function here. 
-				&createNullFunction($build,{selfType => $className, attribute => "set", property => $property, intent => "inout"});
+			    my $boundTo = &createNullFunction($build,{selfType => $className, attribute => "set", property => $property, intent => "inout"});
 			    push(
 				@typeBoundFunctions,
 				{
@@ -165,15 +159,7 @@ sub Build_Component_Classes {
 				    description => "Cumulate to the rate of the {\\normalfont \\ttfamily ".$property->{'name'}."} property of the {\\normalfont \\ttfamily ".$implementationIdentifier."} component."
 				}
 				)
-				unless (
-				    (
-				     (grep {$_ eq "rate"} split(":",$property->{'attributes'}->{'isDeferred'    }))
-				     &&
-				                                    $property->{'attributes'}->{'bindsTo'       } eq "top"
-				    )
-				    ||
-				                                    $property->{'attributes'}->{'createIfNeeded'}
-				);
+				unless ( $property->{'attributes'}->{'createIfNeeded'} );
 			    # Create an analytic function unless this is a virtual property.
 			    push(
 				@typeBoundFunctions,
@@ -214,25 +200,6 @@ sub Build_Component_Classes {
 				)
 				unless ( $property->{'attributes'}->{'isVirtual'} );
 			    $propertiesCreated{$functionName} = 1;
-			}
-		    }
-		    # Add any bindings which bind at the component class level.
-		    if ( exists($implementation->{'bindings'}) ) {
-			foreach ( @{$implementation->{'bindings'}->{'binding'}} ) {
-			    if ( $_->{'bindsTo'} eq "componentClass" && ! $_->{'isDeferred'} ) {
-				# Binding is not deferred, simply map to the given function. Deferred bindings will have a wrapper function attached later.
-				my %function = 
-				    (
-				     type => "procedure",
-				     name => $_->{'method'},
-				    );
-				$function{'function'} = $_->{'function'};
-				foreach my $attribute ( "description", "returnType", "arguments" ) {
-				    $function{$attribute} = $_->{$attribute}
-				       if ( exists($_->{$attribute}) );
-				}
-				push(@typeBoundFunctions,\%function);
-			    }
 			}
 		    }
 		}

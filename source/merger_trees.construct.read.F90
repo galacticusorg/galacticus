@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -706,10 +706,9 @@ contains
     !!{
     Internal constructor for the \refClass{mergerTreeConstructorRead} merger tree constructor class.
     !!}
-    use    :: Display                    , only : displayMagenta  , displayReset
-    use    :: File_Utilities             , only : File_Name_Expand
-    use    :: Error                      , only : Error_Report    , Warn
-    use    :: Numerical_Constants_Boolean, only : booleanFalse    , booleanTrue
+    use    :: Display                    , only : displayMagenta, displayReset
+    use    :: Error                      , only : Error_Report  , Warn
+    use    :: Numerical_Constants_Boolean, only : booleanFalse  , booleanTrue
     !$ use :: OMP_Lib                    , only : OMP_Init_Lock
     implicit none
     type            (mergerTreeConstructorRead                 )                              :: self
@@ -766,7 +765,7 @@ contains
     self%treeNumberOffset=0_c_size_t
     self%fileCurrent     =1
     self%importerOpen    =.true.
-    call self%mergerTreeImporter_%open(File_Name_Expand(char(self%fileNames(self%fileCurrent))))
+    call self%mergerTreeImporter_%open(self%fileNames(self%fileCurrent))
     ! Validate input parameters.
     if (self%presetMergerNodes.and..not.self%presetMergerTimes) then
        message="presetting of merger target nodes requires that merger times also be preset;"//char(10)
@@ -961,7 +960,6 @@ contains
     !!}
     use    :: Array_Utilities           , only : operator(.intersection.)
     use    :: Arrays_Search             , only : searchArrayClosest
-    use    :: File_Utilities            , only : File_Name_Expand
     use    :: Functions_Global          , only : State_Retrieve_                  , State_Store_
     use    :: Error                     , only : Component_List                   , Error_Report
     use    :: Galacticus_Nodes          , only : defaultDarkMatterProfileComponent, defaultPositionComponent, defaultSatelliteComponent, defaultSpinComponent, &
@@ -1014,8 +1012,8 @@ contains
        do while (treeNumber-self%treeNumberOffset > treeNumberMaximum .and. self%fileCurrent < size(self%fileNames))
           self%fileCurrent     =self%fileCurrent     +1
           self%treeNumberOffset=self%treeNumberOffset+treeNumberMaximum
-          call self%mergerTreeImporter_%close(                                                        )
-          call self%mergerTreeImporter_%open (File_Name_Expand(char(self%fileNames(self%fileCurrent))))
+          call self%mergerTreeImporter_%close(                                )
+          call self%mergerTreeImporter_%open (self%fileNames(self%fileCurrent))
           treeNumberMaximum=int(self%mergerTreeImporter_%treeCount(),kind=c_size_t)
        end do
        treeNumberOffset=treeNumber-self%treeNumberOffset
@@ -1042,8 +1040,9 @@ contains
        self%treeWeightCurrent=self%mergerTreeImporter_%treeWeight(int(treeNumberOffset))
        tree%volumeWeight     =self%treeWeightCurrent
        ! Initialize no events.
-       tree%event            => null()
-       tree%initializedUntil =  0.0d0
+       tree%event             => null()
+       tree%initializedUntil  =  0.0d0
+       tree%isTreeInitialized =  .false.
        call tree%properties%initialize()
        ! Restart the random number sequence for this tree. We use the tree index modulo the largest number representable by
        ! the integer type.
@@ -1929,16 +1928,17 @@ contains
                    treeCurrent => treeCurrent%nextTree
                 end do
                 ! Assign this node as the base node of the current tree.
-                treeCurrent   %firstTree        => tree
-                treeCurrent   %nodeBase         => nodeList(iIsolatedNode)%node
+                treeCurrent   %firstTree         => tree
+                treeCurrent   %nodeBase          => nodeList(iIsolatedNode)%node
                 if (self%treeIndexToRootNodeIndex) then
-                   treeCurrent%index            =  nodes   (iNode        )%nodeIndex
+                   treeCurrent%index             =  nodes   (iNode        )%nodeIndex
                 else
-                   treeCurrent%index            =  tree                   %index
+                   treeCurrent%index             =  tree                   %index
                 end if
-                treeCurrent   %volumeWeight     =  self%treeWeightCurrent
-                treeCurrent   %initializedUntil =  0.0d0
-                treeCurrent   %event            => null()
+                treeCurrent   %volumeWeight      =  self%treeWeightCurrent
+                treeCurrent   %initializedUntil  =  0.0d0
+                treeCurrent   %isTreeInitialized =  .false.
+                treeCurrent   %event             => null()
                 ! Initialize a new random number sequence for this tree, using the sum of the tree index and base node index as the seed increment.
                 if (.not.associated(treeCurrent,tree)) call treeCurrent%randomNumberGenerator_%seedSet(seed=tree%index+nodes(iNode)%nodeIndex,offset=.true.)
              end if
@@ -2900,10 +2900,10 @@ contains
                    jumpToHost => jumpToHost%host
                 end do
                 call readCreateBranchJumpEvent(                                                    &
-                     &                        nodeList(iIsolatedNode                      )%node, &
-                     &                        nodeList(jumpToHost%primaryIsolatedNodeIndex)%node, &
-                     &                        timeOfJump                                          &
-                     &                       )
+                     &                         nodeList(iIsolatedNode                      )%node, &
+                     &                         nodeList(jumpToHost%primaryIsolatedNodeIndex)%node, &
+                     &                         timeOfJump                                          &
+                     &                        )
              end if
           end if
           ! If a subhalo was found, follow its descent.
@@ -2942,11 +2942,18 @@ contains
                       subhaloJumps=.true.
                    else
                       ! In nested hierarchies we must find the isolated node which hosts our node and our node's host.
+                      !! First find the ultimate host of our descendant.
                       isolatedHostNode     => descendantNode     %descendant%host
                       do while (associated(isolatedHostNode    %host).and..not.associated(isolatedHostNode    %host,isolatedHostNode    ))
                          isolatedHostNode     => isolatedHostNode    %host
                       end do
-                      isolatedHostHostNode => descendantNode%host%descendant%host
+                      !! Next find our ultimate host...
+                      isolatedHostHostNode => descendantNode%host
+                      do while (associated(isolatedHostHostNode%host).and..not.associated(isolatedHostHostNode%host,isolatedHostHostNode))
+                         isolatedHostHostNode => isolatedHostHostNode%host
+                      end do
+                      !! and then find the ultimate host of its descendant.
+                      isolatedHostHostNode => isolatedHostHostNode%descendant%host
                       do while (associated(isolatedHostHostNode%host).and..not.associated(isolatedHostHostNode%host,isolatedHostHostNode))
                          isolatedHostHostNode => isolatedHostHostNode%host
                       end do

@@ -91,12 +91,12 @@ Component definition itself takes the form of an embedded XML document. The foll
   !#     <name>massGas</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" isNonNegative="true" />
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of gas in the exponential disk."/>
   !#   </property>
   !#   <property>
   !#     <name>coolingMass</name>
-  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" isVirtual="true" bindsTo="top" />
+  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" isVirtual="true" />
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#   </property>
@@ -117,7 +117,7 @@ Component definition itself takes the form of an embedded XML document. The foll
   !#   </property>
   !#  </properties>
   !#  <bindings>
-  !#   <binding method="attachPipes" function="Node_Component_Disk_Exponential_Attach_Pipes" type="void" bindsTo="component" />
+  !#   <binding method="attachPipes" function="Node_Component_Disk_Exponential_Attach_Pipes" type="void" />
   !#  </bindings>
   !#  <functions>objects.nodes.components.disk.exponential.custom_methods.inc</functions>
   !# </component>
@@ -136,14 +136,10 @@ The elements of this document have the following meaning:
 \item [{\normalfont \ttfamily rank}] \emph{[Required]} The rank of this property (currently {\normalfont \ttfamily 0} for a scalar or {\normalfont \ttfamily 1} for a 1-D array).
 \item [{\normalfont \ttfamily attributes}] \emph{[Required]} Attributes of this property:
 \begin{description}
-\item [{\normalfont \ttfamily isSettable}] If {\normalfont \ttfamily true} then the value of this property can be set directory.
-\item [{\normalfont \ttfamily isGettable}] If {\normalfont \ttfamily true} then the value of this property can be got directory.
+\item [{\normalfont \ttfamily isSettable}] If {\normalfont \ttfamily true} then the value of this property can be set directly.
+\item [{\normalfont \ttfamily isGettable}] If {\normalfont \ttfamily true} then the value of this property can be got directly.
 \item [{\normalfont \ttfamily isEvolvable}] If {\normalfont \ttfamily true} this property evolves as part of the \glc\ \gls{ode} system.
 \item [{\normalfont \ttfamily createIfNeeded}] If {\normalfont \ttfamily true} then any attempt to get, set, or adjust the rate of this property will cause the component to be created if it does not already exist. This is useful if the component should be created in response to mass transfer from some other component for example.
-\item [{\normalfont \ttfamily makeGeneric}] If {\normalfont \ttfamily true} then any {\normalfont \ttfamily rate} method for this property will have a version created which binds to the base {\normalfont \ttfamily nodeComponent} class. This version is suitable for attaching to deferred rate functions of components of another class. For example, the disk gas mass rate function is made generic, and then attached to the deferred cooling rate of the hot halo using:
-\begin{verbatim}
-  call hotHalo%hotHaloCoolingMassRateFunction(DiskExponentialMassGasRateGeneric)
-\end{verbatim}
 \item [{\normalfont \ttfamily isDeferred}] Contains a ``{\normalfont \ttfamily :}'' separated list which can contain {\normalfont \ttfamily get}, {\normalfont \ttfamily set}, and {\normalfont \ttfamily rate}. The methods present in this list will not have functions bound to them at compile time. Instead a function will be created which allows a function to be bound to these methods at run time. For example:
 \begin{verbatim}
   call myComponent%massFunction    (My_Component_Mass_Get_Function)
@@ -156,7 +152,6 @@ Additionally, a method is created which returns true or false depending on wheth
  myComponent%massSetIsAttached ()
  myComponent%massRateIsAttached()
 \end{verbatim}
-\item [{\normalfont \ttfamily bindsTo}] Specifies to which level in the class hierarchy set, get and rate methods should be bound. Normally, these are bound to the component implementation itself. However, it can be useful to specify a binding of ``{\normalfont \ttfamily top}'' to bind to the base {\normalfont \ttfamily nodeComponent} class to make these methods interoperable with properties of other classes (see the discussion of the {\normalfont \ttfamily makeGeneric} element above).
 \end{description}
 \item [{\normalfont \ttfamily output}] \emph{[Optional]} If present, the property will be included in the \glc\ output file. The following attributes control the details of that output:
 \begin{description}
@@ -191,7 +186,6 @@ myComponent%<property>Data%value
 \end{verbatim}
 \item [{\normalfont \ttfamily function}] The function to which the method should be bound. (This function must be included in the \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Source.pdf#source.objects_nodes_F90:galacticus_nodes}{\normalfont \ttfamily Galacticus\_Nodes} module by use of the {\normalfont \ttfamily functions} element described below.
 \item [{\normalfont \ttfamily type}] The type of function.
-\item [{\normalfont \ttfamily bindsTo}] Specifies where this method should be bound. ``{\normalfont \ttfamily component}'' specifies binding to the specific implementation of this component class, ``{\normalfont \ttfamily componentClass}'' specifies binding to the component class, while ``{\normalfont \ttfamily top}'' specifies binding to the base {\normalfont \ttfamily nodeComponent} class.
 \end{description}
 \item [{\normalfont \ttfamily functions}] \emph{[Optional]} Contains the name of a file which will be included into the \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Source.pdf#source.objects_nodes_F90:galacticus_nodes}{\normalfont \ttfamily Galacticus\_Nodes} module. This file can contain functions which will be bound to this implementation. By virtue of being included in the \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Source.pdf#source.objects_nodes_F90:galacticus_nodes}{\normalfont \ttfamily Galacticus\_Nodes} module these functions have privileged access to the internal structure of all node component objects.
 \end{description}

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -51,10 +51,6 @@ module NBody_Simulation_Data
      final :: nBodyDataDestructorScalar, nBodyDataDestructorRank1
   end type nBodyData
 
-  interface nBodyData
-     module procedure nBodyDataConstructor
-  end interface nBodyData
-
   !![
   <enumeration>
    <name>propertyType</name>
@@ -67,16 +63,6 @@ module NBody_Simulation_Data
   !!]
   
 contains
-
-  function nBodyDataConstructor() result (self)
-    !!{
-    A default constructor for the {\normalfont \ttfamily nBodyData} class.
-    !!}
-    implicit none
-    type(nBodyData) :: self
-
-    return
-  end function nBodyDataConstructor
 
   subroutine nBodyDataDestructorScalar(self)
     !!{

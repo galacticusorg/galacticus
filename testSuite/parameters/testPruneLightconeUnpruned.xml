@@ -1,7 +1,8 @@
 <?xml version="1.0"?>
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
+  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
+
   <accretionDisks value="switched">
     <accretionDisksADAF value="ADAF">
       <adiabaticIndex value="1.444"/>
@@ -77,17 +78,9 @@
     <toleranceRelativeMetallicity value="0.0001"/>
   </componentDisk>
   <componentHotHalo value="standard">
-    <angularMomentumAlwaysGrows value="false"/>
-    <coolingFromNode value="currentNode"/>
-    <efficiencyStrippingOutflow value="0.1"/>
-    <fractionBaryonLimitInNodeMerger value="false"/>
-    <fractionLossAngularMomentum value="0.3"/>
-    <hotHaloExcessHeatDrivesOutflow value="true"/>
     <outflowReturnOnFormation value="false"/>
-    <rateMaximumExpulsion value="1.0"/>
     <starveSatellites value="false"/>
     <starveSatellitesOutflowed value="false"/>
-    <trackStrippedGas value="true"/>
   </componentHotHalo>
   <componentSpheroid value="standard">
     <massDistributionSpheroid value="hernquist">
@@ -108,6 +101,12 @@
   <coolingFunction value="atomicCIECloudy"/>
   <coolingInfallRadius value="coolingRadius"/>
   <coolingRadius value="simple"/>
+  <hotHaloOutflowStripping value="standard">
+     <efficiency value="0.1"/>
+  </hotHaloOutflowStripping>
+  <coolingInfallTorque value="fixed">
+     <fractionLossAngularMomentum value="0.3"/>
+  </coolingInfallTorque>
   <coolingRate value="multiplier">
     <coolingRate value="whiteFrenk1991">
       <velocityCutOff value="10000.0"/>
@@ -123,6 +122,7 @@
     <degreesOfFreedom value="3.0"/>
   </coolingTime>
   <coolingTimeAvailable value="bensonBower2010"/>
+  <circumgalacticMediumHeating value="AGNFeedback"/>
   <cosmologicalMassVariance value="filteredPower">
     <powerSpectrumWindowFunction value="topHat"/>
     <monotonicInterpolation value="true"/>
@@ -415,7 +415,6 @@
     </nodeOperator>
     <nodeOperator value="blackHolesAccretion"/>
     <nodeOperator value="blackHolesWinds"/>
-    <nodeOperator value="blackHolesCGMHeating"/>
     <nodeOperator value="coolingEnergyRadiated"/>
     <nodeOperator value="assemblyHistoryHeuristics">
       <nbodyHaloMassError value="trenti2010">
@@ -432,6 +431,20 @@
       <wrapPeriodic value="false"/>
     </nodeOperator>
     <nodeOperator value="satelliteOrphanize"/>
+    <!-- CGM physics -->
+    <nodeOperator value="CGMAccretion">
+      <allowNegativeCGMMass value="true"/>
+      <angularMomentumAlwaysGrows value="false"/>
+    </nodeOperator>
+    <nodeOperator value="CGMOutflowReincorporation">
+      <includeSatellites value="true"/>
+    </nodeOperator>
+    <nodeOperator value="CGMCoolingHeating">
+      <component value="disk"/>
+      <coolingFrom value="currentNode"/>
+      <excessHeatDrivesOutflow value="true"/>
+      <rateMaximumExpulsion value="1.0"/>
+    </nodeOperator>
   </nodeOperator>
   <nodePropertyExtractor value="multi">
     <nodePropertyExtractor value="radiusHalfMassStellar"/>

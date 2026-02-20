@@ -4,7 +4,8 @@
 <!-- solution for M(r) inside some radius within which depletion was negligible. -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
+  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
+
 
   <verbosityLevel value="standard"/>
 
@@ -256,9 +257,6 @@
 
   <!-- Galactic structure solver options -->
   <galacticStructureSolver value="simple"/>
-
-  <!-- AGN feedback options -->
-  <hotHaloExcessHeatDrivesOutflow value="true"/>
 
   <!-- Galaxy merger options -->
   <virialOrbit value="spinCorrelated">

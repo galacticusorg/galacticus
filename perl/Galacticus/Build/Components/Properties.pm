@@ -60,11 +60,9 @@ sub Property_Defaults {
 		     attributes =>
 		     {
 			 isVirtual      => "booleanFalse",
-			 bindsTo        => "component"   ,
 			 createIfNeeded => "booleanFalse",
 			 isDeferred     => "false"       ,
-			 isNonNegative  => "booleanFalse",
-			 makeGeneric    => "booleanFalse"
+			 isNonNegative  => "booleanFalse"
 		     }
 		 }
 	     }

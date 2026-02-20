@@ -144,16 +144,11 @@ sub Default_Functions {
 	    foreach ( "get", "set" ) {
 		if ( exists($property->{$_.'Function'}) ) {
 		    # A function element was specified.
-		    if ( reftype($property->{$_.'Function'}) ) {
-			# The function element contains structure, so simple set its bindsTo element if not already defined.
-			$property->{$_.'Function'}->{'bindsTo'} = "component"
-			    unless ( exists($property->{$_.'Function'}->{'bindsTo'}) );
-		    } else {
-			# The function element is simply the function name. Replace with a structure with default binding.
+		    unless ( reftype($property->{$_.'Function'}) ) {
+			# The function element is simply the function name. Replace with a structure.
 			$property->{$_.'Function'} = 
 			{
-			    content => $property->{$_.'Function'},
-			    bindsTo => "component"
+			    content => $property->{$_.'Function'}
 			};
 		    }
 		    # Since function was specified, we will not need to build a function.
@@ -166,7 +161,6 @@ sub Default_Functions {
 			    lcfirst($componentIdentifier          ).
 			    ucfirst($property           ->{'name'}).
 			    ucfirst($_                            ),
-			bindsTo => "component"                     ,
 			build   => 1
 		    };
 		}

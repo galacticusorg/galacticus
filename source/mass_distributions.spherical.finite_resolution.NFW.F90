@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -765,9 +765,9 @@ contains
          &   '_mass_'                      // &
          &   self%suffix    (             )// &
          &   '.hdf5'
-    call Directory_Make(char(File_Path(char(fileName))))
+    call Directory_Make(File_Path(fileName))
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-    call File_Lock(char(fileName),fileLock,lockIsShared=.false.)
+    call File_Lock(fileName,fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
     call file%openFile(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
     call file%writeDataset(radiusEnclosingMassTableLengthResolution,'lengthResolution')
@@ -1019,9 +1019,9 @@ contains
          &   '_density_'                   // &
          &   self%suffix    (             )// &
          &   '.hdf5'
-    call Directory_Make(char(File_Path(char(fileName))))
+    call Directory_Make(File_Path(fileName))
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-    call File_Lock(char(fileName),fileLock,lockIsShared=.false.)
+    call File_Lock(fileName,fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
     call file%openFile(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
     call file%writeDataset(radiusEnclosingDensityTableLengthResolution,'lengthResolution')
@@ -1306,9 +1306,9 @@ contains
          &   '_energy_'                    // &
          &   self%suffix    (             )// &
          &   '.hdf5'
-    call Directory_Make(char(File_Path(char(fileName))))
+    call Directory_Make(File_Path(fileName))
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-    call File_Lock(char(fileName),fileLock,lockIsShared=.false.)
+    call File_Lock(fileName,fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
     call file%openFile(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
     call file%writeDataset(energyTableLengthResolution,'lengthResolution')

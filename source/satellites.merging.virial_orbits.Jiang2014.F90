@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -271,11 +271,11 @@ contains
          &   '_'                                                                                  // &
          &   self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)// &
          &   '.hdf5'
-    call Directory_Make(char(File_Path(char(fileName))))
+    call Directory_Make(File_Path(fileName))
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     success=.false.
     do attempt=0,1
-       call File_Lock(char(fileName),fileLock,lockIsShared=attempt == 0)
+       call File_Lock(fileName,fileLock,lockIsShared=attempt == 0)
        if (File_Exists(fileName)) then
           !$ call hdf5Access%set()
           call file%openFile         (char(fileName)                ,readOnly=.true.                   )
@@ -533,27 +533,37 @@ contains
        call jiang2014Orbit%radiusSet(              radiusHostSelf)
        ! Solve for the total velocity.
        xTotal               =node%hostTree   %randomNumberGenerator_%uniformSample(               )
-       velocityTotalInternal=self%totalFinder                       %find         (rootGuess=1.0d0)
-       ! If requested, check that the orbit is bound. We require it to have E<-boundTolerance to ensure that it is sufficiently
-       ! bound that later rounding errors will not make it appear unbound.
-       foundOrbit=.true.
-       if (.not.acceptUnboundOrbits) then
-          energyInternal=-1.0d0+0.5d0*velocityTotalInternal**2*jiang2014Orbit%specificReducedMass()
-          foundOrbit=(energyInternal < -boundTolerance)
+       if (xTotal == 0.0d0) then
+          foundOrbit                =.true.
+          velocityRadialInternal    =0.0d0
+          velocityTangentialInternal=0.0d0
+       else
+          velocityTotalInternal=self%totalFinder                     &
+               &  %find         (rootGuess=1.0d0)
+          ! If requested, check that the orbit is bound. We require
+          ! it to have E<-boundTolerance to ensure that it is
+          ! sufficiently
+          ! bound that later rounding errors will not make it appear
+          ! unbound.
+          foundOrbit=.true.
+          if (.not.acceptUnboundOrbits) then
+             energyInternal=-1.0d0+0.5d0*velocityTotalInternal**2*jiang2014Orbit%specificReducedMass()
+             foundOrbit=(energyInternal < -boundTolerance)
+          end if
+          if (.not.foundOrbit) cycle
+          ! Solve for the radial velocity.
+          xRadial                       =+0.0d0
+          probabilityRadialNormalization=+1.0d0
+          probabilityRadialNormalization=+1.0d0                                                       &
+               &                                 /(                                                   &
+               &                                   +jiang2014RadialVelocityCDF(velocityTotalInternal) &
+               &                                   -jiang2014RadialVelocityCDF(0.0d0                ) &
+               &                                  )
+          xRadial                      =node%hostTree    %randomNumberGenerator_%uniformSample(                                                    )
+          velocityRadialInternal                =self%radialFinder                       %find         (rootGuess=sqrt(2.0d0)*velocityTotalInternal)
+          ! Compute tangential velocity.
+          velocityTangentialInternal=sqrt(max(0.0d0,velocityTotalInternal**2-velocityRadialInternal**2))
        end if
-       if (.not.foundOrbit) cycle
-       ! Solve for the radial velocity.
-       xRadial                      =+0.0d0
-       probabilityRadialNormalization=+1.0d0
-       probabilityRadialNormalization=+1.0d0                                                       &
-            &                                 /(                                                   &
-            &                                   +jiang2014RadialVelocityCDF(velocityTotalInternal) &
-            &                                   -jiang2014RadialVelocityCDF(0.0d0                ) &
-            &                                  )
-       xRadial                      =node%hostTree    %randomNumberGenerator_%uniformSample(                                                    )
-       velocityRadialInternal                =self%radialFinder                       %find         (rootGuess=sqrt(2.0d0)*velocityTotalInternal)
-       ! Compute tangential velocity.
-       velocityTangentialInternal=sqrt(max(0.0d0,velocityTotalInternal**2-velocityRadialInternal**2))
        call jiang2014Orbit%velocityRadialSet    (velocityRadialInternal    *velocityHost)
        call jiang2014Orbit%velocityTangentialSet(velocityTangentialInternal*velocityHost)
        ! Propagate the orbit to the virial radius under the default density contrast definition.

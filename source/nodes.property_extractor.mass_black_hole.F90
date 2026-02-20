@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,17 +18,17 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Implements a black hole mass output analysis property extractor class.
+Implements a black hole mass property extractor class.
 !!}
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassBlackHole">
-   <description>An ISM mass output analysis property extractor class.</description>
+   <description>An black mass property extractor class.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassBlackHole
      !!{
-     A black hole mass output analysis class.
+     A black hole mass property extractor class.
      !!}
      private
    contains

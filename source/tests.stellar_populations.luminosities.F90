@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -83,8 +83,8 @@ program Test_Stellar_Populations_Luminosities
   call displayVerbositySet  (verbosityLevelWorking)
   call Output_HDF5_Open_File(parameters           )
   ! Ensure that we have the required stellar population spectra file.
-call Directory_Make(char(inputPath(pathTypeDataDynamic))//'stellarPopulations/SSP_Spectra_BC2003_lowResolution_imfSalpeter.hdf5')
-  if (.not.File_Exists(char(inputPath(pathTypeDataDynamic))//'stellarPopulations/SSP_Spectra_BC2003_lowResolution_imfSalpeter.hdf5'))  &
+call Directory_Make(inputPath(pathTypeDataDynamic)//'stellarPopulations/SSP_Spectra_BC2003_lowResolution_imfSalpeter.hdf5')
+  if (.not.File_Exists(inputPath(pathTypeDataDynamic)//'stellarPopulations/SSP_Spectra_BC2003_lowResolution_imfSalpeter.hdf5'))  &
        & call download(                                                                                                                &
        &               "https://drive.google.com/uc?export=download&id=1DI52tMO4PEN-eGk79-0w2BHu9yaEcFMp"                            , &
        &               char(inputPath(pathTypeDataDynamic))//'stellarPopulations/SSP_Spectra_BC2003_lowResolution_imfSalpeter.hdf5'    &

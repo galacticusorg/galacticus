@@ -3,7 +3,7 @@
 <!-- Andrew Benson - 28-January-2024 -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="c8ece7c25a69867343f09ac4c4c325380dbf8f21" time="2025-07-31T21:51:05"/>
+  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
 
   <componentBasic value="standard"/>
   <componentBlackHole value="standard"/>
@@ -58,7 +58,7 @@
   </mergerTreeConstructor>
 
   <!-- Black hole physics -->
-    <blackHoleAccretionRate value="standard">
+  <blackHoleAccretionRate value="standard">
     <bondiHoyleAccretionEnhancementSpheroid value="  5.0"/>
     <bondiHoyleAccretionEnhancementHotHalo  value="  6.0"/>
     <bondiHoyleAccretionTemperatureSpheroid value="100.0"/>
@@ -71,6 +71,7 @@
   <blackHoleCGMHeating value="jetPower">
     <efficiencyRadioMode value="1.0"/>
   </blackHoleCGMHeating>
+  <circumgalacticMediumHeating value="AGNFeedback"/>
 
   <nodePropertyExtractor value="multi">
     <nodePropertyExtractor value="massAccretionHistory"/>
@@ -92,10 +93,27 @@
     </nodeOperator>
     <nodeOperator value="blackHolesAccretion"/>
     <nodeOperator value="blackHolesWinds"/>
-    <nodeOperator value="blackHolesCGMHeating"/>
     <!-- Satellite physics -->
     <nodeOperator value="satelliteOrphanize"/>
+    <!-- CGM physics -->
+    <nodeOperator value="CGMAccretion">
+      <allowNegativeCGMMass value="true"/>
+      <angularMomentumAlwaysGrows value="false"/>
+    </nodeOperator>
+    <nodeOperator value="CGMOutflowReincorporation">
+      <includeSatellites value="true"/>
+    </nodeOperator>
+    <nodeOperator value="CGMCoolingHeating">
+      <component value="disk"/>
+      <coolingFrom value="currentNode"/>
+      <excessHeatDrivesOutflow value="true"/>
+      <rateMaximumExpulsion value="1.0"/>
+    </nodeOperator>
+    <nodeOperator value="CGMColdModeInflow">
+      <component value="disk"/>
+      <coolingFrom value="currentNode"/>
+    </nodeOperator>
   </nodeOperator>
-  
+
   <outputFileName value="testSuite/outputs/mostMassiveProgenitorIsSubhalo.hdf5"/>
 </parameters>

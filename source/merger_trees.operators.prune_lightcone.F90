@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -424,13 +424,14 @@ contains
        forestRootsNewLast => forestRootsNewHead%next
        do while (associated(forestRootsNewLast))
           allocate(treeCurrent%nextTree)
-          treeCurrent%nextTree%nextTree         => null()
-          treeCurrent%nextTree%event            => null()
-          treeCurrent%nextTree%nodeBase         => forestRootsNewLast                  %node
-          treeCurrent%nextTree%index            =  treeCurrent       %nextTree%nodeBase%index       ()
-          treeCurrent%nextTree%firstTree        => tree
-          treeCurrent%nextTree%volumeWeight     =  tree                                %volumeWeight
-          treeCurrent%nextTree%initializedUntil =  0.0d0
+          treeCurrent%nextTree%nextTree          => null()
+          treeCurrent%nextTree%event             => null()
+          treeCurrent%nextTree%nodeBase          => forestRootsNewLast                  %node
+          treeCurrent%nextTree%index             =  treeCurrent       %nextTree%nodeBase%index       ()
+          treeCurrent%nextTree%firstTree         => tree
+          treeCurrent%nextTree%volumeWeight      =  tree                                %volumeWeight
+          treeCurrent%nextTree%initializedUntil  =  0.0d0
+          treeCurrent%nextTree%isTreeInitialized =  .false.
           allocate(treeCurrent%nextTree%randomNumberGenerator_,mold=tree%randomNumberGenerator_)
           !$omp critical(mergerTreeOperatorLightconeDeepCopyReset)
           !![

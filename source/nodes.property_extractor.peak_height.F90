@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -144,7 +144,7 @@ contains
     densityFieldRootVariance        =   self%cosmologicalMassVariance_%rootVariance(mass=basic%mass(),time=basic%timeLastIsolated()          )
     peakHeightNu                    =  +criticalOverdensityLastIsolated                                                                        &
          &                             /densityFieldRootVariance
-    linearGrowthFactor              =   self%LinearGrowth_            %value        (                 time=basic%timeLastIsolated()          )
+    linearGrowthFactor              =   self%linearGrowth_            %value        (                 time=basic%timeLastIsolated()          )
     allocate(peakHeightExtract(4))
     peakHeightExtract=[                                 &
          &             criticalOverdensityLastIsolated, &

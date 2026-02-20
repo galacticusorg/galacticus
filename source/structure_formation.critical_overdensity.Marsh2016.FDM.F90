@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -137,10 +137,10 @@ contains
     !!}
     use :: Cosmology_Parameters        , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles       , only : darkMatterParticleFuzzyDarkMatter
-    use :: FoX_DOM                     , only : destroy                          , node                             , parseFile
+    use :: FoX_DOM                     , only : destroy                          , node
     use :: Error                       , only : Error_Report
     use :: Input_Paths                 , only : inputPath                        , pathTypeDataStatic
-    use :: IO_XML                      , only : XML_Array_Read                   , XML_Get_First_Element_By_Tag_Name
+    use :: IO_XML                      , only : XML_Array_Read                   , XML_Get_First_Element_By_Tag_Name, XML_Parse
     use :: Numerical_Interpolation     , only : GSL_Interp_CSpline
     use :: Table_Labels                , only : extrapolationTypeFix
     use :: Numerical_Constants_Prefixes, only : kilo
@@ -179,7 +179,7 @@ contains
     if (.not.self%useFittingFunction) then
        ! Read in the tabulated critical overdensity scaling.
        !$omp critical (FoX_DOM_Access)
-       doc => parseFile(char(inputPath(pathTypeDataStatic))//"darkMatter/criticalOverdensityFuzzyDarkMatterMarsh.xml",iostat=ioStatus)
+       doc => XML_Parse(char(inputPath(pathTypeDataStatic))//"darkMatter/criticalOverdensityFuzzyDarkMatterMarsh.xml",iostat=ioStatus)
        if (ioStatus /= 0) call Error_Report('unable to find or parse the tabulated data'//{introspection:location})
        ! Extract the datum lists.
        element    => XML_Get_First_Element_By_Tag_Name(doc,"mass" )

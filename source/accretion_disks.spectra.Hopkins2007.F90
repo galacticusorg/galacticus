@@ -1,3 +1,22 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
 ! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
 !!           2019, 2020, 2021, 2022, 2023, 2024, 2025
 !!    Andrew Benson <abenson@carnegiescience.edu>
@@ -81,25 +100,28 @@ contains
     !!{
     Constructor for the \refClass{accretionDiskSpectraHopkins2007} accretion disk spectra class.
     !!}
-    use :: File_Utilities, only : File_Lock, File_Unlock
-    use :: Input_Paths   , only : inputPath, pathTypeDataStatic
+    use :: File_Utilities, only : File_Lock, File_Unlock       , Directory_Make
+    use :: Input_Paths   , only : inputPath, pathTypeDataStatic, pathTypeDataDynamic
     implicit none
     type (accretionDiskSpectraHopkins2007)                        :: self
     class(blackHoleAccretionRateClass    ), target, intent(in   ) :: blackHoleAccretionRate_
     class(accretionDisksClass            ), target, intent(in   ) :: accretionDisks_
+    type (varying_string                 )                        :: fileNameLock
     !![
     <constructorAssign variables="*blackHoleAccretionRate_, *accretionDisks_"/>
     !!]
     
     ! Set the file name.
-    self%fileName=inputPath(pathTypeDataStatic)//"blackHoles/AGN_SEDs_Hopkins2007.hdf5"
+    call Directory_Make(inputPath(pathTypeDataDynamic)//'aux')
+    self%fileName=inputPath(pathTypeDataStatic )//"blackHoles/AGN_SEDs_Hopkins2007.hdf5"
+    fileNameLock =inputPath(pathTypeDataDynamic)//"aux/AGN_SEDs_Hopkins2007"
     ! Build the file.
     call self%buildFile()
     ! Load the file.
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-    call File_Lock    (char(self%fileName),self%fileLock,lockIsShared=.true.)
-    call self%loadFile(char(self%fileName)                                  )
-    call File_Unlock  (                    self%fileLock                    )
+    call File_Lock    (     self%fileName ,self%fileLock,lockIsShared=.true.,fileNameLock=fileNameLock)
+    call self%loadFile(char(self%fileName)                                                            )
+    call File_Unlock  (                    self%fileLock                                              )
     return
   end function hopkins2007ConstructorInternal
 
@@ -139,10 +161,13 @@ contains
     character       (len= 16                        )                              :: label
     character       (len=256                        )                              :: line
     double precision                                                               :: frequencyLogarithmic              , spectrumLogarithmic
+    type            (varying_string                 )                              :: fileNameLock
 
     ! Determine if we need to make the file.
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-    call File_Lock(char(self%fileName),self%fileLock,lockIsShared=.true.)
+    call Directory_Make(inputPath(pathTypeDataDynamic)//'aux')
+    fileNameLock =inputPath(pathTypeDataDynamic)//"aux/AGN_SEDs_Hopkins2007"
+    call File_Lock(self%fileName,self%fileLock,lockIsShared=.true.,fileNameLock=fileNameLock)
     makeFile=.false.
     if (File_Exists(self%fileName)) then
        !$ call hdf5Access%set()
@@ -176,7 +201,7 @@ contains
           if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x")) call Error_Report('failed to compile agn_spectrum.c'//{introspection:location})
        end if
        ! Generate a tabulation of AGN spectra over a sufficiently large range of AGN luminosity.
-       call Directory_Make(char(inputPath(pathTypeDataStatic))//"blackHoles")
+       call Directory_Make(inputPath(pathTypeDataStatic)//"blackHoles")
        allocate(luminosityBolometric(luminosityBolometricCount))
        luminosityBolometric=Make_Range(luminosityBolometricMinimum,luminosityBolometricMaximum,luminosityBolometricCount,rangeTypeLogarithmic)
        do i=1,luminosityBolometricCount

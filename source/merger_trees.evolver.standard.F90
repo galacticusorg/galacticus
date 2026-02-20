@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -642,11 +642,12 @@ contains
     !!{
     Initialize trees prior to evolution.
     !!}
-    use    :: Display            , only : displayGreen            , displayReset
-    use    :: Galacticus_Nodes   , only : nodeComponentBasic      , nodeEvent     , nodeEventBranchJumpInterTree , nodeEventSubhaloPromotionInterTree
+    use    :: Display            , only : displayBlue             , displayYellow , displayGreen                , displayBold                       , &
+         &                                displayReset
+    use    :: Galacticus_Nodes   , only : nodeComponentBasic      , nodeEvent     , nodeEventBranchJumpInterTree, nodeEventSubhaloPromotionInterTree
     use    :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
-    use    :: String_Handling    , only : operator(//)
-    !$ use :: OMP_Lib            , only : OMP_Set_Lock            , OMP_Unset_Lock, omp_lock_kind
+    use    :: String_Handling    , only : operator(//)            , stringXMLFormat
+    !$ use :: OMP_Lib            , only : OMP_Set_Lock            , OMP_Unset_Lock , omp_lock_kind
     implicit none
     class           (mergerTreeEvolverStandard)           , intent(inout) :: self
     type            (mergerTree               ), target   , intent(inout) :: tree
@@ -681,11 +682,11 @@ contains
                 if (self%allTreesExistAtFinalTime) then
                    ! It is not, write an error and exit.
                    vMessage='requested time exceeds the final time in the tree'//char(10)
-                   vMessage=vMessage//displayGreen()//' HELP:'//displayReset()//' If you expect that not all trees will exist at the latest requested'//char(10)
-                   vMessage=vMessage//                                         '       output time (this can happen when using trees extracted from N-body'//char(10)
-                   vMessage=vMessage//                                         '       simulations for example) set the following in your input parameter file:'//char(10)//char(10)
-                   vMessage=vMessage//                                         '         <allTreesExistAtFinalTime value="false" />'//char(10)
-                   call Error_Report(vMessage//{introspection:location})
+                   vMessage=vMessage//displayGreen()//' HELP:'//displayReset()//' If you expect that not all trees will exist at the latest requested output'                                                     //char(10)
+                   vMessage=vMessage//                                         '    time (this can happen when using trees extracted from N-body simulations for'                                                 //char(10)
+                   vMessage=vMessage//                                         '    example) set the highlighted option in your input parameter file as shown below:'                                             //char(10)//char(10)
+                   vMessage=vMessage//stringXMLFormat('<mergerTreeEvolver value="'//char(self%objectType(short=.true.))//'">**B<allTreesExistAtFinalTime value="false" />**C</mergerTreeEvolver>',indentInitial=6)//char(10)
+                  call Error_Report(vMessage//{introspection:location})
                 end if
              else
                 ! Not exceeded by a significant factor (can happen due to approximation errors). Unless there is an event
@@ -702,10 +703,10 @@ contains
                       write (label,'(e24.16)') event%time
                       vMessage=vMessage//'      event time: '//trim(label)//' Gyr'//char(10)
                       vMessage=vMessage//'      event ID  : '//event%ID           //char(10)
-                      vMessage=vMessage//displayGreen()//' HELP:'//displayReset()//' if you are reading merger trees from file and are attempting to'//char(10)
-                      vMessage=vMessage//                                          '       output at a "snapshot time" consider setting:'                  //char(10)
-                      vMessage=vMessage//                                          '           <mergerTreeReadOutputTimeSnapTolerance value="1.0e-3"/>'    //char(10)
-                      vMessage=vMessage//                                          '       or similar in your parameter file to ensure that nodes exist'   //char(10)
+                      vMessage=vMessage//displayGreen()//' HELP:'//displayReset()//' if you are reading merger trees from file and are attempting to'                                  //char(10)
+                      vMessage=vMessage//                                          '       output at a "snapshot time" consider setting:'                                              //char(10)
+                      vMessage=vMessage//stringXMLFormat('<mergerTreeConstructor value="read">**B<outputTimeSnapTolerance value="1.0e-3"/>**C</mergerTreeConstructor>',indentInitial=6)//char(10)
+                      vMessage=vMessage//                                          '       or similar in your parameter file to ensure that nodes exist'                               //char(10)
                       vMessage=vMessage//                                          '       precisely at the output times you request'
                       call Error_Report(vMessage//{introspection:location})
                    end if

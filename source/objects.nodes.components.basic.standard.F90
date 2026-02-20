@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -53,7 +53,7 @@ module Node_Component_Basic_Standard
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-      <getFunction bindsTo="component">BasicStandardTimeLastIsolated</getFunction>
+      <getFunction>BasicStandardTimeLastIsolated</getFunction>
       <output unitsInSI="gigaYear" comment="Time at which node was last an isolated halo."/>
     </property>
     <property>

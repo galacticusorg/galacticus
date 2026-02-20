@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,19 +20,6 @@
 !!{
 Contains custom functions for the standard hot halo component.
 !!}
-
-subroutine Node_Component_Hot_Halo_Standard_Mass_Removal_Rate(self,massRemovalRate)
-  !!{
-  Handle instances of mass removal from the standard hot halo component
-  class. For the standard hot halo component type, we do nothing.
-  !!}
-  implicit none
-  class          (nodeComponentHotHaloStandard), intent(inout) :: self
-  double precision                             , intent(in   ) :: massRemovalRate
-  !$GLC attributes unused :: self, massRemovalRate
-
-  return
-end subroutine Node_Component_Hot_Halo_Standard_Mass_Removal_Rate
 
 double precision function Node_Component_Hot_Halo_Standard_Mass_Total(self)
   !!{

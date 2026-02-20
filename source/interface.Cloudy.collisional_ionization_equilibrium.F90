@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -43,10 +43,12 @@ contains
     use :: File_Utilities                  , only : File_Exists                        , File_Lock                     , File_Remove         , File_Unlock   , &
          &                                          Directory_Make                     , File_Path
     use :: Error                           , only : Error_Report
+    use :: Hashes_Cryptographic            , only : Hash_MD5
     use :: HDF5_Access                     , only : hdf5Access
     use :: IO_HDF5                         , only : hdf5Object
     use :: ISO_Varying_String              , only : assignment(=)                      , char                          , operator(//)        , var_str       , &
           &                                         varying_string
+    use :: Input_Paths                     , only : inputPath                          , pathTypeDataDynamic
     use :: Interfaces_Cloudy               , only : Interface_Cloudy_Initialize
     use :: Numerical_Constants_Astronomical, only : heliumToHydrogenAbundancePrimordial, heliumToHydrogenAbundanceSolar
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -81,7 +83,8 @@ contains
          &                                                               i
     type            (varying_string)                                  :: cloudyPath                             , cloudyVersion                        , &
          &                                                               fileNameTempCooling                    , fileNameTempOverview                 , &
-         &                                                               fileNameTempContinuum
+         &                                                               fileNameTempContinuum                  , fileNameCoolingFunctionLock          , &
+         &                                                               fileNameChemicalStateLock
     character       (len=   8      )                                  :: label
     character       (len=1024      )                                  :: line
     double precision                                                  :: dummy                                  , abundanceHelium                      , &
@@ -94,13 +97,16 @@ contains
     ! Ensure the requested file format version is compatible.
     if (versionFileFormat /= versionFileFormatCurrent) call Error_Report(var_str("this interface supports file format version ")//versionFileFormatCurrent//" but version "//versionFileFormat//" was requested"//{introspection:location})
     ! Determine if we need to compute cooling functions.
-    call Directory_Make(char(File_Path(char(fileNameCoolingFunction))))
-    call Directory_Make(char(File_Path(char(fileNameChemicalState  ))))
+    call Directory_Make(File_Path(fileNameCoolingFunction))
+    call Directory_Make(File_Path(fileNameChemicalState  ))
+    call Directory_Make(inputPath(pathTypeDataDynamic)//'aux')
+    fileNameCoolingFunctionLock=inputPath(pathTypeDataDynamic)//'aux/cloudyCIE_coolingFunction_'//Hash_MD5(fileNameCoolingFunction)
+    fileNameChemicalStateLock  =inputPath(pathTypeDataDynamic)//'aux/cloudyCIE_chemicalState_'  //Hash_MD5(fileNameChemicalState  )
     computeCoolingFunctions=.false.
     computeChemicalStates  =.false.
     do i=1,2
-       call File_Lock(char(fileNameCoolingFunction),fileLockCoolingFunction,lockIsShared=i == 1 .or. .not.computeCoolingFunctions)
-       call File_Lock(char(fileNameChemicalState  ),fileLockChemicalState  ,lockIsShared=i == 1 .or. .not.computeChemicalStates  )
+       call File_Lock(fileNameCoolingFunction,fileLockCoolingFunction,lockIsShared=i == 1 .or. .not.computeCoolingFunctions,fileNameLock=fileNameCoolingFunctionLock)
+       call File_Lock(fileNameChemicalState  ,fileLockChemicalState  ,lockIsShared=i == 1 .or. .not.computeChemicalStates  ,fileNameLock=fileNameChemicalStateLock  )
        computeCoolingFunctions=.false.
        computeChemicalStates  =.false.
        if (File_Exists(fileNameCoolingFunction)) then
@@ -195,7 +201,7 @@ contains
              if (includeContinuum_) &
                   & write (cloudyScript,'(a)') 'save emitted continuum units _keV "'//char(fileNameTempContinuum)//'"'
              close(cloudyScript)
-             call System_Command_Do("cd "//cloudyPath//"/source; cloudy.exe -r input",status);
+             call System_Command_Do("cd "//cloudyPath//"/source; ./cloudy.exe -r input",status);
              if (status /= 0) call Error_Report('Cloudy failed'//{introspection:location})
              ! Extract the cooling rate.
              open(newUnit=inputFile,file=char(cloudyPath//"/source/"//fileNameTempCooling),status='old')
@@ -269,15 +275,15 @@ contains
              call    dataset   %writeAttribute(1.0d0                                                     ,'unitsInSI'                                               )
              call    dataset   %close         (                                                                                                                     )
              call    outputFile%writeDataset  (10.0d0**temperaturesLogarithmic                           ,'temperature'                     ,datasetReturned=dataset)
-             call    dataset   %writeAttribute('powerLaw'                                                ,'extrapolateLow'                                          )
-             call    dataset   %writeAttribute('powerLaw'                                                ,'extrapolateHigh'                                         )
+             call    dataset   %writeAttribute('extrapolate'                                             ,'extrapolateLow'                                          )
+             call    dataset   %writeAttribute('extrapolate'                                             ,'extrapolateHigh'                                         )
              call    dataset   %close         (                                                                                                                     )
              call    outputFile%writeDataset  (coolingFunction                                           ,'coolingRate'                     ,datasetReturned=dataset)
              call    dataset   %close         (                                                                                                                     )
              if (includeContinuum_) then
                 call outputFile%writeDataset  (energyContinuum                                           ,'energyContinuum'                 ,datasetReturned=dataset)
-                call dataset   %writeAttribute('powerLaw'                                                ,'extrapolateLow'                                          )
-                call dataset   %writeAttribute('powerLaw'                                                ,'extrapolateHigh'                                         )
+                call dataset   %writeAttribute('extrapolate'                                             ,'extrapolateLow'                                          )
+                call dataset   %writeAttribute('extrapolate'                                             ,'extrapolateHigh'                                         )
                 call dataset   %writeAttribute('keV'                                                     ,'units'                                                   )
                 call dataset   %writeAttribute(kilo*electronVolt                                         ,'unitsInSI'                                               )
                 call dataset   %close         (                                                                                                                     )
@@ -302,8 +308,8 @@ contains
              call    dataset   %writeAttribute(1.0d0                                                     ,'unitsInSI'                              )
              call    dataset   %close         (                                                                                                    )
              call    outputFile%writeDataset  (10.0d0**temperaturesLogarithmic                           ,'temperature'    ,datasetReturned=dataset)
-             call    dataset   %writeAttribute('powerLaw'                                                ,'extrapolateLow'                         )
-             call    dataset   %writeAttribute('powerLaw'                                                ,'extrapolateHigh'                        )
+             call    dataset   %writeAttribute('extrapolate'                                             ,'extrapolateLow'                         )
+             call    dataset   %writeAttribute('extrapolate'                                             ,'extrapolateHigh'                        )
              call    dataset   %close         (                                                                                                    )
              call    outputFile%writeDataset  (densityElectron                                           ,'electronDensity',datasetReturned=dataset)
              call    dataset   %close         (                                                                                                    )

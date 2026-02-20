@@ -33,6 +33,9 @@ my %initializedVariables;
 # Initialize a hash of variables for which "pointer may outlive target" is ignored.
 my %ignoreOutlives;
 
+# Initialize a hash of variables for which "Unused PRIVATE module variable" is ignored.
+my %ignoreUnused;
+
 # Initialize a structure for unused variables.
 my $unusedVariables;
 
@@ -91,6 +94,12 @@ while ( my $line = <$file> ) {
     if ( $line =~ m/^\s*!\$GLC\s+ignore\s+outlive\s*::\s*([a-zA-Z0-9_,\s]+)\s*$/ ) {
 	(my $variables = $1) =~ s/\s*$//;
 	$ignoreOutlives{lc($_)} = 1
+	    foreach ( split(/\s*,\s*/,$variables) );
+    }
+    # Capture unused module ignores.
+    if ( $line =~ m/^\s*!\$GLC\s+ignore\s+unused\s*::\s*([a-zA-Z0-9_,\s]+)\s*$/ ) {
+	(my $variables = $1) =~ s/\s*$//;
+	$ignoreUnused{lc($_)} = 1
 	    foreach ( split(/\s*,\s*/,$variables) );
     }
     # Capture unused variable attributes.
@@ -217,6 +226,12 @@ while ( my $line = <STDIN> ) {
     if ( $line =~ /note: ['‘]([a-zA-Z0-9_]+)[a-zA-Z0-9_\.\[\]]*['’]( was)?? declared here/ ) {
 	$dropBuffer = 1
 	    if ( exists($initializedVariables{lc($1)}) );
+    }
+    # Handle ignore "Unused PRIVATE module variable" warnings.
+    if ( $line =~ m/^\s*Warning: Unused PRIVATE module variable ['‘]([a-zA-Z0-9_]+)['’] declared at \(1\) \[\-Wunused\-value\]/ ) {
+	my $variableName = lc($1);
+	$dropBuffer = 1
+	    if ( exists($ignoreUnused{$variableName}) );
     }
     # Handle ignore "pointer may outlive target" warnings.
     if ( $line =~ m/^\s*\d+\s*\|\s*([a-z0-9_]+)\s*=>\s*[a-z0-9_]+/i ) {

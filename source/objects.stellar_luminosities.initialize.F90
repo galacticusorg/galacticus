@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -38,7 +38,7 @@ contains
    <unitName>Stellar_Luminosities_Initialize</unitName>
   </nodeComponentInitializationTask>
   !!]
-  subroutine Stellar_Luminosities_Initialize(parameters_)
+  subroutine Stellar_Luminosities_Initialize(parameters)
     !!{
     Extract and store a list of output redshifts.
     !!}
@@ -47,12 +47,12 @@ contains
     use            :: Output_Times             , only : outputTimes   , outputTimesClass
     use            :: Stellar_Luminosities_Data, only : outputCount   , outputRedshifts
     implicit none
-    type   (inputParameters ), intent(inout) :: parameters_
+    type   (inputParameters ), intent(inout) :: parameters
     class  (outputTimesClass), pointer       :: outputTimes_
     integer(c_size_t        )                :: i
     
     !![
-    <objectBuilder class="outputTimes" name="outputTimes_" source="parameters_"/>
+    <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     !!]
     outputCount=outputTimes_%count()
     if (allocated(outputRedshifts)) deallocate(outputRedshifts)

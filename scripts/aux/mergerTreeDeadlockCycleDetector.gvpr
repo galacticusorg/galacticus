@@ -1,0 +1,49 @@
+/*
+  a hacked version of the "cycle" gvpr program found in the Graphviz source
+
+  Detect directed cycles 
+*/
+BEG_G{
+  int      cnt, i, output;
+  node_t   tp, hp;
+  node_t   stack[node_t];
+  edge_t   anEdge;
+  string   Tail[], Head[];
+  output  = openF(sprintf("%s.cycles",$F),'w');
+  $tvtype = TV_prepostfwd;
+  $tvroot = fstnode($);
+}
+END{
+  closeF(output);
+}
+N {
+  if (stack[$]) {
+    stack[$] = NULL;
+  } else if ($tvedge == NULL) { /* current root */
+    stack[$] = $;
+  } else {
+    stack[$] = $tvedge.tail;
+  }
+}
+E {
+  if (stack[$.head]) {
+    tp = $.tail;
+    hp = $.head;
+    $.color="red";
+    tp.color="green";
+    if (tp != $.head) {
+      anEdge=isEdge(tp, $.head, "");
+      printf(output,"Cycle:\n");
+      printf(output,"%s %s %s\n", tp.name, anEdge.head.name, tp.label);
+    }
+    while (tp != $.head) {
+      tp.color="green";
+      hp.color="green";
+      hp = tp;
+      tp = stack[tp];
+      anEdge=isEdge(tp, hp, "");
+      anEdge.color="red";
+      printf(output,"%s %s %s\n", tp.name, anEdge.head.name, tp.label);
+    }
+  }
+}
