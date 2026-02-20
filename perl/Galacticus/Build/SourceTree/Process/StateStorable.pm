@@ -270,11 +270,15 @@ CODE
 					    }
 					    $inputCode  .= "  call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";
 					    if ( $allocatable ) {
-						$storedShapeRequired = 1;
-						$inputCode  .= "  allocate(storedShape(".$rank."))\n";
-						$inputCode  .= "  read (stateFile) storedShape\n";
-						$inputCode  .= "  allocate(self%".$variableName."(".join(",",map {"storedShape(".$_.")"} 1..$rank)."))\n";
-						$inputCode  .= "  deallocate(storedShape)\n";
+						if ( $rank > 0 ) {
+						    $storedShapeRequired = 1;
+						    $inputCode  .= "  allocate(storedShape(".$rank."))\n";
+						    $inputCode  .= "  read (stateFile) storedShape\n";
+						    $inputCode  .= "  allocate(self%".$variableName."(".join(",",map {"storedShape(".$_.")"} 1..$rank)."))\n";
+						    $inputCode  .= "  deallocate(storedShape)\n";
+						} else {
+						    $inputCode  .= "  allocate(self%".$variableName.")\n";
+						}
 					    }
 					    if ( $declaration->{'intrinsic'} eq "class" ) {
 						$inputCode  .= " call ".$type."ClassRestore(self%".$variableName.",stateFile)\n";
@@ -309,17 +313,19 @@ CODE
 					foreach my $variableName ( @{$declaration->{'variables'}} ) {
 					    next
 						if ( grep {lc($_) eq lc($variableName)} @excludes );
-					    $storedShapeRequired  = 1;
+					    $storedShapeRequired  = 1
+						if ( $rank > 0 );
 					    $wasAllocatedRequired = 1;
-					    $labelRequired            = 1;
+					    $labelRequired        = 1;
 					    $outputCode .= "  if (allocated(self%".$variableName.")) then\n";
 					    $outputCode .= "   if (displayVerbosity() >= verbosityLevelWorking) then\n";
 					    $outputCode .= "    write (label,'(i16)') sizeof(self%".$variableName.")\n";
 					    $outputCode .= "    call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode .= "   end if\n";
-					    $outputCode .= "   write (stateFile) .true.\n"
-					                .  "   write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
-					                .  "   write (stateFile) self%".$variableName."\n";
+					    $outputCode .= "   write (stateFile) .true.\n";
+					    $outputCode .= "   write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
+						if ( $rank > 0 );
+					    $outputCode .= "   write (stateFile) self%".$variableName."\n";
 					    $outputCode .= "  else\n";
 					    $outputCode .= "   write (stateFile) .false.\n";
 					    $outputCode .= "  end if\n";
@@ -327,10 +333,14 @@ CODE
 					    $inputCode  .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
 					    $inputCode  .= " if (wasAllocated) then\n";
 					    $inputCode  .= "  call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";
-					    $inputCode  .= "  allocate(storedShape(".$rank."))\n";
-		    			    $inputCode  .= "  read (stateFile) storedShape\n";
-					    $inputCode  .= "  allocate(self%".$variableName."(".join(",",map {"storedShape(".$_.")"} 1..$rank)."))\n";
-		    			    $inputCode  .= "  deallocate(storedShape)\n";
+					    if ( $rank > 0 ) {
+						$inputCode  .= "  allocate(storedShape(".$rank."))\n";
+						$inputCode  .= "  read (stateFile) storedShape\n";
+						$inputCode  .= "  allocate(self%".$variableName."(".join(",",map {"storedShape(".$_.")"} 1..$rank)."))\n";
+						$inputCode  .= "  deallocate(storedShape)\n";
+					    } else {
+						$inputCode  .= "  allocate(self%".$variableName.")\n";
+					    }
 		    			    $inputCode  .= "  read (stateFile) self%".$variableName."\n";
 		    			    $inputCode  .= " end if\n";
 					}
