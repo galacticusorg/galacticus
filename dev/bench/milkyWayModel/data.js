@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1771385647747,
+  "lastUpdate": 1771682473870,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "2d65539e592fa25f100b361462f8ba9301d5af35",
-          "message": "Merge pull request #772 from galacticusorg/featFileLockTimeout\n\nAdd a timeout for file lock requests",
-          "timestamp": "2025-01-24T22:41:19Z",
-          "tree_id": "efcfe7566dbe5cfd643ee516dd7ae44569fef789",
-          "url": "https://github.com/galacticusorg/galacticus/commit/2d65539e592fa25f100b361462f8ba9301d5af35"
-        },
-        "date": 1737795034320,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 41.719,
-            "unit": "seconds",
-            "range": 0.0554517808542745
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10716,6 +10686,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 6.397447514887756,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2f1bed7f74d0a1eacd8595a1282cebe480a31b8f",
+          "message": "Merge pull request #1003 from galacticusorg/fixJohnson2021WithRegridding\n\nHandle parent-child halo pairs with identical masses in the Johnson et al. (2021) concentration model",
+          "timestamp": "2026-02-21T06:52:46Z",
+          "tree_id": "e4922a19dc04e710348d508c5243ba5d6afbfaa8",
+          "url": "https://github.com/galacticusorg/galacticus/commit/2f1bed7f74d0a1eacd8595a1282cebe480a31b8f"
+        },
+        "date": 1771682473183,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 58.88,
+            "range": "0.813867311052541",
+            "unit": "seconds"
           }
         ]
       }
