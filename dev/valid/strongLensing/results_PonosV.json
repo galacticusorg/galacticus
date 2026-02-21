@@ -6,10 +6,10 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "62bdb858689c23aece580508e1399efc7b67a23a",
-        "message": "Merge pull request #1000 from galacticusorg/fixHopins2007LockLocation\n\nUse the `dynamic` datasets path for a lock file\n",
-        "timestamp": "2026-02-17 15:15:20+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/62bdb858689c23aece580508e1399efc7b67a23a"
+        "id": "2f1bed7f74d0a1eacd8595a1282cebe480a31b8f",
+        "message": "Merge pull request #1003 from galacticusorg/fixJohnson2021WithRegridding\n\nHandle parent-child halo pairs with identical masses in the Johnson et al. (2021) concentration model\n",
+        "timestamp": "2026-02-21 06:52:46+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/2f1bed7f74d0a1eacd8595a1282cebe480a31b8f"
     },
     "surfaceDensity": {
         "percentageBelow": 32.14285714285714,
@@ -17,8 +17,8 @@ window.PONOSV_DATA = {
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 66.66666666666666,
-        "percentageAbove": 33.333333333333336,
+        "percentageBelow": 33.33333333333333,
+        "percentageAbove": 66.66666666666667,
         "target": 0.85
     }
 }
