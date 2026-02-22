@@ -48,7 +48,6 @@
      type            (matrix                 )                              :: covariance
      type            (varying_string         )                              :: fileName
    contains
-     final     ::                    haloMassFunctionDestructor
      procedure :: evaluate        => haloMassFunctionEvaluate
      procedure :: functionChanged => haloMassFunctionFunctionChanged
   end type posteriorSampleLikelihoodHaloMassFunction
@@ -159,6 +158,7 @@ contains
          &                                                                                        massFunctionOriginal
     integer         (c_size_t                                 ), allocatable  , dimension(:  ) :: massFunctionCountOriginal
     double precision                                           , allocatable  , dimension(:,:) :: massFunctionCovarianceOriginal
+    class           (*                                        ), pointer                       :: dummyPointer_
     character       (len=12                                   )                                :: redshiftLabel
     type            (hdf5Object                               )                                :: massFunctionFile              , simulationGroup
     integer                                                                                    :: i                             , j                , &
@@ -168,7 +168,7 @@ contains
     type            (matrix                                   )                                :: eigenVectors
     type            (vector                                   )                                :: eigenValues
     !![
-    <constructorAssign variables="fileName, redshift, binCountMinimum, massRangeMinimum, likelihoodPoisson, changeParametersFileNames, *parametersModel, *cosmologyFunctions_"/>
+    <constructorAssign variables="fileName, redshift, binCountMinimum, massRangeMinimum, likelihoodPoisson, changeParametersFileNames, *cosmologyFunctions_"/>
     !!]
 
     ! Convert redshift to time.
@@ -177,6 +177,18 @@ contains
          &                                                     redshift &
          &                                                    )         &
          &                                                   )
+    ! Put the parameters object under resource management.
+    allocate(self%parametersModel)
+    self%parametersModel%parametersModel => parametersModel
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    dummyPointer_               => self%parametersModel
+    self%parametersModelManager =  resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]
     ! Read the halo mass function file.
     write (redshiftLabel,'(f6.3)') redshift
     !$ call hdf5Access%set()
@@ -277,20 +289,6 @@ contains
     return
   end function haloMassFunctionConstructorInternal
 
-  subroutine haloMassFunctionDestructor(self)
-    !!{
-    Destructor for the \refClass{posteriorSampleLikelihoodHaloMassFunction} posterior sampling likelihood class.
-    !!}
-    implicit none
-    type(posteriorSampleLikelihoodHaloMassFunction), intent(inout) :: self
-
-    if (associated(self%parametersModel)) then
-       call self%parametersModel%destroy()
-       deallocate(self%parametersModel)
-    end if
-    return
-  end subroutine haloMassFunctionDestructor
-
   double precision function haloMassFunctionEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !!{
     Return the log-likelihood for the halo mass function likelihood function.
@@ -337,7 +335,7 @@ contains
     call self%update(simulationState,modelParametersActive_,modelParametersInactive_,stateVector)
     ! Get the halo mass function object.
     !![
-    <objectBuilder class="haloMassFunction" name="haloMassFunction_" source="self%parametersModel"/>
+    <objectBuilder class="haloMassFunction" name="haloMassFunction_" source="self%parametersModel%parametersModel"/>
     !!]
     ! Compute the mass function.
     allocate(massFunction(size(self%mass)))
