@@ -464,7 +464,6 @@ contains
     call output%writeDataset  (                         velocityRadialDistributionOrbits               ,'velocityRadialDistributionOrbits'    )
     call output%writeDataset  (                         velocityTangentialDistributionOrbits           ,'velocityTangentialDistributionOrbits')
     call output%writeDataset  (                         velocityDistributionOrbits                     ,'velocityDistributionOrbits'          )
-    call output%close         (                                                                                                               )
     !$ call hdf5Access%unset()
     if (present(status)) status=errorStatusSuccess
     call displayUnindent('Done task: merging halo orbit distributions')

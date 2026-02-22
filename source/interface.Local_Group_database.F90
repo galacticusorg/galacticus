@@ -25,8 +25,9 @@ module Interface_Local_Group_DB
   !!{
   Interfaces with the Local Group database.
   !!}
-  use :: FoX_DOM, only : node
-  use :: IO_XML , only : xmlNodeList
+  use :: FoX_DOM         , only : node
+  use :: IO_XML          , only : xmlNodeList
+  use :: Resource_Manager, only : resourceManager
   private
   public  :: localGroupDB, vector3D
 
@@ -90,24 +91,34 @@ module Interface_Local_Group_DB
      generic   :: operator(>)  => vector3DComparisonUnimplemented
   end type vector3D
 
+  type :: documentWrapper
+     !!{
+     Wrapper class for managing XML documents.
+     !!}
+     private
+     type(node), pointer :: document => null()
+   contains
+     final :: documentWrapperDestructor
+  end type documentWrapper
+  
   type :: localGroupDB
      !!{
      Local Group database class.
      !!}
      private
-     type   (node       ), pointer                   :: database => null()
-     type   (xmlNodeList), allocatable, dimension(:) :: galaxies
-     logical             , allocatable, dimension(:) :: selected
+     type   (documentWrapper), pointer                   :: database        => null()
+     type   (xmlNodeList    ), allocatable, dimension(:) :: galaxies
+     logical                 , allocatable, dimension(:) :: selected
+     type   (resourceManager)                            :: databaseManager
    contains
      !![
      <methods>
-       <method description="Return an array of values of the named property for the current selection." method="getProperty" />
-       <method description="Select all galaxies in the current selection where the named property has the given value." method="select" />
-       <method description="Select all galaxies in the database." method="selectAll" />
-       <method description="Update the database." method="update" />
+       <method method="getProperty" description="Return an array of values of the named property for the current selection."                />
+       <method method="select"      description="Select all galaxies in the current selection where the named property has the given value."/>
+       <method method="selectAll"   description="Select all galaxies in the database."                                                      />
+       <method method="update"      description="Update the database."                                                                      />
      </methods>
      !!]
-     final     ::                            localGroupDBDestructor
      procedure :: getProperty{Type¦label} => localGroupDBGetProperty{Type¦label}
      generic   :: getProperty             => getProperty{Type¦label}
      procedure :: select{Type¦label}      => localGroupDBSelect{Type¦label}
@@ -133,36 +144,51 @@ contains
     use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, XML_Get_First_Element_By_Tag_Name, XML_Parse
     use :: ISO_Varying_String, only : char                        , varying_string                   , operator(//)
     implicit none
-    type(localGroupDB  ) :: self
-    type(varying_string) :: fileName
-    
+    type (localGroupDB  )          :: self
+    type (varying_string)          :: fileName
+    class(*             ), pointer :: dummyPointer_
+
     fileName=inputPath(pathTypeDataStatic)//"observations/localGroup/localGroupSatellites.xml"
+    allocate(self%database)
     !$omp critical (FoX_DOM_Access)
-    self%database => XML_Parse(char(fileName))
-    call XML_Get_Elements_By_Tag_Name(XML_Get_First_Element_By_Tag_Name(self%database,'galaxies'),'galaxy',self%galaxies)
+    self%database%document => XML_Parse(char(fileName))
+    call XML_Get_Elements_By_Tag_Name(XML_Get_First_Element_By_Tag_Name(self%database%document,'galaxies'),'galaxy',self%galaxies)
     !$omp end critical (FoX_DOM_Access)
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    dummyPointer_ => self%database
+    self%databaseManager=resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]
     allocate(self%selected(0:size(self%galaxies)-1))
     self%selected=.false.
     return
   end function localGroupDBConstructorInternal
 
-  subroutine localGroupDBDestructor(self)
+  subroutine documentWrapperDestructor(self)
     !!{
-    Destructor for the Local Group database class.
+    Destroy a {\normalfont \ttfamily documentWrapper} object.
     !!}
     use :: FoX_DOM, only : destroy
     implicit none
-    type(localGroupDB), intent(inout) :: self
-
-    if (associated(self%database)) call destroy(self%database)
+    type(documentWrapper), intent(inout) :: self
+    
+    if (associated(self%document)) then
+       !$omp critical (FoX_DOM_Access)
+       call destroy(self%document)
+       !$omp end critical (FoX_DOM_Access)
+    end if
     return
-  end subroutine localGroupDBDestructor
+  end subroutine documentWrapperDestructor
 
   subroutine localGroupDBGetProperty{Type¦label}(self,name,property,isPresent,attribute)
     !!{
     Get a named text property from the Local Group database.
     !!}
-    use                      :: FoX_DOM           , only : getAttributeNode            , getTextContent                            , hasAttribute, setAttribute, &
+    use                      :: FoX_DOM           , only : getAttributeNode            , getTextContent , hasAttribute, setAttribute, &
          &                                                 extractDataContent
     use                      :: Error             , only : Error_Report
     use                      :: IO_XML            , only : XML_Get_Elements_By_Tag_Name
@@ -293,7 +319,7 @@ contains
     use                      :: FoX_DOM           , only : getAttributeNode, getTextContent
     use                      :: Error             , only : Error_Report
     use                      :: ISO_Varying_String, only : varying_string
-    {Type¦match¦^VarStr$¦use :: ISO_Varying_String, only : operator(<)     , operator(>), operator(==)¦}
+    {Type¦match¦^VarStr$¦use :: ISO_Varying_String, only : operator(<)     , operator(>)   , operator(==)¦}
     implicit none
     class           (localGroupDB              ), intent(inout)               :: self
     character       (len=*                     ), intent(in   )               :: name
@@ -347,14 +373,14 @@ contains
     !!{
     Update the database.
     !!}
-    use :: FoX_DOM                         , only : appendChild                 , createElementNS    , setAttribute      , getAttributeNode, &
-         &                                          getNamespaceURI             , getTextContent     , hasAttribute      , serialize       , &
+    use :: FoX_DOM                         , only : appendChild                 , createElementNS    , setAttribute    , getAttributeNode, &
+         &                                          getNamespaceURI             , getTextContent     , hasAttribute    , serialize       , &
          &                                          extractDataContent
     use :: Error                           , only : Error_Report
     use :: Input_Paths                     , only : inputPath                   , pathTypeDataStatic
     use :: IO_XML                          , only : XML_Get_Elements_By_Tag_Name
     use :: ISO_Varying_String              , only : char
-    use :: Numerical_Constants_Astronomical, only : arcminutesToDegrees         , arcsecondsToDegrees, degreesToRadians  , hoursToDegrees  , &
+    use :: Numerical_Constants_Astronomical, only : arcminutesToDegrees         , arcsecondsToDegrees, degreesToRadians, hoursToDegrees  , &
           &                                         minutesToDegrees            , secondsToDegrees
     implicit none
     class           (localGroupDB  ), intent(inout)             :: self
@@ -407,7 +433,7 @@ contains
           declinationDecimal=+     declinationSexagesimalDegrees                                                       &
                &             +sign(declinationSexagesimalArcMinutes,declinationSexagesimalDegrees)*arcminutesToDegrees &
                &             +sign(declinationSexagesimalArcSeconds,declinationSexagesimalDegrees)*arcsecondsToDegrees
-          newNode => createElementNS(self%database,getNamespaceURI(self%database),'declinationDecimal')
+          newNode => createElementNS(self%database%document,getNamespaceURI(self%database%document),'declinationDecimal')
           write (textContent,'(f16.12)') declinationDecimal
           call setAttribute(newNode,"value",trim(adjustl(textContent)))
           newNode => appendChild(galaxy,newNode)
@@ -420,7 +446,7 @@ contains
           declinationSexagesimalArcseconds=    (declinationDecimal-declinationSexagesimalDegrees-declinationSexagesimalArcminutes*arcminutesToDegrees)/arcsecondsToDegrees
           declinationSexagesimalArcminutes=abs(declinationSexagesimalArcminutes)
           declinationSexagesimalArcseconds=abs(declinationSexagesimalArcseconds)
-          newNode => createElementNS(self%database,getNamespaceURI(self%database),'declinationSexagesimal')
+          newNode => createElementNS(self%database%document,getNamespaceURI(self%database%document),'declinationSexagesimal')
           write (textContent,'(f16.12)') declinationSexagesimalDegrees
           call setAttribute(newNode,"degrees"   ,trim(adjustl(textContent)))
           write (textContent,'(f16.12)') declinationSexagesimalArcMinutes
@@ -445,7 +471,7 @@ contains
           rightAscensionDecimal=+rightAscensionSexagesimalHours  *hoursToDegrees   &
                &                +rightAscensionSexagesimalMinutes*minutesToDegrees &
                &                +rightAscensionSexagesimalSeconds*secondsToDegrees
-          newNode => createElementNS(self%database,getNamespaceURI(self%database),'rightAscensionDecimal')
+          newNode => createElementNS(self%database%document,getNamespaceURI(self%database%document),'rightAscensionDecimal')
           write (textContent,'(f16.12)') rightAscensionDecimal
           call setAttribute(newNode,"value",trim(adjustl(textContent)))
           newNode => appendChild(galaxy,newNode)
@@ -456,7 +482,7 @@ contains
           rightAscensionSexagesimalHours  =int( rightAscensionDecimal/hoursToDegrees                                                 )
           rightAscensionSexagesimalMinutes=int((rightAscensionDecimal-rightAscensionSexagesimalHours*hoursToDegrees)/minutesToDegrees)
           rightAscensionSexagesimalSeconds=(rightAscensionDecimal-rightAscensionSexagesimalHours*hoursToDegrees-rightAscensionSexagesimalMinutes*minutesToDegrees)/secondsToDegrees
-          newNode => createElementNS(self%database,getNamespaceURI(self%database),'rightAscensionSexagesimal')
+          newNode => createElementNS(self%database%document,getNamespaceURI(self%database%document),'rightAscensionSexagesimal')
           write (textContent,'(f16.12)') rightAscensionSexagesimalHours
           call setAttribute(newNode,"hours"  ,trim(adjustl(textContent)))
           write (textContent,'(f16.12)') rightAscensionSexagesimalMinutes
@@ -475,7 +501,7 @@ contains
           attribute => getAttributeNode(propertyList1(0)%element,'value')
           call extractDataContent(attribute,distanceHeliocentric)
           distanceModulus=25.0d0+5.0d0*log10(distanceHeliocentric)
-          newNode => createElementNS(self%database,getNamespaceURI(self%database),'distanceModulus')
+          newNode => createElementNS(self%database%document,getNamespaceURI(self%database%document),'distanceModulus')
           write (textContent,'(f16.12)') distanceModulus
           call setAttribute(newNode,"value",trim(adjustl(textContent)))
           do j=1,size(uncertainties)
@@ -493,7 +519,7 @@ contains
           attribute => getAttributeNode(propertyList2(0)%element,'value')
           call extractDataContent(attribute,distanceModulus)
           distanceHeliocentric=10.0d0**((distanceModulus-25.0d0)/5.0d0)
-          newNode => createElementNS(self%database,getNamespaceURI(self%database),'distanceHeliocentric')
+          newNode => createElementNS(self%database%document,getNamespaceURI(self%database%document),'distanceHeliocentric')
           write (textContent,'(f16.12)') distanceHeliocentric
           call setAttribute(newNode,"value",trim(adjustl(textContent)))
           do j=1,size(uncertainties)
@@ -526,7 +552,7 @@ contains
           positionHeliocentricX=distanceHeliocentric*cos(declinationDecimal*degreesToRadians)*cos(rightAscensionDecimal*degreesToRadians)
           positionHeliocentricY=distanceHeliocentric*cos(declinationDecimal*degreesToRadians)*sin(rightAscensionDecimal*degreesToRadians)
           positionHeliocentricZ=distanceHeliocentric*sin(declinationDecimal*degreesToRadians)
-          newNode => createElementNS(self%database,getNamespaceURI(self%database),'positionHeliocentricCartesian')
+          newNode => createElementNS(self%database%document,getNamespaceURI(self%database%document),'positionHeliocentricCartesian')
           write (textContent,'(e16.8,1x,e16.8,1x,e16.8)') positionHeliocentricX,positionHeliocentricY,positionHeliocentricZ
           call setAttribute(newNode,"value",trim(adjustl(textContent)))
           do j=1,size(uncertainties)
@@ -568,7 +594,7 @@ contains
           attribute => getAttributeNode(propertyList1(0)%element,'value')
           call extractDataContent(attribute,position)
           distance=sqrt(sum((position-positionMilkyWay)**2))
-          newNode => createElementNS(self%database,getNamespaceURI(self%database),'distanceMilkyWay')
+          newNode => createElementNS(self%database%document,getNamespaceURI(self%database%document),'distanceMilkyWay')
           write (textContent,'(e16.8)') distance
           call setAttribute(newNode,"value",trim(adjustl(textContent)))
           do j=1,size(uncertainties)
@@ -596,7 +622,7 @@ contains
           attribute => getAttributeNode(propertyList1(0)%element,'value')
           call extractDataContent(attribute,position)
           distance=sqrt(sum((position-positionM31)**2))
-          newNode => createElementNS(self%database,getNamespaceURI(self%database),'distanceM31')
+          newNode => createElementNS(self%database%document,getNamespaceURI(self%database%document),'distanceM31')
           write (textContent,'(e16.8)') distance
           call setAttribute(newNode,"value",trim(adjustl(textContent)))
           do j=1,size(uncertainties)
@@ -617,7 +643,7 @@ contains
        end if
     end do
     ! Write out the updated database.
-    call serialize(self%database,char(inputPath(pathTypeDataStatic))//"observations/localGroup/localGroupSatellites.xml")
+    call serialize(self%database%document,char(inputPath(pathTypeDataStatic))//"observations/localGroup/localGroupSatellites.xml")
     return
   end subroutine localGroupDBUpdate
 

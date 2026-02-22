@@ -211,6 +211,7 @@ contains
        radiusScaleFree          =+radiusOuter/self%scaleLength
        self%densityNormalization=+mass/Pi/self%scaleLength**3/(2.0d0*log(1.0d0+radiusScaleFree)+log(1.0d0+radiusScaleFree**2)-2.0d0*atan(radiusScaleFree))
     else
+       self%densityNormalization=+0.0d0
        call Error_Report('either "densityNormalization", or "mass" and "radiusOuter" must be specified'//{introspection:location})
     end if
     ! Determine if profile is dimensionless.

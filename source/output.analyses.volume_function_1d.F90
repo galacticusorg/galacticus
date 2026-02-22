@@ -725,15 +725,12 @@ contains
     call    analysisGroup%writeDataset  (self%binCenter    (1:self%binCount                     ),char(self%    propertyLabel)                   ,char(self%   propertyComment)                  ,datasetReturned=dataset)
     call    dataset      %writeAttribute(     char(self%    propertyUnits    )                   ,'units'                                                                                                                )
     call    dataset      %writeAttribute(          self%    propertyUnitsInSI                    ,'unitsInSI'                                                                                                            )
-    call    dataset      %close         (                                                                                                                                                                                )
     call    analysisGroup%writeDataset  (self%functionValue(1:self%binCount                     ),char(self%distributionLabel)                   ,char(self%distributionComment)                 ,datasetReturned=dataset)
     call    dataset      %writeAttribute(     char(self%distributionUnits    )                   ,'units'                                                                                                                )
     call    dataset      %writeAttribute(          self%distributionUnitsInSI                    ,'unitsInSI'                                                                                                            )
-    call    dataset      %close         (                                                                                                                                                                                )
     call    analysisGroup%writeDataset  (self%functionCovariance(1:self%binCount,1:self%binCount),char(self%distributionLabel)//"Covariance"     ,char(self%distributionComment)//" [covariance]",datasetReturned=dataset)
     call    dataset      %writeAttribute("["//char(self%distributionUnits    )//"]²"             ,'units'                                                                                                                )
     call    dataset      %writeAttribute(          self%distributionUnitsInSI   **2              ,'unitsInSI'                                                                                                            )
-    call    dataset      %close         (                                                                                                                                                                                )
     ! If available, include the log-likelihood and target dataset.
     if (allocated(self%functionValueTarget)) then
        call analysisGroup%writeAttribute(          self%logLikelihood()                         ,'logLikelihood'                                                                                                         )
@@ -741,16 +738,10 @@ contains
        call analysisGroup%writeDataset  (          self%functionValueTarget                     ,char(self%distributionLabel)//"Target"          ,char(self%distributionComment)                 ,datasetReturned=dataset)
        call dataset      %writeAttribute(     char(self%distributionUnits    )                  ,'units'                                                                                                                 )
        call dataset      %writeAttribute(          self%distributionUnitsInSI                   ,'unitsInSI'                                                                                                             )
-       call dataset      %close         (                                                                                                                                                                                )
        call analysisGroup%writeDataset  (          self%functionCovarianceTarget                ,char(self%distributionLabel)//"CovarianceTarget",char(self%distributionComment)//" [covariance]",datasetReturned=dataset)
        call dataset      %writeAttribute("["//char(self%distributionUnits    )//"]²"            ,'units'                                                                                                                 )
        call dataset      %writeAttribute(          self%distributionUnitsInSI   **2             ,'unitsInSI'                                                                                                             )
-       call dataset      %close         (                                                                                                                                                                                )
     end if
-    call    analysisGroup%close         (                                                                                                                                                                                )
-    if (present(groupName)) &
-         & call subGroup %close         (                                                                                                                                                                                )
-    call    analysesGroup%close         (                                                                                                                                                                                )
     !$ call hdf5Access%unset()
     return
   end subroutine volumeFunction1DFinalize

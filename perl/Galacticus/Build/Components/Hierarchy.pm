@@ -68,9 +68,9 @@ sub Hierarchy_Initialization {
 	    ],
     };
     $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
-if (.not.hierarchyInitialized) then
+if (hierarchyInitialized == 0) then
   !$omp critical (Node_Class_Hierarchy_Initialize)
-  if (.not.hierarchyInitialized) then
+  if (hierarchyInitialized == 0) then
     ! Parameters controlling output.
 CODE
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
@@ -165,8 +165,8 @@ CODE
 CODE
     }
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-    ! Record that the module is now initialized.
-    hierarchyInitialized=.true.
+    ! Increment the count of hierarchy initializations.
+    hierarchyInitialized=hierarchyInitialized+1
   end if
   !$omp end critical (Node_Class_Hierarchy_Initialize)
 end if
@@ -191,9 +191,10 @@ sub Hierarchy_Finalization {
     # Generate the function code.
     $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
 !$omp critical (Node_Class_Hierarchy_Initialize)
-if (hierarchyInitialized) then
- hierarchyInitialized=.false.
+hierarchyInitialized=hierarchyInitialized-1
+if (hierarchyInitialized == 0) then
  {join(" ",map {"deallocate(default".$_->{'name'}."Component)\n"} &List::ExtraUtils::hashList($build->{'componentClasses'}))}
+ call massDistributionsDestroy()
 end if
 !$omp end critical (Node_Class_Hierarchy_Initialize)
 CODE

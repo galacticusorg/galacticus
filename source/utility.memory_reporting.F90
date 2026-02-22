@@ -298,7 +298,6 @@ contains
     !$ call hdf5Access%set()
     versionGroup=outputFile%openGroup('Version')
     call versionGroup%writeAttribute(memoryUsageMaximum,'memoryUsageMaximum')
-    call versionGroup%close         (                                       )
     !$ call hdf5Access%unset()
     return
   end subroutine outputMemoryUsageMaximum

@@ -226,7 +226,7 @@ contains
     integer                                                                                  :: i
 
     !$ call hdf5Access%set()
-    call    dataFile%openFile     (fileName              ,readOnly=.true.         )
+    dataFile=hdf5Object(fileName,readOnly=.true.)
     call    dataFile%readDataset  ('starFormationRate'   ,starFormationRates      )
     haveTarget=   dataFile%hasDataset('starFormationRateFunctionObserved'          ) &
          &     .and.                                                                 &
@@ -249,7 +249,6 @@ contains
           end do
        end if
     end if
-    call dataFile%close()
     !$ call hdf5Access%unset()
     ! Construct the object.
     !![

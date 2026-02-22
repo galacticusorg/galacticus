@@ -37,18 +37,20 @@ module Function_Classes
      !!{
      The base class for all {\normalfont \ttfamily functionClass} classes.
      !!}
-     logical :: isDefaultOfClass=.false.
+     logical :: isDefaultOfClass=.false., reportOn_=.false.
      integer :: referenceCount  =0
    contains
      !![
      <methods>
-       <method description="Reset the reference count to this object to 0." method="referenceCountReset" />
-       <method description="Increment the reference count to this object." method="referenceCountIncrement" />
-       <method description="Decrement the reference count to this object and return the new reference count." method="referenceCountDecrement" />
-       <method description="Return true if this is the default object of this class." method="isDefault" />
+       <method method="referenceCountReset"     description="Reset the reference count to this object to 0."                                  />
+       <method method="referenceCountIncrement" description="Increment the reference count to this object."                                   />
+       <method method="referenceCountDecrement" description="Decrement the reference count to this object and return the new reference count."/>
+       <method method="isDefault"               description="Return true if this is the default object of this class."                        />
+       <method method="reportOn"                description="Indicate that reference count changes to this object should be reported on."     />
      </methods>
      !!]
      procedure :: isDefault               => functionClassIsDefault
+     procedure :: reportOn                => functionClassReportOn
      procedure :: referenceCountReset     => functionClassReferenceCountReset
      procedure :: referenceCountIncrement => functionClassReferenceCountIncrement
      procedure :: referenceCountDecrement => functionClassReferenceCountDecrement
@@ -68,6 +70,22 @@ module Function_Classes
 
 contains
 
+  subroutine functionClassReportOn(self)
+    !!{
+    Indicate that reference count changes to this object should be reported on.
+    !!}
+    use :: Display           , only : displayMessage
+    use :: String_Handling   , only : operator(//)
+    use :: ISO_Varying_String, only : operator(//)  , var_str
+    implicit none
+    class(functionClass), intent(inout) :: self
+
+    self%reportOn_=.true.
+    call displayMessage(var_str('reporting on functionClass object [loc:')//loc(self)//' ] references - count = '//self%referenceCount)
+    call backtrace()
+    return
+  end subroutine functionClassReportOn
+
   logical function functionClassIsDefault(self)
     !!{
     Return true if this is the default object of this class.
@@ -83,10 +101,17 @@ contains
     !!{
     Reset the reference count to this object to 0.
     !!}
+    use :: Display           , only : displayMessage
+    use :: String_Handling   , only : operator(//)
+    use :: ISO_Varying_String, only : operator(//)  , var_str
     implicit none
     class(functionClass), intent(inout) :: self
 
     self%referenceCount=1
+    if (self%reportOn_) then
+       call displayMessage(var_str('reset functionClass object [loc:')//loc(self)//' ] references - count = '//self%referenceCount)
+       call backtrace()
+    end if
     return
   end subroutine functionClassReferenceCountReset
 
@@ -94,22 +119,36 @@ contains
     !!{
     Increment the reference count to this object.
     !!}
+    use :: Display           , only : displayMessage
+    use :: String_Handling   , only : operator(//)
+    use :: ISO_Varying_String, only : operator(//)  , var_str
     implicit none
     class(functionClass), intent(inout) :: self
 
     self%referenceCount=self%referenceCount+1
-   return
+    if (self%reportOn_) then
+       call displayMessage(var_str('increment functionClass object [loc:')//loc(self)//' ] references - count = '//self%referenceCount)
+       call backtrace()
+    end if
+    return
   end subroutine functionClassReferenceCountIncrement
 
   integer function functionClassReferenceCountDecrement(self)
     !!{
     Decrement the reference count to this object and return the new count.
     !!}
+    use :: Display           , only : displayMessage
+    use :: String_Handling   , only : operator(//)
+    use :: ISO_Varying_String, only : operator(//)  , var_str
     implicit none
     class(functionClass), intent(inout) :: self
 
     self%referenceCount=self%referenceCount-1
     functionClassReferenceCountDecrement=self%referenceCount
+    if (self%reportOn_) then
+       call displayMessage(var_str('decrement functionClass object [loc:')//loc(self)//' ] references - count = '//self%referenceCount)
+       call backtrace()
+    end if
     return
   end function functionClassReferenceCountDecrement
 

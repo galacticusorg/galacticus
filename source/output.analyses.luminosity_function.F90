@@ -209,15 +209,14 @@ contains
     logical                                                                                :: haveTarget
 
     !$ call hdf5Access%set()
-    call dataFile%openFile   (fileName           ,readOnly=.true.   )
-    call dataFile%readDataset('magnitudeAbsolute',magnitudesAbsolute)
+    dataFile=hdf5Object(fileName,readOnly=.true.)
+    call    dataFile%readDataset  ('magnitudeAbsolute'      ,magnitudesAbsolute )
     haveTarget=dataFile%hasDataset('luminosityFunction').and.dataFile%hasDataset('luminosityFunctionError')
     if (haveTarget) then
        call dataFile%readAttribute('label'                  ,targetLabel        )
        call dataFile%readDataset  ('luminosityFunction'     ,functionValueTarget)
        call dataFile%readDataset  ('luminosityFunctionError',functionErrorTarget)
     end if
-    call dataFile%close      (                                      )
     !$ call hdf5Access%unset()
     if (haveTarget) then
        allocate(functionCovarianceTarget(size(functionErrorTarget),size(functionErrorTarget)))

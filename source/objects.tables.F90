@@ -46,21 +46,25 @@ module Tables
   !![
   <stateStorable class="table">
    <table1DGeneric>
-    <methodCall method="interpolatorReinitialize" arguments="gslFree=.true."/>
+     <methodCall method="interpolatorReinitialize"/>
+     <pointerStore variables="interpolators"/>
    </table1DGeneric>
    <table2DLinLinLin>
-    <methodCall method="interpolatorReinitialize" arguments="gslFree=.true."/>
+    <methodCall method="interpolatorReinitialize"/>
    </table2DLinLinLin>
+  </stateStorable>
+  <stateStorable class="table1dGenericObjects">
+    <table1dGenericObjects/>
   </stateStorable>
   !!]
 
   !![
   <deepCopyActions class="table">
    <table1DGeneric>
-    <methodCall method="interpolatorReinitialize" arguments="gslFree=.false."/>
+    <methodCall method="interpolatorDeepCopy"/>
    </table1DGeneric>
    <table2DLinLinLin>
-    <methodCall method="interpolatorReinitialize" arguments="gslFree=.false."/>
+    <methodCall method="interpolatorReinitialize"/>
    </table2DLinLinLin>
   </deepCopyActions>
   !!]
@@ -125,6 +129,8 @@ module Tables
      procedure                                 :: ys                  => Table1D_Ys
      procedure                                 :: xEffective          => Table1D_Find_Effective_X
      procedure                                 :: integrationWeights  => Table1D_Integration_Weights
+     procedure                                 ::                        Table1D_Assignment
+     generic                                   :: assignment(=)       => Table1D_Assignment
   end type table1D
 
   interface
@@ -141,22 +147,40 @@ module Tables
      end function Table1D_Interpolate
   end interface
 
+  type :: table1dGenericObjects
+     !!{
+     Container type for interpolators used in 1D generic tables.
+     !!}
+     type   (interpolator) :: interpolator_
+     logical               :: interpolatorInitialized
+  end type table1dGenericObjects
+  
   type, extends(table1D) :: table1DGeneric
      !!{
      Table type supporting generic one dimensional tables.
      !!}
-     type   (interpolator), allocatable, dimension(:) :: interpolator_
-     logical              , allocatable, dimension(:) :: interpolatorInitialized
-     integer                                          :: interpolationType
+     !![
+     <workaround type="gfortran" PR="123938" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=123938">
+       <description>gfortran causes a memory leak with allocatable components in nested derived-types.</description>
+       <note>
+	 Once fixed, the interpolators component could be allocatable and not a pointer, we could replace it with simple
+	 allocatable arrays of interpolator and logical objects and remove the table1dGenericObjects type altogether.
+       </note>
+     </workaround>
+     !!]
+     type   (table1dGenericObjects), pointer, dimension(:) :: interpolators     => null()
+     integer                                               :: interpolationType
    contains
      !![
      <methods>
        <method description="Create the object with the specified {\normalfont \ttfamily x} values, and with {\normalfont \ttfamily tableCount} tables." method="create" />
        <method description="Populate the {\normalfont \ttfamily table}$^\mathrm{th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified." method="populate" />
        <method description="Reinitialize the interpolator." method="interpolatorReinitialize" />
+       <method description="Deep copy the interpolators." method="interpolatorDeepCopy" />
        <method description="Initialize the interpolator." method="interpolatorInitialize" />
      </methods>
      !!]
+     final     ::                             Table_Generic_1D_Destructor
      procedure :: create                   => Table_Generic_1D_Create
      procedure :: destroy                  => Table_Generic_1D_Destroy
      procedure :: populate_                => Table_Generic_1D_Populate
@@ -167,6 +191,7 @@ module Tables
      procedure :: interpolateGradient      => Table_Generic_1D_Interpolate_Gradient
      procedure :: interpolatorInitialize   => Table_Generic_1D_Interpolator_Initialize
      procedure :: interpolatorReinitialize => Table_Generic_1D_Interpolator_Reinitialize
+     procedure :: interpolatorDeepCopy     => Table_Generic_1D_Interpolator_Deep_Copy
   end type table1DGeneric
 
   type, extends(table1D) :: table1DLinearLinear
@@ -522,10 +547,9 @@ contains
        ! Set linear interpolation.
        reversedSelf%interpolationType=GSL_Interp_Linear
        ! Build the interpolator.
-       allocate(reversedSelf%interpolator_          (1))
-       allocate(reversedSelf%interpolatorInitialized(1))
-       reversedSelf%interpolator_          (1)=interpolator(reversedSelf%xv,interpolationType=GSL_Interp_Linear,extrapolationType=self%extrapolationType(1))
-       reversedSelf%interpolatorInitialized(1)=.true.
+       allocate(reversedSelf%interpolators(1))
+       reversedSelf%interpolators(1)%interpolator_          =interpolator(reversedSelf%xv,interpolationType=GSL_Interp_Linear,extrapolationType=self%extrapolationType(1))
+       reversedSelf%interpolators(1)%interpolatorInitialized=.true.
     end select
     return
   end subroutine Table_1D_Reverse
@@ -589,7 +613,223 @@ contains
     end do
     return
   end function Table1D_Integration_Weights
+  
+  !![
+  <workaround type="gfortran" PR="121537" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=121537">
+    <description>gfortran misses a defined-assignment of a component.</description>
+  </workaround>
+  !!]
+  subroutine Table1D_Assignment(to,from)
+    !!{
+    Assignment operator for the {\normalfont \ttfamily table1D} class.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class  (table1D), intent(  out) :: to
+    class  (table1D), intent(in   ) :: from
+    integer                         :: i
 
+    to%xCount           =from%xCount
+    to%extrapolationType=from%extrapolationType
+    if (allocated(from%xv)) then
+       allocate(to%xv(size(from%xv)))
+       to%xv=from%xv
+    end if
+    if (allocated(from%yv)) then
+       allocate(to%yv(size(from%yv,dim=1),size(from%yv,dim=2)))
+       to%yv=from%yv
+    end if
+    select type (from)
+    class is (table1DGeneric)
+       select type (to)
+       class is (table1DGeneric)
+          if (associated(from%interpolators)) then
+             allocate(to%interpolators(size(from%interpolators)))
+             !![
+	     <workaround type="gfortran" PR="46897" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=46897">
+	       <seeAlso type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=57696"/>
+	       <description>Type-bound defined assignment not done because multiple part array references would occur in intermediate expressions.</description>
+             !!]
+             do i=1,size(from%interpolators)
+                to%interpolators(i)%interpolator_          =from%interpolators(i)%interpolator_
+                to%interpolators(i)%interpolatorInitialized=from%interpolators(i)%interpolatorInitialized
+             end do
+             !![
+	     </workaround>
+             !!]
+          end if
+          to%xCount           =from%xCount
+          to%extrapolationType=from%extrapolationType
+          to%interpolationType=from%interpolationType
+       class default
+          call Error_Report('mismatched types in assignment'//{introspection:location})
+       end select
+    class is (table1DLinearLinear)
+       select type (to)
+       class is (table1DLinearLinear)
+          to%dxPrevious    =from%dxPrevious
+          to%dyPrevious    =from%dyPrevious
+          to%inverseDeltaX =from%inverseDeltaX
+          to%xPrevious     =from%xPrevious
+          to%yPrevious     =from%yPrevious
+          to%dTablePrevious=from%dTablePrevious
+          to%tablePrevious =from%tablePrevious
+      class default
+          call Error_Report('mismatched types in assignment'//{introspection:location})
+       end select
+    class is (table1DLogarithmicLinear)
+       select type (to)
+       class is (table1DLogarithmicLinear)
+          to%dxPrevious          =from%dxPrevious
+          to%dyPrevious          =from%dyPrevious
+          to%inverseDeltaX       =from%inverseDeltaX
+          to%xPrevious           =from%xPrevious
+          to%yPrevious           =from%yPrevious
+          to%dTablePrevious      =from%dTablePrevious
+          to%tablePrevious       =from%tablePrevious
+          to%previousSet         =from%previousSet
+          to%xLinearPrevious     =from%xLinearPrevious
+          to%xLogarithmicPrevious=from%xLogarithmicPrevious
+       class default
+          call Error_Report('mismatched types in assignment'//{introspection:location})
+       end select
+    class is (table1DLinearCSpline)
+       select type (to)
+       class is (table1DLinearCSpline)
+          if (allocated(to%sv)) deallocate(to%sv)
+          if (allocated(to%av)) deallocate(to%av)
+          if (allocated(to%bv)) deallocate(to%bv)
+          if (allocated(to%cv)) deallocate(to%cv)
+          if (allocated(to%dv)) deallocate(to%dv)
+          if (allocated(from%sv)) allocate(to%sv,source=from%sv)
+          if (allocated(from%av)) allocate(to%av,source=from%av)
+          if (allocated(from%bv)) allocate(to%bv,source=from%bv)
+          if (allocated(from%cv)) allocate(to%cv,source=from%cv)
+          if (allocated(from%dv)) allocate(to%dv,source=from%dv)
+          to%dTablePrevious=from%dTablePrevious
+          to%iPrevious     =from%iPrevious
+          to%tablePrevious =from%tablePrevious
+          to%deltaX        =from%deltaX
+          to%inverseDeltaX =from%inverseDeltaX
+          to%aPrevious     =from%aPrevious
+          to%bPrevious     =from%bPrevious
+          to%cPrevious     =from%cPrevious
+          to%dPrevious     =from%dPrevious
+          to%dxPrevious    =from%dxPrevious
+          to%dyPrevious    =from%dyPrevious
+          to%xPrevious     =from%xPrevious
+          to%yPrevious     =from%yPrevious
+       class default
+          call Error_Report('mismatched types in assignment'//{introspection:location})
+       end select
+    class is (table1DLogarithmicCSpline)
+       select type (to)
+       class is (table1DLogarithmicCSpline)
+          if (allocated(to%sv)) deallocate(to%sv)
+          if (allocated(to%av)) deallocate(to%av)
+          if (allocated(to%bv)) deallocate(to%bv)
+          if (allocated(to%cv)) deallocate(to%cv)
+          if (allocated(to%dv)) deallocate(to%dv)
+          if (allocated(from%sv)) allocate(to%sv,source=from%sv)
+          if (allocated(from%av)) allocate(to%av,source=from%av)
+          if (allocated(from%bv)) allocate(to%bv,source=from%bv)
+          if (allocated(from%cv)) allocate(to%cv,source=from%cv)
+          if (allocated(from%dv)) allocate(to%dv,source=from%dv)
+          to%dTablePrevious      =from%dTablePrevious
+          to%iPrevious           =from%iPrevious
+          to%tablePrevious       =from%tablePrevious
+          to%deltaX              =from%deltaX
+          to%inverseDeltaX       =from%inverseDeltaX
+          to%aPrevious           =from%aPrevious
+          to%bPrevious           =from%bPrevious
+          to%cPrevious           =from%cPrevious
+          to%dPrevious           =from%dPrevious
+          to%dxPrevious          =from%dxPrevious
+          to%dyPrevious          =from%dyPrevious
+          to%xPrevious           =from%xPrevious
+          to%yPrevious           =from%yPrevious
+          to%previousSet         =from%previousSet
+          to%xLinearPrevious     =from%xLinearPrevious
+          to%xLogarithmicPrevious=from%xLogarithmicPrevious
+          to%xMinimum            =from%xMinimum
+          to%xMaximum            =from%xMaximum
+       class default
+          call Error_Report('mismatched types in assignment'//{introspection:location})
+       end select
+    class is (table1DLogarithmicMonotoneCSpline)
+       select type (to)
+       class is (table1DLogarithmicMonotoneCSpline)
+          if (allocated(to%sv)) deallocate(to%sv)
+          if (allocated(to%av)) deallocate(to%av)
+          if (allocated(to%bv)) deallocate(to%bv)
+          if (allocated(to%cv)) deallocate(to%cv)
+          if (allocated(to%dv)) deallocate(to%dv)
+          if (allocated(from%sv)) allocate(to%sv,source=from%sv)
+          if (allocated(from%av)) allocate(to%av,source=from%av)
+          if (allocated(from%bv)) allocate(to%bv,source=from%bv)
+          if (allocated(from%cv)) allocate(to%cv,source=from%cv)
+          if (allocated(from%dv)) allocate(to%dv,source=from%dv)
+          to%dTablePrevious      =from%dTablePrevious
+          to%iPrevious           =from%iPrevious
+          to%tablePrevious       =from%tablePrevious
+          to%deltaX              =from%deltaX
+          to%inverseDeltaX       =from%inverseDeltaX
+          to%aPrevious           =from%aPrevious
+          to%bPrevious           =from%bPrevious
+          to%cPrevious           =from%cPrevious
+          to%dPrevious           =from%dPrevious
+          to%dxPrevious          =from%dxPrevious
+          to%dyPrevious          =from%dyPrevious
+          to%xPrevious           =from%xPrevious
+          to%yPrevious           =from%yPrevious
+          to%previousSet         =from%previousSet
+          to%xLinearPrevious     =from%xLinearPrevious
+          to%xLogarithmicPrevious=from%xLogarithmicPrevious
+          to%xMinimum            =from%xMinimum
+          to%xMaximum            =from%xMaximum
+       class default
+          call Error_Report('mismatched types in assignment'//{introspection:location})
+       end select
+    class is (table1DMonotoneCSpline)
+       select type (to)
+       class is (table1DMonotoneCSpline)
+          if (allocated(to%av)) deallocate(to%av)
+          if (allocated(to%bv)) deallocate(to%bv)
+          if (allocated(to%cv)) deallocate(to%cv)
+          if (allocated(from%av)) allocate(to%av,source=from%av)
+          if (allocated(from%bv)) allocate(to%bv,source=from%bv)
+          if (allocated(from%cv)) allocate(to%cv,source=from%cv)
+          to%dTablePrevious      =from%dTablePrevious
+          to%iPrevious           =from%iPrevious
+          to%tablePrevious       =from%tablePrevious
+          to%aPrevious           =from%aPrevious
+          to%bPrevious           =from%bPrevious
+          to%cPrevious           =from%cPrevious
+          to%dPrevious           =from%dPrevious
+          to%dxPrevious          =from%dxPrevious
+          to%dyPrevious          =from%dyPrevious
+          to%xPrevious           =from%xPrevious
+          to%yPrevious           =from%yPrevious
+       class default
+          call Error_Report('mismatched types in assignment'//{introspection:location})
+       end select
+    class default
+       call Error_Report('unsupported type in assignment'//{introspection:location})
+    end select
+    return
+  end subroutine Table1D_Assignment
+
+  subroutine Table_Generic_1D_Destructor(self)
+    !!{
+    Destructor for 1-D generic tables.
+    !!}
+    implicit none
+    type(table1DGeneric), intent(inout) :: self
+
+    if (associated(self%interpolators)) deallocate(self%interpolators)
+    return
+  end subroutine Table_Generic_1D_Destructor
+  
   subroutine Table_Generic_1D_Create(self,x,tableCount,extrapolationType,interpolationType)
     !!{
     Create a 1-D generic table.
@@ -602,6 +842,7 @@ contains
     double precision                                  , dimension(:), intent(in   )           :: x
     integer                                                         , intent(in   ), optional :: interpolationType, tableCount
     type            (enumerationExtrapolationTypeType), dimension(2), intent(in   ), optional :: extrapolationType
+    integer                                                                                   :: i
     !![
     <optionalArgument name="tableCount"        defaultsTo="1"                           />
     <optionalArgument name="extrapolationType" defaultsTo="extrapolationTypeExtrapolate"/>
@@ -619,14 +860,14 @@ contains
     if (any(extrapolationType_ == extrapolationTypeZero)) call Error_Report('zero extrapolation is not supported'//{introspection:location})
     ! Allocate interpolators, and build if possible.
     if (interpolationType_ == GSL_Interp_Linear) then
-       allocate(self%interpolator_          (1))
-       allocate(self%interpolatorInitialized(1))
-       self%interpolator_          (1)=interpolator(self%xv,extrapolationType=self%extrapolationType,interpolationType=self%interpolationType)
-       self%interpolatorInitialized(1)=.true.
+       allocate(self%interpolators(1))
+       self%interpolators(1)%interpolator_          =interpolator(self%xv,extrapolationType=self%extrapolationType,interpolationType=self%interpolationType)
+       self%interpolators(1)%interpolatorInitialized=.true.
     else
-       allocate(self%interpolator_          (tableCount_))
-       allocate(self%interpolatorInitialized(tableCount_))
-       self%interpolatorInitialized   =.false.
+       allocate(self%interpolators(tableCount_))
+       do i=1,tableCount_
+          self%interpolators(i)%interpolatorInitialized=.false.
+       end do
     end if
     return
   end subroutine Table_Generic_1D_Create
@@ -638,8 +879,7 @@ contains
     implicit none
     class(table1DGeneric), intent(inout) :: self
 
-    if (allocated(self%interpolator_          )) deallocate(self%interpolator_          )
-    if (allocated(self%interpolatorInitialized)) deallocate(self%interpolatorInitialized)
+    if (associated(self%interpolators)) deallocate(self%interpolators)
     call Table_1D_Destroy(self)
     return
   end subroutine Table_Generic_1D_Destroy
@@ -697,9 +937,9 @@ contains
     integer                , intent(in   ) :: table
 
     if (self%interpolationType == GSL_Interp_Linear) return
-    if (.not.self%interpolatorInitialized(table)) then
-       self%interpolator_          (table)=interpolator(self%xv,self%yv(:,table),extrapolationType=self%extrapolationType,interpolationType=self%interpolationType)
-       self%interpolatorInitialized(table)=.true.
+    if (.not.self%interpolators(table)%interpolatorInitialized) then
+       self%interpolators(table)%interpolator_          =interpolator(self%xv,self%yv(:,table),extrapolationType=self%extrapolationType,interpolationType=self%interpolationType)
+       self%interpolators(table)%interpolatorInitialized=.true.
     end if
     return
   end subroutine Table_Generic_1D_Interpolator_Initialize
@@ -725,7 +965,7 @@ contains
     else
        interpolator_=table_
     end if
-    Table_Generic_1D_Interpolate=self%interpolator_(interpolator_)%interpolate(self%xEffective(x,status),self%yv(:,table_))
+    Table_Generic_1D_Interpolate=self%interpolators(interpolator_)%interpolator_%interpolate(self%xEffective(x,status),self%yv(:,table_))
     return
   end function Table_Generic_1D_Interpolate
   
@@ -750,25 +990,44 @@ contains
     else
        interpolator_=table_
     end if
-    Table_Generic_1D_Interpolate_Gradient=self%interpolator_(interpolator_)%derivative(self%xEffective(x,status),self%yv(:,table_))
+    Table_Generic_1D_Interpolate_Gradient=self%interpolators(interpolator_)%interpolator_%derivative(self%xEffective(x,status),self%yv(:,table_))
     return
   end function Table_Generic_1D_Interpolate_Gradient
 
-  subroutine Table_Generic_1D_Interpolator_Reinitialize(self,gslFree)
+  subroutine Table_Generic_1D_Interpolator_Reinitialize(self)
     !!{
     Reinitialize the interpolator.
     !!}
     implicit none
     class  (table1DGeneric), intent(inout) :: self
-    logical                , intent(in   ) :: gslFree
     integer                                :: i
 
-    if (.not.allocated(self%interpolator_)) return
-    do i=1,size(self%interpolator_)
-       call self%interpolator_(i)%GSLReallocate(gslFree)
+    if (.not.associated(self%interpolators)) return
+    do i=1,size(self%interpolators)
+       call self%interpolators(i)%interpolator_%GSLReallocate()
     end do
     return
   end subroutine Table_Generic_1D_Interpolator_Reinitialize
+
+  subroutine Table_Generic_1D_Interpolator_Deep_Copy(self)
+    !!{
+    Deep copy the interpolator.
+    !!}
+    implicit none
+    class  (table1DGeneric       ), intent(inout)               :: self
+    type   (table1dGenericObjects), pointer      , dimension(:) :: interpolators
+    integer                                                     :: i
+    
+    if (.not.associated(self%interpolators)) return
+    interpolators => self%interpolators
+    nullify(self%interpolators)
+    allocate(self%interpolators(size(interpolators)))
+    do i=1,size(interpolators)
+       self%interpolators(i)=interpolators(i)
+    end do
+    call self%interpolatorReinitialize()
+    return
+  end subroutine Table_Generic_1D_Interpolator_Deep_Copy
 
   subroutine Table_Linear_1D_Create(self,xMinimum,xMaximum,xCount,tableCount,extrapolationType)
     !!{
@@ -1945,7 +2204,7 @@ contains
     Table_NonUniform_Linear_Logarithmic_1D_Ys=exp(self%yv)
     return
   end function Table_NonUniform_Linear_Logarithmic_1D_Ys
-
+  
   subroutine Table_2DLogLogLin_Create(self,xMinimum,xMaximum,xCount,yMinimum,yMaximum,yCount,tableCount,extrapolationTypeX,extrapolationTypeY)
     !!{
     Create a 2-D log-log-linear table.
@@ -2796,16 +3055,15 @@ contains
     return
   end function Table_2D_LinLinLin_Zs
 
-  subroutine Table_2D_LinLinLin_Interpolator_Reinitialize(self,gslFree)
+  subroutine Table_2D_LinLinLin_Interpolator_Reinitialize(self)
     !!{
     Reinitialize the interpolator.
     !!}
     implicit none
-    class  (table2DLinLinLin), intent(inout) :: self
-    logical                  , intent(in   ) :: gslFree
+    class(table2DLinLinLin), intent(inout) :: self
 
-    call self%interpolatorX%GSLReallocate(gslFree)
-    call self%interpolatorY%GSLReallocate(gslFree)
+    call self%interpolatorX%GSLReallocate()
+    call self%interpolatorY%GSLReallocate()
     return
   end subroutine Table_2D_LinLinLin_Interpolator_Reinitialize
 

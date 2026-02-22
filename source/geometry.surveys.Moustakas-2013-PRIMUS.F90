@@ -334,14 +334,11 @@ contains
     type (varying_string                   ), allocatable, dimension(:), intent(inout) :: mangleFiles
 
     allocate(mangleFiles(5))
-    mangleFiles=                                                                    &
-         &      [                                                                   &
-         &       self%mangleDirectory()//"cosmos_field_galex_window_2mask.ply"    , &
-         &       self%mangleDirectory()//"xmm_swire_field_galex_window_2mask.ply" , &
-         &       self%mangleDirectory()//"cfhtls_xmm_field_galex_window_2mask.ply", &
-         &       self%mangleDirectory()//"cdfs_field_galex_window_2mask.ply"      , &
-         &       self%mangleDirectory()//"es1_field_galex_window_2mask.ply"         &
-         &      ]
+    mangleFiles(1)=self%mangleDirectory()//"cosmos_field_galex_window_2mask.ply"
+    mangleFiles(2)=self%mangleDirectory()//"xmm_swire_field_galex_window_2mask.ply"
+    mangleFiles(3)=self%mangleDirectory()//"cfhtls_xmm_field_galex_window_2mask.ply"
+    mangleFiles(4)=self%mangleDirectory()//"cdfs_field_galex_window_2mask.ply"
+    mangleFiles(5)=self%mangleDirectory()//"es1_field_galex_window_2mask.ply"
     return
   end subroutine moustakas2013PRIMUSMangleFiles
 

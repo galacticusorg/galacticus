@@ -121,11 +121,10 @@ contains
 
     ! Read properties from the file.
     !$ call hdf5Access%set()
-    call file%openFile   (char(fileName)  ,readOnly=.true.        )
-    call file%readDataset('time'          ,         time          )
-    call file%readDataset('boundMass'     ,         boundMass     )
-    call file%readDataset('boundMassError',         boundMassError)
-    call file%close      (                                        )
+    file=hdf5Object(char(fileName),readOnly=.true.)
+    call file%readDataset('time'          ,time          )
+    call file%readDataset('boundMass'     ,boundMass     )
+    call file%readDataset('boundMassError',boundMassError)
     !$ call hdf5Access%unset()
     allocate(fractionBoundMass     (size(boundMass)))
     allocate(fractionBoundMassError(size(boundMass)))
@@ -275,19 +274,12 @@ contains
     call analysisGroup%writeDataset  (self%time                   ,'time'                   ,'Time'                           ,datasetReturned=dataset)
     call dataset      %writeAttribute('Gyr'                       ,'units'                                                                            )
     call dataset      %writeAttribute(gigaYear                    ,'unitsInSI'                                                                        )
-    call dataset      %close         (                                                                                                                )
     call analysisGroup%writeDataset  (self%fractionBoundMass      ,'fractionBoundMass'      ,'Fraction of bound mass'         ,datasetReturned=dataset)
     call dataset      %writeAttribute(' '                         ,'units'                                                                            )
     call dataset      %writeAttribute(1.0d0                       ,'unitsInSI'                                                                        )
-    call dataset      %close         (                                                                                                                )
     call analysisGroup%writeDataset  (self%fractionBoundMassTarget,'fractionBoundMassTarget','Fraction of bound mass [target]',datasetReturned=dataset)
     call dataset      %writeAttribute(' '                         ,'units'                                                                            )
     call dataset      %writeAttribute(1.0d0                       ,'unitsInSI'                                                                        )
-    call dataset      %close         (                                                                                                                )
-    call analysisGroup%close         (                                                                                                                )
-    if (present(groupName)) &
-         & call subGroup%close       (                                                                                                                )
-    call analysesGroup%close         (                                                                                                                )
     !$ call hdf5Access%unset()
     return
   end subroutine satelliteBoundMassFinalize

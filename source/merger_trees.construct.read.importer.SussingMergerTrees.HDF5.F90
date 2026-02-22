@@ -101,14 +101,9 @@ contains
     !!{
     Destructor for the \refClass{mergerTreeImporterSussingHDF5} HDF5 format merger tree importer class.
     !!}
-    use :: HDF5_Access, only : hdf5Access
     implicit none
     type(mergerTreeImporterSussingHDF5), intent(inout) :: self
 
-    !$ call hdf5Access%set()
-    if (self%snapshots%isOpen()) call self%snapshots%close()
-    if (self%file     %isOpen()) call self%file     %close()
-    !$ call hdf5Access%unset()
     !![
     <objectDestructor name="self%cosmologicalMassVariance_"/>
     !!]
@@ -147,7 +142,7 @@ contains
     localSigma8     =self%cosmologicalMassVariance_%sigma8         (                  )
     !$ call hdf5Access%set()
     ! Open the HDF5 file.
-    call self%file%openFile(char(fileName),overWrite=.false.)
+    self%file=hdf5Object(char(fileName),overWrite=.false.)
     ! Open the snapshots group.
     self%snapshots=self%file%openGroup('Snapshots')
     ! Read expansion factors from the file.
@@ -277,7 +272,6 @@ contains
        snapshotName=snapshotName//i
        snapshot    =self%snapshots%openGroup(char(snapshotName))
        call snapshot%readAttribute('NSnapHalo',nodeCountSnapshot,allowPseudoScalar=.true.)
-       call snapshot%close()
        nodeCount=nodeCount+nodeCountSnapshot
     end do
     ! Abort if subvolumes are requested.
@@ -386,7 +380,6 @@ contains
           ! Set times.
           self%nodes(nodeCount+1:nodeCount+nodeCountSnapshot)%nodeTime             =self%snapshotTimes(i)
        end if
-       call snapshot%close()
        nodeCount=nodeCount+nodeCountSnapshot
     end do
     call displayCounterClear(       verbosityLevelWorking)
@@ -435,7 +428,6 @@ contains
     call mergerTrees%readDataset  ("HaloID"         ,mergerTreeHaloIndices      )
     call mergerTrees%readDataset  ("DescendantIndex",mergerTreeDescendantIndices)
     call mergerTrees%readAttribute("HaloIndexOffset",haloIndexOffset            )
-    call mergerTrees%close()
     call displayUnindent     ('done',verbosityLevelWorking)
     call displayIndent ('Assigning descendant indices',verbosityLevelWorking)
     do i=1,size(mergerTreeHaloIndices)

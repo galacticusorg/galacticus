@@ -25,12 +25,12 @@ module HDF5_Access
   !!{
   Provides an HDF5 access lock.
   !!}
-  use :: Locks, only : ompLock
+  use :: Locks, only : mutex
   implicit none
   public
 
   ! Lock object to coordinate access to HDF5.
-  type   (ompLock) :: hdf5Access
-  logical          :: hdf5AccessInitialized=.false.
+  type   (mutex) :: hdf5Access
+  logical        :: hdf5AccessInitialized=.false.
   
 end module HDF5_Access

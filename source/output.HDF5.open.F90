@@ -43,14 +43,14 @@ contains
     !!{
     Open the file for \glc\ output.
     !!}
-    use :: Output_HDF5       , only : hdf5SieveBufferSize , hdf5UseLatestFormat, hdf5CompressionLevel, hdf5CacheElementsCount, &
-         &                            outputFileIsOpen    , outputFile         , hdf5CacheSizeBytes  , hdf5ChunkSize         , &
+    use :: Output_HDF5       , only : hdf5SieveBufferSize , hdf5UseLatestFormat, hdf5CompressionLevel  , hdf5CacheElementsCount, &
+         &                            outputFileIsOpen    , outputFile         , hdf5CacheSizeBytes    , hdf5ChunkSize         , &
          &                            outputGroup
     use :: HDF5              , only : hsize_t             , size_t
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : IO_HDF5_Set_Defaults
-    use :: ISO_Varying_String, only : var_str             , char               , operator(//)        , extract               , &
-         &                            len                 , operator(==)       , adjustl             , trim
+    use :: IO_HDF5           , only : IO_HDF5_Set_Defaults, hdf5Object          , ioHDF5AccessInitialize
+    use :: ISO_Varying_String, only : var_str             , char                , operator(//)          , extract              , &
+         &                            len                 , operator(==)        , adjustl               , trim
     use :: Input_Parameters  , only : inputParameters     , inputParameter
 #ifdef USEMPI
     use :: MPI_Utilities     , only : mpiSelf
@@ -138,16 +138,20 @@ contains
        end if
 #endif
        ! Open the file.
+       call ioHDF5AccessInitialize()
+       allocate(outputFile )
+       allocate(outputGroup)
        !$ call hdf5Access%set()
-       call outputFile%openFile(                                                 &
-            &                                       char(outputScratchFileName), &
-            &                   overWrite          =.true.                     , &
-            &                   objectsOverwritable=.true.                     , &
-            &                   sieveBufferSize    =hdf5SieveBufferSize        , &
-            &                   useLatestFormat    =hdf5UseLatestFormat        , &
-            &                   cacheElementsCount =hdf5CacheElementsCount     , &
-            &                   cacheSizeBytes     =hdf5CacheSizeBytes           &
-            &                  )
+       outputFile=hdf5Object(                                                 &
+            &                                    char(outputScratchFileName), &
+            &                overWrite          =.true.                     , &
+            &                objectsOverwritable=.true.                     , &
+            &                threadSafe         =.true.                     , &
+            &                sieveBufferSize    =hdf5SieveBufferSize        , &
+            &                useLatestFormat    =hdf5UseLatestFormat        , &
+            &                cacheElementsCount =hdf5CacheElementsCount     , &
+            &                cacheSizeBytes     =hdf5CacheSizeBytes           &
+            &               )
        call outputFile%deepCopy(outputGroup)
        !$ call hdf5Access%unset()
        ! Now that the parameter file is open, we can open an output group in it for parameters.
@@ -204,12 +208,12 @@ contains
 	  <eventHookStatic name="outputFileClose"/>
           <eventHook       name="outputFileClose"/>
           !!]
-          ! Close the file.
           !$ call hdf5Access%set()
-          call outputFile %writeAttribute(statusCompletion,"statusCompletion")
-          call outputGroup%close()
-          call outputFile %close()
+          call outputFile%writeAttribute(statusCompletion,"statusCompletion")
           !$ call hdf5Access%unset()
+          ! Destroy the file object.
+          deallocate(outputGroup)
+          deallocate(outputFile )
           ! Move the scratch file to the final file if necessary.
           if (outputFileName /= outputScratchFileName) call File_Rename(outputScratchFileName,outputFileName,overwrite=.true.)
           ! Record that the file is now closed.
@@ -244,7 +248,6 @@ contains
 
     if (.not.outputFileIsOpen) call Error_Report('can not set the output group - file is not open'//{introspection:location})
     !$ call hdf5Access%set()
-    call outputGroup%close()
     outputGroup=outputFile%openGroup(char(nameGroup))
     !$ call hdf5Access%unset()
     return

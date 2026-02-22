@@ -79,9 +79,8 @@ contains
        </inputParameter>
        !!]
        !$ call hdf5Access%set()
-       call idFile%openFile   (char(idSelectionFileName)            )
-       call idFile%readDataset('id'                     ,idSelection)
-       call idFile%close      (                                     )
+       idFile=hdf5Object(char(idSelectionFileName))
+       call idFile%readDataset('id',idSelection)
        !$ call hdf5Access%unset()
     else
        call Error_Report('either "idSelection" of "idSelectionFileName" must be provided'//{introspection:location})

@@ -643,15 +643,12 @@ contains
     call    analysisGroup%writeDataset  (          self%binCenter                         ,char(self%propertyLabel)                       ,char(self%propertyComment)                 ,datasetReturned=dataset)
     call    dataset      %writeAttribute(     char(self%propertyUnits       )             ,'units'                                                                                                            )
     call    dataset      %writeAttribute(          self%propertyUnitsInSI                 ,'unitsInSI'                                                                                                        )
-    call    dataset      %close         (                                                                                                                                                                     )
     call    analysisGroup%writeDataset  (          self%scatterValue                      ,char(self% scatterLabel)                       ,char(self% scatterComment)                 ,datasetReturned=dataset)
     call    dataset      %writeAttribute(     char(self%    scatterUnits    )             ,'units'                                                                                                            )
     call    dataset      %writeAttribute(          self%scatterUnitsInSI                  ,'unitsInSI'                                                                                                        )
-    call    dataset      %close         (                                                                                                                                                                     )
     call    analysisGroup%writeDataset  (          self%scatterCovariance                 ,char(self% scatterLabel)//"Covariance"         ,char(self% scatterComment)//" [covariance]",datasetReturned=dataset)
     call    dataset      %writeAttribute("["//char(self%    scatterUnits    )//"]²"       ,'units'                                                                                                            )
     call    dataset      %writeAttribute(          self%    scatterUnitsInSI   **2        ,'unitsInSI'                                                                                                        )
-    call    dataset      %close         (                                                                                                                                                                     )
     ! If available, include the log-likelihood and target dataset.
     if (allocated(self%scatterValueTarget)) then
        call analysisGroup%writeAttribute(          self%logLikelihood()                   ,'logLikelihood'                                                                                                    )
@@ -659,16 +656,10 @@ contains
        call analysisGroup%writeDataset  (          self%scatterValueTarget                ,char(self%    scatterLabel)//"Target"          ,char(self% scatterComment)                 ,datasetReturned=dataset)
        call dataset      %writeAttribute(     char(self%    scatterUnits    )             ,'units'                                                                                                            )
        call dataset      %writeAttribute(          self%scatterUnitsInSI                  ,'unitsInSI'                                                                                                        )
-       call dataset      %close         (                                                                                                                                                                     )
        call analysisGroup%writeDataset  (          self%scatterCovarianceTarget           ,char(self%    scatterLabel)//"CovarianceTarget",char(self% scatterComment)//" [covariance]",datasetReturned=dataset)
        call dataset      %writeAttribute("["//char(self%    scatterUnits    )//"]²"       ,'units'                                                                                                            )
        call dataset      %writeAttribute(          self%    scatterUnitsInSI   **2        ,'unitsInSI'                                                                                                        )
-       call dataset      %close         (                                                                                                                                                                     )
     end if
-    call    analysisGroup%close         (                                                                                                                                                                     )
-    if (present(groupName)) &
-         & call subGroup %close         (                                                                                                                                                                     )
-    call    analysesGroup%close         (                                                                                                                                                                     )
     !$ call hdf5Access%unset()
     return
   end subroutine scatterFunction1DFinalize

@@ -144,7 +144,7 @@ contains
          &                                                                         columnElement
     double precision                               , allocatable, dimension(:)  :: dataTmp
     integer                                                                     :: i                            , ioStatus
-    type            (varying_string               )                             :: parameterFileName
+    type            (varying_string               )                             :: parameterFileName            , tagName
     !![
     <constructorAssign variables="*cosmologyParameters_, *cosmologicalMassVariance_, *linearGrowth_, *cosmologyFunctions_, *virialDensityContrast_"/>
     !!]
@@ -164,8 +164,9 @@ contains
     call XML_Array_Read(columnElement,"data",dataTmp)
     call self%densityContrast%create(dataTmp,tinker2008ParameterCount,[extrapolationTypeExtrapolate,extrapolationTypeExtrapolate])
     deallocate(dataTmp)
-    do i=tinker2008ParameterMin,tinker2008ParameterMax       
-       columnElement => XML_Get_First_Element_By_Tag_Name(columnsElement,char(enumerationTinker2008ParameterDecode(i,includePrefix=.false.)))
+    do i=tinker2008ParameterMin,tinker2008ParameterMax
+       tagName       =  enumerationTinker2008ParameterDecode(i,includePrefix=.false.)
+       columnElement => XML_Get_First_Element_By_Tag_Name(columnsElement,char(tagName))
        call XML_Array_Read(columnElement,"data",dataTmp)
        call self%densityContrast%populate(dataTmp,table=i+1)
        deallocate(dataTmp)

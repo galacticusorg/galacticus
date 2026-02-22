@@ -27,6 +27,7 @@ program Test_Parameters
   !!}
   use :: Cosmological_Density_Field, only : cosmologicalMassVariance, cosmologicalMassVarianceClass
   use :: Cosmology_Parameters      , only : cosmologyParameters     , cosmologyParametersClass
+  use :: Cosmology_Functions      , only : cosmologyFunctions     , cosmologyFunctionsClass
   use :: Display                   , only : displayVerbositySet     , verbosityLevelStandard
   use :: IO_HDF5                   , only : hdf5Object
   use :: ISO_Varying_String        , only : assignment(=)           , var_str                      , varying_string
@@ -36,6 +37,7 @@ program Test_Parameters
   type            (hdf5Object                   )              :: outputFile
   type            (varying_string               )              :: parameterFile            , parameterValue
   class           (cosmologyParametersClass     ), pointer     :: cosmologyParameters_
+  class           (cosmologyFunctionsClass      ), pointer     :: cosmologyFunctions_
   class           (cosmologicalMassVarianceClass), pointer     :: cosmologicalMassVariance_
   type            (inputParameters              ), target      :: testParameters
   type            (inputParameters              ), allocatable :: wrapper1                 ,  wrapper2
@@ -45,22 +47,29 @@ program Test_Parameters
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
   ! Open an output file.
-  call outputFile%openFile("testSuite/outputs/testParameters.hdf5",overWrite=.true.)
+  outputFile=hdf5Object("testSuite/outputs/testParameters.hdf5",overWrite=.true.)
   parameterFile  ='testSuite/parameters/testsParameters.xml'
   testParameters=inputParameters(parameterFile,outputParametersGroup=outputFile)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Parameter input")
   ! Test retrieval of cosmology parameters (simple).
-  cosmologyParameters_ => cosmologyParameters(testParameters)
+  !![
+  <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="testParameters"/>
+  !!]
+  !![
+  <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="testParameters"/>
+  !!]
   call Unit_Tests_Begin_Group("Retrieve cosmological parameters (simple)")
-  call Assert('Ωₘ  ',cosmologyParameters_%OmegaMatter    (), 0.2725d0,relTol=1.0d-6)
-  call Assert('Ωb  ',cosmologyParameters_%OmegaBaryon    (), 0.0455d0,relTol=1.0d-6)
-  call Assert('ΩΛ  ',cosmologyParameters_%OmegaDarkEnergy(), 0.7275d0,relTol=1.0d-6)
-  call Assert('H₀  ',cosmologyParameters_%HubbleConstant (),70.2000d0,relTol=1.0d-6)
-  call Assert('TCMB',cosmologyParameters_%temperatureCMB (),2.72548d0,relTol=1.0d-6)
+  call Assert('Ωₘ  ',cosmologyParameters_%OmegaMatter    (), 0.27250d0,relTol=1.0d-6)
+  call Assert('Ωb  ',cosmologyParameters_%OmegaBaryon    (), 0.04550d0,relTol=1.0d-6)
+  call Assert('ΩΛ  ',cosmologyParameters_%OmegaDarkEnergy(), 0.72750d0,relTol=1.0d-6)
+  call Assert('H₀  ',cosmologyParameters_%HubbleConstant (),70.20000d0,relTol=1.0d-6)
+  call Assert('TCMB',cosmologyParameters_%temperatureCMB (), 2.72548d0,relTol=1.0d-6)
   call Unit_Tests_End_Group()
   ! Test retrieval of cosmological mass variance through a reference.
-  cosmologicalMassVariance_ => cosmologicalMassVariance(testParameters)
+  !![
+  <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="testParameters"/>
+  !!]
   call Unit_Tests_Begin_Group("Parameter referencing")
   call Assert('σ₈ via reference'          ,cosmologicalMassVariance_%sigma8     (                          ),0.912d0,relTol=1.0d-6)
   call Assert('Test presence of reference',testParameters           %isPresent  ('cosmologicalMassVariance'),.true.               )
@@ -127,6 +136,11 @@ program Test_Parameters
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
   ! Close down.
+  call testParameters%reset  ()
   call testParameters%destroy()
-  call outputFile     %close ()
+  !![
+  <objectDestructor name="cosmologyParameters_"     />
+  <objectDestructor name="cosmologyFunctions_"     />
+  <objectDestructor name="cosmologicalMassVariance_"/>
+  !!]
 end program Test_Parameters

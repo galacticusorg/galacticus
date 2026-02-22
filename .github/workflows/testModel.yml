@@ -64,7 +64,7 @@ jobs:
   Test-Model:
     runs-on: ${{ inputs.runner }}
     container:
-      image: ${{ startsWith( format('{0}',inputs.runner), 'ubuntu') && 'ghcr.io/galacticusorg/buildenv:latest' || '' }}
+      image: ${{ startsWith( format('{0}',inputs.runner), 'ubuntu') && 'ghcr.io/galacticusorg/buildenv:gfortranFinalization' || '' }}
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -158,7 +158,7 @@ jobs:
             false
            fi
            if [ ${{ inputs.mpi }} == 1 ]; then
-            mpirun -np  ${{ inputs.processesPerNode }} --allow-run-as-root ./Galacticus.exe ${{ inputs.file }} 2>&1 | tee test.log
+            mpirun --oversubscribe -np  ${{ inputs.processesPerNode }} --allow-run-as-root ./Galacticus.exe ${{ inputs.file }} 2>&1 | tee test.log
            else
             ./Galacticus.exe ${{ inputs.file }} 2>&1 | tee test.log
            fi

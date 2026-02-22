@@ -31,12 +31,12 @@ module Interface_GSL
   !!{
   Interfaces with low-level aspects of the GSL library.
   !!}
-  use, intrinsic :: ISO_C_Binding, only : c_funptr, c_ptr, c_double, c_int, &
-       &                                  c_char
+  use, intrinsic :: ISO_C_Binding, only : c_funptr, c_ptr     , c_double, c_int, &
+       &                                  c_char  , c_null_ptr
   private
   public :: gslFunction        , gslFunctionFdF        , gslFunctionDestroy, &
        &    gslFunctionTemplate, gslFunctionFdFTemplate, gslSetErrorHandler, &
-       &    gslFileOpen        , gslFileClose
+       &    gslFileOpen        , gslFileClose          , gslFunctionWrapper
 
   abstract interface
      !!{
@@ -143,6 +143,15 @@ module Interface_GSL
      real(c_double) :: val, err
   end type gsl_sf_result
 
+  type :: gslFunctionWrapper
+     !!{
+     Wrapper class for managing GSL functions.
+     !!}
+     type(c_ptr) :: f=c_null_ptr
+   contains
+     final :: gslFunctionWrapperDestructor
+  end type gslFunctionWrapper
+  
   ! Error codes.
   !![
   <constant variable="GSL_Success"  gslSymbol="GSL_SUCCESS"  gslHeader="gsl_errno" type="integer" reference="Gnu Scientific Library" referenceURL="https://www.gnu.org/software/gsl/doc/html/err.html#error-codes" description="Error code for success." group="GSL"/>
@@ -257,5 +266,16 @@ contains
     call gslFunctionDestructor(f)
     return
   end subroutine gslFunctionDestroy
+
+  subroutine gslFunctionWrapperDestructor(self)
+    !!{
+    Destroy a {\normalfont \ttfamily gslFunction} object.
+    !!}
+    implicit none
+    type(gslFunctionWrapper), intent(inout) :: self
+
+    call gslFunctionDestructor(self%f)
+    return
+  end subroutine gslFunctionWrapperDestructor
 
 end module Interface_GSL

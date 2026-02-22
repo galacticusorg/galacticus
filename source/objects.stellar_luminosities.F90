@@ -1952,9 +1952,9 @@ contains
     type   (stellarPopulationSpectraPostprocessorList), dimension(size(array))                :: arrayTmp
     integer(kind=c_size_t                            )                                        :: i
 
-    forall(i=1:size(array))
+    do i=1,size(array)
        arrayTmp(i)=array(index(i))
-    end forall
+    end do
     array=arrayTmp
     return
   end subroutine sortByIndexPostprocessor

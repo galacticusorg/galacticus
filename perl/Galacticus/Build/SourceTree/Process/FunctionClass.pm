@@ -263,7 +263,7 @@ sub Process_FunctionClass {
 		    # Search the node for declarations.
 		    $node = $node->{'firstChild'};
 		    while ( $node ) {
-			&potentialDescriptorParameters($node->{'declarations'},$nonAbstractClass,$potentialNames)
+			&potentialDescriptorParameters($node->{'declarations'},$nonAbstractClass,$class,$potentialNames)
 			    if ( $node->{'type'} eq "declaration" );
 			$node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
 		    }
@@ -284,14 +284,14 @@ sub Process_FunctionClass {
 		    my $declaration = &Fortran::Utils::Unformat_Variables($declarationSource);
 		    die("Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass(): unable to parse variable declaration")
 			unless ( defined($declaration) );
-		    &potentialDescriptorParameters($declaration,$nonAbstractClass,$potentialNames);
+		    &potentialDescriptorParameters($declaration,$nonAbstractClass,undef(),$potentialNames);
 		}
 		# Add any names declared in the functionClassType.
 		if ( defined($functionClassType) ) {
 		    # Search the node for declarations.
 		    my $node = $functionClassType->{'node'}->{'firstChild'};
 		    while ( $node ) {
-			&potentialDescriptorParameters($node->{'declarations'},$nonAbstractClass,$potentialNames)
+			&potentialDescriptorParameters($node->{'declarations'},$nonAbstractClass,undef(),$potentialNames)
 			    if ( $node->{'type'} eq "declaration" );
 			$node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
 		    }
@@ -441,8 +441,8 @@ sub Process_FunctionClass {
 				    $name =~ s/\s//g;
 				    if ( grep {$_ eq lc($name)} @{$potentialNames->{'objects'}} ) {
 					push(@{$descriptorParameters->{'objects'}},{name => $name, source => $constructorNode->{'directive'}->{'source'}});
-				    } elsif ( exists($nonAbstractClass->{'linkedList'}) && grep {$_ eq $name} split(" ",$nonAbstractClass->{'linkedList'}->{'object'}) ) {
-					push(@{$descriptorParameters->{'linkedLists'}},$nonAbstractClass->{'linkedList'});
+				    } elsif ( grep {$_ eq $name} @{$potentialNames->{'linkedListObjects'}} ) {
+					push(@{$descriptorParameters->{'linkedLists'}},$potentialNames->{'linkedLists'}->{$name});
 				    } else {
 					$supported = -5;
 					push(@failureMessage,"could not find a matching internal object for object [".$name."]");
@@ -783,7 +783,7 @@ type   (varying_string )       :: descriptorString
 ! Workaround ends here.
 descriptor=inputParameters()
 ! Disable live nodeLists in FoX as updating these nodeLists leads to memory leaks.
-call setLiveNodeLists(descriptor%document,.false.)
+call setLiveNodeLists(descriptor%document%document,.false.)
 call self%descriptor(descriptor,includeClass=.true.,includeFileModificationTimes=includeFileModificationTimes)
 descriptorString=descriptor%serializeToString()
 call descriptor%destroy()
@@ -1168,6 +1168,286 @@ CODE
 		    ],
 		code        => $allowedParametersCode
 	    };
+	    
+	    # Add "assignment(=)" operator.
+	    my $assignment;
+	    my $rankMaximumAssigner = 0;
+	    my %assignerModules = ( "Error" => 1 );
+	    my $assignerLinkedListVariables;
+	    @{$assignerLinkedListVariables} = ();
+            $assignment->{'code'        } .= "select type (self)\n";
+	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
+		# Add type guards.
+		$assignment->{'code'} .= "type is (".$nonAbstractClass->{'name'}.")\n";
+		$assignment->{'code'} .= "  select type (from)\n";
+		$assignment->{'code'} .= "  type is (".$nonAbstractClass->{'name'}.")\n";
+		# Search the tree for this class.
+		my $class = $nonAbstractClass;
+		while ( $class ) {
+		    my $node = $class->{'tree'}->{'firstChild'};
+		    $node = $node->{'sibling'}
+		        while ( $node && ( $node->{'type'} ne "type" || ( ! exists($node->{'name'}) || $node->{'name'} ne $class->{'name'} ) ) );
+		    last
+			unless ( $node );
+		    # Search the node for declarations.
+		    $node = $node->{'firstChild'};
+		    while ( $node ) {
+			# Process declarations.
+			if ( $node->{'type'} eq "declaration" ) {
+			    foreach my $declaration ( &List::ExtraUtils::as_array($node->{'declarations'}) ) {
+				my $isPointer   = grep {$_ eq "pointer"} @{$declaration->{'attributes'}};
+				my $assigner    = $isPointer ? "=>" : "=";
+				my $allocatable = grep {$_ eq "allocatable"} @{$declaration->{'attributes'}};
+				(my $type = $declaration->{'type'}) =~ s/(^\s*|\s*$)//g
+				    if ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" );
+				my $referenceCount= 
+				    ($declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type")
+				    &&
+				    (grep {$_ eq $type    } (keys(%{$stateStorables->{'functionClasses'}}),@{$stateStorables->{'functionClassInstances'}}))
+				    &&
+				    grep {$_ eq "pointer"}  @{$declaration   ->{'attributes'     }};
+				foreach my $object ( @{$declaration->{'variables'}} ) {
+				    (my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
+				    my $allocatableThis = $allocatable;
+				    my $allocated       = "allocated";
+				    if ( exists($class->{'assignment'}) && exists($class->{'assignment'}->{'forceArrayAssign'}) && grep {$_ eq $name} split(" ",$class->{'assignment'}->{'forceArrayAssign'}) ) {
+					$allocatableThis = 1;
+					$allocated       = "associated";
+				    }
+				    if ( $allocatableThis ) {
+					$assignment->{'code'} .= "    if (".$allocated."(self%".$name.")) deallocate(self%".$name.")\n";
+					$assignment->{'code'} .= "    if (".$allocated."(from%".$name.")) then\n";
+					# Use `mold=` to get the correct type. Then include a direct assignment after the `allocate`
+					# as this will trigger any defined assignment which is necessary for reference counting.
+					my $bounds = "";
+					my $rank   = 0;
+					if ( grep {$_ =~ m/^dimension\s*\([a-z0-9_:,\s]+\)/} @{$declaration->{'attributes'}} ) {
+					    # Non-scalar parameter - values must be concatenated.
+					    my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
+					    $rank                   = ($dimensionDeclarator =~ tr/,//)+1;
+					    $bounds = "(".join(",",map {"lbound(from%".$name.",dim=".$_."):ubound(from%".$name.",dim=".$_.")"} 1..$rank).")";
+					}
+					$assignment->{'code'} .= "      allocate(self%".$name.$bounds.",mold=from%".$name.")\n";
+					if ( $rank > 0 && $declaration->{'intrinsic'} eq "type" ) {
+					    # <workaround type="gfortran" PR="46897" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=46897">
+					    #   <seeAlso type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=57696"/>
+					    #   <description>
+					    #     Type-bound defined assignment not done because multiple part array references would occur in intermediate expressions.
+					    #   </description>
+					    # </workaround>
+					    for(my $i=1;$i<=$rank;++$i) {
+						$assignment->{'code'} .= "      do i".$i."__=lbound(from%".$name.",dim=".$i."),ubound(from%".$name.",dim=".$i.")\n";
+					    }
+					    my $indices = join(",",map {"i".$_."__"} 1..$rank);
+					    $assignment->{'code'} .= "      self%".$name."(".$indices.")=from%".$name."(".$indices.")\n";
+					    for(my $i=1;$i<=$rank;++$i) {
+						$assignment->{'code'} .= "      end do\n";
+					    }
+					    $rankMaximumAssigner = $rank
+						if ( $rank > $rankMaximumAssigner );
+					} else {
+					    # Simple assignment.
+					    $assignment->{'code'} .= "      self%".$name."=from%".$name."\n";
+					}
+					$assignment->{'code'} .= "    end if\n";
+				    } elsif ( exists($class->{'linkedList'}) && grep {$_ eq $name} split(" ",$class->{'linkedList'}->{'variable'}) ) {
+					# Linked list - will be handled later.
+				    } else {
+					$assignment->{'code'} .= "    self%".$name.$assigner."from%".$name."\n";
+
+					my $forceReferenceCount =      exists(    $class->{'assignment'}                                  )
+					    &&
+					                               exists(    $class->{'assignment'}->{'functionClass'}               )
+					    &&
+					    grep {lc($_) eq lc($name)} split (" ",$class->{'assignment'}->{'functionClass'}->{'variables'});
+					if ( $forceReferenceCount ) {
+					    $assignment->{'code'} .= "    select type (object_ => self%".$name.")\n";
+					    $assignment->{'code'} .= "    class is (functionClass)\n";
+					    $assignment->{'code'} .= "    ".($isPointer ? "if (associated(object_)) " : "")."call object_%referenceCountIncrement()\n";
+					    $assignment->{'code'} .= "    end select\n";
+					} elsif ( $referenceCount ) {
+					    $assignment->{'code'} .= "    ".($isPointer ? "if (associated(self%".$name.")) " : "")."call self%".$name."%referenceCountIncrement()\n";
+					}
+				    }
+				}
+			    }
+			}
+			$node = $node->{'sibling'};
+		    }
+		    # Handle any linked lists.
+		    if ( exists($class->{'linkedList'}) ) {
+			(my $linkedListCode, my $linkedListModule) = &assignerLinkedList($class->{'linkedList'},$assignerLinkedListVariables);
+			$assignment->{'code'} .= $linkedListCode;
+			$assignerModules{$linkedListModule} = 1
+			    if ( $linkedListModule );
+		    }
+		    # Move to the parent class.
+		    $class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
+		}
+		$assignment->{'code'} .= "  class default\n";
+		$assignment->{'code'} .= "    call Error_Report('self and from types do not match'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
+		$assignment->{'code'} .= "  end select\n";
+	    }
+	    $assignment->{'code'} .= "end select\n";
+	    # Add any objects declared in the base class.
+	    foreach my $data ( &List::ExtraUtils::as_array($directive->{'data'}) ) {
+		my $declarationSource;
+		if ( reftype($data) ) {
+		    $declarationSource = $data->{'content'}
+		    if ( $data->{'scope'} eq "self" );
+		} else {
+		    $declarationSource = $data;
+		}
+		next
+		    unless ( defined($declarationSource) );
+		my $declaration = &Fortran::Utils::Unformat_Variables($declarationSource);
+		my $isPointer   = grep {$_ eq "pointer"} @{$declaration->{'attributes'}};
+		my $assigner    = $isPointer ? "=>" : "=";
+		my $allocatable = grep {$_ eq "allocatable"} @{$declaration->{'attributes'}};
+		(my $type = $declaration->{'type'}) =~ s/(^\s*|\s*$)//g
+							  if ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" );
+		my $referenceCount= 
+		    ($declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type")
+		    &&
+		    (grep {$_ eq $type    } (keys(%{$stateStorables->{'functionClasses'}}),@{$stateStorables->{'functionClassInstances'}}))
+		    &&
+		    grep {$_ eq "pointer"}  @{$declaration   ->{'attributes'     }};
+		foreach my $object ( @{$declaration->{'variables'}} ) {
+		    (my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
+		    if ( $allocatable ) {
+			$assignment->{'code'} .= "    if (allocated(self%".$name.")) deallocate(self%".$name.")\n";
+			$assignment->{'code'} .= "    if (allocated(from%".$name.")) then\n";
+			# Use `mold=` to get the correct type. Then include a direct assignment after the `allocate` as this will
+			# trigger any defined assignment which is necessary for reference counting.
+			my $bounds = "";
+			my $rank   = 0;
+			if ( grep {$_ =~ m/^dimension\s*\([a-z0-9_:,\s]+\)/} @{$declaration->{'attributes'}} ) {
+			    # Non-scalar parameter - values must be concatenated.
+			    my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
+			    $rank                   = ($dimensionDeclarator =~ tr/,//)+1;
+			    $bounds = "(".join(",",map {"lbound(from%".$name.",dim=".$_."):ubound(from%".$name.",dim=".$_.")"} 1..$rank).")";
+			}
+			$assignment->{'code'} .= "      allocate(self%".$name.$bounds.",mold=from%".$name.")\n";
+			if ( $rank > 0 && $declaration->{'intrinsic'} eq "type" ) {
+			    # <workaround type="gfortran" PR="46897" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=46897">
+			    #   <seeAlso type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=57696"/>
+			    #   <description>
+			    #     Type-bound defined assignment not done because multiple part array references would occur in intermediate expressions.
+			    #   </description>
+			    # </workaround>
+			    for(my $i=1;$i<=$rank;++$i) {
+				$assignment->{'code'} .= "      do i".$i."__=lbound(from%".$name.",dim=".$i."),ubound(from%".$name.",dim=".$i.")\n";
+			    }
+			    my $indices = join(",",map {"i".$_."__"} 1..$rank);
+				$assignment->{'code'} .= "      self%".$name."(".$indices.")=from%".$name."(".$indices.")\n";
+			    for(my $i=1;$i<=$rank;++$i) {
+				$assignment->{'code'} .= "      end do\n";
+			    }
+			    $rankMaximumAssigner = $rank
+				if ( $rank > $rankMaximumAssigner );
+			} else {
+			    # Simple assignment.
+			    $assignment->{'code'} .= "      self%".$name."=from%".$name."\n";
+			}
+			$assignment->{'code'} .= "    end if\n";
+		    } else {
+			$assignment->{'code'} .= "    self%".$name.$assigner."from%".$name."\n";
+		    }
+		    $assignment->{'code'} .= "    ".($isPointer ? "if (associated(self%".$name.")) " : "")."call self%".$name."%referenceCountIncrement()\n"
+			if ( $referenceCount );
+		}
+	    }
+	    # Add any objects declared in the functionClassType class.
+	    if ( defined($functionClassType) ) {
+		# Search the node for declarations.
+		my @ignore = ();
+		my $node   = $functionClassType->{'node'}->{'firstChild'};
+		while ( $node ) {
+		    if ( $node->{'type'} eq "declaration" ) {
+			foreach my $declaration ( &List::ExtraUtils::as_array($node->{'declarations'}) ) {
+			    my $isPointer   = grep {$_ eq "pointer"} @{$declaration->{'attributes'}};
+			    my $assigner    = $isPointer ? "=>" : "=";
+			    my $allocatable = grep {$_ eq "allocatable"} @{$declaration->{'attributes'}};
+			    (my $type = $declaration->{'type'}) =~ s/(^\s*|\s*$)//g
+								      if ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" );
+			    my $referenceCount= 
+				($declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type")
+				&&
+				(grep {$_ eq $type    } (keys(%{$stateStorables->{'functionClasses'}}),@{$stateStorables->{'functionClassInstances'}}))
+				&&
+				grep {$_ eq "pointer"}  @{$declaration   ->{'attributes'     }};
+			    foreach my $object ( @{$declaration->{'variables'}} ) {
+				(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
+				if ( $allocatable ) {
+				    $assignment->{'code'} .= "    if (allocated(self%".$name.")) deallocate(self%".$name.")\n";
+				    $assignment->{'code'} .= "    if (allocated(from%".$name.")) then\n";
+				    # Use `mold=` to get the correct type. Then include a direct assignment after the `allocate`
+				    # as this will trigger any defined assignment which is necessary for reference counting.
+				    my $bounds = "";
+				    my $rank   = 0;
+				    if ( grep {$_ =~ m/^dimension\s*\([a-z0-9_:,\s]+\)/} @{$declaration->{'attributes'}} ) {
+					# Non-scalar parameter - values must be concatenated.
+					my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
+					$rank                   = ($dimensionDeclarator =~ tr/,//)+1;
+					$bounds = "(".join(",",map {"lbound(from%".$name.",dim=".$_."):ubound(from%".$name.",dim=".$_.")"} 1..$rank).")";
+				    }
+				    $assignment->{'code'} .= "      allocate(self%".$name.",mold=from%".$name.")\n";
+				    if ( $rank > 0 && $declaration->{'intrinsic'} eq "type" ) {
+					# <workaround type="gfortran" PR="46897" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=46897">
+					#   <seeAlso type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=57696"/>
+					#   <description>
+					#     Type-bound defined assignment not done because multiple part array references would occur in intermediate expressions.
+					#   </description>
+					# </workaround>
+					for(my $i=1;$i<=$rank;++$i) {
+					    $assignment->{'code'} .= "      do i".$i."__=lbound(from%".$name.",dim=".$i."),ubound(from%".$name.",dim=".$i.")\n";
+					}
+					my $indices = join(",",map {"i".$_."__"} 1..$rank);
+					$assignment->{'code'} .= "      self%".$name."(".$indices.")=from%".$name."(".$indices.")\n";
+					for(my $i=1;$i<=$rank;++$i) {
+					    $assignment->{'code'} .= "      end do\n";
+					}
+					$rankMaximumAssigner = $rank
+					    if ( $rank > $rankMaximumAssigner );
+				    } else {
+					# Simple assignment.
+					$assignment->{'code'} .= "      self%".$name."=from%".$name."\n";
+				    }
+				    $assignment->{'code'} .= "    end if\n";
+				} else {
+				    $assignment->{'code'} .= "    self%".$name.$assigner."from%".$name."\n";
+				}
+				$assignment->{'code'} .= "    ".($isPointer ? "if (associated(self%".$name.")) " : "")."call self%".$name."%referenceCountIncrement()\n"
+				    if ( $referenceCount );
+			    }
+			}			}
+		    $node = $node->{'sibling'};
+		}
+	    }
+	    # Add objects from the functionClass class.
+	    $assignment->{'code'} .= "self%isDefaultOfClass=from%isDefaultOfClass\n";
+	    $assignment->{'code'} .= "self%referenceCount=from%referenceCount\n";
+	    $assignment->{'code'} .= "return\n";
+	    # Insert any variables required.
+	    if ( $rankMaximumAssigner > 0 ) {
+		$assignment->{'code'} = "integer :: ".join(",",map {"i".$_."__"} 1..$rankMaximumAssigner)."\n".$assignment->{'code'}
+	    }
+	    if ( scalar(@{$assignerLinkedListVariables}) > 0 ) {
+           	$assignment->{'code'} = &Fortran::Utils::Format_Variable_Definitions($assignerLinkedListVariables).$assignment->{'code'};
+	    }
+	    # Construct the method.
+	    $methods{'assignment(=)'} =
+	    {
+		description => "Assign the object.",
+		type        => "void",
+		recursive   => "yes",
+		pass        => "yes",
+		selfIntent  => "out",
+		modules     => join(" ",sort(keys(%assignerModules))),
+		argument    => [ "class(".$directive->{'name'}."Class), intent(in   ) :: from" ],
+		code        => $assignment->{'code'}
+	    };
+	    
 	    # Add "deepCopy" method.
 	    my $deepCopy;
             if ( $debugging ) {
@@ -1176,7 +1456,8 @@ CODE
 		$deepCopy->{'modules'}->{'String_Handling'   } = 1;
 		$deepCopy->{'modules'}->{'Display'           } = 1;
             }
-	    $deepCopy->{'rankMaximum'} = 0;
+	    $deepCopy->{'rankMaximum'       } = 0;
+	    $deepCopy->{'needReferenceCount'} = 0;
             my $linkedListVariables;
             my $linkedListResetVariables;
             my $linkedListFinalizeVariables;
@@ -1291,6 +1572,9 @@ CODE
             # Insert any iterator variables needed.
             $deepCopy->{'code'} = "integer :: ".join(",",map {"i".$_} 1..$deepCopy->{'rankMaximum'})."\n".$deepCopy->{'code'}
                 if ( $deepCopy->{'rankMaximum'} > 0 );
+	    # Insert any reference count variable needed.
+	    $deepCopy->{'code'} = "integer :: referenceCount__\n".$deepCopy->{'code'}
+                if ( $deepCopy->{'needReferenceCount'} );
 	    $methods{'deepCopy'} =
 	    {
 		description => "Perform a deep copy of the object. This is a wrapper around the actual deep-copy code.",
@@ -1756,7 +2040,7 @@ CODE
 		);
             foreach ( sort(keys(%methods)) ) {
                 next
-                    if ( $_ eq "destructor" );
+                    if ( $_ eq "destructor" || $_ eq "assignment(=)" );
                 my $method = $methods{$_};
                 my $functionName;
                 if ( exists($method->{'function'}) ) {
@@ -1766,29 +2050,31 @@ CODE
                 }
 		$methodTable->add("",$_,$functionName);
 	    }
-            $modulePreContains->{'content'} .= $methodTable->table();
-            if ( exists($directive->{'generic'}) ) {
-		my $genericTable = Text::Table->new(
-		    {
-			is_sep => 1,
-			body   => "    generic :: "
-		    },
-		    {
-			align  => "left"
-		    },
-		    {
-			is_sep => 1,
-			body   => " => ",
-		    },
-		    {
-			align  => "left"
-		    }
-		    );
+	    $modulePreContains->{'content'} .= $methodTable->table();
+	    $modulePreContains->{'content'} .= "procedure :: ".$directive->{'name'}."Assignment\n";
+	    my $genericTable = Text::Table->new(
+		{
+		    is_sep => 1,
+		    body   => "    generic :: "
+		},
+		{
+		    align  => "left"
+		},
+		{
+		    is_sep => 1,
+		    body   => " => ",
+		},
+		{
+		    align  => "left"
+		}
+		);
+	    if ( exists($directive->{'generic'}) ) {
 		foreach ( &List::ExtraUtils::as_array($directive->{'generic'}) ) {
 		    $genericTable->add($_->{'name'},join(", ",&List::ExtraUtils::as_array($_->{'method'})));
 		}
-		$modulePreContains->{'content'} .= $genericTable->table();
             }
+	    $genericTable->add("assignment(=)",$directive->{'name'}."Assignment");
+	    $modulePreContains->{'content'} .= $genericTable->table();
 	    $modulePreContains->{'content'} .= "   final :: ".$directive->{'name'}."Destructor\n"
                 if ( exists($methods{'destructor'}) );
 	    $modulePreContains->{'content'} .= "   end type ".$directive->{'name'}."Class\n\n";
@@ -1886,8 +2172,8 @@ CODE
 		    $modulePostContains->{'content'} .= "      if (.not.addLockInitialized) then\n";
 		    $modulePostContains->{'content'} .= "      !\$omp critical (addLockInitialize".ucfirst($directive->{'default'}).")\n";
 		    $modulePostContains->{'content'} .= "          if (.not.addLockInitialized) then\n";
-		    $modulePostContains->{'content'} .= "          addLockInitialized=.true.\n";
 		    $modulePostContains->{'content'} .= "          addLock=ompLock()\n";
+		    $modulePostContains->{'content'} .= "          addLockInitialized=.true.\n";
 		    $modulePostContains->{'content'} .= "      end if\n";
 		    $modulePostContains->{'content'} .= "      !\$omp end critical (addLockInitialize".ucfirst($directive->{'default'}).")\n";
 		    $modulePostContains->{'content'} .= "      end if\n";
@@ -2427,7 +2713,7 @@ CODE
 		my $argumentCode;
                 if ( $pass eq "yes" ) {
                     my $intrinsic = $methodName eq "destructor" ? "type" : "class";
-		    $argumentCode .= "      ".$intrinsic."(".$directive->{'name'}."Class), intent(inout)";
+		    $argumentCode .= "      ".$intrinsic."(".$directive->{'name'}."Class), intent(".(exists($method->{'selfIntent'}) ? $method->{'selfIntent'} : "inout").")";
 		    $argumentCode .= ", target"
 			if ( exists($method->{'selfTarget'}) && $method->{'selfTarget'} eq "yes" );
 		    $argumentCode .= " :: self\n";
@@ -2449,6 +2735,13 @@ CODE
 		my $extension = "__";
 		$extension = ""
 		    if ( exists($method->{'code'}) );
+		my $nonOperatorName;
+		if ( $methodName eq "assignment(=)" ) {
+		    $nonOperatorName = "assignment";
+		} else {
+		    $nonOperatorName = $methodName;
+		}
+		my $functionName = $directive->{'name'}.ucfirst($nonOperatorName).$extension;
 		my $recursive = exists($method->{'recursive'}) && $method->{'recursive'} eq "yes" ? "recursive " : "";
 		my $elemental = exists($method->{'elemental'}) && $method->{'elemental'} eq "yes" ? "elemental " : "";
 		if ( $method->{'type'} eq "void" ) {
@@ -2458,17 +2751,17 @@ CODE
 		} elsif ( $method->{'type'} =~ m/^class/ ) {
 		    $category = "function";
 		    $type     = "";
-		    $self     = "      ".$method->{'type'}.", pointer :: ".$directive->{'name'}.ucfirst($methodName).$extension."\n";
+		    $self     = "      ".$method->{'type'}.", pointer :: ".$functionName."\n";
 		} elsif ( $method->{'type'} =~ m/^type/ || $method->{'type'} =~ m/,/ ) {
 		    $category = "function";
 		    $type     = "";
-		    $self     = "      ".$method->{'type'}." :: ".$directive->{'name'}.ucfirst($methodName).$extension."\n";
+		    $self     = "      ".$method->{'type'}." :: ".$functionName."\n";
 		} else {
 		    $category = "function";
 		    $type     = $method->{'type'}." ";
 		    $self     = "";
 		}
-		$modulePostContains->{'content'} .= "   ".$recursive.$elemental.$type.$category." ".$directive->{'name'}.ucfirst($methodName).$extension."(self";
+		$modulePostContains->{'content'} .= "   ".$recursive.$elemental.$type.$category." ".$functionName."(self";
 		$modulePostContains->{'content'} .= ",".$argumentList
 		    unless ( $argumentList eq "" );
 		$modulePostContains->{'content'} .= ")\n";
@@ -2509,7 +2802,7 @@ CODE
 		    $modulePostContains->{'content'} .= "      call Error_Report('this is a null method - initialize the ".$directive->{'name'}." object before use and/or check that the \"'//char(self%objectType())//'\" class implements this method'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 		    if ( $category eq "function" ) {
 			# Avoid warnings about unset function values.
-			$modulePostContains->{'content'} .= "      ".$directive->{'name'}.ucfirst($methodName).$extension."=";
+			$modulePostContains->{'content'} .= "      ".$functionName."=";
 			my $setValue;
 			if ( $method->{'type'} =~ m/^class/ ) {
 			    $setValue = "> null()";
@@ -2532,7 +2825,7 @@ CODE
 		    }
 		    $modulePostContains->{'content'} .= "      return\n";
 		}
-		$modulePostContains->{'content'} .= "   end ".$category." ".$directive->{'name'}.ucfirst($methodName).$extension."\n\n";
+		$modulePostContains->{'content'} .= "   end ".$category." ".$functionName."\n\n";
 	    }
 
 	    # Generate documentation. We construct two sets of documentation, one describing the physics models, and one describing the code implementation.
@@ -2858,8 +3151,16 @@ sub deepCopyLinkedList {
 	    variables  => [ $linkedList->{'type'}.'item', $linkedList->{'type'}.'destination', $linkedList->{'type'}.'itemNew' ]
 	}
 	)
-	unless ( grep {$_->{'type'} eq $linkedList->{'type'}} @{$linkedListVariables} );
+	unless ( grep {exists($_->{'type'}) && $_->{'type'} eq $linkedList->{'type'}} @{$linkedListVariables} );
     push(
+	@{$linkedListVariables},
+	{
+	    intrinsic  => 'integer',
+	    variables  => [ 'referenceCount___' ]
+	}
+	)
+	unless ( grep {$_->{'variables'}->[0] eq 'referenceCount___'} @{$linkedListVariables} );
+     push(
 	@{$linkedListResetVariables},
 	{
 	    intrinsic  => 'type',
@@ -2868,7 +3169,7 @@ sub deepCopyLinkedList {
 	    variables  => [ $linkedList->{'type'}.'item' ]
 	}
 	)
-	unless ( grep {$_->{'type'} eq $linkedList->{'type'}} @{$linkedListResetVariables} );
+	unless ( grep {exists($_->{'type'}) && $_->{'type'} eq $linkedList->{'type'}} @{$linkedListResetVariables} );
     push(
 	@{$linkedListFinalizeVariables},
 	{
@@ -2878,7 +3179,7 @@ sub deepCopyLinkedList {
 	    variables  => [ $linkedList->{'type'}.'item' ]
 	}
 	)
-	unless ( grep {$_->{'type'} eq $linkedList->{'type'}} @{$linkedListFinalizeVariables} );
+	unless ( grep {exists($_->{'type'}) && $_->{'type'} eq $linkedList->{'type'}} @{$linkedListFinalizeVariables} );
     # Generate code for the walk through the linked list.
     my $deepCopyCode;
     my $deepCopyResetCode;
@@ -2893,6 +3194,15 @@ sub deepCopyLinkedList {
 	$code::debugCode       = $debugging ? "if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".$code::objectType."] : ".$code::object." : ')//loc(".$code::type."itemNew)//' : '//loc(".$code::type."itemNew%".$code::object.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($class->{'node'},$class->{'node'}->{'line'},compact => 1).",verbosityLevelSilent)\n" : "";
 	if ( $i == 0 ) {
 	    $deepCopyCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
+{$type}item             => destination%{$variable}
+do while (associated({$type}item))
+   ! Undo the reference count increment that resulted from the initial intrinsic assignment.
+   referenceCount___={$type}item%{$object}%referenceCountDecrement()
+   nullify({$type}item%{$object})
+   {$type}itemNew => {$type}item%next
+   deallocate({$type}item)
+   {$type}item => {$type}itemNew
+end do
 destination%{$variable} => null            ()
 CODE
 	}
@@ -3089,6 +3399,54 @@ CODE
     return ($iterator,$deepCopyModule);
 }
 
+sub assignerLinkedList {
+    # Create assignment instructions for linked list objects.
+    my $linkedList          = shift();
+    my $linkedListVariables = shift();
+    # Get object names.
+    my @objects = split(" ",$linkedList->{'object'});
+    # Add variables needed for linked list processing.
+    push(
+	@{$linkedListVariables},
+	{
+	    intrinsic  => 'type',
+	    type       => $linkedList->{'type'},
+	    attributes => [ 'pointer' ],
+	    variables  => [ $linkedList->{'type'}.'itemSelf', $linkedList->{'type'}.'itemFrom' ]
+	}
+	)
+	unless ( grep {$_->{'type'} eq $linkedList->{'type'}} @{$linkedListVariables} );
+    # Generate code for the walk through the linked list.
+    my $iterator;
+    $code::type      = $linkedList->{'type'    };
+    $code::variable  = $linkedList->{'variable'};
+    $code::next      = $linkedList->{'next'    };
+    $iterator       .= fill_in_string(<<'CODE', PACKAGE => 'code');
+nullify(self%{$variable})
+{$type}itemFrom => from%{$variable}
+if (associated({$type}itemFrom)) then
+   allocate(self%{$variable})
+   {$type}itemSelf => self%{$variable}
+   do while (associated({$type}itemFrom))
+CODE
+    for(my $i=0;$i<scalar(@objects);++$i) {
+	$code::object  = $objects[$i];
+	$iterator     .= fill_in_string(<<'CODE', PACKAGE => 'code');
+      {$type}itemSelf%{$object} => {$type}itemFrom%{$object}
+      call {$type}itemSelf%{$object}%referenceCountIncrement()
+CODE
+    }
+    $iterator .= fill_in_string(<<'CODE', PACKAGE => 'code');
+      {$type}itemFrom => {$type}itemFrom%{$next}
+      if (associated({$type}itemFrom)) allocate({$type}itemSelf%{$next})
+      {$type}itemSelf => {$type}itemSelf%{$next}
+   end do
+end if
+CODE
+    my $assignerModule = exists($linkedList->{'module'}) ? $linkedList->{'module'} : undef();
+    return ($iterator,$assignerModule);
+}
+
 sub stateStoreExplicitFunction {
     # Create state store/restore instructions for objects with explicit functions.
     my $nonAbstractClass  = shift();
@@ -3123,9 +3481,10 @@ sub stateStoreExplicitFunction {
 
 sub potentialDescriptorParameters {
     # Process variable declarations for potential parameters to include in descriptors.
-    my $declarations   = shift();
-    my $class          = shift();
-    my $potentialNames = shift();
+    my  $declarations     = shift();
+    my  $nonAbstractClass = shift();
+    my  $class            = shift();
+    my  $potentialNames   = shift();
     our $stateStorables;
     foreach my $declaration ( &List::ExtraUtils::as_array($declarations) ) {
 	# Identify object pointers.
@@ -3170,13 +3529,23 @@ sub potentialDescriptorParameters {
 	      trimlc($declaration->{'type'     }) eq "varying_string"
 	     )
 	    );
-	$class->{'hasCustomDescriptor'} = 1
+	$nonAbstractClass->{'hasCustomDescriptor'} = 1
 	    if
 	    (
 	     $declaration->{'intrinsic'} eq "procedure"
 	     &&
 	     $declaration->{'variables'}->[0] =~ m/^descriptor=>/
 	    );
+    }
+    # Identify linked lists parameters.
+    if ( defined($class) ) {
+	if ( exists($class->{'linkedList'}) ) {
+	    foreach my $object ( split(" ",$class->{'linkedList'}->{'object'}) ) {
+		push(@{$potentialNames->{'linkedListObjects'}},$object)
+		    unless ( grep {$_ eq $object} @{$potentialNames->{'linkedListObjects'}} );
+		$potentialNames->{'linkedLists'}->{$object} = $class->{'linkedList'};
+	    }
+	}
     }
 }
     
@@ -3214,6 +3583,9 @@ sub deepCopyDeclarations {
 		$deepCopy->{'finalizeCode'} .= "if (associated(self%".$name.")) call self%".$name."%deepCopyFinalize()\n";
 		$deepCopy->{'assignments' } .= "nullify(destination%".$name.")\n";
 		$deepCopy->{'assignments' } .= "if (associated(self%".$name.")) then\n";
+		# Undo the reference count increment that occurred as a result of the `destination=self` assignment.
+		$deepCopy->{'needReferenceCount'} = 1;
+		$deepCopy->{'assignments' } .= " referenceCount__=self%".$name."\%referenceCountDecrement()\n";
 		$deepCopy->{'assignments' } .= " if (associated(self%".$name."\%copiedSelf)) then\n";
 		$deepCopy->{'assignments' } .= "  select type(s => self%".$name."\%copiedSelf)\n";
 		$deepCopy->{'assignments' } .= "  ".$declaration->{'intrinsic'}." is (".$declaration->{'type'}.")\n";
@@ -3294,6 +3666,8 @@ sub deepCopyDeclarations {
 			$deepCopy->{'assignments' } .= "if (associated(self%".$name.")) then\n";
 			$deepCopy->{'resetCode'   } .= "if (associated(self%".$name.")) then\n";
 			$deepCopy->{'finalizeCode'} .= "if (associated(self%".$name.")) then\n";
+			$deepCopy->{'needReferenceCount'} = 1;
+			$deepCopy->{'assignments' } .= "referenceCount__=self%".$name."\%referenceCountDecrement()\n";
 			$deepCopy->{'assignments' } .= "if (associated(self%".$name."\%copiedSelf)) then\n";
 			$deepCopy->{'assignments' } .= "  select type(s => self%".$name."\%copiedSelf)\n";
 			$deepCopy->{'assignments' } .= "  ".$declaration->{'intrinsic'}." is (".$declaration->{'type'}.")\n";

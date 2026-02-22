@@ -165,12 +165,17 @@ while ( my $line = <STDIN> ) {
 	$bogusUninitialized{$1} = 1;
     }
     if ( $line =~ m/Warning:\s+['‘]([a-zA-Z0-9_\.<>\(\)=\[\]:\s\*]+)['’]\s+may be used uninitialized( in this function)?/ ) {
-	my @elements = split(/\./,$1);
+	my $matched = $1;
+	my @elements = split(/\./,$matched);
 	foreach my $symbolName ( keys(%bogusUninitialized) ) {
 	    $dropBuffer = 1
 		if ( grep {$_ eq $symbolName} @elements );
 	}
-    }
+	# Versions of gfortran ≥ 12 (which include a complete implementation of finalization) emit spurious warnings related to
+	# internal finalizers - ignore them.
+	$dropBuffer = 1
+	    if ( $matched =~ m/^_F\.DA\d+/ );	
+    }    
     # Handle unused function attributes.
     if ( $line =~ m/^\s*\d+\s*\|\s*subroutine\s+([a-z0-9_]+)/i ) {
 	$functionName = lc($1);

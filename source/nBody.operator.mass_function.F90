@@ -267,14 +267,12 @@ contains
           call cosmologyGroup%writeAttribute(self%cosmologyParameters_%OmegaMatter    (),'OmegaMatter'    )
           call cosmologyGroup%writeAttribute(self%cosmologyParameters_%OmegaDarkEnergy(),'OmegaDarkEnergy')
           call cosmologyGroup%writeAttribute(self%cosmologyParameters_%HubbleConstant (),'HubbleConstant' )
-          call cosmologyGroup%close         (                                                             )
           simulationGroup=simulations(iSimulation)%analysis%openGroup('simulation')
           call simulationGroup%writeAttribute(     boxSize            ,'boxSize'  )
           call simulationGroup%writeAttribute(self%simulationReference,'reference')
           call simulationGroup%writeAttribute(self%simulationURL      ,'URL'      )
           if (simulations(iSimulation)%attributesReal%exists('massParticle')) &
                & call simulationGroup%writeAttribute(simulations(iSimulation)%attributesReal%value('massParticle'),'massParticle')
-          call simulationGroup%close         (                                    )
           !$ call hdf5Access%unset()
 #ifdef USEMPI
        end if

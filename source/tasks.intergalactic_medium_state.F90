@@ -195,10 +195,7 @@ contains
        call outputGroup%writeAttribute(temperature    (i),'temperature'          )
        call outputGroup%writeAttribute(massJeans      (i),'massJeans'            )
        call outputGroup%writeAttribute(massFiltering  (i),'massFiltering'        )
-       call outputGroup%close         (                                          )
     end do
-    call outputsGroup%close()
-    if (containerGroup%isOpen()) call containerGroup%close()
     !$ call hdf5Access%unset()
     if (present(status)) status=errorStatusSuccess
     call displayUnindent('Done task: intergalactic medium state' )

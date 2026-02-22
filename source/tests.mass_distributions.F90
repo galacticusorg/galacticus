@@ -31,6 +31,7 @@ program Test_Mass_Distributions
   use :: Error                     , only : Error_Report
   use :: Events_Hooks              , only : eventsHooksInitialize
   use :: Galactic_Structure_Options, only : componentTypeSpheroid            , componentTypeDisk
+  use :: IO_HDF5                   , only : ioHDF5AccessInitialize
   use :: Linear_Algebra            , only : assignment(=)                    , vector
   use :: Mass_Distributions        , only : massDistributionBetaProfile      , massDistributionClass              , massDistributionExponentialDisk        , massDistributionGaussianEllipsoid   , &
        &                                    massDistributionHernquist        , massDistributionSersic             , massDistributionSpherical              , massDistributionComposite           , &
@@ -89,6 +90,8 @@ program Test_Mass_Distributions
   call displayVerbositySet(verbosityLevelStandard)
   ! Initialize event hooks.
   call eventsHooksInitialize()
+  ! Initialize HDF5 lock.
+  call ioHDF5AccessInitialize()
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Mass distributions")
 

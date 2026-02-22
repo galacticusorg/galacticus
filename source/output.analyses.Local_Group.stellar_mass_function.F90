@@ -631,15 +631,10 @@ contains
     call analysisGroup%writeDataset  (self%masses                        ,'massStellar'           ,'Stellar mass at the bin center'              ,datasetReturned=dataset)
     call dataset      %writeAttribute('M☉'                               ,'units'                                                                                        )
     call dataset      %writeAttribute(massSolar                          ,'unitsInSI'                                                                                    )
-    call dataset      %close         (                                                                                                                                   )
     call analysisGroup%writeDataset  (self%massFunction                  ,'massFunction'          ,'Satellite number per bin [model]'                                    )
     call analysisGroup%writeDataset  (self%covariance                    ,'massFunctionCovariance','Satellite number per bin [model; covariance]'                        )
     call analysisGroup%writeDataset  (self%massFunctionTarget            ,'massFunctionTarget'    ,'Satellite number per bin [observed]'                                 )
     call analysisGroup%writeAttribute(self%logLikelihood     ()          ,'logLikelihood'                                                                                )
-    call analysisGroup%close         (                                                                                                                                   )
-    if (present(groupName)) &
-         & call subGroup%close       (                                                                                                                                   )
-    call analysesGroup%close         (                                                                                                                                   )
     !$ call hdf5Access%unset()
     return
   end subroutine localGroupStellarMassFunctionFinalize

@@ -144,7 +144,6 @@ contains
     <objectDestructor name="self%cosmologyParameters_"/>
     <objectDestructor name="self%cosmologyFunctions_" />
     !!]
-    if (self%file%isOpen()) call self%file%close()
     return
   end subroutine irateDestructor
 
@@ -199,7 +198,7 @@ contains
     if (.not.self%haveProperties .or. any(self%properties == 'velocity'  )) call simulations(1)%propertiesRealRank1%set('velocity'  ,velocity   )
     write (snapshotLabel,'(a,i5.5)') 'Snapshot',self%snapshot
     !$ call hdf5Access%set()
-    call self%file%openFile(char(self%fileName),readOnly=.false.,objectsOverwritable=.true.)
+    self%file=hdf5Object(char(self%fileName),readOnly=.false.,objectsOverwritable=.true.)
     snapshotGroup            =self%file         %openGroup(snapshotLabel)
     simulations  (1)%analysis=     snapshotGroup%openGroup('HaloCatalog')
     call simulations(1)%analysis%datasets(datasetNames)
@@ -227,9 +226,7 @@ contains
           call simulations(1)%propertiesReal   %set(datasetNames(i),             propertyReal   )
           nullify(propertyReal   )
        end if
-       call dataset%close()
     end do
-    call snapshotGroup%close()
     !$ call hdf5Access%unset()
     call displayUnindent('done',verbosityLevelStandard)
     return

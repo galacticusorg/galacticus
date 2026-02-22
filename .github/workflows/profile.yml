@@ -23,7 +23,7 @@ jobs:
   Profile-Model:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/galacticusorg/buildenv:latest
+      image: ghcr.io/galacticusorg/buildenv:gfortranFinalization
       options: --privileged
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."

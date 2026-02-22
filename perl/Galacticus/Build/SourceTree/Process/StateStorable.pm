@@ -104,12 +104,18 @@ sub Process_StateStorable {
 	$code::className    = $directive->{'class'};
 	my $classIdentifier = -1;
 	my %classIdentifiers;
+        # <workaround type="gfortran" PR="114535" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=114535">
+        #  <description>
+	#   Issue in module read with elemental finalizer. We therefore `use :: ISO_Varying_String` directly below, following the suggestion of Paul Thomas in Comment 1 of the PR.
+        #  </description>
+	# </workaround>
 	my $outputCodeOpener = fill_in_string(<<'CODE', PACKAGE => 'code');
 subroutine {$className}StateStore(self,stateFile,gslStateFile,storeIdentifier)
  !!\{
  Store the state of this object to file.
  !!\}
  use, intrinsic :: ISO_C_Binding     , only : c_size_t, c_ptr
+ use            :: ISO_Varying_String
  use            :: Display
  implicit none
  class    ({$className}), intent(inout)              :: self
@@ -117,12 +123,18 @@ subroutine {$className}StateStore(self,stateFile,gslStateFile,storeIdentifier)
  type     (c_ptr       ), intent(in   )              :: gslStateFile
  logical                , intent(in   ), optional    :: storeIdentifier
 CODE
+        # <workaround type="gfortran" PR="114535" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=114535">
+        #  <description>
+	#   Issue in module read with elemental finalizer. We therefore `use :: ISO_Varying_String` directly below, following the suggestion of Paul Thomas in Comment 1 of the PR.
+        #  </description>
+	# </workaround>
 	my $inputCodeOpener  = fill_in_string(<<'CODE', PACKAGE => 'code');
 subroutine {$className}StateRestore(self,stateFile,gslStateFile)
  !!\{
  Store the state of this object to file.
  !!\}
  use, intrinsic :: ISO_C_Binding     , only : c_size_t, c_ptr
+ use            :: ISO_Varying_String
  use            :: Display
  implicit none
  class  ({$className}), intent(inout)               :: self
@@ -192,24 +204,34 @@ CODE
 				    # Type-bound procedure - nothing to do.
 				} elsif ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" ) {
 				    (my $type = $declaration->{'type'}) =~ s/\s//g;
+				    my $pointerStore = exists($directive->{$parentClassName}) && exists($directive->{$parentClassName}->{'pointerStore'});
+				    my @pointerStoreNames = split(" ",$directive->{$parentClassName}->{'pointerStore'}->{'variables'})
+					if ( $pointerStore );
 				    if (
 					(  grep {$_->{'type'} eq $type    } @{$stateStorables->{'stateStorables'}})
 					&&
-			                (! grep {$_           eq "pointer"} @{$declaration   ->{'attributes'     }})				       
-					){
-					# This is a non-pointer object which is explicitly stateStorable.
+					(
+					 (! grep {$_           eq "pointer"} @{$declaration   ->{'attributes'     }})
+					 ||
+					 $pointerStore
+					)
+					) {
+					# This is a non-pointer (or explicitly allowed pointer) object which is explicitly stateStorable.
 					my $dimensionDeclarator = join(",",map {/^dimension\s*\(([:,]+)\)/} @{$declaration->{'attributes'}});
 					my $rank                = ($dimensionDeclarator =~ tr/://);
 					$rankMaximum            = $rank
 					    if ( $rank > $rankMaximum );
-					my $allocatable         =  grep {$_ eq "allocatable"} @{$declaration->{'attributes'}};
+					my $allocatable         =  grep {$_ eq "allocatable" || $_ eq "pointer"} @{$declaration->{'attributes'}};
+					my $pointer             =  grep {                       $_ eq "pointer"} @{$declaration->{'attributes'}};
 					foreach ( @{$declaration->{'variables'}} ) {
 					    (my $variableName = $_) =~ s/\s*=.*$//;
 					    next
 						if ( grep {lc($_) eq lc($variableName)} @excludes );
+					    next
+						if ( $pointer && ! ( $pointerStore && grep {lc($_) eq lc($variableName)} @pointerStoreNames ) );
 					    $labelRequired   = 1;
 					    if ( $allocatable ) {
-						$outputCode .= "  if (allocated(self%".$variableName.")) then\n";
+						$outputCode .= "  if (".($pointer ? "associated" : "allocated")."(self%".$variableName.")) then\n";
 						$outputCode .= "   write (stateFile) .true.\n"
 							    .  "   write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n";
 					    }
@@ -243,7 +265,7 @@ CODE
 					    if ( $allocatable ) {
 						$wasAllocatedRequired =1;
 						$inputCode  .= " read (stateFile) wasAllocated\n";
-						$inputCode  .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
+						$inputCode  .= " if (".($pointer ? "associated" : "allocated")."(self%".$variableName.")) deallocate(self%".$variableName.")\n";
 						$inputCode  .= " if (wasAllocated) then\n";
 					    }
 					    $inputCode  .= "  call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";

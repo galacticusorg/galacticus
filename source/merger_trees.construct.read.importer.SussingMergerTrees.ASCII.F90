@@ -360,7 +360,6 @@ contains
        end if
     end do
     close(fileUnit)
-    call parameterRegEx%destroy()
     return
   end subroutine sussingASCIIOpen
 

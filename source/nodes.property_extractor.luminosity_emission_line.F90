@@ -166,7 +166,6 @@ contains
     self=nodePropertyExtractorLuminosityEmissionLine(cloudyTableFileName,enumerationComponentTypeEncode(char(component),includesPrefix=.false.),lineNames,toleranceRelative,starFormationHistory_,outputTimes_,hiiRegionLuminosityFunction_,hiiRegionMassFunction_,hiiRegionDensityDistribution_,hiiRegionEscapeFraction_)
     parametersGroup=parameters%parametersGroup()
     self%parametersGroupPath=parametersGroup%pathTo(includeFileName=.false.)
-    call parametersGroup%close()
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="starFormationHistory_"        />
@@ -232,9 +231,9 @@ contains
     ! Initialize no output Parameters group.
     self%parametersGroupPath=""
     ! Get details of the star formation rate tabulation.
-    self%metallicityBoundaries=self%starFormationHistory_%metallicityBoundaries      ()
+    self%metallicityBoundaries=self%starFormationHistory_%metallicityBoundaries()
     !$ call hdf5Access%set()
-    call emissionLinesFile%openFile(self%cloudyTableFileName,readOnly=.true.)
+    emissionLinesFile=hdf5Object(self%cloudyTableFileName,readOnly=.true.)
     lines=emissionLinesFile%openGroup('lines')
     do i=1,size(lineNames)
        if (.not.lines%hasDataset(char(self%lineNames(i)))) call Error_Report('line "'//char(self%lineNames(i))//'" not found'//{introspection:location})
@@ -258,24 +257,19 @@ contains
        call emissionLinesFile%readDataset('ionizingLuminosityHydrogen'          ,     ionizingLuminosityHydrogen          )
     end if
     ! Extract indexing into the lines arrays.
-    dataset   =emissionLinesFile%openDataset('metallicity'               )
-    call    dataset%readAttribute('index',self%indexMetallicity               )
-    call    dataset%close        (                     )
-    dataset   =emissionLinesFile%openDataset('age'                       )
-    call    dataset%readAttribute('index',self%indexAge                       )
-    call    dataset%close        (                     )
-    dataset=   emissionLinesFile%openDataset('densityHydrogen'           )
-    call    dataset%readAttribute('index',self%indexDensityHydrogen           )
-    call    dataset%close        (                     )
+    dataset=emissionLinesFile%openDataset('metallicity'               )
+    call dataset%readAttribute('index',self%indexMetallicity               )
+    dataset=emissionLinesFile%openDataset('age'                       )
+    call dataset%readAttribute('index',self%indexAge                       )
+    dataset=emissionLinesFile%openDataset('densityHydrogen'           )
+    call dataset%readAttribute('index',self%indexDensityHydrogen           )
     if (self%tabulatedByMass) then
        dataset=emissionLinesFile%openDataset('massStellar'               )
        call dataset%readAttribute('index',self%indexMassStellar               )
-       call dataset%close        (                     )
        self%indexIonizingLuminosityHydrogen=-huge(0_c_size_t)
     else
        dataset=emissionLinesFile%openDataset('ionizingLuminosityHydrogen')
        call dataset%readAttribute('index',self%indexIonizingLuminosityHydrogen)
-       call dataset%close        (                     )
        self%indexMassStellar               =-huge(0_c_size_t)
     end if
     ! Offset indexing to Fortran standard (i.e. starting from 1 instead of 0).
@@ -318,11 +312,8 @@ contains
     do i=1,size(lineNames)
        dataset=lines%openDataset(char(lineNames(i)))
        call dataset%readAttribute    ('wavelength'      ,self%wavelengths (        i))
-       call dataset%close            (                                               )
        call lines  %readDatasetStatic(char(lineNames(i)),     luminosities(:,:,:,:,i))
     end do
-    call lines            %close()
-    call emissionLinesFile%close()
     !$ call hdf5Access%unset()
     ! Calculate emission line luminosities as a function of age and metallicity by averaging over the distribution of HII region
     ! luminosities/masses. Account for any needed permutation in the indexing needed to get our final array to be
@@ -617,8 +608,7 @@ contains
     class           (nodeComponentBasic                         ), pointer                     :: basic
     double precision                                             , allocatable  , dimension(:) :: times
     type            (hdf5Object                                 ), allocatable  , dimension(:) :: parametersGroups
-    integer         (c_size_t                                   )                              :: indexOutput         , countTemplates, &
-         &                                                                                        i
+    integer         (c_size_t                                   )                              :: indexOutput         , countTemplates
     type            (lockDescriptor                             )                              :: fileLock
     type            (hdf5Object                                 )                              :: file
     type            (varying_string                             )                              :: fileName
@@ -662,11 +652,8 @@ contains
        ! Store the file name used to the output file parameters group for this object.
        !$ call hdf5Access%set()
        if (self%parametersGroupPath /= "") then
-          parametersGroups=outputFile%openGroupPath(char(self%parametersGroupPath))
+          call outputFile%openGroupPath(char(self%parametersGroupPath),parametersGroups)
           call parametersGroups(size(parametersGroups))%writeAttribute(fileName,char(var_str('meta:luminosityEmissionLineMatrixFileName')//indexTemplate))
-          do i=1,size(parametersGroups)
-             call parametersGroups(i)%close()
-          end do
        end if
        !$ call hdf5Access%unset()
        ! Check if the templates can be retrieved from file.
@@ -675,7 +662,7 @@ contains
        call File_Lock(fileName,fileLock,lockIsShared=.false.)
        if (File_Exists(fileName)) then
           !$ call hdf5Access%set()
-          call file%openFile(char(fileName))
+          file=hdf5Object(char(fileName))
           if (file%hasDataset('luminosityTemplate')) then
              if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixed) then
                 call displayMessage("reading emission line luminosity tabulation from file '"                                        //fileName//"'",verbosityLevelWorking)
@@ -685,9 +672,8 @@ contains
                 !$omp end critical(gfortranInternalIO)
                 call displayMessage("reading emission line luminosity tabulation for time "//trim(adjustl(label))//" Gyr from file '"//fileName//"'",verbosityLevelWorking)
              end if
-          call file%readDataset('luminosityTemplate',self%templates(indexTemplate)%emissionLineLuminosity)
+             call file%readDataset('luminosityTemplate',self%templates(indexTemplate)%emissionLineLuminosity)
           end if
-          call file%close()
           !$ call hdf5Access%unset()
        end if
        if (.not.allocated(self%templates(indexTemplate)%emissionLineLuminosity)) then
@@ -702,7 +688,7 @@ contains
              call displayMessage("storing emission line luminosity tabulation for time "//trim(adjustl(label))//" Gyr to file '"//fileName//"'",verbosityLevelWorking)
           end if
           !$ call hdf5Access%set()
-          call    file%openFile(char(fileName),overWrite=.false.,readOnly=.false.)
+          file=hdf5Object(char(fileName),overWrite=.false.,readOnly=.false.)
           call    file%writeDataset(self %templates             (indexTemplate)%emissionLineLuminosity      ,'luminosityTemplate','A matrix mapping star formation history to emission line luminosities.' )
           call    file%writeDataset(self %lineNames                                                         ,'lineNames'         ,'The names of the emission lines'                                        )
           call    file%writeDataset(self %wavelengths                                                       ,'wavelengths'       ,'The wavelengths of the emission lines [Å]'                              )
@@ -712,7 +698,6 @@ contains
           else
              call file%writeDataset(      times                                                             ,'time'              ,'The times at which the star formation history is tabulated [Gyr]'       )
           end if
-          call file%close()
           !$ call hdf5Access%unset()
        end if
        call File_Unlock(fileLock)
@@ -783,16 +768,16 @@ contains
     ! have entries for zero age populations. In such cases we allow for extrapolation below the smallest age present in the table.
     extrapolationTime      (1)=extrapolationTypeExtrapolate
     extrapolationTime      (2)=extrapolationTypeAbort
-    interpolatorTime       =interpolator(self%ages         ,extrapolationType=extrapolationTime)
-    interpolatorMetallicity=interpolator(self%metallicities                                    )
-    !$omp master
+    interpolatorTime          =interpolator(self%ages         )
+    interpolatorMetallicity   =interpolator(self%metallicities)
+    !$omp masked
     if (parallelize_) then
        !$omp critical(gfortranInternalIO)
        write (label,'(f12.8)') time
        !$omp end critical(gfortranInternalIO)
        call displayIndent("computing template emission line luminosities for time "//trim(adjustl(label))//" Gyr",verbosityLevelWorking)
     end if
-    !$omp end master
+    !$omp end masked
     ! Iterate over (time,metallicity).
     !$omp do
     do iterator=0,counterMaximum-1
@@ -842,12 +827,12 @@ contains
        end if
     end do
     !$omp end do
-    !$omp master
+    !$omp masked
     if (parallelize_) then
        call displayCounterClear(       verbosityLevelWorking)
        call displayUnindent    ("done",verbosityLevelWorking)
     end if
-    !$omp end master
+    !$omp end masked
     deallocate(integratorTime         )
     deallocate(integratorMetallicity  )
     deallocate(interpolatorTime       )
@@ -946,7 +931,7 @@ contains
     ! !$omp threadprivate(descriptorStringPrevious,hashedDescriptorPrevious)
     
     descriptor=inputParameters()
-    call setLiveNodeLists(descriptor%document,.false.)
+    call setLiveNodeLists(descriptor%document%document,.false.)
     ! Add composited object descriptors.
     call self%starFormationHistory_        %descriptor(descriptor)
     call self%outputTimes_                 %descriptor(descriptor)

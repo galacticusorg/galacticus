@@ -165,7 +165,6 @@ contains
     self=nodePropertyExtractorSED(enumerationComponentTypeEncode(char(component),includesPrefix=.false.),enumerationFrameEncode(char(frame),includesPrefix=.false.),wavelengthMinimum,wavelengthMaximum,resolution,toleranceRelative,stellarPopulationSpectra_,stellarPopulationSpectraPostprocessor_,starFormationHistory_,outputTimes_,cosmologyFunctions_)
     parametersGroup=parameters%parametersGroup()
     self%parametersGroupPath=parametersGroup%pathTo(includeFileName=.false.)
-    call parametersGroup%close()
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="stellarPopulationSpectra_"             />
@@ -580,7 +579,7 @@ contains
     class           (nodeComponentBasic      ), pointer                     :: basic
     double precision                          , allocatable  , dimension(:) :: times
     type            (hdf5Object              ), allocatable  , dimension(:) :: parametersGroups
-    integer         (c_size_t                )                              :: indexOutput         , i
+    integer         (c_size_t                )                              :: indexOutput
     type            (lockDescriptor          )                              :: fileLock
     type            (hdf5Object              )                              :: file
     type            (varying_string          )                              :: fileName
@@ -629,11 +628,8 @@ contains
        ! Store the file name used to the output file parameters group for this object.
        !$ call hdf5Access%set()
        if (self%parametersGroupPath /= "") then
-          parametersGroups=outputFile%openGroupPath(char(self%parametersGroupPath))
+          call outputFile%openGroupPath(char(self%parametersGroupPath),parametersGroups)
           call parametersGroups(size(parametersGroups))%writeAttribute(fileName,char(var_str('meta:sedMatrixFileName')//indexTemplate))
-          do i=1,size(parametersGroups)
-             call parametersGroups(i)%close()
-          end do
        end if
        !$ call hdf5Access%unset()
        ! Check if the templates can be retrieved from file.
@@ -642,7 +638,7 @@ contains
        call File_Lock(fileName,fileLock,lockIsShared=.false.)
        if (File_Exists(fileName)) then
           !$ call hdf5Access%set()
-          call file%openFile(char(fileName))
+          file=hdf5Object(char(fileName))
           if (file%hasDataset('sedTemplate')) then
              if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixed) then
                 call displayMessage("reading SED tabulation from file '"                                        //fileName//"'",verbosityLevelWorking)
@@ -654,7 +650,6 @@ contains
              end if
              call file%readDataset('sedTemplate',self%templates(indexTemplate)%sed)
           end if
-          call file%close()
           !$ call hdf5Access%unset()
        end if
        if (.not.allocated(self%templates(indexTemplate)%sed)) then
@@ -669,7 +664,7 @@ contains
              call displayMessage("storing SED tabulation for time "//trim(adjustl(label))//" Gyr to file '"//fileName//"'",verbosityLevelWorking)
           end if
           !$ call hdf5Access%set()
-          call    file%openFile(char(fileName),overWrite=.false.,readOnly=.false.)
+          file=hdf5Object(char(fileName),overWrite=.false.,readOnly=.false.)
           call    file%writeDataset(self %templates            (indexTemplate)%sed       ,'sedTemplate','A matrix mapping star formation history to SED.'                        )
           call    file%writeDataset(self %templates            (indexTemplate)%wavelength,'wavelength' ,'The wavelengths at which the SED is tabulated [Å]'                      )
           call    file%writeDataset(self %metallicityBoundaries                          ,'metallicity','The metallicities at which the star formation history is tabulated [Z☉]')
@@ -678,7 +673,6 @@ contains
           else
              call file%writeDataset(      times                                          ,'time'       ,'The times at which the star formation history is tabulated [Gyr]'       )
           end if
-          call file%close()
           !$ call hdf5Access%unset()
        end if
        call File_Unlock(fileLock)
@@ -807,7 +801,7 @@ contains
        !!]
        !$omp end critical(nodePropertyExtractSEDDeepCopy)
     end if
-    !$omp master
+    !$omp masked
     if (parallelize_) then
        if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixed) then
           call displayIndent("computing template SEDs"                                        ,verbosityLevelWorking)
@@ -819,7 +813,7 @@ contains
        end if
        call timer_%start()
     end if
-    !$omp end master
+    !$omp end masked
     ! Iterate over (wavelength,time,metallicity).
     !$omp do
     do iterator=0,counterMaximum-1
@@ -884,14 +878,14 @@ contains
        end if
     end do
     !$omp end do
-    !$omp master
+    !$omp masked
     if (parallelize_) then
        call timer_%stop()
        call displayCounterClear(                                                                                          verbosityLevelWorking)
        call displayMessage     ("table is "//trim(adjustl(siFormat(dble(sizeof(sedLuminosityMean)),'f9.3')))//"B in size",verbosityLevelWorking)
        call displayUnindent    ("done in " //trim(adjustl(timer_%reportText()                             ))             ,verbosityLevelWorking)
     end if
-    !$omp end master
+    !$omp end masked
     !![
     <objectDestructor name="stellarPopulationSpectra_"             />
     <objectDestructor name="stellarPopulationSpectraPostprocessor_"/>
@@ -1056,7 +1050,7 @@ contains
     ! !$omp threadprivate(descriptorStringPrevious,hashedDescriptorPrevious)
     
     descriptor=inputParameters()
-    call setLiveNodeLists(descriptor%document,.false.)
+    call setLiveNodeLists(descriptor%document%document,.false.)
     call descriptor%addParameter('frame'            ,char(enumerationFrameDecode(self%frame,includePrefix=.false.)))
     !$omp critical(gfortranInternalIO)
     write (parameterLabel,'(e17.10)') self%wavelengthMinimum

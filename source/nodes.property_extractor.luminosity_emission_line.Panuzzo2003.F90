@@ -202,16 +202,16 @@ contains
 
     ! Read the table of emission line luminosities.
     !$ call hdf5Access%set()
-    call emissionLinesFile%openFile(char(inputPath(pathTypeDataStatic))//"hiiRegions/emissionLinesPanuzzo2003.hdf5",readOnly=.true.)
-    lines=emissionLinesFile%openGroup('lines')
+    emissionLinesFile=hdf5Object(char(inputPath(pathTypeDataStatic))//"hiiRegions/emissionLinesPanuzzo2003.hdf5",readOnly=.true.)
+    lines            =emissionLinesFile%openGroup('lines')
     do i=1,size(lineNames)
        if (.not.lines%hasDataset(char(self%lineNames(i)))) call Error_Report('line "'//char(self%lineNames(i))//'" not found'//{introspection:location})
     end do
-    call emissionLinesFile%readDataset('metallicity'                  ,self%metallicity                 )
-    call emissionLinesFile%readDataset('densityHydrogen'              ,self%densityHydrogen             )
-    call emissionLinesFile%readDataset('ionizingFluxHydrogen'         ,self%ionizingFluxHydrogen        )
-    call emissionLinesFile%readDataset('ionizingFluxHeliumToHydrogen' ,self%ionizingFluxHeliumToHydrogen)
-    call emissionLinesFile%readDataset('ionizingFluxOxygenToHelium'   ,self%ionizingFluxOxygenToHelium  )
+    call emissionLinesFile%readDataset('metallicity'                 ,self%metallicity                 )
+    call emissionLinesFile%readDataset('densityHydrogen'             ,self%densityHydrogen             )
+    call emissionLinesFile%readDataset('ionizingFluxHydrogen'        ,self%ionizingFluxHydrogen        )
+    call emissionLinesFile%readDataset('ionizingFluxHeliumToHydrogen',self%ionizingFluxHeliumToHydrogen)
+    call emissionLinesFile%readDataset('ionizingFluxOxygenToHelium'  ,self%ionizingFluxOxygenToHelium  )
     allocate(                                          &
          &   self%luminosity                           &
          &   (                                         &
@@ -233,10 +233,7 @@ contains
        call lines      %readDatasetStatic(char(self%lineNames(i)),self%luminosity(:,:,:,:,:,i))
        lineDataset=lines%openDataset(char(self%lineNames(i)))
        call lineDataset%readAttribute('wavelength',self%wavelength(i))
-       call lineDataset%close        (                               )
     end do
-    call lines            %close      (                                                                 )
-    call emissionLinesFile%close      (                                                                 )
     !$ call hdf5Access%unset()
     ! Convert parameters and luminosities to log form.
     self%metallicity                 =log10(self%metallicity                 )
@@ -249,7 +246,7 @@ contains
     allocate(self%ionizingContinuumIndex(self%outputTimes_%count(),3_c_size_t))
     do i=1,self%outputTimes_%count()
        if (present(outputMask).and..not.outputMask(i)) then
-          self%ionizingContinuumIndex(i,:                        )=-1
+          self%ionizingContinuumIndex(i,:                           )=-1
        else
           self%ionizingContinuumIndex(i,ionizingContinuumHydrogen%ID)=unitStellarLuminosities%index('Lyc'            ,'rest',self%outputTimes_%redshift(i))
           self%ionizingContinuumIndex(i,ionizingContinuumHelium  %ID)=unitStellarLuminosities%index('HeliumContinuum','rest',self%outputTimes_%redshift(i))

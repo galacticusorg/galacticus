@@ -351,7 +351,6 @@ contains
     block
       type     (varying_string) :: message     , fileName
       character(len=8         ) :: labelMinimum, labelMaximum
-      type     (hdf5Object    ) :: file
       type     (lockDescriptor) :: fileLock
 
       ! Get a lock on the file.
@@ -364,14 +363,16 @@ contains
          if (allocated(velocitiesKickScaleFree  )) deallocate(velocitiesKickScaleFree  )
          if (allocated(fractionRetained         )) deallocate(fractionRetained         )
          if (allocated(energyRetained           )) deallocate(energyRetained           )
-         !$ call hdf5Access%set()
-         call file%openFile   (char(fileName),overWrite=.false.,readOnly=.true.)
-         call file%readDataset('velocitiesEscape',velocitiesEscapeScaleFree)
-         call file%readDataset('velocitiesKick'  ,velocitiesKickScaleFree  )
-         call file%readDataset('energyRetained'  ,energyRetained           )
-         call file%readDataset('fractionRetained',fractionRetained         )
-         call file%close      (                                            )
-         !$ call hdf5Access%unset()
+         block
+           type(hdf5Object) :: file
+           !$ call hdf5Access%set()
+           file=hdf5Object(char(fileName),overWrite=.false.,readOnly=.true.)
+           call file%readDataset('velocitiesEscape',velocitiesEscapeScaleFree)
+           call file%readDataset('velocitiesKick'  ,velocitiesKickScaleFree  )
+           call file%readDataset('energyRetained'  ,energyRetained           )
+           call file%readDataset('fractionRetained',fractionRetained         )
+           !$ call hdf5Access%unset()
+         end block
          velocityEscapeScaleFreeMinimum=velocitiesEscapeScaleFree(                             1 )
          velocityEscapeScaleFreeMaximum=velocitiesEscapeScaleFree(size(velocitiesEscapeScaleFree))
          velocityKickScaleFreeMinimum  =velocitiesKickScaleFree  (                             1 )
@@ -487,19 +488,23 @@ contains
          call displayCounterClear(        verbosity=verbosityLevelStandard)
          call displayUnindent     ('done',verbosity=verbosityLevelStandard)
          ! Store results to file.
-         !$ call hdf5Access%set()
-         call file%openFile    (char(fileName),overWrite=.true.,readOnly=.false.)
-         call file%writeDataset(velocitiesEscapeScaleFree,'velocitiesEscape')
-         call file%writeDataset(velocitiesKickScaleFree  ,'velocitiesKick'  )
-         call file%writeDataset(energyRetained           ,'energyRetained'  )
-         call file%writeDataset(fractionRetained         ,'fractionRetained')
-         call file%close       (                                            )
-         !$ call hdf5Access%unset()
+         block
+           type(hdf5Object) :: file
+           !$ call hdf5Access%set()
+           file=hdf5Object(char(fileName),overWrite=.true.,readOnly=.false.)
+           call file%writeDataset(velocitiesEscapeScaleFree,'velocitiesEscape')
+           call file%writeDataset(velocitiesKickScaleFree  ,'velocitiesKick'  )
+           call file%writeDataset(energyRetained           ,'energyRetained'  )
+           call file%writeDataset(fractionRetained         ,'fractionRetained')         
+           !$ call hdf5Access%unset()
+           end block
       end if
       call File_Unlock(fileLock)
       ! Build the interpolators.
       if (allocated(interpolatorVelocityEscape)) deallocate(interpolatorVelocityEscape)
       if (allocated(interpolatorVelocityKick  )) deallocate(interpolatorVelocityKick  )
+      allocate(interpolatorVelocityEscape)
+      allocate(interpolatorVelocityKick  )
       interpolatorVelocityEscape=interpolator(velocitiesEscapeScaleFree)
       interpolatorVelocityKick  =interpolator(velocitiesKickScaleFree  )
     end block

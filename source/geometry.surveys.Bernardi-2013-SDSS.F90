@@ -206,10 +206,7 @@ contains
     integer                                                                           :: status
 
     allocate(mangleFiles(1))
-    mangleFiles=                                                    &
-         &      [                                                   &
-         &       self%mangleDirectory()//"sdss_dr72safe0_res6d.pol" &
-         &      ]
+    mangleFiles(1)=self%mangleDirectory()//"sdss_dr72safe0_res6d.pol"
     if (.not.File_Exists(mangleFiles(1))) then
        call Directory_Make(self%mangleDirectory())
        call File_Lock  (char(mangleFiles(1)),lock,lockIsShared=.false.)

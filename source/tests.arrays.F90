@@ -211,7 +211,7 @@ program Test_Array_Monotonicity
   set2=['123','abc','789']
   set3=['abc'            ]
   call Assert('Array intersection',set1.intersection.set2,set3)
-  deallocate(set1,set2)
+  deallocate(set1,set2,set3)
 
   ! Test array slicing.
   allocate(array5D      (3,3,3,3,3))
@@ -233,6 +233,7 @@ program Test_Array_Monotonicity
   sliceIndex    =[2,1]
   array3D       =slice5Dto3D(array5D,sliceDimension,sliceIndex)
   call Assert("Array slicing",array3D,array3DTarget,absTol=1.0d-30)
+  deallocate(array3D,array3DTarget,array5D)
   
   ! End unit tests.
   call Unit_Tests_End_Group()

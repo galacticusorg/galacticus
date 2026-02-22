@@ -45,7 +45,6 @@
    contains
      final     ::                        outputStructureDestructor
      procedure :: operatePreEvolution => outputStructureOperatePreEvolution
-     procedure :: finalize            => outputStructureFinalize
   end type mergerTreeOperatorOutputStructure
 
   interface mergerTreeOperatorOutputStructure
@@ -101,7 +100,6 @@ contains
     implicit none
     type(mergerTreeOperatorOutputStructure), intent(inout) :: self
 
-    call self%finalize()
     !![
     <objectDestructor name="self%nodePropertyExtractor_"/>
     !!]
@@ -272,14 +270,11 @@ contains
        do i=1,countPropertiesDouble
           call treeGroup%writeDataset  (propertiesDouble (:,i),char(namesDouble (i)),char(descriptionsDouble (i)),datasetReturned=dataset)
           call dataset  %writeAttribute(unitsInSIDouble  (  i),'unitsInSI'                                                               )
-          call dataset  %close         (                                                                                                 )
        end do
        do i=1,countPropertiesInteger
           call treeGroup%writeDataset  (propertiesInteger(:,i),char(namesInteger(i)),char(descriptionsInteger(i)),datasetReturned=dataset)
           call dataset  %writeAttribute(unitsInSIInteger (  i),'unitsInSI'                                                               )
-          call dataset  %close         (                                                                                                 )
        end do
-       call    treeGroup %close()
        !$ call hdf5Access%unset()
        ! Free workspace.
        if (allocated(propertiesDouble   )) deallocate(propertiesDouble   )
@@ -295,17 +290,3 @@ contains
     end do
     return
   end subroutine outputStructureOperatePreEvolution
-
-  subroutine outputStructureFinalize(self)
-    !!{
-    Close the merger tree structure group.
-    !!}
-    !$ use :: HDF5_Access, only : hdf5Access
-    implicit none
-    class(mergerTreeOperatorOutputStructure), intent(inout) :: self
-
-    !$ call  hdf5Access%set  ()
-    if (self%outputGroup%isOpen()) call self%outputGroup%close()
-    !$ call  hdf5Access%unset()
-    return
-  end subroutine outputStructureFinalize

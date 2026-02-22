@@ -26,7 +26,6 @@
   !![
   <nodePropertyExtractor name="nodePropertyExtractorOutputSelector">
    <description>A node property extractor class that allows selection of output times at which to extract properties.</description>
-   <linkedList type="multiExtractorList" variable="extractors" next="next" object="extractor_" objectType="nodePropertyExtractorClass"/>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorMulti) :: nodePropertyExtractorOutputSelector

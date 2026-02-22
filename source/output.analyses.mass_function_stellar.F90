@@ -204,15 +204,14 @@ contains
     logical                                                                                :: haveTarget
 
     !$ call hdf5Access%set()
-    call dataFile%openFile   (fileName,readOnly=.true.)
-    call dataFile%readDataset('mass'  ,masses         )
+    dataFile=hdf5Object(fileName,readOnly=.true.)
+    call    dataFile%readDataset  ('mass'                ,masses                  )
     haveTarget=dataFile%hasDataset('massFunctionObserved').and.dataFile%hasDataset('covariance')
     if (haveTarget) then
        call dataFile%readAttribute('label'               ,targetLabel             )
        call dataFile%readDataset  ('massFunctionObserved',functionValueTarget     )
        call dataFile%readDataset  ('covariance'          ,functionCovarianceTarget)
     end if
-    call dataFile%close      (                        )
     !$ call hdf5Access%unset()
     ! Construct the object.
     !![

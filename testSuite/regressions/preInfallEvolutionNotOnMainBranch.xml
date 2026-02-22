@@ -19,19 +19,6 @@
   <!-- Baryonic components are set to null since we are not modeling them here. -->
   <componentBasic value="standard"/>
   <componentBlackHole value="standard"/>
-  <blackHoleCGMHeating value="jetPower">
-    <efficiencyRadioMode value="1.0"/>
-  </blackHoleCGMHeating>
-  <blackHoleWind value="ciotti2009">
-    <efficiencyWind value="2.4e-3"/>
-    <efficiencyWindScalesWithEfficiencyRadiative value="false"/>
-  </blackHoleWind>
-  <blackHoleAccretionRate value="standard">
-    <bondiHoyleAccretionEnhancementSpheroid value="5.0e0"/>
-    <bondiHoyleAccretionEnhancementHotHalo value="6.0e0"/>
-    <bondiHoyleAccretionHotModeOnly value="true"/>
-    <bondiHoyleAccretionTemperatureSpheroid value="1.0e2"/>
-  </blackHoleAccretionRate>
   <componentDarkMatterProfile value="scale"/>
   <componentDisk value="standard">
     <massDistributionDisk value="exponentialDisk">

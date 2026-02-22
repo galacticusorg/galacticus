@@ -225,7 +225,6 @@ contains
        call self%propertyHits%values(propertyHitCount)
        call profilerDataGroup%writeDataset  (self%timeStep                  ,"timeStep"                  ,"Timestep [Gyr]"                             ,datasetReturned=metaDataDataset)
        call metaDataDataset  %writeAttribute(     gigaYear                  ,"unitsInSI"                                                                                               )
-       call metaDataDataset  %close         (                                                                                                                                          )
        call profilerDataGroup%writeDataset  (self%  timeStepCount           ,"timeStepCount"             ,"Timestep histogram []"                                                      )
        call profilerDataGroup%writeDataset  (self%evaluationCount           ,"evaluationCount"           ,"Evaluations at this timestep []"                                            )
        call profilerDataGroup%writeDataset  (self%  timeCPU                 ,"timeCPU"                   ,"CPU time histogram [s]"                                                     )
@@ -234,8 +233,6 @@ contains
        call profilerDataGroup%writeDataset  (self%        timeCPUInterrupted,"timeCPUInterrupted"        ,"Interrupted CPU time histogram [s]"                                         )
        call profilerDataGroup%writeDataset  (     propertyNames             ,"propertyNames"             ,"Property names"                                                             )
        call profilerDataGroup%writeDataset  (     propertyHitCount          ,"propertyHitCount"          ,"Property hit count"                                                         )
-       call profilerDataGroup%close         (                                                                                                                                          )
-       call metaDataGroup    %close         (                                                                                                                                          )
        !$ call hdf5Access%unset()
        ! Report on the node causing the smallest timestep.
        if (associated(self%node)) then

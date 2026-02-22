@@ -440,23 +440,28 @@ contains
          &                                                                                    factorGrowthOrbital                            , factorGrowthInternal             , &
          &                                                                                    energySample                                   , peakHeight                       , &
          &                                                                                    energyVariance                                 , weightSubsampling
-    type            (rootFinder                             )                              :: finder
+    type            (rootFinder                             ), save                        :: finder
+    logical                                                  , save                        :: finderConstructed                       =.false.
+    !$omp threadprivate(finder,finderConstructed)
     type            (keplerOrbit                            )                              :: orbit
     type            (matrix                                 )                              :: cholesky_
-    
+        
     ! Get the resolution of the tree.
     massResolution=self%mergerTreeMassResolution_%resolution(node%hostTree)
     ! Build a root finder to find scale radii.
-    finder=rootFinder(                                                             &
-         &            rootFunction                 =radiusScaleRoot              , &
-         &            toleranceAbsolute            =1.0d-6                       , &
-         &            toleranceRelative            =1.0d-3                       , &
-         &            rangeExpandDownward          =0.5d+0                       , &
-         &            rangeExpandUpward            =2.0d+0                       , &
-         &            rangeExpandType              =rangeExpandMultiplicative    , &
-         &            rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
-         &            rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative  &
-         &           )
+    if (.not.finderConstructed) then 
+       finder           =rootFinder(                                                             &
+            &                       rootFunction                 =radiusScaleRoot              , &
+            &                       toleranceAbsolute            =1.0d-6                       , &
+            &                       toleranceRelative            =1.0d-3                       , &
+            &                       rangeExpandDownward          =0.5d+0                       , &
+            &                       rangeExpandUpward            =2.0d+0                       , &
+            &                       rangeExpandType              =rangeExpandMultiplicative    , &
+            &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+            &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative  &
+            &                      )
+       finderConstructed=.true.
+    end if
     ! Create the dark matter profile component.
     darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
     ! If this node has no children, is below the mass at which we apply our energy model, or is not on the main branch and our

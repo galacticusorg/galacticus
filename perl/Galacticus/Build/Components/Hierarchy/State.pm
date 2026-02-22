@@ -31,8 +31,8 @@ sub Hierarchy_State {
 	(
 	 @{$build->{'variables'}},
 	 {
-	     intrinsic  => "logical",
-	     variables  => [ "hierarchyInitialized=.false." ]
+	     intrinsic  => "integer",
+	     variables  => [ "hierarchyInitialized=0" ]
 	 }
 	);
 }

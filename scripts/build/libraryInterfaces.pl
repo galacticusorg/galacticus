@@ -1086,9 +1086,16 @@ sub fortranDeclarations {
 	$functionClasses{$argument->{'fortran'}->{'functionClass'}} = 1
 	    if ( exists($argument->{'fortran'}->{'functionClass'}) );
     }
-    # Add declarations for any functionClass pointer dereferencing functions.
+    # Add interfaces for any functionClass pointer dereferencing functions.
     foreach my $functionClass ( sort(keys(%functionClasses)) ) {
-	$code .= "class(".$functionClass."Class), pointer :: ".$functionClass."GetPtr\n";
+	$code .="interface\n";
+	$code .=" function ".$functionClass."GetPtr(ptr_,classID)\n";
+	$code .="  import c_int, c_ptr, ".$functionClass."Class\n";
+	$code .="  class(".$functionClass."Class), pointer :: ".$functionClass."GetPtr\n";
+	$code .="  type   (c_ptr), intent(in   ) :: ptr_\n";
+	$code .="  integer(c_int), intent(in   ) :: classID\n";
+	$code .=" end function ".$functionClass."GetPtr\n";
+	$code .="end interface\n";
     }
     # Return the declarations.
     return $code;

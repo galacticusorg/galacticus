@@ -517,7 +517,7 @@ contains
     use :: Error             , only : Error_Report       , Kernel_EACCES, Kernel_ELOOP , Kernel_EMLINK , &
          &                            Kernel_ENAMETOOLONG, Kernel_ENOENT, Kernel_ENOSPC, Kernel_ENOTDIR, &
          &                            Kernel_EROFS
-    use :: ISO_Varying_String, only : trim               , var_str
+    use :: ISO_Varying_String, only : trim
     implicit none
     character(len=* ), intent(in   ) :: pathName
     integer  (c_int )                :: status
@@ -525,10 +525,10 @@ contains
     character(len=24)                :: reason
 
     ! Quick return if the path exists.
-    if (File_Exists(var_str(pathName))) return
+    if (File_Exists(pathName)) return
     do i=2,len(trim(pathName))
        if (pathName(i:i) == "/") then
-          if (File_Exists(var_str(pathName(1:i-1)))) cycle
+          if (File_Exists(pathName(1:i-1))) cycle
           !$omp critical(mkdir)
           status=mkdir_C(pathName(1:i-1)//char(0))
           if (status /= 0) then

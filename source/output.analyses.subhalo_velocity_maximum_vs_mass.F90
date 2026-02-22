@@ -179,15 +179,13 @@ contains
 
     ! Read properties from the file.
     !$ call hdf5Access%set()
-    call file                      %openFile     (fileName                  ,readOnly=.true.             )
-    call file                      %readAttribute('label'                   ,         labelTarget        )
-    call file                      %readAttribute('redshift'                ,         redshift_          )
+    file=hdf5Object(fileName,readOnly=.true.)
+    call file                      %readAttribute('label'                               ,         labelTarget        )
+    call file                      %readAttribute('redshift'                            ,         redshift_          )
     velocityMaximumVsMassGroup=file%openGroup('velocityMaximum')
-    call velocityMaximumVsMassGroup%readDataset  ('mass'                    ,         massesTarget       )
-    call velocityMaximumVsMassGroup%readDataset  ('velocityMaximumMean'     ,         functionTarget     )
-    call velocityMaximumVsMassGroup%readDataset  ('velocityMaximumMeanError',         functionErrorTarget)
-    call velocityMaximumVsMassGroup%close        (                                                       )
-    call file                      %close        (                                                       )
+    call velocityMaximumVsMassGroup%readDataset  ('mass'                                ,         massesTarget       )
+    call velocityMaximumVsMassGroup%readDataset  ('velocityMaximumMean'                 ,         functionTarget     )
+    call velocityMaximumVsMassGroup%readDataset  ('velocityMaximumMeanError'            ,         functionErrorTarget)
     !$ call hdf5Access%unset()
     ! Override the redshift if one is provided.
     if (present(redshift)) redshift_=redshift

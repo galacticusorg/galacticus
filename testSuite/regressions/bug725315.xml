@@ -224,7 +224,7 @@
   <stellarPopulationProperties value="noninstantaneous">
     <countHistoryTimes value="10"/>
   </stellarPopulationProperties>
-  <outputFileName value="testSuite/outputs/regressions/test.hdf5"/>
+  <outputFileName value="testSuite/outputs/regressions/test725315.hdf5"/>
   <componentSatellite value="standard"/>
   <stateFileRoot value="galacticusDebug"/>
 

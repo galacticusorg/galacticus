@@ -328,12 +328,6 @@
   <stellarFeedback value="standard"/>
   
   <!-- Black hole options -->
-  <blackHoleAccretionRate value="standard">
-    <bondiHoyleAccretionEnhancementSpheroid value="  5.0"/>
-    <bondiHoyleAccretionEnhancementHotHalo  value="  6.0"/>
-    <bondiHoyleAccretionTemperatureSpheroid value="100.0"/>
-    <bondiHoyleAccretionHotModeOnly         value="true"/>
-  </blackHoleAccretionRate>
   <blackHoleBinaryMerger value="rezzolla2008"/>
 
   <!-- Galaxy merger options -->

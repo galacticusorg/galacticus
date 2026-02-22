@@ -28,25 +28,33 @@ module Regular_Expressions
   !!{
   Implements regular expressions by wrapping the GNU C Library implementations.
   !!}
-  use, intrinsic :: ISO_C_Binding, only : c_char, c_int, c_ptr, c_null_ptr
+  use, intrinsic :: ISO_C_Binding   , only : c_char         , c_int, c_ptr, c_null_ptr
+  use            :: Resource_Manager, only : resourceManager
   implicit none
   private
   public :: regEx
+
+  type :: regExWrapper
+     !!{
+     Wrapper class for managing C reg-ex objects.
+     !!}
+     type(c_ptr) :: r=c_null_ptr
+   contains
+     final :: regExWrapperDestructor
+  end type regExWrapper
 
   type :: regEx
      !!{
      A regular expression object.
      !!}
-     type(c_ptr) :: r=C_NULL_PTR
+     type(resourceManager)          :: regExManager
+     type(regExWrapper   ), pointer :: r            => null()
    contains
      !![
      <methods>
-       <method description="Return true if a regular expression matches the supplied {\normalfont \ttfamily string}." method="matches" />
-       <method description="Destroy the regex." method="destroy" />
+       <method method="matches" description="Return true if a regular expression matches the supplied {\normalfont \ttfamily string}."/>
      </methods>
      !!]
-     final     ::            Regular_Expression_Destructor
-     procedure :: destroy => Regular_Expression_Destroy
      procedure :: matches => Regular_Expression_Match
   end type regEx
 
@@ -99,37 +107,32 @@ contains
     implicit none
     type     (regEx)                :: self
     character(len=*), intent(in   ) :: regularExpression
+    class    (*    ), pointer       :: dummyPointer_
 
-    self%r=Regular_Expression_Construct_C(trim(regularExpression)//char(0))
+    allocate(self%r)
+    self%r%r=Regular_Expression_Construct_C(trim(regularExpression)//char(0))
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    dummyPointer_     => self%r
+    self%regExManager =  resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]
     return
   end function Regular_Expression_Constructor
 
-  subroutine Regular_Expression_Destructor(self)
+  subroutine regExWrapperDestructor(self)
     !!{
-    Destructor for {\normalfont \ttfamily regEx} objects.
-    !!}
-    use, intrinsic :: ISO_C_Binding, only : C_Associated
-    implicit none
-    type(regEx), intent(inout) :: self
-
-    if (C_Associated(self%r)) call Regular_Expression_Destruct_C(self%r)
-    self%r=C_NULL_PTR
-    return
-  end subroutine Regular_Expression_Destructor
-
-  subroutine Regular_Expression_Destroy(self)
-    !!{
-    Destroy a {\normalfont \ttfamily regEx} object.
+    Destroy a {\normalfont \ttfamily regExWrapper} object.
     !!}
     implicit none
-    class(regEx), intent(inout) :: self
+    type(regExWrapper), intent(inout) :: self
 
-    select type (self)
-    type is (regEx)
-       call Regular_Expression_Destructor(self)
-    end select
+    call Regular_Expression_Destruct_C(self%r)
     return
-  end subroutine Regular_Expression_Destroy
+  end subroutine regExWrapperDestructor
 
   logical function Regular_Expression_Match(self,string)
     !!{
@@ -140,8 +143,8 @@ contains
     character(len=*), intent(in   ) :: string
     integer                         :: status
 
-    status=Regular_Expression_Match_C(self%r,trim(string)//char(0))
-    Regular_Expression_Match=(status==0)
+    status=Regular_Expression_Match_C(self%r%r,trim(string)//char(0))
+    Regular_Expression_Match=status == 0
     return
   end function Regular_Expression_Match
 

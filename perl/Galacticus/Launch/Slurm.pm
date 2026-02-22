@@ -32,18 +32,18 @@ sub Validate {
     # Set defaults.
     my %defaults = 
 	(
-	 mpiLaunch               => "yes"            ,
-	 mpiRun                  => "mpirun --bynode",
-	 maxJobsInQueue          => -1               ,
-	 postSubmitSleepDuration => 10               ,
-	 jobWaitSleepDuration    => 60               ,
+	 mpiLaunch               => "yes"                            ,
+	 mpiRun                  => "mpirun --oversubscribe --bynode",
+	 maxJobsInQueue          => -1                               ,
+	 postSubmitSleepDuration => 10                               ,
+	 jobWaitSleepDuration    => 60                               ,
 	 analyze                 => "yes"
 	);
     # Attempt to detect MPI implementation.
     my $mpiIs = &mpiDetect();
     if ( $mpiIs eq "OpenMPI" ) {
-	$defaults{'mpiLaunch'} = "yes"            ;
-	$defaults{'mpiRun'   } = "mpirun --bynode";
+	$defaults{'mpiLaunch'} = "yes"                            ;
+	$defaults{'mpiRun'   } = "mpirun --oversubscribe --bynode";
     }    
     # Apply defaults.
     foreach ( keys(%defaults) ) {
@@ -352,7 +352,7 @@ sub SubmitJobs {
 		print $scriptFile "ulimit -t unlimited\n";
 		print $scriptFile "ulimit -c unlimited\n";
 		print $scriptFile "export OMP_NUM_THREADS=".$ompThreads."\n";
-		print $scriptFile (exists($newJob->{'mpi'}) && $newJob->{'mpi'} eq "yes" ? "mpirun -np ".($ppn*$nodes)." " : "").$newJob->{'command'}."\n";
+		print $scriptFile (exists($newJob->{'mpi'}) && $newJob->{'mpi'} eq "yes" ? "mpirun --oversubscribe -np ".($ppn*$nodes)." " : "").$newJob->{'command'}."\n";
 		print $scriptFile "exit\n";
 		close($scriptFile);
 	    } else {

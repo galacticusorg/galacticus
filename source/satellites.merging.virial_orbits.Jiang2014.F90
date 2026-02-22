@@ -278,7 +278,7 @@ contains
        call File_Lock(fileName,fileLock,lockIsShared=attempt == 0)
        if (File_Exists(fileName)) then
           !$ call hdf5Access%set()
-          call file%openFile         (char(fileName)                ,readOnly=.true.                   )
+          file=hdf5Object            (char(fileName)                ,readOnly=.true.                   )
           call file%readAttribute    ('limitLower'                  ,     limitLower                   ) 
           call file%readAttribute    ('limitUpper'                  ,     limitUpper                   ) 
           call file%readDatasetStatic('velocityTangentialMean'      ,self%velocityTangentialMean_      )
@@ -290,7 +290,6 @@ contains
                 call self%voightDistributions(i,j)%populate(distribution_(:,1)                      )
              end do
           end do
-          call    file      %close()
           !$ call hdf5Access%unset()
           success=.true.
        else if (attempt == 1) then
@@ -356,7 +355,7 @@ contains
              end do
           end do
           !$ call hdf5Access%set()
-          call file%openFile      (char(fileName                     )                               ,overWrite=.true.,readOnly=.false.)
+          file=hdf5Object         (char(fileName                     )                               ,overWrite=.true.,readOnly=.false.)
           call file%writeAttribute(     limitLower                    ,'limitLower'                                                    ) 
           call file%writeAttribute(     limitUpper                    ,'limitUpper'                                                    ) 
           call file%writeDataset  (self%velocityTangentialMean_       ,'velocityTangentialMean'                                        )
@@ -366,7 +365,6 @@ contains
                 call file%writeDataset(self%voightDistributions(i,j)%ys(),char(var_str('distribution_')//i//'_'//j))
              end do
           end do
-          call    file      %close()
           !$ call hdf5Access%unset()
           success=.true.
        end if

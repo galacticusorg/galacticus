@@ -180,13 +180,11 @@ contains
     ! Read the halo mass function file.
     write (redshiftLabel,'(f6.3)') redshift
     !$ call hdf5Access%set()
-    call massFunctionFile%openFile(fileName,readOnly=.true.)
+    massFunctionFile=hdf5Object(fileName,readOnly=.true.)
     simulationGroup=massFunctionFile%openGroup('simulation0001')
     call simulationGroup %readDataset("mass"        ,massOriginal             )
     call simulationGroup %readDataset("massFunction",massFunctionOriginal     )
     call simulationGroup %readDataset("count"       ,massFunctionCountOriginal)
-    call simulationGroup %close      (                                        )
-    call massFunctionFile%close      (                                        )
     !$ call hdf5Access%unset()
     ! Compute quantities needed for likelihood calculations.
     if (self%likelihoodPoisson) then

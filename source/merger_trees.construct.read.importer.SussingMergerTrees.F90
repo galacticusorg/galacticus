@@ -95,7 +95,6 @@
      !!]
      final     ::                                  sussingDestructor
      procedure :: load                          => sussingLoad
-     procedure :: close                         => sussingClose
      procedure :: canReadSubsets                => sussingCanReadSubsets
      procedure :: treesHaveSubhalos             => sussingTreesHaveSubhalos
      procedure :: massesIncludeSubhalos         => sussingMassesIncludeSubhalos
@@ -270,17 +269,6 @@ contains
     !!]
     return
   end subroutine sussingDestructor
-
-  subroutine sussingClose(self)
-    !!{
-    Close a {\normalfont \ttfamily sussing} format merger tree file.
-    !!}
-    implicit none
-    class(mergerTreeImporterSussing), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    return
-  end subroutine sussingClose
 
   logical function sussingCanReadSubsets(self)
     !!{

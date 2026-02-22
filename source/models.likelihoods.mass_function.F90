@@ -192,7 +192,7 @@ contains
     self%logHaloMassMaximum=log10(haloMassMaximum)
     ! Read the mass function file.
     !$ call hdf5Access%set()
-    call massFunctionFile%openFile(char(inputPath(pathTypeDataStatic))//massFunctionFileName,readOnly=.true.)
+    massFunctionFile=hdf5Object(char(inputPath(pathTypeDataStatic))//massFunctionFileName,readOnly=.true.)
     call massFunctionFile%readDataset("mass"                ,self%mass                )
     call massFunctionFile%readDataset("massFunctionObserved",self%massFunctionObserved)
     call massFunctionFile%readDataset("covariance"          ,self%covarianceMatrix    )
@@ -239,7 +239,6 @@ contains
           end if
        end do
     end if
-    call massFunctionFile%close()
     !$ call hdf5Access%unset()
     ! Find the inverse covariance matrix.
     self%covariance=self%covarianceMatrix

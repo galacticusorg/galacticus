@@ -932,10 +932,6 @@ contains
     implicit none
     type(mergerTreeConstructorRead), intent(inout) :: self
 
-    if (self%importerOpen) then
-       call self%mergerTreeImporter_%close()
-       self%importerOpen=.false.
-    end if
     !![
     <objectDestructor name="self%cosmologyFunctions_"            />
     <objectDestructor name="self%mergerTreeImporter_"            />
@@ -1012,8 +1008,7 @@ contains
        do while (treeNumber-self%treeNumberOffset > treeNumberMaximum .and. self%fileCurrent < size(self%fileNames))
           self%fileCurrent     =self%fileCurrent     +1
           self%treeNumberOffset=self%treeNumberOffset+treeNumberMaximum
-          call self%mergerTreeImporter_%close(                                )
-          call self%mergerTreeImporter_%open (self%fileNames(self%fileCurrent))
+          call self%mergerTreeImporter_%open(self%fileNames(self%fileCurrent))
           treeNumberMaximum=int(self%mergerTreeImporter_%treeCount(),kind=c_size_t)
        end do
        treeNumberOffset=treeNumber-self%treeNumberOffset
@@ -3467,12 +3462,14 @@ contains
        ! If parent is cloned, we need to make a temporary progenitor node.
        if (parentIsCloned) then
           allocate(primaryProgenitor)
-          basic                       => nodeList(lastSeenNode%isolatedNodeIndex)%node%parent%firstChild%basic   ()
-          position                    => nodeList(lastSeenNode%isolatedNodeIndex)%node%parent%firstChild%position()
-          primaryProgenitor%nodeIndex =  nodeList(lastSeenNode%isolatedNodeIndex)%node%parent%firstChild%index   ()
-          primaryProgenitor%nodeMass  =  basic                                                          %mass    ()
-          primaryProgenitor%position  =  position                                                       %position()
-          primaryProgenitor%velocity  =  position                                                       %velocity()
+          basic                          => nodeList(lastSeenNode%isolatedNodeIndex)%node%parent%firstChild%basic   ()
+          position                       => nodeList(lastSeenNode%isolatedNodeIndex)%node%parent%firstChild%position()
+          primaryProgenitor%nodeIndex    =  nodeList(lastSeenNode%isolatedNodeIndex)%node%parent%firstChild%index   ()
+          primaryProgenitor%nodeMass     =  basic                                                          %mass    ()
+          if (self%presetPositions) then
+             primaryProgenitor%position  =  position                                                       %position()
+             primaryProgenitor%velocity  =  position                                                       %velocity()
+          end if
        else
           primaryProgenitor     => null()
           primaryProgenitorMass =  0.0d0

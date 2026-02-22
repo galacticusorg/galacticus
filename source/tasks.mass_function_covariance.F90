@@ -300,13 +300,14 @@ contains
     !!{
     Compute and output the halo mass function.
     !!}
-    use :: Display                         , only : displayIndent          , displayUnindent
-    use :: Error                , only : Error_Report, errorStatusSuccess
+    use :: Display                         , only : displayIndent, displayUnindent
+    use :: Error                           , only : Error_Report , errorStatusSuccess
     use :: IO_HDF5                         , only : hdf5Object
-    use :: Numerical_Constants_Astronomical, only : massSolar              , megaParsec
+    use :: HDF5_Access                     , only : hdf5Access
+    use :: Numerical_Constants_Astronomical, only : massSolar    , megaParsec
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Integration           , only : integrator
-    use :: Numerical_Ranges                , only : Make_Range             , rangeTypeLinear   , rangeTypeLogarithmic
+    use :: Numerical_Ranges                , only : Make_Range   , rangeTypeLinear   , rangeTypeLogarithmic
     implicit none
     class           (taskMassFunctionCovariance), intent(inout), target                   :: self
     integer                                     , intent(  out), optional                 :: status
@@ -338,7 +339,8 @@ contains
     self_    => self
     selfCopy => self
     ! Open the mass function file.
-    call massFunctionFile%openFile(char(self%massFunctionFileName),overWrite=.true.)
+    !$ call hdf5Access%set()
+    massFunctionFile=hdf5Object(self%massFunctionFileName,overWrite=.true.)
     ! Read the observed mass function if available.
     self%completenessErrorObserved=0.0d0
     if (massFunctionFile%hasDataset  ("massFunctionObserved")) call massFunctionFile%readDataset  ("massFunctionObserved",     massFunctionObserved     )
@@ -347,6 +349,7 @@ contains
     if (massFunctionFile%hasAttribute("completenessError"   )) call massFunctionFile%readAttribute("completenessError"   ,self%completenessErrorObserved)
     if (massFunctionFile%hasDataset  ("massObserved"        )) call massFunctionFile%readDataset  ("massObserved"        ,     massObserved             )
     if (massFunctionFile%hasDataset  ("massWidthObserved"   )) call massFunctionFile%readDataset  ("massWidthObserved"   ,     massWidthObserved        )
+    !$ call hdf5Access%unset()
     ! Determine number of times over which to tabulate bias.
     timeMaximum =self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(self%surveyRedshiftMinimum))
     timeMinimum =self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(self%surveyRedshiftMaximum))
@@ -597,26 +600,21 @@ contains
     deallocate(     volume          )
     deallocate(     varianceLSS     )
     ! Write out the covariance matrix.
+    !$ call hdf5Access%set()
     call massFunctionFile %writeDataset  (mass               ,"mass"             ,"Mass; M [M☉]"                                    ,datasetReturned=dataset)
     call dataset%writeAttribute(massSolar          ,"unitsInSI"                                    )
-    call dataset%close         (                                                                   )
     call massFunctionFile %writeDataset  (massFunction       ,"massFunction"     ,"Mass function; dn/dln(M) [Mpc⁻³]"                ,datasetReturned=dataset)
     call dataset%writeAttribute(1.0d0/megaParsec**3,"unitsInSI"                                    )
-    call dataset%close         (                                                                   )
     call massFunctionFile %writeDataset  (covariance         ,"covariance"       ,"Covariance of mass function; [Mpc⁻⁶]"            ,datasetReturned=dataset)
     call dataset%writeAttribute(1.0d0/megaParsec**3,"unitsInSI"                                    )
-    call dataset%close         (                                                                   )
     call massFunctionFile %writeDataset  (covariancePoisson  ,"covariancePoisson","Covariance due to Poisson noise; [Mpc⁻⁶]"        ,datasetReturned=dataset)
     call dataset%writeAttribute(1.0d0/megaParsec**3,"unitsInSI"                                    )
-    call dataset%close         (                                                                   )
     call massFunctionFile %writeDataset  (covarianceHalo     ,"covarianceHalo"   ,"Covariance due to halo effect; [Mpc⁻⁶]"          ,datasetReturned=dataset)
     call dataset%writeAttribute(1.0d0/megaParsec**3,"unitsInSI"                                    )
-    call dataset%close         (                                                                   )
     call massFunctionFile %writeDataset  (covarianceLSS      ,"covarianceLSS"    ,"Covariance due to large scale structure; [Mpc⁻⁶]",datasetReturned=dataset)
     call dataset%writeAttribute(1.0d0/megaParsec**3,"unitsInSI"                                    )
-    call dataset%close         (                                                                   )
     call massFunctionFile %writeDataset  (correlation        ,"correlation"      ,"Correlation matrix for stellar mass function; []"                        )
-    call massFunctionFile%close  ()
+    !$ call hdf5Access%unset()
     ! Done.
     if (present(status)) status=errorStatusSuccess
     call displayUnindent('Done task: mass function covariance' )
@@ -1178,9 +1176,10 @@ contains
     !!{
     Compute variance due to large scale structure by integration over the angular power spectrum.
     !!}
-    use :: Display                 , only : displayCounter, displayCounterClear
-    use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Integration   , only : integrator
+    !$ use :: OMP_Lib                 , only : OMP_Set_Max_Active_Levels, OMP_Get_Supported_Active_Levels
+    use    :: Display                 , only : displayCounter           , displayCounterClear
+    use    :: Numerical_Constants_Math, only : Pi
+    use    :: Numerical_Integration   , only : integrator
     implicit none
     class           (taskMassFunctionCovariance), intent(inout), target           :: self
     integer                                     , intent(in   )                   :: massBinCount
@@ -1197,7 +1196,7 @@ contains
     type            (integrator                )                                  :: integrator_
 
     countFields=self_%surveyGeometry_%fieldCount()
-    !$ call OMP_Set_Nested(.true.)
+    !$ call OMP_Set_Max_Active_Levels(OMP_Get_Supported_Active_Levels())
     taskTotal  =massBinCount*(massBinCount+1)/2
     taskCount  =0
     !$omp parallel private (i,j,wavenumberMinimum,wavenumberMaximum,integrator_)

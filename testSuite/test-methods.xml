@@ -2748,10 +2748,9 @@
     <darkMatterProfileDMO value="isothermal"/>
     <hotHaloMassDistribution value="null"/>
     <mergerRemnantSize value="null"/>
-    <mergerTreeBuildMasses value="sampledDistributionUniform">
-      <massTreeMaximum value="6.0e12"/>
-      <massTreeMinimum value="2.0e12"/>
-      <treesPerDecade value="10"/>
+    <mergerTreeBuildMasses value="fixedMass">
+      <massTree value="4.0e12"/>
+      <treeCount value="1"/>
     </mergerTreeBuildMasses>
     <mergerTreeBuilder value="cole2000">
       <accretionLimit value="0.1"/>
@@ -2763,7 +2762,7 @@
       <massResolution value="1.0e10"/>
     </mergerTreeMassResolution>
     <mergerTreeOperator value="particulate">
-      <outputFileName value="testSuite/outputs/particulate.hdf5"/>
+      <outputFileName value="testSuite/outputs/particulated.hdf5"/>
       <massParticle value="1.0e10"/>
       <timeSnapshot value="10.0"/>
       <radiusTruncateOverRadiusVirial value="2.0"/>

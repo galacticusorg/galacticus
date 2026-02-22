@@ -76,7 +76,7 @@ contains
        !$omp critical (emissionLineDatabaseInitialize)
        if (.not.databaseInitialized) then
           !$ call hdf5Access%set()
-          call file%openFile(char(inputPath(pathTypeDataStatic))//'hiiRegions/emissionLines.hdf5',readOnly=.true.)
+          file=hdf5Object(char(inputPath(pathTypeDataStatic))//'hiiRegions/emissionLines.hdf5',readOnly=.true.)
           lines=file%openGroup("lines")
           call lines%datasets(lineNames)
           allocate(wavelengths(size(lineNames)))
@@ -86,11 +86,8 @@ contains
              else
                 dataset=lines%openDataset(char(lineNames(i)))
                 call dataset%readAttribute("wavelength",wavelengths(i))
-                call dataset%close        (                           )
              end if
           end do
-          call lines%close()
-          call file %close()
           !$ call hdf5Access%unset()
           databaseInitialized=.true.
        end if

@@ -256,7 +256,7 @@ contains
     if (.not.File_Exists(fileName)) call Error_Report("file '"//char(fileName)//"' does not exist"//{introspection:location})
     ! Open and read the HDF5 data file.
     !$ call hdf5Access%set()
-    call fileObject%openFile(fileName,readOnly=.true.)
+    fileObject=hdf5Object(fileName,readOnly=.true.)
     ! Check that the file has the correct format version number.
     call fileObject%readAttribute('fileFormat',versionNumber,allowPseudoScalar=.true.)
     if (versionNumber /= fileFormatVersionCurrent) call Error_Report(var_str('file has the incorrect format version number (expected fileFormat=1, found fileFormat=')//versionNumber//')'//{introspection:location})
@@ -283,7 +283,6 @@ contains
             & call displayMessage(displayMagenta()//"WARNING:"//displayReset()//' temperatureCMB from transfer function file does not match internal value' )
     end select
     deallocate(cosmologyParametersFile)
-    call parametersObject%close()
     ! Get extrapolation methods.
     call fileObject%readAttribute('extrapolationWavenumber',limitTypeVar)
     extrapolateWavenumber=enumerationExtrapolationTypeEncode(char(limitTypeVar),includesPrefix=.false.)
@@ -293,8 +292,6 @@ contains
     call fileObject%readDataset('wavenumber',wavenumber)
     call fileObject%readDataset('redshift'  ,redshift  )
     call fileObject%readDataset('power'     ,power     )
-    ! Close the file.
-    call fileObject%close()
     !$ call hdf5Access%unset()
     ! Construct the tabulated power spectrum and interpolators. Note that the tabulated power must be in order of increasing time, so sort on redshift and index in reverse.
     order=sortIndex(redshift)

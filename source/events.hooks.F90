@@ -90,6 +90,14 @@ module Events_Hooks
      !!}
      private
      type(regEx) :: regEx_
+   contains
+     !![
+     <methods>
+       <method method="assignment(=)" description="Assign regular expression dependency objects."/>
+     </methods>
+     !!]
+     procedure ::                  dependencyRegExAssign
+     generic   :: assignment(=) => dependencyRegExAssign
   end type dependencyRegEx
 
   interface dependencyExact
@@ -208,6 +216,20 @@ module Events_Hooks
   !!]
 
 contains
+
+  subroutine dependencyRegExAssign(self,from)
+    !!{
+    Perform assignment of reg-ex dependencies.
+    !!}
+    implicit none
+    class(dependencyRegEx), intent(inout) :: self
+    class(dependencyRegEx), intent(in   ) :: from
+
+    self%direction=from%direction
+    self%label    =from%label
+    self%regEx_   =from%regEx_
+    return
+  end subroutine dependencyRegExAssign
 
   subroutine eventsHooksFutureThread(futureThread)
     !!{

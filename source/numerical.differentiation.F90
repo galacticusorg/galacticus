@@ -28,8 +28,9 @@ module Numerical_Differentiation
   !!{
   Implements numerical differentiation.
   !!}
-  use, intrinsic :: ISO_C_Binding, only : c_double   , c_int             , c_ptr              , c_null_ptr
-  use            :: Interface_GSL, only : gslFunction, gslFunctionDestroy, gslFunctionTemplate
+  use, intrinsic :: ISO_C_Binding   , only : c_double       , c_int             , c_ptr              , c_null_ptr
+  use            :: Interface_GSL   , only : gslFunction    , gslFunctionDestroy, gslFunctionTemplate, gslFunctionWrapper
+  use            :: Resource_Manager, only : resourceManager
   implicit none
   private
   public :: differentiator
@@ -39,14 +40,14 @@ module Numerical_Differentiation
      Type which computes numerical derivatives.
      !!}
      private
-     type(c_ptr) :: f=c_null_ptr
+     type(resourceManager   )          :: manager
+     type(gslFunctionWrapper), pointer :: wrapper => null()
    contains
      !![
      <methods>
        <method description="Returns the derivative of the function at argument {\normalfont \ttfamily x}." method="derivative" />
      </methods>
      !!]
-     final     ::               differentiatorDestructor
      procedure :: derivative => differentiatorDerivative
   end type differentiator
 
@@ -75,24 +76,23 @@ contains
     will be computed.
     !!}
     implicit none
-    type     (differentiator     ) :: self
-    procedure(gslFunctionTemplate) :: f
-
-    self%f=gslFunction(f)
+    type     (differentiator     )          :: self
+    procedure(gslFunctionTemplate)          :: f
+    class    (*                  ), pointer :: dummyPointer_
+    
+    allocate(self%wrapper)
+    self%wrapper%f=gslFunction(f)
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    dummyPointer_ => self%wrapper
+    self%manager  =  resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]
     return
   end function differentiatorConstructorInternal
-
-  subroutine differentiatorDestructor(self)
-    !!{
-    Destructor for the numerical derivative class.
-    !!}
-    use, intrinsic :: ISO_C_Binding, only : c_associated
-    implicit none
-    type(differentiator), intent(inout) :: self
-
-    if (c_associated(self%f)) call gslFunctionDestroy(self%f)
-    return
-  end subroutine differentiatorDestructor
 
   double precision function differentiatorDerivative(self,x,h,errorAbsolute)
     !!{
@@ -107,7 +107,7 @@ contains
     double precision                                          :: errorAbsolute_
     integer         (c_int         )                          :: status
 
-    status=gsl_deriv_central(self%f,x,h,differentiatorDerivative,errorAbsolute_)
+    status=gsl_deriv_central(self%wrapper%f,x,h,differentiatorDerivative,errorAbsolute_)
     if (status /= errorStatusSuccess) call Error_Report('failed to compute numerical derivative'//{introspection:location})
     if (present(errorAbsolute)) errorAbsolute=errorAbsolute_
     return

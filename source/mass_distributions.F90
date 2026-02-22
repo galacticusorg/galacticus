@@ -651,7 +651,7 @@ module Mass_Distributions
     </code>
    </method>
    <data>class           (kinematicsDistributionClass ), pointer :: kinematicsDistribution_                 => null()              </data>
-   <data>logical                                                 :: dimensionless                                                  </data>
+   <data>logical                                                 :: dimensionless                           =  .false.             </data>
    <data>logical                                                 :: tolerateVelocityMaximumFailure          =  .false.             </data>
    <data>type            (enumerationComponentTypeType)          :: componentType                           =  componentTypeUnknown</data>
    <data>type            (enumerationMassTypeType     )          :: massType                                =  massTypeUnknown     </data>

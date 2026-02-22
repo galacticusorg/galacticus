@@ -39,7 +39,7 @@
      ! Memoized solutions for the potential.
      double precision              , allocatable, dimension(:) :: potentialProfilePotential__                                , potentialProfileRadius__
      double precision                                          :: potentialProfileRadiusMinimum__               =+huge(0.0d0), potentialProfileRadiusMaximum__=-huge(0.0d0), &
-          &                                                       potentialProfileRadiusMinimumActual__                      , potentialRadiusZeroPoint__     =-huge(0.0d0)
+          &                                                       potentialProfileRadiusMinimumActual__         =+huge(0.0d0), potentialRadiusZeroPoint__     =-huge(0.0d0)
      type            (interpolator), allocatable               :: potentialProfile__
      logical                                                   :: toleratePotentialIntegrationFailure           =.false.
      double precision                                          :: toleranceRelativePotential                    =1.0d-6

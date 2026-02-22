@@ -1612,8 +1612,8 @@ contains
     fileExists=appendActual.and.File_Exists(outputFileName)
 
     ! Open the output file.
-    !$ call hdf5Access%set     (                                                                                                                                 )
-    call    outputFile%openFile(outputFileName,overWrite=.not.appendActual,objectsOverwritable=.true.,chunkSize=hdfChunkSize,compressionLevel=hdfCompressionLevel)
+    !$ call hdf5Access%set()
+    outputFile=hdf5Object(outputFileName,overWrite=.not.appendActual,objectsOverwritable=.true.,chunkSize=hdfChunkSize,compressionLevel=hdfCompressionLevel)
 
     ! Write a format version attribute.
     if (.not.fileExists) call outputFile%writeAttribute(2,"formatVersion")
@@ -1674,7 +1674,6 @@ contains
              if (forestHalos%hasDataset(char(enumerationPropertyTypeDecode(iProperty)))) then
                 treeDataset=forestHalos%openDataset(char(enumerationPropertyTypeDecode(iProperty)))
                 call treeGroup%createReference1D(treeDataset,char(enumerationPropertyTypeDecode(iProperty)),hyperslabStart,hyperslabCount)
-                call treeDataset%close()
              end if
           end do
 
@@ -1687,16 +1686,9 @@ contains
              if (forestHalos%hasDataset(trim(propertyNames3D(iProperty)))) then
                 treeDataset=forestHalos%openDataset(propertyNames3D(iProperty))
                 call treeGroup%createReference2D(treeDataset,trim(propertyNames3D(iProperty)),hyperslabStart,hyperslabCount)
-                call treeDataset%close()
              end if
           end do
-
-          call treeGroup%close()
        end do
-
-       ! Close the merger trees group.
-       call forestsGroup%close()
-
        ! Finished making individual merger tree datasets
     end if
 
@@ -1710,9 +1702,6 @@ contains
        if (mergerTrees%hasParticleRedshift ) call particlesGroup%writeDataset(mergerTrees%particleRedshift,"redshift"  ,"The redshift of each particle.",appendTo=appendActual)
        if (mergerTrees%hasParticlePositionX) call particlesGroup%writeDataset(mergerTrees%particlePosition,"position"  ,"The position of each particle.",appendTo=appendActual)
        if (mergerTrees%hasParticleVelocityX) call particlesGroup%writeDataset(mergerTrees%particleVelocity,"velocity"  ,"The velocity of each particle.",appendTo=appendActual)
-
-       ! Close the particles group.
-       call particlesGroup%close()
     end if
 
     ! Create datasets giving positions of merger trees within the node arrays.
@@ -1729,7 +1718,6 @@ contains
     call        forestIndexGroup%writeDataset(mergerTrees%forestID     ,"forestIndex"  ,"Unique index of forest."                                           ,appendTo=appendActual)
     if (mergerTrees%hasForestWeight.or..not.mergerTrees%hasBoxSize)                                                                                                               &
          & call forestIndexGroup%writeDataset(mergerTrees%treeWeight   ,"forestWeight" ,"Weight of forest."                                                 ,appendTo=appendActual)
-    call forestIndexGroup%close()
 
     ! Only write remaining data if we are not appending to an existing file.
     if (.not.fileExists) then
@@ -1781,7 +1769,6 @@ contains
        if (mergerTrees%unitsSet(unitsLength  %ID)) call Store_Unit_Attributes_Galacticus(unitsLength  ,"length"  ,mergerTrees,unitsGroup)
        if (mergerTrees%unitsSet(unitsTime    %ID)) call Store_Unit_Attributes_Galacticus(unitsTime    ,"time"    ,mergerTrees,unitsGroup)
        if (mergerTrees%unitsSet(unitsVelocity%ID)) call Store_Unit_Attributes_Galacticus(unitsVelocity,"velocity",mergerTrees,unitsGroup)
-       call unitsGroup%close()
 
        ! Create groups for attributes.
        if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataTypeGeneric    )) genericGroup    =outputFile%openGroup("metaData"   ,"Generic metadata."                  )
@@ -1823,19 +1810,7 @@ contains
              call attributeGroup%writeAttribute(mergerTrees%metaData(iAttribute)%textAttribute   ,char(mergerTrees%metaData(iAttribute)%label))
           end select
        end do
-
-       ! Close attribute groups.
-       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataTypeGeneric    )) call genericGroup    %close()
-       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataTypeCosmology  )) call cosmologyGroup  %close()
-       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataTypeSimulation )) call simulationGroup %close()
-       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataTypeGroupFinder)) call groupFinderGroup%close()
-       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataTypeTreeBuilder)) call treeBuilderGroup%close()
-       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataTypeProvenance )) call provenanceGroup %close()
-
     end if
-
-    ! Close the group for datasets.
-    call forestHalos%close()
 
     ! Add a flag to indicate successfully completed writing merger tree information.
     if (fileExists) then
@@ -1845,9 +1820,6 @@ contains
        completeCount=             +1
     end if
     call outputFile%writeAttribute(completeCount,"fileCompleteFlag")
-
-    ! Close the output file.
-    call    outputFile%close()
     !$ call hdf5Access%unset()
 
     return
@@ -1901,8 +1873,8 @@ contains
     if (.not.mergerTrees%hasDescendantIndex) call Error_Report('descendant indices are required for this format'//{introspection:location})
 
     ! Open the output file.
-    !$ call hdf5Access%set     (                                                                                                      )
-    call    outputFile%openFile(outputFileName,overWrite=.not.appendActual,chunkSize=hdfChunkSize,compressionLevel=hdfCompressionLevel)
+    !$ call hdf5Access%set()
+    outputFile=hdf5Object(outputFileName,overWrite=.not.appendActual,chunkSize=hdfChunkSize,compressionLevel=hdfCompressionLevel)
 
     ! Write the IRATE version.
     if (.not.fileExists) call outputFile%writeAttribute(0,"IRATEVersion")
@@ -1936,27 +1908,22 @@ contains
        if (mergerTrees%hasNodeMass                ) then
           call haloTrees%writeDataset(Array_Index(mergerTrees%nodeMass                ,snapshotIndices),"Mass"           ,"The mass of each halo."                          ,datasetReturned=dataset,appendTo=appendActual                  )
           if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass                          ],mergerTrees,dataset)
-          call dataset%close()
        end if
        if (mergerTrees%hasNodeMass200Mean         ) then
           call haloTrees%writeDataset(Array_Index(mergerTrees%nodeMass200Mean         ,snapshotIndices),"Mass200Mean"    ,"The M200 mass of each halo (200 * mean density).",datasetReturned=dataset,appendTo=appendActual                  )
           if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass                          ],mergerTrees,dataset)
-          call dataset%close()
        end if
        if (mergerTrees%hasNodeMass200Crit         ) then
           call haloTrees%writeDataset(Array_Index(mergerTrees%nodeMass200Crit         ,snapshotIndices),"Mass200Crit"    ,"The M200 mass of each halo (200 * mean density).",datasetReturned=dataset,appendTo=appendActual                  )
           if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass                          ],mergerTrees,dataset)
-          call dataset%close()
        end if
        if (mergerTrees%hasPositionX               ) then
           call haloTrees%writeDataset(Array_Index(mergerTrees%position    ,snapshotIndices,indexOn=2),"Center"         ,"The position of each halo center."                 ,datasetReturned=dataset,appendTo=appendActual,appendDimension=2)
           if (.not.appendActual) call Store_Unit_Attributes_IRATE([          unitsLength              ],mergerTrees,dataset)
-          call dataset%close()
        end if
        if (mergerTrees%hasVelocityX               ) then
           call haloTrees%writeDataset(Array_Index(mergerTrees%velocity   ,snapshotIndices,indexOn=2),"Velocity"       ,"The velocity of each halo."                         ,datasetReturned=dataset,appendTo=appendActual,appendDimension=2)
           if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsVelocity                      ],mergerTrees,dataset)
-          call dataset%close()
        end if
        if (mergerTrees%hasSpinX                   ) then
           call haloTrees%writeDataset(Array_Index(mergerTrees%spin                    ,snapshotIndices),"Spin"           ,"The spin of each halo."                                                      ,appendTo=appendActual                  )
@@ -1964,7 +1931,6 @@ contains
        if (mergerTrees%hasAngularMomentumX        ) then
           call haloTrees%writeDataset(Array_Index(mergerTrees%angularMomentum         ,snapshotIndices),"AngularMomentum","The angular momentum spin of each halo."         ,datasetReturned=dataset,appendTo=appendActual,appendDimension=2)
           if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass,unitsLength,unitsVelocity],mergerTrees,dataset)
-          call dataset%close()
        end if
        if (mergerTrees%hasSpinMagnitude           ) then
           call haloTrees%writeDataset(Array_Index(mergerTrees%spinMagnitude           ,snapshotIndices),"Spin"           ,"The spin of each halo."                                                      ,appendTo=appendActual                  )
@@ -1972,23 +1938,13 @@ contains
        if (mergerTrees%hasAngularMomentumMagnitude) then
           call haloTrees%writeDataset(Array_Index(mergerTrees%angularMomentumMagnitude,snapshotIndices),"AngularMomentum","The angular momentum spin of each halo."         ,datasetReturned=dataset,appendTo=appendActual                  )
           if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass,unitsLength,unitsVelocity],mergerTrees,dataset)
-          call dataset%close()
        end if
        if (mergerTrees%hasHalfMassRadius          ) then
           call haloTrees%writeDataset(Array_Index(mergerTrees%halfMassRadius          ,snapshotIndices),"HalfMassRadius" ,"The half mass radius of each halo."              ,datasetReturned=dataset,appendTo=appendActual                  )
           if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass                          ],mergerTrees,dataset)
-          call dataset%close()
        end if
-
        ! Destroy snapshot indices.
        deallocate(snapshotIndices)
-
-       ! Close the group for halo catalogs
-       call haloTrees%close()
-
-       ! Close the snapshot group.
-       call snapshotGroup%close()
-
     end do
 
     ! Create a group for merger trees.
@@ -2020,7 +1976,6 @@ contains
     call                               mergerTreesGroup%writeDataset(mergerTrees%treeNodeCount     ,"HalosPerTree"      ,"Number of halos in each tree."        ,appendTo=appendActual)
     call                               mergerTreesGroup%writeDataset(mergerTrees%forestID          ,"TreeID"            ,"Unique index of tree."                ,appendTo=appendActual)
     deallocate(descendantSnapshot)
-    call mergerTreesGroup%close()
 
     if (mergerTrees%hasMostBoundParticleIndex) then
        ! Find the highest and lowest snapshot numbers in the particles.
@@ -2050,7 +2005,6 @@ contains
 
           ! Write the particle indices.
           call haloTrees%writeDataset(Array_Index(mergerTrees%mostBoundParticleIndex,nodeSnapshotIndices),"MostBoundParticleID","The index of each particle.",appendTo=appendActual)
-          call haloTrees%close()
 
           ! Create a group for particles.
           particlesGroup=snapshotGroup%openGroup("ParticleData","Stores all data for particles.")
@@ -2066,7 +2020,6 @@ contains
           particleMass=mergerTrees%particleMass
           call darkParticlesGroup%writeDataset(particleMass,"Mass","The mass of each particle.",datasetReturned=dataset,appendTo=appendActual)
           if (.not.fileExists) call Store_Unit_Attributes_IRATE([unitsMass],mergerTrees,dataset)
-          call dataset%close()
           deallocate(particleMass)
           if (mergerTrees%hasParticleIndex    ) then
              call darkParticlesGroup%writeDataset(Array_Index(mergerTrees%particleIndex   ,snapshotIndices),"ID"      ,"The index of each particle."                               ,appendTo=appendActual)
@@ -2074,22 +2027,14 @@ contains
           if (mergerTrees%hasParticlePositionX) then
              call darkParticlesGroup%writeDataset(Array_Index(mergerTrees%particlePosition,snapshotIndices),"Position","The position of each particle.",datasetReturned=dataset,appendTo=appendActual)
              if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsLength  ],mergerTrees,dataset)
-             call dataset%close()
           end if
           if (mergerTrees%hasParticleVelocityX) then
              call darkParticlesGroup%writeDataset(Array_Index(mergerTrees%particleVelocity,snapshotIndices),"Velocity","The velocity of each particle.",datasetReturned=dataset,appendTo=appendActual)
              if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsVelocity],mergerTrees,dataset)
-             call dataset%close()
           end if
           ! Destroy the snapshot indices.
           deallocate(snapshotIndices    )
           deallocate(nodeSnapshotIndices)
-
-          ! Close the groups.
-          call darkParticlesGroup%close()
-          call particlesGroup    %close()
-          call snapshotGroup     %close()
-
        end do
 
     end if
@@ -2136,16 +2081,8 @@ contains
           end if
 
        end do
-
-       ! Close attribute groups.
-       call cosmologyGroup  %close()
-       call simulationGroup %close()
     end if
-
-    ! Close the output file.
-    call    outputFile%close()
     !$ call hdf5Access%unset()
-
     return
   end subroutine Merger_Tree_Data_Structure_Export_IRATE
 

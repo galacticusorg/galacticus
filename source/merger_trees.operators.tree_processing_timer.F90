@@ -325,20 +325,15 @@ contains
        call timingDataGroup       %writeDataset  (self%masses          (1:self%countTrees),"treeMass"       ,"Tree mass [M⊙]"             ,chunkSize=chunkSize,datasetReturned=metaDataDataset,appendTo=.true.)
        if (.not.preExists) &
             & call metaDataDataset%writeAttribute(massSolar                               ,"unitsInSI"                                                                                                        )
-       call metaDataDataset       %close         (                                                                                                                                                            )
        call timingDataGroup       %writeDataset  (self%timesConstruct  (1:self%countTrees),"timeConstruct"  ,"Tree construction time [s]" ,chunkSize=chunkSize,datasetReturned=metaDataDataset,appendTo=.true.)
        if (.not.preExists) &
             & call metaDataDataset%writeAttribute(1.0d0                                   ,"unitsInSI"                                                                                                        )
-       call metaDataDataset       %close         (                                                                                                                                                            )
        call timingDataGroup       %writeDataset  (self%timesEvolve     (1:self%countTrees),"timeEvolve"     ,"Tree evolution time [s]"    ,chunkSize=chunkSize,datasetReturned=metaDataDataset,appendTo=.true.)
        if (.not.preExists) &
             & call metaDataDataset%writeAttribute(1.0d0                                   ,"unitsInSI"                                                                                                        )
-       call metaDataDataset       %close         (                                                                                                                                                            )
        call timingDataGroup       %writeDataset  (self%countsNodes     (1:self%countTrees),"countNodes"     ,"Number of nodes in the tree",chunkSize=chunkSize                                ,appendTo=.true.)
        if (self%collectMemoryUsageData) &
             & call timingDataGroup%writeDataset  (self%memoryUsagesPeak(1:self%countTrees),"memoryUsagePeak","Peak memory usage [bytes]"  ,chunkSize=chunkSize                                ,appendTo=.true.)
-       call timingDataGroup       %close         (                                                                                                                                                            )
-       call metaDataGroup         %close         (                                                                                                                                                            )
        !$ call hdf5Access%unset()
     end if
     return

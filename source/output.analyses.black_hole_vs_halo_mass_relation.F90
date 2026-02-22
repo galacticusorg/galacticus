@@ -309,7 +309,7 @@ contains
 
     ! Open the target data file and read basic information.
     !$ call hdf5Access%set()
-    call fileTarget%openFile(self%fileNameTarget,readOnly=.true.)
+    fileTarget=hdf5Object(self%fileNameTarget,readOnly=.true.)
     ! Find the requested redshift interval.
     groupRedshiftName=var_str('redshiftInterval')//redshiftInterval
     if (.not.fileTarget%hasGroup(char(groupRedshiftName))) call Error_Report(var_str('redshift interval ')//redshiftInterval//' is not present in `'//self%fileNameTarget//'`'//{introspection:location})
@@ -322,21 +322,17 @@ contains
     call groupRedshift%readDataset  ('massBlackHoleError'       ,massBlackHoleErrorTarget       )
     call groupRedshift%readDataset  ('massBlackHoleScatter'     ,massBlackHoleScatterTarget     )
     call groupRedshift%readDataset  ('massBlackHoleScatterError',massBlackHoleScatterErrorTarget)
-    call groupRedshift%close        (                                                           )
     ! Get the cosmological parameters used in analyzing the target data.
     groupCosmology=fileTarget%openGroup('cosmology')
     call groupCosmology%readAttribute('OmegaMatter'    ,OmegaMatterTarget    )
     call groupCosmology%readAttribute('OmegaDarkEnergy',OmegaDarkEnergyTarget)
     call groupCosmology%readAttribute('OmegaBaryon'    ,OmegaBaryonTarget    )
     call groupCosmology%readAttribute('HubbleConstant' ,HubbleConstantTarget )
-    call groupCosmology%close()
     ! Get the halo mass definition.
     call fileTarget%readAttribute('haloMassDefinition',haloMassDefinition)
     ! Get the analysis label and target dataset reference.
     call fileTarget%readAttribute('label'    ,labelTarget    )
     call fileTarget%readAttribute('reference',referenceTarget)
-    ! Close the target data file.
-    call fileTarget%close()
     !$ call hdf5Access%unset()
     ! Construct survey geometry. A fully-sky geometry is used here as only the redshift range is important.
     write (redshiftMinimumLabel,'(f4.2)') redshiftMinimum
@@ -765,11 +761,7 @@ contains
        inGroup    => subGroup
     end if
     analysisGroup=inGroup%openGroup(char(self%analysisLabel))
-    call    analysisGroup%writeAttribute(self%logLikelihood(),'logLikelihood')
-    call    analysisGroup%close         (                                    )
-    if (present(groupName)) &
-         & call subGroup %close         (                                    )
-    call    analysesGroup%close         (                                    )
+    call analysisGroup%writeAttribute(self%logLikelihood(),'logLikelihood')
     !$ call hdf5Access%unset()
     return
   end subroutine blackHoleVsHaloMassRelationFinalize

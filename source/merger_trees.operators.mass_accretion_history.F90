@@ -54,7 +54,6 @@
    contains
      final     ::                        massAccretionHistoryDestructor
      procedure :: operatePreEvolution => massAccretionHistoryOperatePreEvolution
-     procedure :: finalize            => massAccretionHistoryFinalize
   end type mergerTreeOperatorMassAccretionHistory
 
   interface mergerTreeOperatorMassAccretionHistory
@@ -253,14 +252,11 @@ contains
        call                             treeGroup       %writeDataset  (nodeIndex          ,'nodeIndex'          ,'Index of the node.'                                            )
        call                             treeGroup       %writeDataset  (nodeTime           ,'nodeTime'           ,'Time at node [Gyr].'          ,datasetReturned=accretionDataset)
        call                             accretionDataset%writeAttribute(gigaYear                                 ,'unitsInSI'                                                     )
-       call                             accretionDataset%close         (                                                                                                          )
        call                             treeGroup       %writeDataset  (nodeMass           ,'nodeMass'           ,'Mass of the node [M⊙].'       ,datasetReturned=accretionDataset)
        call                             accretionDataset%writeAttribute(massSolar                                ,"unitsInSI"                                                     )
-       call                             accretionDataset%close         (                                                                                                          )
        call                             treeGroup       %writeDataset  (nodeExpansionFactor,'nodeExpansionFactor','Expansion factor of the node.'                                 )
        if (self%includeSpin      ) call treeGroup       %writeDataset  (nodeSpin           ,'nodeSpin','Spin parameter of the node.'                                              )
        if (self%includeSpinVector) call treeGroup       %writeDataset  (nodeSpinVector     ,'nodeSpinVector','Spin parameter vector of the node.'                                 )
-       call treeGroup       %close         (                                                                                                                                      )
        !$ call hdf5Access%unset()
        ! Deallocate storage space.
        deallocate(nodeIndex          )
@@ -274,17 +270,3 @@ contains
     end do
     return
   end subroutine massAccretionHistoryOperatePreEvolution
-
-  subroutine massAccretionHistoryFinalize(self)
-    !!{
-    Close the mass accretion history group before closing the HDF5 file.
-    !!}
-    use :: HDF5_Access, only : hdf5Access
-    implicit none
-    class(mergerTreeOperatorMassAccretionHistory), intent(inout) :: self
-
-    !$ call hdf5Access%set()
-    if (self%outputGroup%isOpen()) call self%outputGroup%close()
-    !$ call hdf5Access%unset()
-    return
-  end subroutine massAccretionHistoryFinalize

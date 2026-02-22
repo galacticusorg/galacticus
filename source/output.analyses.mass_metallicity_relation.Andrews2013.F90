@@ -217,11 +217,10 @@ contains
     
     ! Read masses at which fraction was measured.
     !$ call hdf5Access%set()
-    call dataFile%openFile   (char(inputPath(pathTypeDataStatic))//"observations/abundances/gasPhaseMetallicityAndrews2013.hdf5",readOnly=.true.                  )
-    call dataFile%readDataset("mass"                                                                                            ,         masses                  )
-    call dataFile%readDataset("metallicity"                                                                                     ,         functionValueTarget     )
-    call dataFile%readDataset("metallicityCovariance"                                                                           ,         functionCovarianceTarget)
-    call dataFile%close      (                                                                                                                                    )
+    dataFile=hdf5Object(char(inputPath(pathTypeDataStatic))//"observations/abundances/gasPhaseMetallicityAndrews2013.hdf5",readOnly=.true.)
+    call dataFile%readDataset("mass"                 ,masses                  )
+    call dataFile%readDataset("metallicity"          ,functionValueTarget     )
+    call dataFile%readDataset("metallicityCovariance",functionCovarianceTarget)
     !$ call hdf5Access%unset()
     ! Convert masses fro logarithmic.
     masses=10.0d0**masses

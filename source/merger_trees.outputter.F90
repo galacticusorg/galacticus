@@ -54,6 +54,9 @@ module Merger_Tree_Outputters
     <description>Finalize output of merger trees.</description>
     <type>void</type>
     <pass>yes</pass>
+    <code>
+     !$GLC attributes unused :: self
+    </code>
    </method>
    <method name="reduce" >
     <description>Reduce the object onto another object of the class.</description>

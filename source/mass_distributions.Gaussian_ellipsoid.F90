@@ -530,11 +530,10 @@ contains
       call File_Lock(fileName,fileLock,lockIsShared=.true.)
       if (File_Exists(fileName)) then
          !$ call hdf5Access%set()
-         call file%openFile    (char(fileName      ),readOnly=.true.             )
-         call file%readDataset(      'x'            ,self%accelerationX          )
-         call file%readDataset(      'scaleLength'  ,self%accelerationScaleLength)
-         call file%readDataset(      'acceleration' ,self%accelerationVector     )
-         call file%close      (                                                  )
+         file=hdf5Object      (char(fileName      ),readOnly=.true.             )
+         call file%readDataset(     'x'            ,self%accelerationX          )
+         call file%readDataset(     'scaleLength'  ,self%accelerationScaleLength)
+         call file%readDataset(     'acceleration' ,self%accelerationVector     )
          !$ call hdf5Access%unset()
       else
          ! Generate grid in position and scale length.
@@ -583,11 +582,10 @@ contains
          call displayCounterClear(       verbosityLevelWorking)
          call displayUnindent     ("done",verbosityLevelWorking)
          !$ call hdf5Access%set()
-         call file%openFile    (char   (fileName                    )               ,overWrite=.true.,readOnly=.false.)
+         file=hdf5Object       (char   (fileName                    )               ,overWrite=.true.,readOnly=.false.)
          call file%writeDataset(        self%accelerationX           ,'x'                                             )
          call file%writeDataset(        self%accelerationScaleLength ,'scaleLength'                                   )
          call file%writeDataset(        self%accelerationVector      ,'acceleration'                                  )
-         call file%close       (                                                                                      )
          !$ call hdf5Access%unset()
       end if
       call File_Unlock(fileLock)

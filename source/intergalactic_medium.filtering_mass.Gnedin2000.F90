@@ -625,11 +625,10 @@ contains
     if (.not.File_Exists(self%fileName)) return
     if (self%initialized) call self%table%destroy()
     !$ call hdf5Access%set()
-    call dataFile%openFile     (self%fileName  ,overWrite=.false.           ,readOnly=.true.)
-    call dataFile%readDataset  ('massFiltering',               massFiltering                )
-    call dataFile%readAttribute('timeMinimum'  ,          self%timeMinimum                  )
-    call dataFile%readAttribute('timeMaximum'  ,          self%timeMaximum                  )
-    call dataFile%close        (                                                            )
+    dataFile=hdf5Object(self%fileName,overWrite=.false.,readOnly=.true.)
+    call dataFile%readDataset  ('massFiltering',     massFiltering)
+    call dataFile%readAttribute('timeMinimum'  ,self%timeMinimum  )
+    call dataFile%readAttribute('timeMaximum'  ,self%timeMaximum  )
     !$ call hdf5Access%unset()
     call self%table%create  (self%timeMinimum,self%timeMaximum,size(massFiltering))
     call self%table%populate(                                       massFiltering )
@@ -651,11 +650,10 @@ contains
 
     ! Open the data file.
     !$ call hdf5Access%set()
-    call dataFile%openFile      (char   (self%fileName                            ),overWrite=.true.         ,chunkSize=100_hsize_t,compressionLevel=9)
-    call dataFile%writeDataset  (reshape(self%table      %ys(),[self%table%size()]),          'massFiltering'                                         )
-    call dataFile%writeAttribute(        self%timeMinimum                          ,          'timeMinimum'                                           )
-    call dataFile%writeAttribute(        self%timeMaximum                          ,          'timeMaximum'                                           )
-    call dataFile%close         (                                                                                                                     )
+    dataFile=hdf5Object(char(self%fileName),overWrite=.true.,chunkSize=100_hsize_t,compressionLevel=9)
+    call dataFile%writeDataset  (reshape(self%table      %ys(),[self%table%size()]),          'massFiltering')
+    call dataFile%writeAttribute(        self%timeMinimum                          ,          'timeMinimum'  )
+    call dataFile%writeAttribute(        self%timeMaximum                          ,          'timeMaximum'  )
     !$ call hdf5Access%unset()
     return
   end subroutine gnedin2000FileWrite

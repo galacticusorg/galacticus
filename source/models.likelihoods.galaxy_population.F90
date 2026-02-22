@@ -489,9 +489,9 @@ contains
       !$GLC attributes unused :: self, node, uniqueID
 
 #ifdef USEMPI
-      !$omp master
+      !$omp masked
       if (mpiSelf%isMaster()) evaluationNumber=evaluationCounter%get()
-      !$omp end master
+      !$omp end masked
 #endif
       return
     end subroutine evaluationCounterPing
