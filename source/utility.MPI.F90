@@ -2080,6 +2080,7 @@ contains
     type     (varying_string            )                            :: message
     integer                                                          :: i                  , iError  , &
          &                                                              processorNameLength, iProcess
+    logical                                                          :: matches
     
     ! Determine ranks, counts, and processors.
     call    MPI_Comm_Size         (self%communicator,self%countValue  ,iError)
@@ -2121,7 +2122,8 @@ contains
     self%nodeAffinities=-1
     do iProcess=0,self%countValue-1
        do i=1,self%nodeCountValue
-          if (trim(processorNames(iProcess)) == processCount%key(i)) self%nodeAffinities(iProcess)=i
+          matches=trim(processorNames(iProcess)) == processCount%key(i)
+          if (matches) self%nodeAffinities(iProcess)=i
        end do
        if (self%nodeAffinities(iProcess) < 0) then
           message=var_str('failed to determine node affinity for process ')//iProcess//' with processor name "'//processorNames(iProcess)//' - known processor names are:'

@@ -235,7 +235,8 @@ contains
          &                                                                                                   redshiftMaximum                                               , massHaloMinimum                                                   , &
          &                                                                                                   massHaloMaximum
     type            (varying_string                                      )                                :: analysisLabel                                                 , weightPropertyLabel                                               , &
-         &                                                                                                   weightPropertyDescription                                     , groupRedshiftName
+         &                                                                                                   weightPropertyDescription                                     , groupRedshiftName                                                 , &
+         &                                                                                                   targetDataFileName
     type            (hdf5Object                                          )                                :: fileData                                                      , groupRedshift
     type            (table1DGeneric                                      )                                :: interpolator
     character       (len=4                                               )                                :: redshiftMinimumLabel                                          , redshiftMaximumLabel
@@ -295,7 +296,8 @@ contains
     !!]
     ! Read observational data and convert masses to logarithmic.
     !$ call hdf5Access%set()
-    fileData=hdf5Object(char(inputPath(pathTypeDataStatic))//"observations/stellarHaloMassRelation/stellarHaloMassRelation_COSMOS_Leauthaud2012.hdf5",readOnly=.true.)
+    targetDataFileName=inputPath(pathTypeDataStatic)//"observations/stellarHaloMassRelation/stellarHaloMassRelation_COSMOS_Leauthaud2012.hdf5"
+    fileData=hdf5Object(targetDataFileName,readOnly=.true.)
     groupRedshiftName=var_str('redshiftInterval')//redshiftInterval
     groupRedshift=fileData%openGroup(char(groupRedshiftName))
     call groupRedshift%readDataset('massStellar' ,massStellarData )

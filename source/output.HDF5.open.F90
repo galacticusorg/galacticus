@@ -50,20 +50,22 @@ contains
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : IO_HDF5_Set_Defaults, hdf5Object          , ioHDF5AccessInitialize
     use :: ISO_Varying_String, only : var_str             , char                , operator(//)          , extract              , &
-         &                            len                 , operator(==)        , adjustl               , trim
+         &                            len                 , operator(==)        , adjustl               , trim                 , &
+         &                            assignment(=)
     use :: Input_Parameters  , only : inputParameters     , inputParameter
 #ifdef USEMPI
     use :: MPI_Utilities     , only : mpiSelf
 #endif
     use :: String_Handling   , only : operator(//)
     implicit none
-    type   (inputParameters), intent(inout) :: parameters
-    integer(hsize_t        )                :: chunkSize
-    integer                                 :: sieveBufferSize
-    integer(size_t         )                :: cacheElementsCount, cacheSizeBytes
-    type   (varying_string )                :: outputFileName_   , outputScratchFileName_
+    type     (inputParameters), intent(inout) :: parameters
+    integer  (hsize_t        )                :: chunkSize
+    integer                                   :: sieveBufferSize
+    integer  (size_t         )                :: cacheElementsCount, cacheSizeBytes
+    type     (varying_string )                :: outputFileName_   , outputScratchFileName_
 #ifdef USEMPI
-    type   (varying_string )                :: fileNamePrefix
+    type     (varying_string )                :: fileNamePrefix
+    character(len=5          )                :: suffix
 #endif
     
     if (.not.outputFileIsOpen) then
@@ -122,14 +124,16 @@ contains
        outputScratchFileName=trim(adjustl(outputScratchFileName_))
        ! Modify the file name on a per-process basis if running under MPI.
 #ifdef USEMPI
-       if (extract(outputFileName       ,len(outputFileName       )-4,len(outputFileName       )) == ".hdf5") then
+       suffix=extract(outputFileName       ,len(outputFileName       )-4,len(outputFileName       ))
+       if (suffix == ".hdf5") then
           fileNamePrefix                 =extract(outputFileName       ,1,len(outputFileName       )-5)
           outputFileName       =fileNamePrefix//':MPI'//mpiSelf%rankLabel()//'.hdf5'
        else
           fileNamePrefix                 =outputFileName
           outputFileName       =fileNamePrefix//':MPI'//mpiSelf%rankLabel()
        end if
-       if (extract(outputScratchFileName,len(outputScratchFileName)-4,len(outputScratchFileName)) == ".hdf5") then
+       suffix=extract(outputScratchFileName,len(outputScratchFileName)-4,len(outputScratchFileName))
+       if (suffix == ".hdf5") then
           fileNamePrefix                 =extract(outputScratchFileName,1,len(outputScratchFileName)-5)
           outputScratchFileName=fileNamePrefix//':MPI'//mpiSelf%rankLabel()//'.hdf5'
        else
