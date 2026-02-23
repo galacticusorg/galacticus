@@ -90,9 +90,9 @@ contains
        call File_Unlock(fileLock)
     end if
     ! Determine the version.
-    pathVersion=inputPath(pathTypeDataDynamic)//'RecFast.currentVersion'
+    pathVersion=recfastPath//'currentVersion'
     call File_Lock(pathVersion,fileLock,lockIsShared=.false.)
-    if (.not.File_Exists(recfastPath//"currentVersion")) then
+    if (.not.File_Exists(pathVersion)) then
        recFastVersion="unknown"
        open(newUnit=recFastUnit,file=char(recfastPath)//"recfast.for",status='old',form='formatted',ioStat=status)
        do while (status == 0)
@@ -103,11 +103,11 @@ contains
           end if
        end do
        close(recFastUnit)
-       open(newUnit=recFastUnit,file=char(recfastPath)//"currentVersion",status='new',form='formatted')
+       open(newUnit=recFastUnit,file=char(pathVersion),status='new',form='formatted')
        write (recfastUnit,'(a)') char(recFastVersion)
        close(recFastUnit)
     else
-       open(newUnit=recFastUnit,file=char(recfastPath)//"currentVersion",status='old',form='formatted')
+       open(newUnit=recFastUnit,file=char(pathVersion),status='old',form='formatted')
        read (recfastUnit,'(a)') versionLabel
        close(recFastUnit)
        recFastVersion=trim(versionLabel)
