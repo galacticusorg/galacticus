@@ -255,7 +255,6 @@ contains
          &                                                                                                  iteration
     logical                                                                                              :: converged                  , retabulate
     type            (varying_string                         )                                            :: fileName
-    type            (hdf5Object                             )                                            :: file
     type            (lockDescriptor                         )                                            :: fileLock
     character       (len=16                                 )                                            :: labelXiMinimum             , labelXiMaximum
  
@@ -286,13 +285,16 @@ contains
        call File_Lock(fileName,fileLock,lockIsShared=.true.)
        ! Restore tables from file.
        !$ call hdf5Access%set()
-       file=hdf5Object(char(fileName))
-       call file%readDataset('xi'                         ,     xi                         )
-       call file%readDataset('radii'                      ,self%radiiDimensionless         )
-       call file%readDataset('y0'                         ,     y0                         )
-       call file%readDataset('z0'                         ,     z0                         )
-       call file%readDataset('densityProfileDimensionless',self%densityProfileDimensionless)
-       call file%readDataset('massProfileDimensionless'   ,self%massProfileDimensionless   )
+       hdf5FileScope: block
+         type(hdf5Object) :: file
+         file=hdf5Object(char(fileName))
+         call file%readDataset('xi'                         ,     xi                         )
+         call file%readDataset('radii'                      ,self%radiiDimensionless         )
+         call file%readDataset('y0'                         ,     y0                         )
+         call file%readDataset('z0'                         ,     z0                         )
+         call file%readDataset('densityProfileDimensionless',self%densityProfileDimensionless)
+         call file%readDataset('massProfileDimensionless'   ,self%massProfileDimensionless   )
+       end block hdf5FileScope
        !$ call hdf5Access%unset()
        self%xiTabulatedMinimum=xi(      1 )
        self%xiTabulatedMaximum=xi(size(xi))
@@ -377,13 +379,16 @@ contains
        ! Write the data to file.
        call File_Lock(char(fileName),fileLock,lockIsShared=.false.)
        !$ call hdf5Access%set()
-       file=hdf5Object(char(fileName),overWrite=.true.,readOnly=.false.)
-       call file%writeDataset(     xi                          ,'xi'                         )
-       call file%writeDataset(self%radiiDimensionless          ,'radii'                      )
-       call file%writeDataset(     y0                          ,'y0'                         )
-       call file%writeDataset(     z0                          ,'z0'                         )
-       call file%writeDataset(self%densityProfileDimensionless ,'densityProfileDimensionless')
-       call file%writeDataset(self%massProfileDimensionless    ,'massProfileDimensionless'   )
+       hdf5FileScopeWrite: block
+         type(hdf5Object) :: file
+         file=hdf5Object(char(fileName),overWrite=.true.,readOnly=.false.)
+         call file%writeDataset(     xi                          ,'xi'                         )
+         call file%writeDataset(self%radiiDimensionless          ,'radii'                      )
+         call file%writeDataset(     y0                          ,'y0'                         )
+         call file%writeDataset(     z0                          ,'z0'                         )
+         call file%writeDataset(self%densityProfileDimensionless ,'densityProfileDimensionless')
+         call file%writeDataset(self%massProfileDimensionless    ,'massProfileDimensionless'   )
+       end block hdf5FileScopeWrite
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
        call displayUnindent('done',verbosityLevelWorking)
