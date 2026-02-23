@@ -421,13 +421,16 @@ contains
     type            (branch                                 )                , pointer     :: branch_                                         , branchLast
     double precision                                         , dimension(:  ), allocatable :: massLogarithmic                                 , deviates
     double precision                                         , dimension(:,:), allocatable :: covarianceNodes                                 , cholesky
+    logical                                                  , dimension(:  ), allocatable :: independent
     double precision                                                         , parameter   :: massFunctionSlopeLogarithmic            =-1.80d0
     double precision                                                         , parameter   :: energyInternalFormFactorSlopeLogarithmic=-0.02d0
     double precision                                                         , parameter   :: scatterFractionalMaximum                =+5.00d0
     logical                                                                                :: haveBranch
-    integer         (c_size_t                               )                              :: countNodes                                     , indexAlongBranch
+    integer         (c_size_t                               )                              :: countNodes                                     , indexAlongBranch                 , &
+         &                                                                                    countNodesUniqueMasses
     integer         (kind_int8                              )                              :: indexBranch                                    , i                                , &
-         &                                                                                    j
+         &                                                                                    j                                              , ii                               , &
+         &                                                                                    jj
     double precision                                                                       :: energyOrbital                                  , massRatio                        , &
          &                                                                                    radiusScaleChild                               , radiusScaleOriginal              , &
          &                                                                                    massUnresolved                                 , radiusVirial                     , &
@@ -514,27 +517,40 @@ contains
           haveBranch=associated(branch_) .and. branch_%uniqueID == indexBranch
           if (.not.haveBranch) then
              ! We have not - compute offsets for the entire branch now. Begin by construct the covariance matrix.
-             allocate(massLogarithmic(countNodes           ))
-             allocate(deviates       (countNodes           ))
-             allocate(covarianceNodes(countNodes,countNodes))
-             allocate(cholesky       (countNodes,countNodes))
-             nodeChild => nodeBranchTip
+             allocate(massLogarithmic(countNodes))
+             allocate(independent    (countNodes))
+             countNodesUniqueMasses =  0_c_size_t
+             nodeChild              => nodeBranchTip
              do i=1,countNodes
-                basicChild         =>       nodeChild                                 %basic               ()
-                massLogarithmic(i) =  log10(basicChild                                %mass                ())
-                deviates       (i) =        node      %hostTree%randomNumberGenerator_%standardNormalSample()
+                basicChild         =>       nodeChild %basic ()
+                massLogarithmic(i) =  log10(basicChild%mass  ())
                 nodeChild          =>       nodeChild %parent
+                independent    (i) =                   i  == 1                    &
+                     &                .or.                                        &
+                     &                 massLogarithmic(i) >  massLogarithmic(i-1)
+                if (independent(i)) countNodesUniqueMasses=+countNodesUniqueMasses &
+                     &                                     +1_c_size_t
              end do
+             allocate(deviates       (countNodesUniqueMasses                       ))
+             allocate(covarianceNodes(countNodesUniqueMasses,countNodesUniqueMasses))
+             allocate(cholesky       (countNodesUniqueMasses,countNodesUniqueMasses))
+             ii=0_c_size_t
              do i=1,countNodes
+                if (.not.independent(i)) cycle
+                ii          =ii+1_c_size_t
+                jj          =  +0_c_size_t
+                deviates(ii)=node%hostTree%randomNumberGenerator_%standardNormalSample()
                 do j=1,countNodes
-                   covarianceNodes(i,j)=+self%scatter**2                     &
-                        &               *exp(                                &
-                        &                    -self%correlationRateDecay      &
-                        &                    *abs(                           &
-                        &                         +massLogarithmic(i)        &
-                        &                         -massLogarithmic(j)        &
-                        &                        )**self%correlationExponent &
-                        &                   )
+                   if (.not.independent(j)) cycle
+                   jj=jj+1_c_size_t
+                   covarianceNodes(ii,jj)=+self%scatter**2                     &
+                        &                 *exp(                                &
+                        &                      -self%correlationRateDecay      &
+                        &                      *abs(                           &
+                        &                           +massLogarithmic(i)        &
+                        &                           -massLogarithmic(j)        &
+                        &                          )**self%correlationExponent &
+                        &                     )
                 end do
              end do
              ! Create a new branch to store this set of offsets.
@@ -547,11 +563,16 @@ contains
              call cholesky_%choleskyDecomposition()
              cholesky                       =cholesky_
              branch_%radiusOffsetLogarithmic=0.0d0
+             ii                             =0_c_size_t
              do i=1,countNodes
+                if (independent(i)) ii=ii+1_c_size_t
+                jj=0_c_size_t
                 do j=1,i
-                   branch_%radiusOffsetLogarithmic(i)=+branch_ %radiusOffsetLogarithmic(i  ) &
-                        &                             +cholesky                        (i,j) &
-                        &                             *deviates                        (  j)
+                   if (.not.independent(j)) cycle
+                   jj=jj+1_c_size_t
+                   branch_%radiusOffsetLogarithmic(i)=+branch_ %radiusOffsetLogarithmic(i    ) &
+                        &                             +cholesky                        (ii,jj) &
+                        &                             *deviates                        (   jj)
                 end do
              end do
              ! Store the branch.
