@@ -662,9 +662,12 @@ contains
 	       <description>Type-bound defined assignment not done because multiple part array references would occur in intermediate expressions.</description>
              !!]
              do i=1,size(from%interpolators)
-                allocate(to%interpolators(i)%interpolator_)
-                to%interpolators(i)%interpolator_          =from%interpolators(i)%interpolator_
-                to%interpolators(i)%interpolatorInitialized=from%interpolators(i)%interpolatorInitialized
+                if (allocated(to%interpolators(i)%interpolator_)) deallocate(to%interpolators(i)%interpolator_)
+                if (allocated(from%interpolators(i)%interpolator_)) then
+                   allocate(to%interpolators(i)%interpolator_)
+                   to%interpolators(i)%interpolator_          =from%interpolators(i)%interpolator_
+                end if
+                to   %interpolators(i)%interpolatorInitialized=from%interpolators(i)%interpolatorInitialized
              end do
              !![
 	     </workaround>
@@ -1056,7 +1059,7 @@ contains
 
     if (.not.associated(self%interpolators)) return
     do i=1,size(self%interpolators)
-       call self%interpolators(i)%interpolator_%GSLReallocate()
+       if (allocated(self%interpolators(i)%interpolator_)) call self%interpolators(i)%interpolator_%GSLReallocate()
     end do
     return
   end subroutine Table_Generic_1D_Interpolator_Reinitialize
