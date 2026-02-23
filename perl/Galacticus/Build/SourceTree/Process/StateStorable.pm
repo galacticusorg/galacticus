@@ -232,8 +232,9 @@ CODE
 					    $labelRequired   = 1;
 					    if ( $allocatable ) {
 						$outputCode .= "  if (".($pointer ? "associated" : "allocated")."(self%".$variableName.")) then\n";
-						$outputCode .= "   write (stateFile) .true.\n"
-							    .  "   write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n";
+						$outputCode .= "   write (stateFile) .true.\n";
+						$outputCode .= "   write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
+						    if ( $rank > 0 );
 					    }
 					    $outputCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
 					    if ( $declaration->{'intrinsic'} eq "class" ) {
