@@ -296,12 +296,12 @@ contains
          &                                                                           countLocalMinima
     character       (len=32                          )                            :: datasetName
     type            (varying_string                  )                            :: limitTypeVar
-    type            (hdf5Object                      )                            :: fileObject
 
     ! Open and read the HDF5 data file.
-    block
+    hdf5FileScope: block
       type(hdf5Object) :: darkMatterGroup    , parametersObject, &
-           &              extrapolationObject, wavenumberObject
+           &              extrapolationObject, wavenumberObject, &
+           &              fileObject
       !$ call hdf5Access%set()
       fileObject=hdf5Object(fileName,readOnly=.true.)
       ! Check that the file has the correct format version number.
@@ -343,7 +343,7 @@ contains
       write (datasetName,'(f9.4)') self%redshift
       call darkMatterGroup%readDataset('transferFunctionZ'//trim(adjustl(datasetName)),transfer  )
       !$ call hdf5Access%unset()
-    end block
+    end block hdf5FileScope
     ! Validate the transfer function.
     if (any(transfer == 0.0d0)) call Error_Report('tabulated transfer function contains points at which T(k) = 0 - all points must be non-zero'//{introspection:location})
     if (any(transfer <  0.0d0)) then
