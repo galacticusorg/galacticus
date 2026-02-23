@@ -648,7 +648,7 @@
       <fileName value="%DATASTATICPATH%/largeScaleStructure/transferFunctionMillenniumSimulation.hdf5"/>
       <cosmologyParameters value="simple" parameterLevel="top">
   	<HubbleConstant value="73.0"/>
-  	<OmegaMatter vaqlue="0.25"/>
+  	<OmegaMatter value="0.25"/>
   	<OmegaDarkEnergy value="0.75"/>
   	<OmegaBaryon value="0.0455"/>
       </cosmologyParameters>
