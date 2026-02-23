@@ -83,8 +83,15 @@ contains
     class           (darkMatterParticleClass ), pointer       :: darkMatterParticle_
     double precision                                          :: redshift
     integer                                                   :: countPerDecade
+    type            (varying_string          )                :: transferFunctionType
 
     !![
+    <inputParameter>
+      <name>transferFunctionType</name>
+      <source>parameters</source>
+      <defaultValue>var_str('darkMatter')</defaultValue>
+      <description>Specifies whether to use the {\normalfont \ttfamily darkMatter} or {\normalfont \ttfamily total} transfer function.</description>
+    </inputParameter>
     <inputParameter>
       <name>redshift</name>
       <source>parameters</source>
@@ -101,7 +108,7 @@ contains
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
     !!]
-    self=transferFunctionCLASSCDM(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,redshift,countPerDecade)
+    self=transferFunctionCLASSCDM(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,enumerationTransferFunctionTypeEncode(char(transferFunctionType),includesPrefix=.false.),redshift,countPerDecade)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"/>
@@ -111,7 +118,7 @@ contains
     return
   end function classCDMConstructorParameters
 
-  function classCDMConstructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,redshift,countPerDecade) result(self)
+  function classCDMConstructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,transferFunctionType,redshift,countPerDecade) result(self)
     !!{
     Internal constructor for the \refClass{transferFunctionCLASSCDM} transfer function class.
     !!}
@@ -119,14 +126,15 @@ contains
     use :: Dark_Matter_Particles, only : darkMatterParticleCDM
     use :: Error                , only : Error_Report
     implicit none
-    type            (transferFunctionCLASSCDM)                          :: self
-    class           (darkMatterParticleClass ), intent(in   ), target   :: darkMatterParticle_
-    class           (cosmologyParametersClass), intent(in   ), target   :: cosmologyParameters_
-    class           (cosmologyFunctionsClass ), intent(in   ), target   :: cosmologyFunctions_
-    double precision                          , intent(in   )           :: redshift
-    integer                                   , intent(in   )           :: countPerDecade
+    type            (transferFunctionCLASSCDM           )                        :: self
+    class           (darkMatterParticleClass            ), intent(in   ), target :: darkMatterParticle_
+    class           (cosmologyParametersClass           ), intent(in   ), target :: cosmologyParameters_
+    class           (cosmologyFunctionsClass            ), intent(in   ), target :: cosmologyFunctions_
+    type            (enumerationTransferFunctionTypeType), intent(in   )         :: transferFunctionType
+    double precision                                     , intent(in   )         :: redshift
+    integer                                              , intent(in   )         :: countPerDecade
     !![
-    <constructorAssign variables="countPerDecade, redshift, *darkMatterParticle_, *cosmologyParameters_, *cosmologyFunctions_"/>
+    <constructorAssign variables="countPerDecade, transferFunctionType, redshift, *darkMatterParticle_, *cosmologyParameters_, *cosmologyFunctions_"/>
     !!]
 
     ! Require that the dark matter be cold dark matter.
