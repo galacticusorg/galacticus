@@ -245,9 +245,21 @@ contains
     type            (matrix                                   )                                :: eigenVectors
     type            (vector                                   )                                :: eigenValues
     !![
-    <constructorAssign variables="fileNames, redshifts, binCountMinimum, massRangeMinimum, massRangeMaximum, likelihoodPoisson, varianceFractionalModelDiscrepancy, binAverage, includeCorrelations, allowEmptyMassFunction, report, changeParametersFileNames, *parametersModel, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, *linearGrowth_, *randomNumberGenerator_"/>
+    <constructorAssign variables="fileNames, redshifts, binCountMinimum, massRangeMinimum, massRangeMaximum, likelihoodPoisson, varianceFractionalModelDiscrepancy, binAverage, includeCorrelations, allowEmptyMassFunction, report, changeParametersFileNames, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, *linearGrowth_, *randomNumberGenerator_"/>
     !!]
 
+    ! Put the parameters object under resource management.
+    allocate(self%parametersModel)
+    self%parametersModel%parametersModel => parametersModel
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    dummyPointer_               => self%parametersModel
+    self%parametersModelManager =  resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]
     ! Convert redshifts to times.
     allocate(self%times                ,mold=redshifts)
     allocate(self%countConversionFactor,mold=redshifts)
@@ -409,12 +421,7 @@ contains
     <objectDestructor name="self%cosmologicalMassVariance_"/> 
     <objectDestructor name="self%linearGrowth_"            />
     <objectDestructor name="self%randomNumberGenerator_"   />
-   !!]
-    if (associated(self%parametersModel)) then
-       call self%parametersModel%destroy()
-       deallocate(self%parametersModel)
-    end if
-    return
+    !!]
   end subroutine haloMassFunctionDestructor
 
   double precision function haloMassFunctionEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance) result(logLikelihood)

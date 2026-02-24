@@ -196,7 +196,7 @@ contains
     type   (varying_string                           ), intent(in   ), dimension(:) :: changeParametersFileNames
     class  (*                                        ), pointer                     :: dummyPointer_
     !![
-    <constructorAssign variables="*parametersModel, baseParametersFileName, outputAnalyses, setOutputGroup, reportEvaluationTimes, countCollaborativeGroups, firstComeFirstServed, doPing, reportFileName, reportState, evolveForestsVerbosity, failedParametersFileName, changeParametersFileNames"/>
+    <constructorAssign variables="baseParametersFileName, outputAnalyses, setOutputGroup, reportEvaluationTimes, countCollaborativeGroups, firstComeFirstServed, doPing, reportFileName, reportState, evolveForestsVerbosity, failedParametersFileName, changeParametersFileNames"/>
     !!]
 
     ! Validate.
