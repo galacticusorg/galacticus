@@ -79,9 +79,9 @@ module Points_Convex_Hull
        !!{
        Interface to the C++ convex hull constructor.
        !!}
-       import c_ptr, c_double, c_int
+       import c_ptr, c_double, c_int, c_long
        type   (c_ptr   )                 :: convexHullConstructorC
-       integer(c_int   ), value          :: n
+       integer(c_long  ), value          :: n
        real   (c_double), dimension(:,:) :: points
        integer(c_int   )                 :: status
      end function convexHullConstructorC
@@ -172,12 +172,12 @@ contains
              self%pointsSubsample(:,i)=points(:,order(i))
           end do
           deallocate(order)
-          self%qhull_%qhull=convexHullConstructorC(countMaximum,self%pointsSubsample,status)
+          self%qhull_%qhull_=convexHullConstructorC(countMaximum,self%pointsSubsample,status)
        else
           call Error_Report('too many points for convex hull construction - you could set `allowSubsampling=.true.` to construct a convex hull from a subsample of points (consisting of a random sample of points with size equal to the maximum allowed)'//{introspection:location})
        end if
     else
-       self%qhull_%qhull=convexHullConstructorC(size(points,dim=2,kind=c_long),points,status)
+       self%qhull_%qhull_=convexHullConstructorC(size(points,dim=2,kind=c_long),points,status)
     end if
     if (status /= 0) call Error_Report('convex hull construction failed'//{introspection:location}) 
 #else
