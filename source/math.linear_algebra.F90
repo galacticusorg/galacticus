@@ -852,14 +852,14 @@ contains
     integer         (c_size_t)                              :: i
 
     allocate(self%matrix_)
-    self%isSquare                =.true.
-    self%size_                   =[size(array),size(array)]
-    self%nonZeroRowColumnsChecked=.false.
-    self%hasZeroRowColumns       =.false.
-    self%matrix_                 =gsl_matrix_alloc(self%size_(1),self%size_(2))
-    call gsl_matrix_set_zero(self%matrix_)
+    self%isSquare                    =.true.
+    self%size_                       =[size(array),size(array)]
+    self%nonZeroRowColumnsChecked    =.false.
+    self%hasZeroRowColumns           =.false.
+    self%matrix_                 %gsl=gsl_matrix_alloc(self%size_(1),self%size_(2))
+    call gsl_matrix_set_zero(self%matrix_%gsl)
     do i=1,size(array,dim=1,kind=c_size_t)
-       call gsl_matrix_set(self%matrix_,i-1_c_size_t,i-1_c_size_t,array(i))
+       call gsl_matrix_set(self%matrix_%gsl,i-1_c_size_t,i-1_c_size_t,array(i))
     end do
     return
   end function matrixDiagonalConstructor
@@ -894,7 +894,7 @@ contains
     self%LUpermutationManager   =  from%LUpermutationManager
     self%matrix_                => from%matrix_
     self%LUdecomposition        => from%LUdecomposition
-    self%mLUpermutation         => from%mLUpermutation
+    self%LUpermutation          => from%LUpermutation
     self%size_                  =  from%size_
     self%isSquare               =  from%isSquare
     select type (self)
