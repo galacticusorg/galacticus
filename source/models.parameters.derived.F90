@@ -36,7 +36,8 @@
    contains
      !![
      <methods>
-       <method description="Return the definition for this parameter." method="definition" />
+       <method description="Return the definition for this parameter."   method="definition"/>
+       <method description="Return true if the parameter is an integer." method="isInteger" />
      </methods>
      !!]
      procedure :: definition => derivedDefinition
