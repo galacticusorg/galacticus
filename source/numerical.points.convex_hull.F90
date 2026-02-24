@@ -122,8 +122,8 @@ contains
     use, intrinsic :: ISO_C_Binding           , only : c_size_t                  , c_long
     use            :: Error                   , only : Error_Report
     use            :: Sorting                 , only : sortIndex
-    use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 #endif
+    use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
     implicit none
     type            (convexHull                )                                :: self
     double precision                            , dimension(:,:), intent(in   ) :: points
