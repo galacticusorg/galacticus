@@ -423,7 +423,7 @@ contains
     character(len=32         )                                        :: changeType
 
     ! Check that the file exists.
-    if (.not.File_Exists(File_Name_Expand(fileName))) call Error_Report("parameter file '"//trim(fileName)//"' does not exist"//{introspection:location})
+    if (.not.File_Exists(fileName)) call Error_Report("parameter file '"//trim(fileName)//"' does not exist"//{introspection:location})
     ! Open and parse the data file.
     !$omp critical (FoX_DOM_Access)
     doc           => XML_Parse(char(File_Name_Expand(fileName)),iostat=errorStatus,ex=exception,fileNameCurrent=fileNameFailed)
@@ -463,7 +463,7 @@ contains
     if (present(changeFiles).and.size(changeFiles) > 0) then
        do i=1,size(changeFiles)
           !$omp critical (FoX_DOM_Access)
-          changesDoc =>  XML_Parse(char(File_Name_Expand(char(changeFiles(i)))),iostat=errorStatus)
+          changesDoc =>  XML_Parse(changeFiles(i),iostat=errorStatus)
           !$omp end critical (FoX_DOM_Access)
           if (errorStatus /= 0) then
              if (File_Exists(changeFiles(i))) then
