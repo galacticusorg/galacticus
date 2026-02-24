@@ -207,9 +207,8 @@ contains
             if (File_Exists(fileNameVariance)) then
                call File_Lock(char(fileNameVariance),fileLock,lockIsShared=.true.)
                !$ call hdf5Access%set()
-               call varianceFile%openFile     (char(fileNameVariance),readOnly=.true.                 )
-               call varianceFile%readAttribute('variance'            ,         self%varianceSimulation)
-               call varianceFile%close        (                                                       )
+               varianceFile=hdf5Object(fileNameVariance,readOnly=.true.)
+               call varianceFile%readAttribute('variance',self%varianceSimulation)
                !$ call hdf5Access%unset()
                call File_Unlock(fileLock)
             else
@@ -227,9 +226,8 @@ contains
                self%varianceSimulation =  integratorX%integrate(wavenumberMinimum,wavenumberMaximum)
                call File_Lock(char(fileNameVariance),fileLock,lockIsShared=.false.)
                !$ call hdf5Access%set()
-               call varianceFile%openFile      (char(fileNameVariance) ,readOnly=.false.   ,overWrite=.true.)
-               call varianceFile%writeAttribute(self%varianceSimulation,         'variance'                 )
-               call varianceFile%close         (                                                            )
+               varianceFile=hdf5Object(fileNameVariance,readOnly=.false.,overWrite=.true.)
+               call varianceFile%writeAttribute(self%varianceSimulation,'variance')
                !$ call hdf5Access%unset()
                call File_Unlock(fileLock)
                call displayUnindent('done',verbosityLevelWorking)

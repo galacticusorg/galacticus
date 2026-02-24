@@ -102,13 +102,9 @@ contains
              end if
           end do
           call idGroup(size(idGroup))%readDataset(char(groupNames(size(groupNames))),idSelection)
-          do i=size(idGroup),1,-1
-             call idGroup(i)%close()
-          end do
        else
           call idFile                %readDataset(     'id'                         ,idSelection)
        end if
-       call idFile%close()
        !$ call hdf5Access%unset()
     else
        call Error_Report('either "idSelection" of "idSelectionFileName" must be provided'//{introspection:location})

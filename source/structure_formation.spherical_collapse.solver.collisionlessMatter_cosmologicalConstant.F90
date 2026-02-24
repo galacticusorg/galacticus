@@ -914,11 +914,10 @@ contains
           ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
           call File_Lock(self%fileNameNonLinearMap,fileLock,lockIsShared=.false.)
           !$ call hdf5Access%set()
-          call file%openFile(self%fileNameNonLinearMap,overWrite=.true.,readOnly=.false.)
+          file=hdf5Object(self%fileNameNonLinearMap,overWrite=.true.,readOnly=.false.)
           call file%writeDataset(times               ,'time'               )
           call file%writeDataset(overdensitiesLinear ,'overdensitiesLinear')
           call file%writeDataset(linearNonlinearMap__,'linearNonlinearMap' )
-          call file%close       (                                          )
           !$ call hdf5Access%unset()
           call File_Unlock(fileLock)       
        end if

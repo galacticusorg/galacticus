@@ -7198,13 +7198,7 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Copy the dataset to return if necessary.
-    if (present(datasetReturned)) then
-       datasetReturned=datasetObject
-    else
-       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
-       if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
-    end if
-
+    if (present(datasetReturned)) datasetReturned=datasetObject
     return
   end subroutine IO_HDF5_Write_Dataset_Integer8_4D
   

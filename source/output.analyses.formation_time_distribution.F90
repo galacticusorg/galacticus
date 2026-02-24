@@ -379,9 +379,11 @@ contains
     type            (hdf5Object                          )                                               :: dataFile                        , simulationGroup
     integer                                                                                              :: i
     logical                                                                                              :: haveBoundaries
-    
+    type            (varying_string                      )                                               :: fileName_
+
+    fileName_=File_Name_Expand(fileName)
     !$ call hdf5Access%set  ()
-    call dataFile%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)
+    dataFile=hdf5Object(fileName_,readOnly=.true.)
     simulationGroup=dataFile       %openGroup ('simulation0001/timeFormation'   )
     haveBoundaries =simulationGroup%hasDataset('massParentMinimum')
     call    simulationGroup%readDataset('redshift'              ,redshiftProgenitor_val)
@@ -393,8 +395,6 @@ contains
        call simulationGroup%readDataset('massParentMinimum'     ,massParentsMinimum  )
        call simulationGroup%readDataset('massParentMaximum'     ,massParentsMaximum  )
     end if
-    call    simulationGroup%close      (                                             )
-    call    dataFile       %close      (                                             )
     !$ call hdf5Access%unset()
     ! Extract parent mass range and progenitor redshift.
     if (haveBoundaries) then
