@@ -50,7 +50,7 @@ program Test_Prompt_Cusps
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionTopHat
   use :: Virial_Density_Contrast             , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
-  use :: Transfer_Functions                  , only : transferFunctionCAMB                                          , transferFunctionBode2001         , scaleCutOffModelVogel23SpinHalf
+  use :: Transfer_Functions                  , only : transferFunctionCAMB                                          , transferFunctionBode2001         , scaleCutOffModelVogel23SpinHalf    , transferFunctionTypeTotal
   use :: Unit_Tests                          , only : Assert                                                        , Unit_Tests_Begin_Group                                                , Unit_Tests_End_Group        , Unit_Tests_Finish
   implicit none
   type            (treeNode                                                      ), pointer     :: node
@@ -158,6 +158,7 @@ program Test_Prompt_Cusps
     transferFunctionCAMB                                          (                                                                                                              &amp;
      &amp;                                                         redshift                                  =100.0d0                                                          , &amp;
      &amp;                                                         cambCountPerDecade                        =  0                                                              , &amp;
+     &amp;                                                         transferFunctionType                      =transferFunctionTypeTotal                                        , &amp;
      &amp;                                                         darkMatterParticle_                       =darkMatterParticleCDM_                                           , &amp;
      &amp;                                                         cosmologyParameters_                      =cosmologyParameters_                                             , &amp;
      &amp;                                                         cosmologyFunctions_                       =cosmologyFunctions_                                                &amp;
@@ -201,6 +202,9 @@ program Test_Prompt_Cusps
      &amp;                                                         sigma8                                    =0.8086539d+0                                                     , &amp;
      &amp;                                                         tolerance                                 =1.0000000d-4                                                     , &amp;
      &amp;                                                         toleranceTopHat                           =1.0000000d-4                                                     , &amp;
+     &amp;                                                         rootVarianceLogarithmicGradientTolerance  =1.0000000d-9                                                     , &amp;
+     &amp;                                                         integrationFailureIsFatal                 =.true.                                                           , &amp;
+     &amp;                                                         storeTabulations                          =.true.                                                           , &amp;
      &amp;                                                         nonMonotonicIsFatal                       =.true.                                                           , &amp;
      &amp;                                                         monotonicInterpolation                    =.false.                                                          , &amp;
      &amp;                                                         truncateAtParticleHorizon                 =.false.                                                          , &amp;
