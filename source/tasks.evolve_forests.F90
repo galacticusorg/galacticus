@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   use, intrinsic :: ISO_C_Binding                  , only : c_size_t
-  use            :: Galacticus_Nodes               , only : mergerTree                 , treeNode                , universe
+  use            :: Galacticus_Nodes               , only : mergerTree                 , treeNode                , universe, nodeHierarchyWrapper
   use            :: Input_Parameters               , only : inputParameters
   use            :: Kind_Numbers                   , only : kind_int8
   use            :: Merger_Tree_Construction       , only : mergerTreeConstructorClass
@@ -27,9 +27,11 @@
   use            :: Merger_Tree_Outputters         , only : mergerTreeOutputter        , mergerTreeOutputterClass
   use            :: Merger_Trees_Evolve            , only : mergerTreeEvolver          , mergerTreeEvolverClass
   use            :: Merger_Tree_Seeds              , only : mergerTreeSeedsClass
+  use            :: Node_Components                , only : nodeComponentsWrapper
   use            :: Nodes_Operators                , only : nodeOperatorClass
   use            :: Numerical_Random_Numbers       , only : randomNumberGeneratorClass
   use            :: Output_Times                   , only : outputTimesClass
+  use            :: Resource_Manager               , only : resourceManager
   use            :: Task_Evolve_Forests_Work_Shares, only : evolveForestsWorkShareClass
   use            :: Timers                         , only : timer
   use            :: Universe_Operators             , only : universeOperator           , universeOperatorClass
@@ -69,7 +71,7 @@
      class           (mergerTreeSeedsClass       ), pointer :: mergerTreeSeeds_              => null()
      ! Pointer to the parameters for this task.
      type            (inputParameters            ), pointer :: parameters                    => null()
-     logical                                                :: initialized                   =  .false., nodeComponentsInitialized=.false.
+     logical                                                :: initialized                   =  .false.
      ! Checkpointing.
      integer         (kind_int8                  )          :: timeIntervalCheckpoint
      type            (varying_string             )          :: fileNameCheckpoint
@@ -77,6 +79,10 @@
      ! Output time display format.
      integer                                                :: outputTimePrecision
      character       (len=9                      )          :: outputTimeFormat
+     ! Manager for node class hierarchy and component initialization.
+     type            (nodeComponentsWrapper      ), pointer :: nodeComponents_               => null()
+     type            (nodeHierarchyWrapper       ), pointer :: nodeHierarchy_                => null()
+     type            (resourceManager            )          :: nodeComponentsManager                   , nodeHierarchyManager
    contains
      !![
      <methods>
@@ -130,6 +136,7 @@ contains
     class           (mergerTreeInitializorClass ), pointer               :: mergerTreeInitializor_
     class           (randomNumberGeneratorClass ), pointer               :: randomNumberGenerator_
     class           (mergerTreeSeedsClass       ), pointer               :: mergerTreeSeeds_
+    class           (*                          ), pointer               :: dummyPointer_
     type            (inputParameters            ), pointer               :: parametersRoot
     logical                                                              :: evolveForestsInParallel, suspendToRAM
     integer         (kind_int8                  )                        :: walltimeMaximum        , timeIntervalCheckpoint
@@ -219,9 +226,23 @@ contains
     else
        self=taskEvolveForests(evolveForestsInParallel,countForestsMaximum,walltimeMaximum,suspendToRAM,suspendPath,timeIntervalCheckpoint,fileNameCheckpoint,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,mergerTreeSeeds_,parameters    )
     end if
-    self%nodeComponentsInitialized=.true.
     !![
     <inputParametersValidate source="parameters"/>
+    !!]
+    allocate(self%nodeComponents_)
+    allocate(self%nodeHierarchy_ )
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    dummyPointer_              => self%nodeComponents_
+    self%nodeComponentsManager =  resourceManager(dummyPointer_)
+    dummyPointer_              => self%nodeHierarchy_
+    self%nodeHierarchyManager  =  resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]
+    !![
     <objectDestructor name="mergerTreeConstructor_" />
     <objectDestructor name="mergerTreeOperator_"    />
     <objectDestructor name="nodeOperator_"          />
@@ -377,9 +398,7 @@ contains
     !!{
     Destructor for the \refClass{taskEvolveForests} task class.
     !!}
-    use :: Events_Hooks    , only : stateRestoreEventGlobal     , stateStoreEventGlobal
-    use :: Node_Components , only : Node_Components_Uninitialize
-    use :: Galacticus_Nodes, only : nodeClassHierarchyFinalize
+    use :: Events_Hooks, only : stateRestoreEventGlobal, stateStoreEventGlobal
     implicit none
     type(taskEvolveForests), intent(inout) :: self
 
@@ -399,10 +418,6 @@ contains
     !!]
     if (stateStoreEventGlobal  %isAttached(self,evolveForestsStateStore  )) call stateStoreEventGlobal  %detach(self,evolveForestsStateStore  )
     if (stateRestoreEventGlobal%isAttached(self,evolveForestsStateRestore)) call stateRestoreEventGlobal%detach(self,evolveForestsStateRestore)
-    if (self%nodeComponentsInitialized                                    ) then
-       call Node_Components_Uninitialize()
-       call nodeClassHierarchyFinalize  ()
-    end if
     return
   end subroutine evolveForestsDestructor
 
@@ -531,10 +546,9 @@ contains
     ! Call routines to perform initialization which must occur for all threads if run in parallel.
     allocate(parameters)
     parameters=inputParameters(self%parameters)
-    call parameters%parametersGroupCopy(self%parameters)
     call Node_Components_Thread_Initialize(parameters)
     ! Allow events to be attached to the universe.
-    !$omp master
+    !$omp masked
     self%universeWaiting%event => null()
     !![
     <eventHook name="universePreEvolve">
@@ -546,7 +560,7 @@ contains
        call postEvolveEvent%attach(self,evolveForestsCheckpoint,openMPThreadBindingAllLevels,label='evolveForests')
        call self%timer_    %start (                                                                               )
     end if
-    !$omp end master
+    !$omp end masked
     !$omp barrier
     ! Begin processing trees.
     treeProcess : do while (.not.finished)
@@ -816,7 +830,7 @@ contains
           ! single sections have an implicit barrier at the end, which would desynchronize threads when multiple threads are
           ! used to process a single tree. Using a master section avoids that implicit barrier - we instead handle the barrier
           ! (and sharing of the "finished" status back to other threads) explicitly if needed.
-          !$omp master
+          !$omp masked
           ! Check whether any tree evolution occurred. If it did not, we have a universe-level deadlock.
           if ((.not.treesDidEvolve.and.treesCouldEvolve).or.deadlockReport) then
              ! If we already did the deadlock reporting pass it's now time to finish that report and exit. Otherwise, set deadlock
@@ -867,7 +881,7 @@ contains
           end if
           call self%universeWaiting  %lock%unset()
           call self%universeProcessed%lock%unset()
-          !$omp end master
+          !$omp end masked
           !$omp barrier
           if (universeUpdated) finished=.false.
           !$omp barrier
@@ -893,9 +907,9 @@ contains
     !$omp end critical(evolveForestReset)
     !$omp barrier
     deallocate(parameters)
-    !$omp master
+    !$omp masked
     if (postEvolveEvent%isAttached(self,evolveForestsCheckpoint)) call postEvolveEvent%detach(self,evolveForestsCheckpoint)
-    !$omp end master
+    !$omp end masked
     !$omp end parallel
 
     ! Finalize outputs.

@@ -107,9 +107,8 @@ contains
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),lockFileDescriptor,lockIsShared=.true.)
        !$ call hdf5Access%set()
-       call file%openFile(char(fileName),readOnly=.true.)
+       file=hdf5Object(char(fileName),readOnly=.true.)
        call file%readDataset('halfMassRadii',halfMassRadii)
-       call file%close()
        !$ call hdf5Access%unset()
        call File_Unlock(lockFileDescriptor)
        call self%inclinationTable%populate(halfMassRadii)
@@ -140,9 +139,8 @@ contains
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),lockFileDescriptor,lockIsShared=.false.)
        !$ call hdf5Access%set()
-       call file%openFile(char(fileName),objectsOverwritable=.true.)
+       file=hdf5Object(char(fileName),objectsOverwritable=.true.)
        call file%writeDataset(halfMassRadii,'halfMassRadii')
-       call file%close()
        !$ call hdf5Access%unset()
        call File_Unlock(lockFileDescriptor)
     end if

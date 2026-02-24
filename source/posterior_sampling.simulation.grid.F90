@@ -366,13 +366,11 @@ contains
        analysesGroup=outputFile   %openGroup(    'analyses' )
        subGroup     =analysesGroup%openGroup(char(groupName))
        ! Write metadata describing this analysis.
-       call      subGroup%writeAttribute(logPrior      ,'logPrior'                                               )
-       call      subGroup%writeAttribute(logLikelihood ,'logLikelihood'                                          )
-       call      subGroup%writeAttribute(logPosterior  ,'logPosterior'                                           )
-       call      subGroup%writeDataset  (stateVector   ,"simulationState","The state vector for this likelihood.")
-       call      subGroup%writeDataset  (parameterNames,"parameterNames" ,"The names of the model parameters."   )
-       call      subGroup%close         (                                                                        )
-       call analysesGroup%close         (                                                                        )
+       call subGroup%writeAttribute(logPrior      ,'logPrior'                                               )
+       call subGroup%writeAttribute(logLikelihood ,'logLikelihood'                                          )
+       call subGroup%writeAttribute(logPosterior  ,'logPosterior'                                           )
+       call subGroup%writeDataset  (stateVector   ,"simulationState","The state vector for this likelihood.")
+       call subGroup%writeDataset  (parameterNames,"parameterNames" ,"The names of the model parameters."   )
        !$ call hdf5Access%unset()
     end if
     return

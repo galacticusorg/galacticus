@@ -391,14 +391,13 @@ contains
          &                                                                                      omegaDarkEnergyData                       , depthLineOfSight
 
     !$ call hdf5Access%set()
-    call dataFile%openFile(fileName,readOnly=.true.)
+    dataFile=hdf5Object(fileName,readOnly=.true.)
     ! Extract parameters.
     parametersGroup=dataFile%openGroup('Parameters')
     call parametersGroup%readAttribute('H_0'                                         ,hubbleParameterData)
     call parametersGroup%readAttribute('Omega_Matter'                                ,omegaMatterData    )
     call parametersGroup%readAttribute('Omega_DE'                                    ,omegaDarkEnergyData)
     call parametersGroup%readAttribute('projectedCorrelationFunctionLineOfSightDepth',depthLineOfSight   )
-    call parametersGroup%close()
     ! Extract separations.
     call dataFile%readDataset('separationObserved',separations       )
     ! Extract observed datasets.
@@ -410,8 +409,6 @@ contains
     ! Read the minimum and maximum masses.
     call dataFile%readDataset("massMinimum"       ,massMinima        )
     call dataFile%readDataset("massMaximum"       ,massMaxima        )
-    ! Finish reading data file.
-    call dataFile%close      (                                       )
     !$ call hdf5Access%unset()
     self=outputAnalysisCorrelationFunction(label,comment,separations,massMinima,massMaxima,massHaloBinsPerDecade,massHaloMinimum,massHaloMaximum,integralConstraint,wavenumberCount,wavenumberMinimum,wavenumberMaximum,depthLineOfSight,halfIntegral,galacticFilter_,surveyGeometry_,cosmologyFunctions_,outputTimes_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterHaloScale_,haloModelPowerSpectrumModifier_,powerSpectrum_,massDistributionOperator_,massPropertyOperator_,separationPropertyOperator_,massPropertyExtractor_,targetLabel,binnedProjectedCorrelationTarget,binnedProjectedCorrelationCovarianceTarget)
    return
@@ -927,15 +924,12 @@ contains
     call    analysisGroup%writeDataset  (self%separations                                    ,'separation'                         ,'Separation'                             ,datasetReturned=dataset)
     call    dataset      %writeAttribute('ᵪMpc'                                              ,'units'                                                                                                )
     call    dataset      %writeAttribute(megaParsec                                          ,'unitsInSI'                                                                                            )
-    call    dataset      %close         (                                                                                                                                                            )
     call    analysisGroup%writeDataset  (self%binnedProjectedCorrelation                     ,'correlationFunction'                ,'Projected correlation'                  ,datasetReturned=dataset)
     call    dataset      %writeAttribute('ᵪMpc'                                              ,'units'                                                                                                )
     call    dataset      %writeAttribute(megaParsec                                          ,'unitsInSI'                                                                                            )
-    call    dataset      %close         (                                                                                                                                                            )
     call    analysisGroup%writeDataset  (self%binnedProjectedCorrelationCovariance           ,'correlationFunctionCovariance'      ,'Projected correlation covariance'       ,datasetReturned=dataset)
     call    dataset      %writeAttribute('ᵪMpc²'                                             ,'units'                                                                                                )
     call    dataset      %writeAttribute(megaParsec**2                                       ,'unitsInSI'                                                                                            )
-    call    dataset      %close         (                                                                                                                                                            )
     ! If available, include the log-likelihood and target dataset.
     if (allocated(self%binnedProjectedCorrelationTarget)) then
        call analysisGroup%writeAttribute(     self%logLikelihood()                           ,'logLikelihood'                                                                                        )
@@ -943,16 +937,10 @@ contains
        call analysisGroup%writeDataset  (     self%binnedProjectedCorrelationTarget          ,"correlationFunctionTarget"          ,'Projected correlation target'           ,datasetReturned=dataset)
        call dataset      %writeAttribute(     "ᵪMpc"                                         ,'units'                                                                                                )
        call dataset      %writeAttribute(     megaParsec                                     ,'unitsInSI'                                                                                            )
-       call dataset      %close         (                                                                                                                                                            )
        call analysisGroup%writeDataset  (     self%binnedProjectedCorrelationCovarianceTarget,"correlationFunctionCovarianceTarget",'Projected correlation covariance target',datasetReturned=dataset)
        call dataset      %writeAttribute(     "ᵪMpc²"                                        ,'units'                                                                                                )
        call dataset      %writeAttribute(      megaParsec**2                                 ,'unitsInSI'                                                                                            )
-       call dataset      %close         (                                                                                                                                                            )
     end if
-    call    analysisGroup%close         (                                                                                                                                                            )
-    if (present(groupName)) &
-         & call subGroup %close         (                                                                                                                                                            )
-    call    analysesGroup%close         (                                                                                                                                                            )
     !$ call hdf5Access%unset()
     return
   end subroutine correlationFunctionFinalize

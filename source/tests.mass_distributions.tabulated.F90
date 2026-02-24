@@ -34,6 +34,7 @@ program Test_Mass_Distributions_Tabulated
   use :: Numerical_Constants_Math        , only : Pi
   use :: Unit_Tests                      , only : Assert                 , Unit_Tests_Begin_Group         , Unit_Tests_End_Group       , Unit_Tests_Finish                           , &
        &                                          Skip
+  use :: IO_HDF5                         , only : ioHDF5AccessInitialize
   implicit none
   class           (massDistributionClass      ), allocatable             :: massDistribution_
   class           (kinematicsDistributionClass), pointer                 :: kinematicsDistribution_
@@ -69,6 +70,8 @@ program Test_Mass_Distributions_Tabulated
   call displayVerbositySet(verbosityLevelWorking)
   ! Initialize event hooks.
   call eventsHooksInitialize()
+  ! Initialize HDF5 lock.
+  call ioHDF5AccessInitialize()
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Tabulated mass distributions")
 

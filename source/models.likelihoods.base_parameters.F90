@@ -21,7 +21,8 @@
   Implementation of a posterior sampling likelihood class which allows arbitrary modification of a base parameter object.
   !!}
 
-  use :: Input_Parameters, only : inputParameter, inputParameters
+  use :: Input_Parameters, only : inputParameter , inputParameters
+  use :: Resource_Manager, only : resourceManager
 
   type :: parameterList
      !!{
@@ -33,6 +34,15 @@
      logical                          :: resolved
   end type parameterList
 
+  type :: inputParametersWrapper
+     !!{
+     Wrapper class for managing shared input parameters.
+     !!}
+     type(inputParameters), pointer :: parametersModel => null()
+   contains
+     final :: inputParametersWrapperDestructor
+  end type inputParametersWrapper
+  
   !![
   <posteriorSampleLikelihood name="posteriorSampleLikelihoodBaseParameters" abstract="yes">
    <description>A posterior sampling likelihood class which allows arbitrary modification of a base parameter object.</description>
@@ -43,11 +53,12 @@
      Implementation of a posterior sampling likelihood class which allows arbitrary modification of a base parameter object.
      !!}
      private
-     type   (varying_string )                            :: baseParametersFileName
-     type   (varying_string ), dimension(:), allocatable :: changeParametersFileNames
-     type   (inputParameters), pointer                   :: parametersModel           => null()
-     type   (parameterList  ), dimension(:), allocatable :: modelParametersActive_              , modelParametersInactive_
-     logical                                             :: reportFileName            =  .false., reportState             =.false.
+     type   (varying_string        )                            :: baseParametersFileName
+     type   (varying_string        ), dimension(:), allocatable :: changeParametersFileNames
+     type   (inputParametersWrapper), pointer                   :: parametersModel           => null()
+     type   (resourceManager       )                            :: parametersModelManager
+     type   (parameterList         ), dimension(:), allocatable :: modelParametersActive_              , modelParametersInactive_
+     logical                                                    :: reportFileName            =  .false., reportState             =.false.
    contains
      !![
      <methods>
@@ -60,6 +71,21 @@
   end type posteriorSampleLikelihoodBaseParameters
 
 contains
+
+  subroutine inputParametersWrapperDestructor(self)
+    !!{
+    Destroy a {\normalfont \ttfamily inputParametersWrapper} object.
+    !!}
+    implicit none
+    type(inputParametersWrapper), intent(inout) :: self
+
+    if (associated(self%parametersModel)) then
+       call self%parametersModel%destroy()
+       deallocate(self%parametersModel)
+       nullify   (self%parametersModel)
+    end if
+    return
+  end subroutine inputParametersWrapperDestructor
 
   subroutine baseParametersInitialize(self,modelParametersActive_,modelParametersInactive_)
     !!{
@@ -97,7 +123,7 @@ contains
           allocate(parameterNames(parameterCount))
           call String_Split_Words(parameterNames,char(modelParametersActive_(i)%modelParameter_%name()),"/")
           allocate(parameters_)
-          parameters_=inputParameters(self%parametersModel)
+          parameters_=inputParameters(self%parametersModel%parametersModel)
           do j=1,parameterCount
              instance    =1
              indexElement=0
@@ -162,7 +188,7 @@ contains
           allocate(parameterNames(parameterCount))
           call String_Split_Words(parameterNames,char(modelParametersInactive_(i)%modelParameter_%name()),"/")
           allocate(parameters_)
-          parameters_=inputParameters(self%parametersModel)
+          parameters_=inputParameters(self%parametersModel%parametersModel)
           do j=1,parameterCount
              instance    =1
              indexElement=0
@@ -401,7 +427,7 @@ contains
        end if
     end if
     if (report_ .and. self%reportState) call displayUnindent("")
-    call self%parametersModel%reset()
+    call self%parametersModel%parametersModel%reset()
     ! Restore verbosity level.
     if (report_ .and. (self%reportFileName .or. self%reportState)) call displayVerbositySet(verbosityLevel)
     return

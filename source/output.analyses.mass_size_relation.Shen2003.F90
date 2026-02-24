@@ -279,10 +279,6 @@ contains
     ! Write metadata describing this analysis.
     call analysisGroup%writeAttribute('The mass-size relation of Shen et al. (2003).','description'  )
     call analysisGroup%writeAttribute(self%logLikelihood()                           ,'logLikelihood')
-    call analysisGroup%close         (                                                               )
-    if (present(groupName)) &
-         & call subGroup %close      (                                                               )
-    call analysesGroup%close         (                                                               )
     !$ call hdf5Access%unset()
     return
   end subroutine massSizeRelationShen2003Finalize

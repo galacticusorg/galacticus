@@ -92,7 +92,7 @@ contains
        allocate(idGroup   (String_Count_Words(char(idSelectionDatasetName),"/")-1))
        call String_Split_Words(groupNames,char(idSelectionDatasetName),"/")
        !$ call hdf5Access%set()
-       call idFile%openFile   (char(idSelectionFileName)            )
+       idFile=hdf5Object(idSelectionFileName)
        if (size(idGroup) > 0) then
           do i=1,size(idGroup)
              if (i == 1) then

@@ -413,7 +413,6 @@ contains
     end if
     allocate(parameters)
     parameters=inputParameters(self%parameters)
-    call parameters%parametersGroupCopy(self%parameters)
     call Node_Components_Thread_Initialize(parameters)   
     ! Determine our worker number.
     numberWorker=OMP_Get_Thread_Num()

@@ -424,7 +424,7 @@ contains
     logical                                                                                              :: haveBoundaries
     
     !$ call hdf5Access%set  ()
-    call dataFile%openFile(fileName,readOnly=.true.)
+    dataFile=hdf5Object(fileName,readOnly=.true.)
     simulationGroup=dataFile       %openGroup ('simulation0001'   )
     haveBoundaries =simulationGroup%hasDataset('massParentMinimum')
     call    simulationGroup%readDataset('massRatioProgenitor'   ,massRatio           )
@@ -436,8 +436,6 @@ contains
        call simulationGroup%readDataset('massParentMinimum'     ,massParentsMinimum  )
        call simulationGroup%readDataset('massParentMaximum'     ,massParentsMaximum  )
     end if
-    call    simulationGroup%close      (                                             )
-    call    dataFile       %close      (                                             )
     !$ call hdf5Access%unset()
     ! Extract parent mass range and progenitor redshift.
     if (haveBoundaries) then
@@ -911,10 +909,6 @@ contains
     call analysisGroup%writeAttribute(self%logLikelihood             (),'logLikelihood'             )
     call analysisGroup%writeAttribute(self%massRatioLikelihoodMinimum  ,'massRatioLikelihoodMinimum')
     call analysisGroup%writeAttribute(self%massRatioLikelihoodMaximum  ,'massRatioLikelihoodMaximum')
-    call analysisGroup%close         (                                                              )
-    if (present(groupName)) &
-         & call subGroup%close       (                                                              )
-    call analysesGroup%close         (                                                              )
     !$ call hdf5Access%unset()
     return
   end subroutine progenitorMassFunctionFinalize

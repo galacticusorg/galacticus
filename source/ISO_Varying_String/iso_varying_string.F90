@@ -404,7 +404,7 @@ contains
 
 !****
 
-  elemental subroutine op_assign_VS_VS (var, exp)
+  impure elemental subroutine op_assign_VS_VS (var, exp)
 
     type(varying_string), intent(inout) :: var
     type(varying_string), intent(in)    :: exp
@@ -429,7 +429,7 @@ contains
 
   end subroutine op_assign_VS_VS
 
-  elemental subroutine op_assign_CH_VS (var, exp)
+  impure elemental subroutine op_assign_CH_VS (var, exp)
 
     character(LEN=*), intent(out)    :: var
     type(varying_string), intent(in) :: exp
@@ -446,7 +446,7 @@ contains
 
 !****
 
-  elemental subroutine op_assign_VS_CH (var, exp)
+  impure elemental subroutine op_assign_VS_CH (var, exp)
 
 #ifdef SUN
     type(varying_string), intent(inout) :: var
@@ -468,7 +468,7 @@ contains
 
 !****
 
-  elemental function op_concat_VS_VS (string_a, string_b) result (concat_string)
+  impure elemental function op_concat_VS_VS (string_a, string_b) result (concat_string)
 
     type(varying_string), intent(in) :: string_a
     type(varying_string), intent(in) :: string_b
@@ -493,16 +493,24 @@ contains
 
 !****
 
-  elemental function op_concat_CH_VS (string_a, string_b) result (concat_string)
+  impure elemental function op_concat_CH_VS (string_a, string_b) result (concat_string)
 
     character(LEN=*), intent(in)     :: string_a
     type(varying_string), intent(in) :: string_b
-    type(varying_string)             :: concat_string
+    type(varying_string)             :: concat_string, string_a_vs
 
 ! Concatenate a character string and a varying 
 ! string
 
-    concat_string = op_concat_VS_VS(var_str(string_a), string_b)
+    !![
+    <workaround type="gfortran" >
+      <description>Construct {\normalfont \ttfamily string\_a\_vs} explicitly - using a constructor call as an argument to a function currently causes memory leaks.</description>
+    !!]
+    string_a_vs   = var_str(string_a)
+    concat_string = op_concat_VS_VS(string_a_vs, string_b)
+    !![
+    </workaround>
+    !!]
 
 ! Finish
 
@@ -512,17 +520,25 @@ contains
 
 !****
 
-  elemental function op_concat_VS_CH (string_a, string_b) result (concat_string)
+  impure elemental function op_concat_VS_CH (string_a, string_b) result (concat_string)
 
     type(varying_string), intent(in) :: string_a
     character(LEN=*), intent(in)     :: string_b
-    type(varying_string)             :: concat_string
+    type(varying_string)             :: concat_string, string_b_vs
 
 ! Concatenate a varying string and a character
 ! string
 
-    concat_string = op_concat_VS_VS(string_a, var_str(string_b))
-
+    !![
+    <workaround type="gfortran" >
+      <description>Construct {\normalfont \ttfamily string\_a\_vs} explicitly - using a constructor call as an argument to a function currently causes memory leaks.</description>
+    !!]
+    string_b_vs   = var_str(string_b)
+    concat_string = op_concat_VS_VS(string_a, string_b_vs)
+    !![
+    </workaround>
+    !!]
+    
 ! Finish
 
     return
@@ -531,7 +547,7 @@ contains
 
 !****
 
-  elemental function op_eq_VS_VS (string_a, string_b) result (op_eq)
+  impure elemental function op_eq_VS_VS (string_a, string_b) result (op_eq)
     !!{
     Test equality of two varying string objects.
     !!}
@@ -560,7 +576,7 @@ contains
 
 !****
 
-  elemental function op_eq_CH_VS (string_a, string_b) result (op_eq)
+  impure elemental function op_eq_CH_VS (string_a, string_b) result (op_eq)
 
     character(LEN=*), intent(in)     :: string_a
     type(varying_string), intent(in) :: string_b
@@ -579,7 +595,7 @@ contains
 
 !****
 
-  elemental function op_eq_VS_CH (string_a, string_b) result (op_eq)
+  impure elemental function op_eq_VS_CH (string_a, string_b) result (op_eq)
 
     type(varying_string), intent(in) :: string_a
     character(LEN=*), intent(in)     :: string_b
@@ -598,7 +614,7 @@ contains
 
 !****
 
-  elemental function op_ne_VS_VS (string_a, string_b) result (op_ne)
+  impure elemental function op_ne_VS_VS (string_a, string_b) result (op_ne)
 
     type(varying_string), intent(in) :: string_a
     type(varying_string), intent(in) :: string_b
@@ -616,7 +632,7 @@ contains
 
 !****
 
-  elemental function op_ne_CH_VS (string_a, string_b) result (op_ne)
+  impure elemental function op_ne_CH_VS (string_a, string_b) result (op_ne)
 
     character(LEN=*), intent(in)     :: string_a
     type(varying_string), intent(in) :: string_b
@@ -635,7 +651,7 @@ contains
 
 !****
 
-  elemental function op_ne_VS_CH (string_a, string_b) result (op_ne)
+  impure elemental function op_ne_VS_CH (string_a, string_b) result (op_ne)
 
     type(varying_string), intent(in) :: string_a
     character(LEN=*), intent(in)     :: string_b
@@ -654,7 +670,7 @@ contains
 
 !****
 
-  elemental function op_lt_VS_VS (string_a, string_b) result (op_lt)
+  impure elemental function op_lt_VS_VS (string_a, string_b) result (op_lt)
 
     type(varying_string), intent(in) :: string_a
     type(varying_string), intent(in) :: string_b
@@ -672,7 +688,7 @@ contains
 
 !****
 
-  elemental function op_lt_CH_VS (string_a, string_b) result (op_lt)
+  impure elemental function op_lt_CH_VS (string_a, string_b) result (op_lt)
 
     character(LEN=*), intent(in)     :: string_a
     type(varying_string), intent(in) :: string_b
@@ -691,7 +707,7 @@ contains
 
 !****
 
-  elemental function op_lt_VS_CH (string_a, string_b) result (op_lt)
+  impure elemental function op_lt_VS_CH (string_a, string_b) result (op_lt)
 
     type(varying_string), intent(in) :: string_a
     character(LEN=*), intent(in)     :: string_b
@@ -710,7 +726,7 @@ contains
 
 !****
 
-  elemental function op_le_VS_VS (string_a, string_b) result (op_le)
+  impure elemental function op_le_VS_VS (string_a, string_b) result (op_le)
 
     type(varying_string), intent(in) :: string_a
     type(varying_string), intent(in) :: string_b
@@ -728,7 +744,7 @@ contains
 
 !****
 
-  elemental function op_le_CH_VS (string_a, string_b) result (op_le)
+  impure elemental function op_le_CH_VS (string_a, string_b) result (op_le)
 
     character(LEN=*), intent(in)     :: string_a
     type(varying_string), intent(in) :: string_b
@@ -747,7 +763,7 @@ contains
 
 !****
 
-  elemental function op_le_VS_CH (string_a, string_b) result (op_le)
+  impure elemental function op_le_VS_CH (string_a, string_b) result (op_le)
 
     type(varying_string), intent(in) :: string_a
     character(LEN=*), intent(in)     :: string_b
@@ -766,7 +782,7 @@ contains
 
 !****
 
-  elemental function op_ge_VS_VS (string_a, string_b) result (op_ge)
+  impure elemental function op_ge_VS_VS (string_a, string_b) result (op_ge)
 
     type(varying_string), intent(in) :: string_a
     type(varying_string), intent(in) :: string_b
@@ -784,7 +800,7 @@ contains
 
 !****
 
-  elemental function op_ge_CH_VS (string_a, string_b) result (op_ge)
+  impure elemental function op_ge_CH_VS (string_a, string_b) result (op_ge)
 
     character(LEN=*), intent(in)     :: string_a
     type(varying_string), intent(in) :: string_b
@@ -803,7 +819,7 @@ contains
 
 !****
 
-  elemental function op_ge_VS_CH (string_a, string_b) result (op_ge)
+  impure elemental function op_ge_VS_CH (string_a, string_b) result (op_ge)
 
     type(varying_string), intent(in) :: string_a
     character(LEN=*), intent(in)     :: string_b
@@ -822,7 +838,7 @@ contains
 
 !****
 
-  elemental function op_gt_VS_VS (string_a, string_b) result (op_gt)
+  impure elemental function op_gt_VS_VS (string_a, string_b) result (op_gt)
 
     type(varying_string), intent(in) :: string_a
     type(varying_string), intent(in) :: string_b
@@ -840,7 +856,7 @@ contains
 
 !****
 
-  elemental function op_gt_CH_VS (string_a, string_b) result (op_gt)
+  impure elemental function op_gt_CH_VS (string_a, string_b) result (op_gt)
 
     character(LEN=*), intent(in)     :: string_a
     type(varying_string), intent(in) :: string_b
@@ -859,7 +875,7 @@ contains
 
 !****
 
-  elemental function op_gt_VS_CH (string_a, string_b) result (op_gt)
+  impure elemental function op_gt_VS_CH (string_a, string_b) result (op_gt)
 
     type(varying_string), intent(in) :: string_a
     character(LEN=*), intent(in)     :: string_b
@@ -878,7 +894,7 @@ contains
 
 !****
 
-  elemental function adjustl_ (string) result (adjustl_string)
+  impure elemental function adjustl_ (string) result (adjustl_string)
 
     type(varying_string), intent(in) :: string
     type(varying_string)             :: adjustl_string
@@ -895,7 +911,7 @@ contains
 
 !****
 
-  elemental function adjustr_ (string) result (adjustr_string)
+  impure elemental function adjustr_ (string) result (adjustr_string)
 
     type(varying_string), intent(in) :: string
     type(varying_string)             :: adjustr_string
@@ -912,7 +928,7 @@ contains
 
 !****
 
-  pure function char_auto (string) result (char_string)
+  function char_auto (string) result (char_string)
 
     type(varying_string), intent(in) :: string
     character(LEN=len(string))       :: char_string
@@ -934,7 +950,7 @@ contains
 
 !****
 
-  pure function char_fixed (string, length) result (char_string)
+  function char_fixed (string, length) result (char_string)
 
     type(varying_string), intent(in) :: string
     integer, intent(in)              :: length
@@ -953,7 +969,7 @@ contains
 
 !****
 
-  elemental function iachar_ (c) result (i)
+  impure elemental function iachar_ (c) result (i)
 
     type(varying_string), intent(in) :: c
     integer                          :: i
@@ -971,7 +987,7 @@ contains
 
 !****
 
-  elemental function ichar_ (c) result (i)
+  impure elemental function ichar_ (c) result (i)
 
     type(varying_string), intent(in) :: c
     integer                          :: i
@@ -989,7 +1005,7 @@ contains
 
 !****
 
-  elemental function index_VS_VS (string, substring, back) result (i_substring)
+  impure elemental function index_VS_VS (string, substring, back) result (i_substring)
 
     type(varying_string), intent(in) :: string
     type(varying_string), intent(in) :: substring
@@ -1009,7 +1025,7 @@ contains
 
 !****
 
-  elemental function index_CH_VS (string, substring, back) result (i_substring)
+  impure elemental function index_CH_VS (string, substring, back) result (i_substring)
 
     character(LEN=*), intent(in)     :: string
     type(varying_string), intent(in) :: substring
@@ -1029,7 +1045,7 @@ contains
 
 !****
 
-  elemental function index_VS_CH (string, substring, back) result (i_substring)
+  impure elemental function index_VS_CH (string, substring, back) result (i_substring)
 
     type(varying_string), intent(in) :: string
     character(LEN=*), intent(in)     :: substring
@@ -1049,7 +1065,7 @@ contains
 
 !****
 
-  elemental function len_ (string) result (length)
+  impure elemental function len_ (string) result (length)
 
     type(varying_string), intent(in) :: string
     integer                          :: length
@@ -1070,7 +1086,7 @@ contains
 
 !****
 
-  elemental function len_trim_ (string) result (length)
+  impure elemental function len_trim_ (string) result (length)
 
     type(varying_string), intent(in) :: string
     integer                          :: length
@@ -1091,7 +1107,7 @@ contains
 
 !****
 
-  elemental function lge_VS_VS (string_a, string_b) result (comp)
+  impure elemental function lge_VS_VS (string_a, string_b) result (comp)
 
     type(varying_string), intent(in) :: string_a
     type(varying_string), intent(in) :: string_b
@@ -1109,7 +1125,7 @@ contains
 
 !****
 
-  elemental function lge_CH_VS (string_a, string_b) result (comp)
+  impure elemental function lge_CH_VS (string_a, string_b) result (comp)
 
     character(LEN=*), intent(in)     :: string_a
     type(varying_string), intent(in) :: string_b
@@ -1128,7 +1144,7 @@ contains
 
 !****
 
-  elemental function lge_VS_CH (string_a, string_b) result (comp)
+  impure elemental function lge_VS_CH (string_a, string_b) result (comp)
 
     type(varying_string), intent(in) :: string_a
     character(LEN=*), intent(in)     :: string_b
@@ -1147,7 +1163,7 @@ contains
 
 !****
 
-  elemental function lgt_VS_VS (string_a, string_b) result (comp)
+  impure elemental function lgt_VS_VS (string_a, string_b) result (comp)
 
     type(varying_string), intent(in) :: string_a
     type(varying_string), intent(in) :: string_b
@@ -1165,7 +1181,7 @@ contains
 
 !****
 
-  elemental function lgt_CH_VS (string_a, string_b) result (comp)
+  impure elemental function lgt_CH_VS (string_a, string_b) result (comp)
 
     character(LEN=*), intent(in)     :: string_a
     type(varying_string), intent(in) :: string_b
@@ -1184,7 +1200,7 @@ contains
 
 !****
 
-  elemental function lgt_VS_CH (string_a, string_b) result (comp)
+  impure elemental function lgt_VS_CH (string_a, string_b) result (comp)
 
     type(varying_string), intent(in) :: string_a
     character(LEN=*), intent(in)     :: string_b
@@ -1203,7 +1219,7 @@ contains
 
 !****
 
-  elemental function lle_VS_VS (string_a, string_b) result (comp)
+  impure elemental function lle_VS_VS (string_a, string_b) result (comp)
 
     type(varying_string), intent(in) :: string_a
     type(varying_string), intent(in) :: string_b
@@ -1221,7 +1237,7 @@ contains
 
 !****
 
-  elemental function lle_CH_VS (string_a, string_b) result (comp)
+  impure elemental function lle_CH_VS (string_a, string_b) result (comp)
 
     character(LEN=*), intent(in)     :: string_a
     type(varying_string), intent(in) :: string_b
@@ -1240,7 +1256,7 @@ contains
 
 !****
 
-  elemental function lle_VS_CH (string_a, string_b) result (comp)
+  impure elemental function lle_VS_CH (string_a, string_b) result (comp)
 
     type(varying_string), intent(in) :: string_a
     character(LEN=*), intent(in)     :: string_b
@@ -1259,7 +1275,7 @@ contains
 
 !****
 
-  elemental function llt_VS_VS (string_a, string_b) result (comp)
+  impure elemental function llt_VS_VS (string_a, string_b) result (comp)
 
     type(varying_string), intent(in) :: string_a
     type(varying_string), intent(in) :: string_b
@@ -1277,7 +1293,7 @@ contains
 
 !****
 
-  elemental function llt_CH_VS (string_a, string_b) result (comp)
+  impure elemental function llt_CH_VS (string_a, string_b) result (comp)
 
     character(LEN=*), intent(in)     :: string_a
     type(varying_string), intent(in) :: string_b
@@ -1296,7 +1312,7 @@ contains
 
 !****
 
-  elemental function llt_VS_CH (string_a, string_b) result (comp)
+  impure elemental function llt_VS_CH (string_a, string_b) result (comp)
 
     type(varying_string), intent(in) :: string_a
     character(LEN=*), intent(in)     :: string_b
@@ -1315,7 +1331,7 @@ contains
 
 !****
 
-  elemental function repeat_ (string, ncopies) result (repeat_string)
+  impure elemental function repeat_ (string, ncopies) result (repeat_string)
 
     type(varying_string), intent(in) :: string
     integer, intent(in)              :: ncopies
@@ -1333,7 +1349,7 @@ contains
 
 !****
 
-  elemental function scan_VS_VS (string, set, back) result (i)
+  impure elemental function scan_VS_VS (string, set, back) result (i)
 
     type(varying_string), intent(in) :: string
     type(varying_string), intent(in) :: set
@@ -1360,7 +1376,7 @@ contains
     
 !****
 
-  elemental function scan_CH_VS (string, set, back) result (i)
+  impure elemental function scan_CH_VS (string, set, back) result (i)
 
     character(LEN=*), intent(in)     :: string
     type(varying_string), intent(in) :: set
@@ -1387,7 +1403,7 @@ contains
     
 !****
 
-  elemental function scan_VS_CH (string, set, back) result (i)
+  impure elemental function scan_VS_CH (string, set, back) result (i)
 
     type(varying_string), intent(in) :: string
     character(LEN=*), intent(in)     :: set
@@ -1414,7 +1430,7 @@ contains
     
 !****
 
-  elemental function trim_ (string) result (trim_string)
+  impure elemental function trim_ (string) result (trim_string)
 
     type(varying_string), intent(in) :: string
     type(varying_string)             :: trim_string
@@ -1431,7 +1447,7 @@ contains
 
 !****
 
-  elemental function verify_VS_VS (string, set, back) result (i)
+  impure elemental function verify_VS_VS (string, set, back) result (i)
 
     type(varying_string), intent(in) :: string
     type(varying_string), intent(in) :: set
@@ -1458,7 +1474,7 @@ contains
 
 !****
 
-  elemental function verify_CH_VS (string, set, back) result (i)
+  impure elemental function verify_CH_VS (string, set, back) result (i)
 
     character(LEN=*), intent(in)     :: string
     type(varying_string), intent(in) :: set
@@ -1485,7 +1501,7 @@ contains
 
 !****
 
-  elemental function verify_VS_CH (string, set, back) result (i)
+  impure elemental function verify_VS_CH (string, set, back) result (i)
 
     type(varying_string), intent(in) :: string
     character(LEN=*), intent(in)     :: set
@@ -1512,7 +1528,7 @@ contains
 
 !****
 
-  elemental function var_str_ (char) result (string)
+  impure elemental function var_str_ (char) result (string)
 
     character(LEN=*), intent(in) :: char
     type(varying_string)         :: string
@@ -1994,7 +2010,7 @@ contains
 
 !****
 
-  elemental function extract_VS (string, start, finish) result (ext_string)
+  impure elemental function extract_VS (string, start, finish) result (ext_string)
 
     type(varying_string), intent(in) :: string
     integer, intent(in), optional    :: start
@@ -2013,7 +2029,7 @@ contains
 
 !****
 
-  elemental function extract_CH (string, start, finish) result (ext_string)
+  impure elemental function extract_CH (string, start, finish) result (ext_string)
 
     character(LEN=*), intent(in)  :: string
     integer, intent(in), optional :: start
@@ -2047,7 +2063,7 @@ contains
 
 !****
 
-  elemental function insert_VS_VS (string, start, substring) result (ins_string)
+  impure elemental function insert_VS_VS (string, start, substring) result (ins_string)
 
     type(varying_string), intent(in) :: string
     integer, intent(in)              :: start
@@ -2066,7 +2082,7 @@ contains
 
 !****
 
-  elemental function insert_CH_VS (string, start, substring) result (ins_string)
+  impure elemental function insert_CH_VS (string, start, substring) result (ins_string)
 
     character(LEN=*), intent(in)     :: string
     integer, intent(in)              :: start
@@ -2085,7 +2101,7 @@ contains
 
 !****
 
-  elemental function insert_VS_CH (string, start, substring) result (ins_string)
+  impure elemental function insert_VS_CH (string, start, substring) result (ins_string)
 
     type(varying_string), intent(in) :: string
     integer, intent(in)              :: start
@@ -2104,7 +2120,7 @@ contains
 
 !****
 
-  elemental function insert_CH_CH (string, start, substring) result (ins_string)
+  impure elemental function insert_CH_CH (string, start, substring) result (ins_string)
 
     character(LEN=*), intent(in) :: string
     integer, intent(in)          :: start
@@ -2128,7 +2144,7 @@ contains
 
 !****
 
-  elemental function remove_VS (string, start, finish) result (rem_string)
+  impure elemental function remove_VS (string, start, finish) result (rem_string)
 
     type(varying_string), intent(in) :: string
     integer, intent(in), optional    :: start
@@ -2147,7 +2163,7 @@ contains
 
 !****
 
-  elemental function remove_CH (string, start, finish) result (rem_string)
+  impure elemental function remove_CH (string, start, finish) result (rem_string)
 
     character(LEN=*), intent(in)  :: string
     integer, intent(in), optional :: start
@@ -2185,7 +2201,7 @@ contains
 
 !****
 
-  elemental function replace_VS_VS_auto (string, start, substring) result (rep_string)
+  impure elemental function replace_VS_VS_auto (string, start, substring) result (rep_string)
 
     type(varying_string), intent(in) :: string
     integer, intent(in)              :: start
@@ -2205,7 +2221,7 @@ contains
 
 !****
 
-  elemental function replace_CH_VS_auto (string, start, substring) result (rep_string)
+  impure elemental function replace_CH_VS_auto (string, start, substring) result (rep_string)
 
     character(LEN=*), intent(in)     :: string
     integer, intent(in)              :: start
@@ -2225,7 +2241,7 @@ contains
 
 !****
 
-  elemental function replace_VS_CH_auto (string, start, substring) result (rep_string)
+  impure elemental function replace_VS_CH_auto (string, start, substring) result (rep_string)
 
     type(varying_string), intent(in) :: string
     integer, intent(in)              :: start
@@ -2245,7 +2261,7 @@ contains
 
 !****
 
-  elemental function replace_CH_CH_auto (string, start, substring) result (rep_string)
+  impure elemental function replace_CH_CH_auto (string, start, substring) result (rep_string)
 
     character(LEN=*), intent(in) :: string
     integer, intent(in)          :: start
@@ -2265,7 +2281,7 @@ contains
 
 !****
 
-  elemental function replace_VS_VS_fixed (string, start, finish, substring) result (rep_string)
+  impure elemental function replace_VS_VS_fixed (string, start, finish, substring) result (rep_string)
 
     type(varying_string), intent(in) :: string
     integer, intent(in)              :: start
@@ -2288,7 +2304,7 @@ contains
 
 !****
 
-  elemental function replace_CH_VS_fixed (string, start, finish, substring) result (rep_string)
+  impure elemental function replace_CH_VS_fixed (string, start, finish, substring) result (rep_string)
 
     character(LEN=*), intent(in)     :: string
     integer, intent(in)              :: start
@@ -2309,7 +2325,7 @@ contains
 
 !****
 
-  elemental function replace_VS_CH_fixed (string, start, finish, substring) result (rep_string)
+  impure elemental function replace_VS_CH_fixed (string, start, finish, substring) result (rep_string)
 
     type(varying_string), intent(in) :: string
     integer, intent(in)              :: start
@@ -2330,7 +2346,7 @@ contains
 
 !****
 
-  elemental function replace_CH_CH_fixed (string, start, finish, substring) result (rep_string)
+  impure elemental function replace_CH_CH_fixed (string, start, finish, substring) result (rep_string)
 
     character(LEN=*), intent(in) :: string
     integer, intent(in)          :: start
@@ -2361,7 +2377,7 @@ contains
 
 !****
 
-  elemental function replace_VS_VS_VS_target (string, target, substring, every, back) result (rep_string)
+  impure elemental function replace_VS_VS_VS_target (string, target, substring, every, back) result (rep_string)
 
     type(varying_string), intent(in) :: string
     type(varying_string), intent(in) :: target
@@ -2384,7 +2400,7 @@ contains
 
 !****
 
-  elemental function replace_CH_VS_VS_target (string, target, substring, every, back) result (rep_string)
+  impure elemental function replace_CH_VS_VS_target (string, target, substring, every, back) result (rep_string)
 
     character(LEN=*), intent(in)     :: string
     type(varying_string), intent(in) :: target
@@ -2407,7 +2423,7 @@ contains
 
 !****
 
-  elemental function replace_VS_CH_VS_target (string, target, substring, every, back) result (rep_string)
+  impure elemental function replace_VS_CH_VS_target (string, target, substring, every, back) result (rep_string)
 
     type(varying_string), intent(in) :: string
     character(LEN=*), intent(in)     :: target
@@ -2430,7 +2446,7 @@ contains
 
 !****
 
-  elemental function replace_CH_CH_VS_target (string, target, substring, every, back) result (rep_string)
+  impure elemental function replace_CH_CH_VS_target (string, target, substring, every, back) result (rep_string)
 
     character(LEN=*), intent(in)     :: string
     character(LEN=*), intent(in)     :: target
@@ -2453,7 +2469,7 @@ contains
 
 !****
 
-  elemental function replace_VS_VS_CH_target (string, target, substring, every, back) result (rep_string)
+  impure elemental function replace_VS_VS_CH_target (string, target, substring, every, back) result (rep_string)
 
     type(varying_string), intent(in) :: string
     type(varying_string), intent(in) :: target
@@ -2476,7 +2492,7 @@ contains
 
 !****
 
-  elemental function replace_CH_VS_CH_target (string, target, substring, every, back) result (rep_string)
+  impure elemental function replace_CH_VS_CH_target (string, target, substring, every, back) result (rep_string)
 
     character(LEN=*), intent(in)     :: string
     type(varying_string), intent(in) :: target
@@ -2499,7 +2515,7 @@ contains
 
 !****
 
-  elemental function replace_VS_CH_CH_target (string, target, substring, every, back) result (rep_string)
+  impure elemental function replace_VS_CH_CH_target (string, target, substring, every, back) result (rep_string)
 
     type(varying_string), intent(in) :: string
     character(LEN=*), intent(in)     :: target
@@ -2522,7 +2538,7 @@ contains
 
 !****
 
-  elemental function replace_CH_CH_CH_target (string, target, substring, every, back) result (rep_string)
+  impure elemental function replace_CH_CH_CH_target (string, target, substring, every, back) result (rep_string)
 
     character(LEN=*), intent(in)  :: string
     character(LEN=*), intent(in)  :: target
@@ -2606,7 +2622,7 @@ contains
 
 !****
 
-  elemental subroutine split_VS (string, word, set, separator, back)
+  impure elemental subroutine split_VS (string, word, set, separator, back)
 
     type(varying_string), intent(inout)         :: string
 #ifdef SUN
@@ -2619,7 +2635,7 @@ contains
     type(varying_string), intent(in)            :: set
     logical, intent(in), optional               :: back
 
-! Split a varying string into two verying strings
+! Split a varying string into two varying strings
 
     call split_CH(string, word, char(set), separator, back)
 
@@ -2631,7 +2647,7 @@ contains
 
 !****
 
-  elemental subroutine split_CH (string, word, set, separator, back)
+  impure elemental subroutine split_CH (string, word, set, separator, back)
 
     type(varying_string), intent(inout)         :: string
     type(varying_string), intent(out)           :: word
@@ -2646,7 +2662,7 @@ contains
     logical                                     :: back_
     integer                                     :: i_separator
 
-! Split a varying string into two verying strings
+! Split a varying string into two varying strings
 
     if(PRESENT(back)) then
        back_ = back
@@ -2682,7 +2698,7 @@ contains
 
   end subroutine split_CH
   
-  elemental subroutine destructor_VS (string)
+  impure elemental subroutine destructor_VS (string)
     !!{
     Destroy a varying string object by deallocating it. Can be necessary to avoid memory leaks in some instances.
     !!}

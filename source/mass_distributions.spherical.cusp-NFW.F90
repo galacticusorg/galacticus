@@ -192,6 +192,7 @@ contains
          &  ) then
        self%y                   =y
     else
+       self%y                   =0.0d0
        call Error_Report('no means to determinecusp amplitude' //{introspection:location})
     end if
     ! Determine scale radius.
@@ -205,6 +206,7 @@ contains
          &  ) then
        self%radiusScale         =radiusVirial/concentration
     else
+       self%radiusScale         =0.0d0
        call Error_Report('no means to determine scale radius'//{introspection:location})
     end if
     ! Determine density normalization.
@@ -227,6 +229,7 @@ contains
             &                      -sqrt(radiusScaleFree*(radiusScaleFree+self%y**2))/(1.0d0+radiusScaleFree)                                          &
             &                     )
     else
+       self%densityNormalization=+0.0d0
        call Error_Report('either "densityNormalization", or "mass" and "radiusVirial" must be specified'//{introspection:location})
     end if
     ! Determine if profile is dimensionless.

@@ -308,10 +308,7 @@ contains
     !$GLC attributes unused :: self
 
     allocate(mangleFiles(1))
-    mangleFiles=                  &
-         &      [                 &
-         &       'surveyMask.ply' &
-         &      ]
+    mangleFiles(1)='surveyMask.ply'
     return
   end subroutine muzzin2013ULTRAVISTAMangleFiles
 

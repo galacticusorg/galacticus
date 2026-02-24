@@ -129,11 +129,10 @@ contains
 
     ! Read properties from the file.
     !$ call hdf5Access%set()
-    call file%openFile   (char(fileName)              ,readOnly=.true.                    )
-    call file%readDataset('time'                      ,         time                      )
-    call file%readDataset('radiusVelocityMaximum'     ,         radiusVelocityMaximum     )
-    call file%readDataset('radiusVelocityMaximumError',         radiusVelocityMaximumError)
-    call file%close      (                                                                )
+    file=hdf5Object(char(fileName),readOnly=.true.)
+    call file%readDataset('time'                      ,time                      )
+    call file%readDataset('radiusVelocityMaximum'     ,radiusVelocityMaximum     )
+    call file%readDataset('radiusVelocityMaximumError',radiusVelocityMaximumError)
     !$ call hdf5Access%unset()
     allocate(fractionRadiusVelocityMaximum     (size(radiusVelocityMaximum)))
     allocate(fractionRadiusVelocityMaximumError(size(radiusVelocityMaximum)))
@@ -290,19 +289,12 @@ contains
     call analysisGroup%writeDataset  (self%time                               ,'time'                               ,'Time'                                          ,datasetReturned=dataset)
     call dataset      %writeAttribute('Gyr'                                   ,'units'                                                                                                       )
     call dataset      %writeAttribute(gigaYear                                ,'unitsInSI'                                                                                                   )
-    call dataset      %close         (                                                                                                                                                       )
     call analysisGroup%writeDataset  (self%fractionRadiusVelocityMaximum      ,'fractionRadiusVelocityMaximum'      ,'Fraction of maximum circular velocity'         ,datasetReturned=dataset)
     call dataset      %writeAttribute(' '                                     ,'units'                                                                                                       )
     call dataset      %writeAttribute(1.0d0                                   ,'unitsInSI'                                                                                                   )
-    call dataset      %close         (                                                                                                                                                       )
     call analysisGroup%writeDataset  (self%fractionRadiusVelocityMaximumTarget,'fractionRadiusVelocityMaximumTarget','Fraction of maximum circular velocity [target]',datasetReturned=dataset)
     call dataset      %writeAttribute(' '                                     ,'units'                                                                                                       )
     call dataset      %writeAttribute(1.0d0                                   ,'unitsInSI'                                                                                                   )
-    call dataset      %close         (                                                                                                                                                       )
-    call analysisGroup%close         (                                                                                                                                                       )
-    if (present(groupName)) &
-         & call subGroup%close       (                                                                                                                                                       )
-    call analysesGroup%close         (                                                                                                                                                       )
     !$ call hdf5Access%unset()
     return
   end subroutine satelliteRadiusVelocityMaximumFinalize

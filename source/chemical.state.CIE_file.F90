@@ -646,7 +646,7 @@ contains
     !$ call hdf5Access%set()
     ! Parse the file.
     call displayIndent('Reading file: '//fileName,verbosityLevelDebug)
-    call chemicalStateFile%openFile(fileName,readOnly=.true.)
+    chemicalStateFile=hdf5Object(fileName,readOnly=.true.)
     ! Check the file format version of the file.
     call chemicalStateFile%readAttribute('fileFormat',fileFormatVersion)
     if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('file format version is out of date'//{introspection:location})
@@ -675,7 +675,6 @@ contains
     call metallicityDataset%readAttribute('extrapolateHigh',limitType,allowPseudoScalar=.true.)
     self%extrapolateMetallicityHigh=enumerationExtrapolationTypeEncode(char(limitType),includesPrefix=.false.,status=status)
     if (status /= errorStatusSuccess) call Error_Report("high metallicity extrapolation type '"//char(limitType)//"' in file '"//trim(fileName)//"' is invalid"//char(10)//displayGreen()//"HELP:"//displayReset()//enumerationExtrapolationTypeDescribe()//{introspection:location})
-    call metallicityDataset%close()
     temperatureDataset=chemicalStateFile%openDataset('temperature')
     call temperatureDataset%readAttribute('extrapolateLow' ,limitType,allowPseudoScalar=.true.)
     self%extrapolateTemperatureLow =enumerationExtrapolationTypeEncode(char(limitType),includesPrefix=.false.,status=status)
@@ -683,7 +682,6 @@ contains
     call temperatureDataset%readAttribute('extrapolateHigh',limitType,allowPseudoScalar=.true.)
     self%extrapolateTemperatureHigh=enumerationExtrapolationTypeEncode(char(limitType),includesPrefix=.false.,status=status)
     if (status /= errorStatusSuccess) call Error_Report("high temperature extrapolation type '"//char(limitType)//"' in file '"//trim(fileName)//"' is invalid"//char(10)//displayGreen()//"HELP:"//displayReset()//enumerationExtrapolationTypeDescribe()//{introspection:location})
-    call temperatureDataset%close()
     ! Validate extrapolation methods.
     if     (                                                                 &
          &   self%extrapolateMetallicityLow  /= extrapolationTypeFix         &
@@ -713,8 +711,6 @@ contains
          &  .and.                                                            &
          &   self%extrapolateTemperatureHigh /= extrapolationTypeExtrapolate &
          & ) call Error_Report('extrapolation type not permitted'//{introspection:location})
-    ! Close the file.
-    call chemicalStateFile%close()
     call displayUnindent('done',verbosityLevelDebug)
     !$ call hdf5Access%unset()
     ! Store table ranges for convenience.

@@ -111,6 +111,7 @@ contains
     type     (varying_string  )              , dimension(2)              :: weightingDefinition
     type     (varying_string  )                                          :: valueDefinition     , message
     character(len=20          )                                          :: fractionLabel       , radiusLabel
+    character(len=27          )                                          :: extract_
     integer                                                              :: i                   , radiiCount         , &
          &                                                                  countComponents     , status
 
@@ -136,10 +137,11 @@ contains
        end if
        call String_Split_Words(radiusDefinition,char(descriptors(i)),':',bracketing="{}")
        ! Detect cases which specify radius via a mass or light fraction. In either case, extract the fraction.
-       if (extract(radiusDefinition(1),1,22) == 'galacticLightFraction{'     ) call extractFraction(specifiers(i)%name,radiusDefinition(1),22,fractionDefinition)
-       if (extract(radiusDefinition(1),1,21) == 'galacticMassFraction{'      ) call extractFraction(specifiers(i)%name,radiusDefinition(1),21,fractionDefinition)
-       if (extract(radiusDefinition(1),1,27) == 'satelliteBoundMassFraction{') call extractFraction(specifiers(i)%name,radiusDefinition(1),27,fractionDefinition)
-       if (extract(radiusDefinition(1),1,20) == 'stellarMassFraction{'       ) call extractFraction(specifiers(i)%name,radiusDefinition(1),20,fractionDefinition)
+       extract_=extract(radiusDefinition(1),1,27)
+       if (extract_(1:22) == 'galacticLightFraction{'     ) call extractFraction(specifiers(i)%name,radiusDefinition(1),22,fractionDefinition)
+       if (extract_(1:21) == 'galacticMassFraction{'      ) call extractFraction(specifiers(i)%name,radiusDefinition(1),21,fractionDefinition)
+       if (extract_(1:27) == 'satelliteBoundMassFraction{') call extractFraction(specifiers(i)%name,radiusDefinition(1),27,fractionDefinition)
+       if (extract_(1:20) == 'stellarMassFraction{'       ) call extractFraction(specifiers(i)%name,radiusDefinition(1),20,fractionDefinition)
        ! Parse the radius definition.
        select case (char(radiusDefinition(1)))
        case ('radius'                          )
@@ -311,10 +313,11 @@ contains
        ! Detect cases which specify the weighting for integrals over the velocity dispersion.
        if (countComponents == 5) then
           valueDefinition=radiusDefinition(4)
-          if     (                                                &
-               &   extract(valueDefinition,1,11) == 'lineOfSight' &
-               &  .or.                                            &
-               &   extract(valueDefinition,1, 7) == 'lambdaR'     &
+          extract_       =extract(valueDefinition,1,11)
+          if     (                                 &
+               &   extract_(1:11) == 'lineOfSight' &
+               &  .or.                             &
+               &   extract_(1: 7) == 'lambdaR'     &
                & ) then
              call String_Split_Words(weightingDefinition,char(valueDefinition),'{}')
              radiusDefinition(4)=weightingDefinition(1)

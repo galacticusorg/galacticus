@@ -499,7 +499,7 @@ contains
     if (.not.self%tableInitializedRate) return
     ! Open the data file.
     !$ call hdf5Access%set()
-    call dataFile%openFile(char(self%fileName),overWrite=.false.)
+    dataFile=hdf5Object(char(self%fileName),overWrite=.false.)
     ! Check if the rate table is populated.
     if (self%tableInitializedRate) then
        allocate(linearGrowthFactor(size(self%timeRate)))
@@ -508,10 +508,7 @@ contains
        end do
        dataGroup=dataFile%openGroup("rate")
        call dataGroup%writeDataset(linearGrowthFactor,'linearGrowthFactor','The linear growth factors at the times at which results are tabulated.')
-       call dataGroup%close()
     end if
-    ! Close the data file.
-    call dataFile%close()
     !$ call hdf5Access%unset()
     return
   end subroutine farahiMidpointBrownianBridgeFileWrite

@@ -195,8 +195,6 @@ contains
        call                       informationContentGroup%writeDataset  (self%treeIndex            ,'treeIndex'                                 ,appendTo=.true.,chunkSize=chunkSize)
        call                       informationContentGroup%writeDataset  (self%informationContent   ,'informationContent',datasetReturned=dataset,appendTo=.true.,chunkSize=chunkSize)
        if (.not.preexisting) call dataset                %writeAttribute('bits'                    ,"units"                                                                         )
-       call                       dataset                %close         (                                                                                                           )
-       call                       informationContentGroup%close         (                                                                                                           )
        !$ call hdf5Access%unset()
     end if
     return

@@ -703,11 +703,10 @@ contains
           ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
           call File_Lock(self%fileNameNonLinearMap,fileLock,lockIsShared=.true.)
           !$ call hdf5Access%set()
-          call file%openFile(self%fileNameNonLinearMap)
+          file=hdf5Object(self%fileNameNonLinearMap)
           call file%readDataset('time'               ,times               )
           call file%readDataset('overdensitiesLinear',overdensitiesLinear )
           call file%readDataset('linearNonlinearMap' ,linearNonlinearMap__)
-          call file%close      (                                          )
           !$ call hdf5Access%unset()
           call File_Unlock(fileLock)       
           ! Test if map has sufficient extent.
@@ -995,7 +994,7 @@ contains
     if (.not.tableStore) return
     if (File_Exists(fileName)) then
        !$ call hdf5Access%set()
-       call file%openFile(fileName,readOnly=.true.)
+       file=hdf5Object(fileName,readOnly=.true.)
        call file%readDataset('time',timeTable)
        if     (                                    &
             &   timeTable(1              ) <= time &
@@ -1016,7 +1015,6 @@ contains
           end select
           status=errorStatusSuccess
        end if
-       call file%close()
        !$ call hdf5Access%unset()
     end if
     return
@@ -1042,10 +1040,9 @@ contains
     if (.not.tableStore) return
     call Directory_Make(File_Path(fileName))
     !$ call hdf5Access%set()
-    call file%openFile    (        fileName                                    ,overWrite=.true.,readOnly=.false.)
-    call file%writeDataset(        storeTable%xs()                     ,'time'                                   )
-    call file%writeDataset(reshape(storeTable%ys(),[storeTable%size()]),'value'                                  )
-    call file%close       (                                                                                      )
+    file=hdf5Object(fileName,overWrite=.true.,readOnly=.false.)
+    call file%writeDataset(        storeTable%xs()                     ,'time' )
+    call file%writeDataset(reshape(storeTable%ys(),[storeTable%size()]),'value')
     !$ call hdf5Access%unset()
     return
   end subroutine cllsnlssMttCsmlgclCnstntStoreTable

@@ -327,19 +327,12 @@ contains
     call analysisGroup%writeDataset  (self%fractionMassBound            ,'fractionMassBound'            ,'Fraction of bound mass remaining'           ,datasetReturned=dataset)
     call dataset      %writeAttribute(' '                               ,'units'                                                                                              )
     call dataset      %writeAttribute(1.0d0                             ,'unitsInSI'                                                                                          )
-    call dataset      %close         (                                                                                                                                        )
     call analysisGroup%writeDataset  (self%fractionVelocityMaximum      ,'fractionVelocityMaximum'      ,'Fraction of peak rotation velocity'         ,datasetReturned=dataset)
     call dataset      %writeAttribute(' '                               ,'units'                                                                                              )
     call dataset      %writeAttribute(1.0d0                             ,'unitsInSI'                                                                                          )
-    call dataset      %close         (                                                                                                                                        )
     call analysisGroup%writeDataset  (self%fractionVelocityMaximumTarget,'fractionVelocityMaximumTarget','Fraction of peak rotation velocity [target]',datasetReturned=dataset)
     call dataset      %writeAttribute(' '                               ,'units'                                                                                              )
     call dataset      %writeAttribute(1.0d0                             ,'unitsInSI'                                                                                          )
-    call dataset      %close         (                                                                                                                                        )
-    call analysisGroup%close         (                                                                                                                                        )
-    if (present(groupName)) &
-         & call subGroup%close       (                                                                                                                                        )
-    call analysesGroup%close         (                                                                                                                                        )
     !$ call hdf5Access%unset()
     return
   end subroutine tidalTracksVelocityMaximumFinalize

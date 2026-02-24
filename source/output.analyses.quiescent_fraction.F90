@@ -276,12 +276,11 @@ contains
     type            (hdf5Object                               )                                :: dataFile
 
     !$ call hdf5Access%set  ()
-    call dataFile%openFile     (fileName                             ,readOnly=.true.              )
-    call dataFile%readDataset  ('massStellar'                        ,         massesStellar       )
-    call dataFile%readDataset  ('quiescentFractionFunction'          ,         meanValueTarget     )
-    call dataFile%readDataset  ('quiescentFractionFunctionCovariance',         meanCovarianceTarget)
-    call dataFile%readAttribute('labelTarget'                        ,         targetLabel         )
-    call dataFile%close        (                                                                   )
+    dataFile=hdf5Object(fileName,readOnly=.true.)
+    call dataFile%readDataset  ('massStellar'                        ,massesStellar       )
+    call dataFile%readDataset  ('quiescentFractionFunction'          ,meanValueTarget     )
+    call dataFile%readDataset  ('quiescentFractionFunctionCovariance',meanCovarianceTarget)
+    call dataFile%readAttribute('labelTarget'                        ,targetLabel         )
     !$ call hdf5Access%unset()
     ! Build the object.
     self=quiescentFractionConstructorInternal(label,comment,massesStellar,starFormationRateSpecificQuiescentLogarithmic,starFormationRateSpecificLogarithmicError,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_,targetLabel,meanValueTarget,meanCovarianceTarget)

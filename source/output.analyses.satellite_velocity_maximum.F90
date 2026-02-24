@@ -129,11 +129,10 @@ contains
 
     ! Read properties from the file.
     !$ call hdf5Access%set()
-    call file%openFile   (char(fileName)        ,readOnly=.true.              )
-    call file%readDataset('time'                ,         time                )
-    call file%readDataset('velocityMaximum'     ,         velocityMaximum     )
-    call file%readDataset('velocityMaximumError',         velocityMaximumError)
-    call file%close      (                                                    )
+    file=hdf5Object(char(fileName),readOnly=.true.)
+    call file%readDataset('time'                ,time                )
+    call file%readDataset('velocityMaximum'     ,velocityMaximum     )
+    call file%readDataset('velocityMaximumError',velocityMaximumError)
     !$ call hdf5Access%unset()
     allocate(fractionVelocityMaximum     (size(velocityMaximum)))
     allocate(fractionVelocityMaximumError(size(velocityMaximum)))
@@ -289,19 +288,12 @@ contains
     call analysisGroup%writeDataset  (self%time                         ,'time'                         ,'Time'                                          ,datasetReturned=dataset)
     call dataset      %writeAttribute('Gyr'                             ,'units'                                                                                                 )
     call dataset      %writeAttribute(gigaYear                          ,'unitsInSI'                                                                                             )
-    call dataset      %close         (                                                                                                                                           )
     call analysisGroup%writeDataset  (self%fractionVelocityMaximum      ,'fractionVelocityMaximum'      ,'Fraction of maximum circular velocity'         ,datasetReturned=dataset)
     call dataset      %writeAttribute(' '                               ,'units'                                                                                                 )
     call dataset      %writeAttribute(1.0d0                             ,'unitsInSI'                                                                                             )
-    call dataset      %close         (                                                                                                                                           )
     call analysisGroup%writeDataset  (self%fractionVelocityMaximumTarget,'fractionVelocityMaximumTarget','Fraction of maximum circular velocity [target]',datasetReturned=dataset)
     call dataset      %writeAttribute(' '                               ,'units'                                                                                                 )
     call dataset      %writeAttribute(1.0d0                             ,'unitsInSI'                                                                                             )
-    call dataset      %close         (                                                                                                                                           )
-    call analysisGroup%close         (                                                                                                                                           )
-    if (present(groupName)) &
-         & call subGroup%close       (                                                                                                                                           )
-    call analysesGroup%close         (                                                                                                                                           )
     !$ call hdf5Access%unset()
     return
   end subroutine satelliteVelocityMaximumFinalize

@@ -58,7 +58,6 @@
      type            (varying_string               ), dimension(:    ), allocatable :: fileNames
      double precision                               , dimension(:    ), allocatable :: redshifts                                   , times
    contains
-     final     ::                    haloMassFunctionDestructor
      procedure :: evaluate        => haloMassFunctionEvaluate
      procedure :: functionChanged => haloMassFunctionFunctionChanged
   end type posteriorSampleLikelihoodHaloMassFunction
@@ -236,6 +235,7 @@ contains
          &                                                                                        massFunctionOriginal
     integer         (c_size_t                                 ), allocatable  , dimension(:  ) :: massFunctionCountOriginal
     double precision                                           , allocatable  , dimension(:,:) :: massFunctionCovarianceOriginal
+    class           (*                                        ), pointer                       :: dummyPointer_
     character       (len=12                                   )                                :: redshiftLabel
     type            (hdf5Object                               )                                :: massFunctionFile                  , simulationGroup
     integer                                                                                    :: i                                 , j                  , &
@@ -267,13 +267,11 @@ contains
     do iRedshift=1,size(redshifts)
        write (redshiftLabel,'(f6.3)') redshifts(iRedshift)
        !$ call hdf5Access%set()
-       call massFunctionFile%openFile(fileNames(iRedshift),readOnly=.true.)
-       simulationGroup=massFunctionFile%openGroup('simulation0001')
-       call simulationGroup %readDataset("mass"        ,massOriginal             )
-       call simulationGroup %readDataset("massFunction",massFunctionOriginal     )
-       call simulationGroup %readDataset("count"       ,massFunctionCountOriginal)
-       call simulationGroup %close      (                                        )
-       call massFunctionFile%close      (                                        )
+       massFunctionFile=hdf5Object(fileNames(iRedshift),readOnly=.true.)
+       simulationGroup  =massFunctionFile%openGroup('simulation0001')
+       call simulationGroup%readDataset("mass"        ,massOriginal             )
+       call simulationGroup%readDataset("massFunction",massFunctionOriginal     )
+       call simulationGroup%readDataset("count"       ,massFunctionCountOriginal)
        !$ call hdf5Access%unset()    
        ! Compute quantities needed for likelihood calculations.
        if (self%likelihoodPoisson) then
@@ -509,7 +507,7 @@ contains
     end if
     ! Get the halo mass function object.
     !![
-    <objectBuilder class="haloMassFunction" name="haloMassFunction_" source="self%parametersModel"/>
+    <objectBuilder class="haloMassFunction" name="haloMassFunction_" source="self%parametersModel%parametersModel"/>
     !!]
     ! Determine the model discrepancy variance term.
     if (self%indexDiscrepancy > 0) then

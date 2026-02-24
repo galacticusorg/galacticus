@@ -69,6 +69,9 @@
    <deepCopy>
      <ignore variables="nodeOperator_"/>
    </deepCopy>
+   <assignment>
+     <functionClass variables="nodeOperator_"/>
+   </assignment>
   </geometryLightcone>
   !!]
   type, extends(geometryLightconeClass) :: geometryLightconeSquare
@@ -170,6 +173,15 @@
   </enumeration>
   !!]
 
+  ! Sub-module scope variables used in root finding.
+  class           (geometryLightconeSquare), pointer                   :: self_
+  type            (treeNode               ), pointer                   :: node_
+  integer                                                              :: i_       , j_          , &
+       &                                                                  k_       , countSeek
+  logical                                                              :: reporting
+  double precision                         , allocatable, dimension(:) :: timeSeek , distanceSeek
+  !$omp threadprivate(self_,node_,i_,j_,k_,timeSeek,distanceSeek,countSeek,reporting)
+  
 contains
 
   function squareConstructorParameters(parameters) result(self)
@@ -884,15 +896,14 @@ contains
     use :: Sorting                         , only : sort
     use :: Functions_Global                , only : nodeOperatorPredeterminedSolveAnalytics_
     implicit none
-    class           (geometryLightconeSquare), intent(inout)                                        :: self
-    type            (treeNode               ), intent(inout)                                        :: node
+    class           (geometryLightconeSquare), intent(inout)                , target                :: self
+    type            (treeNode               ), intent(inout)                , target                :: node
     double precision                         , intent(in   )                                        :: timeStart                   , timeEnd
     double precision                         , intent(inout), dimension(:  ), allocatable, optional :: timesCrossing
-    double precision                                        , dimension(:  ), allocatable           :: timesCrossingTmp            , timeSeek          , &
-         &                                                                                             distanceSeek
+    double precision                                        , dimension(:  ), allocatable           :: timesCrossingTmp
     integer                                                 , dimension(3,2)                        :: periodicRange
-    class           (nodeComponentBasic     ), pointer                                              :: basic
-    class           (nodeComponentPosition  ), pointer                                              :: position
+    class           (nodeComponentBasic     )                               , pointer               :: basic
+    class           (nodeComponentPosition  )                               , pointer               :: position
     double precision                                        , dimension(3  )                        :: positionReference           , nodePositionStart , &
          &                                                                                             nodePositionEnd
     double precision                         , parameter                                            :: timeSeekStep         =1.0d-3 ! Timestep used in reporting of crossing times.
@@ -902,11 +913,13 @@ contains
          &                                                                                             radiusBuffer                , timeCrossing      , &
          &                                                                                             timeOriginal                , timeStart_        , &
          &                                                                                             distanceCrossingSeek
-    logical                                                                                         :: isInFieldOfView             , reporting
+    logical                                                                                         :: isInFieldOfView
     integer                                                                                         :: i                           , j                 , &
-         &                                                                                             k                           , countSeek         , &
-         &                                                                                             iSeek                       , countSteps
-    type            (rootFinder             )                                                       :: finder
+         &                                                                                             k                           , countSteps        , &
+         &                                                                                             iSeek
+    type            (rootFinder             ), save                                                 :: finder
+    logical                                  , save                                                 :: finderConstructed   =.false.
+    !$omp threadprivate(finder,finderConstructed)
     character       (len= 64                )                                                       :: label
 
     reporting=any(node%index() == self%nodeIndicesReport)
@@ -944,8 +957,13 @@ contains
        call displayMessage('Periodic range:     '//trim(adjustl(label)))
     end if
     ! Iterate over replicants of interest.
+    if (.not.finderConstructed) then 
+       finder           =rootFinder(rootFunction=timeCrossingRoot,toleranceRelative=1.0d-9)
+       finderConstructed=.true.
+    end if
+    self_ => self
+    node_ => node
     squareTimeLightconeCrossing=huge(0.0d0)
-    finder                     =rootFinder(rootFunction=timeCrossingRoot,toleranceRelative=1.0d-9)
     do i=periodicRange(1,1),periodicRange(1,2)
        do j=periodicRange(2,1),periodicRange(2,2)
           do k=periodicRange(3,1),periodicRange(3,2)
@@ -970,6 +988,9 @@ contains
                   &   distanceNodeEnd   >= distanceMinimum &
                   & ) then
                 ! Find the precise time of lightcone crossing.
+                i_          =i
+                j_          =j
+                k_          =k
                 countSeek   =0
                 timeCrossing=finder%find(rootRange=[timeStart_,timeEnd])
                 if (reporting) then
@@ -1052,23 +1073,23 @@ contains
        end if
     end if    
     return
-
-  contains
-
-    double precision function timeCrossingRoot(time)
-      !!{
-      Function used to find the time at which a node crosses the lightcone.
-      !!}
-      implicit none
-      double precision, intent(in   )             :: time
-      double precision, dimension(3)              :: positionNode
-      double precision, dimension(:), allocatable :: timeSeek_   , distanceSeek_
-      double precision                            :: distanceNode
-
-      positionNode    =self%nodePositionReplicant(node,time,self%origin,[i,j,k],setTime=.true.)
-      distanceNode    =Vector_Magnitude(positionNode)
-      timeCrossingRoot=+                         distanceNode           &
-           &           -self%cosmologyFunctions_%distanceComoving(time)
+  end function squareTimeLightconeCrossing
+  
+  double precision function timeCrossingRoot(time)
+    !!{
+    Function used to find the time at which a node crosses the lightcone.
+    !!}
+    use :: Vectors, only : Vector_Magnitude
+    implicit none
+    double precision, intent(in   )             :: time
+    double precision, dimension(3)              :: positionNode
+    double precision, dimension(:), allocatable :: timeSeek_   , distanceSeek_
+    double precision                            :: distanceNode
+    
+    positionNode    =self_%nodePositionReplicant(node_,time,self_%origin,[i_,j_,k_],setTime=.true.)
+    distanceNode    =Vector_Magnitude(positionNode)
+    timeCrossingRoot=+                          distanceNode           &
+         &           -self_%cosmologyFunctions_%distanceComoving(time)
       if (reporting) then
          if (countSeek == 0) then
             allocate(timeSeek    (32))
@@ -1087,11 +1108,9 @@ contains
          timeSeek    (countSeek)=time
          distanceSeek(countSeek)=timeCrossingRoot
       end if
-      return
-    end function timeCrossingRoot
-      
-  end function squareTimeLightconeCrossing
-  
+    return
+  end function timeCrossingRoot
+    
   function squareIsInFieldOfView(self,position) result(isInFieldOfView)
     !!{
     Return true if the given position is in the field of view of the lightcone.

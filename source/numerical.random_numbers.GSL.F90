@@ -24,7 +24,17 @@
   ! Add dependency on GSL library.
   !; gsl
 
-  use, intrinsic :: ISO_C_Binding, only : c_long, c_ptr, c_null_ptr
+  use, intrinsic :: ISO_C_Binding   , only : c_long         , c_ptr, c_null_ptr
+  use            :: Resource_Manager, only : resourceManager
+
+  type :: gslRandomNumberGeneratorWrapper
+     !!{
+     Wrapper class for managing GSL random number generators.
+     !!}
+     type(c_ptr) :: rng=c_null_ptr
+   contains
+     final :: gslRandomNumberGeneratorWrapperDestructor
+  end type gslRandomNumberGeneratorWrapper
   
   !![
   <randomNumberGenerator name="randomNumberGeneratorGSL">
@@ -36,11 +46,11 @@
      A random number generator class which utilizes the \gls{gsl} random number generators.
      !!}
      private
-     integer(c_long) :: seed_                              , seed__
-     logical         :: ompThreadOffset                    , mpiRankOffset
-     type   (c_ptr ) :: gslRandomNumberGenerator=c_null_ptr
+     type   (resourceManager                )          :: randomNumberGeneratorManager
+     type   (gslRandomNumberGeneratorWrapper), pointer :: randomNumberGenerator        => null()
+     integer(c_long                         )          :: seed_                                 , seed__
+     logical                                           :: ompThreadOffset                       , mpiRankOffset
    contains
-     final     ::                         gslDestructor
      procedure :: openMPIndependent    => gslOpenMPIndependent
      procedure :: mpiIndependent       => gslMPIIndependent
      procedure :: rangeMinimum         => gslRangeMinimum
@@ -252,6 +262,7 @@ contains
 #endif
     integer(c_long                  ), intent(in   )           :: seed_
     logical                          , intent(in   ), optional :: ompThreadOffset, mpiRankOffset
+    class  (*                       ), pointer                 :: dummyPointer_
     integer(c_long                  )                          :: seed__
     !![
     <constructorAssign variables="seed_"/>
@@ -269,7 +280,17 @@ contains
        end if
        !$omp end critical(GSL_RNG_Initialize)
     end if
-    self%gslRandomNumberGenerator=GSL_RNG_Alloc(GSL_Rng_Default)
+    allocate(self%randomNumberGenerator)
+    self%randomNumberGenerator%rng=GSL_RNG_Alloc(GSL_Rng_Default)
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    dummyPointer_                     => self%randomNumberGenerator
+    self%randomNumberGeneratorManager =  resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]
     seed__                         =seed_
     !$ if (ompThreadOffset_) seed__=seed__+OMP_Get_Thread_Num()
     if (mpiRankOffset_) then
@@ -278,22 +299,21 @@ contains
        seed__=seed__+mpiRank
 #endif
     end if
-    call GSL_RNG_Set(self%gslRandomNumberGenerator,seed__)
+    call GSL_RNG_Set(self%randomNumberGenerator%rng,seed__)
     self%seed_=seed__
     return
   end function gslConstructorInternal
   
-  subroutine gslDestructor(self)
+  subroutine gslRandomNumberGeneratorWrapperDestructor(self)
     !!{
-    Destructor for the \refClass{randomNumberGeneratorGSL} random number generator class.
+    Destructor for the \refClass{gslRandomNumberGeneratorWrapper} random number generator class.
     !!}
     implicit none
-    type(randomNumberGeneratorGSL), intent(inout) :: self
+    type(gslRandomNumberGeneratorWrapper), intent(inout) :: self
 
-    if (c_associated(self%gslRandomNumberGenerator))        &
-         & call GSL_RNG_Free(self%gslRandomNumberGenerator)
+    call GSL_RNG_Free(self%rng)
     return
-  end subroutine gslDestructor
+  end subroutine gslRandomNumberGeneratorWrapperDestructor
 
   logical function gslMPIIndependent(self)
     !!{
@@ -329,7 +349,7 @@ contains
     integer(c_long                  )                :: gslRangeMinimum
     class  (randomNumberGeneratorGSL), intent(inout) :: self
 
-    gslRangeMinimum=GSL_RNG_Min(self%gslRandomNumberGenerator)
+    gslRangeMinimum=GSL_RNG_Min(self%randomNumberGenerator%rng)
     return
   end function gslRangeMinimum
 
@@ -341,7 +361,7 @@ contains
     integer(c_long                  )                :: gslRangeMaximum
     class  (randomNumberGeneratorGSL), intent(inout) :: self
 
-    gslRangeMaximum=GSL_RNG_Max(self%gslRandomNumberGenerator)
+    gslRangeMaximum=GSL_RNG_Max(self%randomNumberGenerator%rng)
     return
   end function gslRangeMaximum
 
@@ -355,11 +375,11 @@ contains
     integer(c_long                  ), intent(in   ), optional :: n
 
     if (present(n)) then
-       gslSample=GSL_RNG_Uniform_Int(self%gslRandomNumberGenerator,n)
+       gslSample=GSL_RNG_Uniform_Int(self%randomNumberGenerator%rng,n)
     else
        gslSample=-1_c_long
        do while (gslSample <= 0_c_long)
-          gslSample=GSL_RNG_Get(self%gslRandomNumberGenerator)
+          gslSample=GSL_RNG_Get(self%randomNumberGenerator%rng)
        end do
     end if
     return
@@ -372,7 +392,7 @@ contains
     implicit none
     class(randomNumberGeneratorGSL), intent(inout) :: self
     
-    gslUniformSample=GSL_RNG_Uniform(self%gslRandomNumberGenerator)
+    gslUniformSample=GSL_RNG_Uniform(self%randomNumberGenerator%rng)
     return
   end function gslUniformSample
 
@@ -384,7 +404,7 @@ contains
     class           (randomNumberGeneratorGSL), intent(inout) :: self
     double precision                          , intent(in   ) :: mean
 
-    gslPoissonSample=GSL_Ran_Poisson(self%gslRandomNumberGenerator,mean)
+    gslPoissonSample=GSL_Ran_Poisson(self%randomNumberGenerator%rng,mean)
     return
   end function gslPoissonSample
 
@@ -395,7 +415,7 @@ contains
     implicit none
     class(randomNumberGeneratorGSL), intent(inout) :: self
 
-    gslStandardNormalSample=GSL_Ran_Gaussian(self%gslRandomNumberGenerator,sigma=1.0d0)
+    gslStandardNormalSample=GSL_Ran_Gaussian(self%randomNumberGenerator%rng,sigma=1.0d0)
     return
   end function gslStandardNormalSample
 
@@ -423,7 +443,7 @@ contains
 
     seed_=seed
     if (offset) seed_=seed_+self%seed_
-    call GSL_RNG_Set(self%gslRandomNumberGenerator,seed_)
+    call GSL_RNG_Set(self%randomNumberGenerator%rng,seed_)
     self%seed__=seed_
     return
   end subroutine gslSeedSet
@@ -436,15 +456,26 @@ contains
     implicit none
     class(randomNumberGeneratorGSL  ), intent(inout), target :: self
     class(randomNumberGeneratorClass), intent(inout)         :: destination
+    class(*                         ), pointer               :: dummyPointer_
 
     call self%randomNumberGeneratorClass%deepCopy(destination)
     select type (destination)
     type is (randomNumberGeneratorGSL)
-       destination%seed_                   =              self%seed_
-       destination%seed__                  =              self%seed__
-       destination%ompThreadOffset         =              self%ompThreadOffset
-       destination%mpiRankOffset           =              self%mpiRankOffset
-       destination%gslRandomNumberGenerator=GSL_Rng_Clone(self%gslRandomNumberGenerator)
+       destination%seed_                    =              self%seed_
+       destination%seed__                   =              self%seed__
+       destination%ompThreadOffset          =              self%ompThreadOffset
+       destination%mpiRankOffset            =              self%mpiRankOffset
+       allocate(destination%randomNumberGenerator)
+       destination%randomNumberGenerator%rng=GSL_Rng_Clone(self%randomNumberGenerator%rng)
+       !![
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       !!]
+       dummyPointer_                            => destination%randomNumberGenerator
+       destination%randomNumberGeneratorManager =  resourceManager(dummyPointer_)
+       !![
+       </workaround>
+       !!]
     class default
        call Error_Report('destination and source types do not match'//{introspection:location})
     end select
@@ -494,7 +525,7 @@ contains
        call displayMessage('storing "mpirankoffset" with size '//trim(adjustl(label))//' bytes')
     end if
     write (stateFile) self%seed_,self%seed__,self%ompThreadOffset,self%mpiRankOffset
-    status=GSL_Rng_FWrite(gslStateFile,self%gslRandomNumberGenerator)
+    status=GSL_Rng_FWrite(gslStateFile,self%randomNumberGenerator%rng)
     if (status /= GSL_Success) call Error_Report('failed to store GSL random number generator state'//{introspection:location})
     call displayUnindent('done',verbosity=verbosityLevelWorking)
     return
@@ -530,7 +561,7 @@ contains
     call displayMessage('restoring "ompthreadoffset"'           ,verbosity=verbosityLevelWorking)
     call displayMessage('restoring "mpirankoffset"'             ,verbosity=verbosityLevelWorking)
     read (stateFile) self%seed_,self%seed__,self%ompThreadOffset,self%mpiRankOffset
-    status=GSL_Rng_FRead(gslStateFile,self%gslRandomNumberGenerator)
+    status=GSL_Rng_FRead(gslStateFile,self%randomNumberGenerator%rng)
     if (status /= GSL_Success) call Error_Report('failed to store GSL random number generator state'//{introspection:location})
     call displayUnindent('done',verbosity=verbosityLevelWorking)
     return

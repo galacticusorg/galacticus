@@ -192,7 +192,7 @@ contains
          & ) then       
        write (snapshotLabel,'(a,i5.5)') 'Snapshot',self%snapshot
        !$ call hdf5Access%set()
-       call irateFile%openFile(char(self%fileName),readOnly=.false.)
+       irateFile=hdf5Object(char(self%fileName),readOnly=.false.)
        snapshotGroup=irateFile    %openGroup(snapshotLabel)
        halosGroup   =snapshotGroup%openGroup('HaloCatalog')
        do i=1,simulations(1)%attributesInteger%size()
@@ -204,9 +204,6 @@ contains
        do i=1,simulations(1)%attributesText   %size()
           call halosGroup%writeAttribute(simulations(1)%attributesText   %value(i),char(simulations(1)%attributesText   %key(i)))
        end do
-       call halosGroup   %close()
-       call snapshotGroup%close()
-       call irateFile    %close()
        !$ call hdf5Access%unset()
     end if    
     ! Write box size to the file.
@@ -221,7 +218,7 @@ contains
          & ) then       
        write (snapshotLabel,'(a,i5.5)') 'Snapshot',self%snapshot
        !$ call hdf5Access%set()
-       call irateFile%openFile(char(self%fileName),readOnly=.false.)
+       irateFile=hdf5Object(char(self%fileName),readOnly=.false.)
        snapshotGroup=irateFile    %openGroup(snapshotLabel)
        halosGroup   =snapshotGroup%openGroup('HaloCatalog')
        do i=1,simulations(1)%propertiesInteger%size()
@@ -282,11 +279,7 @@ contains
           call halosGroup%writeDataset  (propertyReal   ,char(simulations(1)%propertiesReal   %key(i)),char(datasetDescription),datasetReturned=dataset,chunkSize=-1_c_size_t)
           call dataset   %writeAttribute(char(unitName) ,'unitname'                                                                                                          )
           call dataset   %writeAttribute(     unitscgs  ,'unitscgs'                                                                                                          )
-          call dataset   %close         (                                                                                                                                    )
        end do
-       call halosGroup   %close()
-       call snapshotGroup%close()
-       call irateFile    %close()
        !$ call hdf5Access%unset()
     end if
     call displayUnindent('done',verbosityLevelStandard)

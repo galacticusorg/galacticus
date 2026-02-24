@@ -333,8 +333,10 @@ contains
     type            (lockDescriptor                                )                                  :: lockFileDescriptor
     class           (stellarPopulationSpectraClass                 ), pointer                         :: stellarPopulationSpectra_
     class           (stellarPopulationSpectraPostprocessorClass    ), pointer                         :: stellarPopulationSpectraPostprocessorPrevious_
-    type            (integrator                                    ), allocatable                     :: integrator_                                   , integratorAB_
-    type            (inputParameters                               ), save                            :: descriptor
+    type            (integrator                                    ), allocatable                     :: integratorAB_
+    type            (integrator                                    ), allocatable  , save             :: integrator_
+    !$omp threadprivate(integrator_)
+    type            (inputParameters                               )               , save             :: descriptor
     !$omp threadprivate(descriptor)
     integer         (c_size_t                                      )                                  :: iAge                                          , iLuminosity                          , &
          &                                                                                               iMetallicity                                  , jLuminosity                          , &
@@ -344,14 +346,12 @@ contains
     logical                                                                                           :: computeTable                                  , calculateLuminosity                  , &
          &                                                                                               stellarPopulationHashedDescriptorComputed     , copyDone
     double precision                                                                                  :: toleranceRelative                             , normalization
-    type            (varying_string                                ), save                            :: message                                       , luminositiesFileName                 , &
+    type            (varying_string                                )               , save             :: message                                       , luminositiesFileName                 , &
          &                                                                                               descriptorString                              , stellarPopulationHashedDescriptor    , &
          &                                                                                               postprocessorHashedDescriptor
     !$omp threadprivate(message,luminositiesFileName,descriptorString,stellarPopulationHashedDescriptor,postprocessorHashedDescriptor)
     character       (len=16                                        )                                  :: datasetName                                   , redshiftLabel                        , &
          &                                                                                               label
-    type            (hdf5Object                                    ), save                            :: luminositiesFile
-    !$omp threadprivate(luminositiesFile)
     
     ! Obtain a read lock on the luminosity tables.
     call self%luminosityTableLock%setRead()
@@ -365,7 +365,19 @@ contains
           if (size(self%luminosityTables) < populationID) then
              call Move_Alloc(self%luminosityTables,luminosityTablesTemporary)
              allocate(self%luminosityTables(populationID))
-             self%luminosityTables(1:size(luminosityTablesTemporary))=luminosityTablesTemporary
+             !![
+	     <workaround type="gfortran" PR="46897" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=46897">
+	       <seeAlso type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=57696"/>
+	       <description>
+		 Type-bound defined assignment not done because multiple part array references would occur in intermediate expressions.
+	       </description>
+	     !!]
+             do iLuminosity=1,size(luminosityTablesTemporary)
+                self%luminosityTables(iLuminosity)=luminosityTablesTemporary(iLuminosity)
+             end do
+             !![
+	     </workaround>
+             !!]
              self%luminosityTables(size(luminosityTablesTemporary)+1:populationID)%isTabulatedMaximum=0
              deallocate(luminosityTablesTemporary)
           end if
@@ -388,7 +400,7 @@ contains
           luminosityIndexMaximum                         =  maxval(luminosityIndex)
           stellarPopulationHashedDescriptorComputed      =  .false.
           stellarPopulationSpectraPostprocessorPrevious_ => null()
-          !$omp parallel private(iAge,iMetallicity,integrator_,toleranceRelative,errorStatus,copyDone)
+          !$omp parallel private(iAge,iMetallicity,toleranceRelative,errorStatus,copyDone)
           copyDone=.false.
           do iLuminosity=1,size(luminosityIndex)
              !$omp single
@@ -455,16 +467,18 @@ contains
                       ! Open the file and check for the required dataset.
                       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
                       call File_Lock(char(luminositiesFileName),lockFileDescriptor,lockIsShared=.true.)
-                      !$ call hdf5Access%set()
-                      call luminositiesFile%openFile(char(luminositiesFileName),readOnly=.true.)
-                      if (luminositiesFile%hasDataset(trim(datasetName))) then
-                         ! Read the dataset.
-                         call luminositiesFile%readDatasetStatic(trim(datasetName),self%luminosityTables(populationID)%luminosity(luminosityIndex(iLuminosity),:,:))
-                         ! We do not need to calculate this luminosity.
-                         calculateLuminosity=.false.
-                      end if
-                      call luminositiesFile%close()
-                      !$ call hdf5Access%unset()
+                      block
+                        type(hdf5Object) :: luminositiesFile
+                        !$ call hdf5Access%set()
+                        luminositiesFile=hdf5Object(char(luminositiesFileName),readOnly=.true.)
+                        if (luminositiesFile%hasDataset(trim(datasetName))) then
+                           ! Read the dataset.
+                           call luminositiesFile%readDatasetStatic(trim(datasetName),self%luminosityTables(populationID)%luminosity(luminosityIndex(iLuminosity),:,:))
+                           ! We do not need to calculate this luminosity.
+                           calculateLuminosity=.false.
+                        end if
+                        !$ call hdf5Access%unset()
+                      end block
                       call File_Unlock(lockFileDescriptor)
                    end if
                 end if
@@ -500,7 +514,6 @@ contains
                       allocate(integrator_)
                       integrator_=integrator(integrandFilteredLuminosity,toleranceRelative=self%integrationToleranceRelative,integrationRule=GSL_Integ_Gauss15,intervalsMaximum=10000_c_size_t)
                       allocate(stellarPopulationSpectra__             ,mold=stellarPopulationSpectra_                                                                 )
-                      allocate(stellarPopulationSpectraPostprocessor__,mold=stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_)
                       !$omp critical(broadBandLuminositiesDeepCopy)
                       !![
                       <deepCopyReset variables="stellarPopulationSpectra_"/>
@@ -608,15 +621,16 @@ contains
                       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
                       call Directory_Make(File_Path(luminositiesFileName)                                        )
                       call File_Lock     (          luminositiesFileName ,lockFileDescriptor,lockIsShared=.false.)
-                      !$ call hdf5Access%set()
-                      call luminositiesFile%openFile(luminositiesFileName)
-                      if (.not.luminositiesFile%hasAttribute('parameters')) call luminositiesFile%writeAttribute(char(descriptorString),'parameters')
-                      ! Write the dataset.
-                      if (.not.luminositiesFile%hasDataset(trim(datasetName))) &
-                           & call luminositiesFile%writeDataset(self%luminosityTables(populationID)%luminosity(luminosityIndex(iLuminosity),:,:),datasetName=trim(datasetName),comment="Tabulated luminosities at redshift z="//adjustl(trim(redshiftLabel)))
-                      ! Close the file.
-                      call luminositiesFile%close()
-                      !$ call hdf5Access%unset()
+                      block
+                        type(hdf5Object) :: luminositiesFile
+                        !$ call hdf5Access%set()
+                        luminositiesFile=hdf5Object(luminositiesFileName)
+                        if (.not.luminositiesFile%hasAttribute('parameters')) call luminositiesFile%writeAttribute(char(descriptorString),'parameters')
+                        ! Write the dataset.
+                        if (.not.luminositiesFile%hasDataset(trim(datasetName))) &
+                             & call luminositiesFile%writeDataset(self%luminosityTables(populationID)%luminosity(luminosityIndex(iLuminosity),:,:),datasetName=trim(datasetName),comment="Tabulated luminosities at redshift z="//adjustl(trim(redshiftLabel)))
+                        !$ call hdf5Access%unset()
+                      end block
                       call File_Unlock(lockFileDescriptor)
                    end if
                    !$omp end single

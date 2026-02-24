@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <!-- Schema used to validate optionalArgument directives -->
+
+  <xs:element name="optionalArgument" type="xs:string">
+    <xs:attribute name="name"       use="required"/>
+    <xs:attribute name="defaultsTo" use="required"/>
+    <xs:attribute name="if"         use="optional"/>
+  </xs:element>
+  
+</xs:schema>

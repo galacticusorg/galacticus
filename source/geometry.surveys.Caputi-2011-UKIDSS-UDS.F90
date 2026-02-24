@@ -295,12 +295,11 @@ contains
     end if
     ! Read the distribution of random points from file.
     !$ call hdf5Access%set()
-    call surveyGeometryRandomsFile%openFile(char(inputPath(pathTypeDataDynamic)//&
+    surveyGeometryRandomsFile=hdf5Object(char(inputPath(pathTypeDataDynamic)//&
          &'surveys/UKIDSS_UDS/surveyGeometryRandoms.hdf5')&
          &,readOnly=.true.)
     call surveyGeometryRandomsFile%readDataset('theta',self%randomTheta)
     call surveyGeometryRandomsFile%readDataset('phi'  ,self%randomPhi  )
-    call surveyGeometryRandomsFile%close()
     !$ call hdf5Access%unset()
     return
   end subroutine caputi2011UKIDSSUDSRandomsInitialize

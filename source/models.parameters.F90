@@ -97,6 +97,15 @@ module Model_Parameters
      Class used to construct lists of model parameters.
      !!}
      class(modelParameterClass), public, pointer :: modelParameter_ => null()
+   contains
+     !![
+     <methods>
+       <method method="assignment(=)" description="Assign postprocessor list objects."/>
+     </methods>
+     !!]
+     final     ::                  modelParameterListDestructor
+     procedure ::                  modelParameterListAssign
+     generic   :: assignment(=) => modelParameterListAssign
   end type modelParameterList
 
 contains
@@ -134,5 +143,36 @@ contains
     end do
     return
   end function modelParameterListLogPrior
+
+  subroutine modelParameterListDestructor(self)
+    !!{
+    Destructor for elements of model parameter lists.
+    !!}
+    implicit none
+    type(modelParameterList), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%modelParameter_"/>
+    !!]
+    return
+  end subroutine modelParameterListDestructor
+
+  recursive subroutine modelParameterListAssign(self,from)
+    !!{
+    Perform assignment for the \refClass{modelParameterList} class.
+    !!}
+    implicit none
+    class(modelParameterList), intent(  out) :: self
+    class(modelParameterList), intent(in   ) :: from
+
+    nullify(self%modelParameter_)
+    if (associated(from%modelParameter_)) then
+       self%modelParameter_ => from%modelParameter_
+       !![
+       <referenceCountIncrement owner="self" object="modelParameter_"/>
+       !!]
+    end if
+    return
+  end subroutine modelParameterListAssign
 
 end module Model_Parameters

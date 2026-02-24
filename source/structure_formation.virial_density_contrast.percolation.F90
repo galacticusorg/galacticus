@@ -26,6 +26,7 @@
   !$ use :: OMP_Lib            , only : OMP_Destroy_Lock       , OMP_Init_Lock, OMP_Set_Lock, OMP_Unset_Lock, &
   !$      &                             omp_lock_kind
   use    :: Tables             , only : table2DLogLogLin
+  use    :: Resource_Manager   , only : resourceManager
 
   !![
   <virialDensityContrast name="virialDensityContrastPercolation" recursive="yes">
@@ -57,6 +58,7 @@
      logical                                                     :: isRecursive                               , parentDeferred
      class           (virialDensityContrastPercolation), pointer :: recursiveSelf                   => null()
      class           (*                               ), pointer :: percolationObjects_             => null()
+     type            (resourceManager                 )          :: percolationObjectsManager
      ! Tabulation of density contrast vs. time and mass.
      double precision                                            :: densityContrastTableTimeMinimum           , densityContrastTableTimeMaximum
      double precision                                            :: densityContrastTableMassMinimum           , densityContrastTableMassMaximum
@@ -135,7 +137,6 @@ contains
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"/>
     !!]
-    nullify(percolationObjects_)
     return
   end function percolationConstructorParameters
 
@@ -156,6 +157,8 @@ contains
     <constructorAssign variables="linkingLength, *cosmologyFunctions_, *percolationObjects_"/>
     !!]
 
+    ! Add management to the shared percolationObjects resource.
+    self%percolationObjectsManager=resourceManager(percolationObjects_)
     ! File name for tabulation.
     self%fileName=inputPath(pathTypeDataDynamic)                                                       // &
          &        'darkMatterHalos/'                                                                   // &
@@ -191,7 +194,6 @@ contains
     !![
     <objectDestructor name="self%cosmologyFunctions_" />
     !!]
-    if (associated(self%percolationObjects_)) deallocate(self%percolationObjects_)
     return
   end subroutine percolationDestructor
 
@@ -549,24 +551,25 @@ contains
     use :: ISO_Varying_String, only : char          , varying_string
     implicit none
     class(virialDensityContrastPercolation), intent(inout) :: self
-    type (hdf5Object                      )                :: file
     type (lockDescriptor                  )                :: fileLock
 
     call Directory_Make(File_Path(self%fileName))
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock     (self%fileName,fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
-    call file%openFile      (        self%fileName                                                                                        ,overWrite=.true.        ,readOnly=.false.)
-    call file%writeAttribute(        self%densityContrastTableTimeMinimum                                                                 ,          'timeMinimum'                  )
-    call file%writeAttribute(        self%densityContrastTableTimeMaximum                                                                 ,          'timeMaximum'                  )
-    call file%writeAttribute(        self%densityContrastTableMassMinimum                                                                 ,          'massMinimum'                  )
-    call file%writeAttribute(        self%densityContrastTableMassMaximum                                                                 ,          'massMaximum'                  )
-    call file%writeAttribute(        self%densityContrastTableTimeCount                                                                   ,          'timeCount'                    )
-    call file%writeAttribute(        self%densityContrastTableMassCount                                                                   ,          'massCount'                    )
-    call file%writeDataset  (        self%densityContrastTable%xs()                                                                       ,          'mass'                         )
-    call file%writeDataset  (        self%densityContrastTable%ys()                                                                       ,          'time'                         )
-    call file%writeDataset  (reshape(self%densityContrastTable%zs(),[self%densityContrastTable%size(1),self%densityContrastTable%size(2)]),          'densityContrast'              )
-    call file%close         (                                                                                                                                                       )
+    block
+      type(hdf5Object) :: file
+      file=hdf5Object(self%fileName,overWrite=.true.,readOnly=.false.)
+      call file%writeAttribute(        self%densityContrastTableTimeMinimum                                                                 ,'timeMinimum'    )
+      call file%writeAttribute(        self%densityContrastTableTimeMaximum                                                                 ,'timeMaximum'    )
+      call file%writeAttribute(        self%densityContrastTableMassMinimum                                                                 ,'massMinimum'    )
+      call file%writeAttribute(        self%densityContrastTableMassMaximum                                                                 ,'massMaximum'    )
+      call file%writeAttribute(        self%densityContrastTableTimeCount                                                                   ,'timeCount'      )
+      call file%writeAttribute(        self%densityContrastTableMassCount                                                                   ,'massCount'      )
+      call file%writeDataset  (        self%densityContrastTable%xs()                                                                       ,'mass'           )
+      call file%writeDataset  (        self%densityContrastTable%ys()                                                                       ,'time'           )
+      call file%writeDataset  (reshape(self%densityContrastTable%zs(),[self%densityContrastTable%size(1),self%densityContrastTable%size(2)]),'densityContrast')
+    end block
     !$ call hdf5Access%unset()
     call File_Unlock(fileLock)
     return
@@ -584,24 +587,25 @@ contains
     class           (virialDensityContrastPercolation), intent(inout)               :: self
     double precision                                  , allocatable, dimension(:  ) :: timeTable           , massTable
     double precision                                  , allocatable, dimension(:,:) :: densityContrastTable
-    type            (hdf5Object                      )                              :: file
     type            (lockDescriptor                  )                              :: fileLock
 
     if (File_Exists(self%fileName)) then
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
-       call file%openFile     (char(self%fileName         ) ,readOnly=.true.                     )
-       call file%readAttribute(          'timeMinimum'      ,self%densityContrastTableTimeMinimum)
-       call file%readAttribute(          'timeMaximum'      ,self%densityContrastTableTimeMaximum)
-       call file%readAttribute(          'massMinimum'      ,self%densityContrastTableMassMinimum)
-       call file%readAttribute(          'massMaximum'      ,self%densityContrastTableMassMaximum)
-       call file%readAttribute(          'timeCount'        ,self%densityContrastTableTimeCount  )
-       call file%readAttribute(          'massCount'        ,self%densityContrastTableMassCount  )
-       call file%readDataset  (          'mass'             ,massTable                           )
-       call file%readDataset  (          'time'             ,timeTable                           )
-       call file%readDataset  (          'densityContrast'  ,densityContrastTable                )
-       call file%close        (                                                                  )
+       block
+         type(hdf5Object) :: file
+         file=hdf5Object(char(self%fileName),readOnly=.true.)
+         call file%readAttribute('timeMinimum'    ,self%densityContrastTableTimeMinimum)
+         call file%readAttribute('timeMaximum'    ,self%densityContrastTableTimeMaximum)
+         call file%readAttribute('massMinimum'    ,self%densityContrastTableMassMinimum)
+         call file%readAttribute('massMaximum'    ,self%densityContrastTableMassMaximum)
+         call file%readAttribute('timeCount'      ,self%densityContrastTableTimeCount  )
+         call file%readAttribute('massCount'      ,self%densityContrastTableMassCount  )
+         call file%readDataset  ('mass'           ,massTable                           )
+         call file%readDataset  ('time'           ,timeTable                           )
+         call file%readDataset  ('densityContrast',densityContrastTable                )
+       end block
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
        call self%densityContrastTable%create  (                                       &

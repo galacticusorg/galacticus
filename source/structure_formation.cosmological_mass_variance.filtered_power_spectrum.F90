@@ -662,11 +662,11 @@ contains
           if (.not.self%powerSpectrumWindowFunction_%amplitudeIsMassIndependent()) then
              errorFileName=self%fileName//".error."//GetPID()
              !$ call hdf5Access%set()
-             call    errorFile%openFile(char(errorFileName),overWrite=.true.,objectsOverwritable=.true.)
-             call    errorFile%writeAttribute(mass                           ,'mass'                           )
-             call    errorFile%writeAttribute(rootVariance                   ,'rootVariance'                   )
-             call    errorFile%writeAttribute(rootVarianceGradient           ,'rootVarianceGradient'           )
-             call    errorFile%writeAttribute(rootVarianceLogarithmicGradient,'rootVarianceLogarithmicGradient')
+             errorFile=hdf5Object(char(errorFileName),overWrite=.true.,objectsOverwritable=.true.)
+             call errorFile%writeAttribute(mass                           ,'mass'                           )
+             call errorFile%writeAttribute(rootVariance                   ,'rootVariance'                   )
+             call errorFile%writeAttribute(rootVarianceGradient           ,'rootVarianceGradient'           )
+             call errorFile%writeAttribute(rootVarianceLogarithmicGradient,'rootVarianceLogarithmicGradient')
              if (.not.self%growthIsMassDependent_) then
                 linearGrowth=self%linearGrowth_%value(time)
                 call errorFile%writeAttribute(linearGrowth                   ,'linearGrowth'                   )
@@ -686,7 +686,6 @@ contains
                 call errorFile%writeDataset  (self%rootVarianceTable   (j)%ys(),'rootVarianceTable'   //trim(adjustl(label)))
              end do
           end if
-          call errorFile%close()
           !$ call hdf5Access%unset()
           call Error_Report('dlogσ/dlogM > 0 detected, but monotonic interpolation was used - this should not happen'//char(10)//'  table data written to:'//char(10)//'    '//char(errorFileName)//{introspection:location})
        else
@@ -1465,7 +1464,7 @@ contains
        if (.not.File_Exists(self%fileName)) return
        call displayMessage('reading σ(M) data from: '//self%fileName,verbosityLevelWorking)
        !$ call hdf5Access%set()
-       call dataFile%openFile     (self%fileName                ,overWrite                       =.false.,readOnly=.true.)
+       dataFile=hdf5Object(self%fileName,overWrite=.false.,readOnly=.true.)
        call dataFile%readDataset  ('times'                      ,     timesTmp                                           )
        call dataFile%readDataset  ('mass'                       ,     massTmp                                            )
        call dataFile%readDataset  ('rootVariance'               ,     rootVarianceTmp                                    )
@@ -1480,7 +1479,6 @@ contains
        call dataFile%readAttribute('timeMaximum'                ,self%timeMaximum                                        )
        call dataFile%readAttribute('timeMinimumLogarithmic'     ,self%timeMinimumLogarithmic                             )
        call dataFile%readAttribute('timeLogarithmicDeltaInverse',self%timeLogarithmicDeltaInverse                        )
-       call dataFile%close        (                                                                                      )
        !$ call hdf5Access%unset()
        ! Cache this variance for possible later reuse.
        !$omp critical(cosmologicalMassVarianceFilteredPowerCache)
@@ -1610,7 +1608,7 @@ contains
        call displayMessage('writing σ(M) data to: '//self%fileName,verbosityLevelWorking)
        ! Open the data file.
        !$ call hdf5Access%set()
-       call dataFile%openFile      (char(self%fileName)             ,overWrite                    =.true.,objectsOverwritable=.true.,chunkSize=100_hsize_t,compressionLevel=9)
+       dataFile=hdf5Object(self%fileName,overWrite=.true.,objectsOverwritable=.true.,chunkSize=100_hsize_t,compressionLevel=9)
        call dataFile%writeDataset  (self%times                      ,'times'                                                                                                 )
        call dataFile%writeDataset  (     massTmp                    ,'mass'                                                                                                  )
        call dataFile%writeDataset  (     rootVarianceTmp            ,'rootVariance'                                                                                          )
@@ -1625,7 +1623,6 @@ contains
        call dataFile%writeAttribute(self%timeMaximum                ,'timeMaximum'                                                                                           )
        call dataFile%writeAttribute(self%timeMinimumLogarithmic     ,'timeMinimumLogarithmic'                                                                                )
        call dataFile%writeAttribute(self%timeLogarithmicDeltaInverse,'timeLogarithmicDeltaInverse'                                                                           )
-       call dataFile%close         (                                                                                                                                         )
        !$ call hdf5Access%unset()
     end if
     deallocate(rootVarianceTmp      )

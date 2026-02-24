@@ -93,4 +93,12 @@ program Test_Recombination_Cooling_Hummer
   call Unit_Tests_End_Group()
   ! Done with unit tests.
   call Unit_Tests_Finish()
+  ! Clean up.
+  !![
+  <objectDestructor name="atomicCrossSectionIonizationPhoto_"              />
+  <objectDestructor name="atomicIonizationPotential_"                      />
+  <objectDestructor name="atomicRecombinationRateRadiativeCoolingComputed_"/>
+  <objectDestructor name="atomicRecombinationRateRadiativeCoolingHummer_"  />
+  <objectDestructor name="atomicRecombinationRateRadiative_"               /> 
+  !!]
 end program Test_Recombination_Cooling_Hummer

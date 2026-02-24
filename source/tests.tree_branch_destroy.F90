@@ -18,11 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 program Tests_Tree_Branch_Destroy
-  use :: Display         , only : displayVerbositySet, verbosityLevelStandard
-  use :: Galacticus_Nodes, only : mergerTree         , treeNode              , treeNodeList
+  use :: Display         , only : displayVerbositySet   , verbosityLevelStandard
+  use :: Galacticus_Nodes, only : mergerTree            , treeNode              , treeNodeList
   use :: Input_Parameters, only : inputParameters
+  use :: IO_HDF5         , only : ioHDF5AccessInitialize
   use :: Kind_Numbers    , only : kind_int8
-  use :: Unit_Tests      , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Unit_Tests      , only : Assert                , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type   (mergerTree     ), pointer :: tree
   type   (treeNodeList   )          :: nodes   (5)
@@ -31,6 +32,9 @@ program Tests_Tree_Branch_Destroy
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
+
+  ! Initialize HDF5 access lock.
+  call ioHDF5AccessInitialize()
 
   ! Initialize parameters.
   parameters=inputParameters()

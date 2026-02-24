@@ -135,7 +135,7 @@ sub spellCheckFile {
 	}
 	# Translate accents. Note that we translate to unaccented characters, as hunspell seems to not handle accented characters in
 	# personal dictionaries correctly.
-	 if ( $isLaTeX ) {
+	if ( $isLaTeX ) {
 	    $line =~ s/\\'e/e/g;
 	    $line =~ s/\\"o/o/g;
 	}

@@ -269,12 +269,13 @@ contains
     double precision                               , dimension(4)               :: growthFactorODEVariables
     double precision                               , dimension(2)               :: redshiftsInitial                         , timesInitial
     double precision                               , dimension(:) , allocatable :: linearGrowthFactorPresent
+    type            (odeSolver                    ), save         , allocatable :: solver
+    !$omp threadprivate(solver)
     integer                                                                     :: i                                        , j
     double precision                                                            :: growthFactorDerivativeBaryons            , growthFactorDerivativeDarkMatter             , &
          &                                                                         timeNow                                  , wavenumberLogarithmic                        , &
          &                                                                         timePresent                              , timeBigCrunch
     integer                                                                     :: growthTableNumberPoints
-    type            (odeSolver                    )                             :: solver
     type            (table1DGeneric               )                             :: transferFunctionDarkMatter               , transferFunctionBaryons
     integer                                                                     :: countWavenumbers
     !$ integer      (omp_lock_kind                )                             :: lockBaryons                              , lockDarkMatter
@@ -328,9 +329,10 @@ contains
        ! Iterate over wavenumber.
        !$ call OMP_Init_Lock(lockBaryons   )
        !$ call OMP_Init_Lock(lockDarkMatter)
-       !$omp parallel private(i,j,wavenumberLogarithmic,growthFactorDerivativeDarkMatter,growthFactorDerivativeBaryons,timeNow,growthFactorODEVariables,solver)
+       !$omp parallel private(i,j,wavenumberLogarithmic,growthFactorDerivativeDarkMatter,growthFactorDerivativeBaryons,timeNow,growthFactorODEVariables)
        allocate(cosmologyFunctions_      ,mold=self%cosmologyFunctions_      )
        allocate(intergalacticMediumState_,mold=self%intergalacticMediumState_)
+       allocate(solver                                                       )
        !$omp critical(linearGrowthBaryonsDrkMttrDeepCopy)
        !![
        <deepCopyReset variables="self%cosmologyFunctions_ self%intergalacticMediumState_"/>
@@ -339,6 +341,7 @@ contains
        <deepCopyFinalize variables="cosmologyFunctions_ intergalacticMediumState_"/>
        !!]
        !$omp end critical(linearGrowthBaryonsDrkMttrDeepCopy)
+       solver=odeSolver(4_c_size_t,growthFactorODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)
        !$omp do
        do j=1,countWavenumbers
           wavenumber_          =self%growthFactor%y(j)
@@ -359,7 +362,6 @@ contains
              growthFactorDerivativeBaryons=(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=2)-transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=1))*exp(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=1))/(timesInitial(2)-timesInitial(1))
              !$ call OMP_Unset_Lock(lockBaryons   )
           end if
-          solver=odeSolver(4_c_size_t,growthFactorODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
           do i=2,growthTableNumberPoints
              timeNow                    =self%growthFactor                    %x(i-1                        )
              growthFactorODEVariables(1)=self%growthFactor                    %z(i-1,j,table=indexDarkMatter)
@@ -378,6 +380,7 @@ contains
        <objectDestructor name="cosmologyFunctions_"      />
        <objectDestructor name="intergalacticMediumState_"/>
        !!]
+       deallocate(solver)
        !$omp barrier
        !$omp single
        ! Get present day growth factor at every wavenumber.
@@ -641,14 +644,13 @@ contains
     call displayMessage('reading D(k,t) data from: '//self%fileName,verbosityLevelWorking)
     if (self%tableInitialized) call self%growthFactor%destroy()
     !$ call hdf5Access%set()
-    call dataFile%openFile     (char(self%fileName),overWrite=.false.                          )
+    dataFile=hdf5Object(char(self%fileName),overWrite=.false.)
     call dataFile%readDataset  ('growthFactorDarkMatter',                growthFactorDarkMatter)
     call dataFile%readDataset  ('growthFactorBaryons'   ,                growthFactorBaryons   )
     call dataFile%readAttribute('wavenumberMinimum'     ,          self%tableWavenumberMinimum )
     call dataFile%readAttribute('wavenumberMaximum'     ,          self%tableWavenumberMaximum )
     call dataFile%readAttribute('timeMinimum'           ,          self%tableTimeMinimum       )
     call dataFile%readAttribute('timeMaximum'           ,          self%tableTimeMaximum       )
-    call dataFile%close        (                                                               )
     !$ call hdf5Access%unset()
     call self%growthFactor%create  (                                                                                                               &
          &                                             self%tableTimeMinimum      ,self%tableTimeMaximum      ,size(growthFactorDarkMatter,dim=1), &
@@ -680,14 +682,13 @@ contains
     ! Open the data file.
     call displayMessage('writing D(k,t) data to: '//self%fileName,verbosityLevelWorking)
     !$ call hdf5Access%set()
-    call dataFile%openFile      (char   (self%fileName                                                                                                      ),overWrite=.true.,chunkSize=100_hsize_t,compressionLevel=9)
+    dataFile=hdf5Object(char(self%fileName),overWrite=.true.,chunkSize=100_hsize_t,compressionLevel=9)
     call dataFile%writeDataset  (reshape(self%growthFactor          %zs(table=indexDarkMatter),[self%growthFactor%size(dim=1),self%growthFactor%size(dim=2)]),          'growthFactorDarkMatter'                       )
     call dataFile%writeDataset  (reshape(self%growthFactor          %zs(table=indexBaryons   ),[self%growthFactor%size(dim=1),self%growthFactor%size(dim=2)]),          'growthFactorBaryons'                          )
     call dataFile%writeAttribute(        self%tableWavenumberMinimum                                                                                         ,          'wavenumberMinimum'                            )
     call dataFile%writeAttribute(        self%tableWavenumberMaximum                                                                                         ,          'wavenumberMaximum'                            )
     call dataFile%writeAttribute(        self%tableTimeMinimum                                                                                               ,          'timeMinimum'                                  )
     call dataFile%writeAttribute(        self%tableTimeMaximum                                                                                               ,          'timeMaximum'                                  )
-    call dataFile%close         (                                                                                                                                                                                      )
     !$ call hdf5Access%unset()
     return
   end subroutine baryonsDarkMatterFileWrite

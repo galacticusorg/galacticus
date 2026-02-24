@@ -44,10 +44,10 @@ program Test_Dark_Matter_Profiles_Generic
   use :: Unit_Tests                , only : Assert                                                        , Skip                                    , Unit_Tests_Begin_Group             , Unit_Tests_End_Group          , &
           &                                 Unit_Tests_Finish
   implicit none
-  type            (darkMatterHaloScaleVirialDensityContrastDefinition            )               :: darkMatterHaloScale_
-  type            (cosmologyParametersSimple                                     )               :: cosmologyParameters_
-  type            (cosmologyFunctionsMatterLambda                                )               :: cosmologyFunctions_
-  type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt)               :: virialDensityContrast_
+  type            (darkMatterHaloScaleVirialDensityContrastDefinition            ), pointer      :: darkMatterHaloScale_
+  type            (cosmologyParametersSimple                                     ), pointer      :: cosmologyParameters_
+  type            (cosmologyFunctionsMatterLambda                                ), pointer      :: cosmologyFunctions_
+  type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer      :: virialDensityContrast_
   type            (darkMatterProfileDMOIsothermal                                ), pointer      :: darkMatterProfileIsothermal_
   type            (darkMatterProfileDMONFW                                       ), pointer      :: darkMatterProfileNFW_
   type            (darkMatterProfileDMOEinasto                                   ), pointer      :: darkMatterProfileEinasto_
@@ -92,6 +92,10 @@ program Test_Dark_Matter_Profiles_Generic
   call nodeClassHierarchyInitialize     (parameters)
   call Node_Components_Initialize       (parameters)
   call Node_Components_Thread_Initialize(parameters)
+  allocate(darkMatterHaloScale_                   )
+  allocate(cosmologyParameters_                   )
+  allocate(cosmologyFunctions_                    )
+  allocate(virialDensityContrast_                 ) 
   allocate(darkMatterProfileNFW_                  )
   allocate(darkMatterProfileIsothermal_           )
   allocate(darkMatterProfileEinasto_              )
@@ -109,79 +113,163 @@ program Test_Dark_Matter_Profiles_Generic
   !![
   <referenceConstruct object="cosmologyParameters_"  >
    <constructor>
-    cosmologyParametersSimple                                     (                                               &amp;
-     &amp;                                                         OmegaMatter           = 0.30d0               , &amp;
-     &amp;                                                         OmegaBaryon           = 0.00d0               , &amp;
-     &amp;                                                         OmegaDarkEnergy       = 0.70d0               , &amp;
-     &amp;                                                         temperatureCMB        = 2.78d0               , &amp;
-     &amp;                                                         HubbleConstant        =70.00d0                 &amp;
+    cosmologyParametersSimple                                     (                                                                                      &amp;
+     &amp;                                                         OmegaMatter                                  = 0.30d0                               , &amp;
+     &amp;                                                         OmegaBaryon                                  = 0.00d0                               , &amp;
+     &amp;                                                         OmegaDarkEnergy                              = 0.70d0                               , &amp;
+     &amp;                                                         temperatureCMB                               = 2.78d0                               , &amp;
+     &amp;                                                         HubbleConstant                               =70.00d0                                 &amp;
      &amp;                                                        )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="cosmologyFunctions_"   >
    <constructor>
-    cosmologyFunctionsMatterLambda                                (                                               &amp;
-     &amp;                                                         cosmologyParameters_  =cosmologyParameters_    &amp;
+    cosmologyFunctionsMatterLambda                                (                                                                                      &amp;
+     &amp;                                                         cosmologyParameters_                         =cosmologyParameters_                    &amp;
      &amp;                                                        )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="virialDensityContrast_">
    <constructor>
-    virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(                                               &amp;
-     &amp;                                                         tableStore            =.true.,                 &amp;
-     &amp;                                                         cosmologyFunctions_   =cosmologyFunctions_     &amp;
+    virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(                                                                                      &amp;
+     &amp;                                                         tableStore                                   =.true.                                , &amp;
+     &amp;                                                         cosmologyFunctions_                          =cosmologyFunctions_                     &amp;
      &amp;                                                        )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="darkMatterHaloScale_"  >
    <constructor>
-    darkMatterHaloScaleVirialDensityContrastDefinition            (                                               &amp;
-     &amp;                                                         cosmologyParameters_  =cosmologyParameters_  , &amp;
-     &amp;                                                         cosmologyFunctions_   =cosmologyFunctions_   , &amp;
-     &amp;                                                         virialDensityContrast_=virialDensityContrast_  &amp;
+    darkMatterHaloScaleVirialDensityContrastDefinition            (                                                                                      &amp;
+     &amp;                                                         cosmologyParameters_                         =cosmologyParameters_                  , &amp;
+     &amp;                                                         cosmologyFunctions_                          =cosmologyFunctions_                   , &amp;
+     &amp;                                                         virialDensityContrast_                       =virialDensityContrast_                  &amp;
      &amp;                                                        )
    </constructor>
   </referenceConstruct>
+  <referenceConstruct object="darkMatterProfileIsothermal_"  >
+   <constructor>
+    darkMatterProfileDMOIsothermal                                (                                                                                      &amp;
+       &amp;                                                       darkMatterHaloScale_                          =darkMatterHaloScale_                   &amp;
+       &amp;                                                      )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="darkMatterProfileNFW_"  >
+   <constructor>
+    darkMatterProfileDMONFW                                       (                                                                                      &amp;
+       &amp;                                                       velocityDispersionUseSeriesExpansion          =.false.                              , &amp;
+       &amp;                                                       darkMatterHaloScale_                          =darkMatterHaloScale_                   &amp;
+       &amp;                                                      )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="darkMatterProfileEinasto_"  >
+   <constructor>
+    darkMatterProfileDMOEinasto                                   (                                                                                      &amp;
+       &amp;                                                       darkMatterHaloScale_                          =darkMatterHaloScale_                   &amp;
+       &amp;                                                      )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="darkMatterProfileBurkert_"  >
+   <constructor>
+    darkMatterProfileDMOBurkert                                   (                                                                                      &amp;
+       &amp;                                                       darkMatterHaloScale_                          =darkMatterHaloScale_                   &amp;
+       &amp;                                                      )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="darkMatterProfileZhao1996_"  >
+   <constructor>
+    darkMatterProfileDMOZhao1996                                  (                                                                                      &amp;
+       &amp;                                                       alpha                                         =1.0d0                                , &amp;
+       &amp;                                                       beta                                          =3.0d0                                , &amp;
+       &amp;                                                       gamma                                         =1.0d0                                , &amp;
+       &amp;                                                       darkMatterHaloScale_                          =darkMatterHaloScale_                   &amp;
+       &amp;                                                      )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="darkMatterProfileTruncated_"  >
+   <constructor>
+   darkMatterProfileDMOTruncated                                 (                                                                                       &amp;
+       &amp;                                                      radiusFractionalTruncateMinimum               = 1.0d0                                , &amp;
+       &amp;                                                      radiusFractionalTruncateMaximum               =20.0d0                                , &amp;
+       &amp;                                                      nonAnalyticSolver                             =nonAnalyticSolversNumerical           , &amp;
+       &amp;                                                      darkMatterProfileDMO_                         =darkMatterProfileNFW_                 , &amp;
+       &amp;                                                      darkMatterHaloScale_                          =darkMatterHaloScale_                    &amp;
+       &amp;                                                     )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="darkMatterProfileTruncatedExponential_"  >
+   <constructor>
+    darkMatterProfileDMOTruncatedExponential                     (                                                                                       &amp;
+       &amp;                                                      radiusFractionalDecay                         = 3.0d0                                , &amp;
+       &amp;                                                      nonAnalyticSolver                             =nonAnalyticSolversNumerical           , &amp;
+       &amp;                                                      darkMatterProfileDMO_                         =darkMatterProfileNFW_                 , &amp;
+       &amp;                                                      darkMatterHaloScale_                          =darkMatterHaloScale_                    &amp;
+       &amp;                                                     )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="darkMatterProfileIsothermal__"  >
+   <constructor>
+    darkMatterProfileDarkMatterOnly                              (                                                                                       &amp;
+     &amp;                                                        chandrasekharIntegralComputeVelocityDispersion=.true.                                , &amp;
+     &amp;                                                        cosmologyParameters_                          =cosmologyParameters_                  , &amp;
+     &amp;                                                        darkMatterProfileDMO_                         =darkMatterProfileIsothermal_            &amp;
+     &amp;                                                       )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="darkMatterProfileNFW__"  >
+   <constructor>
+    darkMatterProfileDarkMatterOnly                              (                                                                                       &amp;
+     &amp;                                                        chandrasekharIntegralComputeVelocityDispersion=.true.                                , &amp;
+     &amp;                                                        cosmologyParameters_                          =cosmologyParameters_                  , &amp;
+     &amp;                                                        darkMatterProfileDMO_                         =darkMatterProfileNFW_                   &amp;
+     &amp;                                                       )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="darkMatterProfileEinasto__"  >
+   <constructor>
+    darkMatterProfileDarkMatterOnly                              (                                                                                       &amp;
+     &amp;                                                        chandrasekharIntegralComputeVelocityDispersion=.true.                                , &amp;
+     &amp;                                                        cosmologyParameters_                          =cosmologyParameters_                  , &amp;
+     &amp;                                                        darkMatterProfileDMO_                         =darkMatterProfileEinasto_               &amp;
+     &amp;                                                       )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="darkMatterProfileBurkert__"  >
+   <constructor>
+    darkMatterProfileDarkMatterOnly                              (                                                                                       &amp;
+     &amp;                                                        chandrasekharIntegralComputeVelocityDispersion=.true.                                , &amp;
+     &amp;                                                        cosmologyParameters_                          =cosmologyParameters_                  , &amp;
+     &amp;                                                        darkMatterProfileDMO_                         =darkMatterProfileBurkert_               &amp;
+     &amp;                                                       )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="darkMatterProfileZhao1996__"  >
+   <constructor>
+    darkMatterProfileDarkMatterOnly                              (                                                                                       &amp;
+     &amp;                                                        chandrasekharIntegralComputeVelocityDispersion=.true.                                , &amp;
+     &amp;                                                        cosmologyParameters_                          =cosmologyParameters_                  , &amp;
+     &amp;                                                        darkMatterProfileDMO_                         =darkMatterProfileZhao1996_              &amp;
+     &amp;                                                       )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="darkMatterProfileTruncated__"  >
+   <constructor>
+    darkMatterProfileDarkMatterOnly                              (                                                                                       &amp;
+     &amp;                                                        chandrasekharIntegralComputeVelocityDispersion=.true.                                , &amp;
+     &amp;                                                        cosmologyParameters_                          =cosmologyParameters_                  , &amp;
+     &amp;                                                        darkMatterProfileDMO_                         =darkMatterProfileTruncated_             &amp;
+     &amp;                                                       )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="darkMatterProfileTruncatedExponential__"  >
+   <constructor>
+    darkMatterProfileDarkMatterOnly                              (                                                                                       &amp;
+     &amp;                                                        chandrasekharIntegralComputeVelocityDispersion=.true.                                , &amp;
+     &amp;                                                        cosmologyParameters_                          =cosmologyParameters_                  , &amp;
+     &amp;                                                        darkMatterProfileDMO_                         =darkMatterProfileTruncatedExponential_  &amp;
+     &amp;                                                       )
+   </constructor>
+  </referenceConstruct>
   !!]
-  darkMatterProfileIsothermal_            =   darkMatterProfileDMOIsothermal          (                                                                  &
-       &                                                                               darkMatterHaloScale_                =darkMatterHaloScale_         &
-       &                                                                              )
-  darkMatterProfileNFW_                   =   darkMatterProfileDMONFW                 (                                                                  &
-       &                                                                               velocityDispersionUseSeriesExpansion=.false.                    , &
-       &                                                                               darkMatterHaloScale_                =darkMatterHaloScale_         &
-       &                                                                              )
-  darkMatterProfileEinasto_               =   darkMatterProfileDMOEinasto             (                                                                  &
-       &                                                                               darkMatterHaloScale_                =darkMatterHaloScale_         &
-       &                                                                              )
-  darkMatterProfileBurkert_               =   darkMatterProfileDMOBurkert             (                                                                  &
-       &                                                                               darkMatterHaloScale_                =darkMatterHaloScale_         &
-       &                                                                              )
-  darkMatterProfileZhao1996_              =   darkMatterProfileDMOZhao1996            (                                                                  &
-       &                                                                               alpha                               =1.0d0                      , &
-       &                                                                               beta                                =3.0d0                      , &
-       &                                                                               gamma                               =1.0d0                      , &
-       &                                                                               darkMatterHaloScale_                =darkMatterHaloScale_         &
-       &                                                                              )
-  darkMatterProfileTruncated_             =   darkMatterProfileDMOTruncated           (                                                                  &
-       &                                                                               radiusFractionalTruncateMinimum     = 1.0d0                     , &
-       &                                                                               radiusFractionalTruncateMaximum     =20.0d0                     , &
-       &                                                                               nonAnalyticSolver                   =nonAnalyticSolversNumerical, &
-       &                                                                               darkMatterProfileDMO_               =darkMatterProfileNFW_      , &
-       &                                                                               darkMatterHaloScale_                =darkMatterHaloScale_         &
-       &                                                                              )
-  darkMatterProfileTruncatedExponential_  =   darkMatterProfileDMOTruncatedExponential(                                                                  &
-       &                                                                               radiusFractionalDecay               = 3.0d0                     , &
-       &                                                                               nonAnalyticSolver                   =nonAnalyticSolversNumerical, &
-       &                                                                               darkMatterProfileDMO_               =darkMatterProfileNFW_      , &
-       &                                                                               darkMatterHaloScale_                =darkMatterHaloScale_         &
-       &                                                                              )
-  darkMatterProfileIsothermal__           =   darkMatterProfileDarkMatterOnly(.true.,cosmologyParameters_,darkMatterProfileIsothermal_          )
-  darkMatterProfileNFW__                  =   darkMatterProfileDarkMatterOnly(.true.,cosmologyParameters_,darkMatterProfileNFW_                 )
-  darkMatterProfileEinasto__              =   darkMatterProfileDarkMatterOnly(.true.,cosmologyParameters_,darkMatterProfileEinasto_             )
-  darkMatterProfileBurkert__              =   darkMatterProfileDarkMatterOnly(.true.,cosmologyParameters_,darkMatterProfileBurkert_             )
-  darkMatterProfileZhao1996__             =   darkMatterProfileDarkMatterOnly(.true.,cosmologyParameters_,darkMatterProfileZhao1996_            )
-  darkMatterProfileTruncated__            =   darkMatterProfileDarkMatterOnly(.true.,cosmologyParameters_,darkMatterProfileTruncated_           )
-  darkMatterProfileTruncatedExponential__ =   darkMatterProfileDarkMatterOnly(.true.,cosmologyParameters_,darkMatterProfileTruncatedExponential_)
   node_                                   =>  treeNode                              (                 )
   basic_                                  =>  node_               %basic            (autoCreate=.true.)
   darkMatterProfile_                      =>  node_               %darkMatterProfile(autoCreate=.true.)
@@ -524,6 +612,28 @@ program Test_Dark_Matter_Profiles_Generic
   !![
   <objectDestructor name="massDistribution_"      />
   <objectDestructor name="kinematicsDistribution_"/>
+  !!]
+  call node_%destroy()
+  deallocate(node_)
+  !![
+  <objectDestructor name="darkMatterHaloScale_"                   />
+  <objectDestructor name="cosmologyParameters_"                   />
+  <objectDestructor name="cosmologyFunctions_"                    />
+  <objectDestructor name="virialDensityContrast_"                 /> 
+  <objectDestructor name="darkMatterProfileNFW_"                  />
+  <objectDestructor name="darkMatterProfileIsothermal_"           />
+  <objectDestructor name="darkMatterProfileEinasto_"              />
+  <objectDestructor name="darkMatterProfileBurkert_"              />
+  <objectDestructor name="darkMatterProfileZhao1996_"             />
+  <objectDestructor name="darkMatterProfileTruncated_"            />
+  <objectDestructor name="darkMatterProfileTruncatedExponential_" />
+  <objectDestructor name="darkMatterProfileNFW__"                 />
+  <objectDestructor name="darkMatterProfileIsothermal__"          />
+  <objectDestructor name="darkMatterProfileEinasto__"             />
+  <objectDestructor name="darkMatterProfileBurkert__"             />
+  <objectDestructor name="darkMatterProfileZhao1996__"            />
+  <objectDestructor name="darkMatterProfileTruncated__"           />
+  <objectDestructor name="darkMatterProfileTruncatedExponential__"/>
   !!]
   call Unit_Tests_End_Group               ()
   call Unit_Tests_End_Group               ()

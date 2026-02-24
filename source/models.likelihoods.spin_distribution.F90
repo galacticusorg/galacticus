@@ -194,11 +194,10 @@ contains
          &                                                         )
     ! Read the target spin distribution from file.
     !$ call hdf5Access%set()
-    call spinDistributionFile%openFile   (trim(fileName),readOnly=.true.)
+    spinDistributionFile=hdf5Object(trim(fileName),readOnly=.true.)
     call spinDistributionFile%readDataset("spinParameter"    ,self%spin             )
     call spinDistributionFile%readDataset("distribution"     ,self%distribution     )
     call spinDistributionFile%readDataset("distributionError",self%distributionError)
-    call spinDistributionFile%close()
     !$ call hdf5Access%unset()
     ! Compute spin ranges for bins.
     spinIntervalLogarithmic=+log(                            &

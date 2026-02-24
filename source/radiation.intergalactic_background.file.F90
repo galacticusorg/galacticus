@@ -215,7 +215,7 @@ contains
     else if (extract(fileName,len(fileName)-4,len(fileName)) == ".hdf5") then
        ! HDF5 file.
        !$ call hdf5Access%set()
-       call file%openFile(char(self%fileName),readOnly=.true.)
+       file=hdf5Object(char(self%fileName),readOnly=.true.)
        ! Check the file format version of the file.
        call file%readAttribute('fileFormat',fileFormatVersion)
        if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('file format version is out of date'//{introspection:location})
@@ -242,7 +242,6 @@ contains
              self%spectra(:,iSpectrum)=spectraTmp(:,self%spectraTimesCount+1-iSpectrum)
           end do
        end if
-       call file%close()
        !$ call hdf5Access%unset()
     else
        call Error_Report('unrecognized file format'//{introspection:location})

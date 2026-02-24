@@ -41,6 +41,9 @@
    <deepCopy>
      <ignore variables="accretionDiskSpectra_"/>
    </deepCopy>
+   <assignment>
+     <functionClass variables="accretionDiskSpectra_"/>
+   </assignment>
   </radiationField>
   !!]
   type, extends(radiationFieldIntergalacticBackground) :: radiationFieldIntergalacticBackgroundInternal
@@ -305,9 +308,9 @@ contains
     class(radiationFieldIntergalacticBackgroundInternal), intent(inout) :: self
 
     ! Hook to universe pre-evolve events.
-    !$omp master
+    !$omp masked
     call universePreEvolveEventGlobal%attach(self,intergalacticBackgroundInternalUniversePreEvolve,label='radiationFieldIntergalacticBackgroundInternal')
-    !$omp end master
+    !$omp end masked
     return
   end subroutine intergalacticBackgroundInternalAutoHook
 
@@ -331,9 +334,9 @@ contains
     <objectDestructor name="self%outputTimes_"                      />
     !!]
     if (associated(self%accretionDiskSpectra_)) call accretionDiskSpectraDestruct_(self%accretionDiskSpectra_)
-    !$omp master
+    !$omp masked
     if (universePreEvolveEventGlobal%isAttached(self,intergalacticBackgroundInternalUniversePreEvolve)) call universePreEvolveEventGlobal%detach(self,intergalacticBackgroundInternalUniversePreEvolve)
-    !$omp end master
+    !$omp end masked
     return
   end subroutine intergalacticBackgroundInternalDestructor
 
@@ -494,7 +497,7 @@ contains
     use            :: Stellar_Population_Spectra  , only : stellarPopulationSpectraClass
     use            :: Stellar_Populations         , only : stellarPopulationClass
     implicit none
-    class           (universeEvent                       ), intent(in   ) :: event
+    class           (universeEvent                       ), intent(inout) :: event
     type            (universe                            ), intent(inout) :: universe_
     type            (mergerTreeList                      ), pointer       :: forest
     type            (treeNode                            ), pointer       :: node
@@ -536,6 +539,8 @@ contains
        call displayIndent(message)
        ! Find the current timestep.
        iNow=searchArrayClosest(self%time_,event%time)
+       ! Construct an integrator.
+       integrator_=integrator(stellarSpectraConvolution,toleranceAbsolute=integrationToleranceAbsolute,toleranceRelative=integrationToleranceRelative)
        ! Iterate over all nodes.
        call displayMessage('Accumulating emissivity')
        treeTimeLatest=0.0d0
@@ -577,7 +582,6 @@ contains
                          ageStart=max(self%time_(iTime-1)-event%time,0.0d0)
                       end if
                       ! Iterate over wavelength
-                      integrator_=integrator(stellarSpectraConvolution,toleranceAbsolute=integrationToleranceAbsolute,toleranceRelative=integrationToleranceRelative)
                       do iWavelength=1,self%wavelengthCount
                          wavelength                =  self%wavelength(iWavelength)
                          stellarPopulationSpectra_ => stellarPopulationSpectraDisk_
@@ -669,14 +673,10 @@ contains
              outputGroup=outputFile%openGroup('backgroundRadiation','Cosmic background radiation data.')
              call    outputGroup  %writeDataset  (self%wavelength        ,'wavelength','Wavelength at which the background radiation is tabulated [Å].'    ,datasetReturned=outputDataset)
              call    outputDataset%writeAttribute(1.0d0/metersToAngstroms,'unitsInSI'                                                                                                    )
-             call    outputDataset%close         (                                                                                                                                       )
              call    outputGroup  %writeDataset  (self%redshift          ,'redshift'  ,'Redshift at which the background radiation is tabulated [].'       ,datasetReturned=outputDataset)
              call    outputDataset%writeAttribute(0.0d0                  ,'unitsInSI'                                                                                                    )
-             call    outputDataset%close         (                                                                                                                                       )
              call    outputGroup  %writeDataset  (state%flux             ,'flux'      ,'Flux is the cosmic background radiation [erg cm⁻² s⁻¹ Hz⁻¹ sr⁻¹].' ,datasetReturned=outputDataset)
              call    outputDataset%writeAttribute(ergs/centi**2          ,'unitsInSI'                                                                                                    )
-             call    outputDataset%close         (                                                                                                                                       )
-             call    outputGroup  %close         (                                                                                                                                       )
              !$ call hdf5Access   %unset         (                                                                                                                                       )
           end if
        end select

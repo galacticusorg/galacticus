@@ -199,7 +199,7 @@ contains
     
     ! Read the table of emission line luminosities.
     !$ call hdf5Access%set()
-    call emissionLinesFile%openFile(self%cloudyTableFileName,readOnly=.true.)
+    emissionLinesFile=hdf5Object(self%cloudyTableFileName,readOnly=.true.)
     lines=emissionLinesFile%openGroup('lines')
     do i=1,size(lineNames)
        if (.not.lines%hasDataset(char(self%lineNames(i)))) call Error_Report('line "'//char(self%lineNames(i))//'" not found'//{introspection:location})
@@ -211,16 +211,12 @@ contains
     ! Extract indexing into the lines arrays.
     dataset=emissionLinesFile%openDataset('densityHydrogen'    )
     call dataset%readAttribute('index',self%indexDensityHydrogen    )
-    call dataset%close        (                                     )
     dataset=emissionLinesFile%openDataset('ionizationParameter')
     call dataset%readAttribute('index',self%indexIonizationParameter)
-    call dataset%close        (                                     )
     dataset=emissionLinesFile%openDataset('metallicity'        )
     call dataset%readAttribute('index',self%indexMetallicity        )
-    call dataset%close        (                                     )
     dataset=emissionLinesFile%openDataset('spectralIndex'      )
     call dataset%readAttribute('index',self%indexSpectralIndex      )
-    call dataset%close        (                                     )
     ! Offset indexing to Fortran standard (i.e. starting from 1 instead of 0).
     self%indexDensityHydrogen    =self%indexDensityHydrogen    +1
     self%indexIonizationParameter=self%indexIonizationParameter+1
@@ -242,10 +238,7 @@ contains
        call lines%readDatasetStatic(char(self%lineNames(i)),luminosity(:,:,:,:,i))
        lineDataset=lines%openDataset(char(self%lineNames(i)))
        call lineDataset%readAttribute('wavelength',self%wavelengths(i))
-       call lineDataset%close        (                                )
     end do
-    call lines            %close()
-    call emissionLinesFile%close()
     !$ call hdf5Access%unset()
     ! Re-order the luminosities table into our preferred order.
     !! First, allocate our final table array with our preferred ordering of dimensions.

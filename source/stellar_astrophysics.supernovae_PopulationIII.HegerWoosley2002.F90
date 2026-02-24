@@ -94,6 +94,7 @@ contains
     class  (stellarAstrophysicsClass               ), intent(in   ), target  :: stellarAstrophysics_
     type   (node                                   )               , pointer :: doc                 , energyElement, &
          &                                                                      massElement
+    type   (varying_string                         )                         :: fileName
     integer                                                                  :: ioErr
     !![
     <constructorAssign variables="*stellarAstrophysics_"/>
@@ -102,7 +103,8 @@ contains
     ! Read in pair instability supernova energies.
     !$omp critical (FoX_DOM_Access)
     ! Open the XML file containing yields.
-    doc => XML_Parse(char(inputPath(pathTypeDataStatic))//'stellarAstrophysics/Supernovae_Pair_Instability_Heger_Woosley_1992.xml',iostat=ioErr)
+    fileName=inputPath(pathTypeDataStatic)//'stellarAstrophysics/Supernovae_Pair_Instability_Heger_Woosley_1992.xml'
+    doc => XML_Parse(fileName,iostat=ioErr)
     if (ioErr /= 0) call Error_Report('Unable to parse supernovae file'//{introspection:location})
     ! Get the mass and energy elements.
     massElement   => XML_Get_First_Element_By_Tag_Name(doc,"heliumCoreMass" )
