@@ -71,6 +71,7 @@ sub Launch {
     # Launch models on local machine.
     my @jobs         = @{shift()};
     my $launchScript =   shift() ;
+    my %arguments    = %{shift()};
     # Iterate over jobs.
     my @modelQueue;
     foreach my $job ( @jobs ) {
@@ -106,6 +107,11 @@ sub Launch {
 	print $slurmFile "#SBATCH -o ".$pwd.$job->{'directory'}."/galacticus.log\n";
 	print $slurmFile "#SBATCH -A ".$launchScript->{'slurm'}->{'account'}."\n"
 	    if ( exists($launchScript->{'slurm'}->{'account'}) );
+	if ( exists($arguments{'queue'}) ) {
+	    print $slurmFile "#SBATCH --partition=".$arguments                {'queue'}."\n";
+	} elsif ( exists($launchScript->{'slurm'}->{'queue'}) ) {
+	    print $slurmFile "#SBATCH --partition=".$launchScript->{'slurm'}->{'queue'}."\n";
+	}
 	if ( exists($launchScript->{'slurm'}->{'environment'}) ) {
 	    foreach my $environment ( @{$launchScript->{'slurm'}->{'environment'}} ) {
 		print $slurmFile "export ".$environment."\n";
