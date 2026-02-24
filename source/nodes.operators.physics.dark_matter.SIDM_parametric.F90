@@ -51,11 +51,6 @@
      class(darkMatterHaloScaleClass               ), pointer :: darkMatterHaloScale_  => null()
      class(virialDensityContrastClass             ), pointer :: virialDensityContrast_  => null()
      class(darkMatterProfileConcentrationClass    ), pointer :: darkMatterProfileConcentration_ => null()
-             !     class(mergerTreeMassResolutionClass          ), pointer :: mergerTreeMassResolution_           => null()        
-!     class(mergerTreeMassResolutionClass          ), pointer :: mergerTreeMassResolutionFixed_ => null()
-!     type (mergerTreeBuilderSmoothAccretion),        pointer :: mergerTreeBuilderSmoothAccretion_ => null() 
-!     type (mergerTreeMassResolutionFixed),           pointer :: mergerTreeMassResolutionFixed_ => null()
-!     type (darkMatterProfileScaleRadiusConcentration),pointer:: darkMatterProfileScaleRadius_ => null()
      integer                                                 :: tauID, VmaxSIDMID, RmaxSIDMID, nodeFormationTimeSIDMID, RhosSIDMID, RsSIDMID, RcSIDMID
    contains
      !![
@@ -70,9 +65,7 @@
      procedure :: differentialEvolution               => SIDMParametriCalculateTauDifferentialEvolution
      procedure :: differentialEvolutionAnalytics      => SIDMParametriDifferentialVmaxAnalytics
      procedure :: differentialEvolutionSolveAnalytics => SIDMParametriDifferentialVmaxSolveAnalytics
-!     procedure :: getTauID                            => getTauID_SIDMParametric
-!     procedure :: getVmaxSIDMID                       => getVmaxSIDMID_SIDMParametric
-!     procedure :: getRmaxSIDMID                       => getRmaxSIDMID_SIDMParametric
+
   end type nodeOperatorSIDMParametric
   
   interface nodeOperatorSIDMParametric
@@ -131,8 +124,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily SIDMParametric} node operator class.
     !!}
-    !use :: Merger_Trees_Build_Mass_Resolution       , only : mergerTreeMassResolutionClass
-    !use :: Merger_Trees_Builders                    , only : mergerTreeBuilderSmoothAccretion
+
     implicit none
     type (nodeOperatorSIDMParametric)                        :: self
     class(darkMatterParticleClass   ), intent(in   ), target :: darkMatterParticle_
@@ -143,7 +135,7 @@ contains
     class(darkMatterHaloScaleClass  ), intent(in   ), target :: darkMatterHaloScale_
     class(virialDensityContrastClass), intent(in   ), target :: virialDensityContrast_
     class(darkMatterProfileConcentrationClass), intent(in   ), target :: darkMatterProfileConcentration_
-    !class(mergerTreeMassResolutionClass)            , target :: mergerTreeMassResolutionFixed_
+
     double precision                                         :: massHaloDeclineFactor=0.99d0, timeEarliest=0.0d0, massResolution=5.0d2 
 
     !![
@@ -179,8 +171,7 @@ contains
     <objectDestructor name="self%virialDensityContrast_"/>
     <objectDestructor name="self%darkMatterProfileConcentration_"/>
     !!]
-!    <objectDestructor name="self%mergerTreeMassResolutionFixed_"/>
-!    <objectDestructor name="self%mergerTreeBuilderSmoothAccretion_"/> 
+
   return
   end subroutine SIDMParametricDestructor
 
@@ -212,22 +203,13 @@ contains
     double precision :: massHaloDeclineFactor=0.99d0, timeEarliest=0.0d0, massResolution
 
 
-
-!    print *, 'Test inside SIDM parametric NodeTreeInitialize ...'
     call self%nodeInitialize(node)
 
-!    basicNode => node%basic()
-!    print *, 'node time: ', basicNode%time()
-
-    !calculating the formation time
     nodeParent    => node
     basic => node%basic()
     do while (associated(nodeParent))
        basicParent => nodeParent%basic()
-!       print *, 'what is parent time: ', basicParent%time()
-!       print *, 'parent index: ', nodeParent%index()
        timeFormation =  Dark_Matter_Halo_Formation_Time(node=nodeParent, formationMassFraction=formationMassFraction, darkMatterHaloMassAccretionHistory_=self%darkMatterHaloMassAccretionHistory_)
-!       timeFormation = 2.1903d0
        if (nodeParent%isPrimaryProgenitor()) then
           nodeParent => nodeParent%parent
        else
@@ -235,48 +217,33 @@ contains
        end if
     end do
     call basic%floatRank0MetaPropertySet(self%nodeFormationTimeSIDMID,timeFormation)
-!    print *, 'Formation time: ', basic%floatRank0MetaPropertyGet(self%nodeFormationTimeSIDMID)
-!    print *, 'node index: ', node%index()
-
 
 !    initializing each node as NFW
     darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
     tau = darkMatterProfile%floatRank0MetaPropertyGet(self%tauID)
-!    print *,'tau initilization: ', tau
-!    massDistribution_ => node%massDistribution(componentTypeDarkMatterOnly,massTypeDark)
     massDistribution_ => self%darkMatterProfileDMO_%get(node)
 
     RmaxCDM = massDistribution_%radiusRotationCurveMaximum()
     VmaxCDM = massDistribution_%velocityRotationCurveMaximum()
-!    print *, 'RmaxCDM, VmaxCDM: ', RmaxCDM, VmaxCDM    
 
-!    RmaxNFW0 = Rmax_NFW(RmaxCDM, tau)
-!    VmaxNFW0 = Vmax_NFW(VmaxCDM, tau)
-!    r_sNFW0 = r_s0(RmaxNFW0)
-!    rho_sNFW0 = rho_s0(r_sNFW0, VmaxNFW0)
     r_sNFW0 = r_s0(massDistribution_%radiusRotationCurveMaximum())
     rho_sNFW0 = rho_s0(r_sNFW0, massDistribution_%velocityRotationCurveMaximum())
     rho_s = get_rho_s(rho_sNFW0, tau)
     r_s = get_r_s(r_sNFW0, tau)
     r_c = get_r_c(r_sNFW0, tau)
 
-!    print *, 'rho_s, r_s, r_c (initilization): ', rho_s, r_s, r_c
     call darkMatterProfile%floatRank0MetaPropertySet(self%RhosSIDMID, rho_s)
     call darkMatterProfile%floatRank0MetaPropertySet(self%RsSIDMID, r_s)
     call darkMatterProfile%floatRank0MetaPropertySet(self%RcSIDMID, r_c)
 
-!    need to add the merger tree below resolution calculation here:
-!    in-progress !!!!!
+!    Adding the merger tree below resolution calculation here:
 
-
-!    print *, 'Test starting below resolution tree generation ...'
     if (.not.associated(node%firstChild)) then
-!       print *, 'node time: ', basic%time()
-!       print *, 'node Formation time: ', basic%floatRank0MetaPropertyGet(self%nodeFormationTimeSIDMID)
        if (basic%time() > basic%floatRank0MetaPropertyGet(self%nodeFormationTimeSIDMID)) then
           ! if this node is at the tip of the branch and the time associated to it is larger than the formation time of the
           ! branch then we need to build the rest of the tree (extrapolate back in time) to start the parametric SIDM
-          ! calculation from then
+          ! calculation from the formation time. We build the tree with smooth accretion only. 
+          ! The mass resolution is set to be half of the current node mass. 
           
           massResolution = basic%mass()/2.0d0
           timeEarliest = basic%floatRank0MetaPropertyGet(self%nodeFormationTimeSIDMID) - 1
@@ -290,22 +257,15 @@ contains
           <referenceConstruct object="darkMatterProfileScaleRadius_" constructor="darkMatterProfileScaleRadiusConcentration(.false., .true., self%cosmologyParameters_, self%cosmologyFunctions_, self%darkMatterHaloScale_, self%darkMatterProfileDMO_, self%virialDensityContrast_, self%darkMatterProfileConcentration_)"/>
           !!]
 
-!          print *, 'let`s test this ...!'
           treeNew%randomNumberGenerator_ => node%hostTree%randomNumberGenerator_
           allocate(treeNew%nodeBase)
           call node%copyNodeTo(treeNew%nodeBase)
 
-!          print *, 'end of copying the last node into the new tree'
-
           call mergerTreeBuilderSmoothAccretion_%build(treeNew)
-
-!          print *, 'new tree is generated!'
           
           nodeChild => treeNew%nodeBase
           do while (associated(nodeChild))
              basicChild => nodeChild%basic()
-!             print *, 'nodeChild index and time, mass: ', nodeChild%index(), basicChild%time(), basicChild%mass()
-
              darkMatterProfile => nodeChild%darkMatterProfile(autoCreate=.true.)
              call darkMatterProfile%scaleSet(darkMatterProfileScaleRadius_%radius(nodeChild))
 
@@ -318,53 +278,34 @@ contains
           end do
 
           basicBase => treeNew%nodeBase%basic()
-!          print *, 'nodeBase index, time and mass: : ', treeNew%nodeBase%index(), basicBase%time(), basicBase%mass()
-!          print *, 'nodeBase parent index: ', treeNew%nodeBase%parent%index()
+
           do while (associated(nodeNew))
              basicNew => nodeNew%basic()
              darkMatterProfile => nodeNew%darkMatterProfile()
-!             print *, 'nodeNew index and time, mass: ', nodeNew%index(), basicNew%time(), basicNew%mass()
 
              basicNewChild => nodeNew%firstChild%basic()
              darkMatterProfileChild => nodeNew%firstChild%darkMatterProfile()   
-!             print *, 'nodeNew index and time, mass: ', nodeNew%firstChild%index(), basicNewChild%time(), basicNewChild%mass()
-
-!             massDistribution_ => nodeNew%massDistribution(componentTypeDarkMatterOnly,massTypeDark)
              massDistribution_ => self%darkMatterProfileDMO_%get(nodeNew)
-             VmaxSIDMPrevious = darkMatterProfileChild%floatRank0MetaPropertyGet(self%VmaxSIDMID)+massDistribution_%velocityRotationCurveMaximum() !self%darkMatterProfileDMO_%circularVelocityMaximum(nodeNew%firstChild)
+             VmaxSIDMPrevious = darkMatterProfileChild%floatRank0MetaPropertyGet(self%VmaxSIDMID)+massDistribution_%velocityRotationCurveMaximum()
 
-!             print *, 'VmaxSIDMPrevious: ', VmaxSIDMPrevious
-
-!             tc = get_tc(self, nodeNew, self%darkMatterProfileDMO_%circularVelocityMaximum(nodeNew),
-!             self%darkMatterProfileDMO_%radiusCircularVelocityMaximum(nodeNew), VmaxSIDMPrevious)
              tc = get_tc(self, nodeNew, massDistribution_%velocityRotationCurveMaximum(), massDistribution_%radiusRotationCurveMaximum(), VmaxSIDMPrevious)
-
-!             print *, 'tc: ', tc
 
              tau = darkMatterProfileChild%floatRank0MetaPropertyGet(self%tauID)+(basicNew%time() - basicNewChild%time())/tc
 
-!             print *,'tau: ', tau
              call darkMatterProfile%floatRank0MetaPropertySet(self%tauID, tau)
 
              dtr = (basicNew%time() - basicNewChild%time())/tc
              if (dtr > 0.05d0) then
-!                print *, 'Gravothermal evolution too fast, dtr: ', dtr
+                print *, 'Gravothermal evolution too fast, dtr: ', dtr
              end if
 
-!             VmaxSIDM = darkMatterProfileChild%floatRank0MetaPropertyGet(self%VmaxSIDMID) + dvmaxt(tau, self%darkMatterProfileDMO_%circularVelocityMaximum(nodeNew)) * (basicNew%time() - basicNewChild%time())/tc
-
              VmaxSIDM = darkMatterProfileChild%floatRank0MetaPropertyGet(self%VmaxSIDMID) + dvmaxt(tau, massDistribution_%velocityRotationCurveMaximum()) * (basicNew%time() - basicNewChild%time())/tc
-
-!             RmaxSIDM = darkMatterProfileChild%floatRank0MetaPropertyGet(self%RmaxSIDMID) + drmaxt(tau, self%darkMatterProfileDMO_%radiusCircularVelocityMaximum(nodeNew)) * (basicNew%time() - basicNewChild%time())/tc
-
              RmaxSIDM = darkMatterProfileChild%floatRank0MetaPropertyGet(self%RmaxSIDMID) + drmaxt(tau, massDistribution_%radiusRotationCurveMaximum()) * (basicNew%time() - basicNewChild%time())/tc
 
-!             print *, 'dvmaxSIDM and drmaxSIDM cumulative: ', VmaxSIDM, RmaxSIDM
              call darkMatterProfile%floatRank0MetaPropertySet(self%VmaxSIDMID, VmaxSIDM)
 
              call darkMatterProfile%floatRank0MetaPropertySet(self%RmaxSIDMID, RmaxSIDM)
 
-             !added section for calculation of rho_s and r_s and r_c
              RmaxCDM = massDistribution_%radiusRotationCurveMaximum()
              RmaxSIDM = RmaxSIDM+RmaxCDM
 
@@ -373,8 +314,6 @@ contains
 
              r_sNFW0 = r_s0(RmaxNFW0)
              rho_sNFW0 = rho_s0(r_sNFW0, VmaxNFW0)
-!             r_sNFW0 = r_s0(massDistribution_%radiusRotationCurveMaximum())
-!             rho_sNFW0 = rho_s0(r_sNFW0, massDistribution_%velocityRotationCurveMaximum())
 
              rho_s = get_rho_s(rho_sNFW0, tau)
              r_s = get_r_s(r_sNFW0, tau)
@@ -418,11 +357,6 @@ contains
        end if
     end if
 
-
-!    print *, 'NodeIndex, r_s (initialize): ', node%index(), darkMatterProfile%floatRank0MetaPropertyGet(self%RsSIDMID) 
-
-!    print *, 'Test end of initialization ...'
-
     return
   end subroutine SIDMParametricNodeTreeInitialize
 
@@ -434,7 +368,6 @@ contains
     implicit none
     class(nodeOperatorSIDMParametric    ), intent(inout) :: self
     type (treeNode                      ), intent(inout) :: node
-!    class(nodeComponentBasic            ), pointer       :: basic
     class(nodeComponentDarkMatterProfile), pointer     :: darkMatterProfile
 
     darkMatterProfile => node%darkMatterProfile()        
@@ -460,11 +393,6 @@ contains
     class         (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
     class           (massDistributionClass       ), pointer       :: massDistribution_
     double precision                                              :: tau, r_sNFW0, rho_sNFW0, rho_s, r_s, r_c, VmaxSIDM, RmaxSIDM, RmaxNFW0, VmaxNFW0
-!         &                                                           massRateAccretion
-
-!    basic             => node %basic                    (                                )
-
-!    timeFormation = basic%floatRank0MetaPropertyGet(self%nodeFormationTimeSIDMID)
 
     darkMatterProfile => node%darkMatterProfile()
     tau = darkMatterProfile%floatRank0MetaPropertyGet(self%tauID)   
@@ -478,14 +406,11 @@ contains
     r_sNFW0 = r_s0(RmaxNFW0)
     rho_sNFW0 = rho_s0(r_sNFW0, VmaxNFW0)
 
-!    r_sNFW0 = r_s0(massDistribution_%radiusRotationCurveMaximum())
-!    rho_sNFW0 = rho_s0(r_sNFW0, massDistribution_%velocityRotationCurveMaximum())
-
     rho_s = get_rho_s(rho_sNFW0, tau)
     r_s = get_r_s(r_sNFW0, tau)
     r_c = get_r_c(r_sNFW0, tau)
 
-    print *, 'r_s, r_c, rho_s, rho_sNFW0, r_sNFW0, VmaxNFW0, RmaxNFW0, VmaxSIDM, RmaxSIDM , tau: ', r_s, r_c, rho_s, rho_sNFW0, r_sNFW0, VmaxNFW0, RmaxNFW0, VmaxSIDM, RmaxSIDM , tau
+!    print *, 'r_s, r_c, rho_s, rho_sNFW0, r_sNFW0, VmaxNFW0, RmaxNFW0, VmaxSIDM, RmaxSIDM , tau: ', r_s, r_c, rho_s, rho_sNFW0, r_sNFW0, VmaxNFW0, RmaxNFW0, VmaxSIDM, RmaxSIDM , tau
 
 
     call darkMatterProfile%floatRank0MetaPropertySet(self%RhosSIDMID, rho_s)
@@ -531,14 +456,6 @@ contains
        call Error_Report(message//{introspection:location})
     end if
 
-
-!    print *, 'Test inside nodePromote ...'
-!    call darkMatterProfile%floatRank0MetaPropertySet(self%RhosSIDMID,darkMatterProfileParent%floatRank0MetaPropertyGet(self%RhosSIDMID))
-!    call darkMatterProfile%floatRank0MetaPropertySet(self%RsSIDMID,darkMatterProfileParent%floatRank0MetaPropertyGet(self%RsSIDMID))
-!    call darkMatterProfile%floatRank0MetaPropertySet(self%RcSIDMID,darkMatterProfileParent%floatRank0MetaPropertyGet(self%RcSIDMID))
-
-
-
     return
   end subroutine SIDMParametricNodePromote
  
@@ -550,18 +467,14 @@ contains
     class(nodeOperatorSIDMParametric), intent(inout) :: self
     class(nodeComponentDarkMatterProfile), pointer :: darkMatterProfile
 
-!    print *, 'Test inside evolutionScale ...'
-
     darkMatterProfile => node%darkMatterProfile()
     call darkMatterProfile%floatRank0MetaPropertyScale(self%tauID, 1.0d0)
-!    call darkMatterProfile%floatRank0MetaPropertyScale(self%VmaxSIDMID, 1.0d0)
+
     return
   end subroutine SIDMParametriCalculateTauDifferentialEvolutionScale
 
   subroutine SIDMParametriCalculateTauDifferentialEvolution(self, node,interrupt,functionInterrupt,propertyType)
     use Galacticus_Nodes, only: treeNode, nodeComponentBasic, nodeComponentDarkMatterProfile
-!    use Dark_Matter_Halo_Mass_Accretion_Histories, only: darkMatterHaloMassAccretionHistoryClass
-!    use Dark_Matter_Profiles_DMO , only : darkMatterProfileDMOClass
     use :: Dark_Matter_Halo_Formation_Times, only : Dark_Matter_Halo_Formation_Time
     use :: Mass_Distributions        , only : massDistributionClass
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo, componentTypeDarkMAtterOnly , massTypeDark , weightByMass
@@ -571,15 +484,10 @@ contains
     type(treeNode), pointer :: nodeWork
     type(treeNode), pointer :: nodeStart
     type(treeNode), pointer :: nodeParent
-    !    type(darkMatterProfileDMO), pointer :: darkMatterProfileDMO_
-
     class(nodeOperatorSIDMParametric), intent(inout), target :: self
-!    class(darkMatterHaloMassAccretionHistoryClass), target :: darkMatterHaloMassAccretionHistory_
-!    class(darkMatterHaloMassAccretionHistoryClass), pointer :: darkMatterHaloMassAccretionHistory_
     class(massDistributionClass     ),                pointer :: massDistribution_
     class(nodeComponentBasic), pointer :: basic, basicParent
     class(nodeComponentDarkMatterProfile), pointer :: darkMatterProfile
-!    class(darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_
 
     double precision :: timeFormation
     double precision :: formationMassFraction = 0.5d0
@@ -596,37 +504,20 @@ contains
     !$GLC attributes unused :: interrupt, functionInterrupt, propertyType
 
 
-!    print *, 'Test inside DiffEvolution ...'
-
-!    print *, 'node index: ', node%index()
-    !nodeParent => node%parent
-!    print *, 'parent index: ', node%Parent%index()
-
     basic => node%basic()
     time = basic%time()
     timeFormation = basic%floatRank0MetaPropertyGet(self%nodeFormationTimeSIDMID)
-!    timeFormation = 2.1903d0
-!    timeFormation = 1.7887838371779103d0
-
 
     darkMatterProfile => node%darkMatterProfile()
 
-!    print *, 'Time: ', time, timeFormation
-
-
     if (time > timeFormation) then
 
-!            massDistribution_ => node%massDistribution(componentTypeDarkMatterOnly,massTypeDark)
             massDistribution_ => self%darkMatterProfileDMO_%get(node)
-!            VmaxSIDM = darkMatterProfile%floatRank0MetaPropertyGet(self%VmaxSIDMID)+self%darkMatterProfileDMO_%circularVelocityMaximum(node)
             VmaxSIDM = darkMatterProfile%floatRank0MetaPropertyGet(self%VmaxSIDMID)+massDistribution_%velocityRotationCurveMaximum()
-!            tc = get_tc(self, node, self%darkMatterProfileDMO_%circularVelocityMaximum(node), self%darkMatterProfileDMO_%radiusCircularVelocityMaximum(node), VmaxSIDM)
             tc = get_tc(self, node, massDistribution_%velocityRotationCurveMaximum(), massDistribution_%radiusRotationCurveMaximum(), VmaxSIDM)
             call darkMatterProfile%floatRank0MetaPropertyRate(self%tauID, 1.0d0/tc)
 
             tau = darkMatterProfile%floatRank0MetaPropertyGet(self%tauID)
-!            dvdt = dvmaxt(tau, self%darkMatterProfileDMO_%circularVelocityMaximum(node)) * (1.0d0) / tc
-!            drdt = drmaxt(tau, self%darkMatterProfileDMO_%radiusCircularVelocityMaximum(node)) * (1.0d0) / tc
             dvdt = dvmaxt(tau, massDistribution_%velocityRotationCurveMaximum()) * (1.0d0) / tc
             drdt = drmaxt(tau, massDistribution_%radiusRotationCurveMaximum()) * (1.0d0) / tc
 
@@ -634,61 +525,13 @@ contains
             call darkMatterProfile%floatRank0MetaPropertyRate(self%RmaxSIDMID, drdt)
 
             VmaxSIDM = darkMatterProfile%floatRank0MetaPropertyGet(self%VmaxSIDMID)+massDistribution_%velocityRotationCurveMaximum()
-
-!            print *, 'Read Here!'
-!            print *, time, timeFormation, tc, tau, massDistribution_%velocityRotationCurveMaximum(), darkMatterProfile%floatRank0MetaPropertyGet(self%VmaxSIDMID)+massDistribution_%velocityRotationCurveMaximum()
-
             RmaxCDM = massDistribution_%radiusRotationCurveMaximum()
-
             RmaxSIDM = RmaxCDM+darkMatterProfile%floatRank0MetaPropertyGet(self%RmaxSIDMID)   
-
-!            print *, 'RmaxCDM and SIDM: ', RmaxCDM, RmaxSIDM
-
-!            RmaxNFW0 = Rmax_NFW(RmaxSIDM, tau)
-!            VmaxNFW0 = Vmax_NFW(VmaxSIDM, tau)
-
-!            r_sNFW0 = r_s0(RmaxNFW0)
-!            rho_sNFW0 = rho_s0(r_sNFW0, VmaxNFW0)
-
-
-!!            r_sNFW0 = r_s0(massDistribution_%radiusRotationCurveMaximum())
-!!            rho_sNFW0 = rho_s0(r_sNFW0, massDistribution_%velocityRotationCurveMaximum())
-
-!!            rho_s = get_rho_s(rho_sNFW0, tau)
-!!            r_s = get_r_s(r_sNFW0, tau)
-!!            r_c = get_r_c(r_sNFW0, tau)
-
-!!            call darkMatterProfile%floatRank0MetaPropertySet(self%RhosSIDMID, rho_s)
-!!            call darkMatterProfile%floatRank0MetaPropertySet(self%RsSIDMID, r_s)
-!!            call darkMatterProfile%floatRank0MetaPropertySet(self%RcSIDMID, r_c)
 
     else
             call darkMatterProfile%floatRank0MetaPropertyRate(self%tauID, 0.0d0)
             call darkMatterProfile%floatRank0MetaPropertyRate(self%VmaxSIDMID, 0.0d0)
             call darkMatterProfile%floatRank0MetaPropertyRate(self%RmaxSIDMID, 0.0d0)
-
-!            massDistribution_ => node%massDistribution(componentTypeDarkMatterOnly,massTypeDark)
-!!            massDistribution_ => self%darkMatterProfileDMO_%get(node)
-!!            VmaxSIDM = darkMatterProfile%floatRank0MetaPropertyGet(self%VmaxSIDMID)+massDistribution_%velocityRotationCurveMaximum()
-!!            RmaxSIDM = darkMatterProfile%floatRank0MetaPropertyGet(self%RmaxSIDMID)+massDistribution_%radiusRotationCurveMaximum()
-
-!!            tau = darkMatterProfile%floatRank0MetaPropertyGet(self%tauID)
-
-!            RmaxNFW0 = Rmax_NFW(RmaxSIDM, tau)
-!            VmaxNFW0 = Vmax_NFW(VmaxSIDM, tau)
-
-!            r_sNFW0 = r_s0(RmaxNFW0)
-!            rho_sNFW0 = rho_s0(r_sNFW0, VmaxNFW0)
-!!            r_sNFW0 = r_s0(massDistribution_%radiusRotationCurveMaximum())
-!!            rho_sNFW0 = rho_s0(r_sNFW0, massDistribution_%velocityRotationCurveMaximum())
-
-!!            rho_s = get_rho_s(rho_sNFW0, tau)
-!!            r_s = get_r_s(r_sNFW0, tau)
-!!            r_c = get_r_c(r_sNFW0, tau)
-
-!!            call darkMatterProfile%floatRank0MetaPropertySet(self%RhosSIDMID, rho_s)
-!!            call darkMatterProfile%floatRank0MetaPropertySet(self%RsSIDMID, r_s)
-!!            call darkMatterProfile%floatRank0MetaPropertySet(self%RcSIDMID, r_c)
 
     end if
     
@@ -701,7 +544,6 @@ contains
     Evaluating tc based on Eq. 2.2 from Yang et al. 2024:https://arxiv.org/pdf/2305.16176
     !!}
     use Numerical_Constants_Math, only: Pi
-!    use Numerical_Constants_Physical, only: gravitationalConstant
     use :: Numerical_Constants_astronomical, only : gravitationalConstant_internal
     use :: Error, only : Error_Report
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
@@ -710,41 +552,24 @@ contains
     type(treeNode), intent(in) :: node
     double precision, intent(in) :: Vmax, Rvmax, VmaxSIDM
 
-    double precision :: sigmaeff, reff, rhoeff, C = 0.75, gravitationalConstant !GG = 4.30073e-6, C = 0.75, pi = 3.1415926535897932384626433832795d0
+    double precision :: sigmaeff, reff, rhoeff, C = 0.75, gravitationalConstant 
     !type(effectiveCrossSection) :: sigmaeff
-
-!    print *, 'Vmax: ', Vmax
-!    print *, 'VmaxSIDM: ', VmaxSIDM
 
     select type (darkMatterParticle_ => self%darkMatterParticle_)
     class is (darkMatterParticleSelfInteractingDarkMatter)
-!       print *, 'darkMatterParticle_ is of type SIDM'
        sigmaeff = darkMatterParticle_%effectiveCrossSection(VmaxSIDM)
-!       sigmaeff = darkMatterParticle_%effectiveCrossSection(Vmax)
     class default
        call Error_Report('unexpected class'//{introspection:location})
     end select
 
-!    print *, 'right after sigma effective calculations...', sigmaeff
     gravitationalConstant = gravitationalConstant_internal*1e3
-!    print *, 'gravitaional constant: ', gravitationalConstant
-!    print *, 'Rmax: ', Rvmax
-!    print *, 'Vmax: ', Vmax
 
-
-    !we need the conversion of Rvmax to kpc rather than Mpc
+    !need to convert Rvmax to kpc
     reff = Rvmax*1e3 / 2.1626 
     rhoeff = (Vmax / (1.648 * reff))**2 / gravitationalConstant
-!    sigmaeff = self%darkMatterParticle_%effectiveCrossSection(Vmax)
 
-!    print *, 'reff: ', reff
-!    print *, 'rhoeff: ', rhoeff
-
-!    get_tc = (150.0d0 / C) * (1.0d0 / (sigmaeff * rhoeff * reff)) * (4.0d0 * Pi * gravitationalConstant * rhoeff) ** (-0.5)
     !the constant 2.09e-10 is multiplied for unit conversion of sigma
     get_tc = (150.0d0 / C) * (1.0d0 / (sigmaeff * 2.09e-10 * rhoeff * reff)) * (1.0d0 / sqrt(4.0d0 * Pi * gravitationalConstant * rhoeff))
-
-!    print *, 'get_tc value: ', get_tc
 
   end function get_tc
 
@@ -756,13 +581,8 @@ contains
     tau_local = tau
 
     if (tau_local > 1.0d0) then
-!      tau_local = 1.0d0
       dvmaxt = 0.0d0
-!    else if (tau_local < 0.0d0) then
-!      tau_local = 0.0d0
-!    end if
     else if (tau_local <= 1.0d0) then
-
       dvmaxt = 0.17774902d0 - 13.195824689999998d0 * tau_local ** 2 + 66.62092676d0 * tau_local ** 3 - 94.33706049999999d0 * tau_local ** 4 + 63.53766111d0 * tau_local ** 6 - 21.925108889999997d0 * tau_local ** 8
     end if
     dvmaxt = dvmaxt * Vmaxt
@@ -775,15 +595,11 @@ contains
     tau_local = tau
 
     if (tau_local > 1.0d0) then
-!      tau_local = 1.0d0
       drmaxt = 0.0d0
-!    else if (tau_local < 0.0d0) then
-!      tau_local = 0.0d0
     else if (tau_local <= 1.0d0) then
       drmaxt = 0.00762288d0 - 1.43996392d0 * tau_local + 1.01282643d0 * tau_local ** 2 - 0.55015288d0 * tau_local ** 3
     end if
 
-!    drmaxt = 0.00762288d0 - 1.43996392d0 * tau_local + 1.01282643d0 * tau_local ** 2 - 0.55015288d0 * tau_local ** 3
     drmaxt = drmaxt * Rmaxt 
   end function drmaxt
 
@@ -823,11 +639,9 @@ contains
 
   double precision function rho_s0(Rs, Vmax)
     use Numerical_Constants_Math, only: Pi
-!    use Numerical_Constants_Physical, only: gravitationalConstant
     use :: Numerical_Constants_astronomical, only : gravitationalConstant_internal
     double precision, intent(in) :: Rs, Vmax
 
-!    gravitationalConstant = gravitationalConstantGalacticus*1e3
     rho_s0 = Vmax ** 2 / (0.465d0 ** 2 * 4.0d0 * Pi * gravitationalConstant_internal * Rs ** 2)
   end function rho_s0
 
@@ -841,8 +655,6 @@ contains
     else if (tau_local < 0.0d0) then
       tau_local = 0.0d0
     end if
-
-!    print *, "tau_local =", tau_local, "rho_s0 =", rho_s0
 
     get_rho_s = rho_s0 * (2.033d0 + 0.7381d0 * tau_local + 7.264d0 * tau_local ** 5 - 12.73d0 * tau_local ** 7 + 9.915d0 * tau_local ** 9 + (1.0d0 - 2.033d0) * log(tau_local + 0.001d0) / log(0.001d0))
   end function get_rho_s
@@ -872,42 +684,8 @@ contains
       tau_local = 0.0d0
     end if
 
-!    print *, "tau_local =", tau_local, "r_s0 =", r_s0
-
     get_r_c = r_s0 * (2.555d0 * sqrt(tau_local) - 3.632d0 * tau_local + 2.131d0 * tau_local ** 2 - 1.415d0 * tau_local ** 3 + 0.4683d0 * tau_local ** 4)
-!    print *, 'tau, r_s0, get_r_c: ', tau_local, r_s0, get_r_c
   end function get_r_c
- 
-!  double precision function SIDMDensityProfileIsolated(rho_s, r_s, r_c, r)
-!    double precision, intent(in) :: rho_s, r_s, r_c, r
-!    double precision :: beta = 4.0d0, term1, term2
-
-!    term1 = ((r ** beta + r_c ** beta) ** (1.0d0 / beta) / r_s)
-!    term2 = (1.0d0 + r / r_s) ** 2
-
-!    SIDMDensityProfileIsolated = rho_s / (term1 * term2)
-!  end function SIDMDensityProfileIsolated
-
-!  function getTauID_SIDMParametric(self) result(tauID)
-!    implicit none
-!    class(nodeOperatorSIDMParametric), intent(in) :: self
-!    integer :: tauID
-!    tauID = self%tauID
-!  end function getTauID_SIDMParametric
-
-!  function getVmaxSIDMID_SIDMParametric(self) result(VmaxSIDMID)
-!    implicit none
-!    class(nodeOperatorSIDMParametric), intent(in) :: self
-!    integer :: VmaxSIDMID
-!    VmaxSIDMID = self%VmaxSIDMID
-!  end function getVmaxSIDMID_SIDMParametric
-
-!  function getRmaxSIDMID_SIDMParametric(self) result(RmaxSIDMID)
-!    implicit none
-!    class(nodeOperatorSIDMParametric), intent(in) :: self
-!    integer :: RmaxSIDMID
-!    RmaxSIDMID = self%RmaxSIDMID
-!  end function getRmaxSIDMID_SIDMParametric
 
 
  
