@@ -1071,7 +1071,7 @@ contains
     else
        interpolator_=table_
     end if
-    Table_Generic_1D_Interpolate_Second_Gradient=self%interpolator_(interpolator_)%secondDerivative(self%xEffective(x),self%yv(:,table_))
+    Table_Generic_1D_Interpolate_Second_Gradient=self%interpolators(interpolator_)%interpolator_%secondDerivative(self%xEffective(x),self%yv(:,table_))
     return
   end function Table_Generic_1D_Interpolate_Second_Gradient
 

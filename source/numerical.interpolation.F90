@@ -823,7 +823,7 @@ contains
        if (x > self%x(self%countArray)) x_=self%x(self%countArray)
     end select
     ! Do the interpolation.
-    statusGSL=gsl_interp_eval_deriv2_e(self%gsl_interp,self%x,ya,x_,self%gsl_interp_accel,interpolatorSecondDerivative)
+    statusGSL=gsl_interp_eval_deriv2_e(self%interp_%gsl,self%x,ya,x_,self%interpAccel_%gsl,interpolatorSecondDerivative)
     if (statusGSL /= 0) then
        select case (statusGSL)
        case (GSL_EDom)
