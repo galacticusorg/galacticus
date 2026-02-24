@@ -7,7 +7,7 @@
       <tolerance value="4.0e-4" />
       <toleranceTopHat value="2.0e-4" />
     </cosmologicalMassVariance>
-    <factorMassEnvironment value="=[haloMassFunctionParameters::alpha]" />
+    <factorMassEnvironment value="=[haloMassFunctionParameters/alpha]" />
   </cosmologicalMassVariance>
   <cosmologyFunctions value="matterLambda" />
   <cosmologyParameters value="simple">
@@ -34,13 +34,13 @@
   <haloMassFunction value="errorConvolved">
     <errorFractionalMaximum value="1.0e+0" />
     <haloMassFunction value="bhattacharya2011">
-      <a value="=[haloMassFunctionParameters::a]" />
-      <b value="=[haloMassFunctionParameters::b]" />
-      <f value="=[haloMassFunctionParameters::f]" />
-      <g value="=[haloMassFunctionParameters::g]" />
-      <normalization value="=[haloMassFunctionParameters::normalization]" />
-      <p value="=[haloMassFunctionParameters::p]" />
-      <q value="=[haloMassFunctionParameters::q]" />
+      <a value="=[haloMassFunctionParameters/a]" />
+      <b value="=[haloMassFunctionParameters/b]" />
+      <f value="=[haloMassFunctionParameters/f]" />
+      <g value="=[haloMassFunctionParameters/g]" />
+      <normalization value="=[haloMassFunctionParameters/normalization]" />
+      <p value="=[haloMassFunctionParameters/p]" />
+      <q value="=[haloMassFunctionParameters/q]" />
     </haloMassFunction>
     <toleranceRelative value="3.0e-4" />
   </haloMassFunction>
@@ -58,7 +58,7 @@
   </haloMassFunctionParameters>
   <linearGrowth value="collisionlessMatter" />
   <nbodyHaloMassError value="trenti2010">
-    <massParticle value="=[simulation::massParticle]" />
+    <massParticle value="=[simulation/massParticle]" />
   </nbodyHaloMassError>
   <outputFileName value="mw.hdf5" />
   <outputTimes value="list">
@@ -80,8 +80,8 @@
     </cosmologicalMassVariance>
   </powerSpectrumSimulation>
   <powerSpectrumWindowFunction value="ETHOS">
-    <beta value="=[haloMassFunctionParameters::beta]" />
-    <cW value="=[haloMassFunctionParameters::cW]" />
+    <beta value="=[haloMassFunctionParameters/beta]" />
+    <cW value="=[haloMassFunctionParameters/cW]" />
   </powerSpectrumWindowFunction>
   <simulation ignoreWarnings="true" value="">
     <massParticle value="4.02830e05" />

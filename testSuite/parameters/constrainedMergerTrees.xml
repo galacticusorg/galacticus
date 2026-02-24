@@ -107,9 +107,9 @@
       <mergerTreeBranchingProbabilityConstrained value="gnrlzdPrssSchchtr">
         <distributionFunctionLowerHalfOnly value="false"/>
         <excursionSetFirstCrossing value="farahiMidpointBrownianBridge">
-          <massConstrained                value="=[mergerTreeBuilder::mergerTreeBuildController::massConstrained]"    />
-          <redshiftConstrained            value="=[mergerTreeBuilder::mergerTreeBuildController::redshiftConstrained]"/>
-          <fileName                       value="auto"                                                                />
+          <massConstrained                value="=[mergerTreeBuilder/mergerTreeBuildController/massConstrained]"    />
+          <redshiftConstrained            value="=[mergerTreeBuilder/mergerTreeBuildController/redshiftConstrained]"/>
+          <fileName                       value="auto"                                                              />
           <varianceNumberPerDecade value="100"  />
           <varianceNumberPerUnit   value=" 25"  />
           <timeNumberPerDecade     value=" 25"  />

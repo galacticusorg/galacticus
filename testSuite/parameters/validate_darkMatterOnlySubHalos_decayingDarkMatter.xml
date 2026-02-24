@@ -201,7 +201,7 @@
       <radiusVirialFraction                 value="1.0e-2"                                    />
     </nodeOperator>
     <nodeOperator value="satelliteDestructionMassThreshold" >
-      <massDestructionAbsolute              value="=[mergerTreeMassResolution:massResolution]"/>
+      <massDestructionAbsolute              value="=[mergerTreeMassResolution/massResolution]"/>
       <massDestructionMassInfallFraction    value="0.0"                                       />
     </nodeOperator>
     <!-- Destroy subhalos when the density at the original scale radius falls below 0.001 of the original mean virial density. -->

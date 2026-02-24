@@ -42,7 +42,7 @@ As described above, \glc\ requires a file of parameters to be given as a command
    .
    .
    .
-   <parameter6Name value="=10.0*[parameter4Name::subParameter1Name]"/>
+   <parameter6Name value="=10.0*[parameter4Name/subParameter1Name]"/>
  </parameters>
 \end{verbatim}
 Each named element must have a {\normalfont \ttfamily value} attribute (preferred), or else contains a value element, which contains the desired value. The value can be a number, word or an array of space-separated numbers or words. Parameters are used to control the values of numerical parameters and also to select methods and other options. In many cases, if a parameter is not specified in the file a default value (hard coded into \glc) will be used instead. The default values have been chosen to produce a realistic model of galaxy formation, but may change as \glc\ evolves. Parameters may have sub-parameters embedded within them, as in the example above.
@@ -74,9 +74,9 @@ A parameter value can be given by a math expression\footnote{This functionality 
 
 Lastly, a text parameter can also be evaluated by starting it with an initial ``{\normalfont \ttfamily =}''. For text parameters, other parameters can be referenced and their values are simply inserted. So, for example:
 \begin{verbatim}
-<outputFileName value="=myFile_m[%5.2f|darkMatterParticle::mass]keV.hdf5"/>
+<outputFileName value="=myFile_m[%5.2f|darkMatterParticle/mass]keV.hdf5"/>
 \end{verbatim}
-would set the output file name by replacing ``{\normalfont \ttfamily [\%5.2f|darkMatterParticle::mass]}'' in the above with the value of the dark matter particle mass. Note that, for these text parameter substitutions a format specifier must be given---in this case ``{\normalfont \ttfamily \%5.2f}''---which specifies how to format the parameter before inserting it into the value. The \href{https://www.w3resource.com/c-programming/stdio/c_library_method_sprintf.php}{format specifier} should follow standard C conventions. Currently the {\normalfont \ttfamily s}, {\normalfont \ttfamily d}, {\normalfont \ttfamily f}, and{\normalfont \ttfamily e} specifiers are supported.
+would set the output file name by replacing ``{\normalfont \ttfamily [\%5.2f|darkMatterParticle/mass]}'' in the above with the value of the dark matter particle mass. Note that, for these text parameter substitutions a format specifier must be given---in this case ``{\normalfont \ttfamily \%5.2f}''---which specifies how to format the parameter before inserting it into the value. The \href{https://www.w3resource.com/c-programming/stdio/c_library_method_sprintf.php}{format specifier} should follow standard C conventions. Currently the {\normalfont \ttfamily s}, {\normalfont \ttfamily d}, {\normalfont \ttfamily f}, and{\normalfont \ttfamily e} specifiers are supported.
 
 The optional {\normalfont \ttfamily version} element specifies which version of \glc\ this parameter file is intended for. The optional {\normalfont \ttfamily formatVersion} element specifies the parameter file version number (the current standard for parameter files is version 2). While optional, these elements can be useful when migrating parameter files between versions of \glc.
 
