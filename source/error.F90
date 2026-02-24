@@ -599,10 +599,10 @@ contains
     use            :: System_Output  , only : stdOutIsATTY
 #ifdef USEMPI
     use            :: MPI_F08        , only : MPI_Comm_Rank, MPI_Comm_World
-#endif
     implicit none
     integer            :: mpiRank , error
     character(len=128) :: hostName
+#endif
 
     if (stdOutIsATTY()) then
 #ifdef USEMPI
