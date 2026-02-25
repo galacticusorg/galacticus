@@ -3,13 +3,13 @@
   <posteriorSampleLikelihood value="haloMassFunction">
     <baseParametersFileName value="testSuite/parameters/memoryLeakMCMCHMFParameters.xml"/>
     <binCountMinimum value="0" />
-    <fileName value="%DATASTATICPATH%/darkMatter/haloMassFunction_Symphony_MilkyWay_CDM_Halo004_z0.000.hdf5" />
+    <fileNames value="%DATASTATICPATH%/darkMatter/haloMassFunction_Symphony_MilkyWay_resolutionX1_CDM_Halo004_z0.000.hdf5" />
     <likelihoodModel value="simulationSphere" />
     <likelihoodPoisson value="true" />
     <massRangeMaximum value="1.03214e+11" />
     <massRangeMinimum value="1.20849e+09" />
     <massSphere value=" 6.334263e+12" />
-    <redshift value="0.00000e+00" />
+    <redshifts value="0.00000e+00" />
     <truncatePower value="true" />
   </posteriorSampleLikelihood>
   <posteriorSampleSimulation value="differentialEvolution">
@@ -17,7 +17,7 @@
     <logFileRoot value="testSuite/outputs/memoryLeakMCMCHMFChains" />
     <logFlushCount value="     1" />
     <modelParameter value="active">
-      <name value="haloMassFunctionParameters::a" />
+      <name value="haloMassFunctionParameters/a" />
       <distributionFunction1DPerturber value="cauchy">
         <median value="0.0" />
         <scale value="1.0e-4" />
