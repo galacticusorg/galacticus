@@ -176,7 +176,6 @@ contains
        block
          type     (varying_string) :: fileNameVariance
          type     (lockDescriptor) :: fileLock
-         type     (hdf5Object    ) :: varianceFile
          character(len=12        ) :: timeLabel       , lengthCubeLabel
          integer                   :: useCache        , i
          
@@ -207,8 +206,11 @@ contains
             if (File_Exists(fileNameVariance)) then
                call File_Lock(char(fileNameVariance),fileLock,lockIsShared=.true.)
                !$ call hdf5Access%set()
-               varianceFile=hdf5Object(fileNameVariance,readOnly=.true.)
-               call varianceFile%readAttribute('variance',self%varianceSimulation)
+               hdf5ReadScope: block
+                 type(hdf5Object) :: varianceFile
+                 varianceFile=hdf5Object(fileNameVariance,readOnly=.true.)
+                 call varianceFile%readAttribute('variance',self%varianceSimulation)
+               end block hdf5ReadScope
                !$ call hdf5Access%unset()
                call File_Unlock(fileLock)
             else
@@ -226,8 +228,11 @@ contains
                self%varianceSimulation =  integratorX%integrate(wavenumberMinimum,wavenumberMaximum)
                call File_Lock(char(fileNameVariance),fileLock,lockIsShared=.false.)
                !$ call hdf5Access%set()
-               varianceFile=hdf5Object(fileNameVariance,readOnly=.false.,overWrite=.true.)
-               call varianceFile%writeAttribute(self%varianceSimulation,'variance')
+               hdf5WriteScope: block
+                 type(hdf5Object) :: varianceFile
+                 varianceFile=hdf5Object(fileNameVariance,readOnly=.false.,overWrite=.true.)
+                 call varianceFile%writeAttribute(self%varianceSimulation,'variance')
+               end block hdf5WriteScope
                !$ call hdf5Access%unset()
                call File_Unlock(fileLock)
                call displayUnindent('done',verbosityLevelWorking)

@@ -183,9 +183,6 @@ contains
          &                                                                                 j                                       , countRedshiftsUnique    , &
          &                                                                                 iLock
     integer         (c_size_t                        )                                  :: countWavenumber
-    type            (hdf5Object                      )                                  :: cambOutput                              , parametersGroup         , &
-         &                                                                                 extrapolationWavenumberGroup            , extrapolationGroup      , &
-         &                                                                                 speciesGroup
     character       (len=32                          )                                  :: parameterLabel                          , datasetName             , &
          &                                                                                 redshiftLabel                           , indexLabel              , &
          &                                                                                 extracted
@@ -230,7 +227,7 @@ contains
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     do iLock=1,2
        ! Get a lock on the file - first a shared lock, but if we need to remake the file, use an exclusive lock on the second pass.
-       call File_Lock(char(fileName_),fileLock,lockIsShared=iLock == 1)
+       call File_Lock(fileName_,fileLock,lockIsShared=iLock == 1)
        ! Clean up workspace.
        if (allocated(transferFunctions     )) deallocate(transferFunctions     )
        if (allocated(datasetNames          )) deallocate(datasetNames          )
@@ -241,10 +238,10 @@ contains
        allEpochsFound=.false.
        if (File_Exists(fileName_)) then
           allEpochsFound=.true.
-          block
-            type(hdf5Object) :: speciesGroup
-            !$ call hdf5Access%set()
-            cambOutput=hdf5Object(fileName_)
+          !$ call hdf5Access%set()
+          hdf5ReadScope: block
+            type(hdf5Object) :: cambOutput, speciesGroup
+            cambOutput=hdf5Object(fileName_,readOnly=.true.)
             call cambOutput%readDataset('wavenumber',wavenumbers)
             allocate(transferFunctions(size(wavenumbers),2,size(redshifts)))
             speciesGroup=cambOutput%openGroup('darkMatter')
@@ -265,8 +262,8 @@ contains
                   allEpochsFound=.false.
                end if
             end do
-            !$ call hdf5Access%unset()
-          end block
+          end block hdf5ReadScope
+          !$ call hdf5Access%unset()
        end if
        if (.not.allocated(wavenumbers) .or. wavenumberRequired > wavenumbers(size(wavenumbers)) .or. .not.allEpochsFound) then
           ! The table is insufficient. If this is the first pass, cycle so that we get an exclusive lock, and then check again (in
@@ -279,14 +276,14 @@ contains
              ! We now have an exclusive lock and the table is insufficient - remake it now.
              ! Find all existing epochs in the file, create a union of these and the requested epochs.
              if (File_Exists(fileName_)) then
-                block
-                  type(hdf5Object) :: speciesGroup
-                  !$ call hdf5Access%set()
-                  cambOutput  =hdf5Object(fileName_)
+                !$ call hdf5Access%set()
+                hdf5DatasetsScope: block
+                  type(hdf5Object) :: cambOutput, speciesGroup
+                  cambOutput  =hdf5Object(fileName_,readOnly=.true.)
                   speciesGroup=cambOutput%openGroup('darkMatter')
-                  call    speciesGroup%datasets(datasetNames)
-                  !$ call hdf5Access  %unset   (            )
-                end block
+                  call speciesGroup%datasets(datasetNames)
+                end block hdf5DatasetsScope
+                !$ call hdf5Access%unset()
              else
                 allocate(datasetNames(0))
              end if
@@ -474,11 +471,12 @@ contains
              wavenumbers=+wavenumbers                                                   &
                   &      *cosmologyParameters_%HubbleConstant(units=hubbleUnitsLittleH)
              ! Construct the output HDF5 file.
-             block
+             !$ call hdf5Access%set()
+             hdf5WriteScope: block
                type(hdf5Object) :: speciesGroup      , parametersGroup             , &
-                    &              extrapolationGroup, extrapolationWavenumberGroup
-               !$ call hdf5Access%set()
-               cambOutput=hdf5Object(fileName_,objectsOverwritable=.true.)
+                    &              extrapolationGroup, extrapolationWavenumberGroup, &
+                    &              cambOutput
+               cambOutput=hdf5Object(fileName_,readOnly=.false.,objectsOverwritable=.true.)
                call cambOutput%writeAttribute('Transfer functions created by CAMB.','description')
                call cambOutput%writeAttribute(cambFormatVersionCurrent,'fileFormat')
                call cambOutput%writeDataset  (wavenumbers             ,'wavenumber'                                  ,chunkSize=chunkSize,appendTo=.not.  cambOutput%hasDataset('wavenumber'))
@@ -500,18 +498,18 @@ contains
                call parametersGroup%writeAttribute(cosmologyParameters_%temperatureCMB (),'temperatureCMB' )
                extrapolationGroup          =cambOutput        %openGroup('extrapolation')
                extrapolationWavenumberGroup=extrapolationGroup%openGroup('wavenumber'   )
-               call    extrapolationWavenumberGroup%writeAttribute('extrapolate','low' )
-               call    extrapolationWavenumberGroup%writeAttribute('extrapolate','high')
-               !$ call hdf5Access                  %unset()
-             end block
+               call extrapolationWavenumberGroup%writeAttribute('extrapolate','low' )
+               call extrapolationWavenumberGroup%writeAttribute('extrapolate','high')
+             end block hdf5WriteScope
+             !$ call hdf5Access%unset()
              deallocate(redshiftsCombined,redshiftRanksCombined,redshiftLabelsCombined)
           end if
           ! If necessary, construct tables of transfer functions.
           if (present(transferFunctionDarkMatter)) then
-             block
-               type(hdf5Object) :: speciesGroup
-               !$ call hdf5Access%set()
-               cambOutput=hdf5Object(char(fileName_))
+             !$ call hdf5Access%set()
+             hdf5TransferDarkMatterScope: block
+               type(hdf5Object) :: cambOutput, speciesGroup
+               cambOutput=hdf5Object(fileName_,readOnly=.true.)
                call cambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
                wavenumbersLogarithmic=log(wavenumbersLogarithmic)
                extrapolationType     =extrapolationTypeExtrapolate
@@ -530,14 +528,14 @@ contains
                   call transferFunctionDarkMatter%populate(transferFunctionLogarithmic,table=int(redshiftRanks(i)))
                   deallocate(transferFunctionLogarithmic)
                end do
-               !$ call hdf5Access%unset()
-             end block
+             end block hdf5TransferDarkMatterScope
+             !$ call hdf5Access%unset()
           end if
           if (present(transferFunctionBaryons)) then
-             block
-               type(hdf5Object) :: speciesGroup
-               !$ call hdf5Access%set()
-               cambOutput=hdf5Object(fileName_)
+             !$ call hdf5Access%set()
+             hdf5TransferFunctionBaryonsScope: block
+               type(hdf5Object) :: cambOutput, speciesGroup
+               cambOutput=hdf5Object(fileName_,readOnly=.true.)
                call cambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
                wavenumbersLogarithmic=log(wavenumbersLogarithmic)
                extrapolationType     =extrapolationTypeExtrapolate
@@ -556,8 +554,8 @@ contains
                   call transferFunctionBaryons   %populate(transferFunctionLogarithmic,table=int(redshiftRanks(i)))
                   deallocate(transferFunctionLogarithmic)
                end do
-               !$ call hdf5Access%unset()
-             end block
+             end block hdf5TransferFunctionBaryonsScope
+             !$ call hdf5Access%unset()
           end if
        end if
        ! Unlock the file.
