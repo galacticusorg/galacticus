@@ -214,69 +214,69 @@ contains
     do while (associated(modelLikelihood_).and.likelihoodCount <= evaluateCount)
        likelihoodCount=likelihoodCount+1
        finalLikelihood=.not.associated(modelLikelihood_%next)
-       if (.not.modelLikelihood_%parameterMapInitialized) then
-          do i=1,size(modelLikelihood_%parameterMap)
+       if (.not.self%maps(likelihoodCount)%parameterMapInitialized) then
+          do i=1,size(self%maps(likelihoodCount)%parameterMap)
              ! Determine the mapping of the simulation state vector to this likelihood.
-             modelLikelihood_%parameterMap(i)=-1
+             self%maps(likelihoodCount)%parameterMap(i)=-1
              do j=1,size(modelParametersActive_)
-                if (modelParametersActive_(j)%modelParameter_%name() == modelLikelihood_%parameterMapNames(i)) then
-                   modelLikelihood_%parameterMap(i)=j
+                if (modelParametersActive_(j)%modelParameter_%name() == self%maps(likelihoodCount)%parameterMapNames(i)) then
+                   self%maps(likelihoodCount)%parameterMap(i)=j
                    exit
                 end if
              end do
-             if (modelLikelihood_%parameterMap(i) == -1) call Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNames(i))//']'//{introspection:location})
+             if (self%maps(likelihoodCount)%parameterMap(i) == -1) call Error_Report('failed to find matching parameter ['//char(self%maps(likelihoodCount)%parameterMapNames(i))//']'//{introspection:location})
              ! Copy the model parameter definition.
-             allocate(modelLikelihood_%modelParametersActive_(i)%modelParameter_,mold=modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_)
+             allocate(self%maps(likelihoodCount)%modelParametersActive_(i)%modelParameter_,mold=modelParametersActive_(self%maps(likelihoodCount)%parameterMap(i))%modelParameter_)
              !![
-             <deepCopyReset variables="modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_"/>
-             <deepCopy source="modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_" destination="modelLikelihood_%modelParametersActive_(i)%modelParameter_"/>
-             <deepCopyFinalize variables="modelLikelihood_%modelParametersActive_(i)%modelParameter_"/>
+             <deepCopyReset variables="modelParametersActive_(self%maps(likelihoodCount)%parameterMap(i))%modelParameter_"/>
+             <deepCopy source="modelParametersActive_(self%maps(likelihoodCount)%parameterMap(i))%modelParameter_" destination="self%maps(likelihoodCount)%modelParametersActive_(i)%modelParameter_"/>
+             <deepCopyFinalize variables="self%maps(likelihoodCount)%modelParametersActive_(i)%modelParameter_"/>
              !!]
           end do
-          if (allocated(modelLikelihood_%parameterMapInactive)) then
-             do i=1,size(modelLikelihood_%parameterMapInactive)
+          if (allocated(self%maps(likelihoodCount)%parameterMapInactive)) then
+             do i=1,size(self%maps(likelihoodCount)%parameterMapInactive)
                 ! Determine the mapping of the inactive parameters to this likelihood.
-                modelLikelihood_%parameterMapInactive(i)=-1
+                self%maps(likelihoodCount)%parameterMapInactive(i)=-1
                 do j=1,size(modelParametersInActive_)
-                   if (modelParametersInactive_(j)%modelParameter_%name() == modelLikelihood_%parameterMapNamesInactive(i)) then
-                      modelLikelihood_%parameterMapInactive(i)=j
+                   if (modelParametersInactive_(j)%modelParameter_%name() == self%maps(likelihoodCount)%parameterMapNamesInactive(i)) then
+                      self%maps(likelihoodCount)%parameterMapInactive(i)=j
                       exit
                    end if
                 end do
-                if (modelLikelihood_%parameterMapInactive(i) == -1) call Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNamesInactive(i))//']'//{introspection:location})
+                if (self%maps(likelihoodCount)%parameterMapInactive(i) == -1) call Error_Report('failed to find matching parameter ['//char(self%maps(likelihoodCount)%parameterMapNamesInactive(i))//']'//{introspection:location})
                 ! Copy the model parameter definition.
-                allocate(modelLikelihood_%modelParametersInactive_(i)%modelParameter_,mold=modelParametersInactive_(modelLikelihood_%parameterMapInactive(i))%modelParameter_)
+                allocate(self%maps(likelihoodCount)%modelParametersInactive_(i)%modelParameter_,mold=modelParametersInactive_(self%maps(likelihoodCount)%parameterMapInactive(i))%modelParameter_)
                 !![
-                <deepCopyReset variables="modelParametersInactive_(modelLikelihood_%parameterMapInactive(i))%modelParameter_"/>
-                <deepCopy source="modelParametersInactive_(modelLikelihood_%parameterMapInactive(i))%modelParameter_" destination="modelLikelihood_%modelParametersInactive_(i)%modelParameter_"/>
-                <deepCopyFinalize variables="modelLikelihood_%modelParametersInactive_(i)%modelParameter_"/>
+                <deepCopyReset variables="modelParametersInactive_(self%maps(likelihoodCount)%parameterMapInactive(i))%modelParameter_"/>
+                <deepCopy source="modelParametersInactive_(self%maps(likelihoodCount)%parameterMapInactive(i))%modelParameter_" destination="self%maps(likelihoodCount)%modelParametersInactive_(i)%modelParameter_"/>
+                <deepCopyFinalize variables="self%maps(likelihoodCount)%modelParametersInactive_(i)%modelParameter_"/>
                 !!]
              end do
           end if
           ! Mark the likelihood as initialized.
-          modelLikelihood_%parameterMapInitialized=.true.
+          self%maps(likelihoodCount)%parameterMapInitialized=.true.
        end if
        ! Map the overall simulation state to the state for this likelihood.
-       forall(i=1:size(modelLikelihood_%parameterMap))
-          stateVectorMapped(i)=stateVector(modelLikelihood_%parameterMap(i))
+       forall(i=1:size(self%maps(likelihoodCount)%parameterMap))
+          stateVectorMapped(i)=stateVector(self%maps(likelihoodCount)%parameterMap(i))
        end forall
-       call modelLikelihood_%simulationState%update       (stateVectorMapped(1:size(modelLikelihood_%parameterMap)),logState=.false.,isConverged=.false.)
-       call modelLikelihood_%simulationState%chainIndexSet(simulationState%chainIndex())
-       call modelLikelihood_%simulationState%countSet     (simulationState%count     ())
+       call self%maps(likelihoodCount)%simulationState%update       (stateVectorMapped(1:size(self%maps(likelihoodCount)%parameterMap)),logState=.false.,isConverged=.false.)
+       call self%maps(likelihoodCount)%simulationState%chainIndexSet(simulationState%chainIndex())
+       call self%maps(likelihoodCount)%simulationState%countSet     (simulationState%count     ())
        ! Evaluate this likelihood
        timeEvaluate_=-1.0
-       logLikelihood                                             =+modelLikelihood_%modelLikelihood_%evaluate(                                           &
-            &                                                                                                 modelLikelihood_%simulationState         , &
-            &                                                                                                 modelLikelihood_%modelParametersActive_  , &
-            &                                                                                                 modelLikelihood_%modelParametersInactive_, &
-            &                                                                                                                  simulationConvergence   , &
-            &                                                                                                                  temperature             , &
-            &                                                                                                                  logLikelihoodCurrent    , &
-            &                                                                                                                  logPriorCurrent         , &
-            &                                                                                                                  logPriorProposed_       , &
-            &                                                                                                                  timeEvaluate_           , &
-            &                                                                                                                  logLikelihoodVariance_    &
-            &                                                                                                                 )
+       logLikelihood                                             =+modelLikelihood_%modelLikelihood_%evaluate(                                                     &
+            &                                                                                                 self%maps(likelihoodCount)%simulationState         , &
+            &                                                                                                 self%maps(likelihoodCount)%modelParametersActive_  , &
+            &                                                                                                 self%maps(likelihoodCount)%modelParametersInactive_, &
+            &                                                                                                                            simulationConvergence   , &
+            &                                                                                                                            temperature             , &
+            &                                                                                                                            logLikelihoodCurrent    , &
+            &                                                                                                                            logPriorCurrent         , &
+            &                                                                                                                            logPriorProposed_       , &
+            &                                                                                                                            timeEvaluate_           , &
+            &                                                                                                                            logLikelihoodVariance_    &
+            &                                                                                                                           )
        ! Modify the likelihood, unless it is improbable, in which case we simply leave it alone.
        if (logLikelihood > logImprobable) then
           !! First shift it so that acceptable likelihoods are always positive.
