@@ -224,7 +224,9 @@ contains
     <constructorAssign variables="fileName, redshift, factorWavenumberSmoothExtrapolation, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterParticle_"/>
     !!]
 
-    self%time=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshift))
+    ! Transfer functions are created on the fly, so locking must be used.
+    self%useLock=.true.
+    self%time   =self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshift))
     call self%readFile(fileName)
     return
   end function fileFuzzyDarkMatterConstructorInternal

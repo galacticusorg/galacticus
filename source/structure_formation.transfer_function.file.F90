@@ -149,7 +149,7 @@
      type            (table1DGeneric                     )                            :: transfer
      logical                                                                          :: massHalfModeAvailable                        , massQuarterModeAvailable, &
           &                                                                              transferFunctionReferenceAvailable           , extrapolateSmooth       , &
-          &                                                                              acceptNegativeValues
+          &                                                                              acceptNegativeValues                         , useLock
      double precision                                                                 :: time                                         , redshift                , &
           &                                                                              massHalfMode                                 , massQuarterMode         , &
           &                                                                              factorWavenumberSmoothExtrapolation          , slopeSmooth             , &
@@ -286,8 +286,9 @@ contains
     !![
     <constructorAssign variables="fileName, transferFunctionType, redshift, acceptNegativeValues, factorWavenumberSmoothExtrapolation, *cosmologyParameters_, *cosmologyFunctions_, *transferFunctionReference"/>
     !!]
-
-    self%time=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshift))
+    
+    self%useLock=.false.    
+    self%time   =self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshift))
     call self%readFile(fileName)
     ! Compute half and quarter-mode masses.
     self%transferFunctionReferenceAvailable=present(transferFunctionReference)
@@ -314,7 +315,7 @@ contains
     use :: IO_HDF5                , only : hdf5Object
     use :: Numerical_Comparison   , only : Values_Differ
     use :: Numerical_Interpolation, only : GSL_Interp_cSpline
-    use :: File_Utilities         , only : File_Name_Expand
+    use :: File_Utilities         , only : File_Name_Expand                , File_Lock                         , File_Unlock
     use :: Table_Labels           , only : enumerationExtrapolationTypeType, enumerationExtrapolationTypeEncode, extrapolationTypeExtrapolate
     use :: String_Handling        , only : stringXMLFormat
     implicit none
@@ -334,6 +335,7 @@ contains
          &                                                                             countLocalMinima               , useCache
     character       (len=32                          )                              :: datasetName
     type            (varying_string                  )                              :: limitTypeVar
+    type            (lockDescriptor                  )                              :: fileLock
     !$GLC attributes initialized :: wavenumber, transfer
     !![
     <optionalArgument name="invalidateCache" defaultsTo=".false."/>
@@ -349,6 +351,7 @@ contains
     end if
     if (useCache == 0) then
        ! Open and read the HDF5 data file.
+       if (self%useLock) call File_Lock(fileName,fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
        hdf5FileScope: block
          type(hdf5Object) :: darkMatterGroup    , parametersObject, &
@@ -404,6 +407,7 @@ contains
          end select
        end block hdf5FileScope
        !$ call hdf5Access%unset()
+       if (self%useLock) call File_Unlock(fileLock)
        ! Validate the transfer functions.
        if (allocated(transferDarkMatter)) then
           if (any(transferDarkMatter == 0.0d0)) call Error_Report('tabulated transfer function contains points at which T(k) = 0 - all points must be non-zero'//{introspection:location})

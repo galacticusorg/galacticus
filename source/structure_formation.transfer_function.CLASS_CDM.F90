@@ -144,6 +144,8 @@ contains
     class default
        call Error_Report('transfer function expects a cold dark matter particle'//{introspection:location})
     end select
+    ! Transfer functions are created on the fly, so locking must be used.
+    self%useLock                            =  .true.
     ! Set initialization state.
     self%initialized                        =  .false.
     self%massHalfModeAvailable              =  .false.
