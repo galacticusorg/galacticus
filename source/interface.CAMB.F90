@@ -504,59 +504,59 @@ contains
              !$ call hdf5Access%unset()
              deallocate(redshiftsCombined,redshiftRanksCombined,redshiftLabelsCombined)
           end if
-          ! If necessary, construct tables of transfer functions.
-          if (present(transferFunctionDarkMatter)) then
-             !$ call hdf5Access%set()
-             hdf5TransferDarkMatterScope: block
-               type(hdf5Object) :: cambOutput, speciesGroup
-               cambOutput=hdf5Object(fileName_,readOnly=.true.)
-               call cambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
-               wavenumbersLogarithmic=log(wavenumbersLogarithmic)
-               extrapolationType     =extrapolationTypeExtrapolate
-               call transferFunctionDarkMatter%create(                                          &
-                    &                                                   wavenumbersLogarithmic, &
-                    &                                 tableCount       =size(redshifts)       , &
-                    &                                 extrapolationType=extrapolationType     , &
-                    &                                 interpolationType=GSL_Interp_cSpline      &
-                    &                                )
-               deallocate(wavenumbersLogarithmic)
-               speciesGroup=cambOutput%openGroup('darkMatter')
-               do i=1,size(redshifts)
-                  datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(i)))
-                  call speciesGroup%readDataset(datasetName,transferFunctionLogarithmic)
-                  transferFunctionLogarithmic=log(transferFunctionLogarithmic)
-                  call transferFunctionDarkMatter%populate(transferFunctionLogarithmic,table=int(redshiftRanks(i)))
-                  deallocate(transferFunctionLogarithmic)
-               end do
-             end block hdf5TransferDarkMatterScope
-             !$ call hdf5Access%unset()
-          end if
-          if (present(transferFunctionBaryons)) then
-             !$ call hdf5Access%set()
-             hdf5TransferFunctionBaryonsScope: block
-               type(hdf5Object) :: cambOutput, speciesGroup
-               cambOutput=hdf5Object(fileName_,readOnly=.true.)
-               call cambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
-               wavenumbersLogarithmic=log(wavenumbersLogarithmic)
-               extrapolationType     =extrapolationTypeExtrapolate
-               call transferFunctionBaryons   %create(                                          &
-                    &                                                   wavenumbersLogarithmic, &
-                    &                                 tableCount       =size(redshifts)       , &
-                    &                                 extrapolationType=extrapolationType     , &
-                    &                                 interpolationType=GSL_Interp_cSpline      &
-                    &                                )
-               deallocate(wavenumbersLogarithmic)
-               speciesGroup=cambOutput%openGroup('baryons')
-               do i=1,size(redshifts)
-                  datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(i)))
-                  call speciesGroup%readDataset(datasetName,transferFunctionLogarithmic)
-                  transferFunctionLogarithmic=log(transferFunctionLogarithmic)
-                  call transferFunctionBaryons   %populate(transferFunctionLogarithmic,table=int(redshiftRanks(i)))
-                  deallocate(transferFunctionLogarithmic)
-               end do
-             end block hdf5TransferFunctionBaryonsScope
-             !$ call hdf5Access%unset()
-          end if
+       end if
+       ! If necessary, construct tables of transfer functions.
+       if (present(transferFunctionDarkMatter)) then
+          !$ call hdf5Access%set()
+          hdf5TransferDarkMatterScope: block
+            type(hdf5Object) :: cambOutput, speciesGroup
+            cambOutput=hdf5Object(fileName_,readOnly=.true.)
+            call cambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
+            wavenumbersLogarithmic=log(wavenumbersLogarithmic)
+            extrapolationType     =extrapolationTypeExtrapolate
+            call transferFunctionDarkMatter%create(                                          &
+                 &                                                   wavenumbersLogarithmic, &
+                 &                                 tableCount       =size(redshifts)       , &
+                 &                                 extrapolationType=extrapolationType     , &
+                 &                                 interpolationType=GSL_Interp_cSpline      &
+                 &                                )
+            deallocate(wavenumbersLogarithmic)
+            speciesGroup=cambOutput%openGroup('darkMatter')
+            do i=1,size(redshifts)
+               datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(i)))
+               call speciesGroup%readDataset(datasetName,transferFunctionLogarithmic)
+               transferFunctionLogarithmic=log(transferFunctionLogarithmic)
+               call transferFunctionDarkMatter%populate(transferFunctionLogarithmic,table=int(redshiftRanks(i)))
+               deallocate(transferFunctionLogarithmic)
+            end do
+          end block hdf5TransferDarkMatterScope
+          !$ call hdf5Access%unset()
+       end if
+       if (present(transferFunctionBaryons)) then
+          !$ call hdf5Access%set()
+          hdf5TransferFunctionBaryonsScope: block
+            type(hdf5Object) :: cambOutput, speciesGroup
+            cambOutput=hdf5Object(fileName_,readOnly=.true.)
+            call cambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
+            wavenumbersLogarithmic=log(wavenumbersLogarithmic)
+            extrapolationType     =extrapolationTypeExtrapolate
+            call transferFunctionBaryons   %create(                                          &
+                 &                                                   wavenumbersLogarithmic, &
+                 &                                 tableCount       =size(redshifts)       , &
+                 &                                 extrapolationType=extrapolationType     , &
+                 &                                 interpolationType=GSL_Interp_cSpline      &
+                 &                                )
+            deallocate(wavenumbersLogarithmic)
+            speciesGroup=cambOutput%openGroup('baryons')
+            do i=1,size(redshifts)
+               datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(i)))
+               call speciesGroup%readDataset(datasetName,transferFunctionLogarithmic)
+               transferFunctionLogarithmic=log(transferFunctionLogarithmic)
+               call transferFunctionBaryons   %populate(transferFunctionLogarithmic,table=int(redshiftRanks(i)))
+               deallocate(transferFunctionLogarithmic)
+            end do
+          end block hdf5TransferFunctionBaryonsScope
+          !$ call hdf5Access%unset()
        end if
        ! Unlock the file.
        call File_Unlock(fileLock,sync=iLock == 2)
