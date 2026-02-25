@@ -106,6 +106,7 @@ contains
     type     (inputParameters                        ), pointer                       :: parameters_           , subParameters_
     character(len=1024                               )                                :: labelIndex            , labelValue              , &
          &                                                                               parameterValue
+    logical                                                                           :: namesMatch
 
     ! On first call we must build pointers to all parameter nodes which will be modified as a function of chain state.
     if (.not.allocated(self%modelParametersActive_)) then
@@ -113,13 +114,11 @@ contains
        do i=1,size(modelParametersActive_)
           ! Check for duplicated parameters.
           do j=1,size(modelParametersActive_)
-             if     (                                                                                                                                                &
-                  &   modelParametersActive_(i)%modelParameter_%name() == modelParametersActive_(j)%modelParameter_%name()                                           &
-                  &  .and.                                                                                                                                           &
-                  &                          i                         /=                        j                                                                   &
-                  & ) call Error_Report("duplicated active parameter name '"//char(modelParametersActive_(i)%modelParameter_%name())//"'"//{introspection:location})
+             namesMatch=modelParametersActive_(i)%modelParameter_%name() == modelParametersActive_(j)%modelParameter_%name()
+             if (namesMatch .and. i /= j) &
+                  & call Error_Report("duplicated active parameter name '"//char(modelParametersActive_(i)%modelParameter_%name())//"'"//{introspection:location})
           end do
-          parameterCount=String_Count_Words(char(modelParametersActive_(i)%modelParameter_%name()),"/")
+          parameterCount=String_Count_Words(modelParametersActive_(i)%modelParameter_%name(),"/")
           allocate(parameterNames(parameterCount))
           call String_Split_Words(parameterNames,char(modelParametersActive_(i)%modelParameter_%name()),"/")
           allocate(parameters_)
@@ -178,13 +177,11 @@ contains
        do i=1,size(modelParametersInactive_)
           ! Check for duplicated parameters.
           do j=1,size(modelParametersInactive_)
-             if     (                                                                                                                                                    &
-                  &   modelParametersInactive_(i)%modelParameter_%name() == modelParametersInactive_(j)%modelParameter_%name()                                           &
-                  &  .and.                                                                                                                                               &
-                  &                            i                         /=                          j                                                                   &
-                  & ) call Error_Report("duplicated inactive parameter name '"//char(modelParametersInactive_(i)%modelParameter_%name())//"'"//{introspection:location})
+             namesMatch=modelParametersInactive_(i)%modelParameter_%name() == modelParametersInactive_(j)%modelParameter_%name()
+             if (namesMatch .and. i /= j) &
+                  & call Error_Report("duplicated inactive parameter name '"//char(modelParametersInactive_(i)%modelParameter_%name())//"'"//{introspection:location})
           end do
-          parameterCount=String_Count_Words(char(modelParametersInactive_(i)%modelParameter_%name()),"/")
+          parameterCount=String_Count_Words(modelParametersInactive_(i)%modelParameter_%name(),"/")
           allocate(parameterNames(parameterCount))
           call String_Split_Words(parameterNames,char(modelParametersInactive_(i)%modelParameter_%name()),"/")
           allocate(parameters_)
@@ -290,7 +287,7 @@ contains
        else
           ! Overwrite only the indexed parameter in the list.
           parameterText =self%modelParametersActive_(i)%parameter_%get()
-          parameterCount=String_Count_Words(char(parameterText))
+          parameterCount=String_Count_Words(parameterText)
           if (self%modelParametersActive_(i)%indexElement > parameterCount)                           &
                & call Error_Report(                                                                   &
                &                   var_str('attempt to access non-existant element {')             // &
@@ -387,7 +384,7 @@ contains
                    else
                       ! Overwrite only the indexed parameter in the list.
                       parameterText =self%modelParametersInactive_(i)%parameter_%get()
-                      parameterCount=String_Count_Words(char(parameterText))
+                      parameterCount=String_Count_Words(parameterText)
                       allocate(parameterNames(parameterCount))
                       call String_Split_Words(parameterNames,char(parameterText))
                       if (modelParameter_%isInteger()) then

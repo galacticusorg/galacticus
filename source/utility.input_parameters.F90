@@ -386,7 +386,7 @@ contains
     specified as a character variable.
     !!}
     use :: Display           , only : displayGreen                     , displayReset
-    use :: File_Utilities    , only : File_Exists                      , File_Name_Expand
+    use :: File_Utilities    , only : File_Exists
     use :: FoX_DOM           , only : node                             , getAttribute    , setAttribute          , getParentNode, &
          &                            removeChild                      , getNodeName     , hasAttribute          , appendChild  , &
          &                            importNode                       , insertBefore    , getNextSibling        , destroy      , &
@@ -426,7 +426,7 @@ contains
     if (.not.File_Exists(fileName)) call Error_Report("parameter file '"//trim(fileName)//"' does not exist"//{introspection:location})
     ! Open and parse the data file.
     !$omp critical (FoX_DOM_Access)
-    doc           => XML_Parse(char(File_Name_Expand(fileName)),iostat=errorStatus,ex=exception,fileNameCurrent=fileNameFailed)
+    doc           => XML_Parse(fileName,iostat=errorStatus,ex=exception,fileNameCurrent=fileNameFailed)
     isException   =  inException(exception)
     exceptionCode =  getExceptionCode(exception)
     !$omp end critical (FoX_DOM_Access)
