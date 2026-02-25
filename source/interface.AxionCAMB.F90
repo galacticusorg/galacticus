@@ -163,9 +163,6 @@ contains
          &                                                                         i                                       , axionCambTransferFile         , &
          &                                                                         j                                       , countRedshiftsUnique
     integer         (c_size_t                )                                  :: countWavenumber
-    type            (hdf5Object              )                                  :: axionCambOutput                         , parametersGroup               , &
-         &                                                                         extrapolationWavenumberGroup            , extrapolationGroup            , &
-         &                                                                         speciesGroup
     character       (len=32                  )                                  :: parameterLabel                          , datasetName                   , &
          &                                                                         redshiftLabel                           , indexLabel
     type            (varying_string          )                                  :: uniqueLabel                             , workPath                      , &
@@ -218,50 +215,53 @@ contains
     call Directory_Make(File_Path(fileName_))
     ! If the file exists but has not yet been read, read it now.
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-    call File_Lock(char(fileName_),fileLock)
+    call File_Lock(fileName_,fileLock)
     allEpochsFound=.false.
     if (File_Exists(fileName_)) then
        allEpochsFound=.true.
        !$ call hdf5Access%set()
-       axionCambOutput=hdf5Object(char(fileName_))
-       call axionCambOutput%readDataset('wavenumber',wavenumbers)
-       allocate(transferFunctions(size(wavenumbers),4,size(redshifts)))
-       speciesGroup=axionCambOutput%openGroup('darkMatter')
-       do i=1,size(redshifts)
-          datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(redshiftRanks(i))))
-          if (speciesGroup%hasDataset(datasetName)) then
-             call speciesGroup%readDatasetStatic(datasetName,transferFunctions(:,axionCambSpeciesDarkMatter     %ID,i))
-          else
-             allEpochsFound=.false.
-          end if
-       end do
-       speciesGroup=axionCambOutput%openGroup('coldDarkMatter')
-       do i=1,size(redshifts)
-          datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(redshiftRanks(i))))
-          if (speciesGroup%hasDataset(datasetName)) then
-             call speciesGroup%readDatasetStatic(datasetName,transferFunctions(:,axionCambSpeciesColdDarkMatter %ID,i))
-          else
-             allEpochsFound=.false.
-          end if
-       end do
-       speciesGroup=axionCambOutput%openGroup('fuzzyDarkMatter')
-       do i=1,size(redshifts)
-          datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(redshiftRanks(i))))
-          if (speciesGroup%hasDataset(datasetName)) then
-             call speciesGroup%readDatasetStatic(datasetName,transferFunctions(:,axionCambSpeciesFuzzyDarkMatter%ID,i))
-          else
-             allEpochsFound=.false.
-          end if
-       end do
-       speciesGroup=axionCambOutput%openGroup('baryons')
-       do i=1,size(redshifts)
-          datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(redshiftRanks(i))))
-          if (speciesGroup%hasDataset(datasetName)) then
-             call speciesGroup%readDatasetStatic(datasetName,transferFunctions(:,axionCambSpeciesBaryons        %ID,i))
-          else
-             allEpochsFound=.false.
-          end if
-       end do
+       hdf5ReadScope: block
+         type(hdf5Object) :: axionCambOutput, speciesGroup
+         axionCambOutput=hdf5Object(fileName_,readOnly=.true.)
+         call axionCambOutput%readDataset('wavenumber',wavenumbers)
+         allocate(transferFunctions(size(wavenumbers),4,size(redshifts)))
+         speciesGroup=axionCambOutput%openGroup('darkMatter')
+         do i=1,size(redshifts)
+            datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(redshiftRanks(i))))
+            if (speciesGroup%hasDataset(datasetName)) then
+               call speciesGroup%readDatasetStatic(datasetName,transferFunctions(:,axionCambSpeciesDarkMatter     %ID,i))
+            else
+               allEpochsFound=.false.
+            end if
+         end do
+         speciesGroup=axionCambOutput%openGroup('coldDarkMatter')
+         do i=1,size(redshifts)
+            datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(redshiftRanks(i))))
+            if (speciesGroup%hasDataset(datasetName)) then
+               call speciesGroup%readDatasetStatic(datasetName,transferFunctions(:,axionCambSpeciesColdDarkMatter %ID,i))
+            else
+               allEpochsFound=.false.
+            end if
+         end do
+         speciesGroup=axionCambOutput%openGroup('fuzzyDarkMatter')
+         do i=1,size(redshifts)
+            datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(redshiftRanks(i))))
+            if (speciesGroup%hasDataset(datasetName)) then
+               call speciesGroup%readDatasetStatic(datasetName,transferFunctions(:,axionCambSpeciesFuzzyDarkMatter%ID,i))
+            else
+               allEpochsFound=.false.
+            end if
+         end do
+         speciesGroup=axionCambOutput%openGroup('baryons')
+         do i=1,size(redshifts)
+            datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(redshiftRanks(i))))
+            if (speciesGroup%hasDataset(datasetName)) then
+               call speciesGroup%readDatasetStatic(datasetName,transferFunctions(:,axionCambSpeciesBaryons        %ID,i))
+            else
+               allEpochsFound=.false.
+            end if
+         end do
+       end block hdf5ReadScope
        !$ call hdf5Access%unset()
     end if
     ! Get density fractions of cold dark matter and fuzzy dark matter.
@@ -280,9 +280,12 @@ contains
        ! Find all existing epochs in the file, create a union of these and the requested epochs.
        if (File_Exists(fileName_)) then
           !$ call hdf5Access%set()
-          axionCambOutput=hdf5Object(char(fileName_))
-          speciesGroup=axionCambOutput%openGroup('darkMatter')
-          call speciesGroup%datasets(datasetNames)
+          hdf5DatasetsScope: block
+            type(hdf5Object) :: axionCambOutput, speciesGroup
+            axionCambOutput=hdf5Object(fileName_,readOnly=.true.)
+            speciesGroup=axionCambOutput%openGroup('darkMatter')
+            call speciesGroup%datasets(datasetNames)
+          end block hdf5DatasetsScope
           !$ call hdf5Access%unset()
        else
           allocate(datasetNames(0))
@@ -494,148 +497,165 @@ contains
             &      *cosmologyParameters_%HubbleConstant(units=hubbleUnitsLittleH)
        ! Construct the output HDF5 file.
        !$ call hdf5Access%set()
-       axionCambOutput=hdf5Object(char(fileName_),objectsOverwritable=.true.)
-       call axionCambOutput%writeAttribute('Transfer functions created by AxionCAMB.','description')
-       call axionCambOutput%writeAttribute(axionCambFormatVersionCurrent,'fileFormat')
-       call axionCambOutput%writeDataset(wavenumbers    ,'wavenumber'                                 ,chunkSize=chunkSize,appendTo=.not.axionCambOutput%hasDataset('wavenumber'))
-       speciesGroup=axionCambOutput%openGroup('darkMatter','Group containing transfer functions for dark matter.')
-       do i=1,countRedshiftsUnique
-          datasetName='transferFunctionZ'//trim(adjustl(redshiftLabelsCombined(i)))
-          call speciesGroup%writeDataset(transferFunctions(:,axionCambSpeciesDarkMatter     %ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
-       end do
-       speciesGroup=axionCambOutput%openGroup('coldDarkMatter' ,'Group containing transfer functions for cold dark matter.' )
-       do i=1,countRedshiftsUnique
-          datasetName='transferFunctionZ'//trim(adjustl(redshiftLabelsCombined(i)))
-          call speciesGroup%writeDataset(transferFunctions(:,axionCambSpeciesColdDarkMatter %ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
-       end do
-       speciesGroup=axionCambOutput%openGroup('fuzzyDarkMatter','Group containing transfer functions for fuzzy dark matter.')
-       do i=1,countRedshiftsUnique
-          datasetName='transferFunctionZ'//trim(adjustl(redshiftLabelsCombined(i)))
-          call speciesGroup%writeDataset(transferFunctions(:,axionCambSpeciesFuzzyDarkMatter%ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
-       end do
-       speciesGroup=axionCambOutput%openGroup('baryons'        ,'Group containing transfer functions for baryons.'          )
-       do i=1,countRedshiftsUnique
-          datasetName='transferFunctionZ'//trim(adjustl(redshiftLabelsCombined(i)))
-          call speciesGroup%writeDataset(transferFunctions(:,axionCambSpeciesBaryons        %ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
-       end do
-       parametersGroup=axionCambOutput%openGroup('parameters')
-       call parametersGroup%writeAttribute(cosmologyParameters_%HubbleConstant (),'HubbleConstant' )
-       call parametersGroup%writeAttribute(cosmologyParameters_%OmegaBaryon    (),'OmegaBaryon'    )
-       call parametersGroup%writeAttribute(cosmologyParameters_%OmegaDarkEnergy(),'OmegaDarkEnergy')
-       call parametersGroup%writeAttribute(cosmologyParameters_%OmegaMatter    (),'OmegaMatter'    )
-       call parametersGroup%writeAttribute(cosmologyParameters_%temperatureCMB (),'temperatureCMB' )
-       select type (darkMatterParticle_)
-       class is (darkMatterParticleFuzzyDarkMatter)
-          call parametersGroup%writeAttribute(darkMatterParticle_%mass           (),'fuzzyDMMass'           )
-          call parametersGroup%writeAttribute(darkMatterParticle_%densityFraction(),'fuzzyDMDensityFraction')
-       class default
-          call Error_Report('transfer function expects a fuzzy dark matter particle'//{introspection:location})
-       end select
-       extrapolationGroup          =axionCambOutput   %openGroup('extrapolation')
-       extrapolationWavenumberGroup=extrapolationGroup%openGroup('wavenumber'   )
-       call extrapolationWavenumberGroup%writeAttribute('extrapolate','low' )
-       call extrapolationWavenumberGroup%writeAttribute('fix'        ,'high')
-       !$ call hdf5Access                  %unset()
+       hdf5WriteScope: block
+         type(hdf5Object) :: axionCambOutput             , parametersGroup   , &
+              &              extrapolationWavenumberGroup, extrapolationGroup, &
+              &              speciesGroup
+         axionCambOutput=hdf5Object(fileName_,readOnly=.false.,objectsOverwritable=.true.)
+         call axionCambOutput%writeAttribute('Transfer functions created by AxionCAMB.','description')
+         call axionCambOutput%writeAttribute(axionCambFormatVersionCurrent,'fileFormat')
+         call axionCambOutput%writeDataset(wavenumbers    ,'wavenumber'                                 ,chunkSize=chunkSize,appendTo=.not.axionCambOutput%hasDataset('wavenumber'))
+         speciesGroup=axionCambOutput%openGroup('darkMatter','Group containing transfer functions for dark matter.')
+         do i=1,countRedshiftsUnique
+            datasetName='transferFunctionZ'//trim(adjustl(redshiftLabelsCombined(i)))
+            call speciesGroup%writeDataset(transferFunctions(:,axionCambSpeciesDarkMatter     %ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
+         end do
+         speciesGroup=axionCambOutput%openGroup('coldDarkMatter' ,'Group containing transfer functions for cold dark matter.' )
+         do i=1,countRedshiftsUnique
+            datasetName='transferFunctionZ'//trim(adjustl(redshiftLabelsCombined(i)))
+            call speciesGroup%writeDataset(transferFunctions(:,axionCambSpeciesColdDarkMatter %ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
+         end do
+         speciesGroup=axionCambOutput%openGroup('fuzzyDarkMatter','Group containing transfer functions for fuzzy dark matter.')
+         do i=1,countRedshiftsUnique
+            datasetName='transferFunctionZ'//trim(adjustl(redshiftLabelsCombined(i)))
+            call speciesGroup%writeDataset(transferFunctions(:,axionCambSpeciesFuzzyDarkMatter%ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
+         end do
+         speciesGroup=axionCambOutput%openGroup('baryons'        ,'Group containing transfer functions for baryons.'          )
+         do i=1,countRedshiftsUnique
+            datasetName='transferFunctionZ'//trim(adjustl(redshiftLabelsCombined(i)))
+            call speciesGroup%writeDataset(transferFunctions(:,axionCambSpeciesBaryons        %ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
+         end do
+         parametersGroup=axionCambOutput%openGroup('parameters')
+         call parametersGroup%writeAttribute(cosmologyParameters_%HubbleConstant (),'HubbleConstant' )
+         call parametersGroup%writeAttribute(cosmologyParameters_%OmegaBaryon    (),'OmegaBaryon'    )
+         call parametersGroup%writeAttribute(cosmologyParameters_%OmegaDarkEnergy(),'OmegaDarkEnergy')
+         call parametersGroup%writeAttribute(cosmologyParameters_%OmegaMatter    (),'OmegaMatter'    )
+         call parametersGroup%writeAttribute(cosmologyParameters_%temperatureCMB (),'temperatureCMB' )
+         select type (darkMatterParticle_)
+         class is (darkMatterParticleFuzzyDarkMatter)
+            call parametersGroup%writeAttribute(darkMatterParticle_%mass           (),'fuzzyDMMass'           )
+            call parametersGroup%writeAttribute(darkMatterParticle_%densityFraction(),'fuzzyDMDensityFraction')
+         class default
+            call Error_Report('transfer function expects a fuzzy dark matter particle'//{introspection:location})
+         end select
+         extrapolationGroup          =axionCambOutput   %openGroup('extrapolation')
+         extrapolationWavenumberGroup=extrapolationGroup%openGroup('wavenumber'   )
+         call extrapolationWavenumberGroup%writeAttribute('extrapolate','low' )
+         call extrapolationWavenumberGroup%writeAttribute('fix'        ,'high')
+       end block hdf5WriteScope
+       !$ call hdf5Access%unset()
     end if
     ! If necessary, construct tables of transfer functions.
     if (present(transferFunctionDarkMatter)) then
        !$ call hdf5Access%set()
-       axionCambOutput=hdf5Object(char(fileName_))
-       call axionCambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
-       wavenumbersLogarithmic=log(wavenumbersLogarithmic)
-       call transferFunctionDarkMatter     %create(                                                 &
-            &                                                        wavenumbersLogarithmic       , &
-            &                                      tableCount       =size(redshifts)              , &
-            &                                      extrapolationType=[                              &
-            &                                                         extrapolationTypeExtrapolate, &
-            &                                                         extrapolationTypeFix          &
-            &                                                        ]                            , &
-            &                                      interpolationType=GSL_Interp_cSpline             &
-            &                                     )
-       deallocate(wavenumbersLogarithmic)
-       speciesGroup=axionCambOutput%openGroup('darkMatter')
-       do i=1,size(redshifts)
-          datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(i)))
-          call speciesGroup%readDataset(datasetName,transferFunctionLogarithmic)
-          transferFunctionLogarithmic=log(abs(transferFunctionLogarithmic))
-          call transferFunctionDarkMatter     %populate(transferFunctionLogarithmic,table=int(redshiftRanks(i)))
-          deallocate(transferFunctionLogarithmic)
-       end do
+       hdf5TransferFunctionDarkMatterScope: block
+         type(hdf5Object) :: axionCambOutput, speciesGroup
+         axionCambOutput=hdf5Object(fileName_,readOnly=.true.)
+         call axionCambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
+         wavenumbersLogarithmic=log(wavenumbersLogarithmic)
+         call transferFunctionDarkMatter     %create(                                                 &
+              &                                                        wavenumbersLogarithmic       , &
+              &                                      tableCount       =size(redshifts)              , &
+              &                                      extrapolationType=[                              &
+              &                                                         extrapolationTypeExtrapolate, &
+              &                                                         extrapolationTypeFix          &
+              &                                                        ]                            , &
+              &                                      interpolationType=GSL_Interp_cSpline             &
+              &                                     )
+         deallocate(wavenumbersLogarithmic)
+         speciesGroup=axionCambOutput%openGroup('darkMatter')
+         do i=1,size(redshifts)
+            datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(i)))
+            call speciesGroup%readDataset(datasetName,transferFunctionLogarithmic)
+            transferFunctionLogarithmic=log(abs(transferFunctionLogarithmic))
+            call transferFunctionDarkMatter     %populate(transferFunctionLogarithmic,table=int(redshiftRanks(i)))
+            deallocate(transferFunctionLogarithmic)
+         end do
+       end block hdf5TransferFunctionDarkMatterScope
        !$ call hdf5Access%unset()
     end if
     if (present(transferFunctionColdDarkMatter)) then
        !$ call hdf5Access%set()
-       axionCambOutput=hdf5Object(char(fileName_))
-       call axionCambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
-       wavenumbersLogarithmic=log(wavenumbersLogarithmic)
-       call transferFunctionColdDarkMatter %create(                                                 &
-            &                                                        wavenumbersLogarithmic       , &
-            &                                      tableCount       =size(redshifts)              , &
-            &                                      extrapolationType=[                              &
-            &                                                         extrapolationTypeExtrapolate, &
-            &                                                         extrapolationTypeFix          &
-            &                                                        ]                            , &
-            &                                      interpolationType=GSL_Interp_cSpline             &
-            &                                     )
-       deallocate(wavenumbersLogarithmic)
-       speciesGroup=axionCambOutput%openGroup('coldDarkMatter')
-       do i=1,size(redshifts)
-          datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(i)))
-          call speciesGroup%readDataset(datasetName,transferFunctionLogarithmic)
-          transferFunctionLogarithmic=log(abs(transferFunctionLogarithmic))
-          call transferFunctionColdDarkMatter %populate(transferFunctionLogarithmic,table=int(redshiftRanks(i)))
-          deallocate(transferFunctionLogarithmic)
-       end do
+       hdf5TransferFunctionCDMScope: block
+         type(hdf5Object) :: axionCambOutput, speciesGroup
+         axionCambOutput=hdf5Object(fileName_,readOnly=.true.)
+         call axionCambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
+         wavenumbersLogarithmic=log(wavenumbersLogarithmic)
+         call transferFunctionColdDarkMatter %create(                                                 &
+              &                                                        wavenumbersLogarithmic       , &
+              &                                      tableCount       =size(redshifts)              , &
+              &                                      extrapolationType=[                              &
+              &                                                         extrapolationTypeExtrapolate, &
+              &                                                         extrapolationTypeFix          &
+              &                                                        ]                            , &
+              &                                      interpolationType=GSL_Interp_cSpline             &
+              &                                     )
+         deallocate(wavenumbersLogarithmic)
+         speciesGroup=axionCambOutput%openGroup('coldDarkMatter')
+         do i=1,size(redshifts)
+            datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(i)))
+            call speciesGroup%readDataset(datasetName,transferFunctionLogarithmic)
+            transferFunctionLogarithmic=log(abs(transferFunctionLogarithmic))
+            call transferFunctionColdDarkMatter %populate(transferFunctionLogarithmic,table=int(redshiftRanks(i)))
+            deallocate(transferFunctionLogarithmic)
+         end do
+       end block hdf5TransferFunctionCDMScope
        !$ call hdf5Access%unset()
     end if
     if (present(transferFunctionFuzzyDarkMatter)) then
        !$ call hdf5Access%set()
-       axionCambOutput=hdf5Object(char(fileName_))
-       call axionCambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
-       wavenumbersLogarithmic=log(wavenumbersLogarithmic)
-       call transferFunctionFuzzyDarkMatter%create(                                                 &
-            &                                                        wavenumbersLogarithmic       , &
-            &                                      tableCount       =size(redshifts)              , &
-            &                                      extrapolationType=[                              &
-            &                                                         extrapolationTypeExtrapolate, &
-            &                                                         extrapolationTypeFix          &
-            &                                                        ]                            , &
-            &                                      interpolationType=GSL_Interp_cSpline             &
-            &                                     )
-       deallocate(wavenumbersLogarithmic)
-       speciesGroup=axionCambOutput%openGroup('fuzzyDarkMatter')
-       do i=1,size(redshifts)
-          datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(i)))
-          call speciesGroup%readDataset(datasetName,transferFunctionLogarithmic)
-          transferFunctionLogarithmic=log(abs(transferFunctionLogarithmic))
-          call transferFunctionFuzzyDarkMatter%populate(transferFunctionLogarithmic,table=int(redshiftRanks(i)))
-          deallocate(transferFunctionLogarithmic)
-       end do
+       hdf5TransferFunctionAxionsScope: block
+         type(hdf5Object) :: axionCambOutput, speciesGroup
+         axionCambOutput=hdf5Object(fileName_,readOnly=.true.)
+         call axionCambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
+         wavenumbersLogarithmic=log(wavenumbersLogarithmic)
+         call transferFunctionFuzzyDarkMatter%create(                                                 &
+              &                                                        wavenumbersLogarithmic       , &
+              &                                      tableCount       =size(redshifts)              , &
+              &                                      extrapolationType=[                              &
+              &                                                         extrapolationTypeExtrapolate, &
+              &                                                         extrapolationTypeFix          &
+              &                                                        ]                            , &
+              &                                      interpolationType=GSL_Interp_cSpline             &
+              &                                     )
+         deallocate(wavenumbersLogarithmic)
+         speciesGroup=axionCambOutput%openGroup('fuzzyDarkMatter')
+         do i=1,size(redshifts)
+            datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(i)))
+            call speciesGroup%readDataset(datasetName,transferFunctionLogarithmic)
+            transferFunctionLogarithmic=log(abs(transferFunctionLogarithmic))
+            call transferFunctionFuzzyDarkMatter%populate(transferFunctionLogarithmic,table=int(redshiftRanks(i)))
+            deallocate(transferFunctionLogarithmic)
+         end do
+       end block hdf5TransferFunctionAxionsScope
        !$ call hdf5Access%unset()
     end if
     if (present(transferFunctionBaryons)) then
        !$ call hdf5Access%set()
-       axionCambOutput=hdf5Object(char(fileName_))
-       call axionCambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
-       wavenumbersLogarithmic=log(wavenumbersLogarithmic)
-       call transferFunctionBaryons        %create(                                                 &
-            &                                                        wavenumbersLogarithmic       , &
-            &                                      tableCount       =size(redshifts)              , &
-            &                                      extrapolationType=[                              &
-            &                                                         extrapolationTypeExtrapolate, &
-            &                                                         extrapolationTypeFix          &
-            &                                                        ]                            , &
-            &                                      interpolationType=GSL_Interp_cSpline             &
-            &                                     )
-       deallocate(wavenumbersLogarithmic)
-       speciesGroup=axionCambOutput%openGroup('baryons')
-       do i=1,size(redshifts)
-          datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(i)))
-          call speciesGroup%readDataset(datasetName,transferFunctionLogarithmic)
-          transferFunctionLogarithmic=log(abs(transferFunctionLogarithmic))
-          call transferFunctionBaryons        %populate(transferFunctionLogarithmic,table=int(redshiftRanks(i)))
-          deallocate(transferFunctionLogarithmic)
-       end do
+       hdf5TransferFunctionBaryonsScope: block
+         type(hdf5Object) :: axionCambOutput, speciesGroup
+         axionCambOutput=hdf5Object(fileName_,readOnly=.true.)
+         call axionCambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
+         wavenumbersLogarithmic=log(wavenumbersLogarithmic)
+         call transferFunctionBaryons        %create(                                                 &
+              &                                                        wavenumbersLogarithmic       , &
+              &                                      tableCount       =size(redshifts)              , &
+              &                                      extrapolationType=[                              &
+              &                                                         extrapolationTypeExtrapolate, &
+              &                                                         extrapolationTypeFix          &
+              &                                                        ]                            , &
+              &                                      interpolationType=GSL_Interp_cSpline             &
+              &                                     )
+         deallocate(wavenumbersLogarithmic)
+         speciesGroup=axionCambOutput%openGroup('baryons')
+         do i=1,size(redshifts)
+            datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(i)))
+            call speciesGroup%readDataset(datasetName,transferFunctionLogarithmic)
+            transferFunctionLogarithmic=log(abs(transferFunctionLogarithmic))
+            call transferFunctionBaryons        %populate(transferFunctionLogarithmic,table=int(redshiftRanks(i)))
+            deallocate(transferFunctionLogarithmic)
+         end do
+       end block hdf5TransferFunctionBaryonsScope
        !$ call hdf5Access%unset()
     end if
     ! Unlock the file.
