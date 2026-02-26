@@ -28,9 +28,10 @@ module File_Utilities
   !!{
   Implements various file-related utilities.
   !!}
-  use, intrinsic :: ISO_C_Binding     , only : c_char        , c_int, c_ptr
-  use            :: ISO_Varying_String, only : varying_string
-  use            :: Locks             , only : ompLock
+  use   , intrinsic :: ISO_C_Binding     , only : c_char        , c_int, c_ptr
+  use               :: ISO_Varying_String, only : varying_string
+  use               :: Locks             , only : ompLock
+  !$ use            :: Resource_Manager  , only : resourceManager
   implicit none
   private
   public :: Count_Lines_in_File, File_Exists           , File_Rename   , File_Lock       , &
@@ -231,9 +232,93 @@ module File_Utilities
   logical          :: posixOpenMPFileLockInitialized=.false.
   integer          :: posixOpenMPFileLockCount      =0
   !$omp threadprivate(posixOpenMPFileLockCount)
+
+  type, public :: file
+     !!{
+     Type used for files.
+     !!}
+     !$ type(resourceManager)          :: unitManager
+     integer                 , pointer :: unit        => null()
+   contains
+     final     ::                  fileDestructor
+     procedure ::                  fileAssign
+     generic   :: assignment(=) => fileAssign
+  end type file
+
+  interface file
+     module procedure fileConstructorVarStr
+     module procedure fileConstructorChar
+  end interface file
   
 contains
 
+  function fileConstructorVarStr(fileName,form,status,position) result(self)
+    !!{
+    Constructor for file objects.
+    !!}
+    use :: ISO_Varying_String, only : char
+    type     (file          )                          :: self
+    type     (varying_string), intent(in   )           :: fileName
+    character(len=*         ), intent(in   )           :: form    , status
+    character(len=*         ), intent(in   ), optional :: position
+
+    self=file(char(fileName),form,status,position)
+    return
+  end function fileConstructorVarStr
+  
+  function fileConstructorChar(fileName,form,status,position) result(self)
+    !!{
+    Constructor for file objects.
+    !!}
+    type     (file )                          :: self
+    character(len=*), intent(in   )           :: fileName     , form, &
+         &                                       status
+    character(len=*), intent(in   ), optional :: position
+    class    (    *), pointer                 :: dummyPointer_
+
+    allocate(self%unit)
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    !$ dummyPointer_    => self%unit
+    !$ self%unitManager =  resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]    
+    if (present(position)) then
+       open(newUnit=self%unit,file=fileName,form=form,status=status,position=position)
+    else
+       open(newUnit=self%unit,file=fileName,form=form,status=status                  )
+    end if
+    return
+  end function fileConstructorChar
+  
+  subroutine fileDestructor(self)
+    !!{
+    Destructor for file objects.
+    !!}
+    implicit none
+    type(file), intent(inout) :: self
+
+    if (self%unitManager%count() == 1) close(self%unit)
+    call self%unitManager%release()
+    return
+  end subroutine fileDestructor
+
+  subroutine fileAssign(to,from)
+    !!{
+    Assignment operator for the {\normalfont \ttfamily file} class.
+    !!}
+    implicit none
+    class(file), intent(  out) :: to
+    class(file), intent(in   ) :: from
+
+    !$ to%unitManager =  from%unitManager
+    !$ to%unit        => from%unit
+    return
+  end subroutine fileAssign
+  
   logical function File_Exists_VarStr(fileName)
     !!{
     Checks for existence of file {\normalfont \ttfamily fileName} (version for varying string argument).
