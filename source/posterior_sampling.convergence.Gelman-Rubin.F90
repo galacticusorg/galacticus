@@ -21,18 +21,9 @@
   Implementation of a posterior sampling convergence class which implements the Gelman-Rubin statistic.
   !!}
 
+  use :: File_Utilities    , only : file
   use :: ISO_Varying_String, only : varying_string
-  use :: Resource_Manager  , only : resourceManager
 
-  type :: fileShared
-     !!{
-     Wrapper type to manage shared file resource.
-     !!}
-     integer :: unit
-   contains
-     final :: fileSharedDestructor
-  end type fileShared
-  
   !![
   <posteriorSampleConvergence name="posteriorSampleConvergenceGelmanRubin">
    <description>
@@ -57,16 +48,15 @@
      Implementation of a posterior sampling convergence class which implements the Gelman-Rubin statistic.
      !!}
      private
-     double precision                                             :: thresholdHatR                       , outlierSignificance, &
+     double precision                                             :: thresholdHatR             , outlierSignificance, &
           &                                                          outlierLogLikelihoodOffset
-     integer                                                      :: burnCount                           , testCount          , &
-          &                                                          stepCount                           , outlierCountMaximum, &
-          &                                                          reportCount                         , estimateCount      , &
+     integer                                                      :: burnCount                 , testCount          , &
+          &                                                          stepCount                 , outlierCountMaximum, &
+          &                                                          reportCount               , estimateCount      , &
           &                                                          convergedAtStepCount
      logical                                                      :: converged
      type            (varying_string )                            :: logFileName
-     type            (fileShared     ), pointer                   :: logFile                    => null()
-     type            (resourceManager)                            :: logFileManager
+     type            (file           )                            :: logFile
      double precision                 , allocatable, dimension(:) :: correctedHatR
      logical                          , allocatable, dimension(:) :: chainMask
    contains
@@ -171,15 +161,14 @@ contains
     !!{
     Constructor for the \refClass{posteriorSampleConvergenceGelmanRubin} convergence class.
     !!}
-    use :: Error            , only : Error_Report
-    use :: MPI_Utilities    , only : mpiSelf
+    use :: Error        , only : Error_Report
+    use :: MPI_Utilities, only : mpiSelf
     type            (posteriorSampleConvergenceGelmanRubin)                :: self
     double precision                                       , intent(in   ) :: thresholdHatR             , outlierSignificance, &
          &                                                                    outlierLogLikelihoodOffset
     integer                                                , intent(in   ) :: burnCount                 , testCount          , &
          &                                                                    outlierCountMaximum       , reportCount
     type            (varying_string                       ), intent(in   ) :: logFileName
-    class           (*                                    ), pointer       :: dummyPointer_
     !![
     <constructorAssign variables="thresholdHatR,burnCount,testCount,outlierCountMaximum,outlierSignificance,outlierLogLikelihoodOffset,reportCount,logFileName"/>
     !!]
@@ -193,19 +182,8 @@ contains
     ! Validate.
     if (mpiSelf%count()-self%outlierCountMaximum < 3) call Error_Report('maximum number of outliers is too large'//{introspection:location})
     ! Open log file.
-    if (mpiSelf%isMaster()) then
-       allocate(self%logFile)
-       !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
-       !!]
-       dummyPointer_       => self%logFile
-       self%logFileManager =  resourceManager(dummyPointer_)
-       !![
-       </workaround>
-       !!]
-       open(newUnit=self%logFile%unit,file=char(logFileName),form='formatted',status='unknown')
-    end if
+    if (mpiSelf%isMaster()) &
+         & self%logFile=file(logFileName,form='formatted',status='unknown')
     return
   end function gelmanRubinConstructorInternal
 
@@ -575,14 +553,3 @@ contains
     gelmanRubinConvergenceMeasureTarget=self%thresholdHatR
     return
   end function gelmanRubinConvergenceMeasureTarget
-
-  subroutine fileSharedDestructor(self)
-    !!{
-    Destructor for shared file objects.
-    !!}
-    implicit none
-    type(fileShared), intent(inout) :: self
-
-    close(self%unit)
-    return
-  end subroutine fileSharedDestructor
