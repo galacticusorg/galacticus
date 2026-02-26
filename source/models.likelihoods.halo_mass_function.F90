@@ -58,6 +58,7 @@
      type            (varying_string               ), dimension(:    ), allocatable :: fileNames
      double precision                               , dimension(:    ), allocatable :: redshifts                                   , times
    contains
+     final     ::                    haloMassFunctionDestructor
      procedure :: evaluate        => haloMassFunctionEvaluate
      procedure :: functionChanged => haloMassFunctionFunctionChanged
   end type posteriorSampleLikelihoodHaloMassFunction
