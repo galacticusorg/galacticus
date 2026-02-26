@@ -36,8 +36,6 @@
     <haloMassFunction value="bhattacharya2011">
       <a value="=[haloMassFunctionParameters/a]" />
       <b value="=[haloMassFunctionParameters/b]" />
-      <f value="=[haloMassFunctionParameters/f]" />
-      <g value="=[haloMassFunctionParameters/g]" />
       <normalization value="=[haloMassFunctionParameters/normalization]" />
       <p value="=[haloMassFunctionParameters/p]" />
       <q value="=[haloMassFunctionParameters/q]" />
@@ -50,8 +48,6 @@
     <b value="+1.0000" />
     <beta value="+4.4100" />
     <cW value="+1.8500" />
-    <f value="+0.0000" />
-    <g value="+0.0000" />
     <normalization value="+0.3318" />
     <p value="-0.0306" />
     <q value="+1.0000" />
