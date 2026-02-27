@@ -27,6 +27,7 @@
   use :: Cosmology_Parameters    , only : cosmologyParametersClass
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Mass_Distributions      , only : massDistributionClass
   use :: Galacticus_Nodes        , only : treeNode
   use :: HDF5                    , only : hsize_t
   use :: ISO_Varying_String      , only : varying_string
@@ -112,14 +113,15 @@
   ! Tables used in construction of distribution functions.
   class           (mergerTreeOperatorParticulate   ), pointer     :: self_
   type            (treeNode                        ), pointer     :: node_
+  class           (massDistributionClass           ), pointer     :: massDistribution__
   logical                                                         :: energyDistributionInitialized
   class           (table1D                         ), allocatable :: radiusDistribution
   type            (table1DLogarithmicCSpline       )              :: energyDistribution
   type            (enumerationParticulateKernelType)              :: softeningKernel
-  double precision                                                :: energy_                                 , radiusTruncate_, &
-       &                                                             height_                                 , radius_        , &
-       &                                                             lengthSoftening_
-  !$omp threadprivate(self_,node_,radiusDistribution,energyDistribution,energyDistributionInitialized,softeningKernel,energy_,radiusTruncate_,height_,radius_,lengthSoftening_)
+  double precision                                                :: energy_                                 , massTruncate_   , &
+       &                                                             radiusTruncate_                         , height_         , &
+       &                                                             radius_                                 , lengthSoftening_
+  !$omp threadprivate(self_,node_,massDistribution__,radiusDistribution,energyDistribution,energyDistributionInitialized,softeningKernel,energy_,massTruncate_,radiusTruncate_,height_,radius_,lengthSoftening_)
 
 contains
 
@@ -365,7 +367,6 @@ contains
     use    :: IO_HDF5                   , only : hdf5Object
     use    :: ISO_Varying_String        , only : varying_string                   , var_str
     use    :: Locks                     , only : ompLock
-    use    :: Mass_Distributions        , only : massDistributionClass
     use    :: Merger_Tree_Walkers       , only : mergerTreeWalkerAllNodes
     use    :: Node_Components           , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
     use    :: Numerical_Comparison      , only : Values_Agree
@@ -504,6 +505,7 @@ contains
           satellite => node%satellite()
           ! Set pointers to module-scope variables.
           node_            => node
+          massTruncate_    =  massTruncate
           radiusTruncate_  =  radiusTruncate
           lengthSoftening_ =  self%lengthSoftening
           softeningKernel  =  self%kernelSoftening
@@ -513,7 +515,7 @@ contains
           positionRandomOffset=0.0d0
           velocityRandomOffset=0.0d0
           lockSampling        =ompLock()
-          !$omp parallel private(i,j,positionSpherical,positionCartesian,velocitySpherical,velocityCartesian,energy,energyPotential,speed,speedEscape,speedPrevious,distributionFunction,distributionFunctionMaximum,keepSample,radiusEnergy,positionVector,velocityVector,randomDeviates) copyin(node_,radiusTruncate_,lengthSoftening_,softeningKernel)
+          !$omp parallel private(i,j,positionSpherical,positionCartesian,velocitySpherical,velocityCartesian,energy,energyPotential,speed,speedEscape,speedPrevious,distributionFunction,distributionFunctionMaximum,keepSample,radiusEnergy,positionVector,velocityVector,randomDeviates) copyin(node_,massTruncate_,radiusTruncate_,lengthSoftening_,softeningKernel)
           call Node_Components_Thread_Initialize(self%parameters)
           allocate(self_,mold=self)
           !$omp critical(mergerTreeOperatorsParticulateDeepCopy)
@@ -523,6 +525,7 @@ contains
           <deepCopyFinalize variables="self_"/>
           !!]
           !$omp end critical(mergerTreeOperatorsParticulateDeepCopy)
+          massDistribution__ => node_%massDistribution(massType=massTypeDark)
           !$omp do reduction(+: positionRandomOffset, velocityRandomOffset)
           do i=1,particleCountActual
              !$ if (OMP_Get_Thread_Num() == 0) then
@@ -548,7 +551,12 @@ contains
              call lockSampling%unset()
              call positionSpherical%  phiSet(     2.0d0*Pi       *randomDeviates(1)       )
              call positionSpherical%thetaSet(acos(2.0d0          *randomDeviates(2)-1.0d0))
-             call positionSpherical%    rSet(     radiusTruncate_*randomDeviates(3)       )
+             call positionSpherical%    rSet(                                                               &
+                  &                          massDistribution__%radiusEnclosingMass(                        &
+                  &                                                                 mass=+massTruncate_     &
+                  &                                                                      *randomDeviates(3) &
+                  &                                                                 )                       &
+                  &                         )
              ! Get the corresponding cartesian coordinates.
              positionCartesian=positionSpherical
              ! Construct the energy distribution function encompassing this radius.
@@ -695,7 +703,8 @@ contains
           !$omp end do
           call Node_Components_Thread_Uninitialize()
           !![
-          <objectDestructor name="self_"/>
+          <objectDestructor name="self_"             />
+          <objectDestructor name="massDistribution__"/>
           !!]
           !$omp end parallel
           call displayCounterClear(verbosity=verbosityLevelWorking)
