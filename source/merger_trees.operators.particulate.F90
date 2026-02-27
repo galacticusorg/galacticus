@@ -536,27 +536,31 @@ contains
              counter=counter+1
              ! Sample particle positions from the halo density distribution. Currently, we assume that halos are spherically
              ! symmetric.
-             randomDeviates=-1.0d0
-             call lockSampling%set()
-             do j=1,3
-                ! Ensure that the third random deviate (the enclosed mass fraction) is never precisely zero.
-                do while (                                           &
-                     &     (j == 3 .and. randomDeviates(j) <= 0.0d0) &
-                     &    .or.                                       &
-                     &     (j /= 3 .and. randomDeviates(j) <  0.0d0) &
-                     &   )
-                   randomDeviates(j)=tree%randomNumberGenerator_%uniformSample()
+             keepSample=.false.
+             do while (.not.keepSample)
+                randomDeviates=-1.0d0
+                call lockSampling%set()
+                do j=1,3
+                   ! Ensure that the third random deviate (the enclosed mass fraction) is never precisely zero.
+                   do while (                                           &
+                        &     (j == 3 .and. randomDeviates(j) <= 0.0d0) &
+                        &    .or.                                       &
+                        &     (j /= 3 .and. randomDeviates(j) <  0.0d0) &
+                        &   )
+                      randomDeviates(j)=tree%randomNumberGenerator_%uniformSample()
+                   end do
                 end do
+                call lockSampling%unset()
+                call positionSpherical%  phiSet(     2.0d0*Pi       *randomDeviates(1)       )
+                call positionSpherical%thetaSet(acos(2.0d0          *randomDeviates(2)-1.0d0))
+                call positionSpherical%    rSet(                                                               &
+                     &                          massDistribution__%radiusEnclosingMass(                        &
+                     &                                                                 mass=+massTruncate_     &
+                     &                                                                      *randomDeviates(3) &
+                     &                                                                 )                       &
+                     &                         )
+                keepSample=positionSpherical%rSpherical() < radiusTruncate_
              end do
-             call lockSampling%unset()
-             call positionSpherical%  phiSet(     2.0d0*Pi       *randomDeviates(1)       )
-             call positionSpherical%thetaSet(acos(2.0d0          *randomDeviates(2)-1.0d0))
-             call positionSpherical%    rSet(                                                               &
-                  &                          massDistribution__%radiusEnclosingMass(                        &
-                  &                                                                 mass=+massTruncate_     &
-                  &                                                                      *randomDeviates(3) &
-                  &                                                                 )                       &
-                  &                         )
              ! Get the corresponding cartesian coordinates.
              positionCartesian=positionSpherical
              ! Construct the energy distribution function encompassing this radius.
