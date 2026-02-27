@@ -200,6 +200,7 @@ contains
     double precision :: formationMassFraction = 0.5d0
     double precision :: timeFormation
     double precision :: VmaxSIDMPrevious, tc, tau, dtr, VmaxSIDM, RmaxSIDM, RmaxCDM, RmaxNFW0, VmaxNFW0, r_sNFW0, rho_sNFW0, rho_s, r_s, r_c, VmaxCDM
+    double precision :: dt, tau_old, Mhalo, dMdt, Gamma, alpha=2.0d0
     double precision :: massHaloDeclineFactor=0.99d0, timeEarliest=0.0d0, massResolution
 
 
@@ -288,9 +289,20 @@ contains
              massDistribution_ => self%darkMatterProfileDMO_%get(nodeNew)
              VmaxSIDMPrevious = darkMatterProfileChild%floatRank0MetaPropertyGet(self%VmaxSIDMID)+massDistribution_%velocityRotationCurveMaximum()
 
+             dt = basicNew%time() - basicNewChild%time()
+
+
              tc = get_tc(self, nodeNew, massDistribution_%velocityRotationCurveMaximum(), massDistribution_%radiusRotationCurveMaximum(), VmaxSIDMPrevious)
 
-             tau = darkMatterProfileChild%floatRank0MetaPropertyGet(self%tauID)+(basicNew%time() - basicNewChild%time())/tc
+             !tau = darkMatterProfileChild%floatRank0MetaPropertyGet(self%tauID)+(basicNew%time() - basicNewChild%time())/tc
+
+             Mhalo = basicNewChild%mass()
+             dMdt  = basicNewChild%accretionRate()
+             Gamma = dMdt / Mhalo
+
+             tau_old = darkMatterProfileChild%floatRank0MetaPropertyGet(self%tauID)
+             tau = tau_old + dt * (1.d0/tc - alpha * Gamma * tau_old) 
+
 
              call darkMatterProfile%floatRank0MetaPropertySet(self%tauID, tau)
 
@@ -299,8 +311,12 @@ contains
                 print *, 'Gravothermal evolution too fast, dtr: ', dtr
              end if
 
-             VmaxSIDM = darkMatterProfileChild%floatRank0MetaPropertyGet(self%VmaxSIDMID) + dvmaxt(tau, massDistribution_%velocityRotationCurveMaximum()) * (basicNew%time() - basicNewChild%time())/tc
-             RmaxSIDM = darkMatterProfileChild%floatRank0MetaPropertyGet(self%RmaxSIDMID) + drmaxt(tau, massDistribution_%radiusRotationCurveMaximum()) * (basicNew%time() - basicNewChild%time())/tc
+             if (alpha * Gamma * dt > 0.05d0) then
+                print *, 'Mass growth term too large: ', alpha*Gamma*dt
+             end if
+
+             VmaxSIDM = darkMatterProfileChild%floatRank0MetaPropertyGet(self%VmaxSIDMID) + dvmaxt(tau,massDistribution_%velocityRotationCurveMaximum()) * dt * (1.d0/tc - alpha * Gamma * tau_old) !dt/tc
+             RmaxSIDM = darkMatterProfileChild%floatRank0MetaPropertyGet(self%RmaxSIDMID) + drmaxt(tau,massDistribution_%radiusRotationCurveMaximum()) * dt * (1.d0/tc - alpha * Gamma * tau_old) !(basicNew%time() - basicNewChild%time())/tc
 
              call darkMatterProfile%floatRank0MetaPropertySet(self%VmaxSIDMID, VmaxSIDM)
 
@@ -496,6 +512,7 @@ contains
     double precision :: VmaxSIDM=0.0d0, RmaxSIDM=0.0d0, VmaxSIDMPrevious, RmaxSIDMPrevious, VmaxCDM, RmaxCDM, VmaxCDMPrevious, RmaxCDMPrevious
     double precision :: dtr
     double precision :: tau, VmaxSIDM, tc, dvdt, drdt, RmaxSIDM
+    double precision :: Mhalo, dMdt, Gamma, alpha=2.0d0, dtaudt
 
     logical, intent(inout) :: interrupt
     procedure(interruptTask), intent(inout), pointer :: functionInterrupt
@@ -515,11 +532,20 @@ contains
             massDistribution_ => self%darkMatterProfileDMO_%get(node)
             VmaxSIDM = darkMatterProfile%floatRank0MetaPropertyGet(self%VmaxSIDMID)+massDistribution_%velocityRotationCurveMaximum()
             tc = get_tc(self, node, massDistribution_%velocityRotationCurveMaximum(), massDistribution_%radiusRotationCurveMaximum(), VmaxSIDM)
-            call darkMatterProfile%floatRank0MetaPropertyRate(self%tauID, 1.0d0/tc)
+            tau = darkMatterProfile%floatRank0MetaPropertyGet(self%tauID)
+
+            Mhalo = basic%mass()
+            dMdt  = basic%accretionRate()
+            Gamma = dMdt / Mhalo
+            dtaudt = 1.0d0/tc - alpha * Gamma * tau
+
+            call darkMatterProfile%floatRank0MetaPropertyRate(self%tauID, dtaudt)
+
+            !call darkMatterProfile%floatRank0MetaPropertyRate(self%tauID, 1.0d0/tc)
 
             tau = darkMatterProfile%floatRank0MetaPropertyGet(self%tauID)
-            dvdt = dvmaxt(tau, massDistribution_%velocityRotationCurveMaximum()) * (1.0d0) / tc
-            drdt = drmaxt(tau, massDistribution_%radiusRotationCurveMaximum()) * (1.0d0) / tc
+            dvdt = dvmaxt(tau, massDistribution_%velocityRotationCurveMaximum()) * dtaudt !(1.0d0) / tc
+            drdt = drmaxt(tau, massDistribution_%radiusRotationCurveMaximum()) * dtaudt !(1.0d0) / tc
 
             call darkMatterProfile%floatRank0MetaPropertyRate(self%VmaxSIDMID, dvdt) 
             call darkMatterProfile%floatRank0MetaPropertyRate(self%RmaxSIDMID, drdt)
