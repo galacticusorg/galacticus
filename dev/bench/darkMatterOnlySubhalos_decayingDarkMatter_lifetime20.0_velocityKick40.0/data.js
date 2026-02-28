@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1772248680481,
+  "lastUpdate": 1772322028517,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=40 km/s)": [
@@ -4435,6 +4435,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
             "value": 23.598058684484847,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f8fb4af0a7b8d6300c636159e4db5c41cd35bf28",
+          "message": "Merge pull request #1005 from galacticusorg/fixParticleGeneratorBug\n\nFix a bug related to drawing the coordinates of the N-body particles",
+          "timestamp": "2026-02-28T17:20:10Z",
+          "tree_id": "4587e9fd209a195018ecc2e7b39d349513a814a2",
+          "url": "https://github.com/galacticusorg/galacticus/commit/f8fb4af0a7b8d6300c636159e4db5c41cd35bf28"
+        },
+        "date": 1772322028004,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": 14.628966964986416,
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": 27.83923658669273,
             "unit": "-logℒ"
           }
         ]
