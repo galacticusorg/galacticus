@@ -169,5 +169,12 @@
     <timeMaximum value="2.0"/>
     <countTimes  value="2" />
   </outputTimes>
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="nodeIndices"/>
+    <nodePropertyExtractor value="massProfile">
+      <radiusSpecifiers value="virialRadius:darkHalo:dark:0.001 virialRadius:darkHalo:dark:0.003 virialRadius:darkHalo:dark:0.005 virialRadius:darkHalo:dark:0.007 virialRadius:darkHalo:dark:0.009 virialRadius:darkHalo:dark:0.01 virialRadius:darkHalo:dark:0.03 virialRadius:darkHalo:dark:0.05 virialRadius:darkHalo:dark:0.07 virialRadius:darkHalo:dark:0.09 virialRadius:darkHalo:dark:0.1 virialRadius:darkHalo:dark:0.3 virialRadius:darkHalo:dark:0.5 virialRadius:darkHalo:dark:0.7 virialRadius:darkHalo:dark:0.9 virialRadius:darkHalo:dark:1.0"/>
+      <includeRadii value="true"/>
+    </nodePropertyExtractor>
+  </nodePropertyExtractor>
 
 </parameters>

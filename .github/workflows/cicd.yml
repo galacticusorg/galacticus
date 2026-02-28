@@ -1396,7 +1396,7 @@ jobs:
                 testSuite/regressions/linearGrowthForFutureModel.xml,
                 testSuite/regressions/ludlowScaleSetBeforeTreeInitialization.xml,
                 testSuite/regressions/mergerAtFinalTimeInTree.xml,
-                testSuite/regressions/particulate.xml,
+                testSuite/regressions/particulate.py,
                 testSuite/regressions/subhaloMergesAtFinalTimeOfTree.xml,
                 testSuite/regressions/subhaloTwoConsecutiveMergers.xml,
                 testSuite/regressions/treeWithInitialSatelliteInProgenitorlessHost.xml,
