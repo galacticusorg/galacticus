@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1772321889652,
+  "lastUpdate": 1772321899807,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "e811db8d18095d34fe82c73b4a2f58fbd2f3b54b",
-          "message": "fix: Merge branch 'master' of github.com:galacticusorg/galacticus",
-          "timestamp": "2025-01-27T16:33:29-08:00",
-          "tree_id": "31205a4b6158cfc9e25ed62b7ea37c4e993d9974",
-          "url": "https://github.com/galacticusorg/galacticus/commit/e811db8d18095d34fe82c73b4a2f58fbd2f3b54b"
-        },
-        "date": 1738052057162,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": "17.02110555164924",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": "9.647241439303853",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": "20692.679598750343",
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8796,6 +8757,45 @@ window.BENCHMARK_DATA = {
             "value": 50.921,
             "range": "0.150721265918025",
             "unit": "seconds"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f8fb4af0a7b8d6300c636159e4db5c41cd35bf28",
+          "message": "Merge pull request #1005 from galacticusorg/fixParticleGeneratorBug\n\nFix a bug related to drawing the coordinates of the N-body particles",
+          "timestamp": "2026-02-28T17:20:10Z",
+          "tree_id": "4587e9fd209a195018ecc2e7b39d349513a814a2",
+          "url": "https://github.com/galacticusorg/galacticus/commit/f8fb4af0a7b8d6300c636159e4db5c41cd35bf28"
+        },
+        "date": 1772321898777,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 1.7695627271634107,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 3.2326039248060883,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 10161.457949537144,
+            "unit": "-logℒ"
           }
         ]
       }
