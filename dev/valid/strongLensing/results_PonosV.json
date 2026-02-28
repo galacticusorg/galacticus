@@ -6,10 +6,10 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "c6ab017920ddac6869393e6c6ae981c1952e7f73",
-        "message": "Merge pull request #1004 from galacticusorg/boundMassInitialization\n\nAllow initializing satellite’s bound mass in a more flexible way\n",
-        "timestamp": "2026-02-27 17:21:54+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/c6ab017920ddac6869393e6c6ae981c1952e7f73"
+        "id": "f8fb4af0a7b8d6300c636159e4db5c41cd35bf28",
+        "message": "Merge pull request #1005 from galacticusorg/fixParticleGeneratorBug\n\nFix a bug related to drawing the coordinates of the N-body particles\n",
+        "timestamp": "2026-02-28 17:20:10+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/f8fb4af0a7b8d6300c636159e4db5c41cd35bf28"
     },
     "surfaceDensity": {
         "percentageBelow": 32.14285714285714,
