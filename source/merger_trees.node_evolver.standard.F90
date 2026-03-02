@@ -735,7 +735,7 @@ contains
                    self%propertyValuesInactive(1:self%propertyCountInactive)=self%propertyValuesInactiveSaved(1:self%propertyCountInactive)
                 else if (present(status)) then
                    call displayMessage('ODE integration failed '//{introspection:location})
-                   status=errorStatusFail
+                   status=errorStatusUnderflow
                    return
                 else
                    call Error_Report  ('ODE integration failed '//{introspection:location})
