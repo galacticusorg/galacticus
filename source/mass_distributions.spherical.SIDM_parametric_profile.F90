@@ -17,83 +17,95 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Niusha Ahvazi
+  
   !!{
-  Implementation of a SIDM Parametric profile mass distribution class.
+  Implementation of a mass distribution class for the SIDM parametric profile of \cite{yang_parametric_2024}.
   !!}
 
   !![
   <massDistribution name="massDistributionSIDMParametricProfile">
-   <description>An mass distribution class for SIDM Parametric profile distributions.</description>
+    <description>
+      A mass distribution class for the SIDM parametric profile of \cite{yang_parametric_2024}. The density profile is given by:
+      \begin{equation} \rho(r) = \rho_\mathrm{s} \left[ \left( \left[\frac{r}{r_\mathrm{s}}\right]^\beta +
+      \left[\frac{r_\mathrm{c}}{r_\mathrm{s}}\right]^\beta \right)^{1/\beta} \left( 1 + \frac{r}{r_\mathrm{s}} \right)^2
+      \right]^{-1}.  \end{equation}
+    </description>
   </massDistribution>
   !!]
-  type, public, extends(massDistributionSpherical) :: massDistributionSIDMParametricProfile
+  type, public, extends(massDistributionSphericalTabulated) :: massDistributionSIDMParametricProfile
      !!{
-     The SIDM PArametric profile: $\rho(r)=$
+     A mass distribution class for the SIDM parametric profile of \cite{yang_parametric_2024}.
      !!}
-     double precision :: beta                  , scaleRadius          , coreRadius           , densityNormalization  , &
-          &              momentRadial2Previous , momentRadial3Previous, momentRadial2XPrevious, &
-          &              momentRadial3XPrevious, outerRadius
+     double precision :: beta      , radiusScale         , &
+          &              radiusCore, densityNormalization 
    contains
      procedure :: density               => SIDMParametricProfileDensity
      procedure :: densityGradientRadial => SIDMParametricProfileDensityGradientRadial
-!     procedure :: densityRadialMoment   => betaProfileDensityRadialMoment
-!     procedure :: densitySquareIntegral => betaProfileDensitySquareIntegral
-!     procedure :: massEnclosedBySphere  => betaProfileMassEnclosedBySphere
-!     procedure :: potentialIsAnalytic   => betaProfilePotentialIsAnalytic
-!     procedure :: potential             => betaProfilePotential
-!     procedure :: descriptor            => betaProfileDescriptor
+     procedure :: parameters            => SIDMParametricProfileParameters
+     procedure :: factoryTabulation     => SIDMParametricProfileFactoryTabulation
+     procedure :: descriptor            => SIDMParametricProfileDescriptor
+     procedure :: suffix                => SIDMParametricProfileSuffix
   end type massDistributionSIDMParametricProfile
-
+  
   interface massDistributionSIDMParametricProfile
      !!{
-     Constructors for the {\normalfont \ttfamily SIDMParametricProfile} mass distribution class.
+     Constructors for the \refClass{massDistributionSIDMParametricProfile} mass distribution class.
      !!}
      module procedure SIDMParametricProfileConstructorParameters
      module procedure SIDMParametricProfileConstructorInternal
   end interface massDistributionSIDMParametricProfile
 
+  ! Tabulated solutions.
+  logical                                     :: containerSIDMParametricProfileInitialized=.false.
+  type   (massDistributionContainer), pointer :: containerSIDMParametricProfile
+  !$omp threadprivate(containerSIDMParametricProfile,containerSIDMParametricProfileInitialized)
+  
+  ! Generate a source digest.
+  !![
+  <sourceDigest name="massDistributionSIDMParametricProfileSourceDigest"/>
+  !!]
+
 contains
 
   function SIDMParametricProfileConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily SIDMParametricProfile} mass distribution class which builds the object from a parameter
-    set.
+    Constructor for the \refClass{massDistributionSIDMParametricProfile} mass distribution class which builds the object from a
+    parameter set.    
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
     implicit none
-    type            (massDistributionSIDMParametricProfile)      :: self
-    type            (inputParameters            ), intent(inout) :: parameters
-    double precision                                             :: beta         , densityNormalization , &
-         &                                                          mass         , scaleRadius          , &
-         &                                                          coreRadius
-    logical                                                      :: dimensionless, truncateAtOuterRadius
-    type            (varying_string             )                :: componentType
-    type            (varying_string             )                :: massType
+    type            (massDistributionSIDMParametricProfile)                :: self
+    type            (inputParameters                      ), intent(inout) :: parameters
+    double precision                                                       :: beta         , densityNormalization, &
+         &                                                                    radiusScale  , radiusCore
+    type            (varying_string                       )                :: componentType
+    type            (varying_string                       )                :: massType
 
     !![
     <inputParameter>
       <name>beta</name>
       <defaultValue>4.0d0</defaultValue>
-      <description>The value $\beta$ in a SIDMParametric-model mass distribution.</description>
+      <description>The value $\beta$ in a SIDM parametric mass distribution.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>densityNormalization</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The density normalization of a SIDMParametric-model mass distribution.</description>
+      <description>The density normalization of a SIDM parametric mass distribution.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
-      <name>scaleRadius</name>
+      <name>radiusScale</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The scale of a SIDMParametric-model mass distribution.</description>
+      <description>The scale of a SIDM parametric mass distribution.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
-      <name>coreRadius</name>
+      <name>radiusCore</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The core radius of a SIDMParametric-model mass distribution.</description>
+      <description>The core radius of a SIDM parametric mass distribution.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -109,7 +121,7 @@ contains
       <source>parameters</source>
     </inputParameter>
     !!]
-    self=massDistributionSIDMParametricProfile(beta,densityNormalization,scaleRadius,coreRadius,componentType=enumerationComponentTypeEncode(componentType,includesPrefix=.false.),massType=enumerationMassTypeEncode(massType,includesPrefix=.false.))
+    self=massDistributionSIDMParametricProfile(beta,densityNormalization,radiusScale,radiusCore,componentType=enumerationComponentTypeEncode(componentType,includesPrefix=.false.),massType=enumerationMassTypeEncode(massType,includesPrefix=.false.))
 
     !![
     <inputParametersValidate source="parameters"/>
@@ -117,101 +129,190 @@ contains
     return
   end function SIDMParametricProfileConstructorParameters
 
-  function SIDMParametricProfileConstructorInternal(beta,densityNormalization,scaleRadius,coreRadius,componentType,massType) result(self)
+  function SIDMParametricProfileConstructorInternal(beta,densityNormalization,radiusScale,radiusCore,componentType,massType) result(self)
     !!{
-    Constructor for ``SIDMParametricProfile'' convergence class.
+    Internal constructor for \refClass{massDistributionSIDMParametricProfile} mass distribution class.
     !!}
-    use :: Display                 , only : displayIndent      , displayMessage, displayUnindent, displayVerbosity, &
-          &                                 verbosityLevelDebug
-    use :: Error                   , only : Error_Report
-    use :: Hypergeometric_Functions, only : Hypergeometric_2F1
-    use :: Numerical_Comparison    , only : Values_Agree       , Values_Differ
-    use :: Numerical_Constants_Math, only : Pi
     implicit none
-    type            (massDistributionSIDMParametricProfile )                :: self
-    double precision                              , intent(in   )           :: beta
-    double precision                              , intent(in   ), optional :: densityNormalization              , &
-         &                                                                     scaleRadius                       , coreRadius
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    type            (massDistributionSIDMParametricProfile)                          :: self
+    double precision                                       , intent(in   )           :: beta
+    double precision                                       , intent(in   ), optional :: densityNormalization, radiusScale, &
+         &                                                                              radiusCore
+    type            (enumerationComponentTypeType         ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType              ), intent(in   ), optional :: massType
     !![
-    <constructorAssign variables="beta, densityNormalization, scaleRadius, coreRadius, componentType, massType"/>
+    <constructorAssign variables="beta, densityNormalization, radiusScale, radiusCore, componentType, massType"/>
     !!]
 
     self%dimensionless=.false.
-
     return
   end function SIDMParametricProfileConstructorInternal
 
-  double precision function SIDMParametricProfileDensity(self,coordinates)
+  function SIDMParametricProfileFactoryTabulation(self,parameters) result(instance)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a SIDMParametric-profile mass distribution.
+    Construct an instance of this class using tabulation parameters.
     !!}
     implicit none
-    class           (massDistributionSIDMParametricProfile ), intent(inout) :: self
-    class           (coordinate                  ), intent(in   ) :: coordinates
-    double precision                                              :: r, term1, term2
-
-!    if (.not.self%matches(componentType,massType)) then
-!       SIDMParametricProfileDensity=0.0d0
-!       return
-!    end if
+    class           (massDistributionSphericalTabulated   )               , pointer      :: instance
+    class           (massDistributionSIDMParametricProfile), intent(inout)               :: self
+    double precision                                       , intent(in   ), dimension(:) :: parameters
+    !$GLC attributes unused :: self
     
-    r=coordinates%rSpherical()
-    ! Compute density.
-!    print *,'r, self%scaleRadius: ', r, self%scaleRadius
-    term1 = ((r ** self%beta + self%coreRadius ** self%beta) ** (1.0d0 / self%beta)) / self%scaleRadius
-    term2 = (1.0d0 + r / self%scaleRadius) ** 2
-
-    SIDMParametricProfileDensity=self%densityNormalization/(term1 * term2)
+    allocate(massDistributionSIDMParametricProfile :: instance)
+    select type(instance)
+    type is (massDistributionSIDMParametricProfile)
+       instance=massDistributionSIDMParametricProfile(radiusScale=1.0d0,densityNormalization=1.0d0,radiusCore=parameters(1),beta=parameters(2))
+    end select
+    return
+  end function SIDMParametricProfileFactoryTabulation
+  
+  double precision function SIDMParametricProfileDensity(self,coordinates) result(density)
+    !!{
+    Return the density at the specified {\normalfont \ttfamily coordinates} in a SIDM parametric mass distribution.
+    !!}
+    implicit none
+    class           (massDistributionSIDMParametricProfile), intent(inout) :: self
+    class           (coordinate                           ), intent(in   ) :: coordinates
+    double precision                                                       :: radius
+    
+    radius =+coordinates%rSpherical()
+    density=+self%densityNormalization                       &
+         &  /(                                               &
+         &    +1.0d0                                         &
+         &    +      radius    /self%radiusScale             &
+         &   )** 2                                           &
+         &  /(                                               &
+         &    +(     radius    /self%radiusScale)**self%beta &
+         &    +(self%radiusCore/self%radiusScale)**self%beta &
+         &   )**(1.0d0/self%beta)
     return
   end function SIDMParametricProfileDensity
 
-  double precision function SIDMParametricProfileDensityGradientRadial(self,coordinates,logarithmic)
+  double precision function SIDMParametricProfileDensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a SIDMParametric-profile mass distribution.
+    Return the density at the specified {\normalfont \ttfamily coordinates} in a SIDM parametric mass distribution.
     !!}
     implicit none
-    class           (massDistributionSIDMParametricProfile ), intent(inout), target   :: self
-    class           (coordinate                  ), intent(in   )           :: coordinates
-    logical                                       , intent(in   ), optional :: logarithmic
-    double precision                                                        :: r, term1, term2, term3
-    logical :: logarithmicActual
+    class           (massDistributionSIDMParametricProfile), intent(inout), target   :: self
+    class           (coordinate                           ), intent(in   )           :: coordinates
+    logical                                                , intent(in   ), optional :: logarithmic
+    double precision                                                                 :: radius
+    !![
+    <optionalArgument name="logarithmic" defaultsTo=".false."/>
+    !!]
 
-    ! Set default options.
-    logarithmicActual=.false.
-    if (present(logarithmic)) logarithmicActual=logarithmic
     ! Get position in spherical coordinate system.
-    r=coordinates%rSpherical()
+    radius=coordinates%rSpherical()
     ! Compute the density gradient.
-    if (r > 0.0d0) then
-       ! Evaluate the logarithmic density profile.
-       term1=-1.0d0
-       term2=+1.0d0/(1.0d0+(r/self%coreRadius)**self%beta)
-       term3=-2.0d0*r/(r+self%scaleRadius)
-       SIDMParametricProfileDensityGradientRadial=term1+term2+term3
+    if (radius > 0.0d0) then
+       ! Evaluate the logarithmic density profile gradient.
+       densityGradientRadial=-1.0d0                                              &
+            &                +1.0d0/(1.0d0+(radius/self%radiusCore )**self%beta) &
+            &                -2.0d0*radius/(radius+self%radiusScale)
        ! Convert to non-logarithmic form if necessary.
-       if (.not.logarithmicActual) SIDMParametricProfileDensityGradientRadial=SIDMParametricProfileDensityGradientRadial*self%density(coordinates)/r
+       if (.not.logarithmic_) &
+            & densityGradientRadial=+     densityGradientRadial              &
+            &                       *self%density              (coordinates) &
+            &                       /     radius
     else
-       SIDMParametricProfileDensityGradientRadial=0.0d0
+       densityGradientRadial=+0.0d0
     end if
-    
-!     ! Compute density gradient.
-!     term1 = (r ** self%beta + self%coreRadius ** self%beta) ** ((-1.0d0-self%beta)/self%beta)
-!     term2 = 3.0d0 * r**(1.0d0+self%beta) + 2.0d0 * r * self%coreRadius**self%beta + self%scaleRadius * r**self%beta
-!     term3 = r * (r+self%scaleRadius)**3.0d0
-
-! !    print *,'r, self%scaleRadius, term3, self%coreRadius: ', r, self%scaleRadius, term3, self%coreRadius
-!     if (r>0.0d0) then
-!        SIDMParametricProfileDensityGradientRadial= (-1.0d0) * term1 * term2 * self%scaleRadius**3.0d0 *self%densityNormalization / term3
-!     else
-! !       print *,'correct gradient is used!'
-!        SIDMParametricProfileDensityGradientRadial= 0.0d0
-! !       SIDMParametricProfileDensityGradientRadial= (-2.0d0)/(self%coreRadius * self%scaleRadius**3)
-!     end if
-
-
-    
     return
   end function SIDMParametricProfileDensityGradientRadial
 
+  subroutine SIDMParametricProfileParameters(self,densityNormalization,radiusNormalization,parameters,container)
+    !!{
+    Establish parameters for tabulation.
+    !!}
+    implicit none
+    class           (massDistributionSIDMParametricProfile ), intent(inout)                              :: self
+    double precision                                        , intent(  out)                              :: densityNormalization, radiusNormalization
+    double precision                                        , intent(inout), allocatable, dimension(:  ) :: parameters
+    type            (massDistributionContainer             ), intent(  out), pointer                     :: container
+
+    if (.not.containerSIDMParametricProfileInitialized) then
+       ! Allocate the table and initialize.
+       allocate(containerSIDMParametricProfile)
+       call containerSIDMParametricProfile%initialize(2)
+       ! Specify the number of tabulation points per interval in radius and each parameter.
+       containerSIDMParametricProfile%mass                      %radiusCountPer       =+20_c_size_t
+       containerSIDMParametricProfile%mass                      %parametersCountPer   =+20_c_size_t
+       containerSIDMParametricProfile%radiusEnclosingDensity    %radiusCountPer       =+20_c_size_t
+       containerSIDMParametricProfile%radiusEnclosingDensity    %parametersCountPer   =+20_c_size_t
+       containerSIDMParametricProfile%potential                 %radiusCountPer       =+20_c_size_t
+       containerSIDMParametricProfile%potential                 %parametersCountPer   =+20_c_size_t
+       containerSIDMParametricProfile%velocityDispersion1D      %radiusCountPer       =+20_c_size_t
+       containerSIDMParametricProfile%velocityDispersion1D      %parametersCountPer   =+20_c_size_t
+       containerSIDMParametricProfile%energy                    %radiusCountPer       =+20_c_size_t
+       containerSIDMParametricProfile%energy                    %parametersCountPer   =+20_c_size_t
+       containerSIDMParametricProfile%radiusFreefall            %radiusCountPer       =+20_c_size_t
+       containerSIDMParametricProfile%radiusFreefall            %parametersCountPer   =+20_c_size_t
+       containerSIDMParametricProfile%radiusFreefallIncreaseRate%radiusCountPer       =+20_c_size_t
+       containerSIDMParametricProfile%radiusFreefallIncreaseRate%parametersCountPer   =+20_c_size_t
+       containerSIDMParametricProfile%densityRadialMoment0      %radiusCountPer       =+20_c_size_t
+       containerSIDMParametricProfile%densityRadialMoment0      %parametersCountPer   =+20_c_size_t
+       containerSIDMParametricProfile%densityRadialMoment1      %radiusCountPer       =+20_c_size_t
+       containerSIDMParametricProfile%densityRadialMoment1      %parametersCountPer   =+20_c_size_t
+       containerSIDMParametricProfile%densityRadialMoment2      %radiusCountPer       =+20_c_size_t
+       containerSIDMParametricProfile%densityRadialMoment2      %parametersCountPer   =+20_c_size_t
+       containerSIDMParametricProfile%densityRadialMoment3      %radiusCountPer       =+20_c_size_t
+       containerSIDMParametricProfile%densityRadialMoment3      %parametersCountPer   =+20_c_size_t
+       containerSIDMParametricProfile%fourierTransform          %radiusCountPer       =+20_c_size_t
+       containerSIDMParametricProfile%fourierTransform          %parametersCountPer   =+20_c_size_t
+       ! Specify names and descriptions of the parameters.
+       containerSIDMParametricProfile%nameParameters                               (1)='radiusCoreOverRadiusScale'
+       containerSIDMParametricProfile%descriptionParameters                        (1)='The ratio of core to scale radii.'
+       containerSIDMParametricProfile%nameParameters                               (2)='beta'
+       containerSIDMParametricProfile%descriptionParameters                        (2)='The β parameter.'
+       ! Record that the table is now initialized.
+       containerSIDMParametricProfileInitialized                                =.true.
+    end if
+    allocate(parameters(2))
+    densityNormalization    =  +self%densityNormalization
+    radiusNormalization     =  +self%radiusScale
+    parameters          (1) =  +self%radiusCore                     &
+         &                     /self%radiusScale
+    parameters          (2) =  +self%beta
+    container               =>       containerSIDMParametricProfile
+    return
+  end subroutine SIDMParametricProfileParameters
+
+  subroutine SIDMParametricProfileDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
+    !!{
+    Return an input parameter list descriptor which could be used to recreate this object.
+    !!}
+    use :: Input_Parameters, only : inputParameters
+    implicit none
+    class    (massDistributionSIDMParametricProfile), intent(inout)           :: self
+    type     (inputParameters                      ), intent(inout)           :: descriptor
+    logical                                         , intent(in   ), optional :: includeClass  , includeFileModificationTimes
+    character(len=18                               )                          :: parameterLabel
+    type     (inputParameters                      )                          :: parameters
+    !$GLC attributes unused :: includeFileModificationTimes
+    
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('massDistribution','SIDMParametricProfile')
+    parameters=descriptor%subparameters('massDistribution')
+    write (parameterLabel,'(e17.10)') self%densityNormalization
+    call parameters%addParameter('densityNormalization',trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%radiusScale
+    call parameters%addParameter('radiusScale'         ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%radiusCore
+    call parameters%addParameter('radiusCore'          ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%beta
+    call parameters%addParameter('beta'                ,trim(adjustl(parameterLabel)))
+    return
+  end subroutine SIDMParametricProfileDescriptor
+
+  function SIDMParametricProfileSuffix(self) result(suffix)
+    !!{
+    Return a suffix for tabulated file names.
+    !!}
+    use :: String_Handling, only : String_C_To_Fortran
+    implicit none
+    type (varying_string                       )                :: suffix
+    class(massDistributionSIDMParametricProfile), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    suffix=String_C_To_Fortran(massDistributionSIDMParametricProfileSourceDigest)
+    return
+  end function SIDMParametricProfileSuffix

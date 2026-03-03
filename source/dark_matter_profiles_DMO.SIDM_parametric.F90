@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  An implementation of dark matter halo profiles for self-interacting dark matter following the ``SIDM_parametric'' model of \cite{Yang et al_2023}.
+  An implementation of dark matter halo profiles for self-interacting dark matter following the ``SIDM_parametric'' model of \cite{yang_parametric_2024}.
   !!}
 
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
@@ -28,14 +28,14 @@
   <darkMatterProfileDMO name="darkMatterProfileDMOSIDMParametric">
     <description>
       Dark matter halo profiles for self-interacting dark matter following the ``SIDM_parametric'' model of
-      \cite{Yang et al_2023} are built via the \refClass{massDistributionSphericalSIDMParametric} class.
+      \cite{yang_parametric_2024} are built via the \refClass{massDistributionSphericalSIDMParametric} class.
     </description>
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOSIDMParametric
      !!{
      A dark matter halo profile class implementing profiles for self-interacting dark matter following the ``SIDM_parametric'' model
-     of \cite{Yang et al_2023}.
+     of \cite{yang_parametric_2024}.
      !!}
      private
      class(darkMatterParticleClass  ), pointer :: darkMatterParticle_   => null()
@@ -143,12 +143,12 @@ contains
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic                     , nodeComponentDarkMatterProfile
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo                  , massTypeDark                        , weightByMass
-    use :: Mass_Distributions        , only : massDistributionSIDMParametricProfile, kinematicsDistributionCollisionless, nonAnalyticSolversNumerical, massDistributionSpherical
+    use :: Mass_Distributions        , only : massDistributionSIDMParametricProfile, kinematicsDistributionCollisionlessTabulated, nonAnalyticSolversNumerical, massDistributionSpherical
     use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleClass
     implicit none
 !    class           (darkMatterHaloScaleClass            ), pointer                 :: darkMatterHaloScale_
     class           (massDistributionClass               ), pointer                 :: massDistribution_
-    type            (kinematicsDistributionCollisionless ), pointer                 :: kinematicsDistribution_
+    type            (kinematicsDistributionCollisionlessTabulated ), pointer                 :: kinematicsDistribution_
     class           (darkMatterProfileDMOSIDMParametric  ), intent(inout)           :: self
     type            (treeNode                            ), intent(inout)           :: node
     type            (enumerationWeightByType             ), intent(in   ), optional :: weightBy
@@ -181,8 +181,8 @@ contains
            massDistributionSIDMParametricProfile(                                                         &amp;
 	   &amp;                                   beta                = self%beta, &amp;
            &amp;                                   densityNormalization= darkMatterProfile%floatRank0MetaPropertyGet(self%RhosSIDMID), &amp;
-           &amp;                                   scaleRadius         = darkMatterProfile%floatRank0MetaPropertyGet(self%RsSIDMID), &amp;
-	   &amp;                                   coreRadius          = darkMatterProfile%floatRank0MetaPropertyGet(self%RcSIDMID), &amp;
+           &amp;                                   radiusScale         = darkMatterProfile%floatRank0MetaPropertyGet(self%RsSIDMID), &amp;
+	   &amp;                                   radiusCore          = darkMatterProfile%floatRank0MetaPropertyGet(self%RcSIDMID), &amp;
            &amp;                                   componentType       =      componentTypeDarkHalo        , &amp;
            &amp;                                   massType            =      massTypeDark                   &amp;
            &amp;                                  )
@@ -197,7 +197,7 @@ contains
     !![
     <referenceConstruct object="kinematicsDistribution_">
       <constructor>
-        kinematicsDistributionCollisionless( &amp;
+        kinematicsDistributionCollisionlessTabulated( &amp;
 	 &amp;                              )
       </constructor>
     </referenceConstruct>
