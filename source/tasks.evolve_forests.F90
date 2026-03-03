@@ -48,6 +48,8 @@
      integer         (c_size_t )                            :: countForestsMaximum
      ! Parameter controlling maximum wall time for which forest evolution can run.
      integer         (kind_int8)                            :: walltimeMaximum
+     ! Parameter controlling error handling.
+     logical                                                :: tolerateFailures
      ! Parameters controlling tree suspension.
      logical                                                :: suspendToRAM
      type            (varying_string             )          :: suspendPath
@@ -131,7 +133,8 @@ contains
     class           (randomNumberGeneratorClass ), pointer               :: randomNumberGenerator_
     class           (mergerTreeSeedsClass       ), pointer               :: mergerTreeSeeds_
     type            (inputParameters            ), pointer               :: parametersRoot
-    logical                                                              :: evolveForestsInParallel, suspendToRAM
+    logical                                                              :: evolveForestsInParallel, suspendToRAM          , &
+         &                                                                  tolerateFailures
     integer         (kind_int8                  )                        :: walltimeMaximum        , timeIntervalCheckpoint
     integer         (c_size_t                   )                        :: countForestsMaximum
     type            (varying_string             )                        :: suspendPath            , fileNameCheckpoint
@@ -160,6 +163,12 @@ contains
       <name>walltimeMaximum</name>
       <defaultValue>-1_kind_int8</defaultValue>
       <description>If set to a positive number, this is the maximum wall time for which forest evolution is allowed to proceed before the task gives up.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>tolerateFailures</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true then failures to evolve a forest are tolerated. The forest is evolved no further, but evolution of other forests continues.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -215,9 +224,9 @@ contains
     <objectBuilder class="mergerTreeSeeds"        name="mergerTreeSeeds_"        source="parameters"/>
     !!]
     if (associated(parametersRoot)) then
-       self=taskEvolveForests(evolveForestsInParallel,countForestsMaximum,walltimeMaximum,suspendToRAM,suspendPath,timeIntervalCheckpoint,fileNameCheckpoint,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,mergerTreeSeeds_,parametersRoot)
+       self=taskEvolveForests(tolerateFailures,evolveForestsInParallel,countForestsMaximum,walltimeMaximum,suspendToRAM,suspendPath,timeIntervalCheckpoint,fileNameCheckpoint,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,mergerTreeSeeds_,parametersRoot)
     else
-       self=taskEvolveForests(evolveForestsInParallel,countForestsMaximum,walltimeMaximum,suspendToRAM,suspendPath,timeIntervalCheckpoint,fileNameCheckpoint,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,mergerTreeSeeds_,parameters    )
+       self=taskEvolveForests(tolerateFailures,evolveForestsInParallel,countForestsMaximum,walltimeMaximum,suspendToRAM,suspendPath,timeIntervalCheckpoint,fileNameCheckpoint,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,mergerTreeSeeds_,parameters    )
     end if
     self%nodeComponentsInitialized=.true.
     !![
@@ -237,7 +246,7 @@ contains
     return
   end function evolveForestsConstructorParameters
 
-  function evolveForestsConstructorInternal(evolveForestsInParallel,countForestsMaximum,walltimeMaximum,suspendToRAM,suspendPath,timeIntervalCheckpoint,fileNameCheckpoint,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,mergerTreeSeeds_,parameters) result(self)
+  function evolveForestsConstructorInternal(tolerateFailures,evolveForestsInParallel,countForestsMaximum,walltimeMaximum,suspendToRAM,suspendPath,timeIntervalCheckpoint,fileNameCheckpoint,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,mergerTreeSeeds_,parameters) result(self)
     !!{
     Internal constructor for the \refClass{taskEvolveForests} task class.
     !!}
@@ -245,7 +254,8 @@ contains
     use            :: Error        , only : Error_Report
     implicit none
     type            (taskEvolveForests          )                        :: self
-    logical                                      , intent(in   )         :: evolveForestsInParallel, suspendToRAM
+    logical                                      , intent(in   )         :: evolveForestsInParallel, suspendToRAM          , &
+         &                                                                  tolerateFailures
     integer         (kind_int8                  ), intent(in   )         :: walltimeMaximum        , timeIntervalCheckpoint
     integer         (c_size_t                   ), intent(in   )         :: countForestsMaximum
     type            (varying_string             ), intent(in   )         :: suspendPath            , fileNameCheckpoint
@@ -264,7 +274,7 @@ contains
     integer         (c_size_t                   )                        :: i
     double precision                                                     :: timeStepMinimum
     !![
-    <constructorAssign variables="evolveForestsInParallel, countForestsMaximum, walltimeMaximum, suspendToRAM, suspendPath, timeIntervalCheckpoint, fileNameCheckpoint, *mergerTreeConstructor_, *mergerTreeOperator_, *nodeOperator_, *evolveForestsWorkShare_, *outputTimes_, *universeOperator_, *mergerTreeEvolver_, *mergerTreeOutputter_, *mergerTreeInitializor_, *randomNumberGenerator_, *mergerTreeSeeds_"/>
+    <constructorAssign variables="tolerateFailures, evolveForestsInParallel, countForestsMaximum, walltimeMaximum, suspendToRAM, suspendPath, timeIntervalCheckpoint, fileNameCheckpoint, *mergerTreeConstructor_, *mergerTreeOperator_, *nodeOperator_, *evolveForestsWorkShare_, *outputTimes_, *universeOperator_, *mergerTreeEvolver_, *mergerTreeOutputter_, *mergerTreeInitializor_, *randomNumberGenerator_, *mergerTreeSeeds_"/>
     !!]
 
     self%parameters  => parameters
@@ -467,9 +477,10 @@ contains
     integer         (c_size_t                )                                  :: treeCount
     integer         (omp_lock_kind           )                                  :: initializationLock
     integer         (kind_int8               )                                  :: systemClockRate      , systemClockMaximum
-    !$omp threadprivate(node,basic,treeNumber,treesFinished,parameters)
+    integer                                                              , save :: statusForest
+    !$omp threadprivate(node,basic,treeNumber,treesFinished,parameters,statusForest)
     logical                                                                     :: checkpointRestored   , checkpointing         , &
-         &                                                                         universeUpdated
+         &                                                                         universeUpdated      , failed
 
     ! The following processes merger trees, one at a time, to each successive output time, then dumps their contents to file. It
     ! allows for the possibility of "universal events" - events which require all merger trees to reach the same cosmic time. If
@@ -490,6 +501,7 @@ contains
     ! Initialize tree counter and record that we are not finished processing trees.
     deadlockReport              =.false.
     finished                    =.false.
+    failed                      =.false.
     treeCount                   =0_c_size_t
     ! Initialize universes which will act as tree stacks. We use two stacks: one for trees waiting to be processed, one for trees
     ! that have already been processed.
@@ -663,14 +675,31 @@ contains
              call self%universeWaiting%lock%unset()
              if (tree%earliestTime() <= evolveToTime) treesCouldEvolve=.true.
              ! Evolve the tree to the computed time.
-             call mergerTreeEvolver_%evolve(tree,evolveToTime,treeDidEvolve,suspendTree,deadlockReport,systemClockMaximum,status=status)
-             if (present(status)) then
-                if (status /= errorStatusSuccess) then
-                   ! Tree evolution failed - abort further evolution and return the failure code.
-                   treeIsFinished=.true.
-                   finished      =.true.
+             statusForest=errorStatusSuccess
+             !![
+             <conditionalCall>
+	       <call>
+		 call mergerTreeEvolver_%evolve(tree,evolveToTime,treeDidEvolve,suspendTree,deadlockReport,systemClockMaximum{conditions})
+	       </call>
+	       <argument name="status" value="statusForest" condition="present(status)"/>
+	     </conditionalCall>
+             !!]
+             if (statusForest /= errorStatusSuccess) then
+                ! Tree evolution failed - abort further evolution of this tree.
+                treeIsFinished=.true.
+                if (.not.self%tolerateFailures) then
+                   ! Failures are not being tolerated. We must have a `status` argument to reach this point. Therefore, set the
+                   ! return status, and mark that we have failed.
+                   status=statusForest
+                   failed=.true.
                    exit
                 end if
+             end if
+             ! Check for failure state. This ensures that if any thread marked a failure, all threads will finish, allowing the
+             ! task to complete (with the status set to a failure code already).
+             if (failed) then
+                finished=.true.
+                exit
              end if
              !$omp critical (universeStatus)
              ! Record that evolution of the universe of trees occurred if this tree evolved and was not suspended.
