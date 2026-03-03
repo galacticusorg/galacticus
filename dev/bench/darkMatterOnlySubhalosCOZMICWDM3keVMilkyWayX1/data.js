@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1772321918577,
+  "lastUpdate": 1772575810794,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 3keV resolutionX1)": [
@@ -2758,6 +2758,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (COZMIC WDM:3keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 68.75871923205858,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "18d6c3f638b0e215939598b4579dcd2c4863fd97",
+          "message": "Merge pull request #1009 from galacticusorg/fixEvolveStatusPrivate\n\nUse a private `status` variable when evolving merger trees",
+          "timestamp": "2026-03-03T15:17:54Z",
+          "tree_id": "310c3daf949327a3fc535e0704cd3cdd71962516",
+          "url": "https://github.com/galacticusorg/galacticus/commit/18d6c3f638b0e215939598b4579dcd2c4863fd97"
+        },
+        "date": 1772575810141,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:3keV resolution X1 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": 2.6471945126233765,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:3keV resolution X1 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 21.072424653457308,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:3keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 60.25253215911918,
             "unit": "-logℒ"
           }
         ]
