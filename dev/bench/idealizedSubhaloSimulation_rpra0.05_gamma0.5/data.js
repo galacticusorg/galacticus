@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1772321989410,
+  "lastUpdate": 1772575886198,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.05; γ=0.5)": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "49bb79e525b43544af3c0342b3199b8e3f656141",
-          "message": "Merge pull request #598 from galacticusorg/fixJiang2014OrbitsFileLock\n\nFix file locking in the `virialOrbitJiang2014` class",
-          "timestamp": "2024-04-05T02:44:00Z",
-          "tree_id": "9dec9b16322946f41101f690f9b298053c8dd390",
-          "url": "https://github.com/galacticusorg/galacticus/commit/49bb79e525b43544af3c0342b3199b8e3f656141"
-        },
-        "date": 1712299640506,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteBoundMass",
-            "value": 21.5812642916508,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": 7.89676175266811,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteVelocityMaximum",
-            "value": 9.84983054159055,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9902,6 +9863,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/f8fb4af0a7b8d6300c636159e4db5c41cd35bf28"
         },
         "date": 1772321988858,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteBoundMass",
+            "value": 23.380596202549825,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": 8.011134813288699,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteVelocityMaximum",
+            "value": 10.110599762171006,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "18d6c3f638b0e215939598b4579dcd2c4863fd97",
+          "message": "Merge pull request #1009 from galacticusorg/fixEvolveStatusPrivate\n\nUse a private `status` variable when evolving merger trees",
+          "timestamp": "2026-03-03T15:17:54Z",
+          "tree_id": "310c3daf949327a3fc535e0704cd3cdd71962516",
+          "url": "https://github.com/galacticusorg/galacticus/commit/18d6c3f638b0e215939598b4579dcd2c4863fd97"
+        },
+        "date": 1772575885346,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
