@@ -25,7 +25,7 @@
 
   use    :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
   use    :: Numerical_Interpolation , only : interpolator
-  !$ use :: OMP_Lib                 , only : omp_lock_kind
+  !$ use :: Locks                   , only : ompLock
 
   !![
   <outputAnalysis name="outputAnalysisSatelliteRadiusVelocityMaximum">
@@ -41,7 +41,7 @@
      class           (outputTimesClass         ), pointer                   :: outputTimes_                        => null()
      type            (varying_string           )                            :: fileName
      type            (interpolator             )                            :: interpolator_                                , interpolatorError_
-     !$ integer      (omp_lock_kind            )                            :: accumulateLock
+     !$ type         (ompLock                  )                            :: accumulateLock
      double precision                                                       :: logLikelihood_
      double precision                                                       :: relativeModelUncertainty                     , radiusVelocityMaximumInitial
      double precision                           , dimension(:), allocatable :: time                                         , fractionRadiusVelocityMaximum              , &
@@ -151,7 +151,7 @@ contains
        self%fractionRadiusVelocityMaximumTarget        (i)=exp(self%interpolator_     %interpolate(outputTimes_%time(i)))
        self%varianceFractionRadiusVelocityMaximumTarget(i)=exp(self%interpolatorError_%interpolate(outputTimes_%time(i)))**2
     end do
-    !$ call OMP_Init_Lock(self%accumulateLock)
+    !$ self%accumulateLock            =ompLock()
     self%fractionRadiusVelocityMaximum=0.0d0
     self%logLikelihood_               =0.0d0
     return
@@ -161,7 +161,6 @@ contains
     !!{
     Destructor for the \refClass{outputAnalysisSatelliteRadiusVelocityMaximum} output analysis class.
     !!}
-    !$ use :: OMP_Lib, only : OMP_Destroy_Lock
     implicit none
     type(outputAnalysisSatelliteRadiusVelocityMaximum), intent(inout) :: self
 
@@ -170,7 +169,6 @@ contains
     <objectDestructor name="self%darkMatterProfileDMOUnheated"/>
     <objectDestructor name="self%outputTimes_"                />
     !!]
-    !$ call OMP_Destroy_Lock(self%accumulateLock)
     return
   end subroutine satelliteRadiusVelocityMaximumDestructor
 
@@ -178,9 +176,8 @@ contains
     !!{
     Analyze the maximum velocity tidal track.
     !!}
-    use    :: Numerical_Constants_Math, only : Pi
-    use    :: Mass_Distributions      , only : massDistributionClass
-    !$ use :: OMP_Lib                 , only : OMP_Set_Lock         , OMP_Unset_Lock
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Mass_Distributions      , only : massDistributionClass
     implicit none
     class           (outputAnalysisSatelliteRadiusVelocityMaximum), intent(inout) :: self
     type            (treeNode                                    ), intent(inout) :: node
@@ -199,7 +196,6 @@ contains
     <objectDestructor name="massDistribution_"        />
     <objectDestructor name="massDistributionUnheated_"/>
     !!]
-    !$ call OMP_Set_Lock(self%accumulateLock)
     self%fractionRadiusVelocityMaximum(iOutput)=fractionRadiusVelocityMaximum
     ! Add model uncertainty.
     varianceFractionRadiusVelocityMaximum      =+self%varianceFractionRadiusVelocityMaximumTarget(iOutput) &
@@ -217,7 +213,6 @@ contains
          &                                        /             varianceFractionRadiusVelocityMaximum      &
          &                                        +log(2.0d0*Pi*varianceFractionRadiusVelocityMaximum)     &
          &                                       )
-    !$ call OMP_Unset_Lock(self%accumulateLock)
     return
   end subroutine satelliteRadiusVelocityMaximumAnalyze
 
@@ -225,18 +220,17 @@ contains
     !!{
     Reduce over the maximum velocity tidal track output analysis.
     !!}
-    use    :: Error  , only : Error_Report
-    !$ use :: OMP_Lib, only : OMP_Set_Lock, OMP_Unset_Lock
+    use :: Error, only : Error_Report
     implicit none
     class(outputAnalysisSatelliteRadiusVelocityMaximum), intent(inout) :: self
     class(outputAnalysisClass                         ), intent(inout) :: reduced
 
     select type (reduced)
     class is (outputAnalysisSatelliteRadiusVelocityMaximum)
-       !$ call OMP_Set_Lock(reduced%accumulateLock)       
+       !$ call reduced%accumulateLock%set()
        reduced%fractionRadiusVelocityMaximum=reduced%fractionRadiusVelocityMaximum+self%fractionRadiusVelocityMaximum
        reduced%logLikelihood_               =reduced%logLikelihood_               +self%logLikelihood_
-       !$ call OMP_Unset_Lock(reduced%accumulateLock)
+       !$ call reduced%accumulateLock%unset()
     class default
        call Error_Report('incorrect class'//{introspection:location})
     end select

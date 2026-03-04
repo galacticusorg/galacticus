@@ -21,7 +21,7 @@
   Implements an output analysis class that evaluates model likelihood given the galaxy mass-size relations of \cite{shen_size_2003}.
   !!}
 
-  !$ use :: OMP_Lib            , only : omp_lock_kind
+  !$ use :: Locks              , only : ompLock
   use    :: Cosmology_Functions, only : cosmologyFunctionsClass
   
   !![
@@ -35,7 +35,7 @@
      !!}
      private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
-     !$ integer      (omp_lock_kind          )          :: accumulateLock
+     !$ type         (ompLock                )          :: accumulateLock
      double precision                                   :: timeMinimum                  , timeMaximum, &
           &                                                logLikelihood_
      logical                                            :: finalized
@@ -95,7 +95,7 @@ contains
     <constructorAssign variables="*cosmologyFunctions_"/>
     !!]
     
-    !$ call OMP_Init_Lock(self%accumulateLock)
+    !$ self%accumulateLock=ompLock()
     self%logLikelihood_=0.0d0
     self%finalized     =.false.
     ! Find the span of time for the SDSS sample - this is a crude selection motivated by the span of redshifts in Figure 1 of Shen
@@ -109,11 +109,9 @@ contains
     !!{
     Destructor for the \refClass{outputAnalysisMassSizeRelationShen2003} output analysis class.
     !!}
-    !$ use :: OMP_Lib, only : OMP_Destroy_Lock
     implicit none
     type(outputAnalysisMassSizeRelationShen2003), intent(inout) :: self
 
-    !$ call OMP_Destroy_Lock(self%accumulateLock)
     !![
     <objectDestructor name="self%cosmologyFunctions_"/>
     !!]
@@ -124,13 +122,12 @@ contains
     !!{
     Analyze the maximum velocity tidal track.
     !!}
-    use    :: Galacticus_Nodes            , only : nodeComponentBasic
-    use    :: Galactic_Structure_Options  , only : componentTypeDisk    , componentTypeSpheroid, massTypeStellar
-    use    :: Mass_Distributions          , only : massDistributionClass
-    use    :: Models_Likelihoods_Constants, only : logImpossible
-    use    :: Numerical_Constants_Math    , only : Pi
-    use    :: Numerical_Constants_Prefixes, only : mega                 , kilo
-    !$ use :: OMP_Lib                     , only : OMP_Set_Lock         , OMP_Unset_Lock
+    use :: Galacticus_Nodes            , only : nodeComponentBasic
+    use :: Galactic_Structure_Options  , only : componentTypeDisk    , componentTypeSpheroid, massTypeStellar
+    use :: Mass_Distributions          , only : massDistributionClass
+    use :: Models_Likelihoods_Constants, only : logImpossible
+    use :: Numerical_Constants_Math    , only : Pi
+    use :: Numerical_Constants_Prefixes, only : mega                 , kilo
     implicit none
     class           (outputAnalysisMassSizeRelationShen2003), intent(inout) :: self
     type            (treeNode                              ), intent(inout) :: node
@@ -170,7 +167,6 @@ contains
     <objectDestructor name="massDistributionDisk"    />
     <objectDestructor name="massDistributionSpheroid"/>
     !!]
-    !$ call OMP_Set_Lock(self%accumulateLock)
     if     (                                     &
          &   self%logLikelihood_ > logImpossible &
          &  .and.                                &
@@ -207,7 +203,6 @@ contains
     else
        self%logLikelihood_=logImpossible
     end if
-    !$ call OMP_Unset_Lock(self%accumulateLock)
     return
   end subroutine massSizeRelationShen2003Analyze
 
@@ -215,17 +210,16 @@ contains
     !!{
     Reduce over the mass-size output analysis.
     !!}
-    use    :: Error  , only : Error_Report
-    !$ use :: OMP_Lib, only : OMP_Set_Lock, OMP_Unset_Lock
+    use :: Error, only : Error_Report
     implicit none
     class(outputAnalysisMassSizeRelationShen2003), intent(inout) :: self
     class(outputAnalysisClass                   ), intent(inout) :: reduced
 
     select type (reduced)
     class is (outputAnalysisMassSizeRelationShen2003)
-       !$ call OMP_Set_Lock(reduced%accumulateLock)       
+       !$ call reduced%accumulateLock%set()       
        reduced%logLikelihood_=reduced%logLikelihood_+self%logLikelihood_
-       !$ call OMP_Unset_Lock(reduced%accumulateLock)
+       !$ call reduced%accumulateLock%set()
     class default
        call Error_Report('incorrect class'//{introspection:location})
     end select
