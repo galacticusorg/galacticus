@@ -40,13 +40,12 @@
 Implements an emission line luminosity node property extractor class.
 !!}
 
-  use    :: Numerical_Interpolation          , only : interpolator
-  use    :: ISO_Varying_String               , only : varying_string
-  !$ use :: OMP_Lib                          , only : omp_lock_kind
-  use    :: Output_Times                     , only : outputTimesClass
-  use    :: Star_Formation_Rates_Disks       , only : starFormationRateDisksClass
-  use    :: Star_Formation_Rates_Spheroids   , only : starFormationRateSpheroidsClass
-  use    :: Stellar_Spectra_Dust_Attenuations, only : stellarSpectraDustAttenuationClass
+  use :: Numerical_Interpolation          , only : interpolator
+  use :: ISO_Varying_String               , only : varying_string
+  use :: Output_Times                     , only : outputTimesClass
+  use :: Star_Formation_Rates_Disks       , only : starFormationRateDisksClass
+  use :: Star_Formation_Rates_Spheroids   , only : starFormationRateSpheroidsClass
+  use :: Stellar_Spectra_Dust_Attenuations, only : stellarSpectraDustAttenuationClass
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorLmnstyEmssnLinePanuzzo2003">
@@ -77,7 +76,6 @@ Implements an emission line luminosity node property extractor class.
      double precision                                                 , dimension(2,3        ) :: filterExtent
      type            (interpolator                      ), allocatable, dimension(:          ) :: interpolator_
      double precision                                                                          :: depthOpticalISMCoefficient
-     !$ integer      (omp_lock_kind                     )                                      :: interpolateLock
    contains
      final     ::                lmnstyEmssnLinePanuzzo2003Destructor
      procedure :: extract     => lmnstyEmssnLinePanuzzo2003Extract
@@ -264,7 +262,6 @@ contains
     self%interpolator_(interpolantHydrogen   %ID)=interpolator(self%ionizingFluxHydrogen        ,extrapolationType=extrapolationTypeFix)
     self%interpolator_(interpolantHelium     %ID)=interpolator(self%ionizingFluxHeliumToHydrogen,extrapolationType=extrapolationTypeFix)
     self%interpolator_(interpolantOxygen     %ID)=interpolator(self%ionizingFluxOxygenToHelium  ,extrapolationType=extrapolationTypeFix)
-    !$ call OMP_Init_Lock(self%interpolateLock)
     ! Construct name and description.
     self%name_       ="luminosityEmissionLine:"//String_Join(lineNames,"+")
     self%description_="Luminosity of the "     //String_Join(lineNames,"+")//" emission line"
@@ -280,7 +277,6 @@ contains
     implicit none
     type(nodePropertyExtractorLmnstyEmssnLinePanuzzo2003), intent(inout) :: self
 
-    !$ call OMP_Destroy_Lock(self%interpolateLock)
     !![
     <objectDestructor name="self%starFormationRateDisks_"       />
     <objectDestructor name="self%starFormationRateSpheroids_"   />
@@ -528,13 +524,11 @@ contains
     do component=1,2
        if (.not.isPhysical(component)) cycle
        ! Find interpolating factors in all five interpolants, preventing extrapolation beyond the tabulated ranges.
-       !$ call OMP_Set_Lock  (self%interpolateLock)
        call self%interpolator_(interpolantMetallicity%ID)%linearFactors(metallicityGas                 (component),interpolateIndex(0,interpolantMetallicity%ID),interpolateFactor(:,interpolantMetallicity%ID))
        call self%interpolator_(interpolantDensity    %ID)%linearFactors(densityHydrogen                (component),interpolateIndex(0,interpolantDensity    %ID),interpolateFactor(:,interpolantDensity    %ID))
        call self%interpolator_(interpolantHydrogen   %ID)%linearFactors(luminosityLymanContinuum       (component),interpolateIndex(0,interpolantHydrogen   %ID),interpolateFactor(:,interpolantHydrogen   %ID))
        call self%interpolator_(interpolantHelium     %ID)%linearFactors(ratioLuminosityHeliumToHydrogen(component),interpolateIndex(0,interpolantHelium     %ID),interpolateFactor(:,interpolantHelium     %ID))
        call self%interpolator_(interpolantOxygen     %ID)%linearFactors(ratioLuminosityOxygenToHelium  (component),interpolateIndex(0,interpolantOxygen     %ID),interpolateFactor(:,interpolantOxygen     %ID))
-       !$ call OMP_Unset_Lock(self%interpolateLock)
        interpolateIndex (1,:                     )=interpolateIndex(0,:)+1
        interpolateFactor=max(min(interpolateFactor,1.0d0),0.0d0)
        ! Iterate over lines.

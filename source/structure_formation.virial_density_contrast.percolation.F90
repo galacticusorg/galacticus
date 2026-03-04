@@ -21,12 +21,10 @@
   An implementation of dark matter halo virial density contrasts based on the percolation analysis of \cite{more_overdensity_2011}.
   !!}
 
-  use    :: Cosmology_Functions, only : cosmologyFunctionsClass
-  use    :: Kind_Numbers       , only : kind_int8
-  !$ use :: OMP_Lib            , only : OMP_Destroy_Lock       , OMP_Init_Lock, OMP_Set_Lock, OMP_Unset_Lock, &
-  !$      &                             omp_lock_kind
-  use    :: Tables             , only : table2DLogLogLin
-  use    :: Resource_Manager   , only : resourceManager
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
+  use :: Kind_Numbers       , only : kind_int8
+  use :: Tables             , only : table2DLogLogLin
+  use :: Resource_Manager   , only : resourceManager
 
   !![
   <virialDensityContrast name="virialDensityContrastPercolation" recursive="yes">
@@ -64,9 +62,7 @@
      double precision                                            :: densityContrastTableMassMinimum           , densityContrastTableMassMaximum
      integer                                                     :: densityContrastTableMassCount             , densityContrastTableTimeCount
      logical                                                     :: densityContrastTableInitialized =  .false.
-     logical                                                     :: densityContrastLockInitialized  =  .false.
      type            (table2DLogLogLin                )          :: densityContrastTable
-     !$ integer      (omp_lock_kind                   )          :: densityContrastTableLock
      integer                                                     :: densityContrastTableRemakeCount
    contains
      !![
@@ -173,8 +169,6 @@ contains
     self%densityContrastTableMassMaximum= 1.0d+16
     self%densityContrastTableInitialized=.false.
     self%densityContrastTableRemakeCount= 0
-    self%densityContrastLockInitialized =.true.
-    !$ call OMP_Init_Lock(self%densityContrastTableLock)
     ! Set recursive properties.
     self%isRecursive   =.false.
     self%parentDeferred=.false.
@@ -189,8 +183,7 @@ contains
     implicit none
     type(virialDensityContrastPercolation), intent(inout) :: self
 
-    if    (self%densityContrastTableInitialized) call                  self%densityContrastTable    %destroy()
-    !$ if (self%densityContrastLockInitialized ) call OMP_Destroy_Lock(self%densityContrastTableLock          )
+    if (self%densityContrastTableInitialized) call self%densityContrastTable%destroy()
     !![
     <objectDestructor name="self%cosmologyFunctions_" />
     !!]
@@ -311,10 +304,8 @@ contains
        percolationDensityContrast=densityContrastCurrent
     else
        ! Use our tabulated solution.
-       !$ call OMP_Set_Lock(self%densityContrastTableLock)
        call self%tabulate(mass,timeActual)
        percolationDensityContrast=self%densityContrastTable%interpolate(mass,timeActual)
-       !$ call OMP_Unset_Lock(self%densityContrastTableLock)
     end if
     return
   end function percolationDensityContrast
@@ -340,10 +331,8 @@ contains
     ! Get the time to use.
     timeActual=self%cosmologyFunctions_%epochTime(time,expansionFactor,collapsing)
     ! Compute the solution.
-    !$ call OMP_Set_Lock(self%densityContrastTableLock)
     call self%tabulate(mass,timeActual)
     percolationDensityContrastRateOfChange=self%densityContrastTable%interpolateGradient(mass,timeActual,dim=2)
-    !$ call OMP_Unset_Lock(self%densityContrastTableLock)
     return
   end function percolationDensityContrastRateOfChange
 
@@ -471,8 +460,6 @@ contains
           call percolationObjectsDeepCopy_(self%percolationobjects_,destination%percolationobjects_)
        end if
        call destination%densitycontrasttable%deepCopyActions()
-       destination%densityContrastLockInitialized=.true.
-       !$ call OMP_Init_Lock(destination%densityContrastTableLock)
     class default
        call Error_Report('destination and source types do not match'//{introspection:location})
     end select

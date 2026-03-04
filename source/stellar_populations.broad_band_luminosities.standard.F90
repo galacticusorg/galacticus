@@ -22,7 +22,6 @@
   !!}
   
   use, intrinsic :: ISO_C_Binding                         , only : c_size_t
-  use            :: Locks                                 , only : ompReadWriteLock
   use            :: Numerical_Interpolation               , only : interpolator
   use            :: Stellar_Population_Spectra            , only : stellarPopulationSpectraClass
   use            :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorClass
@@ -55,7 +54,6 @@
      logical                                                       :: storeToFile
      type            (varying_string  )                            :: storeDirectory
      logical                                                       :: maximumAgeExceededIsFatal
-     type            (ompReadWriteLock)                            :: luminosityTableLock
    contains
      !![
      <methods>
@@ -155,7 +153,6 @@ contains
     <constructorAssign variables="integrationToleranceRelative, integrationToleranceDegrade, maximumAgeExceededIsFatal,storeToFile,storeDirectory"/>
     !!]
     
-    self%luminosityTableLock=ompReadWriteLock()
     return
   end function standardConstructorInternal
 
@@ -185,8 +182,6 @@ contains
 
     ! Tabulate the luminosities.
     call self%tabulate(luminosityIndex,filterIndex,stellarPopulationSpectraPostprocessor_,stellarPopulation_,redshift)
-    ! Obtain a read lock on the luminosity tables.
-    call self%luminosityTableLock%setRead()
     ! Get interpolation in metallicity.
     populationID=stellarPopulation_%uniqueID()
     metallicity=Abundances_Get_Metallicity(abundancesStellar,metallicityType=metallicityTypeLogarithmicByMassSolar)
@@ -234,7 +229,6 @@ contains
        end if
        iLuminosityStart=iLuminosityEnd
     end do
-    call self%luminosityTableLock%unsetRead()
     ! Prevent interpolation from returning negative fluxes.
     standardLuminosities=max(standardLuminosities,0.0d0)
     return
@@ -262,8 +256,6 @@ contains
          &                                                                                                            jMetallicity                          , populationID
     double precision                                                                                               :: metallicity
 
-    ! Obtain a read lock on the luminosity tables.
-    call self%luminosityTableLock%setRead()
     ! Tabulate the luminosities.
     call self%tabulate(luminosityIndex,filterIndex,stellarPopulationSpectraPostprocessor_,stellarPopulation_,redshift)
     ! Get interpolation in metallicity.
@@ -293,8 +285,6 @@ contains
                & *hMetallicity                                  (                                              jMetallicity)
        end do
     end do
-    ! Release the read lock on the luminosity tables.
-    call self%luminosityTableLock%setRead()
     ! Prevent interpolation from returning negative fluxes.
     luminosities=max(luminosities,0.0d0)
     return
@@ -308,7 +298,7 @@ contains
     use            :: Display                         , only : displayCounter              , displayCounterClear                  , displayGreen            , displayIndent        , &
           &                                                    displayMagenta              , displayReset                         , displayUnindent         , verbosityLevelWorking
     use            :: File_Utilities                  , only : File_Exists                 , File_Lock                            , File_Unlock             , lockDescriptor       , &
-         &                                                     Directory_Make                  , File_Path
+         &                                                     Directory_Make              , File_Path
     use            :: Error                           , only : Error_Report                , Warn                                 , errorStatusFail         , errorStatusSuccess
     use            :: HDF5_Access                     , only : hdf5Access
     use            :: IO_HDF5                         , only : hdf5Object
@@ -353,14 +343,9 @@ contains
     character       (len=16                                        )                                  :: datasetName                                   , redshiftLabel                        , &
          &                                                                                               label
     
-    ! Obtain a read lock on the luminosity tables.
-    call self%luminosityTableLock%setRead()
     ! Allocate table storage. First test if the tables must be resized (or allocated).
     populationID=stellarPopulation_%uniqueID()
     if (.not.allocated(self%luminosityTables).or.size(self%luminosityTables) < populationID) then
-       ! A resize or allocation is required. Obtain a write lock on the tables and then re-test if resizing is required (as
-       ! another thread could potentially have already done this while we waited for the write lock).
-       call self%luminosityTableLock%setWrite(haveReadLock=.true.)
        if (allocated(self%luminosityTables)) then
           if (size(self%luminosityTables) < populationID) then
              call Move_Alloc(self%luminosityTables,luminosityTablesTemporary)
@@ -385,15 +370,10 @@ contains
           allocate(self%luminosityTables(populationID))
           self%luminosityTables%isTabulatedMaximum=0
        end if
-       call self%luminosityTableLock%unsetWrite(haveReadLock=.true.)
     end if
     ! Determine if we have tabulated luminosities for this luminosityIndex in this population yet.
     luminosityIndexMaximum=maxval(luminosityIndex)
     if (.not.allocated(self%luminosityTables(populationID)%isTabulated) .or. self%luminosityTables(populationID)%isTabulatedMaximum < luminosityIndexMaximum) then
-       ! Tabulation is required. Obtain a write lock on the luminosity tables and then retest if tabulation is required (as
-       ! another thread may have tabulated while we waited for the write lock).
-       call self%luminosityTableLock%setWrite(haveReadLock=.true.)
-       luminosityIndexMaximum=maxval(luminosityIndex)
        if (.not.allocated(self%luminosityTables(populationID)%isTabulated) .or. self%luminosityTables(populationID)%isTabulatedMaximum < luminosityIndexMaximum) then
           !$omp critical(broadBandLuminositiesStandardComputeTable)
           stellarPopulationSpectra_                      => stellarPopulation_%spectra()
@@ -466,7 +446,7 @@ contains
                       datasetName="redshift"//adjustl(trim(redshiftLabel))
                       ! Open the file and check for the required dataset.
                       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-                      call File_Lock(char(luminositiesFileName),lockFileDescriptor,lockIsShared=.true.)
+                      call File_Lock(luminositiesFileName,lockFileDescriptor,lockIsShared=.true.)
                       block
                         type(hdf5Object) :: luminositiesFile
                         !$ call hdf5Access%set()
@@ -663,10 +643,7 @@ contains
           !$omp end parallel
           !$omp end critical(broadBandLuminositiesStandardComputeTable)
        end if
-       call self%luminosityTableLock%unsetWrite(haveReadLock=.true.)
     end if
-    ! Release our read lock on the luminosity tables.
-    call self%luminosityTableLock%unsetRead()
     return
 
   contains
