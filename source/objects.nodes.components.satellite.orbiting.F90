@@ -120,19 +120,19 @@ module Node_Component_Satellite_Orbiting
   !!]
 
   ! Objects used by this module.
-  class(virialDensityContrastClass), pointer :: virialDensityContrast_
+  class(virialDensityContrastClass), pointer :: virialDensityContrast_, virialDensityContrastDefinition_
   class(cosmologyParametersClass  ), pointer :: cosmologyParameters_
   class(cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_
   class(darkMatterHaloScaleClass  ), pointer :: darkMatterHaloScale_
   class(virialOrbitClass          ), pointer :: virialOrbit_
-  !$omp threadprivate(darkMatterHaloScale_,virialOrbit_,virialDensityContrast_,cosmologyParameters_,cosmologyFunctions_)
+  !$omp threadprivate(darkMatterHaloScale_,virialOrbit_,virialDensityContrast_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_)
 
   ! Option controlling whether or not unbound virial orbits are acceptable.
   logical                                                      :: acceptUnboundOrbits
 
   ! Option controlling how to initialize the bound mass of satellite halos.
   type            (enumerationInitializationTypeMassBoundType) :: initializationTypeMassBound
-  double precision                                             :: radiusMaximumOverRadiusVirial, densityContrastMassBound
+  double precision                                             :: radiusMaximumOverRadiusVirial
 
   ! A threadprivate object used to track to which thread events are attached.
   integer :: thread
@@ -181,12 +181,6 @@ contains
          <source>subParameters</source>
        </inputParameter>
        <inputParameter>
-         <name>densityContrastMassBound</name>
-         <defaultValue>200.0d0</defaultValue>
-         <description>The density contrast of the satellite halo. If {\normalfont \ttfamily [initializationTypeMassBound]} is set to 'densityContrast', this value will be used to compute the initial bound mass of the satellite halo.</description>
-         <source>subParameters</source>
-       </inputParameter>
-       <inputParameter>
          <name>acceptUnboundOrbits</name>
          <defaultValue>.false.</defaultValue>
          <description>If true, accept unbound virial orbits for satellites, otherwise reject them.</description>
@@ -198,10 +192,6 @@ contains
        case (initializationTypeMassBoundMaximumRadius  %ID)
           if (radiusMaximumOverRadiusVirial <= 0.0d0) then
              call Error_Report('specify a positive maximum radius for the satellite'//{introspection:location})
-          end if
-       case (initializationTypeMassBoundDensityContrast%ID)
-          if (densityContrastMassBound               <= 0.0d0) then
-             call Error_Report('specify a positive density contrast for the satellite'//{introspection:location})
           end if
        case default
           ! Do nothing.
@@ -245,6 +235,12 @@ contains
        <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="subParameters"/>
        <objectBuilder class="virialOrbit"           name="virialOrbit_"           source="subParameters"/>
        !!]
+       virialDensityContrastDefinition_ => null()
+       if (initializationTypeMassBound%ID == initializationTypeMassBoundDensityContrast%ID) then
+          !![
+          <objectBuilder class="virialDensityContrast" name="virialDensityContrastDefinition_" source="subParameters" parameterName="virialDensityContrastDefinition"/>
+          !!]
+       end if
        dependenciesSubhaloPromotion(1)=dependencyExact(dependencyDirectionBefore,'mergerTreeNodeEvolver')
        call       subhaloPromotionEvent%attach(thread,subhaloPromotion      ,openMPThreadBindingAtLevel,label='nodeComponentSatelliteOrbiting',dependencies=dependenciesSubhaloPromotion)
        call          nodePromotionEvent%attach(thread,nodePromotion         ,openMPThreadBindingAtLevel,label='nodeComponentSatelliteOrbiting'                                          )
@@ -276,6 +272,11 @@ contains
        <objectDestructor name="darkMatterHaloScale_"  />
        <objectDestructor name="virialOrbit_"          />
        !!]
+       if (initializationTypeMassBound%ID == initializationTypeMassBoundDensityContrast%ID) then
+          !![
+          <objectDestructor name="virialDensityContrastDefinition_"/>
+          !!]
+       end if
        if (      subhaloPromotionEvent%isAttached(thread,subhaloPromotion      )) call       subhaloPromotionEvent%detach(thread,subhaloPromotion      )
        if (satellitePreHostChangeEvent%isAttached(thread,satellitePreHostChange)) call satellitePreHostChangeEvent%detach(thread,satellitePreHostChange)
        if (         nodePromotionEvent%isAttached(thread,nodePromotion         )) call          nodePromotionEvent%detach(thread,nodePromotion         )
@@ -590,10 +591,11 @@ contains
     use :: Mass_Distributions                  , only : massDistributionClass
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Error                               , only : Error_Report
-    use :: Galacticus_Nodes                    , only : nodeComponentSatellite             , nodeComponentSatelliteOrbiting, treeNode
+    use :: Galacticus_Nodes                    , only : nodeComponentSatellite             , nodeComponentSatelliteOrbiting, nodeComponentBasic, treeNode
     implicit none
     class           (nodeComponentSatellite), intent(inout) :: satellite
     type            (treeNode              ), intent(inout) :: node
+    class           (nodeComponentBasic    ), pointer       :: basic
     class           (massDistributionClass ), pointer       :: massDistribution_
     double precision                                        :: massSatellite    , maximumRadius
 
@@ -611,13 +613,14 @@ contains
           call satellite%boundMassSet(massSatellite)
        case (initializationTypeMassBoundDensityContrast%ID)
           ! Set the initial bound mass of this satellite by assuming a specified density contrast.
-          massSatellite=Dark_Matter_Profile_Mass_Definition(                                                 &
-               &                                                                   node                    , &
-               &                                                                   densityContrastMassBound, &
-               &                                            cosmologyParameters_  =cosmologyParameters_    , &
-               &                                            cosmologyFunctions_   =cosmologyFunctions_     , &
-               &                                            virialDensityContrast_=virialDensityContrast_    &
-               &                                           )
+          basic         => node%basic()
+          massSatellite =  Dark_Matter_Profile_Mass_Definition(                                                                                                    &
+               &                                                                      node                                                                       , &
+               &                                               densityContrast       =virialDensityContrastDefinition_%densityContrast(basic%mass(),basic%time()), &
+               &                                               cosmologyParameters_  =cosmologyParameters_                                                       , &
+               &                                               cosmologyFunctions_   =cosmologyFunctions_                                                        , &
+               &                                               virialDensityContrast_=virialDensityContrast_                                                       &
+               &                                              )
           call satellite%boundMassSet(massSatellite)
        case default
           call Error_Report('type of method to initialize the bound mass of satellites can not be recognized. Available options are "basicMass", "maximumRadius", "densityContrast"'//{introspection:location})
@@ -644,7 +647,7 @@ contains
 
     call displayMessage('Storing state for: componentSatellite -> orbiting',verbosity=verbosityLevelInfo)
     !![
-    <stateStore variables="darkMatterHaloScale_ virialOrbit_ virialDensityContrast_ cosmologyParameters_ cosmologyFunctions_"/>
+    <stateStore variables="darkMatterHaloScale_ virialOrbit_ virialDensityContrast_ virialDensityContrastDefinition_ cosmologyParameters_ cosmologyFunctions_"/>
     !!]
     return
   end subroutine Node_Component_Satellite_Orbiting_State_Store
@@ -667,7 +670,7 @@ contains
 
     call displayMessage('Retrieving state for: componentSatellite -> orbiting',verbosity=verbosityLevelInfo)
     !![
-    <stateRestore variables="darkMatterHaloScale_ virialOrbit_ virialDensityContrast_ cosmologyParameters_ cosmologyFunctions_"/>
+    <stateRestore variables="darkMatterHaloScale_ virialOrbit_ virialDensityContrast_ virialDensityContrastDefinition_ cosmologyParameters_ cosmologyFunctions_"/>
     !!]
     return
   end subroutine Node_Component_Satellite_Orbiting_State_Restore
