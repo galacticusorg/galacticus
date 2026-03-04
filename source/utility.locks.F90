@@ -71,6 +71,7 @@ module Locks
      !![
      <methods>
        <method description="Return true if the current thread already owns this lock." method="ownedByThread"/>
+       <method description="Assign the lock."                                          method="assignment(=)"/>
      </methods>
      !!]
      final     ::                   ompLockDestructor
@@ -108,6 +109,7 @@ module Locks
        <method description="Release a write (blocking) lock on the object. If the thread releasing the write lock already had a read lock it should set {\normalfont \ttfamily haveReadLock=.true.} when calling this function to ensure that read locked is retained." method="unsetWrite" />
        <method description="(Re)initialize an OpenMP read/write lock object" method="initialize" />
        <method description="Return true if the current thread owns this lock." method="owned" />
+       <method description="Assign the lock." method="assignment(=)"/>
      </methods>
      !!]
      final     ::                  ompReadWriteLockDestructor
@@ -142,6 +144,7 @@ module Locks
        <method description="Obtain a lock on the object." method="set" />
        <method description="Release a lock on the object." method="unset" />
        <method description="(Re)initialize an OpenMP incremental lock object." method="initialize" />
+       <method description="Assign the lock." method="assignment(=)"/>
      </methods>
      !!]
      final     ::                  ompIncrementalLockDestructor
