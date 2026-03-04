@@ -127,7 +127,6 @@ contains
     class           (outputTimesClass                             ), intent(in   ), target   :: outputTimes_
     type            (enumerationLensedPropertyType                ), intent(in   ), optional :: lensedProperty
     double precision                                               , intent(in   )           :: sizeSource
-    !$ integer      (c_size_t                                     )                          :: i
     !![
     <optionalArgument name="lensedProperty" defaultsTo="lensedPropertyLuminosity" />
     <constructorAssign variables="*gravitationalLensing_, *outputTimes_, sizeSource"/>
