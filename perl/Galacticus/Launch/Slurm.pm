@@ -71,6 +71,7 @@ sub Launch {
     # Launch models on local machine.
     my @jobs         = @{shift()};
     my $launchScript =   shift() ;
+    my %arguments    = %{shift()};
     # Iterate over jobs.
     my @modelQueue;
     foreach my $job ( @jobs ) {
@@ -106,6 +107,11 @@ sub Launch {
 	print $slurmFile "#SBATCH -o ".$pwd.$job->{'directory'}."/galacticus.log\n";
 	print $slurmFile "#SBATCH -A ".$launchScript->{'slurm'}->{'account'}."\n"
 	    if ( exists($launchScript->{'slurm'}->{'account'}) );
+	if ( exists($arguments{'queue'}) ) {
+	    print $slurmFile "#SBATCH --partition=".$arguments                {'queue'}."\n";
+	} elsif ( exists($launchScript->{'slurm'}->{'queue'}) ) {
+	    print $slurmFile "#SBATCH --partition=".$launchScript->{'slurm'}->{'queue'}."\n";
+	}
 	if ( exists($launchScript->{'slurm'}->{'environment'}) ) {
 	    foreach my $environment ( @{$launchScript->{'slurm'}->{'environment'}} ) {
 		print $slurmFile "export ".$environment."\n";
@@ -249,14 +255,20 @@ sub SubmitJobs {
 	my %runningSLURMJobs;
 	undef(%runningSLURMJobs);
 	my $jobID;
-	open(pHndl,"squeue |");
-	my $line = <pHndl>;
-	while ( my $line = <pHndl> ) {
+	my $squeueStatus = open(my $squeue,"squeue |");
+	unless ( defined($squeueStatus) ) {
+	    # If squeue pipe failed, sleep for a while, then start over.
+	    print "Could not open pipe to 'squeue' - will sleep and then try again\n";
+	    sleep $waitSleepDuration;
+	    next;
+	}
+	my $line = <$squeue>;
+	while ( my $line = <$squeue> ) {
 	    my @columns = split(" ",$line);
 	    $runningSLURMJobs{$columns[0]} = $columns[4]
 		if ( grep {$_ eq $columns[4]} @activeStates );
 	}
-	close(pHndl);
+	close($squeue);
 	foreach my $jobID ( keys(%slurmJobs) ) {
 	    unless ( exists($runningSLURMJobs{$jobID}) ) {
 		print "SLURM job ".$jobID." has finished.\n";
@@ -266,16 +278,20 @@ sub SubmitJobs {
 		    if ( exists($slurmJobs{$jobID}->{'tracejob'}) && $slurmJobs{$jobID}->{'tracejob'} eq "yes" ) {
 			my $sacct = &File::Which::which("sacct");
 			if ( defined($sacct) ) {
-			    open(my $trace,$sacct." -b -j ".$jobID." |");
-			    while ( my $line = <$trace> ) {
-				my @columns = split(" ",$line);
-				if ( $columns[0] eq $jobID ) {
-				    if ( $columns[2] =~ m/(\d+):\d+/ ) {
-					$exitStatus = $1;
+			    my $traceStatus = open(my $trace,$sacct." -b -j ".$jobID." |");
+			    if ( defined($traceStatus) ) {
+				while ( my $line = <$trace> ) {
+				    my @columns = split(" ",$line);
+				    if ( $columns[0] eq $jobID ) {
+					if ( $columns[2] =~ m/(\d+):\d+/ ) {
+					    $exitStatus = $1;
+					}
 				    }
 				}
+				close($trace);
+			    } else {
+				$exitStatus = -1;
 			    }
-			    close($trace);
 			}
 		    }
 		    &{$slurmJobs{$jobID}->{'onCompletion'}->{'function'}}(@{$slurmJobs{$jobID}->{'onCompletion'}->{'arguments'}},$jobID,$exitStatus,\@jobStack,$slurmJobs{$jobID});
@@ -362,12 +378,20 @@ sub SubmitJobs {
 		$newJob->{'launchFile'} = $batchScript;
 	    }
 	    # Submit the SLURM job.
-	    open(pHndl,"sbatch ".$newJob->{'launchFile'}."|");
+	    my $sbatchStatus = undef();
+	    my $sbatch;
+	    while ( ! defined($sbatchStatus) ) {
+		$sbatchStatus = open($sbatch,"sbatch ".$newJob->{'launchFile'}."|");
+		unless ( defined($sbatchStatus) ) {
+		    print "Could not open pipe to 'sbatch' - will sleep and then try again\n";
+		    sleep $waitSleepDuration;
+		}
+	    }
 	    my $jobID = "";
-	    while ( my $line = <pHndl> ) {
+	    while ( my $line = <$sbatch> ) {
 	    	if ( $line =~ m/^Submitted batch job (\d+)/ ) {$jobID = $1};
 	    }
-	    close(pHndl);	    
+	    close($sbatch);	    
 	    # Add the job number to the active job hash.
 	    $slurmJobs{$jobID} = $newJob
 		unless ( $jobID eq "" );
