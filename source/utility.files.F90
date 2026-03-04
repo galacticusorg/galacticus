@@ -708,10 +708,14 @@ contains
     implicit none
     character(len=*), intent(in   ) :: directoryName
     integer  (c_int)                :: status
+    character(len=4)                :: errorCode
 
     if (File_Exists(directoryName)) then
        status=rmdir_C(trim(directoryName)//char(0))
-       if (status /= 0) call Error_Report('failed to remove directory "'//trim(directoryName)//'"'//{introspection:location})
+       if (status /= 0) then
+          write (errorCode,'(i4)') status
+          call Error_Report('failed to remove directory "'//trim(directoryName)//'" - received error code '//trim(adjustl(errorCode))//{introspection:location})
+       end if
     end if
     return
   end subroutine Directory_Remove_Char
