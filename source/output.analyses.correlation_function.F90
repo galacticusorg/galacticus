@@ -30,7 +30,7 @@ Implements a generic two-point correlation function output analysis class.
   use               :: Halo_Model_Power_Spectrum_Modifiers   , only : haloModelPowerSpectrumModifierClass
   use   , intrinsic :: ISO_C_Binding                         , only : c_size_t
   use               :: Node_Property_Extractors              , only : nodePropertyExtractorClass
-  !$ use            :: OMP_Lib                               , only : omp_lock_kind
+  !$ use            :: Locks                                 , only : ompLock
   use               :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorClass
   use               :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorClass
   use               :: Output_Times                          , only : outputTimesClass
@@ -102,7 +102,7 @@ Implements a generic two-point correlation function output analysis class.
      integer         (c_size_t                               )                                :: binCount                                             , massCount                                   , &
           &                                                                                      countBinsMassHalo                                    , wavenumberCount
      logical                                                                                  :: finalized                                            , halfIntegral
-     !$ integer      (omp_lock_kind                          )                                :: accumulateLock
+     !$ type         (ompLock                                )                                :: accumulateLock
      ! Workspace used while accumulating the correlation function.
      double precision                                         , allocatable, dimension(:    ) :: probabilityCentral
      double precision                                         , allocatable, dimension(:,:  ) :: probabilitySatellite
@@ -497,8 +497,7 @@ contains
     self%probabilitySatellite =0.0d0
     self%countSatellites      =0
     self%finalized            =.false.
-    ! Initialize accumulation lock.
-    !$ call OMP_Init_Lock(self%accumulateLock)
+    !$ self%accumulateLock    =ompLock()
    return
   end function correlationFunctionConstructorInternal
 
@@ -524,7 +523,6 @@ contains
     <objectDestructor name="self%massPropertyExtractor_"         />
     <objectDestructor name="self%powerSpectrum_"                 />
     !!]
-    !$ call OMP_Destroy_Lock(self%accumulateLock)
     return
   end subroutine correlationFunctionDestructor
 
@@ -866,7 +864,7 @@ contains
 
     select type (reduced)
     class is (outputAnalysisCorrelationFunction)
-       !$ call OMP_Set_Lock(reduced%accumulateLock)
+       !$ call reduced%accumulateLock%set()
        reduced%meanDensity          =reduced%meanDensity          +self%meanDensity
        reduced%oneHaloTerm          =reduced%oneHaloTerm          +self%oneHaloTerm
        reduced%twoHaloTerm          =reduced%twoHaloTerm          +self%twoHaloTerm
@@ -875,7 +873,7 @@ contains
        reduced%oneHaloTermMainBranch=reduced%oneHaloTermMainBranch+self%oneHaloTermMainBranch
        reduced%twoHaloTermMainBranch=reduced%twoHaloTermMainBranch+self%twoHaloTermMainBranch
        reduced%termCovariance       =reduced%termCovariance       +self%termCovariance
-       !$ call OMP_Unset_Lock(reduced%accumulateLock)
+       !$ call reduced%accumulateLock%unset()
     class default
        call Error_Report('incorrect class'//{introspection:location})
     end select

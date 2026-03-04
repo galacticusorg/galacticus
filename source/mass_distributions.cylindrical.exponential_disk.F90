@@ -21,8 +21,7 @@
   Implementation of an exponential disk mass distribution class.
   !!}
   
-  !$ use :: OMP_Lib, only : omp_lock_kind
-  use    :: Tables , only : table1DLogarithmicLinear
+  use :: Tables, only : table1DLogarithmicLinear
 
   !![
   <massDistribution name="massDistributionExponentialDisk">
@@ -53,9 +52,6 @@
      double precision                                                        :: accelerationRadiusMinimumLog                  , accelerationRadiusMaximumLog                  , &
           &                                                                     accelerationHeightMinimumLog                  , accelerationHeightMaximumLog                  , &
           &                                                                     accelerationRadiusInverseInterval             , accelerationHeightInverseInterval
-     ! Locks.
-     !$ integer      (omp_lock_kind           )                              :: factorComputeLock                             , rotationCurveLock                             , &
-     !$   &                                                                     rotationCurveGradientLock                     , potentialLock
    contains
      !![
      <methods>
@@ -244,11 +240,6 @@ contains
     self%potentialInitialized                  =.false.
     self%accelerationInitialized               =.false.
     self%scaleLengthFactor                     =0.0d0
-    ! Initialize locks.
-    !$ call OMP_Init_Lock(self%factorComputeLock        )
-    !$ call OMP_Init_Lock(self%rotationCurveLock        )
-    !$ call OMP_Init_Lock(self%rotationCurveGradientLock)
-    !$ call OMP_Init_Lock(self%potentialLock            )
     return
   end function exponentialDiskConstructorInternal
 
@@ -262,10 +253,6 @@ contains
     if (self%rotationCurveInitialized        ) call self%rotationCurveTable        %destroy()
     if (self%rotationCurveGradientInitialized) call self%rotationCurveGradientTable%destroy()
     if (self%potentialInitialized            ) call self%potentialTable            %destroy()
-    !$ call OMP_Destroy_Lock(self%factorComputeLock        )
-    !$ call OMP_Destroy_Lock(self%rotationCurveLock        )
-    !$ call OMP_Destroy_Lock(self%rotationCurveGradientLock)
-    !$ call OMP_Destroy_Lock(self%potentialLock            )
     return
   end subroutine exponentialDiskDestructor
 
@@ -524,13 +511,9 @@ contains
        ! We are often called at precisely one scale length. Use pre-computed factors in that case.
        if (r == 1.0d0) then
           if (.not.self%scaleLengthFactorSet) then
-             !$ call OMP_Set_Lock(self%factorComputeLock)
-             !$ if (.not.self%scaleLengthFactorSet) then
-                halfRadius               =0.5d0
-                self%scaleLengthFactor   =self%besselFactorRotationCurve(halfRadius)
-                self%scaleLengthFactorSet=.true.
-             !$ end if
-             !$ call OMP_Unset_Lock(self%factorComputeLock)
+             halfRadius               =0.5d0
+             self%scaleLengthFactor   =self%besselFactorRotationCurve(halfRadius)
+             self%scaleLengthFactorSet=.true.
           end if
           radiusFactor=self%scaleLengthFactor
        else
@@ -658,10 +641,8 @@ contains
     else if (halfRadius < potentialRadiusMinimum) then
        exponentialDiskBesselFactorPotential=1.0d0+(eulersConstant-ln2+log(halfRadius))*halfRadius**2
     else
-       !$ call OMP_Set_Lock(self%potentialLock)
        call self%tabulate()
        exponentialDiskBesselFactorPotential=self%potentialTable%interpolate(halfRadius)
-       !$ call OMP_Unset_Lock(self%potentialLock)
     end if
     return
   end function exponentialDiskBesselFactorPotential
@@ -689,7 +670,6 @@ contains
        exponentialDiskBesselFactorRotationCurve=(ln2-eulersConstant-0.5d0-log(halfRadius))*halfRadius**2
        return
     end if
-    !$ call OMP_Set_Lock(self%rotationCurveLock)
     if (.not.self%rotationCurveInitialized) then
        makeTable=.true.
     else
@@ -723,7 +703,6 @@ contains
     end if
     ! Interpolate in the tabulated function.
     exponentialDiskBesselFactorRotationCurve=self%rotationCurveTable%interpolate(halfRadius)
-    !$ call OMP_Unset_Lock(self%rotationCurveLock)
     return
   end function exponentialDiskBesselFactorRotationCurve
 
@@ -754,7 +733,6 @@ contains
        exponentialDiskBesselFactorRotationCurveGradient=-0.125d0-27.0d0/64.0d0/halfRadius**2
        return
     end if
-    !$ call OMP_Set_Lock(self%rotationCurveGradientLock)
     if     (                                                    &
          &   .not.self%rotationCurveGradientInitialized         &
          &  .or.                                                &
@@ -796,7 +774,6 @@ contains
     end if
     ! Interpolate in the tabulated function.
     exponentialDiskBesselFactorRotationCurveGradient=self%rotationCurveGradientTable%interpolate(halfRadius)
-    !$ call OMP_Unset_Lock(self%rotationCurveGradientLock)
     return
   end function exponentialDiskBesselFactorRotationCurveGradient
 
@@ -1110,7 +1087,7 @@ contains
          !$ call hdf5Access%set()
          hdf5ReadScope: block
            type(hdf5Object) :: file
-           file=hdf5Object      (fileName                     ,readOnly=.true.                 )
+           file=hdf5Object(fileName,readOnly=.true.)
            call file%readDataset('radii'                      ,self%accelerationRadii          )
            call file%readDataset('heights'                    ,self%accelerationHeights        )
            call file%readDataset('accelerationRadial'         ,self%accelerationRadial         )
@@ -1278,7 +1255,7 @@ contains
          !$ call hdf5Access%set()
          hdf5WriteScope: block
            type(hdf5Object) :: file
-           file=hdf5Object       (fileName                                                      ,overWrite=.true.,readOnly=.false.)
+           file=hdf5Object(fileName,overWrite=.true.,readOnly=.false.)
            call file%writeDataset(self%accelerationRadii          ,'radii'                                                        )
            call file%writeDataset(self%accelerationHeights        ,'heights'                                                      )
            call file%writeDataset(self%accelerationRadial         ,'accelerationRadial'                                           )

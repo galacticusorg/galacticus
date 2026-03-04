@@ -489,26 +489,28 @@ contains
     use :: IO_HDF5    , only : hdf5Object
     implicit none
     class           (excursionSetFirstCrossingFarahiMidpointBrownianBridge), intent(inout)               :: self
-    type            (hdf5Object                                           )                              :: dataFile          , dataGroup
     double precision                                                       , allocatable  , dimension(:) :: linearGrowthFactor
     integer                                                                                              :: i
-    
+
     ! Write the primary data.
     call self%excursionSetFirstCrossingFarahiMidpoint%fileWrite()
     ! Don't write anything if neither table is initialized.
     if (.not.self%tableInitializedRate) return
     ! Open the data file.
     !$ call hdf5Access%set()
-    dataFile=hdf5Object(char(self%fileName),overWrite=.false.)
-    ! Check if the rate table is populated.
-    if (self%tableInitializedRate) then
-       allocate(linearGrowthFactor(size(self%timeRate)))
-       do i=1,size(self%timeRate)
-          linearGrowthFactor(i)=self%linearGrowth_%value(time=self%timeRate(i))
-       end do
-       dataGroup=dataFile%openGroup("rate")
-       call dataGroup%writeDataset(linearGrowthFactor,'linearGrowthFactor','The linear growth factors at the times at which results are tabulated.')
-    end if
+    hdf5WriteScope: block
+      type(hdf5Object) :: dataFile, dataGroup
+      dataFile=hdf5Object(self%fileName,overWrite=.false.)
+      ! Check if the rate table is populated.
+      if (self%tableInitializedRate) then
+         allocate(linearGrowthFactor(size(self%timeRate)))
+         do i=1,size(self%timeRate)
+            linearGrowthFactor(i)=self%linearGrowth_%value(time=self%timeRate(i))
+         end do
+         dataGroup=dataFile%openGroup("rate")
+         call dataGroup%writeDataset(linearGrowthFactor,'linearGrowthFactor','The linear growth factors at the times at which results are tabulated.')
+      end if
+    end block hdf5WriteScope
     !$ call hdf5Access%unset()
     return
   end subroutine farahiMidpointBrownianBridgeFileWrite

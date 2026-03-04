@@ -22,7 +22,6 @@ Implements a gravitational lensing output analysis distribution operator class.
 !!}
 
   use :: Gravitational_Lensing, only : gravitationalLensingClass
-  use :: Locks                , only : ompReadWriteLock
   use :: Output_Times         , only : outputTimesClass
 
   type :: grvtnlLnsngTransferMatrix
@@ -56,7 +55,6 @@ Implements a gravitational lensing output analysis distribution operator class.
      type            (grvtnlLnsngTransferMatrix    ), allocatable, dimension(:) :: transfer_
      type            (enumerationLensedPropertyType)                            :: lensedProperty
      double precision                                                           :: sizeSource
-     !$ type         (ompReadWriteLock             ), allocatable, dimension(:) :: tabulateLock
    contains
      final     ::                        grvtnlLnsngDestructor
      procedure :: operateScalar       => grvtnlLnsngOperateScalar
@@ -138,11 +136,7 @@ contains
     if (.not.enumerationLensedPropertyIsValid(lensedProperty_)) call Error_Report('invalid lensedProperty'//{introspection:location})
     self%lensedProperty=lensedProperty_
     ! Allocate transfer matrices for all outputs.
-    allocate   (self%transfer_   (self%outputTimes_%count()))
-    !$ allocate(self%tabulateLock(self%outputTimes_%count()))
-    !$ do i=1,self%outputTimes_%count()
-    !$    self%tabulateLock(i)=ompReadWriteLock()
-    !$ end do
+    allocate(self%transfer_(self%outputTimes_%count()))
     return
   end function grvtnlLnsngConstructorInternal
 
@@ -200,54 +194,48 @@ contains
     !$GLC attributes unused :: node
 
     ! Construct the lensing transfer matrix if not already done.
-    !$ call self%tabulateLock(outputIndex)%setRead()
     if (.not.allocated(self%transfer_(outputIndex)%matrix)) then
-       !$ call self%tabulateLock(outputIndex)%setWrite(haveReadLock=.true.)
-       if (.not.allocated(self%transfer_(outputIndex)%matrix)) then
-          redshift=self%outputTimes_%redshift(outputIndex)
-          allocate(self%transfer_(outputIndex)%matrix(size(propertyValueMinimum),size(propertyValueMinimum)))
-          !$omp parallel private (i,j,k,l,integrator_)
-          allocate(gravitationalLensing_,mold=self%gravitationalLensing_)
-          !$omp critical(analysesGravitationalLensingDeepCopy)
-          !![
-          <deepCopyReset variables="self%gravitationalLensing_"/>
-          <deepCopy source="self%gravitationalLensing_" destination="gravitationalLensing_"/>
-          <deepCopyFinalize variables="gravitationalLensing_"/>
-          !!]
-          !$omp end critical(analysesGravitationalLensingDeepCopy)
-          allocate(integrator_)
-          integrator_=integrator(magnificationCDFIntegrand,toleranceRelative=1.0d-3)
-          !$omp do schedule(dynamic)
-          do l=1,size(propertyValueMinimum)
-             do i=1,2
-                if (i == 1) then
-                   j=l; k_=1
-                else
-                   j=1; k_=l
-                end if
-                self%transfer_(outputIndex)%matrix(j,k_)=+integrator_%integrate( propertyValueMinimum(j),propertyValueMaximum(j)) &
-                     &                                   /                     (+propertyValueMaximum(j)-propertyValueMinimum(j))
-             end do
+       redshift=self%outputTimes_%redshift(outputIndex)
+       allocate(self%transfer_(outputIndex)%matrix(size(propertyValueMinimum),size(propertyValueMinimum)))
+       !$omp parallel private (i,j,k,l,integrator_)
+       allocate(gravitationalLensing_,mold=self%gravitationalLensing_)
+       !$omp critical(analysesGravitationalLensingDeepCopy)
+       !![
+       <deepCopyReset variables="self%gravitationalLensing_"/>
+       <deepCopy source="self%gravitationalLensing_" destination="gravitationalLensing_"/>
+       <deepCopyFinalize variables="gravitationalLensing_"/>
+       !!]
+       !$omp end critical(analysesGravitationalLensingDeepCopy)
+       allocate(integrator_)
+       integrator_=integrator(magnificationCDFIntegrand,toleranceRelative=1.0d-3)
+       !$omp do schedule(dynamic)
+       do l=1,size(propertyValueMinimum)
+          do i=1,2
+             if (i == 1) then
+                j=l; k_=1
+             else
+                j=1; k_=l
+             end if
+             self%transfer_(outputIndex)%matrix(j,k_)=+integrator_%integrate( propertyValueMinimum(j),propertyValueMaximum(j)) &
+                  &                                   /                     (+propertyValueMaximum(j)-propertyValueMinimum(j))
           end do
-          !$omp end do
-          !![
-          <objectDestructor name="gravitationalLensing_"/>
-          !!]
-          deallocate(integrator_)
-          !$omp end parallel
-          do j=2,size(propertyValueMinimum)
-             do k=2,size(propertyValueMinimum)
-                ! Transfer matrix elements are identical along diagonals of the matrix.
-                self       %transfer_(outputIndex)%matrix(j  ,k  )= &
-                     & self%transfer_(outputIndex)%matrix(j-1,k-1)
-             end do
+       end do
+       !$omp end do
+       !![
+       <objectDestructor name="gravitationalLensing_"/>
+       !!]
+       deallocate(integrator_)
+       !$omp end parallel
+       do j=2,size(propertyValueMinimum)
+          do k=2,size(propertyValueMinimum)
+             ! Transfer matrix elements are identical along diagonals of the matrix.
+             self       %transfer_(outputIndex)%matrix(j  ,k  )= &
+                  & self%transfer_(outputIndex)%matrix(j-1,k-1)
           end do
-       end if
-       !$ call self%tabulateLock(outputIndex)%unsetWrite(haveReadLock=.true.)
+       end do
     end if
     ! Apply the lensing transfer matrix.
     distributionNew=matmul(distribution,self%transfer_(outputIndex)%matrix)
-    !$ call self%tabulateLock(outputIndex)%unsetRead()
     return
 
   contains

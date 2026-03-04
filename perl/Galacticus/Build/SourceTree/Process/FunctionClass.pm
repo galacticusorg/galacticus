@@ -3791,56 +3791,6 @@ sub deepCopyDeclarations {
 		}
 	    }
 	}
-	# Reinitialize OpenMP locks.
-	if
-	    (
-	     $declaration->{'intrinsic'} eq "integer"
-	     &&
-	     exists ($declaration->{'type'})
-	     &&
-	     defined($declaration->{'type'})
-	     &&
-	     $declaration->{'type'     } =~ m/^\s*omp_lock_kind\s*$/i
-	    ) {
-		$deepCopy->{'assignments'} .= "!\$ call OMP_Init_Lock(destination\%".$_.")\n"
-		    foreach ( @{$declaration->{'variables'}} );
-	}
-	# Reinitialize OpenMP read/write locks.
-	if
-	    (
-	     $declaration->{'intrinsic'} eq "type"
-	     &&
-	     exists ($declaration->{'type'})
-	     &&
-	     defined($declaration->{'type'})
-	     &&
-	     $declaration->{'type'     } =~ m/^\s*ompReadWriteLock\s*$/i
-	    ) {
-		foreach ( @{$declaration->{'variables'}} ) {
-		    my @dimensions =
-			exists($declaration->{'attributes'})
-			?
-			map {/^dimension\s*\(([:,]+)\)/} @{$declaration->{'attributes'}}
-		    :
-			undef();
-		    if ( @dimensions ) {
-			my @rank = split(",",$dimensions[0]);
-			# Add loop index variables.
-			$deepCopy->{'rankMaximum'} = scalar(@rank)
-			    if ( scalar(@rank) > $deepCopy->{'rankMaximum'} );
-			for(my $i=1;$i<=scalar(@rank);++$i) {
-			    $deepCopy->{'assignments'} .= "!\$ do i".$i."=lbound(destination\%".$_.",dim=".$i."),ubound(destination\%".$_.",dim=".$i.")\n";
-			}
-			$deepCopy->{'assignments'} .= "!\$    call destination\%".$_."(".join(",",map {"i".$_} 1..scalar(@rank)).")%initialize()\n";
-			for(my $i=1;$i<=scalar(@rank);++$i) {
-			    $deepCopy->{'assignments'} .= "!\$ end do\n";
-			}
-		    } else {
-			# Scalar lock.
-			$deepCopy->{'assignments'} .= "!\$ call destination\%".$_."%initialize()\n";
-		    }
-		}
-	}
     }
 }
 

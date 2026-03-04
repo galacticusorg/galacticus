@@ -34,7 +34,6 @@
   use    :: Merger_Tree_Seeds                 , only : mergerTreeSeedsClass
   use    :: Nodes_Operators                   , only : nodeOperatorClass
   use    :: Numerical_Random_Numbers          , only : randomNumberGeneratorClass
-  !$ use :: OMP_Lib                           , only : omp_lock_kind
   use    :: Output_Times                      , only : outputTimes                        , outputTimesClass
   use    :: Satellite_Merging_Timescales      , only : satelliteMergingTimescalesClass
   use    :: Virial_Orbits                     , only : virialOrbitClass
@@ -262,7 +261,6 @@
      double precision                                            , allocatable, dimension(:) :: outputTimes
      integer         (c_size_t                                  ), allocatable, dimension(:) :: descendantLocations                              , nodeLocations
      integer         (kind_int8                                 ), allocatable, dimension(:) :: descendantIndicesSorted                          , nodeIndicesSorted
-     !$ integer      (omp_lock_kind                             )                            :: splitForestLock
      integer                                                                                 :: splitForestActiveForest
      integer         (c_size_t                                  )                            :: splitForestNextTree                              , splitForestUniqueID
      integer         (c_size_t                                  ), allocatable, dimension(:) :: splitForestTreeSize                              , splitForestTreeStart               , &
@@ -706,10 +704,9 @@ contains
     !!{
     Internal constructor for the \refClass{mergerTreeConstructorRead} merger tree constructor class.
     !!}
-    use    :: Display                    , only : displayMagenta, displayReset
-    use    :: Error                      , only : Error_Report  , Warn
-    use    :: Numerical_Constants_Boolean, only : booleanFalse  , booleanTrue
-    !$ use :: OMP_Lib                    , only : OMP_Init_Lock
+    use :: Display                    , only : displayMagenta, displayReset
+    use :: Error                      , only : Error_Report  , Warn
+    use :: Numerical_Constants_Boolean, only : booleanFalse  , booleanTrue
     implicit none
     type            (mergerTreeConstructorRead                 )                              :: self
     class           (cosmologyFunctionsClass                   ), intent(in   ), target       :: cosmologyFunctions_
@@ -897,8 +894,6 @@ contains
          &                   " [presetAngularMomenta3D]=false"                                                    // &
          &                     {introspection:location}                                                              &
          &                  )
-    ! Create an OpenMP lock that will allow threads to coordinate access to split forest data.
-    !$ call OMP_Init_Lock(self%splitForestLock)
     ! Create named datasets if necessary.
     if     (                                    &
          &   size(self%presetNamedReals   ) > 0 &
@@ -954,20 +949,19 @@ contains
     !!{
     Construct a merger tree by reading its definition from file.
     !!}
-    use    :: Array_Utilities           , only : operator(.intersection.)
-    use    :: Arrays_Search             , only : searchArrayClosest
-    use    :: Functions_Global          , only : State_Retrieve_                  , State_Store_
-    use    :: Error                     , only : Component_List                   , Error_Report
-    use    :: Galacticus_Nodes          , only : defaultDarkMatterProfileComponent, defaultPositionComponent, defaultSatelliteComponent, defaultSpinComponent, &
-          &                                      mergerTree                       , treeNodeList
-    use    :: Merger_Tree_Read_Importers, only : nodeData                         , nodeDataMinimal
-    use    :: Merger_Tree_State_Store   , only : treeStateStoreSequence
-    use    :: Merger_Tree_Walkers       , only : mergerTreeWalkerAllNodes
-    use    :: Numerical_Comparison      , only : Values_Agree
-    !$ use :: OMP_Lib                   , only : OMP_Unset_Lock
-    use    :: Sorting                   , only : sort
-    use    :: String_Handling           , only : operator(//)
-    use    :: Vectors                   , only : Vector_Magnitude                 , Vector_Product
+    use :: Array_Utilities           , only : operator(.intersection.)
+    use :: Arrays_Search             , only : searchArrayClosest
+    use :: Functions_Global          , only : State_Retrieve_                  , State_Store_
+    use :: Error                     , only : Component_List                   , Error_Report
+    use :: Galacticus_Nodes          , only : defaultDarkMatterProfileComponent, defaultPositionComponent, defaultSatelliteComponent, defaultSpinComponent, &
+         &                                    mergerTree                       , treeNodeList
+    use :: Merger_Tree_Read_Importers, only : nodeData                         , nodeDataMinimal
+    use :: Merger_Tree_State_Store   , only : treeStateStoreSequence
+    use :: Merger_Tree_Walkers       , only : mergerTreeWalkerAllNodes
+    use :: Numerical_Comparison      , only : Values_Agree
+    use :: Sorting                   , only : sort
+    use :: String_Handling           , only : operator(//)
+    use :: Vectors                   , only : Vector_Magnitude                 , Vector_Product
     implicit none
     type            (mergerTree               ), pointer                              :: tree
     class           (mergerTreeConstructorRead), intent(inout)                        :: self
@@ -1364,9 +1358,6 @@ contains
                 deallocate(self%splitForestMapIndex )
              end if
           end if
-          ! Release the lock on split forest data if necessary as we're finished using it. This allows other threads to begin
-          ! using the split forest data.
-          !$ if (self%forestSizeMaximum > 0) call OMP_Unset_Lock(self%splitForestLock)
           ! Search for any nodes which were flagged as merging with another node and assign appropriate pointers.
           call self%assignMergers           (nodes,nodeList)
           ! Find cases where something that was a subhalo stops being a subhalo and add events to handle.
