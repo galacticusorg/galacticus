@@ -118,7 +118,7 @@ contains
     use :: Display         , only : displayCounter              , displayCounterClear  , displayIndent       , displayMessage, &
           &                         displayUnindent             , verbosityLevelWorking
     use :: Error_Functions , only : Error_Function_Complementary
-    use :: File_Utilities  , only : File_Lock                   , File_Unlock          , lockDescriptor
+    use :: File_Utilities  , only : File_Lock                   , File_Unlock          , lockDescriptor      , File_Exists
     use :: Kind_Numbers    , only : kind_dble                   , kind_quad
     use :: MPI_Utilities   , only : mpiBarrier                  , mpiSelf
     use :: Numerical_Ranges, only : Make_Range                  , rangeTypeLinear      , rangeTypeLogarithmic
@@ -170,9 +170,9 @@ contains
     ! Read tables from file if possible.
     do i=1,2
        makeTable=.not.self%tableInitialized.or.(variance > self%varianceMaximum*(1.0d0+varianceTolerance)).or.(time < self%timeMinimum).or.(time > self%timeMaximum)
-       if (i == 1 .and. self%useFile .and. makeTable) then
-          call self%fileNameInitialize()
-          call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
+       call self%fileNameInitialize()
+       if (i == 1 .and. self%useFile .and. makeTable .and. File_Exists(self%fileName)) then
+          call File_Lock(self%fileName,fileLock,lockIsShared=.true.)
           call self%fileRead()
           call File_Unlock(fileLock)
        else
@@ -185,8 +185,8 @@ contains
     if (makeTable) then
        !$omp critical(farahiMidpointProbabilityTabulate)
        ! Attempt to read the file again now that we are within the critical section. If another thread made the file while we were waiting we may be able to skip building the table.
-       if (self%useFile) then
-          call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
+       if (self%useFile .and. File_Exists(self%fileName)) then
+          call File_Lock(self%fileName,fileLock,lockIsShared=.true.)
           call self%fileRead()
           call File_Unlock(fileLock)
        end if
@@ -431,7 +431,7 @@ contains
           &                         displayMessage              , displayReset         , displayUnindent     , displayVerbosity, &
           &                         verbosityLevelWarn          , verbosityLevelWorking
     use :: Error_Functions , only : Error_Function_Complementary
-    use :: File_Utilities  , only : File_Lock                   , File_Unlock          , lockDescriptor
+    use :: File_Utilities  , only : File_Lock                   , File_Unlock          , lockDescriptor      , File_Exists
     use :: Kind_Numbers    , only : kind_dble                   , kind_quad
     use :: MPI_Utilities   , only : mpiBarrier                  , mpiSelf
     use :: Numerical_Ranges, only : Make_Range                  , rangeTypeLinear      , rangeTypeLogarithmic
@@ -519,8 +519,8 @@ contains
     !! the table needs to be remade.
     do i=1,2
        makeTable=.not.self%tableInitializedRate.or.(varianceProgenitor > self%varianceMaximumRate*(1.0d0+varianceTolerance)).or.(time < self%timeMinimumRate).or.(time > self%timeMaximumRate)
-       if (i == 1 .and. self%useFile .and. makeTable) then
-          call self%fileNameInitialize()
+       call self%fileNameInitialize()
+       if (i == 1 .and. self%useFile .and. makeTable .and. File_Exists(self%fileName)) then
           call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
           call self%fileRead()
           call File_Unlock(fileLock)
@@ -534,7 +534,7 @@ contains
     if (makeTable.or.self%retabulateRateNonCrossing) then
        !$omp critical(farahiMidpointRateTabulate)
        ! Attempt to read the file again now that we are within the critical section. If another thread made the file while we were waiting we may be able to skip building the table.
-       if (self%useFile) then
+       if (self%useFile .and. File_Exists(self%fileName)) then
           call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
           call self%fileRead()
           call File_Unlock(fileLock)

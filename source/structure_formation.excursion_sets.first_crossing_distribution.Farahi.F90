@@ -410,7 +410,7 @@ contains
     use :: Display         , only : displayCounter              , displayCounterClear  , displayIndent       , displayMessage, &
           &                         displayUnindent             , verbosityLevelWorking
     use :: Error_Functions , only : Error_Function_Complementary
-    use :: File_Utilities  , only : File_Lock                   , File_Unlock          , lockDescriptor
+    use :: File_Utilities  , only : File_Lock                   , File_Unlock          , lockDescriptor      , File_Exists
     use :: Kind_Numbers    , only : kind_dble                   , kind_quad
     use :: MPI_Utilities   , only : mpiBarrier                  , mpiSelf
     use :: Numerical_Ranges, only : Make_Range                  , rangeTypeLinear      , rangeTypeLogarithmic
@@ -456,8 +456,8 @@ contains
     !  ΔS[t,S₁,S₂]       = self%varianceResidual        (self%time(iTime),0,S1,S2                    )
     
     ! Read tables from file if possible.
-    if (self%useFile.and..not.self%tableInitialized) then
-       call self%fileNameInitialize()
+    call self%fileNameInitialize()
+    if (self%useFile .and. .not.self%tableInitialized .and. File_Exists(self%fileName)) then
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(self%fileName,fileLock,lockIsShared=.true.)
        call self%fileRead()
@@ -471,8 +471,7 @@ contains
     if (makeTable) then
        !$omp critical(farahiProbabilityTabulate)
        ! Attempt to read the file again now that we are within the critical section. If another thread made the file while we were waiting we may be able to skip building the table.
-       if (self%useFile) then
-          call self%fileNameInitialize()
+       if (self%useFile .and. File_Exists(self%fileName)) then
           call File_Lock(self%fileName,fileLock,lockIsShared=.true.)
           call self%fileRead()
           call File_Unlock(fileLock)
@@ -655,7 +654,7 @@ contains
              if (self%useFile) then
                 call File_Lock(self%fileName,fileLock,lockIsShared=.false.)
                 call self%fileWrite()
-                call File_Unlock(fileLock)
+                call File_Unlock(fileLock,sync=.true.)
              end if
 #ifdef USEMPI
           end if
@@ -855,7 +854,7 @@ contains
     use :: Display         , only : displayCounter              , displayCounterClear  , displayIndent       , displayMessage, &
           &                         displayUnindent             , verbosityLevelWorking
     use :: Error_Functions , only : Error_Function_Complementary
-    use :: File_Utilities  , only : File_Lock                   , File_Unlock          , lockDescriptor
+    use :: File_Utilities  , only : File_Lock                   , File_Unlock          , lockDescriptor      , File_Exists
     use :: Kind_Numbers    , only : kind_dble                   , kind_quad
     use :: MPI_Utilities   , only : mpiBarrier                  , mpiSelf
     use :: Numerical_Ranges, only : Make_Range                  , rangeTypeLinear      , rangeTypeLogarithmic
@@ -925,8 +924,8 @@ contains
 
     ! Determine if we need to make the table.
     ! Read tables from file if possible.
-    if (self%useFile.and..not.self%tableInitializedRate) then
-       call self%fileNameInitialize()
+    call self%fileNameInitialize()
+    if (self%useFile .and. .not.self%tableInitializedRate .and. File_Exists(self%fileName)) then
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(self%fileName,fileLock,lockIsShared=.true.)
        call self%fileRead()
@@ -939,7 +938,7 @@ contains
     if (makeTable.or.self%retabulateRateNonCrossing) then
        !$omp critical(farahiRateTabulate)
        ! Attempt to read the file again now that we are within the critical section. If another thread made the file while we were waiting we may be able to skip building the table.
-       if (self%useFile) then
+       if (self%useFile .and. File_Exists(self%fileName)) then
           call File_Lock(self%fileName,fileLock,lockIsShared=.true.)
           call self%fileRead()
           call File_Unlock(fileLock)
@@ -1275,7 +1274,7 @@ contains
              if (self%useFile) then
                 call File_Lock(self%fileName,fileLock,lockIsShared=.false.)
                 call self%fileWrite()
-                call File_Unlock(fileLock)
+                call File_Unlock(fileLock,sync=.true.)
              end if
 #ifdef USEMPI
           end if
@@ -1315,7 +1314,7 @@ contains
     !$ call hdf5Access%set()
     hdf5FileScope: block
       type(hdf5Object) :: dataFile, dataGroup
-      dataFile=hdf5Object(self%fileName)
+      dataFile=hdf5Object(self%fileName,readOnly=.true.)
       ! Check if the standard table is populated.
       if (dataFile%hasGroup('probability')) then
          ! Deallocate arrays if necessary.
